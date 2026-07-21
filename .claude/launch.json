@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "talentpool-dev",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && cd /Users/konradgruner/Documents/GitHub/talentpool && exec npm run dev"
+      ],
+      "port": 3000
+    }
+  ]
+}
