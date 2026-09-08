@@ -1,0 +1,480 @@
+cell,row,day,stage,meta_row,grid_start,grid_end,fill,bold,italic,merged,text,state,format,lang,start,end,dur,time_source,n_ranges,grid_matches_text
+L9,9,Samstag,Main Stage,,11:00,11:30,FFFFCD40,B,,L9:N9,Einlass Teilnehmer,rahmen,Einlass,,11:00,11:30,30,grid,0,
+P9,9,Samstag,Startup Stage,,11:00,11:30,FFFFCD40,B,,P9:R9,Einlass Teilnehmer,rahmen,Einlass,,11:00,11:30,30,grid,0,
+D11,11,Freitag,Main Stage,,12:00,12:30,FFFFCD40,B,,D11:F11,Einlass Teilnehmer,rahmen,Einlass,,12:00,12:30,30,grid,0,
+H11,11,Freitag,Startup Stage,,12:00,12:30,FFFFCD40,B,,H11:J11,Einlass Teilnehmer,rahmen,Einlass,,12:00,12:30,30,grid,0,
+L11,11,Samstag,Main Stage,,12:00,12:30,FF5454C5,B,,,OPENING,fixblock-cheftreff,Opening,,12:00,12:30,30,grid,0,
+M11,11,Samstag,Leadership & Growth Stage,,12:00,12:30,FFB6D7A8,B,,,"12:00-12:25
+Brian Tomlinson
+Keynote DE
+Lead yourself first - Who am I as a leader?",inhalt,Keynote,DE,12:00,12:25,25,text,1,True
+P11,11,Samstag,Startup Stage,,12:00,12:30,FFCCCCCC,,,,12:00 – 12:25 | Optional,platzhalter/unklar,,,12:00,12:25,25,text,1,True
+R11,11,Samstag,Impact & Tech Stage,,12:00,12:30,FF00FF00,,,,"12:00 - 12:25 | 
+Venture Studio – die Experten für Geschäftsmodell-Gestaltung
+Göran Göhring & Stefan Schumacher next mobility labs",inhalt,,,12:00,12:25,25,text,1,True
+L12,12,Samstag,Main Stage,,12:30,13:00,,B,I,,"
+Keynote = 12.00-12.30 // JH Kalinowski
+
+AWARD = 12.30 - 13.00",inhalt,Award,,12:00,13:00,60,text,2,False
+M12,12,Samstag,Leadership & Growth Stage,,12:30,13:00,FFB6D7A8,B,,,"12:30-12:55
+Lena Cassel
+Live-Podcast DE
+Live-Podcast mit Lena Cassel: Mut, Mindset & Männerwelt - Lenas Weg im Sportjournalismus",inhalt,Live-Podcast,DE,12:30,12:55,25,text,1,True
+P12,12,Samstag,Startup Stage,,12:30,13:00,FF00FF00,,,,12:30 – 13:00 | Keynote: Constantin Eis (CMBlu Energy),inhalt,Keynote,,12:30,13:00,30,text,1,True
+R12,12,Samstag,Impact & Tech Stage,,12:30,13:00,FF00FF00,B,,,"12:30-13:00
+Keynote Felix Schlenther",inhalt,Keynote,,12:30,13:00,30,text,1,True
+D13,13,Freitag,Main Stage,,13:00,13:30,FF5454C5,B,,,"Slot 1/27
+OPENING",fixblock-cheftreff,Opening,,13:00,13:30,30,grid,0,
+J13,13,Freitag,Impact & Tech Stage,,13:00,13:30,,,,,"13:30-14:00
+1KOMMA5° - Zwischen Impact, Life-Style Brand und Clean-Tech-Start-Up
+OPENING: 
+Sophia Rödiger und Patrick Schnitzler",inhalt,Opening,,13:30,14:00,30,text,1,False
+L13,13,Samstag,Main Stage,,13:00,13:30,FFD9EAD3,B,I,,"13:00  -13:10 13:10- 13:35 
+Handelskammer Panel
+""Hamburg 2040 - eine Stadt denkt zukunft""
+Malte Heyne + Katharina Fegebank + TBA",inhalt,Panel,,13:00,13:35,35,text,2,True
+M13,13,Samstag,Leadership & Growth Stage,,13:00,13:30,FFD9EAD3,B,,,"13:00-13:25
+Karin Lausch
+Fireside Chat DE
+Vertrauen als Leadership‑Skill - Warum Mut eine Entscheidung ist",inhalt,Fireside Chat,DE,13:00,13:25,25,text,1,True
+N13,13,Samstag,Industry Stage,,13:00,13:30,FF00FF00,B,,,"13:00-13:30
+Digitale Optimisten 
+Keynote
+Alexander Mrozek
+Titel: ""10x oder irrelevant? Wie KI Organisationen verändert und was du jetzt tun kannst.""
+",inhalt,Keynote,,13:00,13:30,30,text,1,True
+P13,13,Samstag,Startup Stage,,13:00,13:30,FFD9EAD3,,,,13:00 – 13:20 | Keynote: Plancraft,inhalt,Keynote,,13:00,13:20,20,text,1,True
+R13,13,Samstag,Impact & Tech Stage,,13:00,13:30,FF00FF00,B,,,"13:30-14:00
+Keynote
+Zina Efchary
+ Co-Founder Myranda
+Titel: ""The Algorithm Knows you. Time for you to Know it.""
+
+",inhalt,Keynote,,13:30,14:00,30,text,1,False
+D14,14,Freitag,Main Stage,,13:30,14:00,FF00FF00,B,I,,"13:30 - 13:40 - 10 min Keynote
+
+Malte Kosub
+
+The Parloa Story – You Only Need One Yes",inhalt,Keynote,,13:30,13:40,10,text,1,True
+E14,14,Freitag,Leadership & Growth Stage,,13:30,14:00,FFD9EAD3,B,,,"13:30 - 14:00 - Keynote EN
+
+Deborah Caulet
+
+Confidence-The By-product of Action",inhalt,Keynote,EN,13:30,14:00,30,text,1,True
+F14,14,Freitag,Industry Stage,,13:30,14:00,FF00FF00,B,I,,"13:30-14:00
+Crossnative 
+Keynote 
+Ronny Kant, Joanna Parafiska
+Titel: ""Hyperautomation - Das nächste Level der Digitalen Transformation""",inhalt,Keynote,,13:30,14:00,30,text,1,True
+H14,14,Freitag,Startup Stage,,13:30,14:00,FFD9EAD3,,,,"13:30 – 14:00 
+Opening with Arik Willner",inhalt,Opening,,13:30,14:00,30,text,1,True
+I14,14,Freitag,ZEIT:Future Forum,,13:30,14:00,,,,,"Gebuchter Slot 1/8
+die Zeit",partner-platzhalter,,,13:30,14:00,30,grid,0,
+J14,14,Freitag,Impact & Tech Stage,,13:30,14:00,FF93C47D,,,,"14:00-14:30
+Gemeinsam bewegen: Sport, Purpose & Leadership
+Vanessa Dziatzko, Florian Becker",inhalt,,,14:00,14:30,30,text,1,False
+L14,14,Samstag,Main Stage,,13:30,14:00,,B,I,,"Slot #3
+TBD
+
+13:35 - 13:50",platzhalter/unklar,,,13:35,13:50,15,text,1,False
+M14,14,Samstag,Leadership & Growth Stage,,13:30,14:00,FFD9EAD3,B,,,"13:30-13:55
+Dr. Wolfgang Grüninger
+Keynote DE
+Quit your Bullshit Job! – Warum du deinen Job kündigen solltest",inhalt,Keynote,DE,13:30,13:55,25,text,1,True
+N14,14,Samstag,Industry Stage,,13:30,14:00,FF00FF00,B,,,"13:30-14:00
+Nina Michahelles & Christine Prauschke
+Live Podcast
+TiteL: ""Career Path navigation - how to set yourself up for a fulfilling career""",inhalt,Live-Podcast,,13:30,14:00,30,text,1,True
+P14,14,Samstag,Startup Stage,,13:30,14:00,FF00FF00,,,,13:30 – 14:00 | ESA Panel 1,inhalt,Panel,,13:30,14:00,30,text,1,True
+R14,14,Samstag,Impact & Tech Stage,,13:30,14:00,FF00FF00,,,,"- Stranger Skills - Die Fähigkeiten, die im Studium niemand erwähnt
+
+Keynote Robin Marsch
+CCO Velp Tech
+
+",inhalt,Keynote,,13:30,14:00,30,grid,0,
+D15,15,Freitag,Main Stage,,14:00,14:30,FF00FF00,B,I,,"13:40 - 14:15 - 35 min - Panel
+
+Dr. Jens Baas, TK
+Dr. Katrin Suder
+Malte Kosub
+
+Move Fast, Stay Responsible – AI Transformation When Failure Is Not an Option
+",inhalt,Panel,,13:40,14:15,35,text,1,False
+E15,15,Freitag,Leadership & Growth Stage,,14:00,14:30,FFD9EAD3,B,,,"14:00 - 14:30 - Keynote DE
+
+Dominique Jäger
+
+Business mit Haltung- Wie Diversity Unternehmen stärker und erfolgreicher macht (working title)",inhalt,Keynote,DE,14:00,14:30,30,text,1,True
+F15,15,Freitag,Industry Stage,,14:00,14:30,FF00FF00,B,,,"14:00-14:30
+Tobias Zimermann
+Impuls
+TItel: ""State of Industries 2026 – Where the Jobs Are And Opportunities Arise""
+Beschreibung: ""Der Arbeitsmarkt verändert sich rasant – aber wo genau entstehen die Chancen? In dieser Keynote liefern wir einen datenbasierten Überblick über die Branchen, die 2026 boomen, wo Talente am stärksten gesucht werden und welche Skills den Unterschied machen. Mit aktuellen Zahlen, Trends und Prognosen aus Recruiting, Talent-Markt und Wirtschaftsforschung – und konkreten Takeaways, die Young Professionals direkt für ihre Karriereplanung nutzen können.""",inhalt,Impuls,,14:00,14:30,30,text,1,True
+H15,15,Freitag,Startup Stage,,14:00,14:30,FF00FF00,,,,"14:00 – 14:30 
+Keynote/Fireside Helmut Schönenberger + Arik Willner
+Scaling Deep Tech – How can Germany win in the global race?""",inhalt,Fireside Chat,,14:00,14:30,30,text,1,True
+I15,15,Freitag,ZEIT:Future Forum,,14:00,14:30,,,,,"Gebuchter Slot 2/8
+die Zeit",partner-platzhalter,,,14:00,14:30,30,grid,0,
+J15,15,Freitag,Impact & Tech Stage,,14:00,14:30,FF93C47D,B,,,"14:30-15:00
+Kann man die Welt retten - mit Schokolade und Schnitzel?
+Hannes Schröder (alsterpavillion), Chris (Nucao), Leoni Lencinas",inhalt,,,14:30,15:00,30,text,1,False
+L15,15,Samstag,Main Stage,,14:00,14:30,FF00FF00,B,I,,"13:55 - 14:20 
+Keynote mit Ilse Henne 
+25 years in corporate = 25 years of constant change",inhalt,Keynote,,13:55,14:20,25,text,1,False
+M15,15,Samstag,Leadership & Growth Stage,,14:00,14:30,FFD9EAD3,B,,,"Ewa de Lubomirz
+Keynote DE
+Titel: Wie du mit Speaking den mächtigsten Skill unserer Zeit nutzt",inhalt,Keynote,DE,14:00,14:30,30,grid,0,
+N15,15,Samstag,Industry Stage,,14:00,14:30,FF00FF00,B,,,"14:00-14:45
+David Döbele, Andreas Klassen, Cihan Sügür
+Podcast 
+45 Min 
+Aufstieg durch Leistung? Drei Karrierewege zwischen Fleiß, Talent und Timing",inhalt,Podcast,,14:00,14:45,45,text,1,True
+P15,15,Samstag,Startup Stage,,14:00,14:30,FF00FF00,,,,14:00 – 14:30 | Blocker Space 2,platzhalter/unklar,,,14:00,14:30,30,text,1,True
+R15,15,Samstag,Impact & Tech Stage,,14:00,14:30,FF00FF00,,I,,"Titel Pending
+Alexander Britz
+Microsoft",platzhalter/unklar,,,14:00,14:30,30,grid,0,
+D16,16,Freitag,Main Stage,,14:30,15:00,FF00FF00,B,I,,"14:15 - 14:45 - Keynote
+
+Wil van der Aalst
+
+Why AI Fails – and How Companies Finally Make It Pay Off",inhalt,Keynote,,14:15,14:45,30,text,1,False
+E16,16,Freitag,Leadership & Growth Stage,,14:30,15:00,FFD9EAD3,B,,,"14:30 - 15:00 - Keynote EN
+
+Cosima Gulde
+
+Suddenly in charge - being a teamlead at young age",inhalt,Keynote,EN,14:30,15:00,30,text,1,True
+F16,16,Freitag,Industry Stage,,14:30,15:00,FF00FF00,B,,,"14:30-15:00
+Personalamt Hamburg 
+Keynote 
+Volker Wiedemann
+Titel: ""Next Generation Public Service: Deine Rolle in der Verwaltung von morgen""",inhalt,Keynote,,14:30,15:00,30,text,1,True
+H16,16,Freitag,Startup Stage,,14:30,15:00,FF00FF00,,,,"14:30 – 15:00 
+ Panel with Petra Scharner-Wolff and Florian Heinemann
+Corporate x Startup: Building a strong future together",inhalt,Panel,,14:30,15:00,30,text,1,True
+I16,16,Freitag,ZEIT:Future Forum,,14:30,15:00,,,,,"Gebuchter Slot 3/8
+die Zeit",partner-platzhalter,,,14:30,15:00,30,grid,0,
+J16,16,Freitag,Impact & Tech Stage,,14:30,15:00,FF93C47D,B,,,"15:00-15:30
+Gen Z x Millennials - Wie sich die Arbeitswelt geändert hat
+Carsten Buchberger, Ivana Tadic",inhalt,,,15:00,15:30,30,text,1,False
+L16,16,Samstag,Main Stage,,14:30,15:00,FFD9EAD3,B,,,"14:20 - 14:45 
+Sven Weizenegger
+Zeitenwende konkret – Was Deutschland jetzt für seine Sicherheit tun muss",inhalt,Ende,,14:20,14:45,25,text,1,False
+M16,16,Samstag,Leadership & Growth Stage,,14:30,15:00,FFD9EAD3,B,,,"14:30-14:55
+Carolin Adler
+Keynote DE
+Stop Managing. Start Moving People. Die Neuropsychologie wirksamer Führung",inhalt,Keynote,DE,14:30,14:55,25,text,1,True
+N16,16,Samstag,Industry Stage,,14:30,15:00,FF00FF00,B,,,"14:45-15:15
+Tembo Research 
+Christian Gieger
+""Kaufen statt Gründen: Der alternative Weg zum eigenen Unternehmen"" 
+Keynote
+(henni) ",inhalt,Keynote,,14:45,15:15,30,text,1,False
+P16,16,Samstag,Startup Stage,,14:30,15:00,FF00FF00,,,,"14:30 – 15:00 angela relogio
+Synchronizing Clocks: From Circadian Biology to Entrepreneurship",inhalt,,,14:30,15:00,30,text,1,True
+R16,16,Samstag,Impact & Tech Stage,,14:30,15:00,FF00FF00,,,,"Oliver Gebien - CIO SportFive
+ Titel: There is no finish line - Karriere und Leadership in Tech. Perspektiven eines CIO",inhalt,,,14:30,15:00,30,grid,0,
+D17,17,Freitag,Main Stage,,15:00,15:30,FF00FF00,B,I,,"14:45 - 15:10 - Keynote
+
+Julius van de Laar
+
+Movements > Marketing – Was Startups von Wahlkampfkampagnen lernen können",inhalt,Keynote,,14:45,15:10,25,text,1,False
+E17,17,Freitag,Leadership & Growth Stage,,15:00,15:30,FFD9EAD3,B,,,"15:00 - 15:30 - Keynote DE
+
+Ragnhild Struss
+
+Potenzial schlägt Prompt: Wie du in der KI-Ära unersetzlich wirst",inhalt,Keynote,DE,15:00,15:30,30,text,1,True
+F17,17,Freitag,Industry Stage,,15:00,15:30,FF00FF00,B,,,"15:00-15:30
+Porsche
+Keynote
+Tobias Wulfkuhle
+Titel: ""Raus aus der Komfortzone: Was Hochleistungssport mit Karriere verbindet""",inhalt,Keynote,,15:00,15:30,30,text,1,True
+H17,17,Freitag,Startup Stage,,15:00,15:30,FF00FF00,,,,"15:00 – 15:30 
+Panel with Sebastian Pollok and Dorothea Ringe
+Growth Stage: How Foundations and VCs Drive Deep Tech",inhalt,Panel,,15:00,15:30,30,text,1,True
+I17,17,Freitag,ZEIT:Future Forum,,15:00,15:30,,,,,"Gebuchter Slot 4/8
+die Zeit",partner-platzhalter,,,15:00,15:30,30,grid,0,
+J17,17,Freitag,Impact & Tech Stage,,15:00,15:30,FF93C47D,B,,,"15:30-16:00
+Haltung oder Hashtag? Wie politisch dürfen Unternehmen sein?
+Christoph Bautz, Cawa Younosi",inhalt,,,15:30,16:00,30,text,1,False
+L17,17,Samstag,Main Stage,,15:00,15:30,FFD9EAD3,B,,,"14:45 - 15:10 
+Elisabeth L'Orange",inhalt,,,14:45,15:10,25,text,1,False
+M17,17,Samstag,Leadership & Growth Stage,,15:00,15:30,FFD9EAD3,B,,,"Nale Lehmann-Willenbrock
+Keynote DE
+Führung ist keine Einbahnstraße: wie echter Einfluss heute wirklich funktioniert",inhalt,Keynote,DE,15:00,15:30,30,grid,0,
+N17,17,Samstag,Industry Stage,,15:00,15:30,FF00FF00,B,,,"15:15-15:45
+Viessmann 
+Keynote
+Christopher Müller
+Titel: ""Die Wärmewende: Eines der wichtigsten Spielfelder unserer Generation – und vielleicht das unterschätzteste!""",inhalt,Keynote,,15:15,15:45,30,text,1,False
+P17,17,Samstag,Startup Stage,,15:00,15:30,FF00FF00,,,,15:00 – 15:20 | Keynote: Dr. Hendrik Susemihl (goodBytz) ,inhalt,Keynote,,15:00,15:20,20,text,1,True
+R17,17,Samstag,Impact & Tech Stage,,15:00,15:30,FF00FF00,,,,"Sahra Al-Dujaili, Female Leader in Tech
+Titel: Leadership in der Tech-Welt: Warum Emotionale Intelligenz der unterschätzte Karrierefaktor ist",inhalt,,,15:00,15:30,30,grid,0,
+D18,18,Freitag,Main Stage,,15:30,16:00,FF00FF00,B,I,,"15:10 - 15:40 - Keynote
+
+Saygin Yalcin
+
+Survive the AI Hype – Die Geschäftsmodelle von morgen und wie man aus Krisen gestärkt hervorgeht",inhalt,Keynote,,15:10,15:40,30,text,1,False
+E18,18,Freitag,Leadership & Growth Stage,,15:30,16:00,FFD9EAD3,B,,,"15:30 - 16:00 - Keynote DE
+
+Raphaela Susanna Knorr
+
+Becoming Micro-Famous: Wie du dir eine Personal Brand auf Social Media aufbaust, die wirklich wirkt",inhalt,Keynote,DE,15:30,16:00,30,text,1,True
+F18,18,Freitag,Industry Stage,,15:30,16:00,FF00FF00,B,,,"15:30-16:15
+Hamburg Invest (Henni) 
+Panel
+""Hamburg als internationaler Karrierestandort in der Luftfahrt"" 
+ggf. 45 Min ",inhalt,Panel,,15:30,16:15,45,text,1,True
+H18,18,Freitag,Startup Stage,,15:30,16:00,FF00FF00,,,,"15:30 – 16:05 
+Keynote Dr. Robert Axmann (DLR) + Panel mit corey O meara & Sabrina Patsch (Heise)
+""Quantum & Leadership – How Quantum Computing Changes Everything""",inhalt,Panel,,15:30,16:05,35,text,1,True
+I18,18,Freitag,ZEIT:Future Forum,,15:30,16:00,,,,,"Gebuchter Slot 5/8
+die Zeit",partner-platzhalter,,,15:30,16:00,30,grid,0,
+J18,18,Freitag,Impact & Tech Stage,,15:30,16:00,FF93C47D,B,,,"16:00-16:30
+Marketing einer neuen Generation (Wertebewusster, Schnellebiger)
+Hans Neubert, Canel Deitmer, Per Ledermann",inhalt,,,16:00,16:30,30,text,1,False
+L18,18,Samstag,Main Stage,,15:30,16:00,FFD9EAD3,B,,,"15:10 - 15:45
+Stefan Müller + Panel",inhalt,Panel,,15:10,15:45,35,text,1,False
+M18,18,Samstag,Leadership & Growth Stage,,15:30,16:00,FFD9EAD3,B,,,"15:30-15:55
+ Nike Lorenz
+Keynote DE
+Ein Leben nach Olympia: Ambitionen haben, ohne sich dabei zu verlieren",inhalt,Keynote,DE,15:30,15:55,25,text,1,True
+N18,18,Samstag,Industry Stage,,15:30,16:00,FF00FF00,B,,,"15:45-16:15
+Edeka 
+Keynote
+Christopher Schmidt
+Titel: ""Digitalisierung, die bei dir ankommt - wie Edeka den Alltag von Millionen verändert. """,inhalt,Keynote,,15:45,16:15,30,text,1,False
+P18,18,Samstag,Startup Stage,,15:30,16:00,FF00FF00,,,,15:20 – 15:50 | Robotic Panel: Hendrik Susemihl + Werner Kraus ,inhalt,Panel,,15:20,15:50,30,text,1,False
+R18,18,Samstag,Impact & Tech Stage,,15:30,16:00,FF00FF00,B,,,"How to build a winning Software Company in 2026
+Dr. Markus Wübben
+Entrepreneur & Advisor",inhalt,,,15:30,16:00,30,grid,0,
+D19,19,Freitag,Main Stage,,16:00,16:30,FF00FF00,B,,,"15:40 - 16:10 - Keynote
+
+Marcel de Groot
+
+Leadership ohne Filter: Infrastruktur. Verantwortung. Zukunft",inhalt,Keynote,,15:40,16:10,30,text,1,False
+E19,19,Freitag,Leadership & Growth Stage,,16:00,16:30,FFD9EAD3,B,,,"16:00 - 16:45 - Fireside Chat DE
+
+Emma Isadora Hagen
+
+TSichtbar reicht nicht - Wie aus Personal Branding ein skalierbares Business wird",inhalt,Fireside Chat,DE,16:00,16:45,45,text,1,True
+F19,19,Freitag,Industry Stage,,16:00,16:30,FF00FF00,B,,,"16:15-16:45
+Publicis
+Interview (durch uns)
+Bettina Prange
+Titel: ""What It Takes to Lead an Industry – Behind the Scenes of the Agency of the Year 2025""",inhalt,Interview,,16:15,16:45,30,text,1,False
+H19,19,Freitag,Startup Stage,,16:00,16:30,FF00FF00,,,,"16:05 – 16:35 | Panel, IFB
+
+Founder Stories – Start, Challenges & Success
+Panel mit 2x IFB, 1x Founder SCAILE & Anne Lamp (traceless)",inhalt,Panel,,16:05,16:35,30,text,1,False
+I19,19,Freitag,ZEIT:Future Forum,,16:00,16:30,,,,,"Gebuchter Slot 6/8
+die Zeit",partner-platzhalter,,,16:00,16:30,30,grid,0,
+J19,19,Freitag,Impact & Tech Stage,,16:00,16:30,FFFFD966,B,,,"16:30-17:00
+Women in Tech - Was ist bei dem ganzen KI-Wahn noch echt? 
+Anastasia Barner, Xenia?, Dr. Julia Freudeberg",inhalt,,,16:30,17:00,30,text,1,False
+L19,19,Samstag,Main Stage,,16:00,16:30,FFD9EAD3,B,,,"15:45 - 16:15 
+Jan-Hendrik Goldbeck
+Von Bielefeld in die Welt –
+ how to scale globally (fast)",inhalt,,,15:45,16:15,30,text,1,False
+M19,19,Samstag,Leadership & Growth Stage,,16:00,16:30,FFD9EAD3,B,,,"16:00-16:25
+ Thomas Hinrichs
+Keynote DE
+Building a career in a global company as a German",inhalt,Keynote,DE,16:00,16:25,25,text,1,True
+N19,19,Samstag,Industry Stage,,16:00,16:30,FF00FF00,B,,,"16:15-16:45
+BAT 
+Talk
+Natja Rieber, Sina Gercken
+Titel: ""Future‑Fit Mindsets: The Skills You Need for a Career That Won’t Expire""
+Beschreibung: ""Die Arbeitswelt verändert sich schneller als je zuvor – Technologien, Rollenbilder, Karrierewege und Erwartungen an Talente werden komplett neu geschrieben. Dein Abschluss hat ein Ablaufdatum. Good News: dein Mindset nicht.
+
+In diesem Talk erfährst du:
+
+1. Welche Skills in Zukunft wirklich zählen
+
+2. Wie du in einer Welt voller Wandel Karriere gestaltest
+
+3. Wie du mit (und nicht gegen) KI arbeitest
+
+4. Warum die Zukunft weiblicher wird – aber nicht automatisch fairer
+
+5. Was du von 100 Jahren Corporate Transformation lernen kannst
+
+ 
+
+Am Ende nimmst du mit, was dich wirklich zukunftsfit macht: ein Verständnis dafür, welche Kompetenzen dich unabhängig von Jobtiteln, Technologien und Trends tragen – und wie du deine eigene Rolle in einer Arbeitswelt findest, die sich ständig neu erfindet.""
+",inhalt,Ende,,16:15,16:45,30,text,1,False
+P19,19,Samstag,Startup Stage,,16:00,16:30,FF00FF00,,,,15:50 – 16:20 | Keynote: Florian Birner (Planeteers),inhalt,Keynote,,15:50,16:20,30,text,1,False
+R19,19,Samstag,Impact & Tech Stage,,16:00,16:30,FF00FF00,,,,"Impossible Cloud: Wie man ein Tech Unicorn aus Deutschland baut
+Dr. Christian Kaul
+Co-Founder & CEO Impossible Cloud",inhalt,,,16:00,16:30,30,grid,0,
+D20,20,Freitag,Main Stage,,16:30,17:00,FF00FF00,B,,,"16:10 - 16:30 - Keynote
+
+Katja Groß
+
+Karriere war nie das Ziel: Mit Leidenschaft und Haltung in den Vorstand! ",inhalt,Keynote,,16:10,16:30,20,text,1,False
+E20,20,Freitag,Leadership & Growth Stage,,16:30,17:00,FFD9EAD3,B,,,"16:45 - 17:15 - Fireside Chat EN
+
+Annika in der Beek
+
+From Application to Hiring: Building Careers & Teams in the Age of AI",inhalt,Fireside Chat,EN,16:45,17:15,30,text,1,False
+F20,20,Freitag,Industry Stage,,16:30,17:00,FF00FF00,B,,,"16:45-17:15
+Pilot 
+Panel
+Judith Scholten, Julia Weber, Toni Willkommen
+Titel: ""No Title Needed – Was Karriere wirklich prägt""",inhalt,Panel,,16:45,17:15,30,text,1,False
+H20,20,Freitag,Startup Stage,,16:30,17:00,FF00FF00,,,,16:35 – 17:10 | ESA Keynote,inhalt,Keynote,,16:35,17:10,35,text,1,False
+I20,20,Freitag,ZEIT:Future Forum,,16:30,17:00,,,,,"Gebuchter Slot 7/8
+die Zeit",partner-platzhalter,,,16:30,17:00,30,grid,0,
+J20,20,Freitag,Impact & Tech Stage,,16:30,17:00,FF93C47D,B,,,"17:00-17:30
+Laterale Führung und Verbindung - Führungskräfte der neusten Generation
+Yalung Meng, Lunia Hara",inhalt,,,17:00,17:30,30,text,1,False
+L20,20,Samstag,Main Stage,,16:30,17:00,FFD9EAD3,B,,,"16:15 - 16:45 
+Fireside-Chat mit Pip Klöckner",inhalt,Fireside Chat,,16:15,16:45,30,text,1,False
+M20,20,Samstag,Leadership & Growth Stage,,16:30,17:00,FFD9EAD3,B,,,"16:30-16:55
+ Tobias Krüger
+Interview DE
+Transformation, Kultur und Hybrides Führen - Tobias Key-Learnings aus 20 Jahren Führungserfahrung
+
+",inhalt,Interview,DE,16:30,16:55,25,text,1,True
+N20,20,Samstag,Industry Stage,,16:30,17:00,FF00FF00,B,,,"16:45-17:15 
+Berenberg
+Keynote
+Walid Esmatyar
+Titel: ""Scaling Smart: Exploring Financing Options for Hypergrowth""",inhalt,Keynote,,16:45,17:15,30,text,1,False
+P20,20,Samstag,Startup Stage,,16:30,17:00,FF00FF00,,,,16:30 – 17:00 | All Female Panel,inhalt,Panel,,16:30,17:00,30,text,1,True
+R20,20,Samstag,Impact & Tech Stage,,16:30,17:00,FFFF9900,,,,A11,platzhalter/unklar,,,16:30,17:00,30,grid,0,
+D21,21,Freitag,Main Stage,,17:00,17:30,FF00FF00,B,,,"16:30 - 16:55 - Keynote
+
+Florian Heinemann
+
+The VC Playbook – So investiert einer der erfolgreichsten Investoren Europas ",inhalt,Keynote,,16:30,16:55,25,text,1,False
+E21,21,Freitag,Leadership & Growth Stage,,17:00,17:30,FFD9EAD3,B,,,"17:15 - 17:45 - Fireside Chat DE
+
+Alex Schlüter
+
+Von Sport schauen zur Sportschau: Dem eigenen Gesicht eine Stimme verleihen",inhalt,Fireside Chat,DE,17:15,17:45,30,text,1,False
+F21,21,Freitag,Industry Stage,,17:00,17:30,FF00FF00,B,,,"17:15-17:45
+Vitamin Well, Sales 'n' Pepper, Factorial 
+Panel 
+Maximilian Hiby-Durst, Lorna Marie Abend, René Niessen Moloney
+Titel: ""Sales: der Skill, der jede Karriere verändert"" ",inhalt,Panel,,17:15,17:45,30,text,1,False
+H21,21,Freitag,Startup Stage,,17:00,17:30,FF00FF00,,,,17:10 – 17:35 | Heike Freund,inhalt,,,17:10,17:35,25,text,1,False
+I21,21,Freitag,ZEIT:Future Forum,,17:00,17:30,,,,,"Gebuchter Slot 8/8
+die Zeit",partner-platzhalter,,,17:00,17:30,30,grid,0,
+J21,21,Freitag,Impact & Tech Stage,,17:00,17:30,FF93C47D,B,,,"17:30-18:00
+How to make Impact great again
+Micha Fritz, Sophia Rödiger, ",inhalt,,,17:30,18:00,30,text,1,False
+L21,21,Samstag,Main Stage,,17:00,17:30,FFD9EAD3,B,,,"16:45 - 17:10  
+Fireside-Chat mit Jan Götz & Philipp Westermeyer",inhalt,Fireside Chat,,16:45,17:10,25,text,1,False
+M21,21,Samstag,Leadership & Growth Stage,,17:00,17:30,FFD9EAD3,B,,,"17:00-17:25
+ Till Wahnbaeck
+Keynote ENG
+Building something with Impact: Good Leadership - Leadership for Good",inhalt,Keynote,EN,17:00,17:25,25,text,1,True
+N21,21,Samstag,Industry Stage,,17:00,17:30,FF00FF00,B,,,"17:15-17:45
+Stephan Baier
+Keynote
+Titel: ""Austauschbar. Wie du es nicht wirst.""
+Beschreibung: ""Mit 42 jüngster Partner einer der größten deutschen Beratungen. Erster Exit direkt nach dem Studium. Heute KI-Gründer und Host von ""Business ohne Bullshit.""  Stephan Baier hat eine Formel gefunden, die erklärt, warum manche Karrieren explodieren und andere im System verschwinden - und sie hat nichts mit Leistung zu tun. """,inhalt,Keynote,,17:15,17:45,30,text,1,False
+P21,21,Samstag,Startup Stage,,17:00,17:30,FF00FF00,B,,,"17:00 – 17:30 | Startup Pitch Battle Finale
+",inhalt,Pitch,,17:00,17:30,30,text,1,True
+R21,21,Samstag,Impact & Tech Stage,,17:00,17:30,FF00FF00,,,,"The rules have changed. Here’s how to win anyway
+
+Make.com
+Fabian Veit, CEO",inhalt,,,17:00,17:30,30,grid,0,
+D22,22,Freitag,Main Stage,,17:30,18:00,FF00FF00,B,,,"16:55 - 17:30 - Keynote
+
+Michael Otto
+Kerstin Fehrs
+Julia Becker
+
+Werte in der Krise – Wie wir Brücken bauen, wenn die Gesellschaft auseinanderdriftet ",inhalt,Keynote,,16:55,17:30,35,text,1,False
+E22,22,Freitag,Leadership & Growth Stage,,17:30,18:00,FFD9EAD3,B,,,"17:45 - 18:15 - Keynote EN
+
+Dr. Kai Monheim
+
+From Climate Summits to the Boardroom: Negotiation Skills that Scale",inhalt,Keynote,EN,17:45,18:15,30,text,1,False
+F22,22,Freitag,Industry Stage,,17:30,18:00,FF00FF00,B,,,"17:45-18:15
+fischerAppelt 
+Keynote 
+Marius Notter
+Titel: ""Vom Meme-Creator zum Creative Director: Karriere mit Social Culture""",inhalt,Keynote,,17:45,18:15,30,text,1,False
+H22,22,Freitag,Startup Stage,,17:30,18:00,FF00FF00,,,,"17:35 – 18:00
+
+Kerk Wichemann, Uplift Ventures
+""",inhalt,,,17:35,18:00,25,text,1,False
+I22,22,Freitag,ZEIT:Future Forum,,17:30,18:00,,,,,Gebucht,partner-platzhalter,,,17:30,18:00,30,grid,0,
+J22,22,Freitag,Impact & Tech Stage,,17:30,18:00,FFD9EAD3,B,,,"18:00-18:30
+Dataport",inhalt,,,18:00,18:30,30,text,1,False
+L22,22,Samstag,Main Stage,,17:30,18:00,FF00FF00,B,,,"17:10 - 17:30 
+Keynote Moritz Baier-Lentz
+Breaking Barriers: Unleash Your Potential in Studies, Career, and Sports”",inhalt,Keynote,,17:10,17:30,20,text,1,False
+M22,22,Samstag,Leadership & Growth Stage,,17:30,18:00,FFD9EAD3,B,,,"17:30-17:55
+Stefanie Bahr
+Keynote DE
+Der Stuhl ist zu groß. Gut so!
+Selbstführung für Young Leaders: stabil werden, während Du wächst.",inhalt,Keynote,DE,17:30,17:55,25,text,1,True
+P22,22,Samstag,Startup Stage,,17:30,18:00,FFFFCD40,B,,P22:Q22,Ende 18.00 Uhr,rahmen,Ende,,17:30,18:00,30,grid,0,
+R22,22,Samstag,Impact & Tech Stage,,17:30,18:00,FFFFD966,,,,,leer-farbig,,,17:30,18:00,30,grid,0,
+D23,23,Freitag,Main Stage,,18:00,18:30,FF00FF00,B,,,"17:30 - 18:00 - Panel
+
+Judith Dada
+Lennard Schmidt
+
+Raising the Ambition and Building the new European Industries",inhalt,Panel,,17:30,18:00,30,text,1,False
+E23,23,Freitag,Leadership & Growth Stage,,18:00,18:30,FF5454C5,B,,,"18:15
+
+Closing Words Mia & Philipp",fixblock-cheftreff,Closing,,18:00,18:30,30,grid,0,
+F23,23,Freitag,Industry Stage,,18:00,18:30,FF00FF00,B,,,"18:15-18:45
+EY; Allianz, Statista
+Panel
+Denis Day, Alexander Hahn, Lena John
+Titel: ""Sprungbrett in die Führungsetage – Die Rolle des Vorstandsassistent als Karrierebooster"" 
+Beschreibung: ""Millionendeals, strategische Weichenstellungen, Entscheidungen, die ganze Branchen bewegen – all das passiert im Vorstand hinter verschlossenen Türen. Und es gibt eine Rolle, die euch direkten Zugang zu genau diesen Räumen verschafft. Als Vorstandsassistenz sitzt ihr an der Seite derer, die Strategie, Richtung und Zukunft eines Unternehmens bestimmen. Eine Rolle, die so fordernd wie lehrreich ist – und für ambitionierte Talente einer der stärksten Karriere-Booster überhaupt. In diesem Panel erfahrt ihr, was die Position wirklich bedeutet, welche Türen sie öffnet und warum sie der vielleicht smarteste Einstieg in die Unternehmensführung ist.""",inhalt,Panel,,18:15,18:45,30,text,1,False
+H23,23,Freitag,Startup Stage,,18:00,18:30,FFD9EAD3,,,,"
+Manfred Curbach",inhalt,,,18:00,18:30,30,grid,0,
+I23,23,Freitag,ZEIT:Future Forum,,18:00,18:30,,,,,Gebucht,partner-platzhalter,,,18:00,18:30,30,grid,0,
+J23,23,Freitag,Impact & Tech Stage,,18:00,18:30,theme8,,,,Offen ggf. OpenAI,platzhalter/unklar,,,18:00,18:30,30,grid,0,
+L23,23,Samstag,Main Stage,,18:00,18:30,FFD9EAD3,B,,,"17:30 - 18:00 
+Keynote Jan Frodeno
+",inhalt,Keynote,,17:30,18:00,30,text,1,False
+D24,24,Freitag,Main Stage,,18:30,19:00,FF00FF00,B,,,"
+Boris Hermann
+
+
+18:00 - 18:25",inhalt,,,18:00,18:25,25,text,1,False
+F24,24,Freitag,Industry Stage,,18:30,19:00,FF00FF00,B,,,"18:45-19:15
+Sopra Steria
+Keynote
+        Bernd PEPER, Sahra KLUENDER 
+""AI Ready – KI muss der Golden Retriever in Deinem Arbeitsalltag sein""",inhalt,Keynote,,18:45,19:15,30,text,1,False
+H24,24,Freitag,Startup Stage,,18:30,19:00,FF00FF00,,,,"18:30 - 19:00 | Panel: Hamburg Deep Tech Ecosystem (Wim, DESY)
+",inhalt,Panel,,18:30,19:00,30,text,1,True
+I24,24,Freitag,ZEIT:Future Forum,,18:30,19:00,FFD9EAD3,B,,,"18:30-19:15
+Olympia 2040
+Panel",inhalt,Panel,,18:30,19:15,45,text,1,True
+J24,24,Freitag,Impact & Tech Stage,,18:30,19:00,,,,,Offen,platzhalter/unklar,,,18:30,19:00,30,grid,0,
+L24,24,Samstag,Main Stage,,18:30,19:00,FF00FF00,B,,,"18:00 - 18:20 
+Jan Frodeno und Moritz Baier-Lentz
+Insights from Olympic Gold, the Ironman World Championship, Wall Street, and Silicon Valley""",inhalt,,,18:00,18:20,20,text,1,False
+D25,25,Freitag,Main Stage,,19:00,19:30,FFB6D7A8,B,,,"
+Tarek Müller + Philipp Schröder
+TBD
+
+18:25 - 18:45",platzhalter/unklar,,,18:25,18:45,20,text,1,False
+H25,25,Freitag,Startup Stage,,19:00,19:30,FFFFCD40,B,,H25:J25,Ende 19.00 Uhr,rahmen,Ende,,19:00,19:30,30,grid,0,
+L25,25,Samstag,Main Stage,,19:00,19:30,FF00FF00,B,,,"18:20 - 18:50
+Simon Squibb
+What's Your Dream? – How to Turn Ideas into Reality",platzhalter/unklar,,,18:20,18:50,30,text,1,False
+D26,26,Freitag,Main Stage,,19:30,20:00,FFB6D7A8,B,,,"
+Aladin El-Mafaalani
+18:45 - 19:15",inhalt,,,18:45,19:15,30,text,1,False
+L26,26,Samstag,Main Stage,,19:30,20:00,FF5454C5,B,,,"18:50 - 19:30
+Closing FLS",fixblock-cheftreff,Closing,,18:50,19:30,40,text,1,False
+D27,27,Freitag,Main Stage,,20:00,20:30,FFB6D7A8,B,,,"
+Richard David Precht
+TBD
+19:15 - 20:00",platzhalter/unklar,,,19:15,20:00,45,text,1,False
+D28,28,Freitag,Main Stage,,20:30,21:00,FF5454C5,B,,,"20:00 - 20:05
+
+Closing Day 1",fixblock-cheftreff,Closing,,20:00,20:05,5,text,1,False
+D31,31,Freitag,Main Stage,,22:00,23:00,FFFFCD40,B,,D31:F31,Ende 23.00 Uhr,rahmen,Ende,,22:00,23:00,60,grid,0,
+L33,33,Samstag,Main Stage,,00:00,01:00,FFFFCD40,B,,L33:N33,Ende 24.00 Uhr,rahmen,Ende,,00:00,01:00,60,grid,0,

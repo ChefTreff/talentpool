@@ -123,3 +123,11 @@ Antwortformat: Nummer + Stichwort reicht („5: Login+Ticket, 35 hart").
 69. **Volunteer-Wiki**: eigenen Content aufbauen (Slush-Handbook nur als Vorlage)?
 70. **Teilnehmer-FAQ** neu konsolidieren aus Ablauf/Company Tours/Pfand + Ticket/Einlass/App — ok?
 71. **Speaker-Buddy-Kontakt**: private Gmail/Mobilnummer im alten Hub — im Portal Rollen-Postfach (speaker@…) + Portal-Nachricht statt privater Daten?
+
+## Neue Fragen aus dem Master-Programm-Sheet (08.09. abends, Inventar §15)
+72. **Status-Enum statt Farben:** Grün = final, Hellgrün = bestätigt/Titel offen, B6D7A8 = angefragt, 93C47D (Impact & Tech Fr) = ? — ein Enum für alle Bühnen (offen · angefragt · bestätigt, Titel offen · final · nicht bespielt), Farbe nur daraus, Legende im Board?
+73. **Zeitlogik:** 5-Min-Snap statt 30-Min-Zeilen; Wechselzeit (0 Main, 5 L&G, 5 ZEIT) und Standarddauer (25/30/45) als Bühnenparameter — Warnung oder harte Sperre bei Abweichung?
+74. **Zählmuster:** „Slot 1/27" (Main) und „Gebuchter Slot n/8" (ZEIT) — Partner-Kontingent je Bühne als Feld? Liegen die ZEIT-Slots 2027 am Freitag oder Samstag?
+75. **Bühnenpartner** (ZEIT, Impossible Founders, 1KOMMA5°): eigene Spalte selbst pflegen (Rolle `standbuehne_editor` mit Freigabe) oder nur ChefTreff?
+76. **Pflichtfelder für Veröffentlichung** (App, Website, Regie): Titel DE/EN, Format, Sprache, Speaker, Beschreibung Pflicht; Moderation/Raum optional? Masterclasses aufs selbe Board (Raum-Spalten, 15-Min-Raster)?
+77. **Backlog:** „Speaker Zusagen" + „Partnerslots Sold" als Backlog-Spalte, aus der Slots ins Raster gezogen werden; „Status Programm" ergibt sich dann automatisch — ok?

@@ -115,3 +115,7 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Walkthrough der alten Portale** (Partner Hub, Speaker Hub, Messeshop) per Chrome, read-only, Konrad loggt selbst ein → Inventar §13. Informationsarchitektur des Partner Hubs wird übernommen, aber produktbasiert und mit DB-Deadlines.
 - **Wikis + Chatbots kommen wieder — je einzeln für Speaker, Partner, Teilnehmer, jeweils eigenes Wiki.** Umsetzung als Wissensbasis im Portal (Inventar §14, Masterplan Ergänzung v0.1b); Zielgruppen-Trennung im Retrieval ist Pflicht.
 - **Keine privaten Kontaktdaten** von Freelancern/Team in Portalen oder Wissensbasis → Rollen-Postfächer (Checkliste).
+
+## 2026-09-08 (abends) — Master-Programm FLS26 ausgewertet (Konrad)
+- **Anforderung Programm-Board:** Speaker-Lead-Portal bekommt eine Ansicht wie der Tab „Master-Programm" (Tag × Bühnen × Zeit) mit Slots per Drag & Drop. Umsetzung als gemeinsame Komponente: Welle 1 im Programm-Editor (Admin), Welle 2 im Speaker-Lead-Portal auf den Scope begrenzt (Masterplan v0.1c, Inventar §15).
+- **Befund:** Das Sheet ist eine sortierte Liste je Bühne mit Statusfarben ohne Legende, ohne IDs und ohne Formeln. Im Portal gilt: Zeit, Status, Format und Sprache sind strukturierte Felder, Farbe kommt nur aus dem Status.

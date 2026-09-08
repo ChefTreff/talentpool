@@ -90,3 +90,4 @@ Quelle: Konrads Feedback-Sammlung aus dem Live-Betrieb 2026. Jede Zeile: Feedbac
 - **P17** Deadline-Countdowns hart im Hub, Fallback „per Mail an Konrad" → `deadline`-Tabelle je Edition, Upload-Sperre + Versionierung, Prüfstatus sichtbar. Prio M.
 - **P18** Wiki im Partner Hub zeigt auch Speaker-Artikel → Wissensbasis mit Zielgruppen-Filter; Chatbot pro Zielgruppe. Prio M (Wiki) / S (Chatbot).
 - **R13** Speaker Hub englisch, Wiki deutsch → EN-Speaker-Wiki; private Kontaktdaten der Buddies raus, Rollen-Postfach + Portal-Nachricht. Prio M.
+- **R14** Programm-Master als Sheet (Freitext-Zellen, Farben als Status, Zeilen ≠ Slotzeit, manuelle Übergabe an Stage Leads) → Programm-Board mit Drag & Drop, Status-Enum, 5-Min-Snap, Backlog; Speaker-Manager bearbeiten nur ihren Scope. Prio M (Welle 1/2).
