@@ -49,4 +49,4 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **Domain-Umzug**: Team-Portal → `team.chef-treff.de`, Plattform → `portal.chef-treff.de` (im Härtungsfenster, nach Entscheidung); `partner.chef-treff.de` → Redirect.
 - ☐ **Schriften**: OTF → WOFF2 konvertieren, `@font-face` einbinden, Lesbarkeits-Check SemiBold als Fließtext (ggf. Book/Medium nachlizenzieren).
 - ☐ **Keys in Vercel-Env** (Prod/Preview/Dev) hinterlegen; lokal `vercel env pull`.
-- ☑ **Verwaiste make.com-Webhooks deaktiviert** (08.09., Liste: `docs/makecom-webhooks-2026-09-08.md`) — *wird nach Ausführung bestätigt*.
+- ☐ **Verwaiste make.com-Webhooks deaktivieren** — Liste: `docs/makecom-webhooks-2026-09-08.md` (23 Hooks; 2 Finanz-Hooks vorher bestätigen); per API nicht möglich → manuell in der Make-UI.
