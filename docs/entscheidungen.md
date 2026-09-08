@@ -110,3 +110,8 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Badge-Druck:** vivenu-Standarddrucker, Badges vorgedruckt + beklebt → Datenquelle Portal (Frage 34.4 damit weitgehend geklärt; Oktober: Details).
 - **Identität:** E-Mail + **vivenu-Customer-ID** mitführen. SSO/IdP frühestens 2027 (Auth0/OIDC).
 - **Offen (Support-Fragen 10/11):** Ticket-Mail bei abweichender E-Mail; Einlass-Setup und Scan-Rückfluss.
+
+## 2026-09-08 (abends) — Alte Portale & Wiki/Chatbot (Konrad)
+- **Walkthrough der alten Portale** (Partner Hub, Speaker Hub, Messeshop) per Chrome, read-only, Konrad loggt selbst ein → Inventar §13. Informationsarchitektur des Partner Hubs wird übernommen, aber produktbasiert und mit DB-Deadlines.
+- **Wikis + Chatbots kommen wieder — je einzeln für Speaker, Partner, Teilnehmer, jeweils eigenes Wiki.** Umsetzung als Wissensbasis im Portal (Inventar §14, Masterplan Ergänzung v0.1b); Zielgruppen-Trennung im Retrieval ist Pflicht.
+- **Keine privaten Kontaktdaten** von Freelancern/Team in Portalen oder Wissensbasis → Rollen-Postfächer (Checkliste).

@@ -84,3 +84,9 @@ Quelle: Konrads Feedback-Sammlung aus dem Live-Betrieb 2026. Jede Zeile: Feedbac
 - **T1 (Deposit):** OMR belegt kein echtes Pfand, nur Cashless-Freischaltung; vivenu: Rückbuchung braucht POS → Support-Frage 9 bleibt.
 - **R2 (Hear-Me-Speak):** Rebuild-Spec: SVG-Template + Canvas, Zoom/Drag, PNG 1:1/4:5/9:16, Vorbefüllung aus Speaker-Profil, kein Vendor-Badge.
 - **Einlass (neu):** Setup CoreGo vs. vivenu vs. Fastlane und Throughput für 10.000 Personen sind offen → Checkliste.
+
+## Nachträge 08.09. abends (Portal-Walkthrough, Inventar §13/§14)
+- **P16** Zwei getrennte Personenlisten (Ansprechpartner vs. Event-App-Mitglieder) → eine Kontaktliste mit Rollen/Flags. Prio M.
+- **P17** Deadline-Countdowns hart im Hub, Fallback „per Mail an Konrad" → `deadline`-Tabelle je Edition, Upload-Sperre + Versionierung, Prüfstatus sichtbar. Prio M.
+- **P18** Wiki im Partner Hub zeigt auch Speaker-Artikel → Wissensbasis mit Zielgruppen-Filter; Chatbot pro Zielgruppe. Prio M (Wiki) / S (Chatbot).
+- **R13** Speaker Hub englisch, Wiki deutsch → EN-Speaker-Wiki; private Kontaktdaten der Buddies raus, Rollen-Postfach + Portal-Nachricht. Prio M.

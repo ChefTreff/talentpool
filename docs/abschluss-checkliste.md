@@ -65,3 +65,9 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **Cashless/Pfand**: POS-Bedarf klären (nur wenn Deposit kommt).
 - ☐ `vivenu_customer_id` im Datenmodell/Sync mitführen; **Segment-Feature** (E-Mail-Domain → Secret Shop) für Uni-Kontingente evaluieren.
 - ☐ Confirmation Page im OMR-Muster spezifizieren (Design-Loop).
+
+## Ergänzungen 08.09. abends (Portal-Walkthrough, Wiki)
+- [ ] **PII im Wiki bereinigen** (private Mobilnummern/Gmail von Freelancern) **vor** jedem Import/Indexieren; Rollen-Postfächer speaker@/partner@ einrichten.
+- [ ] **Chatbase-Account prüfen:** Quellen, Plan, Datenstandort, AVV; entscheiden (Frage 64) und ggf. kündigen + Trainingsdaten löschen lassen.
+- [ ] **Alt-Systeme bis zur Abschaltung patchen:** WordPress/WooCommerce Messeshop (Updates, Admin-Pfad), SoftR-Hubs; nach Go-live: Bestellungen exportieren (Referenz), Logins deaktivieren, DNS `partner.`/`speaker.`/`partnerhub.` auf Portal umleiten.
+- [ ] **Notion-Wikis nach Import einfrieren** (read-only) — eine Quelle der Wahrheit: Portal.

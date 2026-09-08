@@ -113,3 +113,13 @@ Antwortformat: Nummer + Stichwort reicht („5: Login+Ticket, 35 hart").
 61. **Slot-Grafik**: existiert ein Figma-Template? Wer ist die Freelancerin (Zugang zur Review-Queue)?
 62. **Slid@Home**: nur für Ticketinhaber des jeweiligen Summits? Zeitraum der Verfügbarkeit?
 63. **Hotelkontingente/DB-Ticket/Locker**: wer beschafft die Kontingente (extern) und bis wann? (Checkliste)
+
+## Neue Fragen aus dem Portal-Walkthrough & Wiki (08.09. abends)
+64. **Chatbase**: welche Quellen waren angebunden (nur Wiki-DB oder auch Netzwerkpartner-Wiki)? Gibt es den Account noch (Plan, Datenstandort, AVV)? **Chatbase behalten oder eigener Bot** (Supabase pgvector + Claude API, gleiche Rechteprüfung wie Portal)? Empfehlung: eigener Bot, weil Zielgruppen-Trennung und Deadline-Aktualität sonst nicht sauber sind.
+65. **Wiki-Einbindung** im alten Hub: Notion-Embed oder Airtable-Spiegel (Standmaße liegen in Airtable)?
+66. **FLS27-Wiki**: Kopie mit Reset aller Deadlines, oder evergreen Basis + jahresbezogene Overlay-Ebene (Empfehlung)?
+67. **Englische Versionen**: Speaker Hub ist englisch, Wiki komplett deutsch — Speaker-Wiki EN (DE optional), Partner DE, Teilnehmer DE/EN?
+68. **Inhaltliche Owner** je Wiki/Kategorie (Feld „Ansprechpartner" ist leer) — wer pflegt Partner/Speaker/Teilnehmer?
+69. **Volunteer-Wiki**: eigenen Content aufbauen (Slush-Handbook nur als Vorlage)?
+70. **Teilnehmer-FAQ** neu konsolidieren aus Ablauf/Company Tours/Pfand + Ticket/Einlass/App — ok?
+71. **Speaker-Buddy-Kontakt**: private Gmail/Mobilnummer im alten Hub — im Portal Rollen-Postfach (speaker@…) + Portal-Nachricht statt privater Daten?
