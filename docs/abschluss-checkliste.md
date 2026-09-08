@@ -80,3 +80,4 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - [ ] **Item-Liste 2026** vor Welle 3 einfrieren (nur noch im Portal pflegen), HubSpot-Produkte und SevDesk-Artikel mit `product.sku` abgleichen.
 - [ ] **Item-Liste bereinigen** (Konrad, vor Welle 3): 24 Platzhalter-SKUs, USt-Satz je Kategorie, 52 preislose Zusatzleistungen, Namen/Kategorien trimmen; HubSpot-Produkte per SKU abgleichen.
 - [ ] **Volunteer-Wiki exportieren** (Notion Markdown + Bilder) vor dem Import; WhatsApp-Links und Team-Blöcke entfernen.
+- [ ] **Supabase Auth: „Leaked Password Protection" aktivieren** (Dashboard → Authentication → Settings) — Konrad; kostet nichts, auch wenn wir Magic Links nutzen.

@@ -129,3 +129,9 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Betrieb:** Tokens werden gesammelt über `docs/zugangs-liste.md` erfasst und von Konrad in Vercel gesetzt. Kontingente Hotel/DB/Locker über Laura bis 01.11.
 - **Neu:** Item-Liste 2026 (Airtable Working List) ist das Produkt-Inventar → `product`-Stamm im Portal, Spiegel für HubSpot und SevDesk.
 - **73 (Nachtrag):** Zeitlogik des Programm-Boards nach Empfehlung (5-Min-Raster, Bühnenparameter, Warnung statt Sperre; Überlappung je Bühne hart). Damit ist der Fragenkatalog vollständig beantwortet; Anpassungen laufen über dieses Log.
+
+## 2026-09-08 (spät) — Welle 0 gestartet: Schema v2 Teil 1–3 live
+- **Migrationen angewendet** (Supabase-MCP, Historie vollständig inkl. P0): `20260908141744_v2_identity_roles`, `20260908142441_v2_edition_programme`, `20260908142920_v2_security_hardening`. Repo-Dateien tragen dieselben Versionen.
+- **Getestet (Transaktion mit Rollback):** Scope-Rechte (`has_role`, `can_edit_slot/stage`), Überlappungs-Constraint je Bühne (23P01), Warnungen des Boards (vor Öffnung, 5-Min-Raster, Wechselzeit), Pflichtfelder beim Veröffentlichen (23514), Bestätigungspflicht nach Veröffentlichung, History- und Audit-Einträge, Slot-Statistik, `programme_public`.
+- **Sicherheits-Härtung:** Views aus P0 auf `security_invoker`, `search_path` in allen Funktionen gepinnt, `anon` darf keine SECURITY-DEFINER-Funktion mehr aufrufen, Default-Privilegien für neue Funktionen entzogen. Bewusst offen gelassen: „RLS enabled, no policy" auf service-role-only-Tabellen (organization, org_membership, staff_user, audit_log, suppression, import.*, Dedup) und „authenticated kann RPCs aufrufen" (die Autorisierung steckt in den RPCs).
+- **Bugfix aus dem Test:** plpgsql-Array-Verkettung mit `||` in `move_slot` durch `array_append` ersetzt (Repo und live identisch).
