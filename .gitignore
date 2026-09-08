@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Env-Vorlage (nur Platzhalter) darf ins Repo
+!.env.local.example
