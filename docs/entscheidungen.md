@@ -23,3 +23,26 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Partner-Kontaktrollen:** werden neu evaluiert (offen).
 - **Interne Rollen: differenziert.** Bereichsleads (z. B. Programm) mit Vollzugriff auf ihren Bereich, ohne Zugriff auf andere (z. B. Partner). Erste Schnittebene = **Portale/Bereiche** (Teilnehmer, Speaker/Programm, Partner, Hackathon, Volunteers, Initiativen).
 - **Rollen pro Event-Edition:** ja. Klassifizierung **Team** (dauerhaft) vs. **Volunteers/Leads mit Zugang** (wie Kunden behandelt: Login/Rolle nur für ein Event).
+
+## 2026-09-08 — Antworten Fragenkatalog C, D, E, 25 (Konrad)
+### C · Programm & Bewerbungen
+- **Bühnen wie 2026:** 6 Hauptbühnen + Partner-„Standbühnen" (nur Inhalte ins Programm). Partner mit Produkt **„Standbühne"** tragen ihre Slots **selbst im Portal** ein → Programm lebt in Supabase; `stage.owner_org_id` + produktbasierte Rolle mit Scope „eigene Bühne".
+- **Hierarchie bestätigt:** `slot` = exakte Zeit/Bühne; `session` = Inhalt + Speaker (oft **mehrere Speaker je Session**, `session_speaker` n:m mit Rolle).
+- **Zugangsart je Angebot** (Pflichtauswahl beim Eintragen): `open` · `registration` · `application`. Bewerbung für Masterclasses, Company Tours, teils Side-Events. **Speaker Reception**: nur Anmeldung, nur für Speaker mit bestimmtem Status (Statusfeld beim Eintragen) → `eligibility`-Regel; wird umbenannt.
+- **Überschneidungen:** Bewerbungen auf zeitgleiche Angebote **erlaubt, aber geflaggt**; bei zwei Zusagen zeitgleicher Slots **Entscheidung erzwingen** (nur eine bestätigbar). **Zusage mit Bestätigungsfrist** (No-Show-Reduktion), **automatisches Nachrücken** von der Warteliste.
+- **Zusatzfragen:** Katalog + eigene Fragen je Partner **nur mit unserer Freigabe, max. 2**. **Freigabe-Gate für Mails**; alle Mails werden vom System getriggert und von uns definiert — **Partner versenden nie selbst**.
+- **Consent:** Einwilligung zur Datenweitergabe ist Teil der **AGB beim Ticketkauf** (wird 2026/27 überarbeitet); Teilnehmer stimmen ausdrücklich zu. **Partner sieht alle Bewerbungsdaten** seiner Bewerber. (Umsetzung: Consent-Record mit AGB-Version + Zeitstempel; Sicht nur auf eigene Bewerber, zeitlich begrenzt, Zugriffe geloggt.)
+- **Ticketpflicht ja; Kapazität setzen wir** (Raumgröße). „Other" aus Company Tours nicht mehr zuordenbar → Migration als „unentschieden".
+### D · Partner, Messeshop, Initiativen
+- **Messeshop: in die Plattform, sauber neu gebaut** (Patricks V1 auf Airtable war Test; live lief WooCommerce). Code von Patrick als Referenz (GitHub anfragen). „Alles aus einer Hand."
+- Fristen/Rollenwerte beim Shop-Bau definieren. **Rechnung immer SevDesk.** Keine Alt-Bestellungen migrieren — Neustart, Historie ab jetzt.
+- **HubSpot triggert Onboarding:** Deal → Pipeline-Phase „Onboarding" → Datenübertragung (Org, Kontakte, Produkte/Leistungen). **Deliverable-Checkliste leistungsbezogen/dynamisch** je gekauftem Produkt (Vorlagen je Produkt). **Reminder automatisiert per Resend** zu Fristen.
+- **Tickets: ein Code je Partner** bestätigt; Portal verteilt Code (+ ggf. Shop-Embed). Je Partner automatisiert ein **Secret Shop (Vivenu-Undershop)** mit gebuchten Tickets; Code schaltet final frei. Pass-Typen im Onboarding wählen: Standard **Partner Pass** (Team) + **Talent Pass** (junge Teammitglieder als Besucher); Startup-Partner: **Startup Pass + Investor Pass**.
+- **Ein Portal, Rollen/Sichtbarkeit produktbasiert** (gilt auch für Hackathon-Partner).
+- **Initiativen:** stark reduziert (Logo, Code, Standinfos) — Empfehlung Claude: **Partner-Portal mit Org-Typ „Initiative" + Produkt „Initiativen-Partnerschaft"** (nutzt Onboarding, Checkliste, Reminder, Code-Verteilung mit).
+### E · Speaker
+- **Speaker-Datensatz:** alles vom Vorjahr rein + Empfehlungsliste fehlender Felder (Claude); on-the-go evaluieren.
+- **Keine öffentliche Speaker-Bewerbung.** Pipeline **Akquise → Onboarding**; Akquise läuft über das **Speaker-Lead-Portal** (Leads verantwortlich).
+- **Hospitality im Portal:** Shuttle + Hotel buchbar, freigeschaltet über ein **von uns gesetztes Statusfeld**. **Reisekosten:** Speaker lädt Beleg hoch + Bankdaten-Formular → Portal erzeugt **Auslagenrechnung** → Speaker gibt frei → Beleg nach **SevDesk** + Mail an **Qonto-Rechnungseingang** → Konrad gibt Zahlung frei.
+### F (Teil)
+- **Hackathon-Teilnehmer-App in den Scope** (mit Testpuffer); **Discord bleibt**.
