@@ -149,3 +149,4 @@ Antwortformat: Nummer + Stichwort reicht („5: Login+Ticket, 35 hart").
 
 ## Neue Punkte (08.09. spät)
 78. **Item-Liste 2026** (Airtable „Working List" `appyPbjOKdS9Ypd4O`, Tabelle „Item Liste 2026") = Produkt-Inventar, gespiegelt in HubSpot (Line-Items) und SevDesk (Positionen) → muss mit umziehen; wird der `product`-Stamm im Portal (Inventar §16). Stammdaten ohne Personenbezug → Import schon in Welle 3, nicht erst bei der Migration.
+- **73** ✅ (08.09. spät) Zeitlogik nach Empfehlung: 5-Minuten-Raster, Wechselzeit und Standarddauer als Bühnenparameter, Warnung statt Sperre (nur Überlappung auf derselben Bühne wird hart verhindert). „Passen wir sonst nochmal an." → **Alle Fragen 1–78 sind beantwortet.**

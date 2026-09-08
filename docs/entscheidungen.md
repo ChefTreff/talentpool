@@ -128,3 +128,4 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Verschoben (C):** Strategy-Calls (optional), Slot-Grafik-Generator (neues Figma-Template folgt), Slid@Home nach Empfehlung.
 - **Betrieb:** Tokens werden gesammelt über `docs/zugangs-liste.md` erfasst und von Konrad in Vercel gesetzt. Kontingente Hotel/DB/Locker über Laura bis 01.11.
 - **Neu:** Item-Liste 2026 (Airtable Working List) ist das Produkt-Inventar → `product`-Stamm im Portal, Spiegel für HubSpot und SevDesk.
+- **73 (Nachtrag):** Zeitlogik des Programm-Boards nach Empfehlung (5-Min-Raster, Bühnenparameter, Warnung statt Sperre; Überlappung je Bühne hart). Damit ist der Fragenkatalog vollständig beantwortet; Anpassungen laufen über dieses Log.
