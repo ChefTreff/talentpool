@@ -157,3 +157,10 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Welle 0 damit fachlich abgeschlossen.** Offen: Konrads 80-%-Feedback zu UI-Kit und Bereichs-Umschalter (läuft in mehreren Runden), Doku-Spiegelung um Runbooks und generierte Schema-Doku ergänzt.
 - **Nächster Schritt Build-Session:** Welle 1 Teil B auf Branch `welle-1/talent-programm`, Start mit B5 (Programm-Board auf `programme_board`/`move_slot`), B2 (Programm-Ansicht) und B1 (Onboarding-Wizard); Backend dafür ist live. A1/A2 (vivenu) warten auf den Sandbox-Key.
 - **08.09. Nacht — Vercel↔Supabase-Integration aktiviert (Konrad):** Supabase-Variablen kommen in Vercel jetzt aus der Integration. Die App liest URL/Key über `lib/supabase/env.ts` und akzeptiert klassische (`ANON_KEY`, `SERVICE_ROLE_KEY`) wie neue Namen (`PUBLISHABLE_KEY`, `SECRET_KEY`). `NEXT_PUBLIC_SITE_URL` in Production gesetzt.
+
+## 2026-09-08 (Nacht) — Datenstandort: Einordnung und Maßnahmen (Nachfrage Konrad)
+- **Rechtlich:** Dublin (eu-west-1) und Frankfurt (eu-central-1) sind beide EU; kein Drittlandtransfer, gleiche AWS-Sicherheitskontrollen. Zuständige Aufsicht bleibt die Hamburger (Sitz des Verantwortlichen), unabhängig vom Serverstandort.
+- **Restrisiko liegt beim Anbieter, nicht bei der Region:** Supabase, Vercel, Resend und Anthropic sind US-Unternehmen (CLOUD Act, Support-Zugriffe). Gegenmaßnahmen: AVV mit SCC, Datenminimierung, Verschlüsselung sensibler Felder, kurze Aufbewahrung, Zugriff nur über Rollen. Der Regionswechsel ändert daran nichts.
+- **Trotzdem Frankfurt:** konservative Wahl, vereinfacht Partner-Fragebögen („Server in Deutschland?") und kostet jetzt eine Stunde. Entscheidung: Umzug vor Welle 1 (Reproduktionstest inklusive).
+- **Wichtiger Fund:** Vercel führt Server-Code standardmäßig in der US-Region (iad1) aus. Ab jetzt `vercel.json` mit `regions: ["fra1"]`, damit Rendering, Server Actions und Route Handler in Frankfurt laufen. Statische Auslieferung über das CDN bleibt global (keine Personendaten).
+- **Offen (Checkliste):** Resend EU-Verarbeitung, AVV-Sammlung, Standort von Supabase-Logs/Backups.

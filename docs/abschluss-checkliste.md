@@ -83,3 +83,11 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - [ ] **Supabase Auth: „Leaked Password Protection" aktivieren** (Dashboard → Authentication → Settings) — Konrad; kostet nichts, auch wenn wir Magic Links nutzen.
 - [ ] **Event-App prüfen:** Conferras-Demo/Angebot einholen und gegen Swapcard bewerten (Frage 86), Entscheidung bis 24.09. — Konrad.
 - [ ] **`NEXT_PUBLIC_SITE_URL`** in Vercel setzen (Production `https://portal.chef-treff.de`, Preview je URL), sonst fallen Mail-Links auf den Host-Header zurück.
+
+## Datenstandort & Auftragsverarbeitung (08.09., Nachfrage Konrad)
+- [ ] **Supabase nach Frankfurt (eu-central-1) umziehen** — jetzt, solange die Datenbank leer ist (Ablauf siehe Entscheidungslog 08.09. Nacht). Konservative Wahl für Partner-Fragebögen; rechtlich ist Dublin gleichwertig (EU).
+- [x] **Vercel Functions in Frankfurt (`fra1`)** — per `vercel.json` festgelegt (08.09.), damit Server-Code und damit Personendaten zur Laufzeit in der EU verarbeitet werden, nicht in der US-Standardregion. Nach dem Deploy im Vercel-Dashboard unter Settings → Functions gegenprüfen.
+- [ ] **Resend:** EU-Datenverarbeitung prüfen (EU-Region/Endpoint, Speicherdauer der Mail-Inhalte, AVV). Mails enthalten Namen und Links. Falls keine EU-Option: Alternative mit EU-Standort bewerten (z. B. Postmark EU, Brevo, Mailjet).
+- [ ] **AVV/DPA mit Standardvertragsklauseln abschließen und ablegen:** Supabase, Vercel, Resend, vivenu, Swapcard (oder Nachfolger), HubSpot, ActiveCampaign, SevDesk, Anthropic (Chatbot), Google Workspace — je mit Sub-Prozessor-Liste. US-Anbieter (Supabase, Vercel, Resend, Anthropic) zusätzlich: Transfer-Impact-Assessment kurz dokumentieren; Datenminimierung als Hauptmaßnahme.
+- [ ] **Supabase-Logs/Analytics-Standort** und Backup-Standort für das neue Projekt beim Security-Loop verifizieren (Support-Ticket, falls nicht dokumentiert).
+- [ ] **Verschlüsselung sensibler Spalten** (Bankdaten Reisekosten, ggf. Geburtsdatum) mit pgsodium/Vault vor Welle 2 einplanen; Datei-Links nur signiert und kurzlebig (bereits Regel).
