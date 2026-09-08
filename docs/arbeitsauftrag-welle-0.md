@@ -42,3 +42,4 @@ Regeln: jede Tabelle `enable row level security` + Grants explizit; keine Policy
 - Der Worktree hat weder `node_modules` noch `.env.local`: `npm install` und `.env.local` kopieren (siehe AGENTS.md). Dev-Server-Konfiguration `talentpool-dev-worktree` auf Port 3001; Supabase-Redirect-URL `http://localhost:3001/auth/callback` ergänzen.
 - Das Projektgedächtnis von Claude ist pfadgebunden und im Worktree **nicht** identisch mit dem der Architektur-Session. Deshalb steht alles Nötige in AGENTS.md und in `docs/`.
 - Arbeitsteilung: Architektur-Session (Fable, main) = Teil A + Reviews; Build-Session (Opus, Worktree) = Teil B. Dateien unter `app/`, `components/`, `lib/i18n`, `lib/mail` gehören während Welle 0 der Build-Session.
+- ✅ (später am 08.09.) A3 Bewerbung & Tickets (live `20260908144639`, 18 Tests grün), A4 Integration & Kommunikation (live `20260908144858`), A5 Vokabular + FLS27-Startdaten (live). **Teil A abgeschlossen.** Überblick: `docs/datenmodell-v2.md`.
