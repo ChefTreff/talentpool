@@ -58,3 +58,10 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **Mail-Plan je Journey** (Teilnehmer, Partner, Speaker, Volunteer) — Minimierung, Templates DE/EN, Reminder-Regeln.
 - ☐ **Strategy-Call-Slots** 6 Wochen vor Summit (ab Premium) einplanen (≈ Anfang März 2027).
 - ☐ **Domain-Umzug** Team-Portal → `team.chef-treff.de` (Konrad), Plattform → `portal.chef-treff.de`.
+
+## Ergänzungen 08.09. (Vivenu-Call / Referenzen)
+- ☐ vivenu-Doku „Transaktionsbestätigungsseite austauschen" + **Endpunktliste** erhalten und in den Integrationsvertrag übernehmen.
+- ☐ **Einlass-Setup** entscheiden (CoreGo vs. vivenu vs. Fastlane), Throughput 10.000 Personen; Scan-Rückfluss testen.
+- ☐ **Cashless/Pfand**: POS-Bedarf klären (nur wenn Deposit kommt).
+- ☐ `vivenu_customer_id` im Datenmodell/Sync mitführen; **Segment-Feature** (E-Mail-Domain → Secret Shop) für Uni-Kontingente evaluieren.
+- ☐ Confirmation Page im OMR-Muster spezifizieren (Design-Loop).

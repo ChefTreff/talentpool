@@ -75,3 +75,12 @@ Quelle: Konrads Feedback-Sammlung aus dem Live-Betrieb 2026. Jede Zeile: Feedbac
 | R10 | Shuttle-Buchung neu aufbauen | UX-Redesign Shuttle (Slots, Kapazität) | S |
 | R11 | Speaker Reception umbenennen | Name folgt; Flag „Reception-berechtigt" | M |
 | R12 | „Create your own Timetable" → Social-Bild (OMR) | Teilnehmer wählen Sessions → Bild-Export für LinkedIn | C |
+
+## Nachträge 08.09. (aus den Referenzen, Inventar §12)
+- **T6 (OMR):** Vorbild für unsere **Confirmation Page**: Tickets + „Für wen?" + Sprache + Badge-Minimum, **„Vorerst überspringen"** statt Blocker, Next-Best-Actions (Programm, Interessen → Matching, LinkedIn), Add-on-Kacheln Hotel/DB. Login-first wie OMR machen wir **nicht** (Entscheidung 34.5), aber der Redirect nach dem Kauf ersetzt das.
+- **T7 (Vivenu validiert):** Redirect mit Transaction-ID → Tickets/Rechnungen per API → Personalisierung im Portal → Rückschreiben **Vorname/Nachname/Position/Unternehmen** für Badge-Druck; parallel zur vivenu-Maske möglich. **Neu:** `vivenu_customer_id` je Person mitführen; Segment-Feature (E-Mail-Domain → Secret Shop) für Uni-/Initiativen-Kontingente prüfen (Latenz ≤ 1 h).
+- **T8 (Badge-Daten):** genau die vier Rückschreibe-Felder; Badges vorgedruckt + beklebt → Datenquelle = Portal-Personalisierung.
+- **T11 (Mail bei fremder E-Mail):** im Call **nicht geklärt** → Support-Frage 10; Arbeitsannahme: Portal sendet die finale Ticket-Mail (Resend) an die personalisierende Person.
+- **T1 (Deposit):** OMR belegt kein echtes Pfand, nur Cashless-Freischaltung; vivenu: Rückbuchung braucht POS → Support-Frage 9 bleibt.
+- **R2 (Hear-Me-Speak):** Rebuild-Spec: SVG-Template + Canvas, Zoom/Drag, PNG 1:1/4:5/9:16, Vorbefüllung aus Speaker-Profil, kein Vendor-Badge.
+- **Einlass (neu):** Setup CoreGo vs. vivenu vs. Fastlane und Throughput für 10.000 Personen sind offen → Checkliste.

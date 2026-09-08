@@ -21,3 +21,9 @@ Vielen Dank — gern auch ein kurzer Call, falls einfacher.
 
 Beste Grüße
 Konrad Gruner · ChefTreff
+
+---
+**Nachtrag nach Call 08.09.** (Ansatz „externe Confirmation Page + Personalisierung bei uns" ist validiert; ihr schickt die Doku „Transaktionsbestätigungsseite austauschen" + Endpunktliste). Damit reduzieren sich die Fragen auf:
+- Q1–Q3, Q5–Q9 wie oben (Personalize-Body/E-Mail, Server-Key, Webhook-Retry/Signatur, Undershops per API, Add-ons per API, `meta`, Limits, Deposit).
+10. **Ticket-Zustellung bei abweichender E-Mail:** Wenn die personalisierende Person eine andere E-Mail als der Käufer hat — versendet vivenu dann eine Ticket-Mail an diese Adresse, oder sollen wir die Zustellung komplett übernehmen (Barcode/PDF per API abrufen)?
+11. **Einlass:** Welche Scan-Lösung empfehlt ihr für ~10.000 Personen an zwei Tagen (vivenu-Scanner-App vs. CoreGo/Fastlane), und wie fließen Scans (`scan.created`) zuverlässig zu uns zurück?

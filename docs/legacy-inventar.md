@@ -345,3 +345,23 @@ Beide Bases sind **Ein-Tabellen-Klone** (dieselbe Tabellen-ID `tblWie36P4WFyVhF7
 - `regie_media` (slides_state none_backdrop/slides_only/slides_plus_video, has_video, has_audio, custom_fonts, asset_url, clicker_needed, audience_mic_needed, cue_script) — **gespeist aus dem Tech-Rider des Speaker-Portals**.
 - `backstage_action[]`, `furniture[]`; Bühnen-Tag-Kopf: `stage_requirements`, `lighting_preset`, `version_status_date`.
 - Ansichten: Timeline je Bühne×Tag (druck-/tabletfähig für vor Ort), **Mehrbühnen-Ansicht** (bühnenübergreifende Kollisionen), Änderungs-Log statt „VERSCHOBEN"-Freitext; Regie-Zeilen entstehen automatisch aus Slots (Aufgang/Session/Abgang-Sandwich als Vorlage) und werden nur ergänzt.
+
+---
+
+## 12 · Referenzen: Vivenu-Call (Granola), OMR-Ticketflow (Slack), Hear-Me-Speak (im-attending)
+
+### 12.1 Vivenu × FLS27 — Call 08.09.2026 (Granola-Notiz)
+- **Kein Headless-Shop.** Kauf bleibt im vivenu-Shop (inkl. Account-Anlage); **am Ende des Checkouts Redirect auf eine externe Confirmation Page bei ChefTreff**, die die vivenu-Bestätigungsseite 1:1 nachbaut. vivenu übergibt die **Transaction-ID**; darüber sind Tickets und Rechnungen per API abrufbar.
+- **Personalisierung danach in der ChefTreff-Umgebung, verpflichtend** (Matchmaking ist der Kern). Rückweg per Webhooks + Ticket-Endpunkten; zurückgespielt wird nur das Minimum **Vorname, Nachname, Position, Unternehmen** (Badge-Druck). Alles Weitere bleibt in Supabase. Beide Wege können **parallel** laufen (vivenu-Maske bleibt, schrittweise Umzug); vivenu meldet per Webhook, wenn personalisiert wurde.
+- **QR/Ticket:** bisher wurde aus dem vivenu-Ticketcode der QR nachgeneriert und in die Event-App gepusht → Scan-Code = Ticket-Code. Ticketausgabe bleibt bei vivenu.
+- **Identität:** E-Mail als Unique Identifier **plus vivenu-Customer-ID mitführen** (stabil bei E-Mail-Wechsel). SSO/IdP auf 2027 verschoben; falls später: **Auth0 / OpenID Connect** (nativ in vivenu, Einstellungen → Accounts).
+- **Segment-Feature** (Secret-Shop-Zugang per E-Mail-Domain, z. B. Uni-Kontingente) bleibt zentral; Zuordnung dauert **bis zu 1 h**.
+- **Badge Printing:** vivenu-Standarddrucker, kein Full-Color-Live-Print; Badges werden vorgedruckt und vor Ort beklebt.
+- **Nächste Schritte vivenu:** Doku „Transaktionsbestätigungsseite austauschen" + Liste nutzbarer API-Endpunkte. Aufwand ChefTreff ~2–2,5 Monate bis Shop-Go-live; bei Problemen pragmatisch verwerfen.
+- **Nicht geklärt:** personalisierende E-Mail ≠ Käufer-E-Mail (Ticket-Zustellung an Dritte, Mailflow), wer die Bestätigungs-/Ticket-Mail sendet, Rechnungsdarstellung auf eigener Seite, **Einlass-Setup** (CoreGo vs. vivenu vs. Fastlane, Throughput 10.000), Pfand/Cashless (braucht POS-Terminals).
+
+### 12.2 OMR-Ticketflow (Slack C02NT90T9QT, 29.04.2026)
+1. **Login zuerst** (Google-/LinkedIn-SSO oder E-Mail, Captcha) → Identität steht vor dem Checkout. 2. **Checkout** mit Sticky-Summary; auch beim 0,00-€-Freiticket werden Kontakt + Rechnungsdaten abgefragt (Begründung: Cashless-Freischaltung). 3. **Personalisierung direkt danach** (`/order/<id>/edit`): pro Ticket eine Karte, Toggle „Für mich / andere Person", Sprache, E-Mail*, Telefon*, Titel, Anrede*, Name*, Geburtsdatum*, Land*, **Job Level*** (Badge-/Matchmaking-Daten beim Kauf), Job-Opt-in; Statusliste „noch nicht personalisiert"; **„Vorerst überspringen"** (Pflicht mit Aufschub). 4. **Confirmation Page** „Buchung erfolgreich": Next-Best-Actions (Tickets/Rechnungen, Programm entdecken, **Interessen anlegen → Matching**, LinkedIn teilen) + Add-on-Kacheln (**Hotel Deals, DB Event Ticket**, Bundle-Rabatt). Team-Take: Hotel + Bahn direkt danach ist smart; Codes für andere Formate abschauen. Kein Beleg für Check-in-Scan oder echtes Pfand-Deposit.
+
+### 12.3 Hear-Me-Speak (im-attending.com, Fremd-SaaS)
+Input für FLS: **nur Foto** (Engine kann konfigurierbare Textfelder); Adjust: Zoom 0,5–3,0×, Drag, Canvas-Masking; Output: SVG-Template + Foto → **PNG 1104 × 1104 (nur 1:1)**, reiner Download (kein Share-Intent); rollenbasierte Template-Varianten möglich; „Powered by I'm Attending"-Badge nicht abschaltbar; Download-Tracking. **Rebuild im Speaker-Portal:** SVG-Template + Canvas-Composite, Zoom/Drag, PNG-Export — plus Vorbefüllung Name/Titel/Slot aus dem Profil und Formate 1:1 / 4:5 / 9:16.

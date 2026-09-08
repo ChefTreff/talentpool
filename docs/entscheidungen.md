@@ -104,3 +104,9 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - Neue Rolle: **Assistenz** (Delegation auf Speaker-Datensatz). Neues Feld: **Titel (Dr.)**. Regel: **Masterclass-Speaker = Professional Pass** (Lounge-Zugang als Flag).
 - Messeshop-Anpassungen: keine Startseite, keine Rollentrennung (Hinweise auf Produktebene), Merch-Kategorie, Lunch-Paket als Pflicht-Checklistenpunkt.
 - HubSpot-Gate: Onboarding startet erst, wenn Basisinfos vollständig; sonst Deal zurücksetzen + Hinweis an Sales.
+
+## 2026-09-08 — Vivenu-Call (Granola) ausgewertet
+- **Variante A ist mit vivenu validiert:** Kauf im vivenu-Shop → Redirect mit Transaction-ID auf unsere Confirmation Page → Personalisierung im Portal (verpflichtend) → Rückschreiben von **Vorname, Nachname, Position, Unternehmen** (Badge-Druck) per Ticket-Endpunkt; Parallelbetrieb möglich. vivenu liefert Doku + Endpunktliste.
+- **Badge-Druck:** vivenu-Standarddrucker, Badges vorgedruckt + beklebt → Datenquelle Portal (Frage 34.4 damit weitgehend geklärt; Oktober: Details).
+- **Identität:** E-Mail + **vivenu-Customer-ID** mitführen. SSO/IdP frühestens 2027 (Auth0/OIDC).
+- **Offen (Support-Fragen 10/11):** Ticket-Mail bei abweichender E-Mail; Einlass-Setup und Scan-Rückfluss.
