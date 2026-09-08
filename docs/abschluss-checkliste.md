@@ -78,3 +78,5 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - [ ] **Chatbase** nach Go-live des eigenen Bots kündigen, Trainingsdaten löschen lassen (Quelle war nur die Wiki-DB).
 - [ ] **Figma-Template Slot-Grafiken** neu bauen (Design), Generator erst danach (C).
 - [ ] **Item-Liste 2026** vor Welle 3 einfrieren (nur noch im Portal pflegen), HubSpot-Produkte und SevDesk-Artikel mit `product.sku` abgleichen.
+- [ ] **Item-Liste bereinigen** (Konrad, vor Welle 3): 24 Platzhalter-SKUs, USt-Satz je Kategorie, 52 preislose Zusatzleistungen, Namen/Kategorien trimmen; HubSpot-Produkte per SKU abgleichen.
+- [ ] **Volunteer-Wiki exportieren** (Notion Markdown + Bilder) vor dem Import; WhatsApp-Links und Team-Blöcke entfernen.

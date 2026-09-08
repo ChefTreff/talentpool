@@ -150,3 +150,12 @@ Antwortformat: Nummer + Stichwort reicht („5: Login+Ticket, 35 hart").
 ## Neue Punkte (08.09. spät)
 78. **Item-Liste 2026** (Airtable „Working List" `appyPbjOKdS9Ypd4O`, Tabelle „Item Liste 2026") = Produkt-Inventar, gespiegelt in HubSpot (Line-Items) und SevDesk (Positionen) → muss mit umziehen; wird der `product`-Stamm im Portal (Inventar §16). Stammdaten ohne Personenbezug → Import schon in Welle 3, nicht erst bei der Migration.
 - **73** ✅ (08.09. spät) Zeitlogik nach Empfehlung: 5-Minuten-Raster, Wechselzeit und Standarddauer als Bühnenparameter, Warnung statt Sperre (nur Überlappung auf derselben Bühne wird hart verhindert). „Passen wir sonst nochmal an." → **Alle Fragen 1–78 sind beantwortet.**
+
+## Neue Fragen aus Item-Liste und Volunteer-Wiki (08.09. spät, Inventar §16 / §14.1)
+79. **USt:** In der Item-Liste steht bei allen Items „7" — echte 7 % oder nur die Shop-Steuerklasse? Welcher Satz gilt je Kategorie (19 / 7 / 0)?
+80. **HubSpot-Produkt-IDs:** liegt das Mapping nur in HubSpot (SKU-Feld am Produkt)? Reicht Matching per SKU `I-nnnnn`?
+81. **SevDesk:** gibt es Erlöskonten/Kostenstellen je Kategorie, und wo sind sie dokumentiert (für Rechnungsentwürfe)?
+82. **52 preislose HubSpot-Zusatzleistungen:** individuell bepreist, reine Kostenkalkulation oder für FLS27 aktiv?
+83. **Stücklisten** (Product-Data) im Portal als Messebau-/Regie-Liste sichtbar? Dürfen die 24 Platzhalter-SKUs und die „Bundle Liste 2026" entfallen?
+84. **Volunteer-Wiki:** Rollen-Seiten als jahresunabhängige Templates importieren (Empfehlung) oder als FLS26-Archiv? Leitsprache EN mit DE-Variante (Empfehlung, wie bisher)?
+85. **Team-Lead-Kontakte** künftig dynamisch aus der Rollenzuordnung einblenden statt im Wiki-Text (Empfehlung ja; WhatsApp-Links raus)?
