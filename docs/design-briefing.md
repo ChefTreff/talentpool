@@ -109,3 +109,8 @@ Form: Pille (`border-radius: 999px`) oder 8-px-Rechteck — **eine** Form pro Po
 - **Typografie:** Lizenz deckt Web-Einbettung ab. **Sharp Sans Display No.1 SemiBold ist der Textschnitt** (Fließtext, Formulare, Tabellen); ExtraBold für Titel/Sektionen; Laica Italic als Akzent. Umsetzung: OTF → WOFF2, `@font-face` mit `font-display: swap`, Systemstapel nur als Fallback. **Prüfpunkt UI-Kit-Review:** Lesbarkeit von SemiBold bei 15–16 px in dichten Tabellen — falls zu schwer, Book/Medium nachlizenzieren.
 - **Felder:** alle Matching-Felder optional aufnehmen (Wizard-Schritt „Karriere & Matching"); keine sensiblen Felder.
 - **Onboarding:** 3-Schritt-Wizard + Fortschritt + Progressive Profiling (bestätigt).
+
+## v0.4 (08.09.2026, aus dem Review PR #1) — Kontrast schlägt Token
+- **Primärfläche mit weißem Text:** `#5B5BD9` (4,9:1). `#6D6DEF` (3,76:1 auf Weiß) nur für Nicht-Text-Akzente (Badges-Rand, Fokusring, Icons, Linien) und für Text ab 24 px. Gleiches Muster für Destructive (dunklere Stufe für Text) und für Text auf `#E8E8FC` (Navy statt Akzent).
+- **Bedienelemente:** neues Token `--ct-border-strong: #7F8A9C` (3,0:1 auf Weiß, WCAG 1.4.11) für Feldränder, Checkboxen, Schalter. `#DCDFE5` bleibt für Trennlinien, Karten, Tabellenraster.
+- **Regel:** Wo Token und Kontrastvorgabe kollidieren, gewinnt die Kontrastvorgabe; die Abweichung wird hier notiert.
