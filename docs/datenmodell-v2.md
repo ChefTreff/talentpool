@@ -18,7 +18,7 @@
 | Tickets | `ticket_type_map`, `ticket`, `org_ticket_allocation`, `checkin` | `personalize_ticket` (Käufer/Inhaber, für mich oder andere Person) |
 | Integration | `integration.webhook_event` (unique Quelle+ID), `integration.sync_job`, `integration.sync_error`, `external_ref` | — (Route Handler schreiben über service_role) |
 | Kommunikation | `mail_template` (key × locale), `mail_log` | `is_suppressed()` (nur service_role) |
-| Vokabular | `vocab_term` (34 Vokabulare) | — |
+| Vokabular | `vocab_term` (33 Vokabulare, 309 Begriffe) | — |
 | Migration/Dedup (P0) | `import.staging_contact`, `import.source_person_map`, `potential_duplicate`, `person_merge_log` | — |
 
 ## Status-Maschinen

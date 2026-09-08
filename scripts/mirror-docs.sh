@@ -21,4 +21,5 @@ docs/fragenkatalog-2026-09-07.md|08_Projektplan & MVP/Fragenkatalog Masterplan �
 docs/masterplan.md|08_Projektplan & MVP/Masterplan FLS27-Plattform (Entwurf v0.1, 2026-09-08).md
 docs/datenmodell-v2.md|08_Projektplan & MVP/Datenmodell v2 — Ueberblick (Claude, 2026-09-08).md
 docs/arbeitsauftrag-welle-0.md|08_Projektplan & MVP/Arbeitsauftrag Welle 0 — Fundament (Claude, 2026-09-08).md
+docs/arbeitsauftrag-welle-1.md|08_Projektplan & MVP/Arbeitsauftrag Welle 1 — Talent + Programm (Claude, 2026-09-08).md
 MAP
