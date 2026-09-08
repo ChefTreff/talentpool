@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
@@ -102,8 +103,14 @@ export default async function ProfilPage() {
     channels: (channels ?? []).map((c: { term_key: string }) => c.term_key),
   };
 
+  // Wer das Onboarding noch nicht hinter sich hat, wird dorthin geschickt —
+  // ein halbes Profil hilft weder dem Badge noch dem Matching.
+  if (!person?.first_name?.trim() || !person?.last_name?.trim()) {
+    redirect("/onboarding");
+  }
+
   return (
-    <>
+    <div className="max-w-[800px]">
       <PageHeader
         title={t.profile.title}
         description={`${t.profile.lead} ${t.profile.loggedInAs} ${user.email}.`}
@@ -128,6 +135,6 @@ export default async function ProfilPage() {
           ],
         }}
       />
-    </>
+    </div>
   );
 }
