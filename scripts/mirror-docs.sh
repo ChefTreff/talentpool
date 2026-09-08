@@ -12,6 +12,7 @@ done <<'MAP'
 docs/legacy-inventar.md|04_Tool-Landscape & Integrationen/Legacy-Inventar — Airtable, Notion, Swapcard-API, Vivenu-API (Claude, 2026-09-07).md
 docs/makecom-webhooks-2026-09-08.md|04_Tool-Landscape & Integrationen/make.com — verwaiste Webhooks, Abschaltliste (2026-09-08).md
 docs/vivenu-support-anfrage.md|04_Tool-Landscape & Integrationen/Vivenu-Support-Anfrage (Entwurf, 2026-09-08).md
+docs/zugangs-liste.md|04_Tool-Landscape & Integrationen/Zugangs- und Token-Liste (ohne Werte, Claude, laufend).md
 docs/feedback-fls26.md|05_Requirements (Team-Input)/Feedback FLS26 — Register mit Konsequenzen (Claude, 2026-09-08).md
 docs/design-briefing.md|07_Mockups & Design/Design-Briefing v0.3 (Claude, 2026-09-08).md
 docs/entscheidungen.md|08_Projektplan & MVP/Entscheidungslog (Claude, laufend).md

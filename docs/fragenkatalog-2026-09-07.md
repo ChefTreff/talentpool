@@ -131,3 +131,21 @@ Antwortformat: Nummer + Stichwort reicht („5: Login+Ticket, 35 hart").
 75. **Bühnenpartner** (ZEIT, Impossible Founders, 1KOMMA5°): eigene Spalte selbst pflegen (Rolle `standbuehne_editor` mit Freigabe) oder nur ChefTreff?
 76. **Pflichtfelder für Veröffentlichung** (App, Website, Regie): Titel DE/EN, Format, Sprache, Speaker, Beschreibung Pflicht; Moderation/Raum optional? Masterclasses aufs selbe Board (Raum-Spalten, 15-Min-Raster)?
 77. **Backlog:** „Speaker Zusagen" + „Partnerslots Sold" als Backlog-Spalte, aus der Slots ins Raster gezogen werden; „Status Programm" ergibt sich dann automatisch — ok?
+
+## Antworten — Stand 08.09.2026 spät (Konrad) → Freigabe, Welle 0 startet
+- **56** ✅ Prio M/S/C bestätigt. **7** ✅ Kontaktrollen behalten + „Shop". **53** ✅ eine Swapcard-Gruppe je Pass-Typ. **54** ✅ Empfehlung (Blueprint-Export archivieren).
+- **57** ⏳ Tokens gesammelt später → Liste in `docs/zugangs-liste.md` (ohne Werte), Konrad setzt alles in Vercel.
+- **58** ✅ Assistenz darf alles außer Consent & Bankdaten. Einladung durch den Speaker (nur per Mail) **oder durch unsere Stage Leads im Onboarding**.
+- **59** ⏩ Strategy-Calls: optionales Feature, später (C). **60** ✅ Dashboard-Versand wie empfohlen. **61** ⏩ Figma-Template für Slot-Grafiken wird demnächst neu gebaut; es existiert nur das Template 2026 (C). **62** ✅ Slid@Home wie Empfehlung. **63** ⏳ Kontingente Hotel/DB/Locker kommen über Laura bis 01.11. (Checkliste).
+- **64** ✅ Chatbase hatte nur die Wiki-DB angebunden. **Eigener Bot bauen.** **65** ✅ Wiki war ein Notion-Embed. **66** ✅ evergreen Basis + Overlay je Edition.
+- **67** ✅ Sprachen: **Partner DE + EN, Speaker nur EN, Teilnehmer DE + EN.** **68** ✅ Owner: **Pauli** für alles Speaker, **Konrad** für Partner und Teilnehmer.
+- **69** ✅ Volunteer-Wiki: eigener Content existiert bereits (Notion-DB `2c017aa69eee8029b469fde07c244467`) → als Grundlage übernehmen und weiterentwickeln (Analyse Inventar §14.1).
+- **70** ✅ Teilnehmer-FAQ: Startbestand aufnehmen, dann erweitern. **71** ✅ Rollen-Postfach + Portal-Nachricht.
+- **72** ✅ Status-Enum wie empfohlen. **73** ❓ **noch offen** (Default bis zur Antwort: 5-Min-Raster, Bühnenparameter, Warnung statt Sperre).
+- **74** ✅ **Keine ZEIT-Bühne 2027.** Verfügbare Slots je Bühne × Tag zählen; es kommt eine **allgemeine Slot-Logik** (Kontingent/Zähler je Bühne × Tag).
+- **75** ✅ Bühnenpartner pflegen ihre Spalte selbst; welche Partner 2027 dabei sind, ist offen → Partnerbühnen je Edition konfigurierbar.
+- **76** ✅ **Raum/Bühne Pflicht**, Moderation optional. **Getrennte Werte für Regie und App** (interne vs. öffentliche Felder). Website zeigt das Programm voraussichtlich über das **Swapcard-Embed** → keine Mehrfachpflege, keine Programm-Publikation an Sanity.
+- **77** ✅ Backlog wie empfohlen.
+
+## Neue Punkte (08.09. spät)
+78. **Item-Liste 2026** (Airtable „Working List" `appyPbjOKdS9Ypd4O`, Tabelle „Item Liste 2026") = Produkt-Inventar, gespiegelt in HubSpot (Line-Items) und SevDesk (Positionen) → muss mit umziehen; wird der `product`-Stamm im Portal (Inventar §16). Stammdaten ohne Personenbezug → Import schon in Welle 3, nicht erst bei der Migration.

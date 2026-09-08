@@ -71,3 +71,10 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - [ ] **Chatbase-Account prüfen:** Quellen, Plan, Datenstandort, AVV; entscheiden (Frage 64) und ggf. kündigen + Trainingsdaten löschen lassen.
 - [ ] **Alt-Systeme bis zur Abschaltung patchen:** WordPress/WooCommerce Messeshop (Updates, Admin-Pfad), SoftR-Hubs; nach Go-live: Bestellungen exportieren (Referenz), Logins deaktivieren, DNS `partner.`/`speaker.`/`partnerhub.` auf Portal umleiten.
 - [ ] **Notion-Wikis nach Import einfrieren** (read-only) — eine Quelle der Wahrheit: Portal.
+
+## Ergänzungen 08.09. spät (Antworten 56–77)
+- [ ] **Token-Liste** (`docs/zugangs-liste.md`) durchgehen und alle Werte in Vercel setzen (Production + Preview getrennt); danach `vercel env pull .env.local` — Konrad.
+- [ ] **Kontingente Hotel / DB-Ticket / Locker** über Laura bis **01.11.2026**; Add-ons in vivenu anlegen.
+- [ ] **Chatbase** nach Go-live des eigenen Bots kündigen, Trainingsdaten löschen lassen (Quelle war nur die Wiki-DB).
+- [ ] **Figma-Template Slot-Grafiken** neu bauen (Design), Generator erst danach (C).
+- [ ] **Item-Liste 2026** vor Welle 3 einfrieren (nur noch im Portal pflegen), HubSpot-Produkte und SevDesk-Artikel mit `product.sku` abgleichen.

@@ -126,3 +126,13 @@ Prio-Vorschlag M/S/C bestätigen (56) · Sanity-Zugang (57) · Assistenz-Rechte 
 - **Rechte:** Admin/Programm-Team alle Bühnen · Speaker-Manager Drag & Drop nur im eigenen Scope (Bühne × Tag oder Slot), andere Bühnen read-only sichtbar (Kollisionen) · Standbühnen-Editor (Partnerbühnen) eigene Spalte mit Freigabe durch Programm · nach `publish_status = published` Verschieben nur mit Bestätigung + Änderungslog.
 - **Datenmodell-Ergänzungen:** `stage_day` (open_from, open_to, Einlass) · `stage` + `changeover_min`, `default_duration_min`, `room`, `capacity`, `partner_org`, `stage_lead`, `partner_slot_quota` · `slot` + `slot_type`, `status` (offen · angefragt · bestätigt_titel_offen · final · nicht_bespielt), `sort_order`, `source_ref` · `slot_history`. Format und Sprache als Enum/Vokabular statt Freitext.
 - **Einordnung:** Board in **Welle 1** (Programm-Editor, Admin; ersetzt das Sheet) · **Welle 2** Scope-Variante im Speaker-Lead-Portal · Welle 3 Partnerbühnen-Spalte · Masterclasses im selben Board als Raum-Spalten (15-Min-Raster). FLS26-Slots aus dem Sheet dienen als Testdaten (Migration bleibt letzter Schritt).
+
+## Ergänzung v0.1d (08.09. spät) — Freigabe und Anpassungen aus den Antworten 56–77
+- **Freigabe:** Masterplan freigegeben; Welle 0 startet 08.09. Nur Frage 73 offen (Default = Empfehlung).
+- **Slot-Logik allgemein:** `stage_day` führt `slot_quota` und einen Zähler verfügbar/belegt je Bühne × Tag (Board-Kopfzeile). Partnerbühnen je Edition konfigurierbar (`stage.partner_org` optional); ZEIT-Bühne 2027 entfällt.
+- **Session-Felder:** Raum/Bühne Pflicht bei Veröffentlichung, Moderation optional. **Öffentlich** (App/Website, Swapcard-Sync): `title`, `description`, `language`, `format`, `speakers`, `stage`, `start/end`. **Intern** (Regie/Produktion): `regie_cue` mit eigenen Zeiten (Cue/Umbau), `internal_title`, `internal_notes`, `mic_assignment`, Backstage. Kein Feld wird doppelt gepflegt: die Regie-Werte referenzieren den Slot.
+- **Website:** Programm über Swapcard-Embed; Sanity erhält nur Partner-Logos.
+- **Assistenz:** Einladung per Mail durch Speaker oder durch Stage Leads im Onboarding; Audit-Log.
+- **Produktstamm:** `product` wird aus der **Item-Liste 2026** (Airtable Working List) gespeist; HubSpot-Produkt-IDs und SevDesk-Referenzen als `external_ref`. Import der Stammdaten bereits in **Welle 3** (kein Personenbezug); Personendaten-Migration bleibt letzter Schritt.
+- **Wissensbasis:** Sprachen Partner DE+EN, Speaker EN, Teilnehmer DE+EN; Owner Pauli/Konrad; Volunteer-Wiki aus Notion-DB `2c017aa6…` importieren.
+- **C-Features bestätigt:** Strategy-Calls, Slot-Grafik-Generator (Template folgt), Slid@Home.

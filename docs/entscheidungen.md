@@ -119,3 +119,12 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 ## 2026-09-08 (abends) — Master-Programm FLS26 ausgewertet (Konrad)
 - **Anforderung Programm-Board:** Speaker-Lead-Portal bekommt eine Ansicht wie der Tab „Master-Programm" (Tag × Bühnen × Zeit) mit Slots per Drag & Drop. Umsetzung als gemeinsame Komponente: Welle 1 im Programm-Editor (Admin), Welle 2 im Speaker-Lead-Portal auf den Scope begrenzt (Masterplan v0.1c, Inventar §15).
 - **Befund:** Das Sheet ist eine sortierte Liste je Bühne mit Statusfarben ohne Legende, ohne IDs und ohne Formeln. Im Portal gilt: Zeit, Status, Format und Sprache sind strukturierte Felder, Farbe kommt nur aus dem Status.
+
+## 2026-09-08 (spät) — Antworten 56–77, Freigabe Masterplan (Konrad)
+- **Masterplan v0.1c freigegeben** (Prio M/S/C bestätigt, Frage 56). Welle 0 startet am 08.09. Offen bleibt nur 73 (Zeitlogik); bis zur Antwort gilt die Empfehlung (5-Min-Raster, Bühnenparameter, Warnung statt Sperre).
+- **Rollen:** Partner-Kontaktrollen = Primary Ops, CC, Event-App-Member, Signing, Accounting **+ Shop**. Assistenz ohne Consent/Bankdaten; Einladung per Mail durch Speaker oder durch Stage Leads im Onboarding. Bühnenpartner pflegen ihre Spalte selbst (Freigabe durch Programm).
+- **Programm:** Status-Enum statt Farben. Keine ZEIT-Bühne 2027; **allgemeine Slot-Logik** mit Kontingent/Zähler je Bühne × Tag. Raum/Bühne Pflicht, Moderation optional, **getrennte Felder für Regie (intern) und App (öffentlich)**. Website-Programm über Swapcard-Embed, Sanity nur Logos.
+- **Wissensbasis:** eigener Chatbot (kein Chatbase). Sprachen Partner DE+EN, Speaker EN, Teilnehmer DE+EN. Owner Pauli (Speaker), Konrad (Partner, Teilnehmer). Volunteer-Wiki aus bestehender Notion-DB.
+- **Verschoben (C):** Strategy-Calls (optional), Slot-Grafik-Generator (neues Figma-Template folgt), Slid@Home nach Empfehlung.
+- **Betrieb:** Tokens werden gesammelt über `docs/zugangs-liste.md` erfasst und von Konrad in Vercel gesetzt. Kontingente Hotel/DB/Locker über Laura bis 01.11.
+- **Neu:** Item-Liste 2026 (Airtable Working List) ist das Produkt-Inventar → `product`-Stamm im Portal, Spiegel für HubSpot und SevDesk.
