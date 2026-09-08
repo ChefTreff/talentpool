@@ -94,3 +94,13 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Sicherheit make.com (Entscheidung Konrad):** Vivenu-Key rotieren ✅ Liste · Swapcard-Credential ersetzen ✅ Liste · **verwaiste Webhooks jetzt deaktivieren** (Claude, nur `enabled=false`, keine Löschung, Liste dokumentiert) · Sample-Daten bereinigen ✅ Liste.
 - **Secret Shop je Partner = neue Funktion 2027** (bestätigt): ein Undershop mit den gebuchten Pass-Typen statt mehrerer Codes; Machbarkeit per API → Vivenu-Support-Frage 5.
 - Konrad fasst jetzt das **Live-Feedback** zusammen → fließt in den Masterplan.
+
+## 2026-09-08 (abends) — Domain, Feedback FLS26 (Konrad)
+- **Domain: Plattform → `portal.chef-treff.de`**; bestehendes Team-Portal zieht auf `team.chef-treff.de` um (Konrad). `partner.chef-treff.de` → Redirect später.
+- **Regieplan-Ableitung bestätigt** („klingt gut").
+- **Feedback FLS26** vollständig als Register erfasst: `docs/feedback-fls26.md` (48 Punkte, Prio-Vorschlag M/S/C — Bestätigung im Masterplan).
+- Daraus neue **Grundsätze**: (1) **Portal bilingual DE/EN** von Tag 1; (2) **E-Mail-Minimierung** — bedarfsgesteuerte Reminder, Eingangsbestätigungen bei Uploads, Digest statt Einzelmails; (3) **ein QR/Barcode** (Vivenu) in allen Systemen; (4) **Portal sendet die finale Ticket-Bestätigung** nach Personalisierung; (5) **Vivenu-Personalisierung im eigenen System ist mit vivenu validiert** (Bestätigungsseite wird nachgebaut; Anleitung folgt).
+- Neue Integration: **Website (Supabase + Vercel + Sanity)** ← Partner-Logos automatisch.
+- Neue Rolle: **Assistenz** (Delegation auf Speaker-Datensatz). Neues Feld: **Titel (Dr.)**. Regel: **Masterclass-Speaker = Professional Pass** (Lounge-Zugang als Flag).
+- Messeshop-Anpassungen: keine Startseite, keine Rollentrennung (Hinweise auf Produktebene), Merch-Kategorie, Lunch-Paket als Pflicht-Checklistenpunkt.
+- HubSpot-Gate: Onboarding startet erst, wenn Basisinfos vollständig; sonst Deal zurücksetzen + Hinweis an Sales.

@@ -15,6 +15,8 @@ wir (ChefTreff, Hamburg) bereiten den **Future Leader Summit 2027** (16.–17.04
 7. **Checkout-`meta`:** Wird `meta` aus dem serverseitigen Checkout zuverlässig auf die erzeugten Tickets propagiert (wir nutzen es als Join-Key)?
 8. **Limits & Sandbox:** Gelten 1.000 Requests/h pro Token? Ist die Sandbox (`vivenu.dev`) funktional identisch zur Produktion (Webhooks, Undershops, Coupons)?
 
+9. **Deposit für Freitickets:** Lässt sich für kostenlose Ticket-Typen eine Kaution (z. B. 20 €) erheben, die nach Check-in (Scan) automatisch oder per API zurückgebucht wird?
+
 Vielen Dank — gern auch ein kurzer Call, falls einfacher.
 
 Beste Grüße

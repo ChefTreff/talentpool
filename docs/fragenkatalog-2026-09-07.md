@@ -102,3 +102,14 @@ Antwortformat: Nummer + Stichwort reicht („5: Login+Ticket, 35 hart").
 ## Antworten — Stand 08.09.2026 nachmittags
 29 ✅ alle rein · 30 ✅ sensible Felder weglassen · 31 ✅ Default (Wizard + Progressive Profiling) · 32 ✅ Marketing liefert Segmente nach Portal-Bau (Übersicht senden) · 45 ✅ ein Portal; **Domain offen** (Empfehlung: `portal.` für Plattform, Team-Portal → `team.`) · 48 ✅ nur Events-Theme nötig · 49 ✅ Web-Lizenz ja, SemiBold = Textschnitt, Claude konvertiert WOFF2 · 52 ✅ Rotation auf Liste; Webhooks werden deaktiviert · 55 ✅ Bereinigung auf Liste · Secret Shop bestätigt
 **Noch offen:** 7 · 45 (Domain-Wahl) · 53 (Swapcard-Gruppen je Pass-Typ?) · 54 (FLS26-Stack archivieren?) · Reception-Name · Produktionsportal-Checkliste (Leistungen) · Live-Feedback · Patrick-Code
+## Antworten — Stand 08.09.2026 abends
+45 ✅ `portal.chef-treff.de`; Team-Portal → `team.` (Konrad) · Regieplan-Ableitung ✅ · **Feedback FLS26 eingegangen** → `docs/feedback-fls26.md`
+## Neue Fragen aus dem Feedback (08.09.)
+56. **Prio-Vorschlag M/S/C** im Feedback-Register — bestätigen oder verschieben? (Besonders: P7 Mail-Versand aus Dashboard = M?; C-Features Slid@Home, Generatoren, Timetable-Bild erst nach Go-live?)
+57. **Sanity** (Website): Zugang (Projekt/Dataset/Token) und Ziel-Dokumenttyp für Partner-Logos?
+58. **Assistenz-Rolle**: darf sie alles außer Consent/Bankdaten? Einladung durch Speaker selbst?
+59. **Strategy-Calls**: welche Partner-Tiers („ab Premium") — Produktnamen aus HubSpot?
+60. **Mail-Versand aus Dashboard**: wer darf senden (Bereichsleads?), Templates DE/EN, Antwortadresse?
+61. **Slot-Grafik**: existiert ein Figma-Template? Wer ist die Freelancerin (Zugang zur Review-Queue)?
+62. **Slid@Home**: nur für Ticketinhaber des jeweiligen Summits? Zeitraum der Verfügbarkeit?
+63. **Hotelkontingente/DB-Ticket/Locker**: wer beschafft die Kontingente (extern) und bis wann? (Checkliste)

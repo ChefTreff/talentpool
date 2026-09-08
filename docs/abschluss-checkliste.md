@@ -50,3 +50,11 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **Schriften**: OTF → WOFF2 konvertieren, `@font-face` einbinden, Lesbarkeits-Check SemiBold als Fließtext (ggf. Book/Medium nachlizenzieren).
 - ☐ **Keys in Vercel-Env** (Prod/Preview/Dev) hinterlegen; lokal `vercel env pull`.
 - ☐ **Verwaiste make.com-Webhooks deaktivieren** — Liste: `docs/makecom-webhooks-2026-09-08.md` (23 Hooks; 2 Finanz-Hooks vorher bestätigen); per API nicht möglich → manuell in der Make-UI.
+
+## Ergänzungen aus dem Feedback FLS26 (08.09.)
+- ☐ **Vivenu**: Anleitung „Bestätigungsseite nachbauen" einholen; Deposit für Free Tickets klären (Support Q9); Add-ons Hotel/DB-Ticket/Locker/Bundles im Shop anlegen (Kontingente extern beschaffen; DB-Veranstaltungsticket beantragen).
+- ☐ **Swapcard**: Processing-Fehler der Teilnehmer-Importe FLS26 analysieren; Exhibitor-Kategorien + Rechte definieren; QR = Vivenu-Barcode verifizieren.
+- ☐ **Website/Sanity**: Zugang + Schema für automatische Partner-Logos.
+- ☐ **Mail-Plan je Journey** (Teilnehmer, Partner, Speaker, Volunteer) — Minimierung, Templates DE/EN, Reminder-Regeln.
+- ☐ **Strategy-Call-Slots** 6 Wochen vor Summit (ab Premium) einplanen (≈ Anfang März 2027).
+- ☐ **Domain-Umzug** Team-Portal → `team.chef-treff.de` (Konrad), Plattform → `portal.chef-treff.de`.
