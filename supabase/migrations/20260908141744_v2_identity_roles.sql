@@ -273,3 +273,6 @@ grant execute on function my_roles()                       to authenticated;
 grant execute on function delete_my_profile()              to authenticated;
 grant execute on function email_hash(text)                 to authenticated, service_role;
 revoke execute on function person_tier_on_claim() from public, anon, authenticated;
+
+-- === Backfill: bereits verknüpfte Personen sind Talents =====================
+update person set tier = 'talent' where auth_user_id is not null and tier <> 'talent';
