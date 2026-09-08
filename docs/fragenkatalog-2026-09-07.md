@@ -85,3 +85,11 @@ Antwortformat: Nummer + Stichwort reicht („5: Login+Ticket, 35 hart").
 **E** · 22 ✅ alles rein + Empfehlungsliste · 23 ✅ keine öffentliche Bewerbung; Pipeline Akquise→Onboarding via Lead-Portal · 24 ✅ Hotel/Shuttle statusgesteuert; Reisekosten → Auslagenrechnung → SevDesk + Qonto-Inbox
 **F** · 25 ✅ Teilnehmer-App in Scope, Discord bleibt · 26 ⏳
 **Noch offen:** 7 · 26 · 27–33 (G) · 34–40 (H; 41 ✅ SevDesk) · 42–47 (I; 44 teilw. ✅ Resend) · 48–51 (J)
+## Antworten — Stand 08.09.2026 mittags
+**F** · 26 ✅ Start/Ende/Soll; Präferenzen → Zuteilung durch uns; QR-Check-in mit reiner Check-in-Rolle; Shirt; Unterkunft + Bahn als Shop-Add-on/Bundle; Buddy
+**G** · 27 ✅ · 28 ✅ behalten; Studium 3 Ebenen (Feld → Richtung → Freitext-Bezeichnung) · 29 ❓ Klartext nötig · 30 ✅ Founder konditional, ISO, Stadt rein; sensible Felder: Klärung · 31 ❓ · 32 ❓ · 33 ✅ nur Talents, kein WhatsApp
+**H** · 34 ✅ Keys kommen (env), Felder = Airtable, Support-Text Claude, Badge Oktober, kein Kauf aus Portal · 35 ✅ Key vorhanden (env), alle Objekte, Tracks Custom Field · 36 ✅ HubSpot→Supabase (+ Rücksync Stammdaten), Trigger FLS27-Pipeline „Onboarding Automation" · 37 ✅ Segmente final → push, Opt-in zurück, Reaktivierungs-Kampagne · 38 ✅ · 39 ✅ Regie+Booth rüber, **neu: Produktionsportal** · 40 ✅ Luma via Webhook · 41 ✅ SevDesk immer, Entwürfe automatisch nach Summit
+**I** · 42 ✅ Konrad DSB-Kontakt, AVVs, Löschkonzept gemeinsam, „Profil löschen" + Sperrvermerk · 43 ✅ Consent-Agent → Abschluss-Checkliste · 44 ✅ Gmail + Resend, @chef-treff.de, Staff-2FA via Google-SSO · 45 ✅ ein Portal mit Bereichen (Empfehlung bestätigt) · 46 ✅ Supabase Pro, PITR/Vercel Pro/alarm@ → Checkliste · 47 ✅
+**J** · 48 ✅ exportiert, SSOT; FLC/Education/Media fehlen; JSON-Anleitung · 49 ✅ Lizenzen kommen; Laica nur Italic; „Textschnitt" erklären · 50 ✅ Sub-Brand nur Events, kein Dark Mode · 51 ✅ Token-basiert, Designer am Ende
+**Bestätigt:** 21 ✅ · 22 ✅
+**Noch offen:** 7 · 29 · 30 (sensibel) · 31 · 32 · 34.4 (Oktober) · 42 (Löschkonzept-Workshop) · 48 (3 Theme-Frames) · 49 (Medium/Regular?) · neu: Produktionsportal-Details · Credentials-Übergabe (env) · Feedback Live-Betrieb · Patrick-Code

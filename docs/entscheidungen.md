@@ -46,3 +46,37 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Hospitality im Portal:** Shuttle + Hotel buchbar, freigeschaltet über ein **von uns gesetztes Statusfeld**. **Reisekosten:** Speaker lädt Beleg hoch + Bankdaten-Formular → Portal erzeugt **Auslagenrechnung** → Speaker gibt frei → Beleg nach **SevDesk** + Mail an **Qonto-Rechnungseingang** → Konrad gibt Zahlung frei.
 ### F (Teil)
 - **Hackathon-Teilnehmer-App in den Scope** (mit Testpuffer); **Discord bleibt**.
+
+## 2026-09-08 — Antworten Fragenkatalog 26, G, H, I, J (Konrad)
+### Volunteers (26)
+- Schichten = Position mit **Start, Ende, Soll-Kapazität**. Bewerbung mit **Präferenzen**, **Zuteilung durch uns** (Zeiten stehen bei Bewerbung noch nicht). **QR-Check-in** vor Ort mit eigener **Check-in-Rolle** (Gerät hat ausschließlich Scan-Recht, sonst nichts). T-Shirt-Größe bleibt (jeder bekommt ein Shirt). **Unterkunft als Add-on im Vivenu-Shop** beim Ticket-Einlösen, zusätzlich **Bahnticket** (einzeln + Bundle). **Buddy-System** wichtig.
+### G · Talent-Portal & Felder
+- Pflichtfelder Talent-Schwelle wie vorgeschlagen (Name, E-Mail, Status, Erfahrung, Level, Consent) — wird später überarbeitet.
+- **Status × Level × Erfahrung bleiben.** Studium in **drei Ebenen**: Hintergrund (z. B. Wirtschaft) → Studienrichtung (z. B. BWL) → **Studiengangsbezeichnung als Freitext** (z. B. „International Business & Innovation") → `study_field`, `study_program`, neu `study_program_label` (Text).
+- **Founder-Felder konditional.** **Land/Nationalität nach ISO**, **Stadt neu (wichtig für Auswertung)**. Sensible Felder: Klärung durch Claude (Art.-9-Kategorien) → Empfehlung weglassen.
+- **Community/FLC nur Talents; WhatsApp vorerst nicht.**
+- 29/31/32: Rückfragen von Konrad → Claude formuliert Klartext + Default (siehe Fragenkatalog).
+### H · Integrationen
+- **make.com-Szenarien (Swapcard, Vivenu) = Referenz für Feldmappings** des Vorjahres (Notion-Briefings ggf. leicht abweichend, Live-Änderungen).
+- **Vivenu:** Keys werden bereitgestellt (→ `.env.local`, nie Chat/Drive). Personalisierungsfelder = Airtable-Felder (daraus abgeleitet). Support-Text von Claude. **Badge-Druck-System: Oktober.** **Kauf aus Portal: nein** (verlängert den Kaufprozess).
+- **Swapcard:** API-Key vorhanden (→ `.env.local`). **Alle Objekte syncen** (Teilnehmer, Speaker, Sessions, Exhibitors, Sponsor-Tier). **Tracks als Custom Field** mitdenken.
+- **HubSpot → Supabase** einseitig; wenn möglich **Rücksync der Unternehmens-Stammdaten**. Trigger = Deal in **FLS27-Pipeline** → Phase **„Onboarding Automation"**.
+- **ActiveCampaign:** Segmente final ausarbeiten, dann pushen; **Opt-in-Rückfluss** gewünscht; Export später. **Kampagne: alle AC-Kontakte anschreiben → Registrierung im Portal (Lead → Talent).**
+- **Regel: make.com nur Transport, Logik in Supabase** — bestätigt.
+- **Regie + Booth wandern in die Plattform.** Regie = erweiterte Programm-Ansicht für Technik/Regie; Booth = Übersicht der Messestände. **Neues Portal: Event-Produktion** — alle Stände + zugebuchte Leistungen, Vor-Ort-Checklisten („hat jeder Kunde alle Leistungen erhalten?").
+- **Luma:** wenn genutzt, direkt ans CRM angeschlossen (Webhook).
+- **Regel: SevDesk für ALLE Rechnungen.** Auslösen macht Konrad; **Entwurfserstellung automatisiert**; **immer direkt nach dem Summit** (Rechnungsdatum nach Leistungsdatum, vollständige Abrechnung).
+### I · Sicherheit, Datenschutz, Betrieb
+- **Datenschutz-Ansprechpartner = Konrad.** AVVs werden geschlossen. Aufbewahrung/Löschung gemeinsam erarbeiten. **Pflicht: „Profil löschen"-Button** + Sperrvermerk (E-Mail wird nie wieder angefasst → Suppression-Liste, gehasht).
+- **Consent wird komplett neu aufgearbeitet** durch Konrads separaten Consent-Agent → **Abschluss-Checkliste**: Agent mit allen Tools/Verbindungen briefen; Anwaltsprüfung.
+- **Mail:** Team-Postfächer Gmail; **automatisierte Mails via Resend**, Domain `@chef-treff.de`. **Staff-2FA Pflicht, bevorzugt Google-SSO.**
+- **Ein Portal mit Bereichen** (Rollen-Umschalter) bevorzugt → Empfehlung Claude bestätigt sich.
+- **Supabase Pro** vorhanden; **PITR anschaffen** (Checkliste). **Vercel Pro** sicherstellen. **Alarm-Empfänger `alarm@chef-treff.de`** (Alias, eigener Postfach-Abschnitt) — Checkliste.
+- **Doku:** Repo + Drive; vorerst nur Konrad liest/schreibt.
+### J · Design
+- **Figma-Board = Single Point of Truth.** Themes FLC/Education/Media noch zu exportieren; JSON-Export-Anleitung von Claude.
+- **Schrift-Lizenzen vorhanden** (werden im Ordner abgelegt). Laica nur Italic. Frage „Textschnitt" durch Claude erklärt.
+- **Sub-Brand-Farben nur für Events. Kein Dark Mode** (Übersichtlichkeit).
+- **Token-basiertes Komponenten-System ok; Designer steigt am Ende ein** (wenn alle Funktionen stehen).
+### Bestätigungen
+- **21 Initiativen = Partner-Portal, Org-Typ „Initiative"** ✅ · **22 Speaker-Felder: alle Empfehlungen aufnehmen** (ggf. später löschen) ✅
