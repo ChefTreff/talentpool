@@ -99,3 +99,6 @@ Antwortformat: Nummer + Stichwort reicht („5: Login+Ticket, 35 hart").
 53. **Swapcard-Gruppen:** bisher alle 9 Ticket-Typen in *einer* Gruppe — für FLS27 getrennte Gruppen je Pass-Typ (Rechte/Sichtbarkeit in der App)?
 54. **FLS26-Stack:** archivieren oder als Vorlage sichern? (Neubau kommt ohnehin aus Supabase.)
 55. **Sample-Daten** mit Personenbezug in Blueprints bereinigen — ja?
+## Antworten — Stand 08.09.2026 nachmittags
+29 ✅ alle rein · 30 ✅ sensible Felder weglassen · 31 ✅ Default (Wizard + Progressive Profiling) · 32 ✅ Marketing liefert Segmente nach Portal-Bau (Übersicht senden) · 45 ✅ ein Portal; **Domain offen** (Empfehlung: `portal.` für Plattform, Team-Portal → `team.`) · 48 ✅ nur Events-Theme nötig · 49 ✅ Web-Lizenz ja, SemiBold = Textschnitt, Claude konvertiert WOFF2 · 52 ✅ Rotation auf Liste; Webhooks werden deaktiviert · 55 ✅ Bereinigung auf Liste · Secret Shop bestätigt
+**Noch offen:** 7 · 45 (Domain-Wahl) · 53 (Swapcard-Gruppen je Pass-Typ?) · 54 (FLS26-Stack archivieren?) · Reception-Name · Produktionsportal-Checkliste (Leistungen) · Live-Feedback · Patrick-Code

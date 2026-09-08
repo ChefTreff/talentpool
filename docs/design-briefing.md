@@ -1,4 +1,4 @@
-# Design-Briefing — ChefTreff Portale (v0.2, Stand 07.09.2026)
+# Design-Briefing — ChefTreff Portale (v0.3, Stand 08.09.2026)
 
 > Verbindlich für alle Portale (Talent, Speaker, Speaker-Manager, Partner inkl. Messeshop, Hackathon, Volunteers, Initiativen, Admin).
 > Quellen: Figma „REBRANDING CHEFTREFF" — exportierte Frames A1 Farben (ChefTreff-Basis, Events), A2 Gradients, A3 Fonts, A4 Buttons, A6 Layout & Abstände, Hero-Highlight-Regel, Logos, Formen-SVGs; `ChefTreff_PartnerPortal_Design_v1.html`; Schriftordner.
@@ -102,3 +102,10 @@ Form: Pille (`border-radius: 999px`) oder 8-px-Rechteck — **eine** Form pro Po
 - Sharp Sans **Medium/Regular** für Fließtext + Web-Lizenz/WOFF2 (Frage 49).
 - Portal-Akzent Indigo bestätigen oder je Portal themen; Dark Mode ja/nein (Frage 50).
 - Einstieg Designer / Token-Übergabe (Frage 51).
+
+## 9 · Änderungen v0.3 (08.09.2026, Konrad)
+- **Theme = Events, ausschließlich.** FLC/Education/Media entfallen (Plattform bewegt sich nur im Bereich Events/FLS). Portal-Akzent damit **final**: `#6D6DEF` · Hover `#5B5BD9` · Soft `#E8E8FC`; Text in Akzent auf Hell `#5B5BD9`. Abschnitt 2 „Portal-Entscheidung" gilt.
+- **Kein Dark Mode.** Tokens bleiben theme-fähig, ausgeliefert wird nur Light.
+- **Typografie:** Lizenz deckt Web-Einbettung ab. **Sharp Sans Display No.1 SemiBold ist der Textschnitt** (Fließtext, Formulare, Tabellen); ExtraBold für Titel/Sektionen; Laica Italic als Akzent. Umsetzung: OTF → WOFF2, `@font-face` mit `font-display: swap`, Systemstapel nur als Fallback. **Prüfpunkt UI-Kit-Review:** Lesbarkeit von SemiBold bei 15–16 px in dichten Tabellen — falls zu schwer, Book/Medium nachlizenzieren.
+- **Felder:** alle Matching-Felder optional aufnehmen (Wizard-Schritt „Karriere & Matching"); keine sensiblen Felder.
+- **Onboarding:** 3-Schritt-Wizard + Fortschritt + Progressive Profiling (bestätigt).

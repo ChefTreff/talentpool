@@ -80,3 +80,17 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Token-basiertes Komponenten-System ok; Designer steigt am Ende ein** (wenn alle Funktionen stehen).
 ### Bestätigungen
 - **21 Initiativen = Partner-Portal, Org-Typ „Initiative"** ✅ · **22 Speaker-Felder: alle Empfehlungen aufnehmen** (ggf. später löschen) ✅
+
+## 2026-09-08 (nachmittags) — Antworten 29–32, 45, 49, Übergaben, Sicherheit (Konrad)
+- **Felder:** alle vorgeschlagenen Matching-/Profilfelder **aufnehmen** (später streichen). **Sensible Felder (Art. 9 / Gehalt etc.) komplett weglassen.** Founder-Felder konditional, ISO-Länder, Stadt.
+- **Onboarding-UX = Default:** 3-Schritt-Wizard (Basis → Studium & Beruf → Interessen & Matching) + Fortschritt + Progressive Profiling.
+- **Segmentierung kommt vom Marketing:** nach Portal-Bau erhält Marketing eine **Übersicht der Segmentierungsmöglichkeiten** (alle Felder/Kombinationen) → liefert Segmente zurück → wir bauen Views + AC-Tags. (→ Deliverable + Checkliste)
+- **Ein Portal** bestätigt. Domain: aktuelles Team-Portal läuft auf `porta(l).chef-treff.de`; Entscheidung Umzug auf `team.` vs. neue Domain (`login.`/`app.`) offen — Empfehlung Claude: Plattform = `portal.chef-treff.de`, Team-Portal → `team.chef-treff.de` (Umzug im Härtungsfenster).
+- **Schriften:** Lizenz deckt **Web-Einbettung** ab. Vorhandene Schnitte: Sharp Sans Display No.1 SemiBold/ExtraBold (+ Italic), ABC Laica Regular Italic. **SemiBold = Textschnitt** (Konrad). Claude konvertiert OTF → WOFF2 im UI-Kit; Lesbarkeits-Check von SemiBold als Fließtext im ersten UI-Kit-Review (Alternative: Book/Medium nachlizenzieren).
+- **Design-Themes:** nur **Events** (FLC/Education/Media nicht nötig) → Portal-Akzent Indigo `#6D6DEF` / Hover `#5B5BD9` / Soft `#E8E8FC`. **Kein Dark Mode.**
+- **Keys:** Quelle der Wahrheit = **Vercel-Env** (Production/Preview/Development); lokal per `vercel env pull .env.local` (Konrad, einmalig nach `vercel login`). Nie im Chat/Drive/Repo.
+- **Produktionsportal:** Nutzer = Event-Team + Regie; enthält den **Regieplan auf Basis des Programms** (Vorlage: Google Sheet „Regieplan 2026", Struktur ins Inventar §11) sowie Stand-/Leistungs-Checklisten.
+- **Speaker Reception:** neuer Name folgt (Checkliste); technisch ein **Haken „Reception-berechtigt"** beim Eintragen des Speakers (Staff-gesetzt) → steuert Anmeldeberechtigung.
+- **Sicherheit make.com (Entscheidung Konrad):** Vivenu-Key rotieren ✅ Liste · Swapcard-Credential ersetzen ✅ Liste · **verwaiste Webhooks jetzt deaktivieren** (Claude, nur `enabled=false`, keine Löschung, Liste dokumentiert) · Sample-Daten bereinigen ✅ Liste.
+- **Secret Shop je Partner = neue Funktion 2027** (bestätigt): ein Undershop mit den gebuchten Pass-Typen statt mehrerer Codes; Machbarkeit per API → Vivenu-Support-Frage 5.
+- Konrad fasst jetzt das **Live-Feedback** zusammen → fließt in den Masterplan.

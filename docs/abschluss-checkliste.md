@@ -42,3 +42,11 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **Sample-Daten mit Personenbezug** aus Blueprints entfernen (DSGVO).
 - ☐ **Gipfel-26-Stack** archivieren oder als Vorlage sichern (Export ohne Secrets/Samples).
 - ☐ Leerlauf-Szenarien (FLA-Rechnungen stündlich, 15 Stubs, TEMP4/5) auf Bedarf umstellen.
+
+## Ergänzungen 08.09. (aus Antworten)
+- ☐ **Segmentierungs-Übersicht ans Marketing** senden (alle Felder/Kombinationen) → Segmente zurück → Views + AC-Tags bauen.
+- ☐ **Speaker Reception**: neuen Namen eintragen; Flag „Reception-berechtigt" im Speaker-Onboarding.
+- ☐ **Domain-Umzug**: Team-Portal → `team.chef-treff.de`, Plattform → `portal.chef-treff.de` (im Härtungsfenster, nach Entscheidung); `partner.chef-treff.de` → Redirect.
+- ☐ **Schriften**: OTF → WOFF2 konvertieren, `@font-face` einbinden, Lesbarkeits-Check SemiBold als Fließtext (ggf. Book/Medium nachlizenzieren).
+- ☐ **Keys in Vercel-Env** (Prod/Preview/Dev) hinterlegen; lokal `vercel env pull`.
+- ☑ **Verwaiste make.com-Webhooks deaktiviert** (08.09., Liste: `docs/makecom-webhooks-2026-09-08.md`) — *wird nach Ausführung bestätigt*.
