@@ -4,7 +4,7 @@
 
 | Variable | System | Wofür | Woher / minimale Rechte | Welle |
 |---|---|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase | Client-Zugriff (RLS) | Project Settings → API (vorhanden) | 0 |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase | Client-Zugriff (RLS) | seit 08.09. über die **Vercel↔Supabase-Integration** automatisch gesetzt (die App akzeptiert auch die neuen Namen `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_SECRET_KEY`) | 0 |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase | Server-Aktionen nach Rollenprüfung, Migration | Project Settings → API (vorhanden); nie im Client | 0 |
 | Google OAuth Client-ID/-Secret | Google Cloud → Supabase Auth | Staff-SSO (Domain chef-treff.de) + 2FA | Google Cloud Console, OAuth-Client „Web"; Redirect = Supabase-Callback; **in Supabase Auth Providers eintragen, nicht in Vercel** | 0 |
 | `RESEND_API_KEY`, `RESEND_FROM` | Resend | alle System-Mails | Resend → API Keys (Sending only); Domain `chef-treff.de` verifizieren (SPF, DKIM, DMARC) | 0 |

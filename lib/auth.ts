@@ -3,6 +3,7 @@ import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
 import {
   areasFor,
   canEnterArea,
@@ -61,10 +62,7 @@ type SessionContextRow = {
 export const getSessionContext = cache(async (): Promise<SessionContext> => {
   // Ohne Supabase-Env (frischer Checkout vor `.env.local`) bleibt alles anonym,
   // statt in jeder Route zu werfen — dieselbe No-Op-Haltung wie im Proxy.
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
+  if (!hasSupabaseEnv()) {
     return ANONYMOUS;
   }
 
