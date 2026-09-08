@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireStaff } from "@/lib/auth";
+import { requireArea } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function setVocabActive(
@@ -9,7 +10,7 @@ export async function setVocabActive(
   key: string,
   active: boolean,
 ): Promise<{ ok: boolean; error?: string }> {
-  await requireStaff();
+  await requireArea("admin");
   const admin = createSupabaseAdminClient();
   const { error } = await admin
     .from("vocab_term")
@@ -17,6 +18,15 @@ export async function setVocabActive(
     .eq("vocabulary", vocabulary)
     .eq("key", key);
   if (error) return { ok: false, error: error.message };
+
+  await logAudit({
+    action: "vocab.toggle",
+    objectType: "vocab_term",
+    objectId: `${vocabulary}:${key}`,
+    before: { active: !active },
+    after: { active },
+  });
+
   revalidatePath("/admin/vokabular");
   return { ok: true };
 }

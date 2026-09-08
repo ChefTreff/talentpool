@@ -1,0 +1,245 @@
+{
+  "meta": {
+    "localeName": "Deutsch",
+    "htmlLang": "de",
+    "dateLocale": "de-DE",
+    "title": "ChefTreff Portal",
+    "description": "Ein Profil, ein Login — formatübergreifend."
+  },
+  "common": {
+    "save": "Speichern",
+    "saving": "Speichere …",
+    "saved": "Gespeichert",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "loading": "Lädt …",
+    "error": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+    "required": "Pflichtfeld",
+    "choose": "— bitte wählen —",
+    "none": "—",
+    "shown": "angezeigt",
+    "active": "aktiv",
+    "inactive": "inaktiv",
+    "language": "Sprache"
+  },
+  "messages": {
+    "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",
+    "no_person": "Zu diesem Login gibt es kein Profil.",
+    "invalid_email": "Das ist keine gültige E-Mail-Adresse.",
+    "save_failed": "Speichern fehlgeschlagen.",
+    "missing_site_url": "Ohne NEXT_PUBLIC_SITE_URL kann das Portal keine Links in Mails setzen."
+  },
+  "nav": {
+    "brand": "ChefTreff",
+    "product": "Portal",
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "myAreas": "Meine Bereiche",
+    "skipToContent": "Zum Inhalt springen"
+  },
+  "areas": {
+    "talent": {
+      "name": "Talent",
+      "description": "Profil, Programm, Bewerbungen und Tickets."
+    },
+    "speaker": {
+      "name": "Speaker",
+      "description": "Onboarding, Talk, Tech-Rider, Hospitality."
+    },
+    "speaker-leads": {
+      "name": "Speaker-Leads",
+      "description": "Akquise-Pipeline und Speaker im eigenen Scope."
+    },
+    "partner": {
+      "name": "Partner",
+      "description": "Checkliste, Uploads, Kontakte, Messeshop."
+    },
+    "volunteers": {
+      "name": "Volunteers",
+      "description": "Präferenzen, Schichten, Shirt, Ticket."
+    },
+    "hackathon": {
+      "name": "Hackathon",
+      "description": "Bewerbung, Teams, Challenges, Einreichung."
+    },
+    "produktion": {
+      "name": "Produktion",
+      "description": "Regie-Ansicht, Stände, Checklisten."
+    },
+    "admin": {
+      "name": "Admin",
+      "description": "Personen, Rollen, Vokabular, Dubletten."
+    }
+  },
+  "placeholder": {
+    "eyebrow": "Welle 0",
+    "title": "Bereich vorbereitet",
+    "body": "Das Fundament steht: Rollen-Gate, UI-Kit und Sprachen greifen hier bereits. Die Inhalte dieses Bereichs kommen in einer späteren Welle.",
+    "backToStart": "Zur Startseite"
+  },
+  "home": {
+    "eyebrow": "ChefTreff",
+    "titleLead": "Ein Login für",
+    "titleHighlight": "alles",
+    "lead": "Profil, Programm, Bewerbungen, Tickets — einmal pflegen, formatübergreifend gültig.",
+    "loginCta": "Anmelden",
+    "profileCta": "Mein Profil",
+    "loggedInAs": "Angemeldet als"
+  },
+  "login": {
+    "title": "Anmelden",
+    "lead": "Wir schicken dir einen Login-Link per Mail. Kein Passwort nötig.",
+    "emailLabel": "E-Mail",
+    "emailPlaceholder": "du@example.com",
+    "submit": "Login-Link senden",
+    "sending": "Sende Link …",
+    "sentTitle": "Link unterwegs",
+    "sentBody": "Wir haben dir einen Login-Link geschickt an",
+    "authError": "Der Link ist abgelaufen oder wurde schon benutzt. Fordere einen neuen an."
+  },
+  "profile": {
+    "title": "Mein Profil",
+    "lead": "Deine Daten pflegst du hier einmal — sie gelten formatübergreifend.",
+    "loggedInAs": "Angemeldet als",
+    "sections": {
+      "personal": "Persönliches",
+      "work": "Status & Beruf",
+      "study": "Studium",
+      "interests": "Interessen",
+      "channels": "Wie bist du auf ChefTreff aufmerksam geworden?"
+    },
+    "fields": {
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "birthdate": "Geburtsdatum",
+      "gender": "Geschlecht",
+      "nationality": "Nationalität",
+      "country": "Land (Wohnsitz)",
+      "phone": "Telefon",
+      "linkedin": "LinkedIn-Profil",
+      "language": "Bevorzugte Sprache",
+      "occupationStatus": "Aktueller Status",
+      "workExperience": "Berufserfahrung",
+      "careerLevel": "Karrierelevel",
+      "employerType": "Arbeitgeber (Art)",
+      "employerName": "Arbeitgeber / Institution",
+      "startupPhase": "Startup-Phase (falls Founder)",
+      "studyField": "Studienhintergrund",
+      "studyProgram": "Studiengang",
+      "university": "Universität / Hochschule",
+      "selfAssessment": "Akademische Selbsteinschätzung",
+      "topics": "Themen",
+      "founderTopics": "Founder-Themen"
+    },
+    "hints": {
+      "nationality": "z. B. deutsch",
+      "country": "z. B. DE",
+      "linkedin": "https://linkedin.com/in/…"
+    }
+  },
+  "admin": {
+    "brand": "ChefTreff Admin",
+    "nav": {
+      "overview": "Übersicht",
+      "persons": "Personen",
+      "vocab": "Vokabular",
+      "duplicates": "Dubletten",
+      "ui": "UI-Kit",
+      "mail": "Mail"
+    },
+    "overview": {
+      "title": "Übersicht",
+      "persons": "Personen",
+      "registrations": "Registrierungen",
+      "openDuplicates": "Offene Dubletten",
+      "events": "Events",
+      "vocabTerms": "Vokabular-Terms"
+    },
+    "persons": {
+      "title": "Personen",
+      "colName": "Name",
+      "colEmail": "E-Mail (primär)",
+      "colStatus": "Status",
+      "colCreated": "Erstellt",
+      "noName": "(ohne Namen)",
+      "emptyTitle": "Noch keine Personen",
+      "emptyBody": "Sobald sich jemand einloggt oder Altdaten importiert werden, erscheinen die Datensätze hier."
+    },
+    "personDetail": {
+      "back": "Personen",
+      "masterData": "Stammdaten",
+      "workStudy": "Beruf & Studium",
+      "emails": "E-Mails",
+      "interests": "Interessen",
+      "channels": "Akquise-Kanäle",
+      "registrations": "Registrierungen",
+      "primary": "primär",
+      "verified": "verifiziert",
+      "linkedinProfile": "Profil",
+      "noRegistrations": "Keine Registrierungen."
+    },
+    "vocab": {
+      "title": "Vokabular",
+      "lead": "„aktiv\" steuert, ob ein Wert in den Formularen angeboten wird.",
+      "count": "Terms in",
+      "vocabularies": "Vokabularen",
+      "colKey": "Key",
+      "colDe": "DE",
+      "colEn": "EN",
+      "colParent": "Parent",
+      "colStatus": "Status"
+    },
+    "duplicates": {
+      "title": "Dubletten-Queue",
+      "lead": "Wird durch die Migration und das Matching befüllt.",
+      "candidates": "Kandidat(en)",
+      "emptyTitle": "Keine Dubletten-Kandidaten",
+      "emptyBody": "Die Queue füllt sich, sobald Altdaten importiert oder Personen zusammengeführt werden.",
+      "score": "Score",
+      "isDupe": "Dublette",
+      "notDupe": "keine",
+      "open": "offen"
+    },
+    "mail": {
+      "title": "Mail-Versand",
+      "lead": "Testmail schicken und die letzten Versandvorgänge prüfen.",
+      "recipient": "Empfänger",
+      "send": "Testmail senden",
+      "sending": "Sende …",
+      "resultSent": "Gesendet",
+      "resultSuppressed": "Adresse steht auf der Suppression-Liste — nicht gesendet.",
+      "resultFailed": "Versand fehlgeschlagen",
+      "dryRunHint": "Kein RESEND_API_KEY gesetzt: Die Mail wurde nur ins Server-Log geschrieben.",
+      "recent": "Letzte Vorgänge",
+      "colTime": "Zeit",
+      "colTemplate": "Vorlage",
+      "colTo": "Empfänger",
+      "colStatus": "Status",
+      "colProvider": "Provider-ID"
+    },
+    "ui": {
+      "title": "UI-Kit",
+      "lead": "Alle Bausteine des Portals an einem Ort — Referenz für Reviews und neue Bereiche.",
+      "buttons": "Buttons",
+      "forms": "Formulare",
+      "badges": "Status-Chips",
+      "table": "Tabelle",
+      "cards": "Karten & Kennzahlen",
+      "overlays": "Drawer & Toast",
+      "empty": "Leerer Zustand",
+      "stepper": "Fortschritt",
+      "typography": "Typografie",
+      "colors": "Farben",
+      "openDrawer": "Drawer öffnen",
+      "showToast": "Toast zeigen",
+      "toastText": "Gespeichert ✓",
+      "drawerTitle": "Beispiel-Panel"
+    }
+  },
+  "errors": {
+    "forbiddenTitle": "Kein Zugriff",
+    "forbiddenBody": "Für diesen Bereich fehlt dir die Rolle. Wenn das falsch ist, melde dich beim ChefTreff-Team."
+  }
+}

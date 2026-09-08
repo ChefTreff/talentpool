@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/areas";
 
 /**
  * Auth-Rückkehr vom Magic-Link. Unterstützt beide Varianten:
@@ -13,7 +14,8 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/profil";
+  // `next` kommt aus der URL und darf nur auf einen Pfad dieses Hosts zeigen.
+  const next = safeNextPath(searchParams.get("next"));
 
   const supabase = await createSupabaseServerClient();
   let authed = false;

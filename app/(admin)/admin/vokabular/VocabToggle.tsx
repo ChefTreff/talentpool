@@ -2,15 +2,19 @@
 
 import { useState, useTransition } from "react";
 import { setVocabActive } from "./actions";
+import { Badge } from "@/components/ui/Badge";
 
+/** „aktiv" steuert, ob der Wert in den Formularen angeboten wird. */
 export function VocabToggle({
   vocabulary,
   termKey,
   active,
+  labels,
 }: {
   vocabulary: string;
   termKey: string;
   active: boolean;
+  labels: { on: string; off: string };
 }) {
   const [on, setOn] = useState(active);
   const [pending, start] = useTransition();
@@ -19,20 +23,16 @@ export function VocabToggle({
     <button
       type="button"
       disabled={pending}
+      aria-pressed={on}
       onClick={() =>
         start(async () => {
           const r = await setVocabActive(vocabulary, termKey, !on);
           if (r?.ok) setOn(!on);
         })
       }
-      className={
-        "rounded-full px-3 py-1 text-xs font-medium disabled:opacity-50 " +
-        (on
-          ? "bg-green-600/15 text-green-700 dark:text-green-400"
-          : "bg-zinc-500/15 text-zinc-500")
-      }
+      className="rounded-ct-sm disabled:opacity-50"
     >
-      {on ? "aktiv" : "inaktiv"}
+      <Badge tone={on ? "success" : "neutral"}>{on ? labels.on : labels.off}</Badge>
     </button>
   );
 }
