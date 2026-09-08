@@ -323,3 +323,25 @@ Beide Bases sind **Ein-Tabellen-Klone** (dieselbe Tabellen-ID `tblWie36P4WFyVhF7
 - Freitickets (Speaker/Crew/Volunteers) über `/tickets/free` + `/mail`.
 - Rechnungsentwürfe: sevDesk-Muster (Contact → Invoice Status 100 → Positionen → Kostenstelle) 1:1 als Vorlage.
 - AC-Push: `upsertContact` → Liste → Tags; Tag-Konvention aus FLS27-Warteliste fortführen.
+
+---
+
+## 11 · Regieplan 2026 (Google Sheet) → Anforderungen Produktionsportal / Regie-Ansicht
+
+**Struktur:** 16 Tabellenblöcke; **12 = Run-of-Show FLS26, je ein Block pro Bühne × Tag** (10./11.04.2026 × Main Stage, ZEIT:Future Forum, Leadership & Growth, Startup/Impossible Founders, Industry, Impact & Tech); 4 Legacy-Blöcke ChefTreff 2023 (anderes Schema). Block-Kopf: Stage · Tag · `Anforderungen:` · `Lichteinstellung:` (beide überall leer) → zweizeiliger Header → Zeitzeilen → `Ende`.
+
+**Spalten (in Reihenfolge):** `Start` · `Dauer` · `End` (= nächster Start) · `Aktion` (Cue-Text) · `Slot ID` (SL###, Programm-Schlüssel) · `Format` · `Title` · `Moderation` (alle Personen auf der Bühne **mit Headset-Nummer im Text**, z. B. „Name (Headset 3)", „(Handmic 1)") · `Regie` (Slides/Video/Audio/Fonts/Clicker/Publikumsmikro, teils Slide-für-Slide-Skripte) · `Backstage` (Verkabeln/Entkabeln, Slides laden, Wasser) · `Mobiliar` · `Sonstige Notizen, Watchouts`.
+
+**Zeilenmuster:** strikte **3er-Sequenz** „Aufgang Speaker (1 min) → Session (Slot ID/Format/Title, ~28 min) → Abgang + Übergangsmoderation (1 min)". Weitere Cue-Typen: Technik-/Team-Besprechung, Soundcheck, Crew-Briefing, DOORS OPEN/Einlass, Set-Up, Countdown-/Intro-Video, Welcome/Closing, `Break 15/20/25`, `Puffer` (50×), Umbau (5 min), Pitch, Podcast-Aufnahme, Award. Granularität **1 Minute** (Main Stage 30 s); Zeitleisten **lückenlos, ohne Überlappung** je Bühne; **parallele Bühnen nicht nebeneinander** → bühnenübergreifende Konflikte unsichtbar.
+
+**Herkunft der Felder:** *aus dem Programm* — Bühne, Tag, Start/Dauer/End, Slot ID, Format, Titel, Speaker/Moderation. *Produktionsspezifisch* — Cue-Label, Headset-Kanäle, Regie-Medienstatus + Skripte, Backstage-Aktionen, Mobiliar, Notizen, (leere) Bühnenanforderungen/Licht-Preset.
+
+**Fehlt heute:** keine Status-/Checkbox-Spalte; Änderungen als Freitext („VERSCHOBEN! NEUE ZEIT!!", doppelte Slot-ID); Verantwortliche nur als Spaltensemantik (Regie/Backstage/Technik), nie als Person; Headsets als Freitext → Doppelbelegung nicht prüfbar.
+**Datenqualität:** verbundene Zellen; 132 Slot-Zeilen / 131 eindeutige IDs (SL133 doppelt), Varianten `SL71`, `SL052-2`; Format-Spalte auf 229 Cue-Zeilen leer, Tippfehler (`Pannel`, `Key`); ~20 Schreibweisen für „keine Slides/nur Backdrop"; Namen mit Leerzeichen-Fehlern; Zeilenumbrüche in Titeln.
+
+**Ableitung für die Plattform (Regie-Ansicht = Programm + Produktionsschicht):**
+- `regie_cue` je Bühne×Tag: `sort_index`, `slot_id` (nullable — Cue-Zeilen ohne Slot), `cue_type` (setup · briefing · doors · walk_in · speaker_on · session · handover · transition_mc · break · buffer · umbau · video_roll · opening · closing · award · pitch · recording), `label`, `start_time`, `duration_s` (+ berechnetes Ende, **Lückenlosigkeits-Constraint**), `notes`, `watchouts`, `status` (draft · confirmed · changed · moved · cancelled), `supersedes_cue_id`, `responsible_role` (regie · stage_manager · backstage · runner · technik), `responsible_person_id`.
+- `mic_assignment` (Kanaltyp headset/handheld/lavalier/boom, Kanalnummer, Person) → **Konfliktprüfung** statt Freitext.
+- `regie_media` (slides_state none_backdrop/slides_only/slides_plus_video, has_video, has_audio, custom_fonts, asset_url, clicker_needed, audience_mic_needed, cue_script) — **gespeist aus dem Tech-Rider des Speaker-Portals**.
+- `backstage_action[]`, `furniture[]`; Bühnen-Tag-Kopf: `stage_requirements`, `lighting_preset`, `version_status_date`.
+- Ansichten: Timeline je Bühne×Tag (druck-/tabletfähig für vor Ort), **Mehrbühnen-Ansicht** (bühnenübergreifende Kollisionen), Änderungs-Log statt „VERSCHOBEN"-Freitext; Regie-Zeilen entstehen automatisch aus Slots (Aufgang/Session/Abgang-Sandwich als Vorlage) und werden nur ergänzt.
