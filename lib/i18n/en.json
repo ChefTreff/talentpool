@@ -1,0 +1,246 @@
+{
+  "meta": {
+    "localeName": "English",
+    "htmlLang": "en",
+    "dateLocale": "en-GB",
+    "title": "ChefTreff Portal",
+    "description": "One profile, one login — across all formats."
+  },
+  "common": {
+    "save": "Save",
+    "saving": "Saving …",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading …",
+    "error": "Something went wrong. Please try again.",
+    "required": "required",
+    "choose": "— please choose —",
+    "none": "—",
+    "shown": "shown",
+    "active": "active",
+    "inactive": "inactive",
+    "language": "Language"
+  },
+  "messages": {
+    "not_signed_in": "You are no longer signed in. Please sign in again.",
+    "no_person": "There is no profile for this login.",
+    "invalid_email": "That is not a valid email address.",
+    "save_failed": "Could not save."
+  },
+  "nav": {
+    "brand": "ChefTreff",
+    "product": "Portal",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "myAreas": "My areas",
+    "skipToContent": "Skip to content"
+  },
+  "areas": {
+    "talent": {
+      "name": "Talent",
+      "description": "Profile, programme, applications and tickets."
+    },
+    "speaker": {
+      "name": "Speaker",
+      "description": "Onboarding, talk, tech rider, hospitality."
+    },
+    "speaker-leads": {
+      "name": "Speaker leads",
+      "description": "Acquisition pipeline and speakers in your scope."
+    },
+    "partner": {
+      "name": "Partner",
+      "description": "Checklist, uploads, contacts, expo shop."
+    },
+    "volunteers": {
+      "name": "Volunteers",
+      "description": "Preferences, shifts, shirt, ticket."
+    },
+    "hackathon": {
+      "name": "Hackathon",
+      "description": "Application, teams, challenges, submission."
+    },
+    "produktion": {
+      "name": "Production",
+      "description": "Show caller view, booths, checklists."
+    },
+    "admin": {
+      "name": "Admin",
+      "description": "People, roles, vocabulary, duplicates."
+    }
+  },
+  "placeholder": {
+    "eyebrow": "Wave 0",
+    "title": "Area prepared",
+    "body": "The foundation is in place: role gate, UI kit and languages already work here. This area's content lands in a later wave.",
+    "backToStart": "Back to start"
+  },
+  "home": {
+    "eyebrow": "ChefTreff",
+    "titleLead": "One login for",
+    "titleHighlight": "everything",
+    "lead": "Profile, programme, applications, tickets — maintain them once, valid across all formats.",
+    "loginCta": "Sign in",
+    "profileCta": "My profile",
+    "loggedInAs": "Signed in as"
+  },
+  "login": {
+    "title": "Sign in",
+    "lead": "We'll email you a sign-in link. No password needed.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "submit": "Send sign-in link",
+    "sending": "Sending link …",
+    "sentTitle": "Link on its way",
+    "sentBody": "We sent a sign-in link to",
+    "authError": "That link has expired or was already used. Please request a new one."
+  },
+  "profile": {
+    "title": "My profile",
+    "lead": "Maintain your data once here — it applies across all formats.",
+    "loggedInAs": "Signed in as",
+    "sections": {
+      "personal": "Personal",
+      "work": "Status & work",
+      "study": "Studies",
+      "interests": "Interests",
+      "channels": "How did you hear about ChefTreff?"
+    },
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "birthdate": "Date of birth",
+      "gender": "Gender",
+      "nationality": "Nationality",
+      "country": "Country of residence",
+      "phone": "Phone",
+      "linkedin": "LinkedIn profile",
+      "language": "Preferred language",
+      "occupationStatus": "Current status",
+      "workExperience": "Work experience",
+      "careerLevel": "Career level",
+      "employerType": "Employer type",
+      "employerName": "Employer / institution",
+      "startupPhase": "Startup phase (if founder)",
+      "studyField": "Field of study",
+      "studyProgram": "Study programme",
+      "university": "University",
+      "selfAssessment": "Academic self-assessment",
+      "topics": "Topics",
+      "founderTopics": "Founder topics"
+    },
+    "hints": {
+      "nationality": "e.g. German",
+      "country": "e.g. DE",
+      "linkedin": "https://linkedin.com/in/…"
+    }
+  },
+  "admin": {
+    "brand": "ChefTreff Admin",
+    "nav": {
+      "overview": "Overview",
+      "persons": "People",
+      "vocab": "Vocabulary",
+      "duplicates": "Duplicates",
+      "ui": "UI kit",
+      "mail": "Mail"
+    },
+    "overview": {
+      "title": "Overview",
+      "persons": "People",
+      "registrations": "Registrations",
+      "openDuplicates": "Open duplicates",
+      "events": "Events",
+      "vocabTerms": "Vocabulary terms"
+    },
+    "persons": {
+      "title": "People",
+      "colName": "Name",
+      "colEmail": "Email (primary)",
+      "colStatus": "Status",
+      "colCreated": "Created",
+      "noName": "(no name)",
+      "emptyTitle": "No people yet",
+      "emptyBody": "Records appear here as soon as someone signs in or legacy data is imported."
+    },
+    "personDetail": {
+      "back": "People",
+      "masterData": "Master data",
+      "workStudy": "Work & studies",
+      "emails": "Emails",
+      "interests": "Interests",
+      "channels": "Acquisition channels",
+      "registrations": "Registrations",
+      "primary": "primary",
+      "verified": "verified",
+      "linkedinProfile": "Profile",
+      "noRegistrations": "No registrations."
+    },
+    "vocab": {
+      "title": "Vocabulary",
+      "lead": "“active” controls whether a value is offered in the forms.",
+      "count": "terms across",
+      "vocabularies": "vocabularies",
+      "colKey": "Key",
+      "colDe": "DE",
+      "colEn": "EN",
+      "colParent": "Parent",
+      "colStatus": "Status"
+    },
+    "duplicates": {
+      "title": "Duplicate queue",
+      "lead": "Filled by the migration and the matching job.",
+      "candidates": "candidate(s)",
+      "emptyTitle": "No duplicate candidates",
+      "emptyBody": "The queue fills up once legacy data is imported or people are merged.",
+      "score": "Score",
+      "isDupe": "Duplicate",
+      "notDupe": "not a duplicate",
+      "open": "open"
+    },
+    "mail": {
+      "title": "Mail delivery",
+      "lead": "Send a test email and check the most recent deliveries.",
+      "recipient": "Recipient",
+      "send": "Send test email",
+      "sending": "Sending …",
+      "resultSent": "Sent",
+      "resultSuppressed": "Address is on the suppression list — not sent.",
+      "resultFailed": "Delivery failed",
+      "dryRunHint": "No RESEND_API_KEY set: the email was only written to the server log.",
+      "recent": "Recent deliveries",
+      "colTime": "Time",
+      "colTemplate": "Template",
+      "colTo": "Recipient",
+      "colStatus": "Status",
+      "colProvider": "Provider ID",
+      "notLiveTitle": "mail_log not created yet",
+      "notLiveBody": "The mail_template and mail_log tables arrive with schema v2 A4. Until then delivery writes to the server log and uses the built-in templates."
+    },
+    "ui": {
+      "title": "UI kit",
+      "lead": "Every building block of the portal in one place — reference for reviews and new areas.",
+      "buttons": "Buttons",
+      "forms": "Forms",
+      "badges": "Status chips",
+      "table": "Table",
+      "cards": "Cards & metrics",
+      "overlays": "Drawer & toast",
+      "empty": "Empty state",
+      "stepper": "Progress",
+      "typography": "Typography",
+      "colors": "Colours",
+      "openDrawer": "Open drawer",
+      "showToast": "Show toast",
+      "toastText": "Saved ✓",
+      "drawerTitle": "Example panel"
+    }
+  },
+  "errors": {
+    "forbiddenTitle": "No access",
+    "forbiddenBody": "You don't have a role for this area. If that looks wrong, contact the ChefTreff team."
+  }
+}

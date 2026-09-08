@@ -1,5 +1,8 @@
-import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireUser, getSessionContext } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n";
+import { pickLabel } from "@/lib/vocab";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { ProfileForm } from "./ProfileForm";
 import type { ProfileInput } from "./actions";
 
@@ -9,17 +12,17 @@ type Term = {
   vocabulary: string;
   key: string;
   label_de: string;
+  label_en: string | null;
   parent_key: string | null;
 };
 type Opt = { key: string; label: string };
 
 export default async function ProfilPage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const user = await requireUser("/profil");
+  const { preferredLanguage } = await getSessionContext();
+  const { locale, t } = await getI18n(preferredLanguage);
 
+  const supabase = await createSupabaseServerClient();
   // Person anlegen bzw. migrierte Person claimen (idempotent).
   await supabase.rpc("claim_or_create_person");
 
@@ -33,7 +36,7 @@ export default async function ProfilPage() {
         .maybeSingle(),
       supabase
         .from("vocab_term")
-        .select("vocabulary,key,label_de,parent_key")
+        .select("vocabulary,key,label_de,label_en,parent_key")
         .eq("active", true)
         .order("sort_order"),
       supabase.from("person_interest").select("vocabulary,term_key"),
@@ -42,12 +45,17 @@ export default async function ProfilPage() {
 
   const allTerms = (terms ?? []) as Term[];
   const byVocab = (v: string): Opt[] =>
-    allTerms.filter((t) => t.vocabulary === v).map((t) => ({ key: t.key, label: t.label_de }));
+    allTerms
+      .filter((term) => term.vocabulary === v)
+      .map((term) => ({ key: term.key, label: pickLabel(term, locale) }));
 
   const programsByField: Record<string, Opt[]> = {};
-  for (const t of allTerms) {
-    if (t.vocabulary === "study_program" && t.parent_key) {
-      (programsByField[t.parent_key] ??= []).push({ key: t.key, label: t.label_de });
+  for (const term of allTerms) {
+    if (term.vocabulary === "study_program" && term.parent_key) {
+      (programsByField[term.parent_key] ??= []).push({
+        key: term.key,
+        label: pickLabel(term, locale),
+      });
     }
   }
 
@@ -73,7 +81,7 @@ export default async function ProfilPage() {
     gender: person?.gender ?? "",
     nationality: person?.nationality ?? "",
     country: person?.country ?? "",
-    preferred_language: person?.preferred_language ?? "de",
+    preferred_language: person?.preferred_language ?? locale,
     phone: person?.phone ?? "",
     linkedin_url: person?.linkedin_url ?? "",
     occupation_status: person?.occupation_status ?? "",
@@ -96,13 +104,31 @@ export default async function ProfilPage() {
   };
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-2xl font-semibold tracking-tight">Mein Profil</h1>
-      <p className="mt-1 text-sm text-zinc-500">
-        Angemeldet als {user.email}. Deine Daten pflegst du hier einmal — sie gelten
-        formatübergreifend.
-      </p>
-      <ProfileForm vocab={vocab} initial={initial} />
-    </main>
+    <>
+      <PageHeader
+        title={t.profile.title}
+        description={`${t.profile.lead} ${t.profile.loggedInAs} ${user.email}.`}
+      />
+      <ProfileForm
+        vocab={vocab}
+        initial={initial}
+        t={{
+          sections: t.profile.sections,
+          fields: t.profile.fields,
+          hints: t.profile.hints,
+          choose: t.common.choose,
+          save: t.common.save,
+          saving: t.common.saving,
+          saved: t.common.saved,
+          messages: t.messages,
+          // Sprachnamen stehen bewusst in der jeweiligen Sprache (Endonym) und
+          // werden deshalb nicht übersetzt.
+          languages: [
+            { key: "de", label: "Deutsch" },
+            { key: "en", label: "English" },
+          ],
+        }}
+      />
+    </>
   );
 }

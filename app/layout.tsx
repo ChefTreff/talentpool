@@ -1,33 +1,38 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { sharpSans, laica } from "@/lib/fonts";
+import { getSessionContext } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n";
+import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+/** Auch der Tab-Titel folgt der Sprachwahl. */
+export async function generateMetadata(): Promise<Metadata> {
+  const { preferredLanguage } = await getSessionContext();
+  const { t } = await getI18n(preferredLanguage);
+  return { title: t.meta.title, description: t.meta.description };
+}
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata: Metadata = {
-  title: "ChefTreff Talent-CRM",
-  description: "Ein Profil, ein Login — formatübergreifend.",
-};
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
+  // Sprache: person.preferred_language → Cookie → Accept-Language → de.
+  const { preferredLanguage } = await getSessionContext();
+  const { locale, t } = await getI18n(preferredLanguage);
+
   return (
     <html
-      lang="de"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang={locale}
+      className={`${sharpSans.variable} ${laica.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <a
+          href="#content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-ct-md focus:bg-surface focus:px-4 focus:py-2"
+        >
+          {t.nav.skipToContent}
+        </a>
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }

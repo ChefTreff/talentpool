@@ -1,26 +1,222 @@
 @import "tailwindcss";
 
+/* =============================================================================
+ * ChefTreff-Portal · Design-Tokens (docs/design-briefing.md v0.3)
+ * Theme = Events, ausschließlich. Kein Dark Mode (Entscheidung 08.09.2026) —
+ * die Tokens bleiben theme-fähig, ausgeliefert wird nur Light.
+ * ========================================================================== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* --- Marke / Grundflächen ------------------------------------------------ */
+  --ct-navy: #081a35;          /* Sidebar, Topbar, Login-Grund, Ink auf Hell */
+  --ct-navy-border: #1e3250;   /* Trennlinien auf Navy */
+  --ct-on-navy: #f5f4f2;       /* Text auf Navy */
+  --ct-on-navy-muted: #a0aab9; /* Hilfstext auf Navy */
+
+  --ct-canvas: #f5f4f2;        /* Seitengrund (Off-White) */
+  --ct-surface: #ffffff;       /* Karten, Eingabefelder */
+  --ct-surface-hover: #f0f1f4; /* Tabellen-/Listen-Hover */
+  --ct-border: #dcdfe5;        /* Trennlinien, Kartenkanten (dekorativ) */
+  --ct-border-strong: #7f8a9c; /* Ränder von Eingabefeldern: ≥ 3:1 auf Weiß UND Off-White (WCAG 1.4.11) */
+  --ct-ink: #081a35;           /* Fließtext auf Hell */
+  --ct-muted: #5c6878;         /* Hilfstext auf Hell (≥ 4.5:1) */
+  --ct-muted-soft: #8a94a6;    /* Platzhalter, deaktiviert */
+
+  /* --- Aktions-Akzent (Events) --------------------------------------------- */
+  /* #6D6DEF nur für Flächen ohne Text darauf, Ränder, Fokus-Ring.
+     Text/Links/Button-Fill: #5B5BD9 — #6D6DEF trägt hellen Text nur mit 3.8:1.
+     Auf der Soft-Fläche #E8E8FC reicht auch #5B5BD9 nicht (4.4:1) -> #4A4AC5. */
+  --ct-accent: #6d6def;
+  --ct-accent-strong: #5b5bd9;
+  --ct-accent-deep: #4a4ac5;
+  --ct-accent-soft: #e8e8fc;
+
+  /* --- Semantik (Soft-Fläche + abgedunkelter Text, nie Farbe allein) -------- */
+  --ct-success: #34d399;
+  --ct-success-soft: #e7faf3;
+  --ct-success-ink: #0b7a5a;
+  --ct-warning: #fdc422;
+  --ct-warning-soft: #fef6de;
+  --ct-warning-ink: #8a6100;
+  --ct-error: #ef4444;
+  --ct-error-soft: #fdecec;
+  --ct-error-ink: #c22b2b;
+  --ct-error-deep: #a81f1f;
+
+  /* --- Spacing (8-pt-Raster aus §4) ---------------------------------------- */
+  --ct-space-micro: 4px;
+  --ct-space-xs: 8px;
+  --ct-space-s: 16px;
+  --ct-space-m: 24px;
+  --ct-space-l: 32px;
+  --ct-space-xl: 48px;
+  --ct-space-2xl: 64px;
+  --ct-space-3xl: 80px;
+  --ct-space-4xl: 120px;
+
+  /* --- Radius / Höhen ------------------------------------------------------ */
+  --ct-radius-sm: 6px;
+  --ct-radius-md: 8px;   /* Portal-Form: 8-px-Rechteck, konsequent */
+  --ct-radius-lg: 12px;
+  --ct-radius-pill: 999px;
+  --ct-control-h: 40px;
+  --ct-control-h-sm: 32px;
+
+  /* --- Breiten ------------------------------------------------------------- */
+  --ct-w-content: 1200px;
+  --ct-w-table: 1400px;
+  --ct-w-text: 800px;
+  --ct-w-form: 640px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-navy: var(--ct-navy);
+  --color-navy-border: var(--ct-navy-border);
+  --color-on-navy: var(--ct-on-navy);
+  --color-on-navy-muted: var(--ct-on-navy-muted);
+
+  --color-canvas: var(--ct-canvas);
+  --color-surface: var(--ct-surface);
+  --color-surface-hover: var(--ct-surface-hover);
+  --color-border: var(--ct-border);
+  --color-border-strong: var(--ct-border-strong);
+  --color-ink: var(--ct-ink);
+  --color-muted: var(--ct-muted);
+  --color-muted-soft: var(--ct-muted-soft);
+
+  --color-accent: var(--ct-accent);
+  --color-accent-strong: var(--ct-accent-strong);
+  --color-accent-deep: var(--ct-accent-deep);
+  --color-accent-soft: var(--ct-accent-soft);
+
+  --color-success: var(--ct-success);
+  --color-success-soft: var(--ct-success-soft);
+  --color-success-ink: var(--ct-success-ink);
+  --color-warning: var(--ct-warning);
+  --color-warning-soft: var(--ct-warning-soft);
+  --color-warning-ink: var(--ct-warning-ink);
+  --color-error: var(--ct-error);
+  --color-error-soft: var(--ct-error-soft);
+  --color-error-ink: var(--ct-error-ink);
+  --color-error-deep: var(--ct-error-deep);
+
+  --radius-ct-sm: var(--ct-radius-sm);
+  --radius-ct-md: var(--ct-radius-md);
+  --radius-ct-lg: var(--ct-radius-lg);
+
+  --font-sans: var(--font-sharp), -apple-system, "Segoe UI", "Helvetica Neue",
+    Arial, sans-serif;
+  --font-display: var(--font-sharp), -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-accent: var(--font-laica), Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* =============================================================================
+ * Grundlagen
+ * ========================================================================== */
+* {
+  border-color: var(--ct-border);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ct-canvas);
+  color: var(--ct-ink);
+  font-family: var(--font-sans);
+  font-weight: 600; /* Sharp Sans SemiBold ist der Textschnitt (v0.3) */
+  font-size: 15px;
+  line-height: 24px;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Sichtbarer Fokus überall — Tastaturbedienung ist Pflicht (§6). */
+:focus-visible {
+  outline: 2px solid var(--ct-accent);
+  outline-offset: 2px;
+  border-radius: var(--ct-radius-sm);
+}
+
+/* Bewegung nur als Feedback, ≤ 200 ms. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =============================================================================
+ * Typografie-Rollen (Portal-Skala §3) — als Utility-Klassen, damit Komponenten
+ * und Seiten dieselbe Skala benutzen.
+ * ========================================================================== */
+.ct-h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 32px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+@media (max-width: 767px) {
+  .ct-h1 {
+    font-size: 24px;
+    line-height: 28px;
+  }
+}
+.ct-h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.ct-h3 {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+}
+.ct-eyebrow {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ct-label {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+}
+.ct-help {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ct-muted);
+}
+/* Ein kursives Wort pro Screen — nie UI-Text. */
+.ct-laica {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 28px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Inline-Link: Akzentwort mit Unterstreichung, kein Fett/Italic. */
+.ct-link {
+  color: var(--ct-accent-strong);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ct-link:hover {
+  color: var(--ct-accent-deep);
 }

@@ -1,4 +1,8 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getSessionContext } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { VocabToggle } from "./VocabToggle";
 
 export const dynamic = "force-dynamic";
@@ -7,13 +11,16 @@ type Term = {
   vocabulary: string;
   key: string;
   label_de: string;
-  label_en: string;
+  label_en: string | null;
   active: boolean;
   parent_key: string | null;
 };
 
 export default async function VokabularPage() {
   const admin = createSupabaseAdminClient();
+  const { preferredLanguage } = await getSessionContext();
+  const { t } = await getI18n(preferredLanguage);
+
   const { data } = await admin
     .from("vocab_term")
     .select("vocabulary,key,label_de,label_en,active,parent_key")
@@ -22,57 +29,57 @@ export default async function VokabularPage() {
 
   const terms = (data ?? []) as Term[];
   const groups: Record<string, Term[]> = {};
-  for (const t of terms) (groups[t.vocabulary] ??= []).push(t);
+  for (const term of terms) (groups[term.vocabulary] ??= []).push(term);
   const names = Object.keys(groups).sort();
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold tracking-tight">Vokabular</h1>
-      <p className="mt-1 text-sm text-zinc-500">
-        {terms.length} Terms in {names.length} Vokabularen. „aktiv" steuert, ob ein
-        Wert in den Formularen angeboten wird.
-      </p>
+    <>
+      <PageHeader
+        title={t.admin.vocab.title}
+        description={`${terms.length} ${t.admin.vocab.count} ${names.length} ${t.admin.vocab.vocabularies}. ${t.admin.vocab.lead}`}
+      />
 
-      <div className="mt-6 space-y-8">
+      <div className="flex flex-col gap-8">
         {names.map((v) => (
           <section key={v}>
-            <h2 className="mb-2 font-mono text-sm font-semibold">
-              {v} <span className="text-zinc-500">({groups[v].length})</span>
+            <h2 className="ct-h2 mb-2 text-ink">
+              {v}{" "}
+              <span className="font-semibold normal-case tracking-normal text-muted">
+                ({groups[v].length})
+              </span>
             </h2>
-            <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-black/10 text-xs uppercase tracking-wide text-zinc-500 dark:border-white/10">
-                  <tr>
-                    <th className="px-4 py-2">Key</th>
-                    <th className="px-4 py-2">DE</th>
-                    <th className="px-4 py-2">EN</th>
-                    <th className="px-4 py-2">Parent</th>
-                    <th className="px-4 py-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {groups[v].map((t) => (
-                    <tr
-                      key={t.key}
-                      className="border-b border-black/5 last:border-0 dark:border-white/5"
-                    >
-                      <td className="px-4 py-2 font-mono text-xs text-zinc-500">{t.key}</td>
-                      <td className="px-4 py-2">{t.label_de}</td>
-                      <td className="px-4 py-2 text-zinc-500">{t.label_en}</td>
-                      <td className="px-4 py-2 font-mono text-xs text-zinc-400">
-                        {t.parent_key ?? ""}
-                      </td>
-                      <td className="px-4 py-2">
-                        <VocabToggle vocabulary={v} termKey={t.key} active={t.active} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <Thead>
+                <Th>{t.admin.vocab.colKey}</Th>
+                <Th>{t.admin.vocab.colDe}</Th>
+                <Th>{t.admin.vocab.colEn}</Th>
+                <Th>{t.admin.vocab.colParent}</Th>
+                <Th>{t.admin.vocab.colStatus}</Th>
+              </Thead>
+              <Tbody>
+                {groups[v].map((term) => (
+                  <Tr key={term.key}>
+                    <Td className="font-mono text-[13px] text-muted">{term.key}</Td>
+                    <Td>{term.label_de}</Td>
+                    <Td className="text-muted">{term.label_en ?? t.common.none}</Td>
+                    <Td className="font-mono text-[13px] text-muted-soft">
+                      {term.parent_key ?? ""}
+                    </Td>
+                    <Td>
+                      <VocabToggle
+                        vocabulary={v}
+                        termKey={term.key}
+                        active={term.active}
+                        labels={{ on: t.common.active, off: t.common.inactive }}
+                      />
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
           </section>
         ))}
       </div>
-    </div>
+    </>
   );
 }

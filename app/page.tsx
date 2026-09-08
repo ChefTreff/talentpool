@@ -1,38 +1,46 @@
-import Link from "next/link";
+import { getSessionContext } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { ButtonLink } from "@/components/ui/Button";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const ctx = await getSessionContext();
+  const { t } = await getI18n(ctx.preferredLanguage);
+
   return (
-    <main className="mx-auto flex max-w-2xl flex-1 flex-col justify-center gap-8 px-6 py-24">
-      <div>
-        <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">
-          ChefTreff
-        </p>
-        <h1 className="mt-2 text-4xl font-semibold tracking-tight">Talent-CRM</h1>
-        <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
-          Ein Profil, ein Login — formatübergreifend. Deine Daten einmal pflegen
-          und über alle ChefTreff-Formate hinweg aktuell halten.
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        <Link
-          href="/login"
-          className="rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background"
-        >
-          Anmelden
-        </Link>
-        <Link
-          href="/profil"
-          className="rounded-full border border-black/10 px-5 py-3 text-sm font-medium dark:border-white/15"
-        >
-          Mein Profil
-        </Link>
-        <Link
-          href="/admin"
-          className="rounded-full border border-black/10 px-5 py-3 text-sm font-medium dark:border-white/15"
-        >
-          Admin
-        </Link>
-      </div>
-    </main>
+    <>
+      <AppHeader />
+      {/* Marken-Moment: Navy-Grund, Highlight-Wort in ExtraBold Italic + Akzent. */}
+      <main id="content" className="flex flex-1 flex-col bg-navy text-on-navy">
+        <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col justify-center gap-8 px-6 py-24">
+          <div>
+            <p className="ct-eyebrow text-on-navy-muted">{t.home.eyebrow}</p>
+            <h1 className="ct-h1 mt-3 text-[40px] leading-[44px] md:text-[52px] md:leading-[56px]">
+              {t.home.titleLead}{" "}
+              <em className="font-extrabold italic text-accent">
+                {t.home.titleHighlight}
+              </em>
+            </h1>
+            <p className="ct-laica mt-5 max-w-[46ch] text-on-navy-muted">
+              {t.home.lead}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {ctx.user ? (
+              <ButtonLink href="/profil">{t.home.profileCta}</ButtonLink>
+            ) : (
+              <ButtonLink href="/login">{t.home.loginCta}</ButtonLink>
+            )}
+            {ctx.user && (
+              <span className="self-center text-[14px] text-on-navy-muted">
+                {t.home.loggedInAs} {ctx.user.email}
+              </span>
+            )}
+          </div>
+        </div>
+      </main>
+    </>
   );
 }

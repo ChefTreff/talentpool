@@ -30,23 +30,30 @@ export type ProfileInput = {
 
 const nn = (v: string) => (v && v.trim() !== "" ? v.trim() : null);
 
+export type SaveProfileResult =
+  | { ok: true }
+  /** Stabiler Schlüssel aus `messages` im Dictionary — den Text setzt die UI. */
+  | {
+      ok: false;
+      message: "not_signed_in" | "no_person" | "save_failed";
+      detail?: string;
+    };
+
 /**
  * Speichert das Profil der eingeloggten Person. Läuft mit dem Session-Client
  * (authenticated) -> RLS + Spalten-Grants greifen; nur Whitelist-Felder werden
  * geschrieben. Interessen/Kanäle (n:m) werden ersetzt.
  */
-export async function saveProfile(
-  input: ProfileInput,
-): Promise<{ ok: boolean; error?: string }> {
+export async function saveProfile(input: ProfileInput): Promise<SaveProfileResult> {
   const supabase = await createSupabaseServerClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, message: "not_signed_in" };
 
   const { data: pid } = await supabase.rpc("current_person_id");
-  if (!pid) return { ok: false, error: "Keine Person gefunden." };
+  if (!pid) return { ok: false, message: "no_person" };
 
   const { error: upErr } = await supabase
     .from("person")
@@ -72,7 +79,7 @@ export async function saveProfile(
       self_assessment: nn(input.self_assessment),
     })
     .eq("id", pid);
-  if (upErr) return { ok: false, error: upErr.message };
+  if (upErr) return { ok: false, message: "save_failed", detail: upErr.message };
 
   // Interessen (n:m) ersetzen
   {
@@ -80,7 +87,7 @@ export async function saveProfile(
       .from("person_interest")
       .delete()
       .eq("person_id", pid);
-    if (error) return { ok: false, error: error.message };
+    if (error) return { ok: false, message: "save_failed", detail: error.message };
   }
   const interestRows = [
     ...input.interests.map((k) => ({
@@ -96,7 +103,7 @@ export async function saveProfile(
   ];
   if (interestRows.length) {
     const { error } = await supabase.from("person_interest").insert(interestRows);
-    if (error) return { ok: false, error: error.message };
+    if (error) return { ok: false, message: "save_failed", detail: error.message };
   }
 
   // Akquise-Kanäle (n:m) ersetzen
@@ -105,7 +112,7 @@ export async function saveProfile(
       .from("person_acquisition_channel")
       .delete()
       .eq("person_id", pid);
-    if (error) return { ok: false, error: error.message };
+    if (error) return { ok: false, message: "save_failed", detail: error.message };
   }
   if (input.channels.length) {
     const rows = input.channels.map((k) => ({
@@ -116,7 +123,7 @@ export async function saveProfile(
     const { error } = await supabase
       .from("person_acquisition_channel")
       .insert(rows);
-    if (error) return { ok: false, error: error.message };
+    if (error) return { ok: false, message: "save_failed", detail: error.message };
   }
 
   revalidatePath("/profil");
