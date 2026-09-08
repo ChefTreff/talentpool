@@ -34,3 +34,11 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ Designer-Loop (Token-Übergabe, Review aller Portale) nach Funktionsstand.
 - ☐ Konrad-Abnahme je Portal (80 %-Runden dokumentiert).
 - ☐ Migration Altbestand (Airtable, später AC) mit Report + Dubletten-Review — **letzter Schritt**.
+
+## Sofortmaßnahmen make.com (Sicherheit — vor Neubau, Entscheidung Konrad)
+- ☐ **Vivenu-Secret-Key rotieren** (Owner klären, Blast-Radius: welche Systeme nutzen ihn?) — alter Key in ~9 Blueprints im Klartext.
+- ☐ **Swapcard-Basic-Auth** in Szenario 7874519 entfernen → bestehende Swapcard-Connection nutzen; Zugangsdaten rotieren.
+- ☐ **~23 verwaiste aktive Webhooks** abschalten (Abschaltliste vorbereiten; prüfen, ob Softr/Airtable/lu.ma noch darauf senden).
+- ☐ **Sample-Daten mit Personenbezug** aus Blueprints entfernen (DSGVO).
+- ☐ **Gipfel-26-Stack** archivieren oder als Vorlage sichern (Export ohne Secrets/Samples).
+- ☐ Leerlauf-Szenarien (FLA-Rechnungen stündlich, 15 Stubs, TEMP4/5) auf Bedarf umstellen.

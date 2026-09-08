@@ -278,3 +278,48 @@ Beide Bases sind **Ein-Tabellen-Klone** (dieselbe Tabellen-ID `tblWie36P4WFyVhF7
 - **Embedding:** `Embed.js` öffnet **Modal** (kein steuerbares iframe): Vorbefüllung nur Ticket-Typ, Coupon, Sprache, `meta`; Callbacks `onCheckoutCompleted`, **`onTicketPersonalized`**, `onTicketCancelled`. SSO-Abschnitt existiert (`enforceAuthentication`), Seite nicht ladbar → mit vivenu klären.
 - **Integrationen nativ:** HubSpot, ActiveCampaign, Salesforce, Segment … — **kein Swapcard** (nur Zapier) → Swapcard aus unserem Portal befüllen.
 - **Implikationen:** (1) Rückschreibpfad = Personalize-Endpoint mit Ticket-Secret (Secret = Credential, sicher speichern; aus `ticket.created` ernten). (2) **Inhaber-E-Mail vermutlich nicht per Personalisierung änderbar** → Transfer (ID-Wechsel) oder E-Mail als Extra-Field — **größtes Machbarkeitsrisiko, mit vivenu validieren**. (3) Portal-Fragen als Vivenu-Data-Fields (Scope ticket) spiegeln, Feld-IDs als kanonische Keys. (4) Vivenu-Personalisierung „herunterdrehen": `DETAILSREQUIRED` als Sperre nutzen, bis Portal geschrieben hat; Re-Personalisierungs-Limits/Fees beachten. (5) Webhooks + nächtlicher Sweep, Feedback-Loop-Schutz bei `ticket.updated`. (6) Kauf **aus dem Portal** starten (serverseitiger Checkout mit `meta` = Portal-User) → sauberster Join. (7) Kontingente = Coupon-Serien + Undershops. Quellen: docs.vivenu.dev (introduction, tickets, webhooks, events, checkout, transactions, customers, coupons, datafields, ticket-transfers, scans, embed), vivenu.com/partners, AGB-PDF. Nicht ladbar: `api-keys`, `sso`, `embed-js`-Slugs; Endkunden-Wiki hinter Dashboard-Login.
+
+---
+
+## 10 · make.com-Szenarien (Org 1001768 / Team 158498, Stand 08.09.2026)
+
+**123 Szenarien, 35 aktiv.** Aktiv ist nur der Finanz-/Academy-Betrieb (sevDesk-Cockpit, FLA/FLC-Rechnungsentwürfe, Circle-/Google-Groups-Einladungen, HubSpot-Kundennummer, FLS27-Warteliste → AC). **Alle 25 Swapcard-/Vivenu-Szenarien des FLS26-Stacks sind inaktiv** (letzte Bearbeitung Dez 2025–Apr 2026). 122/123 Szenarien vom externen Entwickler erstellt; keine Labels/Beschreibungen, 42 ohne Ordner.
+
+### Swapcard (Richtung Airtable → Swapcard, einseitig; ein Event `RXZlbnRfMjczMTM2Mg==`)
+- **Teilnehmer** (8217084, Webhook aus `Participants (Unified Profile)`): `importEventPeople.create` mit `clientId = Airtable-Record-ID` (Dedup-Schlüssel), `email`, `firstName/lastName`, `organization` (Arbeitgeber), `address.*` (4 Zeilen), `updateBarcodes {QR_CODE, Barcode}`, `isUser/isVisible = true`. **Alle 9 Ticket-Typen in derselben Gruppe** (`…NjM1ODMy`); Differenzierung nur via Custom Field `Ticket (Type)`. Zweiter Call setzt **13 Custom Fields** (Status, Uni, Erfahrung, Arbeitgeber-Art, Level, Startup-Phase, Startup-/All-Themen, Karrieremöglichkeiten, Leistung, Studienhintergrund, Studiengang). 18 nahezu identische Untermodule für die 8 „Studiengang: X"-Felder. Rate-Limit-Schutz nur per `Sleep(random 1–45 s)`.
+- **Speaker** (8518726 Create täglich 22:00 / 8523439 Changes): aus `Speaker (Master)`: email, Name, `Job Title`, Organisation, Bio (Newlines→Leerzeichen, `"` escaped), eigene Speaker-Gruppe `…NjM1ODMz`; Portrait: Removed-BG → Original → sonst Slack-Warnung + Anlage ohne Foto. Rückschreibung `Swapcard ID (Speaker)`, `Status (Swapcard)=Published`.
+- **Sessions** (8520713 Create 22:45 / 8529765 Update): aus `Slots & Timetable`: `clientId = Slot (ID)`, Titel/Beschreibung `de_DE`, `beginsAt/endsAt` ISO-UTC, `bannerUrl`, `isRatable`, `isOverlappingAllowed`, `accessControlMode: TRACKING`; Custom Fields Type, Stage, Language, Themen (choices). Rückschreibung `Swapcard ID (Session)`.
+- **Verknüpfungen**: 8530426 Speaker↔Session (23:30, `speakersIds` via `eventPerson(filters.clientIds)`), 8537585 Exhibitors↔Session (23:45, `exhibitors {ADD}`).
+- **Exhibitors** (7874519, `Customer-Data`): `upsertEventExhibitors` mit `clientId = Company (ID)`, name, description, logoUrl — **rohes HTTP mit Basic-Auth-Header im Klartext** statt Connection.
+- **Staff/Partner-Personen** (7879847/8747153): nur Kontakttypen *Primary Contact (Operations)* und *Event-App Member* → Person + `isMemberOnExhibitors {ADD}`.
+- Error-Handling: Filter `errors > 0` → Slack-DM (Konrad + Entwickler); kein Retry, keine DLQ.
+
+### Vivenu (Event FLS26 `6880c2c5edb0e5d5e9836369`)
+- **Eingehend „Ticket Personalization"** (8188613, Webhook, Filter eventId + `status ≠ INVALID`): Vivenu `extraFields.26_*` → Airtable `Ticket-Holder` und Upsert `Participants (Unified Profile)` per E-Mail-Suche. Felder: `26_email`, `26_birthday` (→ DD/MM/YYYY), `26_cv` (Attachment), `26_name_arbeitgeber`, `26_university`, `26_linkedin`, `26_gender`, `26_aktueller_status`, `26_aktueller_arbeitgeber`, `26_berufserfahrung`, `26_karrierelevel`, `26_karrieremoglichkeiten`, `26_studienhintergrund`, `26_startup_phase`, `26_startup_themen`, `26_themen`, `26_akademische_leistung`, `26_study_course_{business,finance,informatics,engineering,naturwissenschaften,marketing,socialsciences,medicine}`. **`Ticket (Type)` = Split von `ticketName` an „|"** (fragil). Danach AC-Upsert (Liste 40, Tags 189/87). → **Bestätigt: Personalisierungsfelder = Airtable-Felder** (Frage 34.2).
+- **Eingehend „Ticket Purchase"** (8151613): Router über 9 `ticketTypeId` (Student `…1389`, Talent `…138a`, Startup `…138c`, Professional `…138d`, Investor `…138e`, Supporter `690cc35f…`, Partner `…138f`, Speaker `690cc37b…`, Crew `6994d8bb…`) → `Transactions (Vivenu)` mit Käuferdaten, `realPrice/regularPrice`, `createdAt`; **Dedup im Szenario** (existiert → `# Tickets +1`, nicht idempotent). AC Liste 40, Tags 190/87.
+- **Ausgehend Freitickets** (8567089 Speaker, 8695812 Hackathon, 8797003 VC Breakfast): `POST /api/customers` → `POST /api/tickets/free` (ticketTypeId Speaker) → `POST /api/tickets/{id}/mail`; Rückschreibung Barcode, Customer-ID, Status. Adresse hartcodiert auf ChefTreff-Geschäftsadresse.
+- **Coupons** (8591430 u. a., aus `Customer-Data`): `POST /api/coupon` mit `code = Discount Code (Partner)`, `discountType: var, discountValue: 1` (=100 %), `maxUsage/maxTickets = # Tickets Partner`, `allowedEvents`, `allowedTickets` (Partner-Pass; Talent-Zweig: Talent+Student), Tags, `validUntil 2026-04-11`. **Keine Undershops genutzt** — Kontingente rein über Coupons.
+- Alle ausgehenden Vivenu-Calls: **rohes HTTP mit hartcodiertem Bearer-Key** (in ~9 Szenarien).
+
+### Übrige Systeme
+- **HubSpot** 7384513 (täglich 22:30): `WatchCRMObjects` Deals → Deal/Company/Contact/Quote/**LineItem** → Upsert `Customer-Data`, `Contact-Data`, `Offer-Data`, `Product-Data`; Rückschreibung `updateContact`. 7177050 Deal → sevDesk-Kontakt. 7125951 **aktiv**: Kundennummern (15 min).
+- **ActiveCampaign**: immer `upsertContact2024` → Liste → Tags. FLS27-Warteliste **aktiv** (Liste 50, Tag 136 + Status-Tags 203–212). Gipfel: Liste 40, Tags 87/189/190.
+- **sevDesk** (lebendigster Teil): Cockpit-Exporte (wöchentlich, CSV → Drive, Slack-Report) und FLA/FLC-**Rechnungsentwürfe** (stündlich): Airtable-Filter → `Contact` → `ContactAddress` → `Invoice` (Status 100 = Entwurf, 7 % USt, 14 Tage) → `InvoicePos` → Kostenstelle → Airtable-Status → Slack → Gmail-Entwurf (kein Autoversand). → **Vorlage für unsere automatisierten Rechnungsentwürfe (Regel 41).**
+- **Typeform** (6, inaktiv außer FLS27) → Airtable → AC · **Luma** 8709200/8709188 (inaktiv) · **Placid/Remove.bg** Grafiken (inaktiv) · **WooCommerce** Kunde/Rechnung (inaktiv) · Gmail-Belege → Drive, Info@-Automation (aktiv).
+
+### Muster & Risiken
+1. 🔴 **Hartcodierte Zugangsdaten**: Vivenu-Secret-Key im Klartext in ~9 Blueprints, Swapcard-Basic-Auth in 7874519 — lesbar für alle mit Team-Zugriff, in jedem Export enthalten. → **Rotation + Umstellung auf Connections.**
+2. 🔴 **~23 verwaiste, aktive Webhooks** ohne Szenario (Gipfel 24/25, Vivenu Personalization, Speaker-Onboarding, Pitch Competition …) nehmen weiter Requests an; Vivenu/Swapcard-Hooks zeigen auf inaktive Szenarien.
+3. 🟠 **Personenbezogene Sample-Daten** (Klarnamen, E-Mails, Telefon, CV-Links) dauerhaft in `metadata.designer.samples` der Blueprints.
+4. 🟠 Ticket-Typ an vier Stellen unabhängig kodiert (ticketTypeId, Airtable-Literal, `ticketName`-Split, Textvergleich) → Umbenennung bricht Sync still.
+5. 🟠 Dedup nur im Szenario (Search → Create|Update), kein Unique-Constraint, Zähler nicht idempotent.
+6. 🟡 Error-Handling uneinheitlich; Leerlauf-Läufe (Rechnungsszenarien stündlich ohne Arbeit, 15 leere Stubs); Bus-Faktor 1.
+
+### Konsequenzen für die Plattform
+- Sync-Konventionen übernehmen: `clientId` = unsere stabilen IDs (`person.id`, `slot.id`, `organization.id`); Speaker eigene Gruppe; Sessions mit `isOverlappingAllowed`, Tracks als Custom Field.
+- Ticket-Typ **ausschließlich** über `ticketTypeId`-Mapping-Tabelle (FLS27-Event neu anlegen → neue IDs).
+- Vivenu-Personalisierungsfelder `26_*` = unser Feldkatalog → Portal übernimmt sie (Variante A), Vivenu behält Name/E-Mail.
+- Kontingente: Coupons wie bisher (100 %, `allowedTickets`, `maxTickets`) + optional Undershop je Partner (Konrads Secret-Shop-Wunsch; API-Fähigkeit offen → Support-Frage 5).
+- Freitickets (Speaker/Crew/Volunteers) über `/tickets/free` + `/mail`.
+- Rechnungsentwürfe: sevDesk-Muster (Contact → Invoice Status 100 → Positionen → Kostenstelle) 1:1 als Vorlage.
+- AC-Push: `upsertContact` → Liste → Tags; Tag-Konvention aus FLS27-Warteliste fortführen.

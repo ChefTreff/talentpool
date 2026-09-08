@@ -93,3 +93,9 @@ Antwortformat: Nummer + Stichwort reicht („5: Login+Ticket, 35 hart").
 **J** · 48 ✅ exportiert, SSOT; FLC/Education/Media fehlen; JSON-Anleitung · 49 ✅ Lizenzen kommen; Laica nur Italic; „Textschnitt" erklären · 50 ✅ Sub-Brand nur Events, kein Dark Mode · 51 ✅ Token-basiert, Designer am Ende
 **Bestätigt:** 21 ✅ · 22 ✅
 **Noch offen:** 7 · 29 · 30 (sensibel) · 31 · 32 · 34.4 (Oktober) · 42 (Löschkonzept-Workshop) · 48 (3 Theme-Frames) · 49 (Medium/Regular?) · neu: Produktionsportal-Details · Credentials-Übergabe (env) · Feedback Live-Betrieb · Patrick-Code
+
+## Neue Fragen aus dem make.com-Inventar (08.09.)
+52. ⭐ **Sicherheit:** Vivenu-Key rotieren + Swapcard-Credential ersetzen — okay, und wer ist Key-Owner (Zweitsysteme)? Verwaiste Webhooks abschalten — sendet noch etwas (Softr, Airtable-Automationen, lu.ma) darauf?
+53. **Swapcard-Gruppen:** bisher alle 9 Ticket-Typen in *einer* Gruppe — für FLS27 getrennte Gruppen je Pass-Typ (Rechte/Sichtbarkeit in der App)?
+54. **FLS26-Stack:** archivieren oder als Vorlage sichern? (Neubau kommt ohnehin aus Supabase.)
+55. **Sample-Daten** mit Personenbezug in Blueprints bereinigen — ja?
