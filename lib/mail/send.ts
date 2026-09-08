@@ -1,5 +1,5 @@
 import "server-only";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n/shared";
 import { sendViaResend } from "./client";
@@ -25,7 +25,7 @@ export type SendResult = {
   status: MailStatus;
   providerId: string | null;
   error?: string;
-  /** true, wenn ohne RESEND_API_KEY nur geloggt wurde. */
+  /** true, wenn lokal ohne `RESEND_API_KEY` nur geloggt statt gesendet wurde. */
   dryRun?: boolean;
 };
 
@@ -37,24 +37,30 @@ function senderAddress(): string {
   return raw.includes("<") ? raw : `ChefTreff <${raw}>`;
 }
 
-/** Muss zu `public.email_hash()` passen: sha256 über lower(trim(email)), hex. */
-export function emailHash(email: string): string {
-  return createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
-}
+type AdminClient = ReturnType<typeof createSupabaseAdminClient>;
 
-/** PostgREST meldet fehlende Tabellen so — bis A4 live ist, ist das erwartbar. */
-function isMissingRelation(code?: string): boolean {
-  return code === "42P01" || code === "PGRST205" || code === "PGRST106";
-}
+type MailLogRow = {
+  template_key: string;
+  locale: Locale;
+  to_email: string;
+  person_id: string | null;
+  subject: string | null;
+  provider: string;
+  provider_id: string | null;
+  status: MailStatus;
+  error: string | null;
+  meta: Record<string, unknown> | null;
+};
 
 /**
  * Eine Vorlage versenden.
  *
- * Ablauf: Suppression prüfen → Vorlage (DB vor eingebautem Fallback) → rendern
- * → senden bzw. im Dev ohne Key nur loggen → `mail_log` schreiben.
+ * Ablauf: Suppression prüfen → Vorlage (Datenbank ist kanonisch) → rendern
+ * → senden → `mail_log` schreiben.
  *
  * Die Suppression-Liste ist nicht verhandelbar: gelöschte Adressen werden nie
- * wieder angeschrieben (Entscheidungslog 08.09.2026).
+ * wieder angeschrieben (Entscheidungslog 08.09.2026). Deshalb ist die Prüfung
+ * fail-closed — kann sie nicht beantwortet werden, wird nicht gesendet.
  */
 export async function sendTemplate(
   key: string,
@@ -65,18 +71,36 @@ export async function sendTemplate(
 ): Promise<SendResult> {
   const loc: Locale = isLocale(locale) ? locale : DEFAULT_LOCALE;
   const admin = createSupabaseAdminClient();
+  const personId = options.personId ?? null;
 
-  // 1 · Suppression
-  if (await isSuppressed(admin, to)) {
+  const base = {
+    template_key: key,
+    locale: loc,
+    to_email: to,
+    person_id: personId,
+    subject: null,
+    provider: "resend",
+    provider_id: null,
+    status: "queued" as MailStatus,
+    error: null,
+    meta: null,
+  } satisfies MailLogRow;
+
+  // 1 · Suppression — fail-closed
+  const suppressed = await isSuppressed(admin, to);
+  if (suppressed === "error") {
+    const error = "Suppression-Prüfung fehlgeschlagen — nicht gesendet";
+    await writeMailLog(admin, { ...base, status: "failed", error });
+    return { status: "failed", providerId: null, error };
+  }
+  if (suppressed) {
+    // Die Adresse wurde gelöscht — sie darf nicht erneut im Klartext auftauchen.
+    // Der Hash reicht, um den Vorgang später zuzuordnen.
+    const hash = await hashEmail(admin, to);
     await writeMailLog(admin, {
-      template_key: key,
-      locale: loc,
-      to_email: to,
-      person_id: options.personId ?? null,
-      subject: null,
+      ...base,
+      to_email: `suppressed:${hash ?? "unknown"}`,
       status: "suppressed",
-      provider_id: null,
-      error: null,
     });
     return { status: "suppressed", providerId: null };
   }
@@ -85,16 +109,7 @@ export async function sendTemplate(
   const template = await loadTemplate(admin, key, loc);
   if (!template) {
     const error = `Mail-Vorlage "${key}" (${loc}) nicht gefunden`;
-    await writeMailLog(admin, {
-      template_key: key,
-      locale: loc,
-      to_email: to,
-      person_id: options.personId ?? null,
-      subject: null,
-      status: "failed",
-      provider_id: null,
-      error,
-    });
+    await writeMailLog(admin, { ...base, status: "failed", error });
     return { status: "failed", providerId: null, error };
   }
 
@@ -104,29 +119,37 @@ export async function sendTemplate(
   const html = wrapHtml(subject, markdownToHtml(bodyMd), loc);
   const text = markdownToText(bodyMd);
 
-  // 4 · Senden — ohne Key nur loggen (lokale Entwicklung)
-  const from = senderAddress();
-
+  // 4 · Ohne Key: lokal loggen, in jeder anderen Umgebung ein Fehler.
+  //     Ein „gesendet", das nichts gesendet hat, wäre die schlimmere Antwort.
   if (!process.env.RESEND_API_KEY) {
+    if (process.env.NODE_ENV !== "development") {
+      const error = "RESEND_API_KEY fehlt";
+      await writeMailLog(admin, { ...base, subject, status: "failed", error });
+      return { status: "failed", providerId: null, error };
+    }
+
     const providerId = `dev-${randomUUID()}`;
     console.info(
       `[mail:dev] ${key}/${loc} → ${to}\n  Betreff: ${subject}\n${text.replace(/^/gm, "  ")}`,
     );
-    await writeMailLog(admin, {
-      template_key: key,
-      locale: loc,
-      to_email: to,
-      person_id: options.personId ?? null,
-      subject,
-      status: "sent",
-      provider_id: providerId,
-      error: null,
-    });
+    await writeMailLog(
+      admin,
+      {
+        ...base,
+        subject,
+        provider: "dev",
+        provider_id: providerId,
+        status: "sent",
+        meta: { dryRun: true },
+      },
+      { markSent: false },
+    );
     return { status: "sent", providerId, dryRun: true };
   }
 
+  // 5 · Senden
   const res = await sendViaResend({
-    from,
+    from: senderAddress(),
     to,
     subject,
     html,
@@ -136,10 +159,7 @@ export async function sendTemplate(
 
   const status: MailStatus = res.ok ? "sent" : "failed";
   await writeMailLog(admin, {
-    template_key: key,
-    locale: loc,
-    to_email: to,
-    person_id: options.personId ?? null,
+    ...base,
     subject,
     status,
     provider_id: res.ok ? res.providerId : null,
@@ -151,21 +171,39 @@ export async function sendTemplate(
     : { status, providerId: null, error: res.error };
 }
 
-type AdminClient = ReturnType<typeof createSupabaseAdminClient>;
-
-async function isSuppressed(admin: AdminClient, email: string): Promise<boolean> {
-  const { data, error } = await admin
-    .from("suppression")
-    .select("email_hash")
-    .eq("email_hash", emailHash(email))
-    .maybeSingle();
-  if (error && !isMissingRelation(error.code)) {
-    console.warn("[mail] Suppression-Prüfung fehlgeschlagen:", error.message);
+/**
+ * `true` gesperrt, `false` frei, `"error"` unbeantwortbar.
+ *
+ * Über die SQL-Funktion, nicht über einen eigenen Hash in JS: zwei
+ * Implementierungen desselben Hashes driften irgendwann auseinander, und dann
+ * geht Post an eine gelöschte Adresse.
+ */
+async function isSuppressed(
+  admin: AdminClient,
+  email: string,
+): Promise<boolean | "error"> {
+  const { data, error } = await admin.rpc("is_suppressed", { p_email: email });
+  if (error) {
+    console.error("[mail] is_suppressed fehlgeschlagen:", error.message);
+    return "error";
   }
   return Boolean(data);
 }
 
-/** Aktive DB-Vorlage gewinnt; sonst die eingebaute (PK ist (key, locale)). */
+/** sha256(lower(trim(email))) aus der Datenbank — dieselbe Quelle wie oben. */
+async function hashEmail(admin: AdminClient, email: string): Promise<string | null> {
+  const { data, error } = await admin.rpc("email_hash", { p_email: email });
+  if (error) {
+    console.error("[mail] email_hash fehlgeschlagen:", error.message);
+    return null;
+  }
+  return (data as string | null) ?? null;
+}
+
+/**
+ * Vorlage aus der Datenbank; `mail_template` ist kanonisch (Migration 0013).
+ * `BUILTIN_TEMPLATES` fängt nur den Fall ab, dass ein Key dort (noch) fehlt.
+ */
 async function loadTemplate(
   admin: AdminClient,
   key: string,
@@ -179,41 +217,25 @@ async function loadTemplate(
     .eq("active", true)
     .maybeSingle();
 
-  if (error && !isMissingRelation(error.code)) {
-    console.warn("[mail] mail_template nicht lesbar:", error.message);
-  }
+  if (error) console.warn("[mail] mail_template nicht lesbar:", error.message);
   if (data) return data as MailTemplate;
   return findBuiltin(key, locale);
 }
 
 async function writeMailLog(
   admin: AdminClient,
-  row: {
-    template_key: string;
-    locale: Locale;
-    to_email: string;
-    person_id: string | null;
-    subject: string | null;
-    status: MailStatus;
-    provider_id: string | null;
-    error: string | null;
-  },
+  row: MailLogRow,
+  options: { markSent?: boolean } = {},
 ): Promise<void> {
-  const sentStates: MailStatus[] = ["sent", "delivered"];
+  const markSent =
+    options.markSent ?? (row.status === "sent" || row.status === "delivered");
+
   const { error } = await admin.from("mail_log").insert({
     ...row,
-    provider: "resend",
-    sent_at: sentStates.includes(row.status) ? new Date().toISOString() : null,
+    sent_at: markSent ? new Date().toISOString() : null,
   });
-  if (!error) return;
-  if (isMissingRelation(error.code)) {
-    // Schema v2 A4 (`mail_log`) ist noch nicht live — Versand trotzdem nachvollziehbar.
-    console.info(
-      `[mail:log] ${row.template_key}/${row.locale} → ${row.to_email}: ${row.status}` +
-        (row.provider_id ? ` (${row.provider_id})` : "") +
-        (row.error ? ` — ${row.error}` : ""),
-    );
-    return;
+
+  if (error) {
+    console.error("[mail] mail_log konnte nicht geschrieben werden:", error.message);
   }
-  console.warn("[mail] mail_log konnte nicht geschrieben werden:", error.message);
 }

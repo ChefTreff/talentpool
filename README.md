@@ -53,12 +53,13 @@ lauffähige Umgebung — ohne Rückfragen und ohne Wissen, das nur in Köpfen st
 | `app/` | Next.js App Router. Bereiche als Route-Gruppen: `(talent) (speaker) (speaker-leads) (partner) (volunteers) (hackathon) (produktion) (admin)` |
 | `components/ui/` | UI-Kit (Button, Input, Select, Field, Card, Badge, Table, Drawer, Toast, EmptyState, PageHeader, Stepper) |
 | `components/layout/` | Topbar mit Bereichs- und Sprachumschalter, Bereichs-Gerüst |
-| `lib/auth.ts` | Rollen-Gate: `requireUser`, `requireRole`, `requireStaff`, `requireArea`, `getMyAreas` |
+| `lib/auth.ts` | Rollen-Gate: `getSessionContext` (ein RPC `session_context()` je Request), `requireUser`, `requireRole`, `requireArea`, `requireStaff`, `getMyAreas` |
+| `lib/audit.ts` | `logAudit()` für Admin-Aktionen (Urheber aus der Session, Insert per service_role) |
 | `lib/areas.ts` | Bereiche ↔ Rollen (von `proxy.ts` und `lib/auth.ts` gemeinsam genutzt) |
 | `lib/i18n/` | DE/EN-Dictionaries, `getDictionary`, Locale-Auflösung, Umschalt-Action |
 | `lib/mail/` | Resend-Client, `sendTemplate`, Vorlagen, `mail_log`, Suppression-Prüfung |
 | `lib/supabase/` | Clients: `client` (Browser), `server` (Session/RLS), `admin` (service_role) |
-| `proxy.ts` | Next 16 statt `middleware.ts`: Session-Refresh + optimistischer Rollen-Redirect |
+| `proxy.ts` | Next 16 statt `middleware.ts`: Session-Refresh + Login-Gate, keine Rollenprüfung |
 | `supabase/migrations/` | Schema. Einzige erlaubte Art von Datenbankänderung |
 | `docs/` | Masterplan, Entscheidungslog, Arbeitsaufträge, Runbooks, generiertes Datenmodell |
 | `scripts/` | Diagnose und Generatoren (`node --env-file=.env.local scripts/<datei>.mjs`) |
@@ -66,10 +67,17 @@ lauffähige Umgebung — ohne Rückfragen und ohne Wissen, das nur in Köpfen st
 ## Rollen und Bereiche
 
 Ein Login, ein Umschalter. Sichtbar ist nur, wofür eine Rolle in `role_assignment`
-vorliegt. Der Check in `proxy.ts` ist **optimistisch** (schnelles Wegleiten); verbindlich
-ist ausschließlich die serverseitige Prüfung über `requireArea()` / `requireRole()`,
-die auf den SQL-Funktionen `has_role()` / `is_staff()` aufsetzt. Erst danach darf der
-`service_role`-Client benutzt werden.
+vorliegt.
+
+`proxy.ts` ist **reines Login-Gate** — es prüft keine Rollen. Über Bereiche entscheidet
+`requireArea()` / `requireRole()` auf Basis der SQL-Funktionen `has_role()` / `is_staff()`,
+und zwar in **jeder Seite und jeder Server Action**, nicht nur im Layout: Layouts rendern
+bei Client-Navigation nicht neu, ein Layout allein schützt also nichts. Der Aufruf ist pro
+Request gecacht. Erst nach bestandener Prüfung darf `createSupabaseAdminClient()`
+(`service_role`) entstehen.
+
+Welche Rolle welchen Bereich öffnet, steht in `lib/areas.ts`; die Rollen-Keys selbst sind
+im Vokabular `role` kanonisch.
 
 ## Sprachen
 
@@ -80,10 +88,16 @@ nie hartkodiert.
 
 ## Mail
 
-`sendTemplate(key, locale, to, vars)` prüft die Suppression-Liste, lädt die Vorlage
-(Datenbank vor eingebautem Fallback), rendert Markdown → HTML und schreibt jeden
-Vorgang nach `mail_log`. Ohne `RESEND_API_KEY` wird nichts versendet, sondern geloggt.
-Vorlagen: `login_magic_link`, `welcome`, `test`.
+`sendTemplate(key, locale, to, vars)` prüft die Suppression-Liste (über die SQL-Funktion
+`is_suppressed()`, **fail-closed**: lässt sich die Frage nicht beantworten, geht keine Mail
+raus), lädt die Vorlage aus `mail_template`, rendert Markdown → HTML und schreibt jeden
+Vorgang nach `mail_log`. Bei einer unterdrückten Adresse steht dort statt der Adresse
+`suppressed:<hash>` — gelöschte Adressen tauchen nie wieder im Klartext auf.
+
+Vorlagen werden in `mail_template` gepflegt; `lib/mail/templates.ts` hält nur `test` als
+Notnagel für einen frischen Aufsatz. Login-Links verschickt Supabase Auth, nicht das Portal.
+Ohne `RESEND_API_KEY` wird lokal (`NODE_ENV=development`) nur ins Server-Log geschrieben —
+in jeder anderen Umgebung ist das ein Fehler, kein stiller Erfolg.
 
 ## Doku
 

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const ctx = await getSessionContext();
-  const { t } = await getI18n(ctx.preferredLanguage);
+  const { t } = await getI18n();
 
   return (
     <>
@@ -19,7 +19,7 @@ export default async function Home() {
             <p className="ct-eyebrow text-on-navy-muted">{t.home.eyebrow}</p>
             <h1 className="ct-h1 mt-3 text-[40px] leading-[44px] md:text-[52px] md:leading-[56px]">
               {t.home.titleLead}{" "}
-              <em className="font-extrabold italic text-accent">
+              <em className="ct-highlight text-accent">
                 {t.home.titleHighlight}
               </em>
             </h1>

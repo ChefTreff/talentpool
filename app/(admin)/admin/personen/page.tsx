@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
-import { getSessionContext } from "@/lib/auth";
+import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -19,9 +19,11 @@ type Row = {
 };
 
 export default async function PersonenPage() {
+  // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
+  // nicht neu. Muss vor createSupabaseAdminClient() stehen.
+  await requireArea("admin", "/admin/personen");
   const admin = createSupabaseAdminClient();
-  const { preferredLanguage } = await getSessionContext();
-  const { locale, t } = await getI18n(preferredLanguage);
+  const { locale, t } = await getI18n();
 
   const [{ data: persons }, vocab] = await Promise.all([
     admin

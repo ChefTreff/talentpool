@@ -108,6 +108,8 @@
   --font-sans: var(--font-sharp), -apple-system, "Segoe UI", "Helvetica Neue",
     Arial, sans-serif;
   --font-display: var(--font-sharp), -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-display-italic: var(--font-sharp-italic), -apple-system, "Segoe UI",
+    Arial, sans-serif;
   --font-accent: var(--font-laica), Georgia, serif;
 }
 
@@ -209,6 +211,14 @@ body {
   line-height: 28px;
   text-transform: none;
   letter-spacing: 0;
+}
+
+/* Highlight-Wort auf Login/Welcome: ExtraBold Italic in Akzentfarbe (§3).
+   Eigene Familie, weil die kursiven Schnitte nicht vorgeladen werden. */
+.ct-highlight {
+  font-family: var(--font-display-italic);
+  font-style: italic;
+  font-weight: 800;
 }
 
 /* Inline-Link: Akzentwort mit Unterstreichung, kein Fett/Italic. */

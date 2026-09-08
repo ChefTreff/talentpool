@@ -11,7 +11,7 @@ import type { AreaKey } from "@/lib/areas";
  */
 export async function AppHeader({ current }: { current?: AreaKey }) {
   const ctx = await getSessionContext();
-  const { locale, t } = await getI18n(ctx.preferredLanguage);
+  const { locale, t } = await getI18n();
   const areas = await getMyAreas();
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { safeNextPath } from "@/lib/areas";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -39,7 +40,10 @@ export function LoginForm({
     setMessage("");
     const supabase = createSupabaseBrowserClient();
     const callback = new URL("/auth/callback", window.location.origin);
-    if (next) callback.searchParams.set("next", next);
+    // Doppelt geprüft: hier und im Callback. Ein fremdes Ziel darf gar nicht
+    // erst in den Magic-Link wandern.
+    const target = safeNextPath(next, "");
+    if (target) callback.searchParams.set("next", target);
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: callback.toString() },

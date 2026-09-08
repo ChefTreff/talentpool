@@ -1,4 +1,5 @@
 import { getI18n } from "@/lib/i18n";
+import { safeNextPath } from "@/lib/areas";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { LoginForm } from "./LoginForm";
 
@@ -10,6 +11,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const { next, error } = await searchParams;
+  const safeNext = safeNextPath(next, "");
   const { t } = await getI18n();
 
   return (
@@ -20,7 +22,7 @@ export default async function LoginPage({
         className="mx-auto flex w-full max-w-[640px] flex-1 flex-col justify-center px-6 py-16"
       >
         <LoginForm
-          next={next}
+          next={safeNext}
           authError={error === "auth" ? t.login.authError : undefined}
           labels={{
             title: t.login.title,

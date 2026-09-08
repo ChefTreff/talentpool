@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
  * `requireArea("admin")` prüft serverseitig; der Proxy hat nur vorsortiert.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const ctx = await requireArea("admin");
-  const { t } = await getI18n(ctx.preferredLanguage);
+  await requireArea("admin");
+  const { t } = await getI18n();
 
   const items = [
     { href: "/admin", label: t.admin.nav.overview },

@@ -1,17 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { areaForPath, canEnterArea } from "@/lib/areas";
+import { loginUrl } from "@/lib/areas";
 
 /**
  * Next 16: `middleware.ts` ist deprecated, der Nachfolger heißt `proxy.ts`.
  *
- * Aufgaben:
- *  1. Supabase-Session frisch halten (Cookie-Refresh vor dem Rendern).
- *  2. Login-Pflicht für alles außer den öffentlichen Pfaden.
- *  3. **Optimistischer** Rollen-Check: schickt offensichtlich Unberechtigte früh
- *     weg, damit sie kein leeres Layout sehen. Die verbindliche Prüfung macht
- *     `requireArea()`/`requireRole()` serverseitig — hier wird nichts erlaubt,
- *     was dort nicht nochmals geprüft wird.
+ * Der Proxy ist **reines Login-Gate**: Session frisch halten, Nicht-Eingeloggte
+ * zum Login schicken. Keine Rollenprüfung, keine RPCs — das kostet auf jeder
+ * Anfrage eine Datenbankrunde und wäre trotzdem nicht verbindlich. Über Rollen
+ * entscheidet ausschließlich `requireArea()`/`requireRole()` in Seite und Action.
  *
  * Ohne gesetzte Env-Variablen No-Op (lokaler Start vor `.env.local`).
  */
@@ -49,34 +46,34 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // getUser() validiert das Token gegen Supabase und erneuert dabei die Session.
+  // getUser() validiert das Token gegen Supabase und rotiert dabei die Session-Cookies.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
+  if (user || isPublic(pathname)) return response;
 
-  if (!user) {
-    if (isPublic(pathname)) return response;
-    const login = new URL("/login", request.url);
-    login.searchParams.set("next", pathname + request.nextUrl.search);
-    return NextResponse.redirect(login);
-  }
+  return redirectKeepingCookies(
+    request,
+    response,
+    loginUrl(pathname + request.nextUrl.search),
+  );
+}
 
-  const area = areaForPath(pathname);
-  if (!area) return response;
-
-  const [{ data: roles }, { data: isStaff }] = await Promise.all([
-    supabase.rpc("my_roles"),
-    supabase.rpc("is_staff"),
-  ]);
-  const roleNames = ((roles ?? []) as { role: string }[]).map((r) => r.role);
-
-  if (!canEnterArea(area, roleNames, Boolean(isStaff))) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  return response;
+/**
+ * Eine neue Response verliert die in `setAll` gesetzten Cookies — nach einem
+ * Token-Refresh wäre die rotierte Session weg und der Nutzer ausgeloggt.
+ * Deshalb wandern sie mit.
+ */
+function redirectKeepingCookies(
+  request: NextRequest,
+  carrier: NextResponse,
+  target: string,
+): NextResponse {
+  const redirectResponse = NextResponse.redirect(new URL(target, request.url));
+  carrier.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+  return redirectResponse;
 }
 
 export const config = {

@@ -1,5 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getSessionContext } from "@/lib/auth";
+import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
@@ -17,9 +17,11 @@ type Term = {
 };
 
 export default async function VokabularPage() {
+  // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
+  // nicht neu. Muss vor createSupabaseAdminClient() stehen.
+  await requireArea("admin", "/admin/vokabular");
   const admin = createSupabaseAdminClient();
-  const { preferredLanguage } = await getSessionContext();
-  const { t } = await getI18n(preferredLanguage);
+  const { t } = await getI18n();
 
   const { data } = await admin
     .from("vocab_term")

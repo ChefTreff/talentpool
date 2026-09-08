@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getSessionContext } from "@/lib/auth";
+import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/Card";
@@ -8,10 +8,11 @@ import { StatCard } from "@/components/ui/Card";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  // Der service_role-Client ist erst nach dem Gate im Layout erlaubt.
+  // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
+  // nicht neu. Muss vor createSupabaseAdminClient() stehen.
+  await requireArea("admin", "/admin");
   const admin = createSupabaseAdminClient();
-  const { preferredLanguage } = await getSessionContext();
-  const { t } = await getI18n(preferredLanguage);
+  const { t } = await getI18n();
 
   const [persons, regs, dupes, events, vocab] = await Promise.all([
     admin.from("person").select("id", { count: "exact", head: true }),

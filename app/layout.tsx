@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
-import { sharpSans, laica } from "@/lib/fonts";
-import { getSessionContext } from "@/lib/auth";
+import { sharpSans, sharpSansItalic, laica } from "@/lib/fonts";
 import { getI18n } from "@/lib/i18n";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
 /** Auch der Tab-Titel folgt der Sprachwahl. */
 export async function generateMetadata(): Promise<Metadata> {
-  const { preferredLanguage } = await getSessionContext();
-  const { t } = await getI18n(preferredLanguage);
+  const { t } = await getI18n();
   return { title: t.meta.title, description: t.meta.description };
 }
 
@@ -16,13 +14,12 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   // Sprache: person.preferred_language → Cookie → Accept-Language → de.
-  const { preferredLanguage } = await getSessionContext();
-  const { locale, t } = await getI18n(preferredLanguage);
+  const { locale, t } = await getI18n();
 
   return (
     <html
       lang={locale}
-      className={`${sharpSans.variable} ${laica.variable} h-full`}
+      className={`${sharpSans.variable} ${sharpSansItalic.variable} ${laica.variable} h-full`}
     >
       <body className="flex min-h-full flex-col">
         <a

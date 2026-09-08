@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-08 15:10 UTC · 36 Tabellen · 5 Views · 38 Funktionen
+> Stand: 2026-09-08 18:31 UTC · 37 Tabellen · 6 Views · 48 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -335,6 +335,25 @@ Eine natürliche Person = ein Datensatz. Login-Verknüpfung über auth_user_id.
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `programme_backlog`
+Sessions ohne Slot (Backlog-Leiste des Boards).
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `session_id` | uuid | PK |  |  |  |
+| `event_id` | uuid |  |  | `event.id` |  |
+| `title_de` | text |  |  |  |  |
+| `title_en` | text |  |  |  |  |
+| `format` | text |  |  |  |  |
+| `language` | text |  |  |  |  |
+| `access_mode` | text |  |  |  |  |
+| `publish_status` | text |  |  |  |  |
+| `host_org_id` | uuid |  |  | `organization.id` |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone |  |  |  |  |
+| `speakers` | jsonb |  |  |  |  |
+| `can_edit` | boolean |  |  |  |  |
+
 ### `question_catalog`
 Zentraler Fragenkatalog für Bewerbungen (Antwort C: Katalog + max. 2 eigene Fragen je Session).
 
@@ -418,6 +437,8 @@ Programmpunkt (öffentliche Felder für App/Website/Swapcard). Interne Regie-Wer
 | `swapcard_id` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `updated_by` | uuid |  |  | `person.id` |  |
 
 ### `session_question`
 Fragen einer Session: aus dem Katalog oder eigene (max. 2, Freigabe durch Programm-Team).
@@ -644,6 +665,41 @@ Thematischer Track (Swapcard-Track).
 | `person_id` | uuid |  |  | `person.id` |  |
 | `lifecycle_status` | text |  |  |  |  |
 
+### `programme_board`
+Board-Sicht je Tag: Slots × Bühnen mit Session und Speakern; can_edit für den Aufrufer.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `slot_id` | uuid | PK |  |  |  |
+| `stage_id` | uuid |  |  | `stage.id` |  |
+| `stage_name` | text |  |  |  |  |
+| `stage_slug` | text |  |  |  |  |
+| `stage_type` | text |  |  |  |  |
+| `room` | text |  |  |  |  |
+| `stage_sort` | integer |  |  |  |  |
+| `changeover_min` | integer |  |  |  |  |
+| `default_duration_min` | integer |  |  |  |  |
+| `event_day_id` | uuid |  |  | `event_day.id` |  |
+| `day_date` | date |  |  |  |  |
+| `event_id` | uuid |  |  | `event.id` |  |
+| `start_at` | timestamp with time zone |  |  |  |  |
+| `end_at` | timestamp with time zone |  |  |  |  |
+| `slot_type` | text |  |  |  |  |
+| `slot_status` | text |  |  |  |  |
+| `slot_sort` | integer |  |  |  |  |
+| `session_id` | uuid | PK |  |  |  |
+| `title_de` | text |  |  |  |  |
+| `title_en` | text |  |  |  |  |
+| `format` | text |  |  |  |  |
+| `language` | text |  |  |  |  |
+| `access_mode` | text |  |  |  |  |
+| `publish_status` | text |  |  |  |  |
+| `capacity` | integer |  |  |  |  |
+| `host_org_id` | uuid |  |  | `organization.id` |  |
+| `track_id` | uuid |  |  | `track.id` |  |
+| `speakers` | jsonb |  |  |  |  |
+| `can_edit` | boolean |  |  |  |  |
+
 ### `programme_public`
 Veröffentlichtes Programm (Talent-Portal, Swapcard-Sync).
 
@@ -692,7 +748,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 |---|---|
 | `active_roles` | args: ? |
 | `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
+| `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
+| `can_edit_session` | p_session_id: uuid |
 | `can_edit_slot` | p_slot_id: uuid |
 | `can_edit_stage` | p_stage_id: uuid |
 | `cancel_registration` | p_session_id: uuid |
@@ -703,6 +761,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `decide_application` | p_application_id: uuid, p_rank: integer, p_status: text |
 | `decisions_released` | p_session_id: uuid |
 | `delete_my_profile` | args: ? |
+| `detach_session` | p_session_id: uuid |
 | `email_hash` | p_email: text |
 | `expire_overdue_applications` | args: ? |
 | `harden_definer_functions` | args: ? |
@@ -710,6 +769,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `immutable_unaccent` | : text |
 | `is_admin` | args: ? |
 | `is_member_of_org` | p_org_id: uuid |
+| `is_programme_editor` | p_event_id: uuid |
 | `is_programme_reader` | args: ? |
 | `is_session_visible` | p_session_id: uuid |
 | `is_speaker_of` | p_session_id: uuid |
@@ -722,9 +782,15 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_roles` | args: ? |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |
+| `publish_session` | p_session_id: uuid |
 | `register_for_session` | p_session_id: uuid |
 | `release_decisions` | p_note: text, p_session_id: uuid |
+| `session_context` | args: ? |
+| `session_speakers_public` | p_session_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
+| `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
 | `slot_has_published_session` | p_slot_id: uuid |
+| `unpublish_session` | p_reason: text, p_session_id: uuid |
+| `upsert_session` | p_data: jsonb |
 | `withdraw_application` | p_application_id: uuid |

@@ -28,7 +28,8 @@
     "not_signed_in": "You are no longer signed in. Please sign in again.",
     "no_person": "There is no profile for this login.",
     "invalid_email": "That is not a valid email address.",
-    "save_failed": "Could not save."
+    "save_failed": "Could not save.",
+    "missing_site_url": "Without NEXT_PUBLIC_SITE_URL the portal cannot put links into emails."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -216,9 +217,7 @@
       "colTemplate": "Template",
       "colTo": "Recipient",
       "colStatus": "Status",
-      "colProvider": "Provider ID",
-      "notLiveTitle": "mail_log not created yet",
-      "notLiveBody": "The mail_template and mail_log tables arrive with schema v2 A4. Until then delivery writes to the server log and uses the built-in templates."
+      "colProvider": "Provider ID"
     },
     "ui": {
       "title": "UI kit",

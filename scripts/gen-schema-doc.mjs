@@ -19,12 +19,14 @@
 import { writeFile } from "node:fs/promises";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Nur service_role: die anon-Sicht zeigt weniger Relationen und erzeugt eine
+// Doku, die stillschweigend unvollständig ist.
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const OUT = "docs/schema.md";
 
 if (!url || !key) {
   console.error(
-    "❌ NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY (oder ANON_KEY) fehlen.\n" +
+    "❌ NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY fehlen.\n" +
       "   Aufruf: node --env-file=.env.local scripts/gen-schema-doc.mjs",
   );
   process.exit(1);

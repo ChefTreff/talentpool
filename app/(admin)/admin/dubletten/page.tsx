@@ -1,5 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getSessionContext } from "@/lib/auth";
+import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -18,9 +18,11 @@ type Dup = {
 };
 
 export default async function DublettenPage() {
+  // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
+  // nicht neu. Muss vor createSupabaseAdminClient() stehen.
+  await requireArea("admin", "/admin/dubletten");
   const admin = createSupabaseAdminClient();
-  const { preferredLanguage } = await getSessionContext();
-  const { t } = await getI18n(preferredLanguage);
+  const { t } = await getI18n();
 
   const { data } = await admin
     .from("potential_duplicate")

@@ -28,7 +28,8 @@
     "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",
     "no_person": "Zu diesem Login gibt es kein Profil.",
     "invalid_email": "Das ist keine gültige E-Mail-Adresse.",
-    "save_failed": "Speichern fehlgeschlagen."
+    "save_failed": "Speichern fehlgeschlagen.",
+    "missing_site_url": "Ohne NEXT_PUBLIC_SITE_URL kann das Portal keine Links in Mails setzen."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -216,9 +217,7 @@
       "colTemplate": "Vorlage",
       "colTo": "Empfänger",
       "colStatus": "Status",
-      "colProvider": "Provider-ID",
-      "notLiveTitle": "mail_log noch nicht angelegt",
-      "notLiveBody": "Die Tabellen mail_template und mail_log kommen mit Schema v2 A4. Bis dahin schreibt der Versand ins Server-Log und nutzt die eingebauten Vorlagen."
+      "colProvider": "Provider-ID"
     },
     "ui": {
       "title": "UI-Kit",

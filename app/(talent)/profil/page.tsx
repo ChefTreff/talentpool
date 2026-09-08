@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { requireUser, getSessionContext } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { pickLabel } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -19,8 +19,7 @@ type Opt = { key: string; label: string };
 
 export default async function ProfilPage() {
   const user = await requireUser("/profil");
-  const { preferredLanguage } = await getSessionContext();
-  const { locale, t } = await getI18n(preferredLanguage);
+  const { locale, t } = await getI18n();
 
   const supabase = await createSupabaseServerClient();
   // Person anlegen bzw. migrierte Person claimen (idempotent).

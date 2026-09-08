@@ -1,4 +1,4 @@
-import { getSessionContext } from "@/lib/auth";
+import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { UiKitDemo } from "./UiKitDemo";
@@ -10,8 +10,9 @@ export const dynamic = "force-dynamic";
  * (80-%-Prinzip) und als Vorlage beim Bau neuer Bereiche.
  */
 export default async function UiKitPage() {
-  const { preferredLanguage } = await getSessionContext();
-  const { t } = await getI18n(preferredLanguage);
+  // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation nicht neu.
+  await requireArea("admin", "/admin/ui");
+  const { t } = await getI18n();
 
   return (
     <>

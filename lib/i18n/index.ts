@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies, headers } from "next/headers";
+import { getSessionContext } from "@/lib/auth";
 import de from "./de.json";
 import en from "./en.json";
 import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, type Locale } from "./shared";
@@ -21,10 +22,13 @@ export function getDictionary(locale: Locale): Dictionary {
 /**
  * Reihenfolge laut Arbeitsauftrag B9:
  *   person.preferred_language → Cookie → Accept-Language → de
- * `preferredLanguage` reicht der Aufrufer aus der Session herein, damit
- * `lib/i18n` keine Datenbank-Abhängigkeit bekommt.
+ *
+ * Die Profilsprache holt sich die Funktion selbst aus `getSessionContext()`
+ * (gecacht, kostet innerhalb eines Requests nichts). So rendert auch `/login`
+ * in der richtigen Sprache, und keine Seite muss die Sprache durchreichen.
  */
-export async function resolveLocale(preferredLanguage?: string | null): Promise<Locale> {
+export async function resolveLocale(): Promise<Locale> {
+  const { preferredLanguage } = await getSessionContext();
   if (isLocale(preferredLanguage)) return preferredLanguage;
 
   const cookieStore = await cookies();
@@ -55,7 +59,7 @@ export function parseAcceptLanguage(header: string | null): Locale {
 }
 
 /** Bequemer Einstieg für Layouts und Seiten: Locale + Dictionary in einem Schritt. */
-export async function getI18n(preferredLanguage?: string | null) {
-  const locale = await resolveLocale(preferredLanguage);
+export async function getI18n() {
+  const locale = await resolveLocale();
   return { locale, t: getDictionary(locale) };
 }

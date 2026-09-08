@@ -1,5 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getSessionContext } from "@/lib/auth";
+import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
@@ -30,9 +30,11 @@ const TONES: Record<string, BadgeTone> = {
 };
 
 export default async function MailPage() {
+  // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
+  // nicht neu. Muss vor createSupabaseAdminClient() stehen.
+  const ctx = await requireArea("admin", "/admin/mail");
   const admin = createSupabaseAdminClient();
-  const ctx = await getSessionContext();
-  const { t } = await getI18n(ctx.preferredLanguage);
+  const { t } = await getI18n();
 
   const { data, error } = await admin
     .from("mail_log")
@@ -40,8 +42,7 @@ export default async function MailPage() {
     .order("queued_at", { ascending: false })
     .limit(20);
 
-  // Bis Schema v2 A4 live ist, existiert mail_log noch nicht.
-  const logMissing = Boolean(error);
+  if (error) console.error("[admin/mail] mail_log nicht lesbar:", error.message);
   const rows = (data ?? []) as LogRow[];
   const dateFormat = new Intl.DateTimeFormat(t.meta.dateLocale, {
     dateStyle: "short",
@@ -70,12 +71,7 @@ export default async function MailPage() {
       </Card>
 
       <h2 className="ct-h2 mb-3 text-ink">{t.admin.mail.recent}</h2>
-      {logMissing ? (
-        <EmptyState
-          title={t.admin.mail.notLiveTitle}
-          description={t.admin.mail.notLiveBody}
-        />
-      ) : rows.length === 0 ? (
+      {rows.length === 0 ? (
         <EmptyState
           title={t.admin.mail.recent}
           description={t.admin.mail.lead}

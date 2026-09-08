@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   areasFor,
   canEnterArea,
+  loginUrl,
   AREAS,
   type Area,
   type AreaKey,
@@ -22,60 +23,82 @@ export type RoleAssignment = {
 
 export type SessionContext = {
   user: User | null;
+  personId: string | null;
+  firstName: string | null;
+  preferredLanguage: string | null;
+  tier: string | null;
   roles: RoleAssignment[];
   roleNames: string[];
   isStaff: boolean;
-  preferredLanguage: string | null;
 };
 
 const ANONYMOUS: SessionContext = {
   user: null,
+  personId: null,
+  firstName: null,
+  preferredLanguage: null,
+  tier: null,
   roles: [],
   roleNames: [],
   isStaff: false,
-  preferredLanguage: null,
+};
+
+/** Rückgabe von `session_context()` (Migration 0014). NULL ohne Person. */
+type SessionContextRow = {
+  person_id: string | null;
+  first_name: string | null;
+  preferred_language: string | null;
+  tier: string | null;
+  is_staff: boolean;
+  roles: RoleAssignment[] | null;
 };
 
 /**
- * Session + Rollen einmal pro Request. `cache()` teilt das Ergebnis zwischen
- * Layout, Seite und Server Actions, ohne die Datenbank mehrfach zu fragen.
+ * Session, Profil-Basics und Rollen — ein RPC (`session_context()`), einmal pro
+ * Request. `cache()` teilt das Ergebnis zwischen Layout, Seite und Server Actions.
  * Gelesen wird mit dem Anon-Client, also unter RLS — nie mit service_role.
  */
 export const getSessionContext = cache(async (): Promise<SessionContext> => {
+  // Ohne Supabase-Env (frischer Checkout vor `.env.local`) bleibt alles anonym,
+  // statt in jeder Route zu werfen — dieselbe No-Op-Haltung wie im Proxy.
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
+    return ANONYMOUS;
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return ANONYMOUS;
 
-  const [{ data: roles }, { data: isStaff }, { data: person }] = await Promise.all([
-    supabase.rpc("my_roles"),
-    supabase.rpc("is_staff"),
-    supabase.from("person").select("preferred_language").maybeSingle(),
-  ]);
+  const { data } = await supabase.rpc("session_context");
+  const ctx = (data ?? null) as SessionContextRow | null;
+  const roles = ctx?.roles ?? [];
 
-  const list = (roles ?? []) as RoleAssignment[];
   return {
     user,
-    roles: list,
-    roleNames: [...new Set(list.map((r) => r.role))],
-    isStaff: Boolean(isStaff),
-    preferredLanguage: person?.preferred_language ?? null,
+    personId: ctx?.person_id ?? null,
+    firstName: ctx?.first_name ?? null,
+    preferredLanguage: ctx?.preferred_language ?? null,
+    tier: ctx?.tier ?? null,
+    roles,
+    roleNames: [...new Set(roles.map((r) => r.role))],
+    isStaff: Boolean(ctx?.is_staff),
   };
 });
 
 /** Login-Pflicht. Merkt sich das Ziel in `next`, damit der Link zurückführt. */
 export async function requireUser(nextPath?: string): Promise<User> {
   const { user } = await getSessionContext();
-  if (!user) {
-    redirect(nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : "/login");
-  }
+  if (!user) redirect(loginUrl(nextPath));
   return user;
 }
 
 /**
  * Echte, serverseitige Rollenprüfung — die einzige, auf die man sich verlassen darf.
- * Der Check in `proxy.ts` ist nur ein optimistischer Redirect.
  * Erst nach diesem Aufruf darf der service_role-Client benutzt werden.
  */
 export async function requireRole(
@@ -94,26 +117,32 @@ export async function requireRole(
   return user;
 }
 
-/** Team-Zugriff (Admin, Programm, Produktion, Bereichsleads oder Alt-`staff_user`). */
-export async function requireStaff(): Promise<User> {
-  const { user, isStaff } = await getSessionContext();
-  if (!user) redirect("/login");
-  if (!isStaff) redirect("/");
-  return user;
-}
-
 /**
- * Bereichs-Gate für die Route-Gruppen. Ohne Login → `/login?next=…`,
- * mit Login aber ohne Rolle → 404 (der Bereich existiert für diese Person nicht).
+ * Bereichs-Gate. Ohne Login → `/login?next=…`, mit Login aber ohne Rolle → 404
+ * (der Bereich existiert für diese Person nicht).
+ *
+ * Gehört in **jede** Seite und Server Action des Bereichs, nicht nur ins Layout:
+ * Layouts rendern bei Client-Navigation nicht neu, ein Layout allein schützt also
+ * nichts. Der Aufruf ist gecacht und kostet innerhalb eines Requests nichts.
+ *
+ * `pathname` ist das tatsächlich angeforderte Ziel; ohne Angabe der Bereichseinstieg.
  */
-export async function requireArea(key: AreaKey): Promise<SessionContext> {
+export async function requireArea(
+  key: AreaKey,
+  pathname?: string,
+): Promise<SessionContext> {
   const area = AREAS.find((a) => a.key === key);
   if (!area) notFound();
 
   const ctx = await getSessionContext();
-  if (!ctx.user) redirect(`/login?next=${encodeURIComponent(area.path)}`);
+  if (!ctx.user) redirect(loginUrl(pathname ?? area.path));
   if (!canEnterArea(area, ctx.roleNames, ctx.isStaff)) notFound();
   return ctx;
+}
+
+/** Team-Zugriff = Admin-Bereich. Die Team-Definition lebt in SQL `is_staff()`. */
+export async function requireStaff(pathname?: string): Promise<SessionContext> {
+  return requireArea("admin", pathname);
 }
 
 /** Für den Bereichs-Umschalter: nur Bereiche, für die eine Rolle vorliegt. */
