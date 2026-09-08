@@ -164,3 +164,9 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Trotzdem Frankfurt:** konservative Wahl, vereinfacht Partner-Fragebögen („Server in Deutschland?") und kostet jetzt eine Stunde. Entscheidung: Umzug vor Welle 1 (Reproduktionstest inklusive).
 - **Wichtiger Fund:** Vercel führt Server-Code standardmäßig in der US-Region (iad1) aus. Ab jetzt `vercel.json` mit `regions: ["fra1"]`, damit Rendering, Server Actions und Route Handler in Frankfurt laufen. Statische Auslieferung über das CDN bleibt global (keine Personendaten).
 - **Offen (Checkliste):** Resend EU-Verarbeitung, AVV-Sammlung, Standort von Supabase-Logs/Backups.
+
+## 2026-09-08 (Nacht) — Review PR #2 „Welle 1 Teil B" (erster Durchgang)
+- **Board-Realtime:** Datenbank sendet (Trigger → `realtime.send`, privater Kanal `programme-board:<event_id>`); Programm-Leser dürfen empfangen und als Fallback senden (Policies auf `realtime.messages`, Migrationen `20260908194632`, `20260908194933`). Keine Postgres-Changes-Publikation für `slot` (interne Spalten). Befund: ohne verbundenen Realtime-Client fehlen die Partitionen von `realtime.messages`, `realtime.send` schlägt dann stumm fehl — daher der Client-Fallback.
+- **Fragen je Session** nur noch per RPC (`set_session_questions`, `approve_session_questions`); service_role-Pfad im PR wird ersetzt.
+- **Merge-Bedingungen PR #2:** privater Kanal je Event, Fragen-RPC, Tests für Zeitzone/Geometrie im Repo, Consent-Schritt ohne Duplikate. Rest (Speaker-Suche einschränken, Board unter `/speaker-leads`) → Welle 2.
+- **Demo-Programm** für Summit 27 Freitag auf der Dev-Datenbank (Tag `demo`), Programmzeiten Summit 27 als Vorschlag gesetzt.
