@@ -1,0 +1,21 @@
+#!/bin/sh
+# Spiegelt docs/*.md in den Drive-Projektordner (Team-Lesekopie). Quelle der Wahrheit bleibt das Repo.
+# Aufruf: sh scripts/mirror-docs.sh   (nach jedem Doku-Commit)
+set -e
+DRIVE="/Users/konradgruner/Library/CloudStorage/GoogleDrive-konrad@chef-treff.de/Geteilte Ablagen/0 - Admin & Leadership/00 - Admin - KI Wissensordner/Admin - KI Projekte/AI Projekt - Talentpool & FLS27 Systeme"
+[ -d "$DRIVE" ] || { echo "Drive-Ordner nicht gemountet: $DRIVE" >&2; exit 1; }
+cd "$(dirname "$0")/.."
+while IFS='|' read -r src dst; do
+  [ -z "$src" ] && continue
+  if [ -f "$src" ]; then cp "$src" "$DRIVE/$dst" && echo "✓ $src -> $dst"; else echo "fehlt: $src" >&2; fi
+done <<'MAP'
+docs/legacy-inventar.md|04_Tool-Landscape & Integrationen/Legacy-Inventar — Airtable, Notion, Swapcard-API, Vivenu-API (Claude, 2026-09-07).md
+docs/makecom-webhooks-2026-09-08.md|04_Tool-Landscape & Integrationen/make.com — verwaiste Webhooks, Abschaltliste (2026-09-08).md
+docs/vivenu-support-anfrage.md|04_Tool-Landscape & Integrationen/Vivenu-Support-Anfrage (Entwurf, 2026-09-08).md
+docs/feedback-fls26.md|05_Requirements (Team-Input)/Feedback FLS26 — Register mit Konsequenzen (Claude, 2026-09-08).md
+docs/design-briefing.md|07_Mockups & Design/Design-Briefing v0.3 (Claude, 2026-09-08).md
+docs/entscheidungen.md|08_Projektplan & MVP/Entscheidungslog (Claude, laufend).md
+docs/abschluss-checkliste.md|08_Projektplan & MVP/Abschluss-Checkliste (Claude, laufend).md
+docs/fragenkatalog-2026-09-07.md|08_Projektplan & MVP/Fragenkatalog Masterplan — bitte inline beantworten (2026-09-07).md
+docs/masterplan.md|08_Projektplan & MVP/Masterplan FLS27-Plattform (Entwurf v0.1, 2026-09-08).md
+MAP

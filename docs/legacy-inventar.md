@@ -393,8 +393,6 @@ Drei getrennte Logins heute: **Partner Hub** (SoftR), **Speaker Hub** (SoftR), *
 - **Technik (aus Admin-Bar sichtbar):** Admin-Pfad umbenannt (`/pct-admin/`), Plugins u. a. Query Monitor, Internal Link Juicer; WooCommerce-Sichtbarkeit „Live". Bis zur Abschaltung weiter patchen (Checkliste).
 - **Bestellungen/Katalog:** siehe 13.4.
 
-### 13.4 Fortsetzung (Speaker-Hub-Unterseiten, Messeshop-Bestellungen/Katalog)
-_wird ergänzt_
 
 ## 14 · Wiki & Chatbot (Notion „Wiki - FUTURE LEADER SUMMIT 2026", Chatbase „Chefi") — Stand 08.09.2026
 
