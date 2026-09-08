@@ -394,6 +394,21 @@ Drei getrennte Logins heute: **Partner Hub** (SoftR), **Speaker Hub** (SoftR), *
 - **Bestellungen/Katalog:** siehe 13.4.
 
 
+### 13.4 Speaker Hub — Unterseiten, Messeshop — Bestellungen & Katalog (Fortsetzung 08.09.)
+**Speaker Hub (SoftR, EN):**
+- **Onboarding `/onboarding`:** Detailansicht des eigenen Datensatzes mit „Edit": First Name, Last Name, Email, Job Title, Organization, Preferred Language, LinkedIn Profile, Personal Description. Hinweis „if someone else is completing this form on your behalf" (→ Assistenz-Rolle, Frage 58). **Additional Contact** (Contact First/Last Name, Email, Phone, Contact Type z. B. Agency). **Speaker Reception** (Fr 10.04.) mit Anmeldung über eingebettetes Fenster (Luma-Embed) → im Portal eine Session mit `access_mode = registration` (Antwort C).
+- **Travel & Accommodation `/travel`:** Travel FAQ (Toggles: Arriving by Car / Public Transport), **VIP Hotel Booking**, **Shuttle Service Booking** (status-gated, vgl. Hospitality-Regel Antwort E).
+- **Tickets, Access & Getting In `/tickets`:** Your Speaker Ticket (persönlich), **Additional Ticket Request** (ein kostenloses Begleitticket per E-Mail-Eingabe), Speaker Counter & Area (Badge-Ausgabe, Backstage).
+- **Your Session `/your-session`:** **Session Content** (Title, Description, Topics, Language; ChefTreff darf Wording anpassen, finale Version wird angezeigt → zwei Versionen „eingereicht/final" sichtbar), **Your Time & Location** (finaler Slot + Bühne + Hallenplan), **Upload Your Presentation** (PDF/PPTX empfohlen, Dateiname `LastName_FirstName`, Videos separat, **Deadline 10.04. 12:00**, Überschreiben erlaubt, Vorschau), FAQ-Toggles (Formate, Upload, Videos, Setup vor Ort, Content-Kontakt).
+- **Media Kit & Stage Photos `/media-kit`:** Bühnenfotos ~48 h nach dem Talk („Download my Photos"), **Personal Speaker Graphic** (Vorschau + PNG-Download je Speaker, vgl. §12.3), Media Kit.
+- **Help & Support `/help`:** Chatbot (Chatbase) + Speaker-Wiki-Embed (gleiche Notion-DB wie Partner, §14).
+- **Ableitungen (ergänzend zu R1–R12):** Begleitticket als strukturierter Request in `ticket` statt Freitext-Mail; Präsentations-Upload mit Deadline-Sperre, Versionen und **Technik-Check-Status** (Regie sieht „geprüft"); Session-Content mit Diff „eingereicht vs. final"; Slot/Bühne aus `slot`/`stage` (keine Doppelpflege); Speaker-Grafik-Generator als C-Feature; keine privaten Buddy-Kontakte.
+
+**Messeshop (WooCommerce):**
+- **Bestellungen `/my-account/orders/`:** Tabelle Nr./Datum/Status/Gesamtsumme/Aktionen; Hinweis „E-Mail-Adresse bestätigen, um frühere Bestellungen zu verknüpfen"; nur Testbestellungen sichtbar (Konto Konrad).
+- **Katalog `/shop/`:** Kategorien **Essentials, Pflanzen, Mobiliar, Personal, Specials, Standgastronomie, Technik**; ~80 Produkte auf 7 Seiten (12/Seite). Je Produkt: Name, Beschreibung, **Bestand** („x Vorrätig"), Preis (z. B. 6-fach-Steckdose 18,00 · iPad 68,80 · MacBook Air 91,30 · Airhockey 300 · Billardtisch 360 · Aftermovie 3.900 · 100 Cocktailgläser 43,20). **„Auf Anfrage"-Produkte** stehen mit 0,00 € im Katalog und verweisen auf Mail an Konrad (z. B. Aperitifbar inkl. Personal).
+- **Ableitungen (ergänzend zu S1–S5, Antwort D):** Produktkatalog mit Bestand/Einheiten in `product`, Bestellung je Organisation mit **zwei Phasen/Deadlines** aus `deadline`, Anfrage-Produkte als **Anfrage-Flow** (kein 0-€-Kauf), Rechnung über SevDesk, Netto/Brutto-Anzeige klären (Handover-Doku). Produktdaten bei der Migration per WooCommerce-CSV-Export; Handover-Doku liegt in Drive `00 Messeshop Handover` (HANDOVER.md, PLAN.md, system-overview-langdock.md, CLAUDE.md).
+
 ## 14 · Wiki & Chatbot (Notion „Wiki - FUTURE LEADER SUMMIT 2026", Chatbase „Chefi") — Stand 08.09.2026
 
 **Anforderung (Konrad):** Wikis + Chatbots gibt es wieder — **je einzeln für Speaker, Partner und Teilnehmer**, jeweils mit eigenem Wiki.
