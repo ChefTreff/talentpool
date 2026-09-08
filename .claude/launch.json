@@ -4,11 +4,14 @@
     {
       "name": "talentpool-dev",
       "runtimeExecutable": "/bin/zsh",
-      "runtimeArgs": [
-        "-c",
-        "source \"$HOME/.zshenv\" && cd /Users/konradgruner/Documents/GitHub/talentpool && exec npm run dev"
-      ],
+      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev"],
       "port": 3000
+    },
+    {
+      "name": "talentpool-dev-worktree",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3001"],
+      "port": 3001
     }
   ]
 }

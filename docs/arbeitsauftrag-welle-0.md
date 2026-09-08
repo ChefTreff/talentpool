@@ -36,3 +36,9 @@ Regeln: jede Tabelle `enable row level security` + Grants explizit; keine Policy
 - ✅ A1 Identität & Rollen, ✅ A2 Edition & Programm (inkl. Board-RPCs), ✅ Zusatz A2b Sicherheits-Härtung (`v2_security_hardening`) — alle live und getestet.
 - ⏳ A3 Bewerbung & Tickets, A4 Integration & Kommunikation, A5 Vokabular + FLS27-Startdaten.
 - ⏳ B6–B11 App-Fundament (noch nicht begonnen).
+
+## Setup der Build-Session (Opus, Worktree)
+- Start in der Desktop-App als **Worktree-Session** im Projektordner, Modell Opus 5. Erste Nachricht: „Lies AGENTS.md und docs/arbeitsauftrag-welle-0.md, Teil B. Branch `welle-0/app-fundament`, PR gegen main."
+- Der Worktree hat weder `node_modules` noch `.env.local`: `npm install` und `.env.local` kopieren (siehe AGENTS.md). Dev-Server-Konfiguration `talentpool-dev-worktree` auf Port 3001; Supabase-Redirect-URL `http://localhost:3001/auth/callback` ergänzen.
+- Das Projektgedächtnis von Claude ist pfadgebunden und im Worktree **nicht** identisch mit dem der Architektur-Session. Deshalb steht alles Nötige in AGENTS.md und in `docs/`.
+- Arbeitsteilung: Architektur-Session (Fable, main) = Teil A + Reviews; Build-Session (Opus, Worktree) = Teil B. Dateien unter `app/`, `components/`, `lib/i18n`, `lib/mail` gehören während Welle 0 der Build-Session.
