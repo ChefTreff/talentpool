@@ -409,14 +409,14 @@ begin
   select * into v_sd from stage_day where stage_id = p_stage_id and event_day_id = v_day.id;
   if found then
     if v_sd.open_from is not null and (p_start at time zone v_tz)::time < v_sd.open_from then
-      v_warn := v_warn || 'before_open';
+      v_warn := array_append(v_warn, 'before_open');
     end if;
     if v_sd.open_to is not null and (p_end at time zone v_tz)::time > v_sd.open_to then
-      v_warn := v_warn || 'after_close';
+      v_warn := array_append(v_warn, 'after_close');
     end if;
   end if;
   if extract(epoch from p_start)::bigint % 300 <> 0 or extract(epoch from p_end)::bigint % 300 <> 0 then
-    v_warn := v_warn || 'off_grid_5min';
+    v_warn := array_append(v_warn, 'off_grid_5min');
   end if;
   if v_stage.changeover_min > 0 and exists (
       select 1 from slot o
@@ -426,7 +426,7 @@ begin
           or (o.end_at   <= p_start and o.end_at   >  p_start - make_interval(mins => v_stage.changeover_min))
         )
   ) then
-    v_warn := v_warn || 'changeover_short';
+    v_warn := array_append(v_warn, 'changeover_short');
   end if;
   if exists (
     select 1
@@ -442,7 +442,7 @@ begin
           and tstzrange(sl2.start_at, sl2.end_at, '[)') && tstzrange(p_start, p_end, '[)')
       )
   ) then
-    v_warn := v_warn || 'speaker_conflict';
+    v_warn := array_append(v_warn, 'speaker_conflict');
   end if;
 
   v_before := jsonb_build_object('stage_id', v_slot.stage_id, 'event_day_id', v_slot.event_day_id,
