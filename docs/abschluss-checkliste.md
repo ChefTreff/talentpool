@@ -81,3 +81,5 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - [ ] **Item-Liste bereinigen** (Konrad, vor Welle 3): 24 Platzhalter-SKUs, USt-Satz je Kategorie, 52 preislose Zusatzleistungen, Namen/Kategorien trimmen; HubSpot-Produkte per SKU abgleichen.
 - [ ] **Volunteer-Wiki exportieren** (Notion Markdown + Bilder) vor dem Import; WhatsApp-Links und Team-Blöcke entfernen.
 - [ ] **Supabase Auth: „Leaked Password Protection" aktivieren** (Dashboard → Authentication → Settings) — Konrad; kostet nichts, auch wenn wir Magic Links nutzen.
+- [ ] **Event-App prüfen:** Conferras-Demo/Angebot einholen und gegen Swapcard bewerten (Frage 86), Entscheidung bis 24.09. — Konrad.
+- [ ] **`NEXT_PUBLIC_SITE_URL`** in Vercel setzen (Production `https://portal.chef-treff.de`, Preview je URL), sonst fallen Mail-Links auf den Host-Header zurück.

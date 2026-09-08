@@ -151,10 +151,10 @@ on conflict (key) do update
 
 -- === Mail-Templates (Grundstock; Texte werden in Welle 1 finalisiert) =======
 insert into mail_template (key, locale, subject, body_md, description) values
-  ('test','de','Testmail vom ChefTreff-Portal','Hallo {{first_name}},\n\ndas ist eine Testmail aus dem Portal. Wenn du sie liest, funktioniert der Versand.\n\nViele Grüße\nChefTreff','Technischer Test'),
-  ('test','en','Test mail from the ChefTreff portal','Hi {{first_name}},\n\nthis is a test mail from the portal. If you can read it, sending works.\n\nBest\nChefTreff','Technical test'),
-  ('welcome','de','Willkommen im ChefTreff-Portal','Hallo {{first_name}},\n\ndein Profil ist angelegt. Über {{portal_url}} kommst du jederzeit zurück.\n\nViele Grüße\nChefTreff','Nach erstem Login'),
-  ('welcome','en','Welcome to the ChefTreff portal','Hi {{first_name}},\n\nyour profile is set up. You can come back any time via {{portal_url}}.\n\nBest\nChefTreff','After first login')
+  ('test','de','Testmail vom ChefTreff-Portal',E'Hallo {{first_name}},\n\ndas ist eine Testmail aus dem Portal. Wenn du sie liest, funktioniert der Versand.\n\nViele Grüße\nChefTreff','Technischer Test'),
+  ('test','en','Test mail from the ChefTreff portal',E'Hi {{first_name}},\n\nthis is a test mail from the portal. If you can read it, sending works.\n\nBest\nChefTreff','Technical test'),
+  ('welcome','de','Willkommen im ChefTreff-Portal',E'Hallo {{first_name}},\n\ndein Profil ist angelegt. Über {{portal_url}} kommst du jederzeit zurück.\n\nViele Grüße\nChefTreff','Nach erstem Login'),
+  ('welcome','en','Welcome to the ChefTreff portal',E'Hi {{first_name}},\n\nyour profile is set up. You can come back any time via {{portal_url}}.\n\nBest\nChefTreff','After first login')
 on conflict (key, locale) do nothing;
 
 -- === Edition FLS27 mit Events, Tagen und Bühnen (idempotent über slug) ======

@@ -8,6 +8,7 @@
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase | Server-Aktionen nach Rollenprüfung, Migration | Project Settings → API (vorhanden); nie im Client | 0 |
 | Google OAuth Client-ID/-Secret | Google Cloud → Supabase Auth | Staff-SSO (Domain chef-treff.de) + 2FA | Google Cloud Console, OAuth-Client „Web"; Redirect = Supabase-Callback; **in Supabase Auth Providers eintragen, nicht in Vercel** | 0 |
 | `RESEND_API_KEY`, `RESEND_FROM` | Resend | alle System-Mails | Resend → API Keys (Sending only); Domain `chef-treff.de` verifizieren (SPF, DKIM, DMARC) | 0 |
+| `NEXT_PUBLIC_SITE_URL` | App | absolute Portal-URL für Mail-Links und Redirects (kein Host-Header-Fallback in Produktion) | selbst setzen: Production `https://portal.chef-treff.de`, Preview je Deployment; lokal `http://localhost:3000` | 0 |
 | `VIVENU_API_KEY`, `VIVENU_WEBHOOK_SECRET`, `VIVENU_SANDBOX` | vivenu | Ticket-Ingest, Personalisierung, Coupons | vivenu Dashboard → Entwickler; **erst Sandbox-Key**, Produktiv-Key nach Rotation des alten (Checkliste) | 1 |
 | `SWAPCARD_API_KEY`, `SWAPCARD_EVENT_ID` | Swapcard | Teilnehmer/Speaker/Sessions/Exhibitors-Sync | Swapcard Studio → API; neuer Key nach Rotation; Event-ID FLS27 | 3 |
 | `HUBSPOT_ACCESS_TOKEN` | HubSpot | Deal-Ingest (Onboarding Automation), Rücksync | Private App; Scopes: `crm.objects.deals` (read/write), `crm.objects.companies`, `crm.objects.contacts`, `crm.objects.line_items` (read), Webhooks | 3 |
