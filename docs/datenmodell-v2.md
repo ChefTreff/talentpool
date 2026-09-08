@@ -35,3 +35,10 @@ Edition `fls27` mit `summit-27` (16./17.04.2027, CCH) und `hackathon-27` (15./16
 
 ## Tests
 SQL-Smoke-Tests laufen als Transaktion mit Rollback über den Supabase-MCP (`execute_sql`); Vorlagen liegen in `supabase/tests/`. Vor jedem Merge einer Migration: Tests + Security-Advisor ohne ERROR.
+
+## Ergänzung 08.09. abends — Programm-Editor-Backend (Migration `20260908182849_v2_programme_editor`)
+- **Views:** `programme_board` (ein Tag, alle Bühnen: Slot × Session × Speaker, `can_edit` für den Aufrufer) und `programme_backlog` (Sessions ohne Slot). Speaker-Namen kommen über `session_speakers_public()` nur für sichtbare Sessions.
+- **Rechte:** `is_programme_editor(event_id)` (Programm-Team/Admin, Edition oder global) · `can_edit_session(session_id)` (Editor, oder Slot im eigenen Scope, oder eigene Backlog-Session als Speaker-Manager/Standbühnen-Editor).
+- **RPCs:** `upsert_session(jsonb)` (anlegen/ändern, Teilupdate über vorhandene Schlüssel) · `set_session_speakers(session_id, jsonb[])` (ersetzt komplett) · `attach_session_to_slot` / `detach_session` (Detach nur unveröffentlicht: `unpublish_first`) · `publish_session` (nur Programm-Team; Pflichtfelder + mindestens ein Speaker bei Inhaltsformaten; setzt Slot auf `final`) · `unpublish_session(id, reason)`. Alle mit Audit-Log; Attach/Detach zusätzlich in `slot_history`.
+- **Fehlercodes ergänzt:** `slot_occupied` (23505), `unpublish_first` (P0001), `publish requires at least one speaker` (23514).
+- Getestet: 13 Prüfungen (Scope über Bühne, Backlog-Rechte, Veröffentlichungsregeln, Detach-Sperre, Audit/History).
