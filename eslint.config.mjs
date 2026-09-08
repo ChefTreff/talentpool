@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Worktrees der Build-Sessions liegen im Repo-Ordner und bringen eigene Build-Artefakte mit.
+    ".claude/**",
   ]),
 ]);
 

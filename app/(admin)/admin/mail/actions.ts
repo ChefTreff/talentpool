@@ -28,7 +28,7 @@ function portalUrl(): string | null {
   // (VERCEL_BRANCH_URL bleibt je Branch stabil). Production braucht den festen Wert.
   if (process.env.VERCEL_ENV === "preview") {
     const host = process.env.VERCEL_BRANCH_URL ?? process.env.VERCEL_URL;
-    if (host) return `https://`;
+    if (host) return `https://${host}`;
   }
   if (process.env.NODE_ENV === "development") return "http://localhost:3000";
   return null;
