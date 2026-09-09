@@ -5,7 +5,12 @@ import { loadVocabMap, vlabel } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ProgrammeView } from "./ProgrammeView";
-import type { MyApplication, ProgrammeSession, SessionQuestion } from "./types";
+import type {
+  MyApplication,
+  ProgrammeSession,
+  QuestionOption,
+  SessionQuestion,
+} from "./types";
 
 export const dynamic = "force-dynamic";
 
@@ -30,15 +35,62 @@ export default async function ProgrammPage() {
       .from("registration")
       .select("session_id, status")
       .not("session_id", "is", null),
+    // Katalogfragen tragen ihren Text in `question_catalog` — mitladen, sonst
+    // steht im Bewerbungsformular nur ein Strich.
     supabase
       .from("session_question")
-      .select("id, session_id, question_id, label_de, label_en, type, options, required, sort_order")
+      .select(
+        "id, session_id, question_id, label_de, label_en, type, options, required, sort_order, " +
+          "question_catalog(label_de, label_en, help_de, help_en, type, options)",
+      )
       .order("sort_order"),
     supabase.from("event").select("id, timezone"),
     loadVocabMap(supabase, locale),
   ]);
 
   const sessions = (sessionRows ?? []) as ProgrammeSession[];
+
+  type RawQuestion = {
+    id: string;
+    session_id: string;
+    question_id: string | null;
+    label_de: string | null;
+    label_en: string | null;
+    type: string | null;
+    options: QuestionOption[] | null;
+    required: boolean;
+    question_catalog: {
+      label_de: string | null;
+      label_en: string | null;
+      help_de: string | null;
+      help_en: string | null;
+      type: string | null;
+      options: QuestionOption[] | null;
+    } | null;
+  };
+
+  const pick = (own: string | null, fromCatalog: string | null | undefined) =>
+    own?.trim() ? own : (fromCatalog ?? null);
+
+  const questions: SessionQuestion[] = ((questionRows ?? []) as unknown as RawQuestion[]).map(
+    (q) => {
+      const cat = Array.isArray(q.question_catalog) ? q.question_catalog[0] : q.question_catalog;
+      const label =
+        locale === "en"
+          ? (pick(q.label_en, cat?.label_en) ?? pick(q.label_de, cat?.label_de))
+          : (pick(q.label_de, cat?.label_de) ?? pick(q.label_en, cat?.label_en));
+      const help = locale === "en" ? (cat?.help_en ?? cat?.help_de) : (cat?.help_de ?? cat?.help_en);
+      return {
+        key: q.question_id ?? q.id,
+        session_id: q.session_id,
+        label: label ?? "—",
+        help: help ?? null,
+        type: q.type ?? cat?.type ?? "text",
+        options: q.options ?? cat?.options ?? null,
+        required: q.required,
+      };
+    },
+  );
   const timezoneByEvent = new Map(
     ((eventRows ?? []) as { id: string; timezone: string }[]).map((e) => [
       e.id,
@@ -100,7 +152,7 @@ export default async function ProgrammPage() {
         registrations={
           (registrationRows ?? []) as { session_id: string; status: string }[]
         }
-        questions={(questionRows ?? []) as SessionQuestion[]}
+        questions={questions}
         timezones={Object.fromEntries(timezoneByEvent)}
         labels={labels}
         locale={locale}

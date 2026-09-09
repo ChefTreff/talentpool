@@ -149,24 +149,42 @@ export function Board({
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
-    const channel = supabase
-      .channel(channelName, { config: { private: true } })
-      .on("broadcast", { event: "changed" }, () => router.refresh())
-      .subscribe((status, error) => {
-        // Nicht still scheitern: ohne Kanal merkt der Nachbar-Tab nichts, und
-        // ein stummes Board sieht aus wie ein verlorener Slot.
-        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          console.warn(
-            `[programm] Realtime-Kanal ${channelName} nicht verbunden (${status})` +
-              (error ? `: ${error.message}` : "") +
-              " — Board aktualisiert beim Zurückkehren in den Tab.",
-          );
-        }
-      });
-    channelRef.current = channel;
+    let channel: RealtimeChannel | null = null;
+    let abgebrochen = false;
+
+    // Der private Kanal prüft `is_programme_reader()` gegen das Token. Der Socket
+    // verbindet aber schneller, als die Session aus den Cookies gelesen ist —
+    // ohne dieses `setAuth` autorisiert Realtime als anon und lehnt ab
+    // ("Unauthorized: You do not have permissions to read from this Channel topic").
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (abgebrochen) return;
+      if (session?.access_token) await supabase.realtime.setAuth(session.access_token);
+      if (abgebrochen) return;
+
+      channel = supabase
+        .channel(channelName, { config: { private: true } })
+        .on("broadcast", { event: "changed" }, () => router.refresh())
+        .subscribe((status, error) => {
+          // Nicht still scheitern: ohne Kanal merkt der Nachbar-Tab nichts, und
+          // ein stummes Board sieht aus wie ein verlorener Slot.
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            console.warn(
+              `[programm] Realtime-Kanal ${channelName} nicht verbunden (${status})` +
+                (error ? `: ${error.message}` : "") +
+                " — Board aktualisiert beim Zurückkehren in den Tab.",
+            );
+          }
+        });
+      channelRef.current = channel;
+    })();
+
     return () => {
+      abgebrochen = true;
       channelRef.current = null;
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [channelName, router]);
 

@@ -23,7 +23,6 @@ import {
   type TalentResult,
 } from "./actions";
 import {
-  answerKey,
   type MyApplication,
   type ProgrammeLabels,
   type ProgrammeSession,
@@ -564,12 +563,7 @@ function ApplyDialog({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [consentShare, setConsentShare] = useState(false);
 
-  const label = (q: SessionQuestion) =>
-    (locale === "en" ? q.label_en : q.label_de) ?? q.label_de ?? q.label_en ?? "—";
-
-  const missing = questions.filter(
-    (q) => q.required && !(answers[answerKey(q)] ?? "").trim(),
-  );
+  const missing = questions.filter((q) => q.required && !(answers[q.key] ?? "").trim());
 
   return (
     <Modal onCancel={onCancel} label={t.applyTitle}>
@@ -579,40 +573,43 @@ function ApplyDialog({
       </p>
       <div className="mt-4 flex flex-col gap-4">
         {questions.map((q) => {
-          const key = answerKey(q);
-          const id = `q-${q.id}`;
+          const id = `q-${q.key}`;
+          const set = (value: string) =>
+            setAnswers((a) => ({ ...a, [q.key]: value }));
           return (
             <Field
-              key={q.id}
-              label={label(q)}
+              key={q.key}
+              label={q.label}
               htmlFor={id}
+              hint={q.help ?? undefined}
               required={q.required}
               requiredLabel={t.required}
             >
               {q.type === "select" && q.options ? (
                 <Select
                   id={id}
-                  value={answers[key] ?? ""}
+                  value={answers[q.key] ?? ""}
                   placeholder={t.choose}
                   options={q.options.map((o) => ({
                     value: o.value,
                     label:
                       (locale === "en" ? o.label_en : o.label_de) ?? o.label_de ?? o.value,
                   }))}
-                  onChange={(e) => setAnswers((a) => ({ ...a, [key]: e.target.value }))}
+                  onChange={(e) => set(e.target.value)}
                 />
-              ) : q.type === "long_text" ? (
+              ) : q.type === "long_text" || q.type === "textarea" ? (
                 <Textarea
                   id={id}
                   rows={4}
-                  value={answers[key] ?? ""}
-                  onChange={(e) => setAnswers((a) => ({ ...a, [key]: e.target.value }))}
+                  value={answers[q.key] ?? ""}
+                  onChange={(e) => set(e.target.value)}
                 />
               ) : (
                 <Input
                   id={id}
-                  value={answers[key] ?? ""}
-                  onChange={(e) => setAnswers((a) => ({ ...a, [key]: e.target.value }))}
+                  type={q.type === "url" ? "url" : "text"}
+                  value={answers[q.key] ?? ""}
+                  onChange={(e) => set(e.target.value)}
                 />
               )}
             </Field>

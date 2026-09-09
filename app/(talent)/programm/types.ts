@@ -38,25 +38,27 @@ export type MyApplication = {
   updated_at: string;
 };
 
-export type SessionQuestion = {
-  id: string;
-  session_id: string;
-  question_id: string | null;
-  label_de: string | null;
-  label_en: string | null;
-  type: string | null;
-  options: { value: string; label_de?: string; label_en?: string }[] | null;
-  required: boolean;
-  sort_order: number | null;
-};
+export type QuestionOption = { value: string; label_de?: string; label_en?: string };
 
 /**
- * Schlüssel, unter dem `apply_to_session` eine Antwort erwartet:
- * `question_id`, wenn die Frage aus dem Katalog stammt, sonst die eigene ID.
+ * Eine Frage, wie die Oberfläche sie braucht — Text, Typ und Optionen schon
+ * aufgelöst.
+ *
+ * Bei Katalogfragen stehen Label, Hilfetext, Typ und Optionen in
+ * `question_catalog`; `session_question` trägt dann nur `question_id`,
+ * `required` und die Reihenfolge. Eigene Partner-Fragen bringen alles selbst
+ * mit. Diese Unterscheidung gehört auf den Server, nicht ins Formular.
  */
-export function answerKey(q: SessionQuestion): string {
-  return q.question_id ?? q.id;
-}
+export type SessionQuestion = {
+  /** Schlüssel für `apply_to_session`: question_id (Katalog) sonst eigene ID. */
+  key: string;
+  session_id: string;
+  label: string;
+  help: string | null;
+  type: string;
+  options: QuestionOption[] | null;
+  required: boolean;
+};
 
 export type ProgrammeLabels = {
   format: Record<string, string>;
