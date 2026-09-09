@@ -91,3 +91,5 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - [ ] **AVV/DPA mit Standardvertragsklauseln abschließen und ablegen:** Supabase, Vercel, Resend, vivenu, Swapcard (oder Nachfolger), HubSpot, ActiveCampaign, SevDesk, Anthropic (Chatbot), Google Workspace — je mit Sub-Prozessor-Liste. US-Anbieter (Supabase, Vercel, Resend, Anthropic) zusätzlich: Transfer-Impact-Assessment kurz dokumentieren; Datenminimierung als Hauptmaßnahme.
 - [ ] **Supabase-Logs/Analytics-Standort** und Backup-Standort für das neue Projekt beim Security-Loop verifizieren (Support-Ticket, falls nicht dokumentiert).
 - [ ] **Verschlüsselung sensibler Spalten** (Bankdaten Reisekosten, ggf. Geburtsdatum) mit pgsodium/Vault vor Welle 2 einplanen; Datei-Links nur signiert und kurzlebig (bereits Regel).
+- [ ] **Supabase-Umzug Frankfurt** nach Runbook `docs/runbooks/supabase-umzug.md` (09.09.): Schritte C, D, G bei Konrad; nach Abschluss Historie im Runbook eintragen.
+- [ ] **Domain-Umzug** nach Runbook `docs/runbooks/domain-umzug.md`: Teil A Anfang Oktober, Teil B am Go-live-Tag.

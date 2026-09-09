@@ -26,3 +26,8 @@
 - Ein Ende-zu-Ende-Durchlauf im Sandbox-Modus: Ticketkauf (vivenu Sandbox) → Redirect → Personalisierung → Login → Programm → Bewerbung → Freigabe → Bestätigung → Ticket-Mail. Protokoll in `docs/tests/welle-1-e2e.md`.
 - `npm run build`/`lint` grün, Advisor ohne ERROR, Tests grün, Doku (`datenmodell-v2.md`, Mail-Plan) aktualisiert, Drive gespiegelt.
 - Feedback-Runde mit Konrad zu Wizard, Programm-Ansicht und Board (80 %-Prinzip); Ergebnisse ins Feedback-Register.
+
+## Status 09.09.2026 (morgens)
+- Teil A: ✅ A4 Programm-Backend (+ Realtime aus der DB, Fragen-RPCs, Programmzeiten). ⏳ A5 Bewerbungs-Mails + Cron als Nächstes. ⏳ A1/A2 vivenu warten auf Sandbox-Key. A3 folgt mit A1.
+- Teil B: PR #2 (B5 Board, B2 Programm-Ansicht, B1 Onboarding) im Review; Merge-Bedingungen im PR-Kommentar. B3, B6 folgen in eigenem PR, B4 nach A1/A2.
+- Infrastruktur: Supabase-Umzug nach Frankfurt läuft (Runbook `docs/runbooks/supabase-umzug.md`).

@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-08 18:31 UTC · 37 Tabellen · 6 Views · 48 Funktionen
+> Stand: 2026-09-09 07:27 UTC · 37 Tabellen · 6 Views · 50 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -748,6 +748,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 |---|---|
 | `active_roles` | args: ? |
 | `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
+| `approve_session_questions` | p_session_id: uuid |
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
 | `can_edit_session` | p_session_id: uuid |
@@ -788,6 +789,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_context` | args: ? |
 | `session_speakers_public` | p_session_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
+| `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
 | `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
 | `slot_has_published_session` | p_slot_id: uuid |
