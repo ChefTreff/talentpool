@@ -152,13 +152,34 @@ export function Board({
     const channel = supabase
       .channel(channelName, { config: { private: true } })
       .on("broadcast", { event: "changed" }, () => router.refresh())
-      .subscribe();
+      .subscribe((status, error) => {
+        // Nicht still scheitern: ohne Kanal merkt der Nachbar-Tab nichts, und
+        // ein stummes Board sieht aus wie ein verlorener Slot.
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn(
+            `[programm] Realtime-Kanal ${channelName} nicht verbunden (${status})` +
+              (error ? `: ${error.message}` : "") +
+              " — Board aktualisiert beim Zurückkehren in den Tab.",
+          );
+        }
+      });
     channelRef.current = channel;
     return () => {
       channelRef.current = null;
       supabase.removeChannel(channel);
     };
   }, [channelName, router]);
+
+  // Netz für den Fall, dass der Kanal nicht steht: wer zum Tab zurückkehrt,
+  // bekommt den aktuellen Stand. Billig, weil `router.refresh()` nur die
+  // Server-Komponenten neu holt.
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === "visible") router.refresh();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [router]);
 
   const notifyPeers = useCallback(() => {
     void channelRef.current?.send({
