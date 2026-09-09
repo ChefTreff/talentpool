@@ -10,6 +10,7 @@ begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary where p.auth_user_id is not null limit 1;
   perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated', 'email', v_email)::text, true);
+  delete from role_assignment where person_id = v_pid; delete from staff_user where auth_user_id = v_uid; -- Testperson ohne Vorrechte (Admin-Bootstrap kommt per Rollback zurueck)
   select id into v_ev from event where slug = 'summit-27';
   insert into role_assignment (person_id, role, scope_type, edition_id) values (v_pid, 'programme_team', 'edition', (select edition_id from event where id = v_ev)) on conflict do nothing;
 

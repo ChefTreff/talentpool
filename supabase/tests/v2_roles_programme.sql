@@ -9,6 +9,7 @@ declare
 begin
   select id, auth_user_id into v_pid, v_uid from person where auth_user_id is not null limit 1;
   perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated')::text, true);
+  delete from role_assignment where person_id = v_pid; delete from staff_user where auth_user_id = v_uid; -- Testperson ohne Vorrechte (Admin-Bootstrap kommt per Rollback zurueck)
   insert into event (name, format_tag, is_edition, slug) values ('TEST Edition', 'edition', true, 'test-ed') returning id into v_ed;
   insert into event (name, format_tag, edition_id, slug, start_date, end_date) values ('TEST Summit', 'summit', v_ed, 'test-summit', '2027-04-16', '2027-04-17') returning id into v_ev;
   insert into event_day (event_id, day_date, label_de) values (v_ev, '2027-04-16', 'Freitag') returning id into v_day;

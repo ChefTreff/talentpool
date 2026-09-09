@@ -1,6 +1,6 @@
 # SQL-Smoke-Tests (Schema v2)
 
-Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Editor laufen lassen (Owner-Kontext). Jede Datei ist eine Transaktion mit `rollback` am Ende und hinterlässt keine Daten. Ergebniszeilen mit `ALLOWED (BUG)` bedeuten: eine Regel greift nicht. Voraussetzung: mindestens eine Person mit `auth_user_id` (ein eingeloggter Account).
+Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Editor laufen lassen (Owner-Kontext). Jede Datei ist eine Transaktion mit `rollback` am Ende und hinterlässt keine Daten. Ergebniszeilen mit `ALLOWED (BUG)` bedeuten: eine Regel greift nicht. Voraussetzung: mindestens eine Person mit `auth_user_id` (ein eingeloggter Account). Die Tests entfernen deren Rollen und Staff-Eintrag **innerhalb der Transaktion**, damit Negativtests (fremde Bühne, Entscheidung ohne Rolle) auch mit dem Admin-Konto greifen; der Rollback stellt alles wieder her.
 
 | Datei | Migrationen | Prüft |
 |---|---|---|

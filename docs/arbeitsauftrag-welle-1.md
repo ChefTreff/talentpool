@@ -30,4 +30,23 @@
 ## Status 09.09.2026 (morgens)
 - Teil A: ✅ A4 Programm-Backend (+ Realtime aus der DB, Fragen-RPCs, Programmzeiten). ⏳ A5 Bewerbungs-Mails + Cron als Nächstes. ⏳ A1/A2 vivenu warten auf Sandbox-Key. A3 folgt mit A1.
 - Teil B: PR #2 (B5 Board, B2 Programm-Ansicht, B1 Onboarding) im Review; Merge-Bedingungen im PR-Kommentar. B3, B6 folgen in eigenem PR, B4 nach A1/A2.
-- Infrastruktur: Supabase-Umzug nach Frankfurt läuft (Runbook `docs/runbooks/supabase-umzug.md`).
+- Infrastruktur: Supabase-Umzug nach Frankfurt **abgeschlossen** (Runbook `docs/runbooks/supabase-umzug.md`, Historie 09.09.): Login, Bootstrap-Admin, vier SQL-Tests grün, Demo-Programm vorhanden. Offen: Secret Key lokal eintragen (Konrad), Integration-Sync Preview/Dev, altes Projekt pausieren.
+
+## Anweisung an die Build-Session (09.09.2026, nach dem Umzug)
+Stand: Frankfurt-Projekt `jqmqvgaiyjudkvtncijw` vollständig migriert, Login läuft, Konrad ist Admin + Staff, alle vier SQL-Smoke-Tests grün. Deine Diagnose zu den Schlüsselnamen war richtig; `main` hatte dieselbe Umstellung parallel (`295f921`, `4bcff40`). Deshalb zuerst zusammenführen.
+
+1. **`main` in `welle-1/talent-programm` mergen** (`git fetch origin && git merge origin/main`). Konflikte erwartet in `lib/supabase/{env,admin,client,server}.ts`, `lib/auth.ts`, `proxy.ts`, `scripts/*.mjs`.
+   - `lib/supabase/env.ts` und seine Aufrufer: Variante von `main` nehmen (Funktionsnamen `supabaseUrl`, `supabaseAnonKey`, `hasSupabaseEnv`) und deine Aufrufer darauf umstellen. Inhaltlich identisch: neues Namensschema vor altem.
+   - `scripts/*.mjs`: deine Variante mit `scripts/supabase-env.mjs` behalten (klare Abbruchmeldung), Fallbacks `SUPABASE_URL`/`SUPABASE_ANON_KEY` beibehalten.
+   - `lib/supabase/admin.ts`: zusätzlich Formatprüfung des geheimen Schlüssels (muss mit `sb_secret_` oder `eyJ` beginnen), sonst Fehler mit dem Hinweis „Platzhalter aus `vercel env pull`, siehe docs/zugangs-liste.md".
+   - Danach `npm run build && npm run lint`.
+2. **Secret Key:** kein Fehler in Vercel. `SUPABASE_SECRET_KEY` ist dort als sensibel angelegt, Production hat den echten Wert zur Laufzeit; `vercel env pull` liefert für sensible Variablen grundsätzlich nur einen Platzhalter. Konrad trägt den Wert lokal im Haupt-Checkout ein und verteilt ihn mit `sh scripts/env-pull.sh --worktrees`. Bitte weiterhin nichts an Zugangsdaten anfassen; wenn der Wert da ist, den Worktree-Dev-Server neu starten.
+3. **Merge-Bedingungen PR #2** (unverändert aus dem Review-Kommentar):
+   a. Realtime: Kanal `programme-board:${eventId}`, `supabase.channel(name, { config: { private: true } })`; `notifyPeers()` als Fallback lassen.
+   b. `setSessionQuestions` auf RPC `set_session_questions(p_session_id, p_questions, p_replace_custom)` umstellen, service_role-Pfad entfernen; Eingabeform `[{question_id, required, sort_order}]`.
+   c. Tests für `lib/tz.ts` und `geometry.ts` als Dateien (`node --test`, `tests/tz.test.ts`, `tests/geometry.test.ts`) plus `npm test`.
+   d. `saveStep("consent")`: gegen `consent_current` vergleichen, nur Änderungen einfügen.
+4. **Walkthrough gegen die Frankfurt-DB** (Demo-Programm Summit 27 Freitag: 13 Slots, 8 Sessions): Board unter `/admin/programm` inkl. Drag & Drop mit Warnungen, Programm-Ansicht, Onboarding; kurz `next=` und Realtime im Browser prüfen.
+5. Dann PR-Kommentar (was getestet), Build/Lint grün → zweiter Review-Durchgang und Merge durch die Architektur-Session. Danach **B3** (Meine Teilnahme) und **B6** (Bewerbungs-Queue, Rollenverwaltung) in einem eigenen PR; B4 wartet auf A1/A2.
+
+Regeln unverändert: keine Änderungen an `supabase/migrations/`, `docs/masterplan.md`, `docs/entscheidungen.md`; offene Fragen und Abweichungswünsche in die PR-Beschreibung.

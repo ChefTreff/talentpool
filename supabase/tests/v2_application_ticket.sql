@@ -12,6 +12,7 @@ begin
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary
    where p.auth_user_id is not null limit 1;
   perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated', 'email', v_email)::text, true);
+  delete from role_assignment where person_id = v_pid; delete from staff_user where auth_user_id = v_uid; -- Testperson ohne Vorrechte (Admin-Bootstrap kommt per Rollback zurueck)
 
   insert into event (name, format_tag, is_edition, slug) values ('TEST Ed','edition',true,'t-ed') returning id into v_ed;
   insert into event (name, format_tag, edition_id, slug) values ('TEST Summit','summit',v_ed,'t-summit') returning id into v_ev;

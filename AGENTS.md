@@ -33,7 +33,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 
 ## Build-Session im Worktree (Checkliste beim Start)
 1. Du arbeitest in einem Git-Worktree auf einem Feature-Branch (`welle-N/<thema>`). `main` gehört der Architektur-Session; nie direkt auf `main` committen.
-2. Einmalig im Worktree: `source "$HOME/.zshenv" && npm install`. Dann `.env.local` aus dem Haupt-Checkout kopieren (`cp ../../.env.local .env.local` oder Pfad anpassen) oder `vercel env pull .env.local`. Die Datei ist gitignored und darf nie committet werden.
+2. Einmalig im Worktree: `source "$HOME/.zshenv" && npm install`. Dann `.env.local` aus dem Haupt-Checkout übernehmen (dort pflegt Konrad sie mit `sh scripts/env-pull.sh --worktrees`, das kopiert sie in alle Worktrees). Achtung: `SUPABASE_SECRET_KEY` ist in Vercel sensibel, `vercel env pull` liefert dafür nur einen Platzhalter; den echten Wert trägt nur Konrad ein. Die Datei ist gitignored und darf nie committet werden.
 3. Dev-Server nur über `.claude/launch.json`, Konfiguration **`talentpool-dev-worktree`** (Port 3001), damit der Haupt-Checkout auf 3000 weiterlaufen kann. Magic-Link-Login lokal braucht `http://localhost:3001/auth/callback` in den Supabase-Redirect-URLs (Konrad trägt das ein).
 4. Kontext kommt aus dem Repo, nicht aus dem Session-Gedächtnis: `AGENTS.md`, `docs/masterplan.md`, `docs/entscheidungen.md`, `docs/arbeitsauftrag-welle-*.md`.
 5. Keine Änderungen an `supabase/migrations/`, `docs/masterplan.md`, `docs/entscheidungen.md`. Offene Fragen und Abweichungswünsche in die PR-Beschreibung.
