@@ -93,3 +93,5 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - [ ] **Verschlüsselung sensibler Spalten** (Bankdaten Reisekosten, ggf. Geburtsdatum) mit pgsodium/Vault vor Welle 2 einplanen; Datei-Links nur signiert und kurzlebig (bereits Regel).
 - [ ] **Supabase-Umzug Frankfurt** nach Runbook `docs/runbooks/supabase-umzug.md` (09.09.): Schritte C, D, G bei Konrad; nach Abschluss Historie im Runbook eintragen.
 - [ ] **Domain-Umzug** nach Runbook `docs/runbooks/domain-umzug.md`: Teil A Anfang Oktober, Teil B am Go-live-Tag.
+- [ ] **PITR-Add-on** (100 €/Monat) erst im Härtungsfenster vor Go-live aktivieren (Entscheidung Konrad 09.09.); bis dahin tägliche Backups des Pro-Plans. Compute: Small (09.09.).
+- [ ] **Supabase-Integration → Vercel:** Sync auch für Preview und Development einschalten (Supabase → Integrations → Vercel → Manage), damit `SUPABASE_SECRET_KEY` und die Publishable Keys in Preview-Deployments ankommen. Die alten manuellen Dublin-Variablen sind entfernt (09.09.).

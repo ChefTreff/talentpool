@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const svc = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const url = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL);
+const anon = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+const svc = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY);
 
 const admin = createClient(url, svc, { auth: { persistSession: false } });
 const { data: link, error: le } = await admin.auth.admin.generateLink({ type: "magiclink", email: "konrad@chef-treff.de" });
