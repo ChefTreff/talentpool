@@ -47,4 +47,4 @@
 ## Historie
 | Datum | Wer | Ergebnis |
 |---|---|---|
-| 09.09.2026 | Konrad + Architektur-Session | Umzug Dublin (`fsjexlrapilzftwibocu`) → Frankfurt: in Arbeit |
+| 09.09.2026 | Konrad + Architektur-Session | Umzug Dublin (`fsjexlrapilzftwibocu`, eu-west-1) → Frankfurt (`jqmqvgaiyjudkvtncijw`, eu-central-1, Projekt „FLS27 System & CRM"). Schema aus 17 Repo-Migrationen in 5 Paketen per `execute_sql` eingespielt, Historie mit Repo-Versionen gesetzt; Objektzahlen identisch zum Quellprojekt. Offen: Auth-URLs, Vercel-Integration, Login, Rollen, Demo-Seed, altes Projekt pausieren. |

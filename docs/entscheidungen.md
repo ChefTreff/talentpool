@@ -170,3 +170,9 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Fragen je Session** nur noch per RPC (`set_session_questions`, `approve_session_questions`); service_role-Pfad im PR wird ersetzt.
 - **Merge-Bedingungen PR #2:** privater Kanal je Event, Fragen-RPC, Tests für Zeitzone/Geometrie im Repo, Consent-Schritt ohne Duplikate. Rest (Speaker-Suche einschränken, Board unter `/speaker-leads`) → Welle 2.
 - **Demo-Programm** für Summit 27 Freitag auf der Dev-Datenbank (Tag `demo`), Programmzeiten Summit 27 als Vorschlag gesetzt.
+
+## 2026-09-09 — Supabase-Umzug nach Frankfurt (Reproduktionstest bestanden)
+- Neues Projekt **`jqmqvgaiyjudkvtncijw`** („FLS27 System & CRM", eu-central-1) ersetzt `fsjexlrapilzftwibocu` (eu-west-1). Grund: konservative Wahl beim Datenstandort (Einordnung 08.09.), jetzt ohne Nutzerdaten billig.
+- **Vorgehen:** Alle 17 Migrationen aus `supabase/migrations/` in fünf Paketen per Supabase-MCP `execute_sql` in Dateireihenfolge eingespielt (Kommentare entfernt, Inhalt identisch), danach `supabase_migrations.schema_migrations` mit den Repo-Versionen befüllt. Damit bleiben Dateinamen und Historie identisch; `supabase db push` erkennt den Stand.
+- **Reproduktionstest:** Tabellen, Views, Funktionen, Policies, Trigger und Vokabular stimmen zwischen altem und neuem Projekt überein (Zahlen im Runbook `supabase-umzug.md`, Historie). Das bestätigt: Das System lässt sich vollständig aus dem Repo neu aufsetzen.
+- Alle Verweise auf die alte Projekt-Ref in AGENTS.md, README, Runbooks und Zugangs-Liste ersetzt. Altes Projekt bleibt eine Woche pausiert als Rückfallebene, dann Löschung (Checkliste).
