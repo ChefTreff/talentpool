@@ -17,6 +17,29 @@ import { safeNextPath } from "@/lib/areas";
  */
 type Reason = "expired" | "used" | "invalid" | "missing" | "auth";
 
+/** Die Typen, die Supabase für `token_hash` kennt. */
+const OTP_TYPES = new Set<EmailOtpType>([
+  "signup",
+  "invite",
+  "magiclink",
+  "recovery",
+  "email_change",
+  "email",
+]);
+
+/**
+ * Aus einer Query kommt nicht immer Sauberes: beim Kopieren aus dem Terminal
+ * hängt schnell die Prompt-Zeile hinten dran, Mail-Clients brechen lange Links
+ * um. Deshalb nur das erste Wort nehmen und gegen die bekannten Werte prüfen —
+ * sonst antwortet Supabase mit „Invalid email verification type", und man sucht
+ * den Fehler beim Token.
+ */
+function firstToken(value: string | null): string | null {
+  if (!value) return null;
+  const token = value.trim().split(/[\s]+/)[0];
+  return token === "" ? null : token;
+}
+
 function classify(error: AuthError): Reason {
   const text = `${error.code ?? ""} ${error.message}`.toLowerCase();
   if (text.includes("expired")) return "expired";
@@ -27,9 +50,11 @@ function classify(error: AuthError): Reason {
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const tokenHash = searchParams.get("token_hash");
-  const type = searchParams.get("type") as EmailOtpType | null;
+  const code = firstToken(searchParams.get("code"));
+  const tokenHash = firstToken(searchParams.get("token_hash"));
+  const rawType = firstToken(searchParams.get("type"));
+  const type =
+    rawType && OTP_TYPES.has(rawType as EmailOtpType) ? (rawType as EmailOtpType) : null;
   // `next` kommt aus der URL und darf nur auf einen Pfad dieses Hosts zeigen.
   const next = safeNextPath(searchParams.get("next"));
 
@@ -43,6 +68,12 @@ export async function GET(request: NextRequest) {
   } else if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     failure = error;
+  } else if (tokenHash && !type) {
+    // Token da, aber der Typ ist unbrauchbar — fast immer ein verunglückter Link.
+    console.warn(
+      `[auth/callback] Unbekannter OTP-Typ: ${JSON.stringify(searchParams.get("type"))}`,
+    );
+    return NextResponse.redirect(`${origin}/login?error=invalid`);
   } else {
     // Weder code noch token_hash — der Link wurde unterwegs beschnitten.
     console.warn("[auth/callback] Aufruf ohne code und ohne token_hash");
