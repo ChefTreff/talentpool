@@ -49,7 +49,7 @@ done < "$tmp"
 cp "$out" .env.local
 echo ".env.local aktualisiert ($ENVIRONMENT): $(grep -cE '^[A-Z_]+=' .env.local) Variablen."
 [ -n "$kept" ] && echo "Lokal eingetragene Werte bewahrt:$kept"
-[ -n "$dropped" ] && echo "Ohne Wert (sensibel in Vercel, Platzhalter verworfen):$dropped"
+[ -n "$dropped" ] && echo "Weggelassen (leer oder in Vercel sensibel, Platzhalter verworfen):$dropped"
 secret="$(value_of SUPABASE_SECRET_KEY .env.local)"
 case "$secret" in
   sb_secret_*|eyJ*) echo "SUPABASE_SECRET_KEY: vorhanden, Format ok." ;;
