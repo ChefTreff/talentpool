@@ -132,7 +132,13 @@
     "sending": "Sending link …",
     "sentTitle": "Link on its way",
     "sentBody": "We sent a sign-in link to",
-    "authError": "That link has expired or was already used. Please request a new one."
+    "errors": {
+      "expired": "That link has expired. Please request a new one.",
+      "used": "That link was already used. Please request a new one.",
+      "invalid": "That link is no longer valid. Please request a new one.",
+      "missing": "The link was incomplete — probably truncated when copying.",
+      "auth": "Sign-in did not work. Please try again."
+    }
   },
   "onboarding": {
     "eyebrow": "Welcome",

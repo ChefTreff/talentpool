@@ -23,7 +23,7 @@ export default async function LoginPage({
       >
         <LoginForm
           next={safeNext}
-          authError={error === "auth" ? t.login.authError : undefined}
+          authError={error ? (t.login.errors[error as keyof typeof t.login.errors] ?? t.login.errors.auth) : undefined}
           labels={{
             title: t.login.title,
             lead: t.login.lead,

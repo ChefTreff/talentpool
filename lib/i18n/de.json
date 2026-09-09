@@ -132,7 +132,13 @@
     "sending": "Sende Link …",
     "sentTitle": "Link unterwegs",
     "sentBody": "Wir haben dir einen Login-Link geschickt an",
-    "authError": "Der Link ist abgelaufen oder wurde schon benutzt. Fordere einen neuen an."
+    "errors": {
+      "expired": "Der Link ist abgelaufen. Fordere einen neuen an.",
+      "used": "Der Link wurde schon benutzt. Fordere einen neuen an.",
+      "invalid": "Der Link passt nicht (mehr). Fordere einen neuen an.",
+      "missing": "Der Link war unvollständig — vermutlich beim Kopieren abgeschnitten.",
+      "auth": "Die Anmeldung hat nicht geklappt. Bitte noch einmal versuchen."
+    }
   },
   "onboarding": {
     "eyebrow": "Willkommen",
