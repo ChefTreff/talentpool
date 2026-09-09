@@ -134,17 +134,23 @@ export function Board({
     return m;
   }, [slots]);
 
-  // Die Tabellen `slot`/`session` stehen nicht in der Realtime-Publikation, also
-  // gibt es keine Postgres-Änderungen zum Abonnieren (das wäre eine Migration).
-  // Stattdessen ein Broadcast-Kanal je Tag: wer etwas ändert, sagt Bescheid,
-  // die anderen Tabs laden neu.
-  const channelName = `programme-board:${currentDayId ?? "none"}`;
+  // Realtime je Event, nicht je Tag: eine Verschiebung kann den Tag wechseln,
+  // und der Nachbar-Tab soll das auch dann mitbekommen.
+  //
+  // `private: true` — der Kanal ist damit an die Session gebunden und nur für
+  // Authentifizierte offen; ein Broadcast trägt ohnehin keine Daten, aber wer
+  // am Board arbeitet, soll auch nur dort mithören.
+  //
+  // Postgres-Changes wären das Naheliegende, doch `slot`/`session` stehen nicht
+  // in der Realtime-Publikation (das wäre eine Migration). Deshalb meldet jede
+  // erfolgreiche Änderung selbst — `notifyPeers()` bleibt der Weg.
+  const channelName = `programme-board:${currentEventId}`;
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     const channel = supabase
-      .channel(channelName)
+      .channel(channelName, { config: { private: true } })
       .on("broadcast", { event: "changed" }, () => router.refresh())
       .subscribe();
     channelRef.current = channel;

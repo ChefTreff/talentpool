@@ -56,6 +56,11 @@ const EMPTY: Draft = {
   confirm_by_hours: "72",
 };
 
+/** Reihenfolge lückenlos halten — `set_session_questions` übernimmt sie 1:1. */
+function renumber<T>(list: T[]): (T & { sort_order: number })[] {
+  return list.map((q, i) => ({ ...q, sort_order: i }));
+}
+
 /** `timestamptz` ↔ `datetime-local` (Browserzeit; für eine Frist genau genug). */
 function toLocalInput(iso: string | null): string {
   if (!iso) return "";
@@ -95,7 +100,9 @@ export function SessionDrawer({
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<{ id: string; name: string }[]>([]);
   const [catalog, setCatalog] = useState<CatalogQuestion[]>([]);
-  const [picked, setPicked] = useState<{ question_id: string; required: boolean }[]>([]);
+  const [picked, setPicked] = useState<
+    { question_id: string; required: boolean; sort_order: number }[]
+  >([]);
   // Der Drawer wird je Session über `key` neu montiert — deshalb reicht der
   // Initialwert, und der Effekt unten lädt nur nach.
   const [id, setId] = useState<string | null>(sessionId);
@@ -486,9 +493,11 @@ export function SessionDrawer({
                           className="mt-1 size-4"
                           checked={Boolean(active)}
                           onChange={(e) => {
-                            const next = e.target.checked
-                              ? [...picked, { question_id: q.id, required: false }]
-                              : picked.filter((p) => p.question_id !== q.id);
+                            const next = renumber(
+                              e.target.checked
+                                ? [...picked, { question_id: q.id, required: false, sort_order: 0 }]
+                                : picked.filter((p) => p.question_id !== q.id),
+                            );
                             setPicked(next);
                             startTransition(async () =>
                               void report(await setSessionQuestions(id, next), t.questionsSaved),

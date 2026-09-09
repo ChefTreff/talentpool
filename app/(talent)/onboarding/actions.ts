@@ -76,15 +76,39 @@ export async function saveStep(
   }
 
   if (step === "consent") {
-    // Jede Einwilligung ist eine eigene Zeile — auch der Widerruf. Die RLS-Policy
-    // erlaubt nur `source = 'portal'` für die eigene Person.
-    const rows = Object.entries(data.consents).map(([consent_type, granted]) => ({
-      person_id: pid,
-      consent_type,
-      version: CONSENT_VERSION,
-      granted,
-      source: "portal",
-    }));
+    // Jede Einwilligung ist eine eigene Zeile — auch der Widerruf. Deshalb nur
+    // schreiben, was sich gegenüber `consent_current` wirklich geändert hat:
+    // sonst wächst der Nachweis bei jedem Zurück-und-wieder-vor um Duplikate,
+    // und man sieht später nicht mehr, wann jemand tatsächlich zugestimmt hat.
+    const { data: current, error: readError } = await supabase
+      .from("consent_current")
+      .select("consent_type, granted, version");
+    if (readError) {
+      return { ok: false, message: "save_failed", detail: readError.message };
+    }
+
+    const known = new Map(
+      ((current ?? []) as { consent_type: string; granted: boolean; version: string }[]).map(
+        (c) => [c.consent_type, c],
+      ),
+    );
+
+    const rows = Object.entries(data.consents)
+      .filter(([consent_type, granted]) => {
+        const before = known.get(consent_type);
+        // Neu, umentschieden oder auf eine neue Textfassung bezogen -> festhalten.
+        return (
+          !before || before.granted !== granted || before.version !== CONSENT_VERSION
+        );
+      })
+      .map(([consent_type, granted]) => ({
+        person_id: pid,
+        consent_type,
+        version: CONSENT_VERSION,
+        granted,
+        source: "portal",
+      }));
+
     if (rows.length > 0) {
       const { error } = await supabase.from("consent_record").insert(rows);
       if (error) return { ok: false, message: "save_failed", detail: error.message };

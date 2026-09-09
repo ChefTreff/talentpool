@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { requireArea } from "@/lib/auth";
-import { logAudit } from "@/lib/audit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseMoveResult, toRpcFailure, type MoveWarning } from "@/lib/rpc-error";
 import type { SessionSpeaker } from "./types";
@@ -285,66 +284,35 @@ export async function loadQuestionCatalog(
 
 export async function loadSessionQuestions(
   sessionId: string,
-): Promise<{ question_id: string; required: boolean }[]> {
+): Promise<{ question_id: string; required: boolean; sort_order: number }[]> {
   const supabase = await client();
   const { data } = await supabase
     .from("session_question")
-    .select("question_id, required")
+    .select("question_id, required, sort_order")
     .eq("session_id", sessionId)
     .not("question_id", "is", null)
     .order("sort_order");
-  return (data ?? []) as { question_id: string; required: boolean }[];
+  return ((data ?? []) as { question_id: string; required: boolean; sort_order: number | null }[])
+    .map((q, i) => ({ ...q, sort_order: q.sort_order ?? i }));
 }
 
 /**
- * Fragen einer Session setzen (ersetzt die Katalog-Fragen komplett).
- *
- * `session_question` hat bewusst keine INSERT-Policy für `authenticated` —
- * geschrieben wird serverseitig mit service_role, hier nach `requireArea("admin")`
- * **und** einer zusätzlichen `can_edit_session()`-Prüfung mit der Session des
- * Aufrufers, damit die Scope-Regel des Backends nicht umgangen wird.
- * Eigene Partner-Fragen (ohne `question_id`) bleiben unangetastet.
+ * Fragen einer Session setzen. Über die RPC `set_session_questions` — die prüft
+ * `can_edit_session()` selbst, schreibt ins Audit-Log und lässt eigene
+ * Partner-Fragen (ohne `question_id`) stehen, solange `p_replace_custom` false
+ * bleibt. Kein service_role nötig, damit die Scope-Regel des Backends gilt.
  */
 export async function setSessionQuestions(
   sessionId: string,
-  questions: { question_id: string; required: boolean }[],
+  questions: { question_id: string; required: boolean; sort_order: number }[],
 ): Promise<ActionResult> {
   const supabase = await client();
-
-  const { data: allowed, error: checkError } = await supabase.rpc("can_edit_session", {
+  const { error } = await supabase.rpc("set_session_questions", {
     p_session_id: sessionId,
+    p_questions: questions,
+    p_replace_custom: false,
   });
-  if (checkError) return fail(checkError);
-  if (!allowed) return { ok: false, key: "not_allowed" };
-
-  const { createSupabaseAdminClient } = await import("@/lib/supabase/admin");
-  const admin = createSupabaseAdminClient();
-
-  const { error: delError } = await admin
-    .from("session_question")
-    .delete()
-    .eq("session_id", sessionId)
-    .not("question_id", "is", null);
-  if (delError) return fail(delError);
-
-  if (questions.length > 0) {
-    const { error } = await admin.from("session_question").insert(
-      questions.map((q, i) => ({
-        session_id: sessionId,
-        question_id: q.question_id,
-        required: q.required,
-        sort_order: i,
-      })),
-    );
-    if (error) return fail(error);
-  }
-
-  await logAudit({
-    action: "session.questions",
-    objectType: "session",
-    objectId: sessionId,
-    after: { questions },
-  });
+  if (error) return fail(error);
 
   revalidatePath(BOARD_PATH);
   return { ok: true, data: undefined };
