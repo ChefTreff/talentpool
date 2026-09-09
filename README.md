@@ -26,7 +26,7 @@ lauffähige Umgebung — ohne Rückfragen und ohne Wissen, das nur in Köpfen st
 4. **Env-Datei**: `vercel env pull .env.local` (oder `.env.local.example` kopieren und
    die Werte aus der Vercel-Env eintragen). Die Datei ist gitignored und wird **nie**
    committet. Welche Schlüssel es gibt, steht in [`docs/zugangs-liste.md`](docs/zugangs-liste.md).
-5. **Datenbank**: Supabase-Projekt `fsjexlrapilzftwibocu` verwenden oder ein eigenes
+5. **Datenbank**: Supabase-Projekt `jqmqvgaiyjudkvtncijw` verwenden oder ein eigenes
    anlegen und alle Dateien aus `supabase/migrations/` **in Dateinamen-Reihenfolge**
    anwenden (`supabase db push` bzw. Supabase-MCP `apply_migration`).
 6. **Verbindung prüfen**: `node --env-file=.env.local scripts/check-schema.mjs`

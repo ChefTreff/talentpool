@@ -15,6 +15,8 @@ Regeln für alle Runbooks:
 | [restore.md](restore.md) | Datenbank aus Backup/PITR wiederherstellen |
 | [key-rotation.md](key-rotation.md) | Schlüssel und Tokens tauschen |
 | [incident.md](incident.md) | Störung oder Datenschutzvorfall abarbeiten |
+| [supabase-umzug.md](supabase-umzug.md) | Supabase-Projekt neu aufsetzen oder Region wechseln (Reproduktionstest) |
+| [domain-umzug.md](domain-umzug.md) | Team-Portal → team., Plattform → portal. |
 
 > Status: Skelette aus Welle 0. Jede Welle, die ein Verfahren zum ersten Mal
 > anwendet, füllt die zugehörigen Lücken (`TODO`) auf.

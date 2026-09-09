@@ -6,7 +6,7 @@
 - `npm run build` und `npm run lint` lokal grün.
 - Review durch die Architektur-/Security-Session erfolgt (`/code-review`, `/security-review`).
 - Schemaänderungen liegen als Migration unter `supabase/migrations/` vor **und** sind
-  per Supabase-MCP `apply_migration` auf Projekt `fsjexlrapilzftwibocu` angewendet.
+  per Supabase-MCP `apply_migration` auf Projekt `jqmqvgaiyjudkvtncijw` angewendet.
 
 ## Schritte
 1. Vercel-Preview des PR öffnen und die geänderten Seiten durchklicken (Login, betroffener Bereich).

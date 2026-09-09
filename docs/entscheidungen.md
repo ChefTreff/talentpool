@@ -156,3 +156,32 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Kursivschnitte** als eigene Font-Familie ohne Preload (next/font kennt `preload` nur je Aufruf).
 - **Welle 0 damit fachlich abgeschlossen.** Offen: Konrads 80-%-Feedback zu UI-Kit und Bereichs-Umschalter (läuft in mehreren Runden), Doku-Spiegelung um Runbooks und generierte Schema-Doku ergänzt.
 - **Nächster Schritt Build-Session:** Welle 1 Teil B auf Branch `welle-1/talent-programm`, Start mit B5 (Programm-Board auf `programme_board`/`move_slot`), B2 (Programm-Ansicht) und B1 (Onboarding-Wizard); Backend dafür ist live. A1/A2 (vivenu) warten auf den Sandbox-Key.
+- **08.09. Nacht — Vercel↔Supabase-Integration aktiviert (Konrad):** Supabase-Variablen kommen in Vercel jetzt aus der Integration. Die App liest URL/Key über `lib/supabase/env.ts` und akzeptiert klassische (`ANON_KEY`, `SERVICE_ROLE_KEY`) wie neue Namen (`PUBLISHABLE_KEY`, `SECRET_KEY`). `NEXT_PUBLIC_SITE_URL` in Production gesetzt.
+
+## 2026-09-08 (Nacht) — Datenstandort: Einordnung und Maßnahmen (Nachfrage Konrad)
+- **Rechtlich:** Dublin (eu-west-1) und Frankfurt (eu-central-1) sind beide EU; kein Drittlandtransfer, gleiche AWS-Sicherheitskontrollen. Zuständige Aufsicht bleibt die Hamburger (Sitz des Verantwortlichen), unabhängig vom Serverstandort.
+- **Restrisiko liegt beim Anbieter, nicht bei der Region:** Supabase, Vercel, Resend und Anthropic sind US-Unternehmen (CLOUD Act, Support-Zugriffe). Gegenmaßnahmen: AVV mit SCC, Datenminimierung, Verschlüsselung sensibler Felder, kurze Aufbewahrung, Zugriff nur über Rollen. Der Regionswechsel ändert daran nichts.
+- **Trotzdem Frankfurt:** konservative Wahl, vereinfacht Partner-Fragebögen („Server in Deutschland?") und kostet jetzt eine Stunde. Entscheidung: Umzug vor Welle 1 (Reproduktionstest inklusive).
+- **Wichtiger Fund:** Vercel führt Server-Code standardmäßig in der US-Region (iad1) aus. Ab jetzt `vercel.json` mit `regions: ["fra1"]`, damit Rendering, Server Actions und Route Handler in Frankfurt laufen. Statische Auslieferung über das CDN bleibt global (keine Personendaten).
+- **Offen (Checkliste):** Resend EU-Verarbeitung, AVV-Sammlung, Standort von Supabase-Logs/Backups.
+
+## 2026-09-08 (Nacht) — Review PR #2 „Welle 1 Teil B" (erster Durchgang)
+- **Board-Realtime:** Datenbank sendet (Trigger → `realtime.send`, privater Kanal `programme-board:<event_id>`); Programm-Leser dürfen empfangen und als Fallback senden (Policies auf `realtime.messages`, Migrationen `20260908194632`, `20260908194933`). Keine Postgres-Changes-Publikation für `slot` (interne Spalten). Befund: ohne verbundenen Realtime-Client fehlen die Partitionen von `realtime.messages`, `realtime.send` schlägt dann stumm fehl — daher der Client-Fallback.
+- **Fragen je Session** nur noch per RPC (`set_session_questions`, `approve_session_questions`); service_role-Pfad im PR wird ersetzt.
+- **Merge-Bedingungen PR #2:** privater Kanal je Event, Fragen-RPC, Tests für Zeitzone/Geometrie im Repo, Consent-Schritt ohne Duplikate. Rest (Speaker-Suche einschränken, Board unter `/speaker-leads`) → Welle 2.
+- **Demo-Programm** für Summit 27 Freitag auf der Dev-Datenbank (Tag `demo`), Programmzeiten Summit 27 als Vorschlag gesetzt.
+
+## 2026-09-09 — Supabase-Umzug nach Frankfurt (Reproduktionstest bestanden)
+- Neues Projekt **`jqmqvgaiyjudkvtncijw`** („FLS27 System & CRM", eu-central-1) ersetzt `fsjexlrapilzftwibocu` (eu-west-1). Grund: konservative Wahl beim Datenstandort (Einordnung 08.09.), jetzt ohne Nutzerdaten billig.
+- **Vorgehen:** Alle 17 Migrationen aus `supabase/migrations/` in fünf Paketen per Supabase-MCP `execute_sql` in Dateireihenfolge eingespielt (Kommentare entfernt, Inhalt identisch), danach `supabase_migrations.schema_migrations` mit den Repo-Versionen befüllt. Damit bleiben Dateinamen und Historie identisch; `supabase db push` erkennt den Stand.
+- **Reproduktionstest:** Tabellen, Views, Funktionen, Policies, Trigger und Vokabular stimmen zwischen altem und neuem Projekt überein (Zahlen im Runbook `supabase-umzug.md`, Historie). Das bestätigt: Das System lässt sich vollständig aus dem Repo neu aufsetzen.
+- Alle Verweise auf die alte Projekt-Ref in AGENTS.md, README, Runbooks und Zugangs-Liste ersetzt. Altes Projekt bleibt eine Woche pausiert als Rückfallebene, dann Löschung (Checkliste).
+- **09.09., Umzug Schritt D:** Die Vercel-Integration legt Variablen unter neuen Namen an (`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `SUPABASE_URL`) und überspringt vorhandene Namen. Die drei alten manuellen Dublin-Variablen wurden entfernt, `NEXT_PUBLIC_SUPABASE_URL` für alle Umgebungen gesetzt, Publishable Key für Preview/Development ergänzt; Skripte akzeptieren beide Namensschemata. **PITR** (100 €/Monat) bewusst erst vor Go-live; Compute Small.
+
+## 2026-09-09 (mittags) — Umzug abgeschlossen: Login, Bootstrap-Admin, Tests; Secret Key lokal
+- **Login auf Frankfurt läuft** (Build-Session hatte die Ursache parallel gefunden: Code las die alten Schlüsselnamen; Fix auf dem Branch `2d04785`, auf `main` identisch in `295f921`/`4bcff40` → beim Merge zusammenführen, siehe Arbeitsauftrag Welle 1).
+- **Bootstrap-Admin** für Konrad per SQL (Runbook Schritt E): `role_assignment` admin/global + `staff_user` + Audit-Eintrag `bootstrap_admin`. Weitere Rollen ab jetzt nur über die Rollenverwaltung (B6) oder dokumentiert per SQL.
+- **SQL-Smoke-Tests** entziehen der Testperson innerhalb der Transaktion Rollen und Staff-Eintrag. Grund: Mit dem Admin-Konto als erster Person liefen drei Negativtests „durch" (Admin darf fremde Bühnen und Entscheidungen), was wie ein Fehler aussah, aber Absicht ist. Alle vier Tests auf Frankfurt grün.
+- **`SUPABASE_SECRET_KEY` ist in Vercel sensibel** (Integration legt ihn als Typ „Secret" an). Laufzeit in Production bekommt den echten Wert; `vercel env pull` liefert nur einen Platzhalter (11 Zeichen). Folge lokal: alles über service_role meldet „Invalid API key". Entscheidung: **nicht** in eine normale Variable umwandeln (sensibel ist richtig), sondern lokal einmal von Hand eintragen; `scripts/env-pull.sh` bewahrt den Wert bei jedem Pull und kopiert optional in Worktrees. Empfehlung: eigener Secret Key „local-dev", getrennt widerrufbar.
+- **Preview/Development** haben von der Integration bisher keinen Secret Key und keine `SUPABASE_URL` (nur Production) → Resync in der Integration (Checkliste).
+- **Merge-Anweisung an die Build-Session** in `docs/arbeitsauftrag-welle-1.md` (Abschnitt „Anweisung 09.09.").

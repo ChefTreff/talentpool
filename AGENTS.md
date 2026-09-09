@@ -23,7 +23,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 ## Arbeitsweise
 - 80-%-Lösung je Bereich → Feedback von Konrad → schärfen. Nichts bauen, was nicht im Masterplan oder Entscheidungslog steht.
 - Build-Sessions arbeiten auf Feature-Branches (`welle-N/<thema>`), kleine PRs gegen `main`; Review durch die Architektur-/Security-Session (`/code-review`, `/security-review`) vor dem Merge. `main` deployt automatisch auf Vercel.
-- Datenbankänderungen nur als Migration unter `supabase/migrations/` (zusätzlich per Supabase-MCP `apply_migration` auf Projekt `fsjexlrapilzftwibocu` anwenden; Datei danach auf die vom Server vergebene Version umbenennen). Nie direkt im Dashboard „mal eben" ändern. **Jede Migration endet mit `select harden_definer_functions();`** (entzieht anon das EXECUTE auf SECURITY-DEFINER-Funktionen, pinnt search_path).
+- Datenbankänderungen nur als Migration unter `supabase/migrations/` (zusätzlich per Supabase-MCP `apply_migration` auf Projekt `jqmqvgaiyjudkvtncijw` anwenden; Datei danach auf die vom Server vergebene Version umbenennen). Nie direkt im Dashboard „mal eben" ändern. **Jede Migration endet mit `select harden_definer_functions();`** (entzieht anon das EXECUTE auf SECURITY-DEFINER-Funktionen, pinnt search_path).
 - Konrad loggt sich für Browser-Walkthroughs selbst ein; Alt-Systeme nur deaktivieren, nie löschen.
 
 ## Toolchain auf diesem Mac
@@ -33,7 +33,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 
 ## Build-Session im Worktree (Checkliste beim Start)
 1. Du arbeitest in einem Git-Worktree auf einem Feature-Branch (`welle-N/<thema>`). `main` gehört der Architektur-Session; nie direkt auf `main` committen.
-2. Einmalig im Worktree: `source "$HOME/.zshenv" && npm install`. Dann `.env.local` aus dem Haupt-Checkout kopieren (`cp ../../.env.local .env.local` oder Pfad anpassen) oder `vercel env pull .env.local`. Die Datei ist gitignored und darf nie committet werden.
+2. Einmalig im Worktree: `source "$HOME/.zshenv" && npm install`. Dann `.env.local` aus dem Haupt-Checkout übernehmen (dort pflegt Konrad sie mit `sh scripts/env-pull.sh --worktrees`, das kopiert sie in alle Worktrees). Achtung: `SUPABASE_SECRET_KEY` ist in Vercel sensibel, `vercel env pull` liefert dafür nur einen Platzhalter; den echten Wert trägt nur Konrad ein. Die Datei ist gitignored und darf nie committet werden.
 3. Dev-Server nur über `.claude/launch.json`, Konfiguration **`talentpool-dev-worktree`** (Port 3001), damit der Haupt-Checkout auf 3000 weiterlaufen kann. Magic-Link-Login lokal braucht `http://localhost:3001/auth/callback` in den Supabase-Redirect-URLs (Konrad trägt das ein).
 4. Kontext kommt aus dem Repo, nicht aus dem Session-Gedächtnis: `AGENTS.md`, `docs/masterplan.md`, `docs/entscheidungen.md`, `docs/arbeitsauftrag-welle-*.md`.
 5. Keine Änderungen an `supabase/migrations/`, `docs/masterplan.md`, `docs/entscheidungen.md`. Offene Fragen und Abweichungswünsche in die PR-Beschreibung.

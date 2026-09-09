@@ -1,11 +1,11 @@
 # Zugangs- und Token-Liste (ohne Werte) — Stand 08.09.2026
 
-> Konrad erzeugt alle Zugänge selbst und setzt die Werte **nur in Vercel** (Environment Variables, Production und Preview getrennt). Lokal: `vercel env pull .env.local`. Nichts davon gehört in Chat, Drive oder Repo. Rotation und Widerruf werden im Entscheidungslog notiert. Platzhalter stehen in `.env.local.example`.
+> Konrad erzeugt alle Zugänge selbst und setzt die Werte **nur in Vercel** (Environment Variables, Production und Preview getrennt). Lokal: `sh scripts/env-pull.sh` (Wrapper um `vercel env pull`). **Sensible Variablen** (`SUPABASE_SECRET_KEY`, `SUPABASE_JWT_SECRET`) liefert Vercel dabei nur als Platzhalter; den Secret Key trägt Konrad einmal lokal in `.env.local` ein, das Skript bewahrt ihn bei späteren Pulls. Nichts davon gehört in Chat, Drive oder Repo. Rotation und Widerruf werden im Entscheidungslog notiert. Platzhalter stehen in `.env.local.example`.
 
 | Variable | System | Wofür | Woher / minimale Rechte | Welle |
 |---|---|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase | Client-Zugriff (RLS) | Project Settings → API (vorhanden) | 0 |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase | Server-Aktionen nach Rollenprüfung, Migration | Project Settings → API (vorhanden); nie im Client | 0 |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (alt: `NEXT_PUBLIC_SUPABASE_ANON_KEY`) | Supabase | Client-Zugriff (RLS) | über die **Vercel↔Supabase-Integration** gesetzt (Frankfurt-Projekt seit 09.09.); die App liest beide Namensschemata über `lib/supabase/env.ts` | 0 |
+| `SUPABASE_SECRET_KEY` (alt: `SUPABASE_SERVICE_ROLE_KEY`) | Supabase | Server-Aktionen nach Rollenprüfung, Skripte | Integration setzt ihn in Vercel als **sensibel** (nur Production, Stand 09.09.); lokal von Hand eintragen, `vercel env pull` liefert nur Platzhalter; nie im Client | 0 |
 | Google OAuth Client-ID/-Secret | Google Cloud → Supabase Auth | Staff-SSO (Domain chef-treff.de) + 2FA | Google Cloud Console, OAuth-Client „Web"; Redirect = Supabase-Callback; **in Supabase Auth Providers eintragen, nicht in Vercel** | 0 |
 | `RESEND_API_KEY`, `RESEND_FROM` | Resend | alle System-Mails | Resend → API Keys (Sending only); Domain `chef-treff.de` verifizieren (SPF, DKIM, DMARC) | 0 |
 | `NEXT_PUBLIC_SITE_URL` | App | absolute Portal-URL für Mail-Links und Redirects (kein Host-Header-Fallback in Produktion) | selbst setzen: Production `https://portal.chef-treff.de`, Preview je Deployment; lokal `http://localhost:3000` | 0 |

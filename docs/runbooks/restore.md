@@ -6,7 +6,7 @@
 > Zeitpunkt und Umfang schriftlich festhalten (wer, was, ab wann).
 
 ## Voraussetzungen
-- Zugriff auf das Supabase-Dashboard, Projekt `fsjexlrapilzftwibocu`.
+- Zugriff auf das Supabase-Dashboard, Projekt `jqmqvgaiyjudkvtncijw`.
 - Point-in-Time-Recovery aktiv (Plan prüfen). Ist PITR nicht aktiv, steht nur das
   letzte tägliche Backup zur Verfügung.
 

@@ -4,10 +4,6 @@ import { createClient } from "@supabase/supabase-js";
 import { url, publicKey, requireEnv } from "./supabase-env.mjs";
 
 requireEnv();
-if (url.includes("<") || publicKey.includes("<")) {
-  console.error("❌ .env.local enthält noch Platzhalter.");
-  process.exit(1);
-}
 
 const supabase = createClient(url, publicKey);
 
