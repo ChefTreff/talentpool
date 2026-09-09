@@ -12,4 +12,4 @@ Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Edito
 Simulation eines eingeloggten Nutzers innerhalb der Transaktion:
 `perform set_config('request.jwt.claims', json_build_object('sub', <auth_uid>, 'role', 'authenticated', 'email', <email>)::text, true);`
 
-Nach jedem Umzug/Neuaufbau alle vier Dateien laufen lassen (Runbook `supabase-umzug.md`, Schritt „Prüfen").
+Nach jedem Umzug/Neuaufbau alle vier Dateien laufen lassen (Runbook `supabase-umzug.md`, Schritt „Prüfen"). Zusätzlich die Realtime-Probe `node --env-file=.env.local scripts/realtime-probe.mjs` (prüft Policies auf `realtime.messages` mit echtem Realtime-Dienst statt nur in SQL).
