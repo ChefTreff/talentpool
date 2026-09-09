@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { loginUrl } from "@/lib/areas";
+import { supabaseBrowserKey, supabaseUrl } from "@/lib/supabase/env";
 
 /**
  * Next 16: `middleware.ts` ist deprecated, der Nachfolger heißt `proxy.ts`.
@@ -27,8 +28,8 @@ function isPublic(pathname: string): boolean {
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = supabaseUrl();
+  const key = supabaseBrowserKey();
   if (!url || !key) return response;
 
   const supabase = createServerClient(url, key, {

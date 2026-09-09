@@ -1,5 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
-const s = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+import { url, secretKey, requireEnv } from "./supabase-env.mjs";
+requireEnv(true);
+const s = createClient(url, secretKey, { auth: { persistSession: false } });
 
 const { data: persons, error } = await s
   .from("person")

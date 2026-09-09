@@ -1,19 +1,34 @@
 import { createClient } from "@supabase/supabase-js";
+import { supabaseUrl } from "./env";
+
+/**
+ * Der geheime Server-Schlüssel: `SUPABASE_SECRET_KEY` (neues Schema,
+ * `sb_secret_…`) vor `SUPABASE_SERVICE_ROLE_KEY` (alter service_role-JWT).
+ * Steht bewusst nur hier — diese Datei wird nie aus dem Browser importiert.
+ */
+function supabaseSecretKey(): string | undefined {
+  return (
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    undefined
+  );
+}
 
 /**
  * Service-Role-Client — NUR serverseitig (Admin/Migration). Umgeht RLS.
- * Der Service-Role-Key darf NIE an den Browser gelangen. Vor jeder Nutzung
- * muss serverseitig is_staff() geprüft sein.
+ * Der geheime Schlüssel darf NIE an den Browser gelangen. Vor jeder Nutzung
+ * muss serverseitig die Rolle geprüft sein (`requireArea`/`requireRole`).
  */
 export function createSupabaseAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
+  const url = supabaseUrl();
+  const secret = supabaseSecretKey();
+  if (!url || !secret) {
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY / NEXT_PUBLIC_SUPABASE_URL fehlen (nur serverseitig setzen).",
+      "Supabase-Zugang fehlt: NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SECRET_KEY " +
+        "(bzw. SUPABASE_SERVICE_ROLE_KEY) nur serverseitig setzen.",
     );
   }
-  return createClient(url, serviceKey, {
+  return createClient(url, secret, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }

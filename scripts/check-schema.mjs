@@ -1,16 +1,15 @@
 // Smoke-Test: liest .env.local (via `node --env-file=.env.local`) und prüft über
 // den anon-Key, ob das Schema live ist. Gibt nur Zähler/Labels aus — keine Keys.
 import { createClient } from "@supabase/supabase-js";
+import { url, publicKey, requireEnv } from "./supabase-env.mjs";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!url || !anon || url.includes("<") || anon.includes("<")) {
-  console.error("❌ .env.local: URL/ANON_KEY fehlen oder noch Platzhalter.");
+requireEnv();
+if (url.includes("<") || publicKey.includes("<")) {
+  console.error("❌ .env.local enthält noch Platzhalter.");
   process.exit(1);
 }
 
-const supabase = createClient(url, anon);
+const supabase = createClient(url, publicKey);
 
 const { count, error } = await supabase
   .from("vocab_term")

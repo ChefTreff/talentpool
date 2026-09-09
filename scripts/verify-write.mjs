@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const svc = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { url, publicKey as anon, secretKey as svc, requireEnv } from "./supabase-env.mjs";
+
+requireEnv(true);
 
 const admin = createClient(url, svc, { auth: { persistSession: false } });
 const { data: link, error: le } = await admin.auth.admin.generateLink({ type: "magiclink", email: "konrad@chef-treff.de" });
