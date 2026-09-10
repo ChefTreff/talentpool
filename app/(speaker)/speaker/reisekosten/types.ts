@@ -50,18 +50,42 @@ export const MAX_AMOUNT_CENTS = 500000;
 export const RECEIPT_MIME = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 export const MAX_RECEIPT_BYTES = 100 * 1024 * 1024;
 
-/** „12,34" oder „12.34" → 1234. Leer oder unlesbar → null. */
+/**
+ * Betragseingabe zu Cent. Nachsichtig, weil Menschen Beträge unterschiedlich
+ * schreiben: „1.200,50", „1,200.50", „1200.5", „1200,50".
+ *
+ * Regel: Trennzeichen einsammeln; steht Punkt **und** Komma drin, ist das
+ * zuletzt auftretende der Dezimaltrenner und alle anderen sind Gruppierung.
+ * Steht nur eines drin, ist es der Dezimaltrenner. Leer oder unlesbar → null.
+ */
 export function toCents(input: string): number | null {
-  const cleaned = input.trim().replace(/\s/g, "").replace(",", ".");
-  if (cleaned === "") return null;
-  const value = Number(cleaned);
+  const raw = input.replace(/\s/g, "");
+  if (raw === "") return null;
+
+  const lastDot = raw.lastIndexOf(".");
+  const lastComma = raw.lastIndexOf(",");
+  const decimalAt = Math.max(lastDot, lastComma);
+
+  const normalised =
+    decimalAt === -1
+      ? raw
+      : `${raw.slice(0, decimalAt).replace(/[.,]/g, "")}.${raw.slice(decimalAt + 1)}`;
+
+  if (!/^-?\d*\.?\d*$/.test(normalised)) return null;
+  const value = Number(normalised);
   if (!Number.isFinite(value) || value <= 0) return null;
   return Math.round(value * 100);
 }
 
+/**
+ * Für die Anzeige. **Ohne Gruppierung**, weil derselbe Text wieder im
+ * Eingabefeld landet: „1.200,00" käme sonst als Tausenderpunkt zurück und
+ * wäre nicht mehr von einem Dezimalpunkt zu unterscheiden.
+ */
 export function fromCents(cents: number, locale: string): string {
   return (cents / 100).toLocaleString(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
+    useGrouping: false,
   });
 }
