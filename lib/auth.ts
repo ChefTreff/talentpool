@@ -62,9 +62,7 @@ type SessionContextRow = {
 export const getSessionContext = cache(async (): Promise<SessionContext> => {
   // Ohne Supabase-Env (frischer Checkout vor `.env.local`) bleibt alles anonym,
   // statt in jeder Route zu werfen — dieselbe No-Op-Haltung wie im Proxy.
-  if (!hasSupabaseEnv()) {
-    return ANONYMOUS;
-  }
+  if (!hasSupabaseEnv()) return ANONYMOUS;
 
   const supabase = await createSupabaseServerClient();
   const {
