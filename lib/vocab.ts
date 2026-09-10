@@ -37,6 +37,21 @@ export function pickLabel(
   return t.label_de;
 }
 
+/**
+ * Alle Labels eines Vokabulars als `{ key: label }`.
+ *
+ * Damit muss keine Oberfläche mehr eine Schlüsselliste mitschleppen — die
+ * Wahrheit steht in `vocab_term` (Design-Briefing §6).
+ */
+export function vgroup(map: VocabMap, vocabulary: string): Record<string, string> {
+  const prefix = `${vocabulary}:`;
+  const out: Record<string, string> = {};
+  for (const [k, label] of map) {
+    if (k.startsWith(prefix)) out[k.slice(prefix.length)] = label;
+  }
+  return out;
+}
+
 /** Label für einen vocab-Key; fällt auf den Key zurück, "—" bei leer. */
 export function vlabel(
   map: VocabMap,

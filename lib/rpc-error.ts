@@ -41,6 +41,13 @@ const BUSINESS_KEYS = new Set([
   "slot_not_found",
   "application_not_found",
   "registration_not_found",
+  // Entscheidungen und Rollenverwaltung (Migration 0022)
+  "not_decidable",
+  "invalid_decision",
+  "invalid_role",
+  "last_admin",
+  "person_not_found",
+  "assignment_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {

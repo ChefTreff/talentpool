@@ -185,41 +185,26 @@ export async function setSessionSpeakers(
 }
 
 /**
- * Zeichen mit Bedeutung in der PostgREST-Filtergrammatik bzw. in `like`.
- * Ohne das Entfernen könnte eine Eingabe wie `a,b.eq.c` den Filter umschreiben.
- */
-function sanitizeSearchTerm(raw: string): string {
-  return raw
-    .replace(/[,().*\\"'%_]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 60);
-}
-
-/**
- * Personensuche für die Speaker-Zuordnung. `person` ist für `authenticated`
- * auf die eigene Zeile beschränkt, deshalb service_role — erlaubt erst nach
- * `requireArea("admin")`, und die Auswahl bleibt auf Name und ID beschränkt.
+ * Personensuche für die Speaker-Zuordnung — über die RPC `search_people`
+ * (Migration 0022). Sie prüft `is_staff()` selbst, maskiert die E-Mail für
+ * Nicht-Admins und escaped die Eingabe; damit braucht das Board keinen
+ * service_role-Client mehr.
  */
 export async function searchPeople(
   query: string,
 ): Promise<{ id: string; name: string }[]> {
-  await requireArea("admin", BOARD_PATH);
-  const term = sanitizeSearchTerm(query);
-  if (term.length < 2) return [];
-
-  const { createSupabaseAdminClient } = await import("@/lib/supabase/admin");
-  const admin = createSupabaseAdminClient();
-  const { data } = await admin
-    .from("person")
-    .select("id, first_name, last_name")
-    .or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%`)
-    .is("deleted_at", null)
-    .limit(10);
-
-  return (data ?? []).map((p) => ({
-    id: p.id as string,
-    name: [p.first_name, p.last_name].filter(Boolean).join(" ") || "—",
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("search_people", {
+    p_query: query,
+    p_limit: 10,
+  });
+  if (error) {
+    console.error("[programm] search_people:", error.message);
+    return [];
+  }
+  return ((data ?? []) as { id: string; display_name: string | null }[]).map((p) => ({
+    id: p.id,
+    name: p.display_name ?? "—",
   }));
 }
 
