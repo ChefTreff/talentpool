@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 11:57 UTC · 44 Tabellen · 6 Views · 127 Funktionen
+> Stand: 2026-09-10 12:59 UTC · 44 Tabellen · 6 Views · 129 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -91,6 +91,7 @@ Fristen je Edition; speist Countdowns, Uploads (late-Markierung) und später Wik
 | `description_en` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `reminder_lead_hours` | integer | ja | `48` |  | Erinnerung so viele Stunden vor der wirksamen Fälligkeit (Deadline ∧ 48 h vor Slot); 0 = zur Fälligkeit. |
 
 ### `decision_release`
 Erst nach Freigabe werden Zusagen/Absagen sichtbar und Mails ausgelöst (Antwort C).
@@ -995,6 +996,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_applications` | args: ? |
 | `my_expense_claims` | args: ? |
 | `my_hospitality` | p_edition_id: uuid |
+| `my_manager_scope` | args: ? |
 | `my_roles` | args: ? |
 | `my_sessions` | args: ? |
 | `my_speaker_assets` | p_profile_id: uuid |
@@ -1020,6 +1022,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `run_application_housekeeping` | args: ? |
 | `search_organizations` | p_limit: integer, p_query: text |
 | `search_people` | p_limit: integer, p_query: text |
+| `send_presentation_reminders` | args: ? |
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
 | `session_speakers_public` | p_session_id: uuid |

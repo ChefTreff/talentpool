@@ -3,7 +3,7 @@ begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
 declare
-  v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_sp uuid; v_own uuid; v_c1 uuid; v_c2 uuid; v_json jsonb; v_detail text;
+  v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_sp uuid; v_own uuid; v_c1 uuid; v_c2 uuid; v_json jsonb; v_detail text; v_ed2 uuid; v_sp2 uuid; v_own2 uuid;
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary where p.auth_user_id is not null limit 1;
@@ -101,6 +101,14 @@ begin
   insert into t_res values ('26_pipeline_declined', (select string_agg(source || ':' || status, ', ' order by source) from ticket where id in (v_own, v_c2)));
   perform update_speaker(v_sp, jsonb_build_object('hospitality_status', 'declined'));
   insert into t_res values ('27_block_reason_declined', hospitality_block_reason(v_sp));
+  -- Assistenz (0036): eigene Edition, Testperson ist nur Assistenz eines anderen Speakers ⇒ issued ja, Barcode nein
+  insert into event (name, format_tag, slug, is_edition, timezone) values ('T Edition', 'summit', 't8-edition', true, 'Europe/Berlin') returning id into v_ed2;
+  v_sp2 := upsert_speaker(jsonb_build_object('edition_id', v_ed2, 'email', 'sam-' || gen_random_uuid()::text || '@example.com', 'first_name', 'Sam', 'last_name', 'Speaker', 'pipeline_status', 'confirmed'));
+  perform invite_assistant(v_sp2, v_email, 'Assi', 'Stenz');
+  select id into v_own2 from ticket where speaker_profile_id = v_sp2 and source = 'speaker' and status <> 'cancelled';
+  perform set_ticket_issued(v_own2, 'viv-s-9', 'BC-S-9');
+  v_json := my_speaker_tickets(v_ed2);
+  insert into t_res values ('27b_assistant_no_barcode', 'is_assistant=' || (v_json->>'is_assistant') || ' issued=' || (v_json->'own'->>'issued') || ' barcode_hidden=' || ((v_json->'own'->>'barcode') is null)::text || ' status=' || (v_json->'own'->>'status'));
   insert into t_res values ('28_audit', (select string_agg(action || '=' || n::text, ', ' order by action) from (select action, count(*) n from audit_log where action like 'ticket.%' and created_at >= now() group by action) s));
 end $$;
 select * from t_res order by step;
