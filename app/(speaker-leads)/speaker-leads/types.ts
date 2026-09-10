@@ -66,6 +66,8 @@ export type ManagedSpeaker = {
   /** Offene Schritte, dieselbe Liste wie im Speaker-Portal. */
   next_open: string[] | null;
   updated_at: string;
+  /** Seit Migration 0037 liest die RPC die Notiz auch zurück. */
+  internal_notes: string | null;
 };
 
 /**

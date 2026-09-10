@@ -17,6 +17,8 @@ export async function sendViaResend(input: {
   replyTo?: string;
   /** Verhindert Doppelversand bei Retries desselben Vorgangs. */
   idempotencyKey?: string;
+  /** Anhänge als base64 — für Belege, die mit der Mail gehen müssen. */
+  attachments?: { filename: string; content: string }[];
 }): Promise<ResendResult> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { ok: false, error: "RESEND_API_KEY fehlt" };
@@ -38,6 +40,7 @@ export async function sendViaResend(input: {
         html: input.html,
         text: input.text,
         ...(input.replyTo ? { reply_to: input.replyTo } : {}),
+        ...(input.attachments?.length ? { attachments: input.attachments } : {}),
       }),
     });
 
