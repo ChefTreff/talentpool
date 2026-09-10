@@ -8,6 +8,7 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Drawer } from "@/components/ui/Drawer";
+import { ConfirmDialog, Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -21,7 +22,7 @@ import {
   registerForSession,
   withdrawApplication,
   type TalentResult,
-} from "./actions";
+} from "../actions";
 import {
   type MyApplication,
   type ProgrammeLabels,
@@ -659,58 +660,5 @@ function ApplyDialog({
         </Button>
       </div>
     </Modal>
-  );
-}
-
-function ConfirmDialog({
-  title,
-  body,
-  confirmLabel,
-  cancelLabel,
-  onConfirm,
-  onCancel,
-}: {
-  title: string;
-  body: string;
-  confirmLabel: string;
-  cancelLabel: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <Modal onCancel={onCancel} label={title}>
-      <h2 className="ct-h3">{title}</h2>
-      <p className="ct-help mt-2">{body}</p>
-      <div className="mt-6 flex gap-2">
-        <Button onClick={onConfirm}>{confirmLabel}</Button>
-        <Button variant="ghost" onClick={onCancel}>
-          {cancelLabel}
-        </Button>
-      </div>
-    </Modal>
-  );
-}
-
-/** `<dialog showModal>` — Fokusfalle und Escape kommen vom Browser. */
-function Modal({
-  label,
-  onCancel,
-  children,
-}: {
-  label: string;
-  onCancel: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <dialog
-      ref={(el) => {
-        if (el && !el.open) el.showModal();
-      }}
-      aria-label={label}
-      onCancel={onCancel}
-      className="w-full max-w-[560px] rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40"
-    >
-      {children}
-    </dialog>
   );
 }

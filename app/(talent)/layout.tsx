@@ -13,6 +13,7 @@ export default async function TalentLayout({ children }: { children: ReactNode }
 
   const items = [
     { href: "/programm", label: t.programme.title },
+    { href: "/meine", label: t.participation.title },
     { href: "/profil", label: t.profile.title },
   ];
 
