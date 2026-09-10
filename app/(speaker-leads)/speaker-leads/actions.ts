@@ -11,6 +11,7 @@ import { toRpcFailure } from "@/lib/rpc-error";
  * `requireArea("speaker-leads")` hält Fremde von der Route fern.
  */
 const PATH = "/speaker-leads";
+const SUBMISSIONS_PATH = "/speaker-leads/einreichungen";
 
 export type LeadResult<T = void> =
   | { ok: true; data: T }
@@ -139,4 +140,52 @@ export async function findPeople(query: string): Promise<FoundPerson[]> {
     return [];
   }
   return (data ?? []) as FoundPerson[];
+}
+
+// === Einreichungen ==========================================================
+
+/**
+ * Titel und Beschreibung aus dem Speaker-Portal freigeben.
+ *
+ * `approve_session_content` nimmt Überschreibungen entgegen und lässt für jedes
+ * leere Feld den eingereichten Wert stehen — die Oberfläche schickt deshalb
+ * genau das, was in der Session landen soll. Wer freigeben darf, prüft die RPC
+ * selbst: `can_edit_session()` **oder** `can_manage_speaker()` (Migration 0037).
+ */
+export async function approveSubmission(
+  submissionId: string,
+  overrides: {
+    title_de?: string;
+    title_en?: string;
+    description_de?: string;
+    description_en?: string;
+    language?: string;
+    review_note?: string;
+  },
+): Promise<LeadResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("approve_session_content", {
+    p_submission_id: submissionId,
+    p_overrides: overrides,
+  });
+  if (error) return fail(error);
+  revalidatePath(SUBMISSIONS_PATH);
+  revalidatePath(PATH);
+  return { ok: true, data: undefined };
+}
+
+/** Zurückweisen. Die Anmerkung ist Pflicht — der Speaker soll wissen, warum. */
+export async function rejectSubmission(
+  submissionId: string,
+  note: string,
+): Promise<LeadResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("reject_session_content", {
+    p_submission_id: submissionId,
+    p_note: note,
+  });
+  if (error) return fail(error);
+  revalidatePath(SUBMISSIONS_PATH);
+  revalidatePath(PATH);
+  return { ok: true, data: undefined };
 }

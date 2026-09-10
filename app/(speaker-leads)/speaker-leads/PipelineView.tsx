@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import type { Locale } from "@/lib/i18n/shared";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -30,7 +29,6 @@ const PIPELINE_TONE: Record<string, BadgeTone> = {
 export function PipelineView({
   scope,
   speakers,
-  isStaff,
   labels,
   locale,
   dateLocale,
@@ -40,7 +38,6 @@ export function PipelineView({
 }: {
   scope: ManagerScope;
   speakers: ManagedSpeaker[];
-  isStaff: boolean;
   labels: Record<string, Record<string, string>>;
   locale: Locale;
   dateLocale: string;
@@ -140,13 +137,6 @@ export function PipelineView({
           />
         </Field>
         <div className="flex flex-wrap items-center gap-2">
-          {/* Das Board liegt im Admin-Bereich; wer da nicht hinein darf, sieht
-              den Link nicht (statt in ein 404 zu laufen). */}
-          {isStaff && editions.length > 0 && (
-            <Link href="/admin/programm" className="ct-link text-[14px]">
-              {t.toBoard}
-            </Link>
-          )}
           <Button size="sm" onClick={() => setCreating(true)}>
             {t.newSpeaker}
           </Button>

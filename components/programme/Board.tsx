@@ -57,6 +57,7 @@ type Stats = {
 };
 
 export function Board({
+  basePath,
   events,
   currentEventId,
   currentEventSlug,
@@ -72,6 +73,8 @@ export function Board({
   t,
   rpcMessages,
 }: {
+  /** Route, unter der das Board hängt — Event- und Tagwahl verlinken dorthin. */
+  basePath: string;
   events: { id: string; slug: string; name: string }[];
   currentEventId: string;
   currentEventSlug: string;
@@ -380,7 +383,7 @@ export function Board({
             {events.map((e) => (
               <a
                 key={e.id}
-                href={`/admin/programm?event=${e.slug}`}
+                href={`${basePath}?event=${e.slug}`}
                 aria-current={e.id === currentEventId ? "page" : undefined}
                 className={cn(
                   "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold",
@@ -398,7 +401,7 @@ export function Board({
           {days.map((d) => (
             <a
               key={d.id}
-              href={`/admin/programm?event=${currentEventSlug}&tag=${d.day_date}`}
+              href={`${basePath}?event=${currentEventSlug}&tag=${d.day_date}`}
               aria-current={d.id === currentDayId ? "page" : undefined}
               className={cn(
                 "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold",
@@ -691,9 +694,12 @@ function SlotCard({
         slot.can_edit ? "cursor-grab" : "cursor-default",
       )}
     >
+      {/* `attributes` nur, wenn wirklich gezogen werden darf: sonst kündigt
+          `aria-roledescription="draggable"` einen Griff an, den es auf fremden
+          Bühnen nicht gibt. Rolle, Fokus und Enter stehen darunter, das Öffnen
+          bleibt also möglich. */}
       <div
-        {...(slot.can_edit ? listeners : {})}
-        {...attributes}
+        {...(slot.can_edit ? { ...listeners, ...attributes } : {})}
         onClick={onOpen}
         role="button"
         tabIndex={0}
@@ -757,8 +763,7 @@ function BacklogChip({
   return (
     <li ref={setNodeRef} className={cn(isDragging && "opacity-40")}>
       <span
-        {...(session.can_edit ? listeners : {})}
-        {...attributes}
+        {...(session.can_edit ? { ...listeners, ...attributes } : {})}
         onClick={onOpen}
         role="button"
         tabIndex={0}

@@ -7,6 +7,7 @@ import { toRpcFailure } from "@/lib/rpc-error";
 import { buildInvoicePdf, type InvoiceClaim } from "@/lib/expenses/invoice-pdf";
 import { getDictionary, resolveLocale } from "@/lib/i18n";
 import { sendExpenseToIntegrations } from "@/lib/expenses/integrations";
+import { canHaveInvoice } from "@/lib/expenses/state";
 
 /**
  * Die Warteschlangen des Teams: Reisekosten, Begleittickets, Hotel/Shuttle,
@@ -43,20 +44,16 @@ async function client(path: string) {
 
 // === Reisekosten ============================================================
 
-/**
- * `expense_claim.currency` ist NOT NULL DEFAULT 'EUR' und keine RPC lässt
- * etwas anderes zu; `expense_queue` gibt die Spalte deshalb nicht heraus.
- * Sobald sie es tut, kommt der Wert von dort.
- */
-const CURRENCY = "EUR";
-
 /** Eine Zeile aus `expense_queue` — die Rechnung baut sich daraus zusammen. */
 type QueueRow = {
   id: string;
   profile_id: string;
   speaker_name: string | null;
   email: string | null;
+  status: string;
   amount_cents: number;
+  /** Seit Migration 0039 letzte Spalte der RPC. */
+  currency: string;
   positions: InvoiceClaim["positions"];
   bank_masked: string | null;
   bank_holder: string | null;
@@ -125,17 +122,21 @@ export async function storeInvoice(claimId: string): Promise<ApproveResult> {
   const { data: rows } = await supabase.rpc("expense_queue");
   const claim = ((rows ?? []) as QueueRow[]).find((c) => c.id === claimId);
 
-  if (!claim || !claim.invoice_no) {
+  // Diese Funktion ist als Server-Action erreichbar; ein Freigeber könnte sie
+  // sonst für einen noch offenen Antrag aufrufen und eine Rechnung erzeugen,
+  // die niemand freigegeben hat. Dieselbe Regel kommt zusätzlich in
+  // `set_expense_integration` — hier, weil das Dokument vorher entsteht.
+  if (!claim || !claim.invoice_no || !canHaveInvoice(claim.status)) {
     return { stored: false, integrations: { sevdesk: "skipped", qonto: "skipped" } };
   }
 
-  // Feld für Feld statt `as InvoiceClaim`: `expense_queue` liefert weder
-  // `currency` noch `created_at` (anders als `my_expense_claims`), und ein
-  // Cast hätte daraus im Dokument ein „undefined“ gemacht.
+  // Feld für Feld statt `as InvoiceClaim`: die RPC hat kein `created_at`
+  // (anders als `my_expense_claims`), und ein Cast hätte daraus im Dokument
+  // ein „undefined“ gemacht.
   const invoiceClaim: InvoiceClaim = {
     positions: claim.positions,
     amount_cents: claim.amount_cents,
-    currency: CURRENCY,
+    currency: claim.currency,
     invoice_no: claim.invoice_no,
     bank_masked: claim.bank_masked,
     bank_holder: claim.bank_holder,

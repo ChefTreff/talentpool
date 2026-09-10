@@ -11,7 +11,7 @@ import type { ManagedSpeaker, ManagerScope } from "./types";
 export const dynamic = "force-dynamic";
 
 export default async function SpeakerLeadsPage() {
-  const ctx = await requireArea("speaker-leads", "/speaker-leads");
+  await requireArea("speaker-leads", "/speaker-leads");
   // Lead-Portal ist Deutsch zuerst (Arbeitsauftrag Welle 2, Abschnitt C) —
   // dieselbe Mechanik wie „Englisch zuerst" im Speaker-Portal, nur andersherum.
   const { locale, t } = await getI18n("de");
@@ -43,7 +43,6 @@ export default async function SpeakerLeadsPage() {
         <PipelineView
           scope={scope}
           speakers={speakers}
-          isStaff={ctx.isStaff}
           labels={{
             pipeline: vgroup(vocab, "speaker_pipeline"),
             speakerType: vgroup(vocab, "speaker_type"),

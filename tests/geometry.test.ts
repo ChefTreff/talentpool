@@ -8,7 +8,7 @@ import {
   slotBox,
   GRID_MIN,
   PX_PER_MIN,
-} from "@/app/(admin)/admin/programm/geometry";
+} from "@/components/programme/geometry";
 
 describe("Zeitfenster des Boards", () => {
   it("nimmt die Programmzeiten des Tages, wenn sie stehen", () => {
