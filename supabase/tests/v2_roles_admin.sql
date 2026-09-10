@@ -57,6 +57,14 @@ begin
   insert into role_assignment (person_id, role, scope_type, edition_id) values (v_pid, 'programme_team', 'edition', v_ed);
   insert into t_res values ('14_overview_as_team', (select count(*)::text || ' counts=' || coalesce(max(counts::text), '-') || ' released=' || coalesce(bool_or(released)::text, '-') from applications_overview(v_ev)));
   insert into t_res values ('15_audit_role_rows', (select count(*)::text from audit_log where action in ('role.assign', 'role.revoke')));
+  -- 0024: Organisationssuche (Team), organization hat keine Lesepolicy
+  insert into organization (legal_name, communication_name, type, slug, active) values ('Beispiel GmbH', 'Beispiel', 'corporate', 'beispiel-test', true);
+  insert into t_res values ('16_search_org_as_team', (select count(*)::text || ' name=' || coalesce(max(name), '-') from search_organizations('beisp')));
+  delete from role_assignment where person_id = v_pid;
+  begin
+    perform count(*) from search_organizations('beisp');
+    insert into t_res values ('17_search_org_without_staff', 'ALLOWED (BUG)');
+  exception when others then insert into t_res values ('17_search_org_without_staff', 'rejected ' || sqlstate); end;
 end $$;
 select * from t_res order by step;
 rollback;
