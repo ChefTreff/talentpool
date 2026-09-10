@@ -89,6 +89,14 @@ const BUSINESS_KEYS = new Set([
   "invalid_guests",
   "invalid_details",
   "booking_not_found",
+  // Tickets und Begleitticket (Migration 0034)
+  "invalid_email",
+  "name_required",
+  "companion_is_speaker",
+  "already_issued",
+  "not_cancellable",
+  "not_approved",
+  "barcode_required",
 ]);
 
 const BY_CODE: Record<string, string> = {

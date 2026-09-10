@@ -85,5 +85,5 @@ export const STEP_HREF: Record<string, string | null> = {
   session: "/speaker/session",
   session_content: "/speaker/session",
   presentation: "/speaker/session",
-  ticket: null,
+  ticket: "/speaker/tickets",
 };
