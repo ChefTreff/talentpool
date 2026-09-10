@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 16:11 UTC · 47 Tabellen · 6 Views · 133 Funktionen
+> Stand: 2026-09-10 16:26 UTC · 49 Tabellen · 6 Views · 148 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -289,6 +289,30 @@ System-Mails DE/EN. Versand über Resend (lib/mail), Rendering aus Markdown.
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `org_edition`
+Partner-Organisation je Edition: Onboarding-Stand, Rechnungsdaten, Pass-Typ-Wahl, HubSpot-Deal.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_id` | uuid | ja |  | `organization.id` |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `onboarding_status` | text | ja | `none` |  |  |
+| `invited_at` | timestamp with time zone |  |  |  |  |
+| `onboarding_filled_at` | timestamp with time zone |  |  |  |  |
+| `description_de` | text |  |  |  |  |
+| `description_en` | text |  |  |  |  |
+| `invoice_email` | extensions.citext |  |  |  |  |
+| `invoice_name` | text |  |  |  |  |
+| `vat_id` | text |  |  |  |  |
+| `po_number` | text |  |  |  |  |
+| `pass_type_choice` | text |  |  |  |  |
+| `sponsoring_level` | text |  |  |  |  |
+| `hubspot_deal_id` | text |  |  |  |  |
+| `notes_internal` | text |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `org_membership`
 
 | Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
@@ -297,6 +321,24 @@ System-Mails DE/EN. Versand über Resend (lib/mail), Rendering aus Markdown.
 | `person_id` | uuid | ja |  | `person.id` |  |
 | `org_id` | uuid | ja |  | `organization.id` |  |
 | `roles` | text[] | ja |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `contact_position` | text |  |  |  |  |
+| `invited_at` | timestamp with time zone |  |  |  |  |
+
+### `org_product`
+Gebuchte Leistungen je Partner × Edition (aus HubSpot-Line-Items); steuert Checkliste und Sichtbarkeit.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_edition_id` | uuid | ja |  | `org_edition.id` |  |
+| `product_sku` | text | ja |  | `product.sku` |  |
+| `qty` | numeric | ja | `1` |  |  |
+| `unit_price_cents` | integer |  |  |  |  |
+| `hubspot_line_item_id` | text |  |  |  |  |
+| `status` | text | ja | `booked` |  |  |
+| `notes` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
@@ -1022,6 +1064,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `confirm_companion_ticket` | p_note: text, p_ticket_id: uuid |
 | `confirm_hospitality` | p_booking_id: uuid, p_note: text |
 | `create_slot` | p_end: timestamp with time zone, p_session_id: uuid, p_slot_type: text, p_source_ref: text, p_stage_id: uuid, p_start: timestamp with time zone |
+| `current_org_edition` | p_edition_id: uuid, p_org_id: uuid |
 | `current_person_id` | args: ? |
 | `decide_application` | p_application_id: uuid, p_rank: integer, p_status: text |
 | `decisions_released` | p_session_id: uuid |
@@ -1051,6 +1094,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_application_team` | p_session_id: uuid |
 | `is_expense_approver` | args: ? |
 | `is_member_of_org` | p_org_id: uuid |
+| `is_partner_of` | p_org_id: uuid |
 | `is_partner_team` | args: ? |
 | `is_programme_editor` | p_event_id: uuid |
 | `is_programme_reader` | args: ? |
@@ -1071,6 +1115,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_expense_claims` | args: ? |
 | `my_hospitality` | p_edition_id: uuid |
 | `my_manager_scope` | args: ? |
+| `my_partner_orgs` | args: ? |
 | `my_roles` | args: ? |
 | `my_sessions` | args: ? |
 | `my_speaker_assets` | p_profile_id: uuid |
@@ -1078,6 +1123,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_speaker_profile_id` | p_edition_id: uuid |
 | `my_speaker_tickets` | p_edition_id: uuid |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
+| `partner_admin_overview` | p_edition_id: uuid |
+| `partner_can_edit` | p_org_id: uuid |
+| `partner_can_manage_contacts` | p_org_id: uuid |
+| `partner_contacts` | p_org_id: uuid |
+| `partner_overview` | p_edition_id: uuid, p_org_id: uuid |
+| `partner_roles` | p_org_id: uuid |
+| `partner_set_onboarding_status` | p_edition_id: uuid, p_org_id: uuid, p_status: text |
 | `pending_submissions` | p_event_id: uuid |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
 | `presentation_window` | p_session_id: uuid |
@@ -1090,6 +1142,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `reject_session_content` | p_note: text, p_submission_id: uuid |
 | `release_decisions` | p_note: text, p_session_id: uuid |
 | `remove_assistant` | p_profile_id: uuid |
+| `remove_partner_contact` | p_org_id: uuid, p_person_id: uuid |
 | `request_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
 | `revoke_role` | p_assignment_id: uuid, p_note: text |
 | `roles_of_person` | p_person_id: uuid |
@@ -1100,6 +1153,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
 | `session_speakers_public` | p_session_id: uuid |
+| `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
 | `set_expense_bank_details` | p_bic: text, p_claim_id: uuid, p_holder: text, p_iban: text |
 | `set_expense_integration` | p_claim_id: uuid, p_invoice_asset_id: uuid, p_qonto_sent: boolean, p_sevdesk_ref: text |
 | `set_primary_email` | p_email_id: uuid |
@@ -1118,12 +1172,15 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_tickets_admin` | p_edition_id: uuid |
 | `submit_expense` | p_claim_id: uuid |
 | `submit_session_content` | p_data: jsonb, p_session_id: uuid |
+| `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
 | `update_my_speaker_profile` | p_data: jsonb |
+| `update_partner_onboarding` | p_data: jsonb, p_edition_id: uuid, p_org_id: uuid |
 | `update_speaker` | p_data: jsonb, p_profile_id: uuid |
 | `upsert_deadline` | p_data: jsonb |
 | `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |
+| `upsert_partner_contact` | p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_position: text, p_roles: text[] |
 | `upsert_product` | p_data: jsonb |
 | `upsert_product_component` | p_bundle_sku: text, p_component_sku: text, p_qty: numeric |
 | `upsert_session` | p_data: jsonb |

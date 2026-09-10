@@ -23,6 +23,7 @@ Grundsatz aus dem Feedback FLS26 (T9, P4): so wenige System-Mails wie möglich, 
 | `expense_approved` · `expense_rejected` | Speaker | `approve_expense` · `reject_expense` (Grund Pflicht) | Speaker | Entscheidung | 0031 |
 | `companion_ticket_requested` | Speaker → Team | `request_companion_ticket` | `area_lead_speaker` (Fallback Admins) | Anfrage | 0034 |
 | `companion_ticket_confirmed` · `companion_ticket_declined` | Speaker | `confirm_companion_ticket` · `decline_companion_ticket` (Grund Pflicht) | Speaker | Entscheidung | 0034 |
+| `partner_contact_invite` | Partner | `upsert_partner_contact` (neuer Kontakt einer Organisation; auch HubSpot-Ingest) | Kontakt | Kontakt × Org (`org_membership`) | 0040 |
 | `presentation_reminder` | Speaker | Housekeeping (`send_presentation_reminders`): `reminder_lead_hours` (Default 48) vor der wirksamen Fälligkeit (Deadline ∧ 48 h vor Slot), nur mit Slot in der Zukunft, ohne aktuelle Präsentation, Session nicht abgesagt | Speaker (nicht Assistenz) | Speaker × Session | 0035 |
 
 ## Offen
