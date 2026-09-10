@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 07:51 UTC · 37 Tabellen · 6 Views · 54 Funktionen
+> Stand: 2026-09-10 08:59 UTC · 37 Tabellen · 6 Views · 61 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -747,8 +747,11 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | Funktion | Parameter |
 |---|---|
 | `active_roles` | args: ? |
+| `applications_for_session` | p_session_id: uuid |
+| `applications_overview` | p_event_id: uuid |
 | `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
 | `approve_session_questions` | p_session_id: uuid |
+| `assign_role` | p_edition_id: uuid, p_note: text, p_person_id: uuid, p_portal: text, p_role: text, p_scope_id: uuid, p_scope_type: text, p_valid_from: timestamp with time zone, p_valid_to: timestamp with time zone |
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
 | `can_edit_session` | p_session_id: uuid |
@@ -769,6 +772,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `has_role` | p_edition_id: uuid, p_role: text, p_scope_id: uuid, p_scope_type: text |
 | `immutable_unaccent` | : text |
 | `is_admin` | args: ? |
+| `is_application_team` | p_session_id: uuid |
 | `is_member_of_org` | p_org_id: uuid |
 | `is_programme_editor` | p_event_id: uuid |
 | `is_programme_reader` | args: ? |
@@ -788,7 +792,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `register_for_session` | p_session_id: uuid |
 | `release_decisions` | p_note: text, p_session_id: uuid |
+| `revoke_role` | p_assignment_id: uuid, p_note: text |
+| `roles_of_person` | p_person_id: uuid |
 | `run_application_housekeeping` | args: ? |
+| `search_people` | p_limit: integer, p_query: text |
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
 | `session_speakers_public` | p_session_id: uuid |

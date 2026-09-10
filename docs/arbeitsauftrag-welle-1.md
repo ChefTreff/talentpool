@@ -29,7 +29,7 @@
 
 ## Status 09.09.2026 (morgens)
 - Teil A: ✅ A4 Programm-Backend (+ Realtime aus der DB, Fragen-RPCs, Programmzeiten). ✅ A5 Bewerbungs-Mails + Cron (10.09., Migrationen 0020/0021, `/api/cron/mail`, Vercel Cron alle 10 Min.) — **Betrieb braucht in Vercel `RESEND_API_KEY`, `RESEND_FROM`, `CRON_SECRET` und die verifizierte Resend-Domain (Konrad)**; bis dahin bleibt die Warteschlange stehen, nichts geht verloren. ⏳ A1/A2 vivenu warten auf Sandbox-Key. A3 folgt mit A1. A6 teilweise: Mail/Cron-Tests in `v2_application_ticket.sql`, `v2_ingest.sql` mit A1.
-- Teil B: PR #2 (B5 Board, B2 Programm-Ansicht, B1 Onboarding) **gemergt 10.09. (cbb345b)** nach zwei Review-Durchgängen; Realtime-Zwei-Tab-Sync verifiziert. Nächster PR: **B3 + B6 zusammen** (ein Baustein) auf neuem Branch `welle-1/teilnahme-queue`; B4 nach A1/A2.
+- Teil B: PR #2 (B5, B2, B1) gemergt 10.09. (cbb345b); **PR #3 (B3 „Meine Teilnahme" unter `/meine`) gemergt 10.09. (8ad098b)**. B6 (Bewerbungs-Queue, Rollenverwaltung) war blockiert, weil der DB die Lesewege fehlten → Migration 0022 liefert `applications_for_session`, `applications_overview`, `roles_of_person`, `assign_role`, `revoke_role`, `search_people` (Signaturen: docs/datenmodell-v2.md, PR-#3-Kommentar). Nächster PR: **B6**; B4 nach A1/A2.
 - Infrastruktur: Supabase-Umzug nach Frankfurt **abgeschlossen** (Runbook `docs/runbooks/supabase-umzug.md`, Historie 09.09.): Login, Bootstrap-Admin, vier SQL-Tests grün, Demo-Programm vorhanden. Offen: Secret Key lokal eintragen (Konrad), Integration-Sync Preview/Dev, altes Projekt pausieren.
 
 ## Anweisung an die Build-Session (09.09.2026, nach dem Umzug)
