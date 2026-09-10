@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
  * Rollenverwaltung. Die Seite lädt nur die Auswahllisten; Personen, Rollen und
  * Schreibwege laufen über die RPCs aus Migration 0022.
  *
- * Der Scope `org` fehlt bewusst: `organization` hat keine Lesepolicy, eine
- * Auswahlliste bliebe leer. Sobald es dafür einen Weg gibt, kommt er dazu.
+ * Der Scope `org` hat keine Auswahlliste: `organization` hat RLS ohne
+ * Lesepolicy, gesucht wird über `search_organizations` (Migration 0024).
  */
 export default async function RollenPage() {
   await requireArea("admin", "/admin/rollen");
@@ -85,6 +85,7 @@ export default async function RollenPage() {
         common={{
           cancel: t.common.cancel,
           choose: t.common.choose,
+          inactive: t.common.inactive,
           none: t.common.none,
           save: t.common.save,
         }}

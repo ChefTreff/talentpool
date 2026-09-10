@@ -49,6 +49,33 @@ export async function findPeople(query: string): Promise<FoundPerson[]> {
   return (data ?? []) as FoundPerson[];
 }
 
+export type FoundOrganization = {
+  id: string;
+  name: string | null;
+  type: string | null;
+  slug: string | null;
+  city: string | null;
+  active: boolean;
+};
+
+/**
+ * Organisationssuche für den Scope `org`. `organization` hat RLS ohne
+ * Lesepolicy — der Weg ist die RPC (Migration 0024), die `is_staff()` prüft
+ * und die Eingabe selbst escaped.
+ */
+export async function findOrganizations(query: string): Promise<FoundOrganization[]> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("search_organizations", {
+    p_query: query,
+    p_limit: 10,
+  });
+  if (error) {
+    console.error("[rollen] search_organizations:", error.message);
+    return [];
+  }
+  return (data ?? []) as FoundOrganization[];
+}
+
 export type RoleRow = {
   id: string;
   role: string;
