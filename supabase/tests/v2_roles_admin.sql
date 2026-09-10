@@ -35,6 +35,7 @@ begin
   exception when others then insert into t_res values ('06_edition_without_id', 'rejected ' || sqlstate); end;
   insert into t_res values ('07_roles_of_person_active', (select count(*)::text from roles_of_person(v_other) where active));
   insert into t_res values ('08_search_as_admin', (select count(*)::text || ' email_sichtbar=' || coalesce(bool_and(email is not null)::text, '-') from search_people('testperson')));
+  update role_assignment set valid_from = now() - interval '1 day' where id = v_ra; -- Vergabe liegt in der Praxis vor dem Entzug (in einer Transaktion ist now() konstant)
   perform revoke_role(v_ra, 'test');
   insert into t_res values ('09_revoked_inactive', (select (not active)::text from roles_of_person(v_other) where id = v_ra));
   begin
