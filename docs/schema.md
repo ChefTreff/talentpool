@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 17:20 UTC · 53 Tabellen · 6 Views · 176 Funktionen
+> Stand: 2026-09-10 17:31 UTC · 53 Tabellen · 6 Views · 181 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1195,6 +1195,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
 | `manager_speakers` | p_edition_id: uuid |
 | `mark_expense_paid` | p_claim_id: uuid, p_payment_ref: text |
+| `mark_overdue_deliverables` | args: ? |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_applications` | args: ? |
 | `my_deliverables` | p_edition_id: uuid, p_org_id: uuid |
@@ -1217,6 +1218,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_contact_upsert_internal` | p_actor: uuid, p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_position: text, p_roles: text[], p_source: text |
 | `partner_contacts` | p_org_id: uuid |
 | `partner_deals` | p_org_id: uuid |
+| `partner_digest_items` | p_org_edition_id: uuid |
 | `partner_ingest_log` | p_limit: integer |
 | `partner_onboarding_recheck` | p_org_edition_id: uuid |
 | `partner_overview` | p_edition_id: uuid, p_org_id: uuid |
@@ -1231,6 +1233,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `record_sync_error` | p_job_id: bigint, p_message: text, p_object_id: text, p_object_type: text, p_payload: jsonb |
 | `record_webhook_event` | p_event_type: text, p_external_id: text, p_headers: jsonb, p_payload: jsonb, p_signature_valid: boolean, p_source: text |
+| `refresh_deliverable_due` | args: ? |
 | `register_for_session` | p_session_id: uuid |
 | `register_partner_asset` | p_deliverable_id: uuid, p_edition_id: uuid, p_filename: text, p_kind: text, p_mime: text, p_org_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `register_speaker_asset` | p_filename: text, p_kind: text, p_mime: text, p_profile_id: uuid, p_session_id: uuid, p_size_bytes: bigint, p_storage_path: text |
@@ -1246,8 +1249,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `revoke_role` | p_assignment_id: uuid, p_note: text |
 | `roles_of_person` | p_person_id: uuid |
 | `run_application_housekeeping` | args: ? |
+| `run_partner_housekeeping` | args: ? |
 | `search_organizations` | p_limit: integer, p_query: text |
 | `search_people` | p_limit: integer, p_query: text |
+| `send_partner_reminders` | args: ? |
 | `send_presentation_reminders` | args: ? |
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
