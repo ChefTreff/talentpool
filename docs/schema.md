@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 10:50 UTC · 41 Tabellen · 6 Views · 89 Funktionen
+> Stand: 2026-09-10 11:01 UTC · 41 Tabellen · 6 Views · 89 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -272,7 +272,7 @@ Eine natürliche Person = ein Datensatz. Login-Verknüpfung über auth_user_id.
 | `gender` | text |  |  |  |  |
 | `nationality` | text |  |  |  |  |
 | `country` | text |  |  |  |  |
-| `preferred_language` | text | ja | `de` |  |  |
+| `preferred_language` | text |  |  |  |  |
 | `startup_phase` | text |  |  |  |  |
 | `invite_code` | text |  |  |  |  |
 | `is_ambassador` | boolean | ja | `false` |  |  |
