@@ -26,22 +26,29 @@ export default async function ProfilPage() {
   // Person anlegen bzw. migrierte Person claimen (idempotent).
   await supabase.rpc("claim_or_create_person");
 
-  const [{ data: person }, { data: terms }, { data: interests }, { data: channels }] =
-    await Promise.all([
-      supabase
-        .from("person")
-        .select(
-          "first_name,last_name,birthdate,gender,nationality,country,preferred_language,phone,linkedin_url,occupation_status,work_experience,career_level,employer_type,employer_name,startup_phase,study_field,study_program,university,self_assessment",
-        )
-        .maybeSingle(),
-      supabase
-        .from("vocab_term")
-        .select("vocabulary,key,label_de,label_en,parent_key")
-        .eq("active", true)
-        .order("sort_order"),
-      supabase.from("person_interest").select("vocabulary,term_key"),
-      supabase.from("person_acquisition_channel").select("term_key"),
-    ]);
+  // Zuerst nur die Person: wer das Onboarding noch nicht hinter sich hat, wird
+  // dorthin geschickt — ein halbes Profil hilft weder dem Badge noch dem
+  // Matching. Das Vokabular für diese Seite zu laden wäre dann umsonst.
+  const { data: person } = await supabase
+    .from("person")
+    .select(
+      "first_name,last_name,birthdate,gender,nationality,country,preferred_language,phone,linkedin_url,occupation_status,work_experience,career_level,employer_type,employer_name,startup_phase,study_field,study_program,university,self_assessment",
+    )
+    .maybeSingle();
+
+  if (!person?.first_name?.trim() || !person?.last_name?.trim()) {
+    redirect("/onboarding");
+  }
+
+  const [{ data: terms }, { data: interests }, { data: channels }] = await Promise.all([
+    supabase
+      .from("vocab_term")
+      .select("vocabulary,key,label_de,label_en,parent_key")
+      .eq("active", true)
+      .order("sort_order"),
+    supabase.from("person_interest").select("vocabulary,term_key"),
+    supabase.from("person_acquisition_channel").select("term_key"),
+  ]);
 
   const allTerms = (terms ?? []) as Term[];
   const byVocab = (v: string): Opt[] =>
@@ -102,12 +109,6 @@ export default async function ProfilPage() {
       .map((i: { term_key: string }) => i.term_key),
     channels: (channels ?? []).map((c: { term_key: string }) => c.term_key),
   };
-
-  // Wer das Onboarding noch nicht hinter sich hat, wird dorthin geschickt —
-  // ein halbes Profil hilft weder dem Badge noch dem Matching.
-  if (!person?.first_name?.trim() || !person?.last_name?.trim()) {
-    redirect("/onboarding");
-  }
 
   return (
     <div className="max-w-[800px]">

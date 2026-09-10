@@ -183,7 +183,15 @@ export function SessionDrawer({
     setDraft((d) => ({ ...d, [key]: value }));
   }
 
+  // `session_title_chk` verlangt mindestens einen Titel — ohne ihn antwortet die
+  // Datenbank mit 23514. Das fangen wir hier ab, statt es als Fehler zu zeigen.
+  const titleMissing = draft.title_de.trim() === "";
+
   function save() {
+    if (titleMissing) {
+      toast("error", t.titleRequired);
+      return;
+    }
     startTransition(async () => {
       const res = await upsertSession({
         ...(id ? { id } : { event_id: eventId }),
@@ -253,6 +261,9 @@ export function SessionDrawer({
           person_id: s.person_id,
           role: s.role ?? "speaker",
           sort_order: i,
+          // Ohne `confirmed` müsste die RPC raten; sie behält dann den alten
+          // Wert, und die Oberfläche zeigte womöglich einen anderen.
+          confirmed: s.confirmed ?? false,
         })),
       );
       if (res.ok) setSpeakers(next);
@@ -272,7 +283,7 @@ export function SessionDrawer({
       title={id ? t.editSession : t.newSession}
       footer={
         <div className="flex flex-wrap gap-2">
-          <Button onClick={save} loading={pending}>
+          <Button onClick={save} loading={pending} disabled={titleMissing}>
             {t.save}
           </Button>
           {id && !isPublished && (
@@ -327,7 +338,13 @@ export function SessionDrawer({
           </div>
         )}
 
-        <Field label={t.titleDe} htmlFor="title_de" required requiredLabel={t.required}>
+        <Field
+          label={t.titleDe}
+          htmlFor="title_de"
+          required
+          requiredLabel={t.required}
+          hint={titleMissing ? t.titleRequired : undefined}
+        >
           <Input
             id="title_de"
             value={draft.title_de}

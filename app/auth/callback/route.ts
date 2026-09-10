@@ -15,7 +15,7 @@ import { safeNextPath } from "@/lib/areas";
  * Vorher hieß jeder Fehler „abgelaufen", was bei einer falschen Konfiguration
  * in die Irre führt.
  */
-type Reason = "expired" | "used" | "invalid" | "missing" | "auth";
+type Reason = "expired" | "invalid" | "missing" | "auth";
 
 /** Die Typen, die Supabase für `token_hash` kennt. */
 const OTP_TYPES = new Set<EmailOtpType>([
@@ -40,10 +40,14 @@ function firstToken(value: string | null): string | null {
   return token === "" ? null : token;
 }
 
+/**
+ * GoTrue meldet auch einen bereits benutzten Link als `otp_expired` — beides
+ * ist von außen nicht zu unterscheiden. Deshalb ein Grund für beide Fälle, und
+ * der Text auf der Login-Seite nennt sie zusammen.
+ */
 function classify(error: AuthError): Reason {
   const text = `${error.code ?? ""} ${error.message}`.toLowerCase();
   if (text.includes("expired")) return "expired";
-  if (text.includes("already") || text.includes("used")) return "used";
   if (text.includes("invalid") || text.includes("not found")) return "invalid";
   return "auth";
 }

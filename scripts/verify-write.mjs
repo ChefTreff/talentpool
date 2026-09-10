@@ -1,7 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { url, publicKey as anon, secretKey as svc, requireEnv } from "./supabase-env.mjs";
 
+// Das Skript braucht beides: den geheimen Schlüssel für `generateLink` und den
+// öffentlichen für den angemeldeten Client, mit dem geschrieben wird.
 requireEnv(true);
+requireEnv(false);
 
 const admin = createClient(url, svc, { auth: { persistSession: false } });
 const { data: link, error: le } = await admin.auth.admin.generateLink({ type: "magiclink", email: "konrad@chef-treff.de" });

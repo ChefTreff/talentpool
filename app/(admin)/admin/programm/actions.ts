@@ -158,10 +158,21 @@ export async function unpublishSession(
   return { ok: true, data: undefined };
 }
 
-/** Speaker einer Session komplett ersetzen. */
+/**
+ * Speaker einer Session komplett ersetzen.
+ *
+ * `confirmed` gehört mit in die Liste: die RPC behält den bisherigen Wert zwar,
+ * wenn der Schlüssel fehlt, aber dann kennt nur die Datenbank die Wahrheit. Die
+ * Oberfläche schickt, was sie anzeigt.
+ */
 export async function setSessionSpeakers(
   sessionId: string,
-  speakers: { person_id: string; role?: string; sort_order?: number }[],
+  speakers: {
+    person_id: string;
+    role?: string;
+    sort_order?: number;
+    confirmed?: boolean;
+  }[],
 ): Promise<ActionResult> {
   const supabase = await client();
   const { error } = await supabase.rpc("set_session_speakers", {
@@ -271,6 +282,9 @@ export async function loadQuestionCatalog(
     .from("question_catalog")
     .select("id,key,label_de,label_en,help_de,help_en,type")
     .eq("active", true)
+    // `file` (cv_upload) bräuchte einen Upload; bis der existiert (B4) würde die
+    // Frage im Bewerbungsformular als Textfeld landen. Lieber gar nicht anbieten.
+    .neq("type", "file")
     .order("sort_order");
 
   return ((data ?? []) as Record<string, string | null>[]).map((q) => ({

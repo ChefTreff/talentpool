@@ -101,7 +101,9 @@ export default async function OnboardingPage() {
   };
 
   return (
-    <>
+    // Der Wizard ist ein Formular: 800 px wie die Formularspalte im
+    // Design-Briefing (§4) und wie /profil, nicht die 1200 des Bereichs.
+    <div className="max-w-[800px]">
       <PageHeader
         eyebrow={t.onboarding.eyebrow}
         title={t.onboarding.title}
@@ -137,6 +139,6 @@ export default async function OnboardingPage() {
         }}
         messages={t.messages}
       />
-    </>
+    </div>
   );
 }

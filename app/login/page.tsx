@@ -14,6 +14,15 @@ export default async function LoginPage({
   const safeNext = safeNextPath(next, "");
   const { t } = await getI18n();
 
+  // `error` kommt aus der URL. Ein Zugriff `t.login.errors[error]` würde bei
+  // `?error=__proto__` oder `?error=constructor` die Prototypkette treffen und
+  // ein Objekt an die Client-Komponente reichen — deshalb nur eigene Schlüssel.
+  const authError = error
+    ? Object.hasOwn(t.login.errors, error)
+      ? t.login.errors[error as keyof typeof t.login.errors]
+      : t.login.errors.auth
+    : undefined;
+
   return (
     <>
       <AppHeader />
@@ -23,7 +32,7 @@ export default async function LoginPage({
       >
         <LoginForm
           next={safeNext}
-          authError={error ? (t.login.errors[error as keyof typeof t.login.errors] ?? t.login.errors.auth) : undefined}
+          authError={authError}
           labels={{
             title: t.login.title,
             lead: t.login.lead,

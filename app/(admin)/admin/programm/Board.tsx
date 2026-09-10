@@ -141,9 +141,11 @@ export function Board({
   // Authentifizierte offen; ein Broadcast trägt ohnehin keine Daten, aber wer
   // am Board arbeitet, soll auch nur dort mithören.
   //
-  // Postgres-Changes wären das Naheliegende, doch `slot`/`session` stehen nicht
-  // in der Realtime-Publikation (das wäre eine Migration). Deshalb meldet jede
-  // erfolgreiche Änderung selbst — `notifyPeers()` bleibt der Weg.
+  // Gesendet wird aus der Datenbank: Trigger auf `slot`, `session` und
+  // `session_speaker` rufen `realtime.send(..., 'changed', 'programme-board:<event>')`
+  // (Migration `v2_board_realtime_questions`). Damit kommt auch an, was nicht
+  // über diese Oberfläche läuft. `notifyPeers()` bleibt als Fallback, falls
+  // `realtime.send` im Projekt fehlt.
   const channelName = `programme-board:${currentEventId}`;
   const channelRef = useRef<RealtimeChannel | null>(null);
 

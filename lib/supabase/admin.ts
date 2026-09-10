@@ -5,12 +5,16 @@ import { supabaseUrl } from "./env";
  * Der geheime Server-Schlüssel: klassischer `service_role`-JWT oder der neue
  * Secret Key der Vercel↔Supabase-Integration. Der Zugriff steht bewusst nur
  * hier — diese Datei wird nie aus dem Browser importiert.
+ *
+ * Beide Namen sind in Vercel sensibel, `vercel env pull` schreibt für sie den
+ * Platzhalter `[SENSITIVE]`. Deshalb entscheidet nicht die Reihenfolge, sondern
+ * das Format: gewonnen hat der erste Wert, der wie ein Schlüssel aussieht.
  */
-function serviceKey(): string | undefined {
-  return (
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SECRET_KEY ||
-    undefined
+const SECRET_NAMES = ["SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"] as const;
+
+function secretCandidates(): string[] {
+  return SECRET_NAMES.map((name) => process.env[name]?.trim()).filter(
+    (value): value is string => Boolean(value),
   );
 }
 
@@ -36,16 +40,17 @@ function looksLikeKey(value: string): boolean {
  */
 export function createSupabaseAdminClient() {
   const url = supabaseUrl();
-  const secret = serviceKey();
+  const candidates = secretCandidates();
+  const secret = candidates.find(looksLikeKey);
 
-  if (!url || !secret) {
+  if (!url || candidates.length === 0) {
     throw new Error(
       "Supabase-Zugang fehlt: NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY " +
         "(oder SUPABASE_SECRET_KEY) nur serverseitig setzen.",
     );
   }
 
-  if (!looksLikeKey(secret)) {
+  if (!secret) {
     throw new Error(
       "Der geheime Supabase-Schlüssel hat kein gültiges Format (erwartet `sb_secret_…` " +
         "oder einen JWT `eyJ…`). Das ist ein Platzhalter aus `vercel env pull` — sensible " +

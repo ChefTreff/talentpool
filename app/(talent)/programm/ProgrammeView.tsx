@@ -141,15 +141,13 @@ export function ProgrammeView({
     [labels.format, sessions],
   );
 
+  // Eine Kollision meldet nur `confirm_application`; `onConfirm` hat dafür den
+  // eigenen Weg (es braucht die Bewerbung, nicht das RPC-Detail).
   function handle<T>(res: TalentResult<T>, okText: string, onOk?: (data: T) => void) {
     if (res.ok) {
       toast("success", okText);
       onOk?.(res.data);
       router.refresh();
-      return;
-    }
-    if (res.key === "collision") {
-      setCollision(res.detail ?? "");
       return;
     }
     toast("error", message(res.key));
@@ -538,6 +536,15 @@ function SessionAction({
       </Button>
     );
   }
+  // Zurückgezogen oder abgelaufen ist kein Endzustand: `apply_to_session`
+  // erlaubt genau aus diesen beiden Ständen eine neue Bewerbung.
+  if (application.status === "withdrawn" || application.status === "expired") {
+    return (
+      <Button size="sm" disabled={pending || deadlinePassed} onClick={onApply}>
+        {deadlinePassed ? t.deadlineOver : t.applyAgain}
+      </Button>
+    );
+  }
   return null;
 }
 
@@ -597,6 +604,19 @@ function ApplyDialog({
                   }))}
                   onChange={(e) => set(e.target.value)}
                 />
+              ) : q.type === "boolean" ? (
+                // Ja/Nein als Auswahl statt Häkchen: „nicht beantwortet" und
+                // „nein" sind zwei verschiedene Antworten, das Häkchen kennt nur eine.
+                <Select
+                  id={id}
+                  value={answers[q.key] ?? ""}
+                  placeholder={t.choose}
+                  options={[
+                    { value: "true", label: t.yes },
+                    { value: "false", label: t.no },
+                  ]}
+                  onChange={(e) => set(e.target.value)}
+                />
               ) : q.type === "long_text" || q.type === "textarea" ? (
                 <Textarea
                   id={id}
@@ -607,7 +627,7 @@ function ApplyDialog({
               ) : (
                 <Input
                   id={id}
-                  type={q.type === "url" ? "url" : "text"}
+                  type={q.type === "url" ? "url" : q.type === "number" ? "number" : "text"}
                   value={answers[q.key] ?? ""}
                   onChange={(e) => set(e.target.value)}
                 />

@@ -9,6 +9,7 @@ import type {
   MyApplication,
   ProgrammeSession,
   QuestionOption,
+  RawQuestionOption,
   SessionQuestion,
 } from "./types";
 
@@ -57,7 +58,7 @@ export default async function ProgrammPage() {
     label_de: string | null;
     label_en: string | null;
     type: string | null;
-    options: QuestionOption[] | null;
+    options: RawQuestionOption[] | null;
     required: boolean;
     question_catalog: {
       label_de: string | null;
@@ -65,12 +66,26 @@ export default async function ProgrammPage() {
       help_de: string | null;
       help_en: string | null;
       type: string | null;
-      options: QuestionOption[] | null;
+      options: RawQuestionOption[] | null;
     } | null;
   };
 
   const pick = (own: string | null, fromCatalog: string | null | undefined) =>
     own?.trim() ? own : (fromCatalog ?? null);
+
+  /**
+   * Der Schlüssel einer Option heißt im Katalog `key`, in eigenen Fragen
+   * `value`. Ohne diese Auflösung landete der Labeltext als Antwort in der
+   * Datenbank. Optionen ohne Schlüssel fallen weg — sie wären nicht auswertbar.
+   */
+  const options = (raw: RawQuestionOption[] | null | undefined): QuestionOption[] | null => {
+    if (!Array.isArray(raw)) return null;
+    const list = raw
+      .map((o) => ({ ...o, value: o.key ?? o.value }))
+      .filter((o): o is RawQuestionOption & { value: string } => Boolean(o.value))
+      .map(({ value, label_de, label_en }) => ({ value, label_de, label_en }));
+    return list.length > 0 ? list : null;
+  };
 
   const questions: SessionQuestion[] = ((questionRows ?? []) as unknown as RawQuestion[]).map(
     (q) => {
@@ -86,7 +101,7 @@ export default async function ProgrammPage() {
         label: label ?? "—",
         help: help ?? null,
         type: q.type ?? cat?.type ?? "text",
-        options: q.options ?? cat?.options ?? null,
+        options: options(q.options) ?? options(cat?.options),
         required: q.required,
       };
     },

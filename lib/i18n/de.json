@@ -133,8 +133,7 @@
     "sentTitle": "Link unterwegs",
     "sentBody": "Wir haben dir einen Login-Link geschickt an",
     "errors": {
-      "expired": "Der Link ist abgelaufen. Fordere einen neuen an.",
-      "used": "Der Link wurde schon benutzt. Fordere einen neuen an.",
+      "expired": "Der Link ist abgelaufen oder wurde schon benutzt. Fordere einen neuen an.",
       "invalid": "Der Link passt nicht (mehr). Fordere einen neuen an.",
       "missing": "Der Link war unvollständig — vermutlich beim Kopieren abgeschnitten.",
       "auth": "Die Anmeldung hat nicht geklappt. Bitte noch einmal versuchen."
@@ -236,6 +235,7 @@
     "cancelRegistration": "Anmeldung stornieren",
     "registrationCancelled": "Anmeldung storniert",
     "apply": "Bewerben",
+    "applyAgain": "Erneut bewerben",
     "applied": "Bewerbung eingegangen",
     "withdraw": "Zurückziehen",
     "withdrawn": "Zurückgezogen",
@@ -250,6 +250,8 @@
     "consentShare": "Meine Bewerbung darf dem gastgebenden Partner gezeigt werden.",
     "required": "Pflichtfeld",
     "choose": "— bitte wählen —",
+    "yes": "Ja",
+    "no": "Nein",
     "collisionTitle": "Terminüberschneidung",
     "collisionBody": "Du hast zur selben Zeit schon einen bestätigten Platz. Wenn du hier bestätigst, wird der andere zurückgezogen.",
     "collisionReplace": "Hier bestätigen, anderen freigeben"
@@ -315,6 +317,7 @@
       "confirmHoursHint": "Zeit ab Freigabe, um die Zusage zu bestätigen.",
       "ticketRequired": "Ticket erforderlich",
       "required": "Pflichtfeld",
+      "titleRequired": "Ohne Titel (DE) lässt sich die Session nicht speichern.",
       "speakers": "Speaker",
       "noSpeakers": "Noch keine Speaker zugeordnet.",
       "addSpeaker": "Speaker hinzufügen",

@@ -38,6 +38,19 @@ export type MyApplication = {
   updated_at: string;
 };
 
+/**
+ * So liegt eine Option in der Datenbank: `question_catalog.options` ist als
+ * `[{key,label_de,label_en}]` dokumentiert, ältere eigene Fragen tragen
+ * stattdessen `value`. Der Server macht daraus eine `QuestionOption`.
+ */
+export type RawQuestionOption = {
+  key?: string;
+  value?: string;
+  label_de?: string;
+  label_en?: string;
+};
+
+/** Aufgelöst fürs Formular: `value` ist genau das, was in der Antwort landet. */
 export type QuestionOption = { value: string; label_de?: string; label_en?: string };
 
 /**
