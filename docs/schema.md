@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 11:38 UTC · 44 Tabellen · 6 Views · 116 Funktionen
+> Stand: 2026-09-10 11:57 UTC · 44 Tabellen · 6 Views · 127 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -743,7 +743,7 @@ Ticket aus vivenu (Barcode = QR) oder Freiticket (Crew/Speaker). Badge-Felder we
 | `person_id` | uuid |  |  | `person.id` |  |
 | `ticket_type_map_id` | uuid |  |  | `ticket_type_map.id` |  |
 | `pass_type` | text |  |  |  |  |
-| `barcode` | text | ja |  |  |  |
+| `barcode` | text |  |  |  | QR aus vivenu. NULL, solange ein Freiticket noch nicht ausgestellt ist (Status requested/approved). |
 | `vivenu_ticket_id` | text |  |  |  |  |
 | `vivenu_transaction_id` | text |  |  |  |  |
 | `vivenu_customer_id` | text |  |  |  |  |
@@ -764,6 +764,12 @@ Ticket aus vivenu (Barcode = QR) oder Freiticket (Crew/Speaker). Badge-Felder we
 | `checked_in_at` | timestamp with time zone |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `speaker_profile_id` | uuid |  |  | `speaker_profile.id` | Freiticket aus dem Speaker-Portal: eigenes Ticket (source speaker) oder Begleitticket (source speaker_companion). |
+| `lounge_access` | boolean | ja | `false` |  | Speaker-Lounge; aus speaker_profile.lounge_access, Begleittickets nie. |
+| `team_note` | text |  |  |  | Hinweis des Teams an den Anfragenden (Ablehnungsgrund, Rückfrage). |
+| `requested_by` | uuid |  |  | `person.id` |  |
+| `approved_by` | uuid |  |  | `person.id` |  |
+| `approved_at` | timestamp with time zone |  |  |  |  |
 
 ### `ticket_type_map`
 vivenu-Tickettyp ↔ Pass-Typ ↔ Swapcard-Gruppe/Rechte (Antwort 53: eine Gruppe je Pass-Typ).
@@ -934,19 +940,23 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_edit_slot` | p_slot_id: uuid |
 | `can_edit_stage` | p_stage_id: uuid |
 | `can_manage_speaker` | p_profile_id: uuid |
+| `cancel_companion_ticket` | p_ticket_id: uuid |
 | `cancel_hospitality` | p_booking_id: uuid |
 | `cancel_registration` | p_session_id: uuid |
 | `claim_or_create_person` | args: ? |
 | `confirm_application` | p_application_id: uuid, p_replace_conflicting: boolean |
+| `confirm_companion_ticket` | p_note: text, p_ticket_id: uuid |
 | `confirm_hospitality` | p_booking_id: uuid, p_note: text |
 | `create_slot` | p_end: timestamp with time zone, p_session_id: uuid, p_slot_type: text, p_source_ref: text, p_stage_id: uuid, p_start: timestamp with time zone |
 | `current_person_id` | args: ? |
 | `decide_application` | p_application_id: uuid, p_rank: integer, p_status: text |
 | `decisions_released` | p_session_id: uuid |
+| `decline_companion_ticket` | p_note: text, p_ticket_id: uuid |
 | `decline_hospitality` | p_booking_id: uuid, p_note: text |
 | `delete_my_profile` | args: ? |
 | `detach_session` | p_session_id: uuid |
 | `email_hash` | p_email: text |
+| `ensure_speaker_ticket` | p_profile_id: uuid |
 | `expense_bank_details` | p_claim_id: uuid |
 | `expense_eligibility` | p_profile_id: uuid |
 | `expense_queue` | p_edition_id: uuid |
@@ -990,6 +1000,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_speaker_assets` | p_profile_id: uuid |
 | `my_speaker_profile` | p_edition_id: uuid |
 | `my_speaker_profile_id` | p_edition_id: uuid |
+| `my_speaker_tickets` | p_edition_id: uuid |
+| `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `pending_submissions` | p_event_id: uuid |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
 | `presentation_window` | p_session_id: uuid |
@@ -1002,6 +1014,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `reject_session_content` | p_note: text, p_submission_id: uuid |
 | `release_decisions` | p_note: text, p_session_id: uuid |
 | `remove_assistant` | p_profile_id: uuid |
+| `request_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
 | `revoke_role` | p_assignment_id: uuid, p_note: text |
 | `roles_of_person` | p_person_id: uuid |
 | `run_application_housekeeping` | args: ? |
@@ -1019,9 +1032,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
 | `set_speaker_pipeline` | p_profile_id: uuid, p_status: text |
 | `set_tech_check` | p_asset_id: uuid, p_note: text, p_status: text |
+| `set_ticket_issued` | p_barcode: text, p_ticket_id: uuid, p_ticket_type_map_id: uuid, p_vivenu_ticket_id: text, p_vivenu_transaction_id: text |
 | `slot_has_published_session` | p_slot_id: uuid |
 | `speaker_asset_path_allowed` | p_name: text |
+| `speaker_is_confirmed` | p_status: text |
 | `speaker_next_steps` | p_profile_id: uuid |
+| `speaker_ticket_create` | p_profile_id: uuid |
+| `speaker_tickets_admin` | p_edition_id: uuid |
 | `submit_expense` | p_claim_id: uuid |
 | `submit_session_content` | p_data: jsonb, p_session_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
