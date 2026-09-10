@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 16:26 UTC · 49 Tabellen · 6 Views · 148 Funktionen
+> Stand: 2026-09-10 16:42 UTC · 52 Tabellen · 6 Views · 161 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -42,6 +42,24 @@ Admin-/Manager-Aktionen, Partner-Zugriffe auf Bewerberdaten, Exporte. Nur servic
 | `after` | jsonb |  |  |  |  |
 | `ip_hash` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `booth`
+Stand je Partner × Edition (Nummer, Fläche, Rückwand-Maße); Team pflegt, Partner liest. Produktionsdetails folgen in Welle 4.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_edition_id` | uuid | ja |  | `org_edition.id` |  |
+| `booth_number` | text |  |  |  |  |
+| `booth_type` | text |  |  |  |  |
+| `segment` | text |  |  |  |  |
+| `length_m` | numeric |  |  |  |  |
+| `width_m` | numeric |  |  |  |  |
+| `backdrop_w_mm` | integer |  |  |  |  |
+| `backdrop_h_mm` | integer |  |  |  |  |
+| `notes` | text |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `checkin`
 Scan-Ereignisse (Kiosk-Rolle). Setup Einlass offen (vivenu-Support Frage 11).
@@ -103,6 +121,28 @@ Erst nach Freigabe werden Zusagen/Absagen sichtbar und Mails ausgelöst (Antwort
 | `released_by` | uuid |  |  | `person.id` |  |
 | `released_at` | timestamp with time zone | ja | `now()` |  |  |
 | `note` | text |  |  |  |  |
+
+### `deliverable`
+Pflicht eines Partners je Edition, abgeleitet aus deliverable_template × gebuchte Leistungen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_edition_id` | uuid | ja |  | `org_edition.id` |  |
+| `template_id` | uuid | ja |  | `deliverable_template.id` |  |
+| `key` | text | ja |  |  |  |
+| `product_sku` | text |  |  | `product.sku` |  |
+| `status` | text | ja | `open` |  |  |
+| `due_at` | timestamp with time zone |  |  |  |  |
+| `submitted_at` | timestamp with time zone |  |  |  |  |
+| `submitted_by` | uuid |  |  | `person.id` |  |
+| `asset_ids` | uuid[] | ja |  |  |  |
+| `answers` | jsonb | ja |  |  |  |
+| `reviewed_by` | uuid |  |  | `person.id` |  |
+| `reviewed_at` | timestamp with time zone |  |  |  |  |
+| `review_note` | text |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `deliverable_template`
 Checklisten-Vorlagen je Produkt/Kategorie/alle; daraus entstehen die Pflichten (deliverable) einer Partner-Organisation.
@@ -383,6 +423,29 @@ Partner, Startups, Initiativen, Hochschulen, Agenturen. HubSpot-Company über hu
 | `website` | text |  |  |  |  |
 | `active` | boolean | ja | `true` |  |  |
 | `sevdesk_contact_id` | text |  |  |  |  |
+
+### `partner_asset`
+Dateien einer Partner-Organisation im Bucket partner-assets (Pfad <edition>/<org>/<kind>/<datei>), versioniert.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_edition_id` | uuid | ja |  | `org_edition.id` |  |
+| `deliverable_id` | uuid |  |  | `deliverable.id` |  |
+| `kind` | text | ja |  |  |  |
+| `storage_path` | text | ja |  |  |  |
+| `filename` | text | ja |  |  |  |
+| `mime` | text |  |  |  |  |
+| `size_bytes` | bigint |  |  |  |  |
+| `version` | integer | ja | `1` |  |  |
+| `is_current` | boolean | ja | `true` |  |  |
+| `status` | text | ja | `pending` |  |  |
+| `review_note` | text |  |  |  |  |
+| `reviewed_by` | uuid |  |  | `person.id` |  |
+| `reviewed_at` | timestamp with time zone |  |  |  |  |
+| `uploaded_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `person`
 Eine natürliche Person = ein Datensatz. Login-Verknüpfung über auth_user_id.
@@ -1071,6 +1134,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `decline_companion_ticket` | p_note: text, p_ticket_id: uuid |
 | `decline_hospitality` | p_booking_id: uuid, p_note: text |
 | `delete_my_profile` | args: ? |
+| `deliverable_due` | p_oe: public.org_edition, p_template: public.deliverable_template |
 | `detach_session` | p_session_id: uuid |
 | `email_hash` | p_email: text |
 | `ensure_speaker_ticket` | p_profile_id: uuid |
@@ -1112,6 +1176,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `mark_expense_paid` | p_claim_id: uuid, p_payment_ref: text |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_applications` | args: ? |
+| `my_deliverables` | p_edition_id: uuid, p_org_id: uuid |
 | `my_expense_claims` | args: ? |
 | `my_hospitality` | p_edition_id: uuid |
 | `my_manager_scope` | args: ? |
@@ -1124,10 +1189,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_speaker_tickets` | p_edition_id: uuid |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `partner_admin_overview` | p_edition_id: uuid |
+| `partner_asset_path_allowed` | p_name: text, p_write: boolean |
 | `partner_can_edit` | p_org_id: uuid |
 | `partner_can_manage_contacts` | p_org_id: uuid |
 | `partner_contacts` | p_org_id: uuid |
+| `partner_onboarding_recheck` | p_org_edition_id: uuid |
 | `partner_overview` | p_edition_id: uuid, p_org_id: uuid |
+| `partner_review_queue` | p_edition_id: uuid |
 | `partner_roles` | p_org_id: uuid |
 | `partner_set_onboarding_status` | p_edition_id: uuid, p_org_id: uuid, p_status: text |
 | `pending_submissions` | p_event_id: uuid |
@@ -1137,6 +1205,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `publish_session` | p_session_id: uuid |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `register_for_session` | p_session_id: uuid |
+| `register_partner_asset` | p_deliverable_id: uuid, p_edition_id: uuid, p_filename: text, p_kind: text, p_mime: text, p_org_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `register_speaker_asset` | p_filename: text, p_kind: text, p_mime: text, p_profile_id: uuid, p_session_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `reject_expense` | p_claim_id: uuid, p_note: text |
 | `reject_session_content` | p_note: text, p_submission_id: uuid |
@@ -1144,6 +1213,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `remove_assistant` | p_profile_id: uuid |
 | `remove_partner_contact` | p_org_id: uuid, p_person_id: uuid |
 | `request_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
+| `resync_deliverables` | p_edition_id: uuid |
+| `review_deliverable` | p_accepted: boolean, p_deliverable_id: uuid, p_note: text |
 | `revoke_role` | p_assignment_id: uuid, p_note: text |
 | `roles_of_person` | p_person_id: uuid |
 | `run_application_housekeeping` | args: ? |
@@ -1170,14 +1241,19 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_next_steps` | p_profile_id: uuid |
 | `speaker_ticket_create` | p_profile_id: uuid |
 | `speaker_tickets_admin` | p_edition_id: uuid |
+| `submit_deliverable` | p_answers: jsonb, p_asset_ids: uuid[], p_deliverable_id: uuid |
 | `submit_expense` | p_claim_id: uuid |
 | `submit_session_content` | p_data: jsonb, p_session_id: uuid |
+| `sync_deliverables` | p_org_edition_id: uuid |
+| `template_applies` | p_org_edition_id: uuid, p_template: public.deliverable_template |
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
 | `update_my_speaker_profile` | p_data: jsonb |
 | `update_partner_onboarding` | p_data: jsonb, p_edition_id: uuid, p_org_id: uuid |
 | `update_speaker` | p_data: jsonb, p_profile_id: uuid |
+| `upsert_booth` | p_data: jsonb, p_edition_id: uuid, p_org_id: uuid |
 | `upsert_deadline` | p_data: jsonb |
+| `upsert_deliverable_template` | p_data: jsonb |
 | `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |
 | `upsert_partner_contact` | p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_position: text, p_roles: text[] |
