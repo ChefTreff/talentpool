@@ -185,7 +185,12 @@ export function SessionDrawer({
 
   // `session_title_chk` verlangt mindestens einen Titel — ohne ihn antwortet die
   // Datenbank mit 23514. Das fangen wir hier ab, statt es als Fehler zu zeigen.
+  //
+  // Den Hinweis erst zeigen, wenn der Entwurf steht: beim Öffnen einer
+  // bestehenden Session ist er einen Wimpernschlag lang leer, und „ohne Titel
+  // nicht speicherbar" wäre da schlicht falsch.
   const titleMissing = draft.title_de.trim() === "";
+  const draftLoaded = sessionId === null || detail !== null;
 
   function save() {
     if (titleMissing) {
@@ -343,7 +348,7 @@ export function SessionDrawer({
           htmlFor="title_de"
           required
           requiredLabel={t.required}
-          hint={titleMissing ? t.titleRequired : undefined}
+          hint={draftLoaded && titleMissing ? t.titleRequired : undefined}
         >
           <Input
             id="title_de"

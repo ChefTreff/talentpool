@@ -414,7 +414,15 @@ export function Board({
         <span className="ml-auto ct-help">{t.hint}</span>
       </div>
 
-      <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+      <DndContext
+        // Fester Name statt dnd-kits fortlaufender Nummer: die zaehlt im Browser
+        // je Mount hoch, der Server beginnt bei 0 — daraus wurde bei jedem Laden
+        // ein Hydration-Fehler in `aria-describedby`.
+        id="programme-board"
+        sensors={sensors}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+      >
         {/* Backlog */}
         <section
           aria-label={t.backlog}
