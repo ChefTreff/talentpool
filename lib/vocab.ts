@@ -19,9 +19,14 @@ export async function loadVocabMap(
   client: SupabaseClient,
   locale: Locale = DEFAULT_LOCALE,
 ): Promise<VocabMap> {
+  // Sortiert laden: `vgroup()` gibt die Reihenfolge unverändert an die
+  // Auswahllisten weiter, und dort soll „Bahn, Flug, Auto …" stehen und nicht,
+  // was die Datenbank gerade zuerst liefert.
   const { data } = await client
     .from("vocab_term")
-    .select("vocabulary,key,label_de,label_en");
+    .select("vocabulary,key,label_de,label_en")
+    .order("vocabulary")
+    .order("sort_order");
   const m = new Map<string, string>();
   for (const t of (data ?? []) as Term[]) {
     m.set(`${t.vocabulary}:${t.key}`, pickLabel(t, locale));
