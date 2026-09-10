@@ -313,3 +313,7 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 
 ## 2026-09-10 — Secret Shop je Partner per vivenu-API bestätigt
 - Prüfung im eingeloggten Dev-Dashboard und in der API-Doku (siehe `docs/vivenu-support-anfrage.md`, Nachtrag): Undershops sind `underShops[]` am Event und werden über `PUT /api/events/{id}` angelegt; ein Coupon mit `unlocks[{eventId, underShopId}]` schaltet den Shop frei, `maxTickets`/`allowedTickets` bilden das Kontingent. **Entscheidung 8 (Welle 3) damit: Secret Shop wird gebaut**, Coupon allein nur als Fehler-Fallback. Regel: nur unsere Route schreibt das `underShops`-Array (serialisiert je Event, idempotent), nie parallel aus dem Dashboard während eines Ingests.
+
+## 2026-09-10 — vivenu-Antwort zur Bestätigungsseite eingearbeitet
+- vivenu bestätigt den Ansatz „eigene Bestätigungsseite + Personalisierung bei uns": Custom Confirmation Page URL je Event, Redirect mit **`?transactionId=`** (Welle 1 B4 liest diesen Parameter statt `tx`), Transaktion und Tickets per API, Rückschreiben über `POST /api/tickets/personalize/{id}/{secret}`; Zusatzfelder werden aus `event.ticketExtraFields` nach vivenus Filterregeln abgeleitet (in `docs/vivenu-support-anfrage.md`). Das eingebettete Ticket-Modal bleibt Rückfalloption, nicht der Standard: unser Formular bestimmt Design, Sprache und Datenminimierung.
+- Offene Punkte (Inhaber-E-Mail, DETAILSREQUIRED, Ticket-Mail, Webhook-Signatur/Retry/Event-ID, Freitickets, Undershops in Serie, Add-ons, `meta`, Sandbox, Kaution, Einlass) gehen als **eine Sammelmail** an vivenu.
