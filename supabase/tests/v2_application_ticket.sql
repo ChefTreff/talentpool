@@ -88,6 +88,21 @@ begin
     insert into t_res values ('17_custom_question_limit', 'ALLOWED (BUG)');
   exception when others then insert into t_res values ('17_custom_question_limit', 'rejected ' || sqlstate); end;
   insert into t_res values ('18_audit_rows', (select count(*)::text from audit_log where action like 'application.%' or action = 'ticket.personalize'));
+  -- Mails (0020): Warteschlange in mail_log, ausgelöst durch Trigger
+  insert into t_res values ('19_mail_received', (select count(*)::text from mail_log where template_key = 'application_received' and related_id = v_app));
+  insert into t_res values ('20_mail_accepted_after_release', (select count(*)::text || ' | confirm_by=' || coalesce((select (meta->'vars'->>'confirm_by') from mail_log where template_key = 'application_accepted' and related_id = v_app limit 1), 'NULL') from mail_log where template_key = 'application_accepted' and related_id = v_app));
+  insert into t_res values ('21_mail_not_before_release', (select count(*)::text from mail_log where related_id = v_app2 and template_key in ('application_accepted') and queued_at < (select released_at from decision_release where session_id = v_sess_app2)));
+  insert into t_res values ('22_mail_registration_confirmed', (select count(*)::text from mail_log where template_key = 'registration_confirmed' and person_id = v_pid));
+  insert into t_res values ('23_mail_vars', (select coalesce(meta->'vars'->>'session_title', '-') || ' @ ' || coalesce(meta->'vars'->>'session_time', '-') || ' | locale=' || locale from mail_log where template_key = 'application_received' and related_id = v_app));
+  -- Housekeeping: Frist in der Vergangenheit -> expired, Warteliste rückt nach
+  update application set status = 'accepted', confirmed_at = null, confirm_by = now() - interval '1 hour' where id = v_app2; -- Zusage offen, Frist verstrichen
+  insert into person (first_name) values ('Wartend') returning id into v_other;
+  insert into person_email (person_id, email, is_primary) values (v_other, 'wartend-' || v_other::text || '@example.com', true);
+  insert into application (session_id, person_id, status) values (v_sess_app2, v_other, 'waitlisted');
+  update session set capacity = 1 where id = v_sess_app2;
+  perform set_config('request.jwt.claims', '', true);
+  insert into t_res values ('24_housekeeping', run_application_housekeeping()::text || ' | app2=' || (select status from application where id = v_app2) || ' | wartend=' || (select status from application where session_id = v_sess_app2 and person_id = v_other));
+  insert into t_res values ('25_mail_promoted', (select count(*)::text from mail_log where template_key = 'application_promoted' and person_id = v_other));
 end $$;
 select * from t_res order by step;
 rollback;

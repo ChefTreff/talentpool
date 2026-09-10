@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 06:42 UTC · 37 Tabellen · 6 Views · 50 Funktionen
+> Stand: 2026-09-10 07:51 UTC · 37 Tabellen · 6 Views · 54 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -778,15 +778,19 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_suppressed` | p_email: text |
 | `is_u35` | p_birthdate: date, p_ref: date |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
+| `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_applications` | args: ? |
 | `my_roles` | args: ? |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |
 | `publish_session` | p_session_id: uuid |
+| `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `register_for_session` | p_session_id: uuid |
 | `release_decisions` | p_note: text, p_session_id: uuid |
+| `run_application_housekeeping` | args: ? |
 | `session_context` | args: ? |
+| `session_mail_vars` | p_locale: text, p_session_id: uuid |
 | `session_speakers_public` | p_session_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |

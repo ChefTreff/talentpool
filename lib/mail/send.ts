@@ -32,12 +32,12 @@ export type SendResult = {
 const DEFAULT_FROM = "noreply@chef-treff.de";
 
 /** `RESEND_FROM` steht als blanke Adresse in der Env — Anzeigename hier ergänzen. */
-function senderAddress(): string {
+export function senderAddress(): string {
   const raw = (process.env.RESEND_FROM ?? DEFAULT_FROM).trim();
   return raw.includes("<") ? raw : `ChefTreff <${raw}>`;
 }
 
-type AdminClient = ReturnType<typeof createSupabaseAdminClient>;
+export type AdminClient = ReturnType<typeof createSupabaseAdminClient>;
 
 type MailLogRow = {
   template_key: string;
@@ -204,7 +204,7 @@ async function hashEmail(admin: AdminClient, email: string): Promise<string | nu
  * Vorlage aus der Datenbank; `mail_template` ist kanonisch (Migration 0013).
  * `BUILTIN_TEMPLATES` fängt nur den Fall ab, dass ein Key dort (noch) fehlt.
  */
-async function loadTemplate(
+export async function loadTemplate(
   admin: AdminClient,
   key: string,
   locale: Locale,

@@ -29,3 +29,8 @@
 | Datum | Wer | Ergebnis |
 |---|---|---|
 | TODO | | |
+
+## Cron (Vercel)
+- `vercel.json` → `crons`: `/api/cron/mail` alle 10 Minuten (Bewerbungs-Fristen, Warteliste, Mail-Warteschlange). Vercel ruft die Route mit `Authorization: Bearer <CRON_SECRET>` auf; ohne gesetzte Variable antwortet die Route 401 und tut nichts.
+- Prüfen nach dem Deploy: Vercel → Project → Settings → Cron Jobs (Lauf-Historie) oder manuell `curl -H "Authorization: Bearer $CRON_SECRET" https://<host>/api/cron/mail` → JSON mit `housekeeping` und `queue` (processed/sent/failed/suppressed; `skipped` nennt fehlende Env).
+- Offene Aufträge: `select id, template_key, to_email, status, error, queued_at from mail_log where status in ('queued','failed') order by queued_at;` — `failed` nach drei Versuchen; zum erneuten Versuch `status = 'queued'` setzen und `meta - 'attempts'`.

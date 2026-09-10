@@ -16,7 +16,8 @@ import { supabaseAnonKey, supabaseUrl } from "@/lib/supabase/env";
 
 /** Öffentlich erreichbar, auch ohne Login (Arbeitsauftrag B6). */
 const PUBLIC_PATHS = ["/", "/login", "/tickets/bestaetigung"];
-const PUBLIC_PREFIXES = ["/auth/"];
+// `/api/cron/` prüft das Vercel-Cron-Secret selbst; ohne Ausnahme würde der Proxy den Cron zum Login umleiten.
+const PUBLIC_PREFIXES = ["/auth/", "/api/cron/"];
 
 function isPublic(pathname: string): boolean {
   return (

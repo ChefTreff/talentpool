@@ -46,6 +46,16 @@ while IFS= read -r line || [ -n "$line" ]; do
   printf '%s\n' "$line" >> "$out"
 done < "$tmp"
 
+# Lokal ergänzte Variablen (z. B. CRON_SECRET für den Dev-Server), die Vercel nicht liefert, bleiben erhalten.
+if [ -f .env.local ]; then
+  extra=""
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      [A-Z_]*=*) name="${line%%=*}"; grep -qE "^$name=" "$out" || extra="$extra$line\n" ;;
+    esac
+  done < .env.local
+  if [ -n "$extra" ]; then printf "\n# lokal ergänzt (nicht aus Vercel)\n$extra" >> "$out"; echo "Lokal ergänzte Variablen bewahrt: $(printf "$extra" | cut -d= -f1 | tr "\n" " ")"; fi
+fi
 cp "$out" .env.local
 echo ".env.local aktualisiert ($ENVIRONMENT): $(grep -cE '^[A-Z_]+=' .env.local) Variablen."
 [ -n "$kept" ] && echo "Lokal eingetragene Werte bewahrt:$kept"

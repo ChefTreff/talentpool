@@ -17,7 +17,7 @@
 | Bewerbung & Anmeldung | `question_catalog`, `session_question` (max. 2 eigene), `application`, `decision_release`, `registration` (+ session_id) | Talent: `apply_to_session`, `withdraw_application`, `confirm_application` (Ticketpflicht, Kollision → `p_replace_conflicting`), `register_for_session`, `cancel_registration`, `my_applications()` (maskiert bis Freigabe) · Entscheider: `decide_application`, `release_decisions`, `promote_waitlist`, `expire_overdue_applications` |
 | Tickets | `ticket_type_map`, `ticket`, `org_ticket_allocation`, `checkin` | `personalize_ticket` (Käufer/Inhaber, für mich oder andere Person) |
 | Integration | `integration.webhook_event` (unique Quelle+ID), `integration.sync_job`, `integration.sync_error`, `external_ref` | — (Route Handler schreiben über service_role) |
-| Kommunikation | `mail_template` (key × locale), `mail_log` | `is_suppressed()` (nur service_role) |
+| Kommunikation | `mail_template` (key × locale), `mail_log` (auch **Warteschlange**: Status `queued` + `meta.vars`, `related_type`/`related_id`) | `is_suppressed()` (nur service_role) · `queue_mail()` (intern: Empfängerin, Sprache, Suppression, Dedupe) · Trigger `trg_application_mail`, `trg_decision_release_mail`, `trg_registration_mail` legen die Aufträge an · `run_application_housekeeping()` (Cron: Fristen ablaufen lassen, Warteliste nachrücken) · `session_mail_vars()`, `mail_fmt_ts()` · Versand: `lib/mail/queue.ts` über `/api/cron/mail` (Vercel Cron alle 10 Min., Resend, Retry 3×, Idempotenz-Schlüssel je Zeile) |
 | Vokabular | `vocab_term` (33 Vokabulare, 309 Begriffe) | — |
 | Migration/Dedup (P0) | `import.staging_contact`, `import.source_person_map`, `potential_duplicate`, `person_merge_log` | — |
 
