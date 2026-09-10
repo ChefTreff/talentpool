@@ -58,7 +58,7 @@ export function SpeakerDrawer({
     speaker_type: speaker.speaker_type,
     job_title: speaker.job_title ?? "",
     organization_name: speaker.organization_name ?? "",
-    internal_notes: "",
+    internal_notes: speaker.internal_notes ?? "",
     reception_eligible: speaker.reception_eligible,
     travel_costs_covered: speaker.travel_costs_covered,
     pass_type: speaker.pass_type,
@@ -93,7 +93,11 @@ export function SpeakerDrawer({
         reception_eligible: draft.reception_eligible,
         travel_costs_covered: draft.travel_costs_covered,
       };
-      if (draft.internal_notes.trim() !== "") data.internal_notes = draft.internal_notes;
+      // Jetzt, wo das Feld den gespeicherten Stand zeigt, ist ein geleertes
+      // Feld eine Absicht und keine „keine Angabe" mehr.
+      if (draft.internal_notes !== (speaker.internal_notes ?? "")) {
+        data.internal_notes = draft.internal_notes;
+      }
       if (isTeam) {
         data.pass_type = draft.pass_type;
         data.lounge_access = draft.lounge_access;
