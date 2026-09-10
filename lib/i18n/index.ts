@@ -27,13 +27,20 @@ export function getDictionary(locale: Locale): Dictionary {
  * (gecacht, kostet innerhalb eines Requests nichts). So rendert auch `/login`
  * in der richtigen Sprache, und keine Seite muss die Sprache durchreichen.
  */
-export async function resolveLocale(): Promise<Locale> {
+export async function resolveLocale(fallback?: Locale): Promise<Locale> {
   const { preferredLanguage } = await getSessionContext();
   if (isLocale(preferredLanguage)) return preferredLanguage;
 
   const cookieStore = await cookies();
   const fromCookie = cookieStore.get(LOCALE_COOKIE)?.value;
   if (isLocale(fromCookie)) return fromCookie;
+
+  // Ein Bereich darf eine eigene Ausgangssprache haben (Speaker: Englisch,
+  // Entscheidungslog 10.09.). Sie greift erst, wenn keine Wahl vorliegt —
+  // Profilsprache und Umschalter gewinnen immer. Der Browser-Header zählt
+  // hier nicht als Wahl, sonst begrüßte das Speaker-Portal die halbe Welt
+  // wieder auf Deutsch.
+  if (fallback) return fallback;
 
   return parseAcceptLanguage((await headers()).get("accept-language"));
 }
@@ -58,8 +65,12 @@ export function parseAcceptLanguage(header: string | null): Locale {
   return DEFAULT_LOCALE;
 }
 
-/** Bequemer Einstieg für Layouts und Seiten: Locale + Dictionary in einem Schritt. */
-export async function getI18n() {
-  const locale = await resolveLocale();
+/**
+ * Bequemer Einstieg für Layouts und Seiten: Locale + Dictionary in einem Schritt.
+ * `fallback` setzt die Ausgangssprache des Bereichs, falls die Person keine
+ * gewählt hat — im Speaker-Portal `"en"`.
+ */
+export async function getI18n(fallback?: Locale) {
+  const locale = await resolveLocale(fallback);
   return { locale, t: getDictionary(locale) };
 }

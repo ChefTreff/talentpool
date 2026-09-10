@@ -6,13 +6,16 @@ export function Card({
   children,
   className,
   as: As = "div",
+  id,
 }: {
   children: ReactNode;
   className?: string;
   as?: "div" | "section" | "article" | "li";
+  /** Anker, wenn von anderer Stelle auf den Abschnitt verlinkt wird. */
+  id?: string;
 }) {
   return (
-    <As className={cn("rounded-ct-lg border bg-surface p-6", className)}>
+    <As id={id} className={cn("rounded-ct-lg border bg-surface p-6", className)}>
       {children}
     </As>
   );

@@ -3,9 +3,6 @@
  * async Funktionen exportieren — Konstanten und Typen gehören deshalb hierher.
  */
 
-/** Fassung der Texte, auf die sich eine Einwilligung bezieht. */
-export const CONSENT_VERSION = "2026-09";
-
 export type WizardStep = "basics" | "work" | "interests" | "consent";
 
 export type WizardData = {

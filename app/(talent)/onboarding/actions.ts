@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { CONSENT_VERSION, type StepResult, type WizardData, type WizardStep } from "./types";
+import { consentRowsToWrite, type ConsentState } from "@/lib/consent";
+import { type StepResult, type WizardData, type WizardStep } from "./types";
 
 const nn = (v: string) => (v && v.trim() !== "" ? v.trim() : null);
 
@@ -87,27 +88,11 @@ export async function saveStep(
       return { ok: false, message: "save_failed", detail: readError.message };
     }
 
-    const known = new Map(
-      ((current ?? []) as { consent_type: string; granted: boolean; version: string }[]).map(
-        (c) => [c.consent_type, c],
-      ),
+    const rows = consentRowsToWrite(
+      (current ?? []) as ConsentState[],
+      data.consents,
+      pid,
     );
-
-    const rows = Object.entries(data.consents)
-      .filter(([consent_type, granted]) => {
-        const before = known.get(consent_type);
-        // Neu, umentschieden oder auf eine neue Textfassung bezogen -> festhalten.
-        return (
-          !before || before.granted !== granted || before.version !== CONSENT_VERSION
-        );
-      })
-      .map(([consent_type, granted]) => ({
-        person_id: pid,
-        consent_type,
-        version: CONSENT_VERSION,
-        granted,
-        source: "portal",
-      }));
 
     if (rows.length > 0) {
       const { error } = await supabase.from("consent_record").insert(rows);

@@ -48,6 +48,14 @@ const BUSINESS_KEYS = new Set([
   "last_admin",
   "person_not_found",
   "assignment_not_found",
+  // Speaker-Portal (Migration 0025)
+  "email_required",
+  "assistant_is_speaker",
+  "suppressed",
+  "speaker_not_found",
+  "team_only_fields",
+  "edition_required",
+  "not_confirmed",
 ]);
 
 const BY_CODE: Record<string, string> = {
