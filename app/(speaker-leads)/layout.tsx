@@ -4,8 +4,18 @@ import { AreaShell } from "@/components/layout/AreaShell";
 
 export const dynamic = "force-dynamic";
 
-/** Bereichs-Gate: ohne Login -> /login?next=…, ohne Rolle -> 404. */
+/**
+ * Speaker-Leads: Rolle `speaker_manager` (plus Team). Deutsch zuerst — das
+ * Lead-Portal ist ein internes Werkzeug, kein Gastbereich; deshalb hier kein
+ * Sprach-Fallback wie im Speaker-Portal.
+ *
+ * Die Liste ist dicht, deshalb die breite Fläche.
+ */
 export default async function SpeakerLeadsLayout({ children }: { children: ReactNode }) {
   await requireArea("speaker-leads");
-  return <AreaShell area="speaker-leads">{children}</AreaShell>;
+  return (
+    <AreaShell area="speaker-leads" width="table">
+      {children}
+    </AreaShell>
+  );
 }
