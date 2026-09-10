@@ -17,6 +17,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const items = [
     { href: "/admin", label: t.admin.nav.overview },
     { href: "/admin/programm", label: t.admin.nav.programme },
+    { href: "/admin/bewerbungen", label: t.admin.nav.applications },
+    { href: "/admin/rollen", label: t.admin.nav.roles },
     { href: "/admin/personen", label: t.admin.nav.persons },
     { href: "/admin/vokabular", label: t.admin.nav.vocab },
     { href: "/admin/dubletten", label: t.admin.nav.duplicates },

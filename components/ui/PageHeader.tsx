@@ -7,7 +7,8 @@ export function PageHeader({
   description,
   actions,
 }: {
-  eyebrow?: string;
+  /** Kleine Zeile über dem Titel — Text oder, bei Unterseiten, ein Rücklink. */
+  eyebrow?: ReactNode;
   title: string;
   description?: ReactNode;
   actions?: ReactNode;
