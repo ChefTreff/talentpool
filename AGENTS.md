@@ -29,7 +29,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 ## Toolchain auf diesem Mac
 - Die Bash-Tool-Shell lädt keine rc-Dateien: Befehle mit `node`, `npm`, `supabase`, `gh`, `vercel` immer mit `source "$HOME/.zshenv" && …` beginnen.
 - Dev-Server nur über `.claude/launch.json` (`talentpool-dev`, Port 3000), nie per Bash starten.
-- Service-Role-Diagnose: `node --env-file=.env.local scripts/<script>.mjs`.
+- Service-Role-Diagnose: `node --env-file=.env.local scripts/<script>.mjs`. Gültigkeit des lokalen Secret Keys prüfen (ohne ihn auszugeben): `node --env-file=.env.local scripts/check-secret.mjs`. Realtime-Probe (privater Board-Kanal, Wegwerf-Testnutzer): `node --env-file=.env.local scripts/realtime-probe.mjs`.
 
 ## Build-Session im Worktree (Checkliste beim Start)
 1. Du arbeitest in einem Git-Worktree auf einem Feature-Branch (`welle-N/<thema>`). `main` gehört der Architektur-Session; nie direkt auf `main` committen.

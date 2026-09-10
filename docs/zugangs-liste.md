@@ -1,6 +1,6 @@
 # Zugangs- und Token-Liste (ohne Werte) — Stand 08.09.2026
 
-> Konrad erzeugt alle Zugänge selbst und setzt die Werte **nur in Vercel** (Environment Variables, Production und Preview getrennt). Lokal: `sh scripts/env-pull.sh` (Wrapper um `vercel env pull`). **Sensible Variablen** (`SUPABASE_SECRET_KEY`, `SUPABASE_JWT_SECRET`) liefert Vercel dabei nur als Platzhalter; den Secret Key trägt Konrad einmal lokal in `.env.local` ein, das Skript bewahrt ihn bei späteren Pulls. Nichts davon gehört in Chat, Drive oder Repo. Rotation und Widerruf werden im Entscheidungslog notiert. Platzhalter stehen in `.env.local.example`.
+> Konrad erzeugt alle Zugänge selbst und setzt die Werte **nur in Vercel** (Environment Variables, Production und Preview getrennt). Lokal: `sh scripts/env-pull.sh` (Wrapper um `vercel env pull`). **Sensible Variablen** (`SUPABASE_SECRET_KEY`, `SUPABASE_JWT_SECRET`) liefert Vercel dabei nur als Platzhalter; den Secret Key trägt Konrad einmal lokal in `.env.local` ein, das Skript bewahrt ihn bei späteren Pulls. Prüfung ohne Ausgabe des Werts: `node --env-file=.env.local scripts/check-secret.mjs`. Nichts davon gehört in Chat, Drive oder Repo. Rotation und Widerruf werden im Entscheidungslog notiert. Platzhalter stehen in `.env.local.example`.
 
 | Variable | System | Wofür | Woher / minimale Rechte | Welle |
 |---|---|---|---|---|

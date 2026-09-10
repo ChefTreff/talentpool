@@ -67,7 +67,8 @@ select person_id, auth_user_id, 'bootstrap_admin', 'person', person_id::text,
 - Login lokal (3000 und 3001) und in Production; `/admin` erreichbar; Testmail aus `/admin/mail` landet in `mail_log`.
 
 - Die vier Testdateien nehmen der Testperson **innerhalb der Transaktion** Rollen und Staff-Eintrag weg (Rollback stellt sie wieder her), damit die Negativtests auch mit dem Admin-Konto greifen. Erwartung: keine Zeile `ALLOWED (BUG)`; `04_realtime_send_on_session_insert = 0 msg(s)` ist auf einem frischen Projekt normal (Realtime legt seine Partitionen erst nach dem ersten verbundenen Client an).
-- Lokale Entwicklung: `sh scripts/env-pull.sh --worktrees`; `SUPABASE_SECRET_KEY` ist in Vercel sensibel und muss einmal von Hand in `.env.local` eingetragen werden (siehe `docs/zugangs-liste.md`).
+- Lokale Entwicklung: `sh scripts/env-pull.sh --worktrees`; `SUPABASE_SECRET_KEY` ist in Vercel sensibel und muss einmal von Hand in `.env.local` eingetragen werden (siehe `docs/zugangs-liste.md`). Danach `node --env-file=.env.local scripts/check-secret.mjs` (liest `staff_user`, das nur service_role sehen darf).
+- Realtime Ende-zu-Ende: `node --env-file=.env.local scripts/realtime-probe.mjs` legt einen Wegwerf-Testnutzer mit Rolle `speaker_manager` an, abonniert den privaten Kanal `programme-board:<summit-27>`, sendet als Client, löst per No-op-Update einer DEMO-Session den DB-Trigger aus und räumt wieder auf. Erwartung: `SUBSCRIBED`, Client-Send `ok`, 2 empfangene Nachrichten. Partitionen von `realtime.messages` legt der Realtime-Dienst beim ersten Verbinden selbst an (Log „Creating partitions"), `pg_cron` ist dafür nicht nötig.
 
 ## Historie
 | Datum | Wer | Ergebnis |
