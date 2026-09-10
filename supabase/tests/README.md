@@ -6,7 +6,7 @@ Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Edito
 |---|---|---|
 | `v2_roles_programme.sql` | 0006, 0007 | Scope-Rechte, Überlappung je Bühne (23P01), Board-Warnungen, Pflichtfelder beim Veröffentlichen, Bestätigungspflicht, History/Statistik |
 | `v2_application_ticket.sql` | 0009 | Bewerbungs-Pipeline (Eignung, Doppelbewerbung, Entscheider-Rechte, Maskierung bis Freigabe, Ticketpflicht, Kollision + Ersetzen), Anmeldung mit Warteliste, Personalisierung, max. 2 eigene Fragen |
-| `v2_programme_editor.sql` | 0015 | Backlog-Sessions, Anhängen im Scope, Speaker setzen, Veröffentlichen nur Programm-Team, Detach-Sperre |
+| `v2_programme_editor.sql` | 0015, 0018 | Backlog-Sessions, Anhängen im Scope, Speaker setzen (Bestätigung bleibt erhalten), Leertexte ⇒ NULL, Veröffentlichen nur Programm-Team und nur mit Titel DE+EN, Detach-Sperre, keine TRUNCATE/REFERENCES/TRIGGER-Grants für API-Rollen |
 | `v2_board_questions.sql` | 0016, 0017 | Realtime-Policies/Trigger, Programmzeiten, Fragen-RPCs (Katalog vs. eigene Fragen) |
 
 Simulation eines eingeloggten Nutzers innerhalb der Transaktion:

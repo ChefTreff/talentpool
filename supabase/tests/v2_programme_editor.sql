@@ -31,6 +31,11 @@ begin
   insert into t_res values ('04_attach_own_stage', (select (slot_id = v_s1)::text from session where id = v_sess));
   v_n := set_session_speakers(v_sess, jsonb_build_array(jsonb_build_object('person_id', v_other, 'role', 'speaker')));
   insert into t_res values ('05_speakers_set', v_n::text);
+  update session_speaker set confirmed = true where session_id = v_sess and person_id = v_other;
+  perform set_session_speakers(v_sess, jsonb_build_array(jsonb_build_object('person_id', v_other, 'role', 'speaker')));
+  insert into t_res values ('05b_confirmed_preserved_without_key', (select confirmed::text from session_speaker where session_id = v_sess and person_id = v_other));
+  perform set_session_speakers(v_sess, jsonb_build_array(jsonb_build_object('person_id', v_other, 'role', 'speaker', 'confirmed', false)));
+  insert into t_res values ('05c_confirmed_explicit_false', (select confirmed::text from session_speaker where session_id = v_sess and person_id = v_other));
   insert into t_res values ('06_board_row', (select title_de || ' | can_edit=' || can_edit::text || ' | speakers=' || jsonb_array_length(speakers)::text from programme_board where slot_id = v_s1));
   begin
     perform publish_session(v_sess);
@@ -41,6 +46,12 @@ begin
     perform publish_session(v_sess);
     insert into t_res values ('08_publish_incomplete', 'ALLOWED (BUG)');
   exception when others then insert into t_res values ('08_publish_incomplete', 'rejected ' || sqlstate); end;
+  perform upsert_session(jsonb_build_object('id', v_sess, 'title_en', '   ', 'description_de', 'Beschreibung'));
+  insert into t_res values ('08b_blank_title_en_stored_as_null', (select (title_en is null)::text from session where id = v_sess));
+  begin
+    perform publish_session(v_sess);
+    insert into t_res values ('08c_publish_blank_title_en', 'ALLOWED (BUG)');
+  exception when others then insert into t_res values ('08c_publish_blank_title_en', 'rejected ' || sqlstate); end;
   perform upsert_session(jsonb_build_object('id', v_sess, 'title_en', 'Talk A EN', 'description_de', 'Beschreibung'));
   perform publish_session(v_sess);
   insert into t_res values ('09_publish_ok', (select publish_status || ' slot=' || (select status from slot where id = v_s1) from session where id = v_sess));
@@ -53,6 +64,7 @@ begin
   insert into t_res values ('11_detach_after_unpublish', (select (slot_id is null)::text from session where id = v_sess));
   insert into t_res values ('12_audit_rows', (select count(*)::text from audit_log where object_id = v_sess::text));
   insert into t_res values ('13_history_rows', (select count(*)::text from slot_history where slot_id = v_s1));
+  insert into t_res values ('14_truncate_grants_api_roles', (select count(*)::text from information_schema.role_table_grants where table_schema = 'public' and privilege_type in ('TRUNCATE','REFERENCES','TRIGGER') and grantee in ('anon','authenticated')));
 end $$;
 select * from t_res order by step;
 rollback;
