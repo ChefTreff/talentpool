@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 10:24 UTC · 38 Tabellen · 6 Views · 76 Funktionen
+> Stand: 2026-09-10 10:50 UTC · 41 Tabellen · 6 Views · 89 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -74,6 +74,23 @@ Jede Einwilligung/Widerruf als eigene Zeile (Nachweis). Aktueller Stand: View co
 | `user_agent` | text |  |  |  |  |
 | `meta` | jsonb |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `deadline`
+Fristen je Edition; speist Countdowns, Uploads (late-Markierung) und später Wiki/Checklisten.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `key` | text | ja |  |  |  |
+| `audience` | text | ja | `all` |  |  |
+| `due_at` | timestamp with time zone | ja |  |  |  |
+| `label_de` | text | ja |  |  |  |
+| `label_en` | text | ja |  |  |  |
+| `description_de` | text |  |  |  |  |
+| `description_en` | text |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `decision_release`
 Erst nach Freigabe werden Zusagen/Absagen sichtbar und Mails ausgelöst (Antwort C).
@@ -470,6 +487,27 @@ Speaker/Moderation/Host je Session.
 | `confirmed` | boolean | ja | `false` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `session_submission`
+Vom Speaker eingereichte Session-Inhalte; final steht in session (Freigabe kopiert).
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `session_id` | uuid | ja |  | `session.id` |  |
+| `speaker_profile_id` | uuid |  |  | `speaker_profile.id` |  |
+| `submitted_by` | uuid |  |  | `person.id` |  |
+| `title` | text |  |  |  |  |
+| `description` | text |  |  |  |  |
+| `topics` | text[] | ja |  |  |  |
+| `language` | text |  |  |  |  |
+| `notes` | text |  |  |  |  |
+| `status` | text | ja | `submitted` |  |  |
+| `reviewed_by` | uuid |  |  | `person.id` |  |
+| `reviewed_at` | timestamp with time zone |  |  |  |  |
+| `review_note` | text |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `slot`
 Zeitfenster auf einer Bühne. Genau eine Session kann darauf liegen. Farbe im Board = status.
 
@@ -506,6 +544,31 @@ Zeitfenster auf einer Bühne. Genau eine Session kann darauf liegen. Farbe im Bo
 | `after` | jsonb |  |  |  |  |
 | `reason` | text |  |  |  |  |
 
+### `speaker_asset`
+Dateien im Bucket speaker-assets: Präsentationen (Versionen, late, Technik-Check, Slid@Home), Fotos, Sonstiges.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `profile_id` | uuid | ja |  | `speaker_profile.id` |  |
+| `session_id` | uuid |  |  | `session.id` |  |
+| `kind` | text | ja |  |  |  |
+| `storage_path` | text | ja |  |  |  |
+| `filename` | text | ja |  |  |  |
+| `mime` | text |  |  |  |  |
+| `size_bytes` | bigint |  |  |  |  |
+| `version` | integer | ja | `1` |  |  |
+| `is_current` | boolean | ja | `true` |  |  |
+| `late` | boolean | ja | `false` |  |  |
+| `tech_check_status` | text | ja | `pending` |  |  |
+| `tech_check_note` | text |  |  |  |  |
+| `tech_checked_by` | uuid |  |  | `person.id` |  |
+| `tech_checked_at` | timestamp with time zone |  |  |  |  |
+| `slides_release` | boolean | ja | `false` |  |  |
+| `uploaded_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `speaker_profile`
 Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality, Reisekosten), Tech-Rider, Assistenz. Schreiben nur per RPC.
 
@@ -525,7 +588,7 @@ Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality,
 | `bio_long_en` | text |  |  |  |  |
 | `bio_long_de` | text |  |  |  |  |
 | `socials` | jsonb | ja |  |  |  |
-| `photo_asset_id` | uuid |  |  |  |  |
+| `photo_asset_id` | uuid |  |  | `speaker_asset.id` |  |
 | `reception_eligible` | boolean | ja | `false` |  |  |
 | `lounge_access` | boolean | ja | `true` |  |  |
 | `pass_type` | text | ja | `speaker` |  |  |
@@ -786,6 +849,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `applications_for_session` | p_session_id: uuid |
 | `applications_overview` | p_event_id: uuid |
 | `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
+| `approve_session_content` | p_overrides: jsonb, p_submission_id: uuid |
 | `approve_session_questions` | p_session_id: uuid |
 | `approve_travel_costs` | p_approved: boolean, p_profile_id: uuid |
 | `assign_role` | p_edition_id: uuid, p_note: text, p_person_id: uuid, p_portal: text, p_role: text, p_scope_id: uuid, p_scope_type: text, p_valid_from: timestamp with time zone, p_valid_to: timestamp with time zone |
@@ -818,6 +882,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_programme_reader` | args: ? |
 | `is_session_visible` | p_session_id: uuid |
 | `is_speaker_of` | p_session_id: uuid |
+| `is_speaker_side_of` | p_session_id: uuid |
 | `is_speaker_team` | p_edition_id: uuid |
 | `is_staff` | args: ? |
 | `is_suppressed` | p_email: text |
@@ -829,12 +894,18 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_applications` | args: ? |
 | `my_roles` | args: ? |
+| `my_sessions` | args: ? |
+| `my_speaker_assets` | p_profile_id: uuid |
 | `my_speaker_profile` | p_edition_id: uuid |
+| `pending_submissions` | p_event_id: uuid |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
+| `presentation_window` | p_session_id: uuid |
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |
 | `publish_session` | p_session_id: uuid |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `register_for_session` | p_session_id: uuid |
+| `register_speaker_asset` | p_filename: text, p_kind: text, p_mime: text, p_profile_id: uuid, p_session_id: uuid, p_size_bytes: bigint, p_storage_path: text |
+| `reject_session_content` | p_note: text, p_submission_id: uuid |
 | `release_decisions` | p_note: text, p_session_id: uuid |
 | `remove_assistant` | p_profile_id: uuid |
 | `revoke_role` | p_assignment_id: uuid, p_note: text |
@@ -848,13 +919,18 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_primary_email` | p_email_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
 | `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
+| `set_slides_release` | p_asset_id: uuid, p_release: boolean |
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
 | `set_speaker_pipeline` | p_profile_id: uuid, p_status: text |
+| `set_tech_check` | p_asset_id: uuid, p_note: text, p_status: text |
 | `slot_has_published_session` | p_slot_id: uuid |
+| `speaker_asset_path_allowed` | p_name: text |
 | `speaker_next_steps` | p_profile_id: uuid |
+| `submit_session_content` | p_data: jsonb, p_session_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
 | `update_my_speaker_profile` | p_data: jsonb |
 | `update_speaker` | p_data: jsonb, p_profile_id: uuid |
+| `upsert_deadline` | p_data: jsonb |
 | `upsert_session` | p_data: jsonb |
 | `upsert_speaker` | p_data: jsonb |
 | `withdraw_application` | p_application_id: uuid |
