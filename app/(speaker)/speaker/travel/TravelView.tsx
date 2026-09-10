@@ -135,7 +135,9 @@ export function TravelView({
             {hospitalityStatus === "declined" ? t.declinedTitle : t.notEligibleTitle}
           </h2>
           {/* „Abgelehnt" und „noch nicht dran" sehen in der Sperre gleich aus —
-              der Satz darf es nicht: „wird freigeschaltet" wäre hier falsch. */}
+              der Satz darf es nicht: „wird freigeschaltet" wäre hier falsch.
+              Sobald `hospitality_block_reason` `declined` selbst liefert, kann
+              dieser Sonderfall weg und die Unterscheidung kommt aus der RPC. */}
           <p className="ct-help">
             {hospitalityStatus === "declined" ? t.declinedBody : t.notEligibleBody}
           </p>
