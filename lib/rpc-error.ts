@@ -67,6 +67,22 @@ const BUSINESS_KEYS = new Set([
   "invalid_kind",
   "submission_not_found",
   "not_pending",
+  // Reisekosten (Migrationen 0031-0033)
+  "invalid_category",
+  "invalid_amount",
+  "date_required",
+  "description_too_long",
+  "too_many_positions",
+  "invalid_positions",
+  "receipt_not_found",
+  "not_editable",
+  "invalid_iban",
+  "invalid_bic",
+  "holder_required",
+  "positions_required",
+  "receipt_required",
+  "bank_required",
+  "claim_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {
