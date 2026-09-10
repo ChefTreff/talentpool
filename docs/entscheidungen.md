@@ -258,3 +258,8 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 - **Freischaltung** ausschließlich über `speaker_profile.hospitality_status` (Team setzt `eligible`) **und** Consent `hospitality_data` des Speakers; die Assistenz darf buchen, den Consent gibt nur der Speaker. Hotels nur bis zum eigenen `hotel_tier` (VIP darf tiefer buchen, Standard nicht höher). Ein aktives Hotel je Profil, ein Platz je Shuttle; Shuttle-Kapazität zählt Gäste, Hotel zählt Zimmer.
 - **Überbuchung ⇒ Warteliste** statt Fehler (Entscheidung Arbeitsauftrag); Storno lässt den ersten Wartenden als Anfrage nachrücken (Team bestätigt), Status geht ohne aktive Buchung zurück auf `eligible`. Bestätigung nur Team (`is_staff`), löst genau eine Mail `hospitality_confirmed` aus (EN/DE nach Sprache, Speaker ohne Wahl EN).
 - Test `supabase/tests/v2_hospitality.sql`.
+
+## 2026-09-10 — PR #7 (B3 „Deine Session") gemergt
+- Nach einem Durchgang gemergt (`a8ddd42`): Einreichung/Registrierung/Slid\@Home über RPCs, Direkt-Upload in den Bucket mit entschärftem Objektschlüssel, signierte URLs, kein service_role.
+- **Regel geschärft:** Ein zweiter Riegel in der Server-Action ist nur dort nötig, wo RLS den Aufruf still umbiegt (Insert „eigene Zeile" wie beim Consent). Wo die RPC mit 42501 antwortet (Slid\@Home), bleibt die RPC die einzige Wahrheit.
+- Build-Session hat `|| "de"` in Onboarding- und Profil-Action zu `|| null` korrigiert — sonst hätte jedes Speichern die Sprache festgelegt und den Bereichs-Fallback ausgehebelt (Ergänzung zu 0029).
