@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 17:31 UTC · 53 Tabellen · 6 Views · 181 Funktionen
+> Stand: 2026-09-10 17:36 UTC · 53 Tabellen · 6 Views · 184 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1203,6 +1203,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_hospitality` | p_edition_id: uuid |
 | `my_manager_scope` | args: ? |
 | `my_partner_orgs` | args: ? |
+| `my_partner_stages` | args: ? |
 | `my_roles` | args: ? |
 | `my_sessions` | args: ? |
 | `my_speaker_assets` | p_profile_id: uuid |
@@ -1212,6 +1213,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `notify_partner_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `partner_admin_overview` | p_edition_id: uuid |
+| `partner_applications` | p_session_id: uuid |
 | `partner_asset_path_allowed` | p_name: text, p_write: boolean |
 | `partner_can_edit` | p_org_id: uuid |
 | `partner_can_manage_contacts` | p_org_id: uuid |
@@ -1224,6 +1226,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_overview` | p_edition_id: uuid, p_org_id: uuid |
 | `partner_review_queue` | p_edition_id: uuid |
 | `partner_roles` | p_org_id: uuid |
+| `partner_sessions` | p_org_id: uuid |
 | `partner_set_onboarding_status` | p_edition_id: uuid, p_org_id: uuid, p_status: text |
 | `pending_submissions` | p_event_id: uuid |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
