@@ -9,6 +9,7 @@ export { Badge } from "./Badge";
 export type { BadgeTone } from "./Badge";
 export { Table, Thead, Tbody, Tr, Th, Td } from "./Table";
 export { Drawer } from "./Drawer";
+export { Modal, ConfirmDialog } from "./Modal";
 export { ToastProvider, useToast, ToastItem } from "./Toast";
 export type { ToastTone } from "./Toast";
 export { EmptyState } from "./EmptyState";
