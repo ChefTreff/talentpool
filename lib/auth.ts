@@ -136,6 +136,32 @@ export async function requireArea(
   return ctx;
 }
 
+/**
+ * Dieselbe Seite in mehreren Bereichen — das Programm-Board steht dem Team
+ * unter `/admin/programm` und den Speaker-Leads unter `/speaker-leads/board`
+ * offen. Ein Bereich genügt.
+ *
+ * Das Gate sagt nur, wer die Route betreten darf. Was jemand dort ändern darf,
+ * entscheidet weiterhin die Datenbank: `can_edit_slot()` und
+ * `can_edit_session()` in den RPCs, `can_edit` je Zeile in `programme_board`.
+ * Ohne Login geht es zum Login mit dem Ziel des **ersten** genannten Bereichs;
+ * eingeloggt, aber in keinem der Bereiche: 404.
+ */
+export async function requireAnyArea(
+  keys: readonly AreaKey[],
+  pathname?: string,
+): Promise<SessionContext> {
+  const areas = keys
+    .map((key) => AREAS.find((a) => a.key === key))
+    .filter((a): a is Area => Boolean(a));
+  if (areas.length === 0) notFound();
+
+  const ctx = await getSessionContext();
+  if (!ctx.user) redirect(loginUrl(pathname ?? areas[0].path));
+  if (!areas.some((area) => canEnterArea(area, ctx.roleNames, ctx.isStaff))) notFound();
+  return ctx;
+}
+
 /** Team-Zugriff = Admin-Bereich. Die Team-Definition lebt in SQL `is_staff()`. */
 export async function requireStaff(pathname?: string): Promise<SessionContext> {
   return requireArea("admin", pathname);

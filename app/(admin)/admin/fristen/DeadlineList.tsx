@@ -14,6 +14,12 @@ import { saveDeadline } from "../actions";
 
 type Strings = Record<string, string>;
 
+/**
+ * Wer eine Frist sieht. Kein Vokabular dahinter — `deadline.audience` ist ein
+ * freies Textfeld, und diese vier Werte sind die verabredeten (Konrad, 10.09.).
+ */
+const AUDIENCES = ["speaker", "partner", "volunteer", "all"] as const;
+
 export type DeadlineRow = {
   id: string;
   edition_id: string;
@@ -195,11 +201,15 @@ export function DeadlineList({
             />
           </Field>
           <Field label={t.colAudience} htmlFor="d-audience" hint={t.fieldAudienceHint}>
-            {/* Die Tabelle gehört allen Bereichen; wer hier nichts wählt,
-                legt sonst unbemerkt eine Speaker-Frist an. */}
-            <Input
+            {/* Die Tabelle gehört allen Bereichen; ohne Auswahl entstünde
+                unbemerkt eine Speaker-Frist. */}
+            <Select
               id="d-audience"
               value={draft.audience}
+              options={AUDIENCES.map((key) => ({
+                value: key,
+                label: t[`audience_${key}`] ?? key,
+              }))}
               onChange={(e) => setDraft((d) => ({ ...d, audience: e.target.value }))}
             />
           </Field>
@@ -249,7 +259,7 @@ export function DeadlineList({
                 {
                   edition_id: draft.edition_id,
                   key: draft.key.trim(),
-                  audience: draft.audience.trim() || "speaker",
+                  audience: draft.audience,
                   due_at: new Date(draft.due).toISOString(),
                   label_de: draft.label_de,
                   label_en: draft.label_en || draft.label_de,

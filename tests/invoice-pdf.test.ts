@@ -2,6 +2,7 @@ import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { PDFDocument, PDFRawStream, PDFArray, decodePDFRawStream } from "pdf-lib";
 import { buildInvoicePdf, type InvoiceClaim } from "@/lib/expenses/invoice-pdf";
+import { canHaveInvoice } from "@/lib/expenses/state";
 
 /** Sichtbarer Text der Seite — pdf-lib schreibt die Strings hexkodiert. */
 async function pdfText(bytes: Uint8Array): Promise<string> {
@@ -100,5 +101,18 @@ describe("Auslagenrechnung", () => {
     );
     assert.ok(text.includes("DE****3000"));
     assert.ok(!/DE\d{20}/.test(text), "keine vollständige IBAN");
+  });
+});
+
+describe("Wann ein Antrag eine Rechnung bekommt", () => {
+  it("erst nach der Entscheidung", () => {
+    assert.equal(canHaveInvoice("approved"), true);
+    assert.equal(canHaveInvoice("paid"), true);
+  });
+
+  it("nicht davor und nicht daneben", () => {
+    for (const status of ["draft", "submitted", "rejected", "", null, undefined]) {
+      assert.equal(canHaveInvoice(status), false, `abgelehnt: ${String(status)}`);
+    }
   });
 });

@@ -17,23 +17,63 @@ export type IntegrationResult = {
   qonto: IntegrationOutcome;
 };
 
-export async function sendExpenseToIntegrations(input: {
+type ExpenseInput = {
   invoiceNo: string;
   speakerName: string;
   amountCents: number;
   bytes: Uint8Array;
-}): Promise<IntegrationResult> {
+};
+
+const SEVDESK = "https://my.sevdesk.de/api/v1";
+
+export async function sendExpenseToIntegrations(
+  input: ExpenseInput,
+): Promise<IntegrationResult> {
   return {
     ...(await toSevdesk(input)),
     qonto: await toQontoInbox(input),
   };
 }
 
-async function toSevdesk(input: {
-  invoiceNo: string;
-  speakerName: string;
-  amountCents: number;
-}): Promise<{ sevdesk: IntegrationOutcome; sevdeskRef: string | null }> {
+/**
+ * Beleg-Datei zuerst: SevDesk nimmt das Dokument über `uploadTempFile` an und
+ * gibt einen Dateinamen zurück, den `saveVoucher` dann als `filename`
+ * übernimmt. Ohne diesen Schritt hinge der Beleg ohne Dokument in der
+ * Buchhaltung. Scheitert nur der Upload, geht der Beleg trotzdem raus — lieber
+ * ein Voucher ohne Anhang als gar keiner; die Zeile steht im Log.
+ */
+async function uploadTempFile(
+  token: string,
+  input: ExpenseInput,
+): Promise<string | null> {
+  const form = new FormData();
+  form.append(
+    "file",
+    new Blob([new Uint8Array(input.bytes)], { type: "application/pdf" }),
+    `${input.invoiceNo}.pdf`,
+  );
+  const res = await fetch(`${SEVDESK}/Voucher/Factory/uploadTempFile`, {
+    method: "POST",
+    headers: { authorization: token },
+    body: form,
+  });
+  if (!res.ok) {
+    console.error(`[expenses] SevDesk uploadTempFile ${res.status} für ${input.invoiceNo}`);
+    return null;
+  }
+  const body = (await res.json()) as { objects?: { filename?: string } | string };
+  const filename =
+    typeof body.objects === "string" ? body.objects : body.objects?.filename;
+  if (!filename) {
+    console.error(`[expenses] SevDesk uploadTempFile ohne filename für ${input.invoiceNo}`);
+    return null;
+  }
+  return filename;
+}
+
+async function toSevdesk(
+  input: ExpenseInput,
+): Promise<{ sevdesk: IntegrationOutcome; sevdeskRef: string | null }> {
   const token = process.env.SEVDESK_API_TOKEN?.trim();
   if (!token) {
     console.info(
@@ -43,8 +83,9 @@ async function toSevdesk(input: {
     return { sevdesk: "dry-run", sevdeskRef: null };
   }
   try {
+    const filename = await uploadTempFile(token, input);
     // Feldzuordnung nach dem make.com-Szenario des Team-Portals.
-    const res = await fetch("https://my.sevdesk.de/api/v1/Voucher/Factory/saveVoucher", {
+    const res = await fetch(`${SEVDESK}/Voucher/Factory/saveVoucher`, {
       method: "POST",
       headers: { authorization: token, "content-type": "application/json" },
       body: JSON.stringify({
@@ -55,6 +96,7 @@ async function toSevdesk(input: {
           creditDebit: "C",
           description: `${input.invoiceNo} · ${input.speakerName}`,
           voucherDate: new Date().toISOString().slice(0, 10),
+          ...(filename ? { filename } : {}),
         },
         voucherPosSave: [
           {
@@ -79,12 +121,7 @@ async function toSevdesk(input: {
   }
 }
 
-async function toQontoInbox(input: {
-  invoiceNo: string;
-  speakerName: string;
-  amountCents: number;
-  bytes: Uint8Array;
-}): Promise<IntegrationOutcome> {
+async function toQontoInbox(input: ExpenseInput): Promise<IntegrationOutcome> {
   const to = process.env.QONTO_INBOX_EMAIL?.trim();
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!to || !apiKey) {

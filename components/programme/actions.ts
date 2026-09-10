@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAnyArea } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseMoveResult, toRpcFailure, type MoveWarning } from "@/lib/rpc-error";
 import type { SessionSpeaker } from "./types";
@@ -11,9 +11,17 @@ import type { SessionSpeaker } from "./types";
  * (Migration `v2_programme_editor`) — mit dem **Session-Client**, nicht
  * service_role: `can_edit_slot()`/`can_edit_session()` prüfen gegen
  * `current_person_id()`, und genau diese Prüfung wollen wir hier.
- * `requireArea("admin")` davor hält Nicht-Team von der Route fern.
+ *
+ * Das Board steht in zwei Bereichen: `/admin/programm` für das Team,
+ * `/speaker-leads/board` für die Leads. Das Gate davor lässt beide herein;
+ * wer welchen Slot ändern darf, bleibt Sache der Datenbank. Beide Pfade werden
+ * neu geladen, sonst zeigt der jeweils andere Bereich einen alten Stand.
  */
-const BOARD_PATH = "/admin/programm";
+const BOARD_PATHS = ["/admin/programm", "/speaker-leads/board"] as const;
+
+function revalidateBoard() {
+  for (const path of BOARD_PATHS) revalidatePath(path);
+}
 
 export type ActionResult<T = void> =
   | { ok: true; data: T }
@@ -26,7 +34,7 @@ function fail(error: unknown): { ok: false; key: string; detail?: string } {
 }
 
 async function client() {
-  await requireArea("admin", BOARD_PATH);
+  await requireAnyArea(["admin", "speaker-leads"], BOARD_PATHS[0]);
   return createSupabaseServerClient();
 }
 
@@ -47,7 +55,7 @@ export async function moveSlot(input: {
     p_confirm: input.confirm ?? false,
   });
   if (error) return fail(error);
-  revalidatePath(BOARD_PATH);
+  revalidateBoard();
   return { ok: true, data: parseMoveResult(data) };
 }
 
@@ -68,7 +76,7 @@ export async function createSlot(input: {
     p_session_id: input.sessionId ?? null,
   });
   if (error) return fail(error);
-  revalidatePath(BOARD_PATH);
+  revalidateBoard();
   return { ok: true, data: { slotId: data as string } };
 }
 
@@ -82,7 +90,7 @@ export async function setSlotStatus(
     p_status: status,
   });
   if (error) return fail(error);
-  revalidatePath(BOARD_PATH);
+  revalidateBoard();
   return { ok: true, data: undefined };
 }
 
@@ -110,7 +118,7 @@ export async function upsertSession(
   const supabase = await client();
   const { data, error } = await supabase.rpc("upsert_session", { p_data: input });
   if (error) return fail(error);
-  revalidatePath(BOARD_PATH);
+  revalidateBoard();
   return { ok: true, data: { sessionId: data as string } };
 }
 
@@ -124,7 +132,7 @@ export async function attachSession(
     p_slot_id: slotId,
   });
   if (error) return fail(error);
-  revalidatePath(BOARD_PATH);
+  revalidateBoard();
   return { ok: true, data: undefined };
 }
 
@@ -132,7 +140,7 @@ export async function detachSession(sessionId: string): Promise<ActionResult> {
   const supabase = await client();
   const { error } = await supabase.rpc("detach_session", { p_session_id: sessionId });
   if (error) return fail(error);
-  revalidatePath(BOARD_PATH);
+  revalidateBoard();
   return { ok: true, data: undefined };
 }
 
@@ -140,7 +148,7 @@ export async function publishSession(sessionId: string): Promise<ActionResult> {
   const supabase = await client();
   const { error } = await supabase.rpc("publish_session", { p_session_id: sessionId });
   if (error) return fail(error);
-  revalidatePath(BOARD_PATH);
+  revalidateBoard();
   return { ok: true, data: undefined };
 }
 
@@ -154,7 +162,7 @@ export async function unpublishSession(
     p_reason: reason ?? null,
   });
   if (error) return fail(error);
-  revalidatePath(BOARD_PATH);
+  revalidateBoard();
   return { ok: true, data: undefined };
 }
 
@@ -180,7 +188,7 @@ export async function setSessionSpeakers(
     p_speakers: speakers,
   });
   if (error) return fail(error);
-  revalidatePath(BOARD_PATH);
+  revalidateBoard();
   return { ok: true, data: undefined };
 }
 
@@ -313,6 +321,6 @@ export async function setSessionQuestions(
   });
   if (error) return fail(error);
 
-  revalidatePath(BOARD_PATH);
+  revalidateBoard();
   return { ok: true, data: undefined };
 }
