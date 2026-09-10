@@ -13,9 +13,11 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import {
   assignRole,
+  findOrganizations,
   findPeople,
   revokeRole,
   rolesOfPerson,
+  type FoundOrganization,
   type FoundPerson,
   type RoleRow,
 } from "./actions";
@@ -27,10 +29,11 @@ type Option = { value: string; label: string };
  * Welche Zusatzangabe ein Scope braucht — die Regel steht als CHECK in
  * `role_assignment`; hier steht sie nur, damit das Formular passend aussieht.
  */
-const SCOPE_FIELD: Record<string, "none" | "edition" | "portal" | "scope"> = {
+const SCOPE_FIELD: Record<string, "none" | "edition" | "portal" | "scope" | "org"> = {
   global: "none",
   edition: "edition",
   portal: "portal",
+  org: "org",
   stage: "scope",
   stage_day: "scope",
   slot: "scope",
@@ -49,7 +52,7 @@ export function RolesView({
   scopes: Record<string, Option[]>;
   dateLocale: string;
   t: Strings;
-  common: { cancel: string; choose: string; none: string; save: string };
+  common: { cancel: string; choose: string; inactive: string; none: string; save: string };
   rpcMessages: Record<string, string>;
 }) {
   const toast = useToast();
@@ -66,6 +69,12 @@ export function RolesView({
   const [scopeValue, setScopeValue] = useState("");
   const [validTo, setValidTo] = useState("");
   const [note, setNote] = useState("");
+
+  // Organisationen kommen nicht als Liste, sondern nur über die Suche —
+  // `organization` hat keine Lesepolicy.
+  const [orgQuery, setOrgQuery] = useState("");
+  const [orgHits, setOrgHits] = useState<FoundOrganization[]>([]);
+  const [org, setOrg] = useState<FoundOrganization | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
 
@@ -94,6 +103,18 @@ export function RolesView({
     }, 250);
     return () => clearTimeout(handle);
   }, [query]);
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      const term = orgQuery.trim();
+      if (term.length < 2) {
+        setOrgHits([]);
+        return;
+      }
+      findOrganizations(term).then(setOrgHits);
+    }, 250);
+    return () => clearTimeout(handle);
+  }, [orgQuery]);
 
   function load(p: FoundPerson) {
     setPerson(p);
@@ -124,7 +145,7 @@ export function RolesView({
         personId: person.id,
         role,
         scopeType,
-        scopeId: needs === "scope" ? scopeValue : null,
+        scopeId: needs === "scope" ? scopeValue : needs === "org" ? (org?.id ?? null) : null,
         editionId: needs === "edition" ? scopeValue : null,
         portal: needs === "portal" ? scopeValue : null,
         validTo: validTo ? new Date(validTo).toISOString() : null,
@@ -137,6 +158,9 @@ export function RolesView({
       toast("success", t.assigned);
       setRole("");
       setScopeValue("");
+      setOrg(null);
+      setOrgQuery("");
+      setOrgHits([]);
       setValidTo("");
       setNote("");
       reload();
@@ -156,8 +180,10 @@ export function RolesView({
     });
   }
 
-  const scopeOptions = needs === "none" ? [] : (scopes[scopeType] ?? []);
-  const canAssign = Boolean(role) && (needs === "none" || Boolean(scopeValue));
+  const scopeOptions = needs === "none" || needs === "org" ? [] : (scopes[scopeType] ?? []);
+  const canAssign =
+    Boolean(role) &&
+    (needs === "none" || (needs === "org" ? Boolean(org) : Boolean(scopeValue)));
 
   return (
     <div className="flex flex-col gap-6">
@@ -272,10 +298,55 @@ export function RolesView({
                   onChange={(e) => {
                     setScopeType(e.target.value);
                     setScopeValue("");
+                    setOrg(null);
+                    setOrgQuery("");
+                    setOrgHits([]);
                   }}
                 />
               </Field>
-              {needs !== "none" && (
+              {needs === "org" && (
+                <Field label={t.orgSearch} htmlFor="org-search" hint={t.orgSearchHint}>
+                  {org ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[15px] font-semibold">{org.name ?? org.slug}</span>
+                      <Button size="sm" variant="ghost" onClick={() => setOrg(null)}>
+                        {t.orgChange}
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <Input
+                        id="org-search"
+                        value={orgQuery}
+                        onChange={(e) => setOrgQuery(e.target.value)}
+                        autoComplete="off"
+                      />
+                      {orgHits.length > 0 && (
+                        <ul className="mt-2 flex flex-col gap-1">
+                          {orgHits.map((o) => (
+                            <li key={o.id}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOrg(o);
+                                  setOrgHits([]);
+                                  setOrgQuery("");
+                                }}
+                                className="w-full rounded-ct-sm px-2 py-1 text-left text-[14px] hover:bg-surface-hover"
+                              >
+                                <span className="font-semibold">{o.name ?? o.slug}</span>
+                                {o.city && <span className="ct-help"> · {o.city}</span>}
+                                {!o.active && <span className="ct-help"> · {common.inactive}</span>}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
+                  )}
+                </Field>
+              )}
+              {needs !== "none" && needs !== "org" && (
                 <Field
                   label={t[`scope_${scopeType}`] ?? t.scope}
                   htmlFor="scope-value"
