@@ -64,7 +64,8 @@ export async function saveProfile(input: ProfileInput): Promise<SaveProfileResul
       gender: nn(input.gender),
       nationality: nn(input.nationality),
       country: nn(input.country),
-      preferred_language: input.preferred_language || "de",
+      // Leer heißt „keine Wahl" (Spalte ist seit 0029 nullable).
+      preferred_language: input.preferred_language || null,
       phone: nn(input.phone),
       linkedin_url: nn(input.linkedin_url),
       occupation_status: nn(input.occupation_status),

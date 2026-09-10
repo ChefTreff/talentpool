@@ -73,11 +73,17 @@ export const SPEAKER_CONSENTS = [
   "hospitality_data",
 ] as const;
 
-/** Schritte aus `next_steps.open`, für die es schon eine Seite gibt. */
+/**
+ * Schritte aus `next_steps.open` und ihr Ziel. `null` heißt: die Seite gibt es
+ * noch nicht (Foto braucht den Upload aus B2/A4, Ticket kommt mit B5) — die
+ * Karte sagt das, statt ins Leere zu verlinken.
+ */
 export const STEP_HREF: Record<string, string | null> = {
   profile: "/speaker/profil",
   consents: "/speaker/profil#consent",
   photo: null,
-  session: null,
+  session: "/speaker/session",
+  session_content: "/speaker/session",
+  presentation: "/speaker/session",
   ticket: null,
 };

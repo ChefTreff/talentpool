@@ -21,7 +21,11 @@ export function getDictionary(locale: Locale): Dictionary {
 
 /**
  * Reihenfolge laut Arbeitsauftrag B9:
- *   person.preferred_language → Cookie → Accept-Language → de
+ *   person.preferred_language → Cookie → [Bereichs-Sprache] → Accept-Language → de
+ *
+ * `person.preferred_language` ist seit Migration 0029 nullable und wird nur bei
+ * einer echten Wahl gesetzt (Onboarding, Profil, Umschalter). NULL heißt also
+ * „nie entschieden" — erst dann greifen Cookie, Bereich und Browser.
  *
  * Die Profilsprache holt sich die Funktion selbst aus `getSessionContext()`
  * (gecacht, kostet innerhalb eines Requests nichts). So rendert auch `/login`

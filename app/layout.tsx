@@ -14,6 +14,7 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   // Sprache: person.preferred_language → Cookie → Accept-Language → de.
+  // Bereiche mit eigener Ausgangssprache reichen sie an `getI18n()` durch.
   const { locale, t } = await getI18n();
 
   return (
