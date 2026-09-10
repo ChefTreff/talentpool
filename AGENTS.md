@@ -22,7 +22,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 
 ## Arbeitsweise
 - 80-%-Lösung je Bereich → Feedback von Konrad → schärfen. Nichts bauen, was nicht im Masterplan oder Entscheidungslog steht.
-- Build-Sessions arbeiten auf Feature-Branches (`welle-N/<thema>`), kleine PRs gegen `main`; Review durch die Architektur-/Security-Session (`/code-review`, `/security-review`) vor dem Merge. `main` deployt automatisch auf Vercel.
+- Build-Sessions arbeiten auf Feature-Branches (`welle-N/<thema>`), **ein PR je Baustein** (ein Abschnitt des Arbeitsauftrags, z. B. B3 + B6) gegen `main`; ein Review-Durchgang durch die Architektur-/Security-Session (Sicherheitsgrenzen, Kontrakte, Datenverlust) vor dem Merge, Nachbesserungen als Diff-Prüfung; UI-Details über Konrads Feedback-Runden. `main` deployt automatisch auf Vercel.
 - Datenbankänderungen nur als Migration unter `supabase/migrations/` (zusätzlich per Supabase-MCP `apply_migration` auf Projekt `jqmqvgaiyjudkvtncijw` anwenden; Datei danach auf die vom Server vergebene Version umbenennen). Nie direkt im Dashboard „mal eben" ändern. **Jede Migration endet mit `select harden_definer_functions();`** (entzieht anon das EXECUTE auf SECURITY-DEFINER-Funktionen, pinnt search_path).
 - Konrad loggt sich für Browser-Walkthroughs selbst ein; Alt-Systeme nur deaktivieren, nie löschen.
 
