@@ -39,7 +39,6 @@ export default async function SpeakerTravelPage() {
       <PageHeader title={t.speaker.travelTitle} description={t.speaker.travelLead} />
       <TravelView
         isAssistant={profile.is_assistant}
-        hospitalityStatus={profile.hospitality_status}
         options={(optionRows ?? []) as HospitalityOption[]}
         bookings={(bookingRows ?? []) as HospitalityBooking[]}
         tierLabels={vgroup(vocab, "hotel_tier")}

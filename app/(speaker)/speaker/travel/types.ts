@@ -15,7 +15,7 @@ export type HospitalityOption = {
   window_to: string | null;
   /** Darf gerade gebucht werden? Sonst sagt `block_reason`, woran es liegt. */
   eligible: boolean;
-  block_reason: "status" | "consent" | null;
+  block_reason: "status" | "consent" | "declined" | null;
   my_booking: MyBookingShort | null;
 };
 

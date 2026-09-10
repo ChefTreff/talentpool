@@ -29,7 +29,6 @@ const STATUS_TONE: Record<string, BadgeTone> = {
 
 export function TravelView({
   isAssistant,
-  hospitalityStatus,
   options,
   bookings,
   tierLabels,
@@ -40,7 +39,6 @@ export function TravelView({
   rpcMessages,
 }: {
   isAssistant: boolean;
-  hospitalityStatus: string;
   options: HospitalityOption[];
   bookings: HospitalityBooking[];
   tierLabels: Record<string, string>;
@@ -131,16 +129,16 @@ export function TravelView({
       {/* Freischaltung: Status setzt das Team, den Consent gibt der Speaker. */}
       {blockReason === "status" && (
         <Card className="p-6">
-          <h2 className="ct-h3 mb-2 text-ink">
-            {hospitalityStatus === "declined" ? t.declinedTitle : t.notEligibleTitle}
-          </h2>
-          {/* „Abgelehnt" und „noch nicht dran" sehen in der Sperre gleich aus —
-              der Satz darf es nicht: „wird freigeschaltet" wäre hier falsch.
-              Sobald `hospitality_block_reason` `declined` selbst liefert, kann
-              dieser Sonderfall weg und die Unterscheidung kommt aus der RPC. */}
-          <p className="ct-help">
-            {hospitalityStatus === "declined" ? t.declinedBody : t.notEligibleBody}
-          </p>
+          <h2 className="ct-h3 mb-2 text-ink">{t.notEligibleTitle}</h2>
+          <p className="ct-help">{t.notEligibleBody}</p>
+        </Card>
+      )}
+      {/* Seit Migration 0034 unterscheidet die RPC „abgelehnt" von „noch nicht
+          dran" selbst — der Satz kommt damit aus einer Quelle. */}
+      {blockReason === "declined" && (
+        <Card className="p-6">
+          <h2 className="ct-h3 mb-2 text-ink">{t.declinedTitle}</h2>
+          <p className="ct-help">{t.declinedBody}</p>
         </Card>
       )}
       {blockReason === "consent" && (
