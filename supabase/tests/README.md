@@ -9,6 +9,7 @@ Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Edito
 | `v2_programme_editor.sql` | 0015, 0018 | Backlog-Sessions, Anhängen im Scope, Speaker setzen (Bestätigung bleibt erhalten), Leertexte ⇒ NULL, Veröffentlichen nur Programm-Team und nur mit Titel DE+EN, Detach-Sperre, keine TRUNCATE/REFERENCES/TRIGGER-Grants für API-Rollen |
 | `v2_board_questions.sql` | 0016, 0017 | Realtime-Policies/Trigger, Programmzeiten, Fragen-RPCs (Katalog vs. eigene Fragen) |
 | `v2_roles_admin.sql` | 0022–0024 | Admin-Lesewege: `applications_for_session` (Entscheider, 42501 sonst), `applications_overview`, `roles_of_person`, `assign_role` (idempotent, Vokabular, Scope-Check), `revoke_role` (Ablaufdatum, letzter Admin geschützt), `search_people` (Team; E-Mail nur Admin), Audit-Einträge, `search_organizations` (Team) |
+| `v2_speaker.sql` | 0025 | Speaker-Profil: Anlegen nur Manager/Team, Pass-Regel (Masterclass ⇒ Professional ohne Lounge), Rolle `speaker` je Edition, Idempotenz über E-Mail (case-insensitiv), Team-Felder für Manager gesperrt, Suppression, Einladung erst ab `confirmed` (Mail `speaker_invite`), `manager_speakers`, Scope-Verlust ⇒ 42501, eigenes Profil lesen/schreiben (Whitelist), Assistenz einladen/entfernen (Rolle + Mail), Reisekosten-Freigabe nur `area_lead_speaker`/Admin |
 
 Simulation eines eingeloggten Nutzers innerhalb der Transaktion:
 `perform set_config('request.jwt.claims', json_build_object('sub', <auth_uid>, 'role', 'authenticated', 'email', <email>)::text, true);`

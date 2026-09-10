@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 09:48 UTC · 37 Tabellen · 6 Views · 62 Funktionen
+> Stand: 2026-09-10 10:24 UTC · 38 Tabellen · 6 Views · 76 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -506,6 +506,42 @@ Zeitfenster auf einer Bühne. Genau eine Session kann darauf liegen. Farbe im Bo
 | `after` | jsonb |  |  |  |  |
 | `reason` | text |  |  |  |  |
 
+### `speaker_profile`
+Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality, Reisekosten), Tech-Rider, Assistenz. Schreiben nur per RPC.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `person_id` | uuid | ja |  | `person.id` |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `speaker_type` | text | ja | `other` |  |  |
+| `pipeline_status` | text | ja | `lead` |  |  |
+| `owner_person_id` | uuid |  |  | `person.id` |  |
+| `job_title` | text |  |  |  |  |
+| `organization_name` | text |  |  |  |  |
+| `org_id` | uuid |  |  | `organization.id` |  |
+| `bio_short_en` | text |  |  |  |  |
+| `bio_short_de` | text |  |  |  |  |
+| `bio_long_en` | text |  |  |  |  |
+| `bio_long_de` | text |  |  |  |  |
+| `socials` | jsonb | ja |  |  |  |
+| `photo_asset_id` | uuid |  |  |  |  |
+| `reception_eligible` | boolean | ja | `false` |  |  |
+| `lounge_access` | boolean | ja | `true` |  |  |
+| `pass_type` | text | ja | `speaker` |  |  |
+| `hotel_tier` | text | ja | `standard` |  |  |
+| `hospitality_status` | text | ja | `none` |  |  |
+| `travel_costs_covered` | boolean | ja | `false` |  |  |
+| `travel_costs_approved_by` | uuid |  |  | `person.id` |  |
+| `travel_costs_approved_at` | timestamp with time zone |  |  |  |  |
+| `tech_rider` | jsonb | ja |  |  |  |
+| `assistant_person_id` | uuid |  |  | `person.id` |  |
+| `internal_notes` | text |  |  |  |  |
+| `invited_at` | timestamp with time zone |  |  |  |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `staff_user`
 
 | Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
@@ -751,12 +787,14 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `applications_overview` | p_event_id: uuid |
 | `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
 | `approve_session_questions` | p_session_id: uuid |
+| `approve_travel_costs` | p_approved: boolean, p_profile_id: uuid |
 | `assign_role` | p_edition_id: uuid, p_note: text, p_person_id: uuid, p_portal: text, p_role: text, p_scope_id: uuid, p_scope_type: text, p_valid_from: timestamp with time zone, p_valid_to: timestamp with time zone |
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
 | `can_edit_session` | p_session_id: uuid |
 | `can_edit_slot` | p_slot_id: uuid |
 | `can_edit_stage` | p_stage_id: uuid |
+| `can_manage_speaker` | p_profile_id: uuid |
 | `cancel_registration` | p_session_id: uuid |
 | `claim_or_create_person` | args: ? |
 | `confirm_application` | p_application_id: uuid, p_replace_conflicting: boolean |
@@ -771,6 +809,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `harden_definer_functions` | args: ? |
 | `has_role` | p_edition_id: uuid, p_role: text, p_scope_id: uuid, p_scope_type: text |
 | `immutable_unaccent` | : text |
+| `invite_assistant` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
+| `invite_speaker` | p_profile_id: uuid |
 | `is_admin` | args: ? |
 | `is_application_team` | p_session_id: uuid |
 | `is_member_of_org` | p_org_id: uuid |
@@ -778,20 +818,25 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_programme_reader` | args: ? |
 | `is_session_visible` | p_session_id: uuid |
 | `is_speaker_of` | p_session_id: uuid |
+| `is_speaker_team` | p_edition_id: uuid |
 | `is_staff` | args: ? |
 | `is_suppressed` | p_email: text |
 | `is_u35` | p_birthdate: date, p_ref: date |
+| `is_vocab_key` | p_key: text, p_vocabulary: text |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
 | `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
+| `manager_speakers` | p_edition_id: uuid |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_applications` | args: ? |
 | `my_roles` | args: ? |
+| `my_speaker_profile` | p_edition_id: uuid |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |
 | `publish_session` | p_session_id: uuid |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `register_for_session` | p_session_id: uuid |
 | `release_decisions` | p_note: text, p_session_id: uuid |
+| `remove_assistant` | p_profile_id: uuid |
 | `revoke_role` | p_assignment_id: uuid, p_note: text |
 | `roles_of_person` | p_person_id: uuid |
 | `run_application_housekeeping` | args: ? |
@@ -804,7 +849,12 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
 | `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
+| `set_speaker_pipeline` | p_profile_id: uuid, p_status: text |
 | `slot_has_published_session` | p_slot_id: uuid |
+| `speaker_next_steps` | p_profile_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
+| `update_my_speaker_profile` | p_data: jsonb |
+| `update_speaker` | p_data: jsonb, p_profile_id: uuid |
 | `upsert_session` | p_data: jsonb |
+| `upsert_speaker` | p_data: jsonb |
 | `withdraw_application` | p_application_id: uuid |
