@@ -23,6 +23,7 @@ docs/datenmodell-v2.md|08_Projektplan & MVP/Datenmodell v2 — Ueberblick (Claud
 docs/schema.md|08_Projektplan & MVP/Schema (generiert aus der Datenbank, laufend).md
 docs/arbeitsauftrag-welle-0.md|08_Projektplan & MVP/Arbeitsauftrag Welle 0 — Fundament (Claude, 2026-09-08).md
 docs/arbeitsauftrag-welle-1.md|08_Projektplan & MVP/Arbeitsauftrag Welle 1 — Talent + Programm (Claude, 2026-09-08).md
+docs/arbeitsauftrag-welle-2.md|08_Projektplan & MVP/Arbeitsauftrag Welle 2 — Speaker + Speaker-Leads (Claude, 2026-09-10).md
 MAP
 # Runbooks als Ordner
 if [ -d docs/runbooks ]; then
