@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 11:01 UTC · 41 Tabellen · 6 Views · 89 Funktionen
+> Stand: 2026-09-10 11:18 UTC · 43 Tabellen · 6 Views · 101 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -152,6 +152,49 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `object_id` | uuid | ja |  |  |  |
 | `external_id` | text | ja |  |  |  |
 | `meta` | jsonb |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `hospitality_booking`
+Hotel-/Shuttle-Buchungen der Speaker; requested → confirmed durch das Team, waitlisted bei Überbuchung.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `quota_id` | uuid | ja |  | `hospitality_quota.id` |  |
+| `profile_id` | uuid | ja |  | `speaker_profile.id` |  |
+| `kind` | text | ja |  |  |  |
+| `status` | text | ja | `requested` |  |  |
+| `guests` | integer | ja | `1` |  |  |
+| `details` | jsonb | ja |  |  |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `confirmed_by` | uuid |  |  | `person.id` |  |
+| `confirmed_at` | timestamp with time zone |  |  |  |  |
+| `cancelled_at` | timestamp with time zone |  |  |  |  |
+| `team_note` | text |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `hospitality_quota`
+Hospitality-Kontingente je Edition: Hotels nach Tier, Shuttles. Kapazität hotel = Zimmer, shuttle = Plätze.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `kind` | text | ja |  |  |  |
+| `tier` | text |  |  |  |  |
+| `label_de` | text | ja |  |  |  |
+| `label_en` | text | ja |  |  |  |
+| `description_de` | text |  |  |  |  |
+| `description_en` | text |  |  |  |  |
+| `location` | text |  |  |  |  |
+| `capacity` | integer | ja | `0` |  |  |
+| `window_from` | timestamp with time zone |  |  |  |  |
+| `window_to` | timestamp with time zone |  |  |  |  |
+| `notes` | text |  |  |  |  |
+| `active` | boolean | ja | `true` |  |  |
+| `sort_order` | integer | ja | `100` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
@@ -854,24 +897,33 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `approve_travel_costs` | p_approved: boolean, p_profile_id: uuid |
 | `assign_role` | p_edition_id: uuid, p_note: text, p_person_id: uuid, p_portal: text, p_role: text, p_scope_id: uuid, p_scope_type: text, p_valid_from: timestamp with time zone, p_valid_to: timestamp with time zone |
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
+| `book_hospitality` | p_details: jsonb, p_guests: integer, p_quota_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
 | `can_edit_session` | p_session_id: uuid |
 | `can_edit_slot` | p_slot_id: uuid |
 | `can_edit_stage` | p_stage_id: uuid |
 | `can_manage_speaker` | p_profile_id: uuid |
+| `cancel_hospitality` | p_booking_id: uuid |
 | `cancel_registration` | p_session_id: uuid |
 | `claim_or_create_person` | args: ? |
 | `confirm_application` | p_application_id: uuid, p_replace_conflicting: boolean |
+| `confirm_hospitality` | p_booking_id: uuid, p_note: text |
 | `create_slot` | p_end: timestamp with time zone, p_session_id: uuid, p_slot_type: text, p_source_ref: text, p_stage_id: uuid, p_start: timestamp with time zone |
 | `current_person_id` | args: ? |
 | `decide_application` | p_application_id: uuid, p_rank: integer, p_status: text |
 | `decisions_released` | p_session_id: uuid |
+| `decline_hospitality` | p_booking_id: uuid, p_note: text |
 | `delete_my_profile` | args: ? |
 | `detach_session` | p_session_id: uuid |
 | `email_hash` | p_email: text |
 | `expire_overdue_applications` | args: ? |
 | `harden_definer_functions` | args: ? |
 | `has_role` | p_edition_id: uuid, p_role: text, p_scope_id: uuid, p_scope_type: text |
+| `hospitality_admin_overview` | p_edition_id: uuid |
+| `hospitality_block_reason` | p_profile_id: uuid |
+| `hospitality_options` | p_edition_id: uuid |
+| `hospitality_used` | p_quota_id: uuid |
+| `hotel_tier_rank` | p_tier: text |
 | `immutable_unaccent` | : text |
 | `invite_assistant` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
 | `invite_speaker` | p_profile_id: uuid |
@@ -893,10 +945,12 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `manager_speakers` | p_edition_id: uuid |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_applications` | args: ? |
+| `my_hospitality` | p_edition_id: uuid |
 | `my_roles` | args: ? |
 | `my_sessions` | args: ? |
 | `my_speaker_assets` | p_profile_id: uuid |
 | `my_speaker_profile` | p_edition_id: uuid |
+| `my_speaker_profile_id` | p_edition_id: uuid |
 | `pending_submissions` | p_event_id: uuid |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
 | `presentation_window` | p_session_id: uuid |
@@ -931,6 +985,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `update_my_speaker_profile` | p_data: jsonb |
 | `update_speaker` | p_data: jsonb, p_profile_id: uuid |
 | `upsert_deadline` | p_data: jsonb |
+| `upsert_hospitality_quota` | p_data: jsonb |
 | `upsert_session` | p_data: jsonb |
 | `upsert_speaker` | p_data: jsonb |
 | `withdraw_application` | p_application_id: uuid |
