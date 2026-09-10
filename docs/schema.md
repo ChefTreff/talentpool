@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 11:18 UTC · 43 Tabellen · 6 Views · 101 Funktionen
+> Stand: 2026-09-10 11:38 UTC · 44 Tabellen · 6 Views · 116 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -138,6 +138,36 @@ Veranstaltungstag eines Events (Einlass, Programmbeginn/-ende).
 | `programme_start` | time without time zone |  |  |  |  |
 | `programme_end` | time without time zone |  |  |  |  |
 | `sort_order` | integer | ja | `0` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `expense_claim`
+Reisekostenanträge der Speaker. Bankdaten nur im Vault (bank_secret_id), hier nur Maske und Kontoinhaber.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `profile_id` | uuid | ja |  | `speaker_profile.id` |  |
+| `status` | text | ja | `draft` |  |  |
+| `currency` | text | ja | `EUR` |  |  |
+| `positions` | jsonb | ja |  |  |  |
+| `amount_cents` | integer | ja | `0` |  |  |
+| `bank_secret_id` | uuid |  |  |  |  |
+| `bank_masked` | text |  |  |  |  |
+| `bank_holder` | text |  |  |  |  |
+| `invoice_no` | text |  |  |  |  |
+| `invoice_asset_id` | uuid |  |  | `speaker_asset.id` |  |
+| `submitted_at` | timestamp with time zone |  |  |  |  |
+| `submitted_by` | uuid |  |  | `person.id` |  |
+| `reviewed_by` | uuid |  |  | `person.id` |  |
+| `reviewed_at` | timestamp with time zone |  |  |  |  |
+| `review_note` | text |  |  |  |  |
+| `sevdesk_ref` | text |  |  |  |  |
+| `sevdesk_sent_at` | timestamp with time zone |  |  |  |  |
+| `qonto_sent_at` | timestamp with time zone |  |  |  |  |
+| `paid_at` | timestamp with time zone |  |  |  |  |
+| `paid_by` | uuid |  |  | `person.id` |  |
+| `payment_ref` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
@@ -892,6 +922,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `applications_for_session` | p_session_id: uuid |
 | `applications_overview` | p_event_id: uuid |
 | `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
+| `approve_expense` | p_claim_id: uuid, p_note: text |
 | `approve_session_content` | p_overrides: jsonb, p_submission_id: uuid |
 | `approve_session_questions` | p_session_id: uuid |
 | `approve_travel_costs` | p_approved: boolean, p_profile_id: uuid |
@@ -916,7 +947,11 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_my_profile` | args: ? |
 | `detach_session` | p_session_id: uuid |
 | `email_hash` | p_email: text |
+| `expense_bank_details` | p_claim_id: uuid |
+| `expense_eligibility` | p_profile_id: uuid |
+| `expense_queue` | p_edition_id: uuid |
 | `expire_overdue_applications` | args: ? |
+| `fmt_cents` | p_cents: integer, p_locale: text |
 | `harden_definer_functions` | args: ? |
 | `has_role` | p_edition_id: uuid, p_role: text, p_scope_id: uuid, p_scope_type: text |
 | `hospitality_admin_overview` | p_edition_id: uuid |
@@ -924,11 +959,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hospitality_options` | p_edition_id: uuid |
 | `hospitality_used` | p_quota_id: uuid |
 | `hotel_tier_rank` | p_tier: text |
+| `iban_valid` | p_iban: text |
 | `immutable_unaccent` | : text |
 | `invite_assistant` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
 | `invite_speaker` | p_profile_id: uuid |
 | `is_admin` | args: ? |
 | `is_application_team` | p_session_id: uuid |
+| `is_expense_approver` | args: ? |
 | `is_member_of_org` | p_org_id: uuid |
 | `is_programme_editor` | p_event_id: uuid |
 | `is_programme_reader` | args: ? |
@@ -943,8 +980,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
 | `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
 | `manager_speakers` | p_edition_id: uuid |
+| `mark_expense_paid` | p_claim_id: uuid, p_payment_ref: text |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_applications` | args: ? |
+| `my_expense_claims` | args: ? |
 | `my_hospitality` | p_edition_id: uuid |
 | `my_roles` | args: ? |
 | `my_sessions` | args: ? |
@@ -959,6 +998,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `register_for_session` | p_session_id: uuid |
 | `register_speaker_asset` | p_filename: text, p_kind: text, p_mime: text, p_profile_id: uuid, p_session_id: uuid, p_size_bytes: bigint, p_storage_path: text |
+| `reject_expense` | p_claim_id: uuid, p_note: text |
 | `reject_session_content` | p_note: text, p_submission_id: uuid |
 | `release_decisions` | p_note: text, p_session_id: uuid |
 | `remove_assistant` | p_profile_id: uuid |
@@ -970,6 +1010,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
 | `session_speakers_public` | p_session_id: uuid |
+| `set_expense_bank_details` | p_bic: text, p_claim_id: uuid, p_holder: text, p_iban: text |
+| `set_expense_integration` | p_claim_id: uuid, p_invoice_asset_id: uuid, p_qonto_sent: boolean, p_sevdesk_ref: text |
 | `set_primary_email` | p_email_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
 | `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
@@ -980,12 +1022,15 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `slot_has_published_session` | p_slot_id: uuid |
 | `speaker_asset_path_allowed` | p_name: text |
 | `speaker_next_steps` | p_profile_id: uuid |
+| `submit_expense` | p_claim_id: uuid |
 | `submit_session_content` | p_data: jsonb, p_session_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
 | `update_my_speaker_profile` | p_data: jsonb |
 | `update_speaker` | p_data: jsonb, p_profile_id: uuid |
 | `upsert_deadline` | p_data: jsonb |
+| `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |
 | `upsert_session` | p_data: jsonb |
 | `upsert_speaker` | p_data: jsonb |
+| `validate_expense_positions` | p_positions: jsonb, p_profile_id: uuid |
 | `withdraw_application` | p_application_id: uuid |
