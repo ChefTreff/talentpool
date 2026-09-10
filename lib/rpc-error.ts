@@ -83,6 +83,12 @@ const BUSINESS_KEYS = new Set([
   "receipt_required",
   "bank_required",
   "claim_not_found",
+  // Hospitality (Migration 0030)
+  "quota_not_found",
+  "already_booked",
+  "invalid_guests",
+  "invalid_details",
+  "booking_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {
