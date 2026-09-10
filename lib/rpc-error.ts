@@ -56,6 +56,17 @@ const BUSINESS_KEYS = new Set([
   "team_only_fields",
   "edition_required",
   "not_confirmed",
+  // Session-Inhalte und Uploads (Migration 0028)
+  "title_required",
+  "invalid_language",
+  "path_mismatch",
+  "session_mismatch",
+  "object_not_found",
+  "consent_required",
+  "asset_not_found",
+  "invalid_kind",
+  "submission_not_found",
+  "not_pending",
 ]);
 
 const BY_CODE: Record<string, string> = {

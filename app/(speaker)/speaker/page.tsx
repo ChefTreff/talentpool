@@ -73,6 +73,14 @@ export default async function SpeakerPage() {
     photo: { title: t.speaker.stepPhotoTitle, body: t.speaker.stepPhotoBody },
     consents: { title: t.speaker.stepConsentsTitle, body: t.speaker.stepConsentsBody },
     session: { title: t.speaker.stepSessionTitle, body: t.speaker.stepSessionBody },
+    session_content: {
+      title: t.speaker.stepContentTitle,
+      body: t.speaker.stepContentBody,
+    },
+    presentation: {
+      title: t.speaker.stepPresentationTitle,
+      body: t.speaker.stepPresentationBody,
+    },
     ticket: { title: t.speaker.stepTicketTitle, body: t.speaker.stepTicketBody },
   };
   const done = Object.keys(STEPS).filter((key) => !open.includes(key));

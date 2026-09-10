@@ -29,7 +29,9 @@ export async function saveStep(
       .update({
         first_name: nn(data.first_name),
         last_name: nn(data.last_name),
-        preferred_language: data.preferred_language || "de",
+        // Leer heißt „keine Wahl" (Spalte ist seit 0029 nullable) — dann
+        // entscheidet die Sprache des Bereichs, nicht ein erfundenes Deutsch.
+        preferred_language: data.preferred_language || null,
         city: nn(data.city),
         country: nn(data.country),
       })
