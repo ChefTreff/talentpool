@@ -317,3 +317,14 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 ## 2026-09-10 — vivenu-Antwort zur Bestätigungsseite eingearbeitet
 - vivenu bestätigt den Ansatz „eigene Bestätigungsseite + Personalisierung bei uns": Custom Confirmation Page URL je Event, Redirect mit **`?transactionId=`** (Welle 1 B4 liest diesen Parameter statt `tx`), Transaktion und Tickets per API, Rückschreiben über `POST /api/tickets/personalize/{id}/{secret}`; Zusatzfelder werden aus `event.ticketExtraFields` nach vivenus Filterregeln abgeleitet (in `docs/vivenu-support-anfrage.md`). Das eingebettete Ticket-Modal bleibt Rückfalloption, nicht der Standard: unser Formular bestimmt Design, Sprache und Datenminimierung.
 - Offene Punkte (Inhaber-E-Mail, DETAILSREQUIRED, Ticket-Mail, Webhook-Signatur/Retry/Event-ID, Freitickets, Undershops in Serie, Add-ons, `meta`, Sandbox, Kaution, Einlass) gehen als **eine Sammelmail** an vivenu.
+
+## 2026-09-10 — Welle 3 A1 Produktstamm live (Migration 0038, Import gelaufen)
+- `product`, `product_component`, `deliverable_template` und Vokabular `product_category` angelegt; **Import aus der Item-Liste 2026**: 186 Zeilen → **162 Produkte** (24 namenlose Platzhalter entfallen, Antwort 83), 29 Pakete / 57 Zusatzleistungen / 75 Shop-Artikel, 75 im Shop sichtbar, 109 mit Listenpreis; **23 Stücklistenzeilen** für die fünf Standpakete (drei Zeilen mit dem Platzhalter I-25643 entfallen). `I-69384` „Agency Area Partner (Premium)" hatte keine Kategorie → `specials` (Skript-Override). USt überall 7 % (Entscheidung 3), Preise in Cent, SKU = Item-ID (Entscheidung 4).
+- **Bilder folgen** in einem eigenen Schritt: die Attachment-URLs der CSV sind abgelaufen; Import braucht einen Airtable-Token (Konrad) oder manuelle Ablage im Bucket `product-images`.
+- Fristen FLS27 für Partner als `deadline`-Zeilen (Entscheidung 2): Rückwand 12.03., Shop Phase 1 19.03., Phase 2 02.04., Phase 3 (Nachbestellung) 09.04., Ticket-Codes 31.03., Lunch-Paket 09.04.2027.
+- Ab jetzt gilt: **Produkte nur noch im Portal pflegen** (`upsert_product`, Admin B9); die Item-Liste in Airtable ist eingefroren (Abschluss-Checkliste).
+
+## 2026-09-10 — Nachbesserungen aus dem B8-Review (Migration 0039)
+- `expense_bank_details` war `STABLE`, schreibt aber ein Audit ⇒ in PostgREST-Lesetransaktionen 25006, Funktion unbenutzbar (Fund der Build-Session). Jetzt `VOLATILE`. **Regel:** Funktionen mit Audit- oder Mail-Schreibzugriff sind nie `stable`; geprüft über `pg_proc` — keine weitere betroffen.
+- Speaker/Assistenz dürfen den Pfad `…/invoice/…` im Bucket nicht mehr beschreiben (Insert/Update/Delete-Policies), lesen bleibt; damit kann nach der Freigabe keine andere Datei untergeschoben werden. Revidiert die Aussage „keine Policy-Änderung" aus dem #9-Review.
+- `expense_queue` liefert `currency` (die Freigabe hatte „undefined" im PDF riskiert).

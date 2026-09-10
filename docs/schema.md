@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 13:51 UTC · 44 Tabellen · 6 Views · 129 Funktionen
+> Stand: 2026-09-10 16:11 UTC · 47 Tabellen · 6 Views · 133 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -103,6 +103,29 @@ Erst nach Freigabe werden Zusagen/Absagen sichtbar und Mails ausgelöst (Antwort
 | `released_by` | uuid |  |  | `person.id` |  |
 | `released_at` | timestamp with time zone | ja | `now()` |  |  |
 | `note` | text |  |  |  |  |
+
+### `deliverable_template`
+Checklisten-Vorlagen je Produkt/Kategorie/alle; daraus entstehen die Pflichten (deliverable) einer Partner-Organisation.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `key` | text | ja |  |  |  |
+| `product_sku` | text |  |  | `product.sku` |  |
+| `category` | text |  |  |  |  |
+| `type` | text | ja |  |  |  |
+| `label_de` | text | ja |  |  |  |
+| `label_en` | text | ja |  |  |  |
+| `description_de` | text |  |  |  |  |
+| `description_en` | text |  |  |  |  |
+| `due_rule` | jsonb | ja |  |  |  |
+| `file_rules` | jsonb |  |  |  |  |
+| `required` | boolean | ja | `true` |  |  |
+| `audience_roles` | text[] | ja |  |  |  |
+| `sort` | integer | ja | `100` |  |  |
+| `active` | boolean | ja | `true` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `event`
 Format/Termin (Summit, Hackathon, Side-Event, Community). is_edition = Klammer wie FLS27-Woche; Kinder verweisen über edition_id.
@@ -425,6 +448,55 @@ Eine natürliche Person = ein Datensatz. Login-Verknüpfung über auth_user_id.
 | `reviewed_at` | timestamp with time zone |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `product`
+Produktstamm (Pakete, Zusatzleistungen, Shop-Artikel). SKU = Item-ID der Item-Liste; nach dem Import ist das Portal Quelle der Wahrheit.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `sku` | text | PK |  |  |  |
+| `name_de` | text | ja |  |  |  |
+| `name_en` | text |  |  |  |  |
+| `description_de` | text |  |  |  |  |
+| `description_en` | text |  |  |  |  |
+| `type` | text | ja |  |  |  |
+| `category` | text | ja |  |  |  |
+| `unit` | text | ja | `piece` |  |  |
+| `net_price_cents` | integer |  |  |  |  |
+| `purchase_price_cents` | integer |  |  |  |  |
+| `margin` | numeric |  |  |  |  |
+| `vat_rate` | numeric | ja | `7` |  |  |
+| `supplier` | text |  |  |  |  |
+| `supplier_sku` | text |  |  |  |  |
+| `supplier_url` | text |  |  |  |  |
+| `stock_total` | integer |  |  |  |  |
+| `track_stock` | boolean | ja | `false` |  |  |
+| `available_until` | timestamp with time zone |  |  |  |  |
+| `shop_visible` | boolean | ja | `false` |  |  |
+| `shop_sort` | integer |  |  |  |  |
+| `late_orderable` | boolean | ja | `false` |  |  |
+| `shop_hint_de` | text |  |  |  |  |
+| `shop_hint_en` | text |  |  |  |  |
+| `purchase_note_de` | text |  |  |  |  |
+| `purchase_note_en` | text |  |  |  |  |
+| `merch_config` | jsonb |  |  |  |  |
+| `images` | jsonb | ja |  |  |  |
+| `source_hubspot` | boolean | ja | `false` |  |  |
+| `source_shop` | boolean | ja | `false` |  |  |
+| `internal_comment` | text |  |  |  |  |
+| `active` | boolean | ja | `true` |  |  |
+| `edition_id` | uuid |  |  | `event.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `product_component`
+Stückliste: was in einem Paket steckt (Messebau/Regie).
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `bundle_sku` | text | PK |  | `product.sku` |  |
+| `component_sku` | text | PK |  | `product.sku` |  |
+| `qty` | numeric | ja |  |  |  |
 
 ### `programme_backlog`
 Sessions ohne Slot (Backlog-Leiste des Boards).
@@ -926,6 +998,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | Funktion | Parameter |
 |---|---|
 | `active_roles` | args: ? |
+| `admin_products` | p_only_active: boolean |
 | `applications_for_session` | p_session_id: uuid |
 | `applications_overview` | p_event_id: uuid |
 | `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
@@ -978,6 +1051,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_application_team` | p_session_id: uuid |
 | `is_expense_approver` | args: ? |
 | `is_member_of_org` | p_org_id: uuid |
+| `is_partner_team` | args: ? |
 | `is_programme_editor` | p_event_id: uuid |
 | `is_programme_reader` | args: ? |
 | `is_session_visible` | p_session_id: uuid |
@@ -1050,6 +1124,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_deadline` | p_data: jsonb |
 | `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |
+| `upsert_product` | p_data: jsonb |
+| `upsert_product_component` | p_bundle_sku: text, p_component_sku: text, p_qty: numeric |
 | `upsert_session` | p_data: jsonb |
 | `upsert_speaker` | p_data: jsonb |
 | `validate_expense_positions` | p_positions: jsonb, p_profile_id: uuid |
