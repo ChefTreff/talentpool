@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { exhibitorChanged, exhibitorDescription, exhibitorType, matchRemote, normalizeWebsite, toExhibitorUpsert } from "@/lib/event-app/mapping";
+import { exhibitorChanged, exhibitorDescription, exhibitorType, matchRemote, normalizeWebsite, publicLogoPath, toExhibitorUpsert } from "@/lib/event-app/mapping";
 import { toSwapcardInput } from "@/lib/event-app/swapcard/queries";
 import type { ExhibitorRow } from "@/lib/event-app/types";
 
@@ -8,7 +8,7 @@ const row: ExhibitorRow = {
   org_edition_id: "oe1", org_id: "org1", edition_id: "ed1", edition_slug: "fls27", swapcard_event_id: "evt1",
   name: " Expo ", legal_name: "Expo GmbH", slug: "expo", description_de: "Wir bauen Messen.", description_en: "We build fairs.", website: "expo.example",
   sponsoring_level: "Premium", partner_category: null, org_type: "corporate", booth_number: "A12", onboarding_status: "filled",
-  logo_path: null, logo_mime: null, swapcard_exhibitor_id: null, members: [],
+  logo_svg_path: null, logo_png_path: null, logo_png_asset_id: null, swapcard_exhibitor_id: null, members: [],
 };
 
 describe("Event-App-Abbildung", () => {
@@ -55,5 +55,10 @@ describe("Event-App-Abbildung", () => {
       descriptionTranslations: [{ language: "en_US", value: "We build fairs." }], websiteUrl: "https://expo.example", booth: "A12",
     });
     assert.equal(toSwapcardInput({ ...toExhibitorUpsert(row), existingId: "RXhoaWJpdG9y" }).id, "RXhoaWJpdG9y");
+  });
+
+  it("legt die öffentliche Logo-Kopie je Fassung ab", () => {
+    assert.equal(publicLogoPath(row), null);
+    assert.equal(publicLogoPath({ ...row, logo_png_asset_id: "a1" }), "fls27/org1/a1.png");
   });
 });

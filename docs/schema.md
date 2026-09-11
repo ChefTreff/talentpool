@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-11 10:38 UTC · 57 Tabellen · 6 Views · 225 Funktionen
+> Stand: 2026-09-11 11:46 UTC · 57 Tabellen · 6 Views · 227 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -193,6 +193,7 @@ Format/Termin (Summit, Hackathon, Side-Event, Community). is_edition = Klammer w
 | `hubspot_onboarding_stage_id` | text |  |  |  | Deal-Phase „Onboarding Automation"; der Webhook auf diese Phase löst den Ingest aus. |
 | `vivenu_event_id` | text |  |  |  | vivenu-Event der Edition (Shop mit Undershops); Team setzt es über set_edition_vivenu. |
 | `swapcard_event_id` | text |  |  |  | Swapcard-Event der Edition (Content-API); gesetzt über set_edition_swapcard. Ohne Wert überträgt der Adapter nichts. |
+| `hubspot_done_stage_id` | text |  |  |  | HubSpot-Phase, in die ein Deal nach gelungenem Ingest geschoben wird (z. B. „Onboarding Operations (Automation Complete)“); leer = kein Weiterschieben. |
 
 ### `event_day`
 Veranstaltungstag eines Events (Einlass, Programmbeginn/-ende).
@@ -1346,7 +1347,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
 | `session_speakers_public` | p_session_id: uuid |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
-| `set_edition_hubspot` | p_edition_id: uuid, p_pipeline_id: text, p_stage_id: text |
+| `set_edition_hubspot` | p_done_stage_id: text, p_edition_id: uuid, p_pipeline_id: text, p_stage_id: text |
 | `set_edition_swapcard` | p_edition_id: uuid, p_swapcard_event_id: text |
 | `set_edition_vivenu` | p_edition_id: uuid, p_vivenu_event_id: text |
 | `set_event_app_ref` | p_external_id: text, p_meta: jsonb, p_org_edition_id: uuid, p_system: text |
@@ -1394,11 +1395,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_next_steps` | p_profile_id: uuid |
 | `speaker_ticket_create` | p_profile_id: uuid |
 | `speaker_tickets_admin` | p_edition_id: uuid |
+| `stage_editor_orgs` | p_person_id: uuid |
 | `start_sync_job` | p_direction: text, p_job_type: text, p_system: text, p_triggered_by: text |
 | `submit_deliverable` | p_answers: jsonb, p_asset_ids: uuid[], p_deliverable_id: uuid |
 | `submit_expense` | p_claim_id: uuid |
 | `submit_session_content` | p_data: jsonb, p_session_id: uuid |
 | `sync_deliverables` | p_org_edition_id: uuid |
+| `sync_granted_roles` | p_org_id: uuid |
 | `sync_ticket_allocations` | p_org_edition_id: uuid |
 | `template_applies` | p_org_edition_id: uuid, p_template: public.deliverable_template |
 | `ticket_allocations_admin` | p_edition_id: uuid |

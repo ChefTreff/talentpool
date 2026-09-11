@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { assignPrimaryIfSingle, buildIngestPayload, roleFromLabel, rolesForContact, toCents, toQty } from "@/lib/hubspot/mapping";
+import { assignPrimaryIfSingle, buildIngestPayload, emailOrNull, levelFromBoothType, orgTypeFromHubspot, partnerCategoryFromHubspot, roleFromLabel, rolesForContact, toCents, toQty } from "@/lib/hubspot/mapping";
 
 describe("Kontaktrollen aus HubSpot-Labels", () => {
   it("erkennt die vier Rollen und Buchhaltung in DE und EN", () => {
@@ -63,5 +63,47 @@ describe("Payload für ingest_partner_deal", () => {
     assert.equal(p.company.invoice_email, "rechnung@test.example");
     assert.deepEqual(p.contacts.map((c) => [c.email, c.roles]), [["anna@test.example", ["primary_ops"]], ["buch@test.example", ["accounting"]]]);
     assert.deepEqual(p.line_items, [{ id: "li1", sku: "I-50131", name: "General", qty: 1, unit_price_cents: 1190000 }]);
+  });
+});
+
+describe("Zuordnung der ChefTreff-Eigenschaften (Bestandsaufnahme 11.09.)", () => {
+  it("Standtyp wird zum Level, Partnertyp zur Kategorie, Firmentyp zum Vokabular", () => {
+    assert.equal(levelFromBoothType("18qm Premium"), "Premium");
+    assert.equal(levelFromBoothType("25qm+ Signature"), "Signature");
+    assert.equal(levelFromBoothType("1,5qm Start Up"), "Start Up");
+    assert.equal(levelFromBoothType("Main Stage Loge"), "Main Stage Loge");
+    assert.equal(levelFromBoothType(null), null);
+    assert.equal(partnerCategoryFromHubspot("HR Partner"), "talent");
+    assert.equal(partnerCategoryFromHubspot("Startup Partner"), "startup");
+    assert.equal(partnerCategoryFromHubspot("Marketing Partner"), null);
+    assert.equal(orgTypeFromHubspot("Corporate"), "corporate");
+    assert.equal(orgTypeFromHubspot("Universität"), "university");
+    assert.equal(orgTypeFromHubspot("VC"), null);
+    assert.equal(emailOrNull("Rechnung@Test.Example"), "rechnung@test.example");
+    assert.equal(emailOrNull("Frau Muster"), null);
+  });
+
+  it("greift im Payload nur, wenn die Portal-Eigenschaft fehlt", () => {
+    const p = buildIngestPayload({
+      deal: { id: "1", properties: { dealname: "D", pipeline: "p", dealstage: "s" } },
+      company: { id: "9", properties: { name: "Muster GmbH", fls_booth_type: "9qm General", fls_partner_type: "HR Partner", ct_company_type: "Startup", purchase_ordner: "PO-7", invoice_contact: "buch@muster.example" } },
+      contacts: [],
+      lineItems: [],
+      owner: null,
+      portalId: null,
+    });
+    assert.equal(p.company.sponsoring_level, "General");
+    assert.equal(p.company.partner_category, "talent");
+    assert.equal(p.company.type, "startup");
+    assert.equal(p.company.po_number, "PO-7");
+    assert.equal(p.company.invoice_email, "buch@muster.example");
+    assert.equal(p.company.invoice_name, "Muster GmbH");
+    const explicit = buildIngestPayload({
+      deal: { id: "1", properties: { dealname: "D", pipeline: "p", dealstage: "s" } },
+      company: { id: "9", properties: { name: "X", sponsoring_level: "Premium", fls_booth_type: "9qm General", invoice_contact: "kein-mail" } },
+      contacts: [], lineItems: [], owner: null, portalId: null,
+    });
+    assert.equal(explicit.company.sponsoring_level, "Premium");
+    assert.equal(explicit.company.invoice_email, null);
   });
 });

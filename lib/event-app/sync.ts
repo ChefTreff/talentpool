@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { EventAppAdapter, ExhibitorRow, ExhibitorUpsert, RemoteExhibitor } from "@/lib/event-app/types";
 import { exhibitorChanged, matchRemote, toExhibitorUpsert } from "@/lib/event-app/mapping";
+import { ensurePublicLogo, publicLogoUrl } from "@/lib/event-app/logos";
 
 export type SyncSummary = {
   dryRun: boolean;
@@ -24,7 +25,8 @@ export type SyncSummary = {
  * Aussteller einer Edition in die Event-App bringen: `event_app_exhibitors()` → Abbildung → bestehende Aussteller des Events und der Community lesen →
  * nur Neues und Geändertes schreiben (`upsertEventExhibitorsV2`), App-ID je Org×Edition in `external_ref` (`set_event_app_ref`).
  * `dryRun` (Standard in der Admin-Route) rechnet alles durch und lässt Swapcard mit `validateOnly` prüfen — geschrieben wird nichts.
- * Ohne Adapter (kein `SWAPCARD_API_KEY`) endet der Lauf als `skipped`. Logos werden noch nicht übertragen (privater Bucket, Rasterformat nötig; Runbook).
+ * Ohne Adapter (kein `SWAPCARD_API_KEY`) endet der Lauf als `skipped`. Das freigegebene PNG-Logo wird im Echtlauf in den öffentlichen Bucket
+ * `partner-logos` kopiert und als `logoUrl` mitgegeben (0057); im Trockenlauf zählt die URL, unter der es liegen wird.
  */
 export async function syncExhibitors(opts: {
   admin: SupabaseClient;
@@ -68,7 +70,19 @@ export async function syncExhibitors(opts: {
 
     const pending: { row: ExhibitorRow; wanted: ExhibitorUpsert; existing?: RemoteExhibitor; kind: "create" | "update" | "attach" }[] = [];
     for (const row of eventRows) {
-      const wanted = toExhibitorUpsert(row, { logoUrl: null });
+      let logoUrl: string | null = publicLogoUrl(admin, row);
+      if (!dryRun && logoUrl) {
+        try {
+          logoUrl = await ensurePublicLogo(admin, row);
+        } catch (e) {
+          const message = e instanceof Error ? e.message : String(e);
+          summary.errors += 1;
+          summary.runs.push({ org: row.name, outcome: "logo_error", detail: message.slice(0, 200) });
+          await recordError(admin, row, jobId, `logo: ${message}`);
+          logoUrl = null;
+        }
+      }
+      const wanted = toExhibitorUpsert(row, { logoUrl });
       const existing = matchRemote(inEvent, row);
       if (existing && !exhibitorChanged(existing, wanted)) {
         summary.unchanged += 1;

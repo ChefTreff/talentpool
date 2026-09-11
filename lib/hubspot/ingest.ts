@@ -22,6 +22,8 @@ export type DealRun = {
   result: IngestResult;
   payload?: IngestPayload;
   stageReset?: boolean;
+  /** Nach gelungenem Ingest in die Erfolgs-Phase der Edition geschoben (`event.hubspot_done_stage_id`, 0058). */
+  stageDone?: boolean;
   slack?: "sent" | "skipped" | "failed";
 };
 
@@ -71,7 +73,8 @@ export async function ingestDeal(
   const result = data as IngestResult;
 
   if (result.ok) {
-    return { dealId, outcome: result.already ? "already" : "ingested", result, payload };
+    const stageDone = result.already ? false : await advanceToDoneStage(admin, dealId, payload);
+    return { dealId, outcome: result.already ? "already" : "ingested", result, payload, stageDone };
   }
 
   // Gate-Fehler: Phase zurück auf den vorherigen Stand, Slack informieren. Die Mail an den
@@ -94,4 +97,22 @@ export async function ingestDeal(
     { deal_id: dealId, errors: result.errors, owner_email: payload.deal.owner_email, stage_reset: stageReset },
   );
   return { dealId, outcome: "gate_failed", result, payload, stageReset, slack };
+}
+
+/**
+ * Erfolgs-Phase (Entscheidung Konrad 11.09.): nach gelungenem Ingest wandert der Deal in `event.hubspot_done_stage_id` der Edition
+ * seiner Pipeline, etwa „Onboarding Operations (Automation Complete)“. Ohne Eintrag passiert nichts; ein Fehler dabei kippt den Ingest nicht.
+ */
+async function advanceToDoneStage(admin: SupabaseClient, dealId: string, payload: IngestPayload): Promise<boolean> {
+  const { data } = await admin.rpc("hubspot_editions");
+  const editions = (data ?? []) as { pipeline_id: string; stage_id: string; done_stage_id: string | null }[];
+  const edition = editions.find((e) => e.pipeline_id === payload.deal.pipeline);
+  if (!edition?.done_stage_id || payload.deal.stage === edition.done_stage_id) return false;
+  try {
+    await setDealStage(dealId, edition.done_stage_id);
+    return true;
+  } catch (e) {
+    console.error(`[hubspot] Deal ${dealId} nicht in die Erfolgs-Phase geschoben:`, e instanceof Error ? e.message : e);
+    return false;
+  }
 }

@@ -12,7 +12,7 @@ Key gültig (eine Introspektion kostet ~300 von 60 000 Punkten/Minute). Event �
 ## Einrichtung
 1. **API-Key:** ✅ 11.09. in Vercel (`SWAPCARD_API_KEY`, sensibel) und lokal. `SWAPCARD_EVENT_ID` dient nur der Probe; der Sync liest die Event-ID aus der Datenbank.
 2. **Probe (wiederholbar, nur lesend):** `node --env-file=.env.local scripts/swapcard-probe.mjs` im Haupt-Checkout — druckt Query-/Mutation-Namen, `ExhibitorInput`, Event-Kopf und die Aussteller im Event. Schreibt nichts nach Swapcard; die vollständige Schema-Auskunft liegt danach unter `$TMPDIR/swapcard-schema.json`.
-3. **Event der Edition:** als Partner-Team `select set_edition_swapcard('<edition_id>', '<swapcard event id>');` — **noch nicht gesetzt**; ohne Eintrag überträgt der Sync nichts.
+3. **Event der Edition:** ✅ 11.09. für FLS27 gesetzt (`set_edition_swapcard`, Event „FUTURE LEADER SUMMIT 2027“). Für weitere Editionen: `select set_edition_swapcard('<edition_id>', '<swapcard event id>');`.
 4. **Swapcard-Event einrichten:** Das FLS27-Event ist ein Duplikat von 2026 (Konrad, 11.09.). Erster Schreiblauf erst, wenn Einstellungen, Sprache (`language`) und Sichtbarkeit stimmen.
 
 ## Ablauf
@@ -20,11 +20,11 @@ Key gültig (eine Introspektion kostet ~300 von 60 000 Punkten/Minute). Event �
 - Zuordnung (`lib/event-app/sync.ts`): erst die Aussteller **des Events** (clientId = unsere Org-ID, dann gespeicherte ID, dann Name), dann die **Community** per Name — ein Treffer aus dem Vorjahr wird mit `id` mitgeschickt und so ans 2027-Event gehängt statt verdoppelt (`attach`). Nur Neues und Geändertes wird geschrieben.
 - **Trockenlauf** (Standard): rechnet alles durch und lässt Swapcard mit `validateOnly: true` prüfen — Ergebnis je Org `would_create` / `would_update` / `would_attach`, Zähler `validated`, Prüf-Fehler als `invalid` mit Code und Pfad. Geschrieben wird nichts.
 - **Echtlauf** (`dryRun: false`): Upsert in Paketen zu 25 (Mutationen kosten 1 000 Punkte), App-ID je Org×Edition nach `external_ref` (`set_event_app_ref`, system `swapcard`, object_type `exhibitor`). Gelöscht wird nichts automatisch.
-- Übertragene Felder: `name`, `description` (DE), `descriptionTranslations` (en_US), `websiteUrl`, `booth`, `clientId`, `inputId`. **Kein `type`, kein Logo** bis zur Entscheidung (unten).
+- Übertragene Felder: `name`, `description` (DE), `descriptionTranslations` (en_US), `websiteUrl`, `booth`, `clientId`, `inputId`, **`logoUrl`** = öffentliche Kopie des freigegebenen PNG-Logos (Bucket `partner-logos`, eine Datei je Fassung; der Echtlauf kopiert, der Trockenlauf rechnet mit der künftigen URL). **Kein `type`** bis zur Kategorien-Entscheidung.
 - Auslösen: Team im Admin (B9) über `POST /api/admin/swapcard/exhibitors` mit `{ editionId?, dryRun (Standard true), orgId? }`; Gate Admin-Bereich + `is_partner_team()`. Läufe in `integration.sync_job` (system `swapcard`), Fehler des Echtlaufs in `integration.sync_error`. Ohne `SWAPCARD_API_KEY` endet der Lauf als `skipped`.
 
 ## Offen — Entscheidungen Konrad
-- **`type`:** 2026 stand dort die Branche; der Arbeitsauftrag sagt „Sponsoring-Level als Logo Type“. In Swapcard gibt es Sponsoren mit Kategorien als eigenen Begriff. Vorschlag: Aussteller-`type` = Branche (wie 2026, aus dem Firmentyp/`ct_focus_area`), Sponsoring-Level über Sponsoren-Kategorien — Klärung mit dem Team, bis dahin senden wir keinen `type`.
-- **Logos:** `partner-assets` ist privat, Swapcard braucht eine öffentlich abrufbare Rasterdatei; Vektor-Logos müssen gerendert werden. Vorschlag: öffentlicher Bucket `partner-logos` mit freigegebenen Logos (auch für Sanity/A11), PNG aus SVG per `sharp`, EPS/AI/PDF als Pflicht `logo_png` oder Konvertierung durch das Team. Bis dahin überträgt der Sync kein Logo.
+- **`type`:** Konrad (11.09.): Kategorien werden noch erarbeitet und dann in Swapcard nachgezogen; bis dahin kein `type`. 2026 stand dort die Branche, Sponsoring-Level sind in Swapcard eher Sponsoren-Kategorien.
+- **Logos:** entschieden (11.09.) — Partner liefern SVG **und** PNG als Pflichten (`logo_vector`, `logo_png`, Migration 0057); freigegebene PNGs landen im öffentlichen Bucket `partner-logos`, die SVG-Kopie für die Website folgt mit A11.
 - **Sprache:** Beschreibung DE als Standard, EN als Übersetzung `en_US`; ist das Event englisch (`language en_US`), drehen wir das.
 - **Mitglieder:** `event_app_member`-Kontakte werden exportiert, aber noch nicht angelegt (Personen-Sync Welle 4/5).

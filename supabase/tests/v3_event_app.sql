@@ -1,10 +1,10 @@
--- Smoke-Test 0055: set_edition_swapcard (Team), event_app_exhibitors (Org der Edition mit Beschreibung, Level, Stand, freigegebenem Logo, event_app_member-Kontakt;
+-- Smoke-Test 0055/0057: set_edition_swapcard (Team), event_app_exhibitors (Org der Edition mit Beschreibung, Level, Stand, freigegebenem SVG- und PNG-Logo samt Asset-ID, event_app_member-Kontakt;
 -- ohne Edition nur Editionen mit Swapcard-ID), set_event_app_ref (Upsert, eine Zeile je Org×Edition, sichtbar im Export); Partner ohne Team-Rolle ⇒ 42501;
 -- ungültiges System ⇒ 22023.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
-declare v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_org uuid; v_oe uuid; v_d_logo uuid; v_path text; v_a jsonb;
+declare v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_org uuid; v_oe uuid; v_d_logo uuid; v_d_png uuid; v_path text; v_png text; v_a jsonb; v_a_png jsonb;
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary where p.auth_user_id is not null limit 1;
@@ -24,11 +24,19 @@ begin
   insert into storage.objects (bucket_id, name) values ('partner-assets', v_path);
   v_a := register_partner_asset(v_org, 'logo_vector', v_path, 'logo.svg', 'image/svg+xml', 100, v_d_logo);
   perform submit_deliverable(v_d_logo, array[(v_a->>'id')::uuid], '{}'::jsonb);
-  insert into t_res values ('02_logo_before_review', (select coalesce(logo_path, 'null') from event_app_exhibitors(v_ed) where org_id = v_org));
+  insert into t_res values ('02_logo_before_review', (select coalesce(logo_svg_path, 'null') from event_app_exhibitors(v_ed) where org_id = v_org));
   perform review_deliverable(v_d_logo, true, null);
   insert into t_res values ('03_export', (select name || ' level=' || coalesce(sponsoring_level, '-') || ' booth=' || coalesce(booth_number, '-') || ' web=' || coalesce(website, '-')
-                                                 || ' logo=' || (logo_path = v_path)::text || ' members=' || jsonb_array_length(members)::text || ' member_email_ok=' || ((members->0->>'email') = v_email)::text
+                                                 || ' svg=' || (logo_svg_path = v_path)::text || ' png=' || coalesce(logo_png_path, 'null') || ' members=' || jsonb_array_length(members)::text || ' member_email_ok=' || ((members->0->>'email') = v_email)::text
                                                  || ' ref=' || coalesce(swapcard_exhibitor_id, 'null') from event_app_exhibitors(v_ed) where org_id = v_org));
+  -- PNG-Logo (0057): eigene Pflicht logo_png, nach Freigabe mit Pfad und Asset-ID im Export
+  select id into v_d_png from deliverable where org_edition_id = v_oe and key = 'logo_png';
+  v_png := v_ed::text || '/' || v_org::text || '/logo_png/logo.png';
+  insert into storage.objects (bucket_id, name) values ('partner-assets', v_png);
+  v_a_png := register_partner_asset(v_org, 'logo_png', v_png, 'logo.png', 'image/png', 2048, v_d_png);
+  perform submit_deliverable(v_d_png, array[(v_a_png->>'id')::uuid], '{}'::jsonb);
+  perform review_deliverable(v_d_png, true, null);
+  insert into t_res values ('03b_png_after_review', (select 'png_ok=' || (logo_png_path = v_png)::text || ' asset_ok=' || (logo_png_asset_id = (v_a_png->>'id')::uuid)::text from event_app_exhibitors(v_ed) where org_id = v_org));
   insert into t_res values ('04_export_all_editions', (select count(*)::text from event_app_exhibitors() where org_id = v_org and swapcard_event_id = 'evt_test_123'));
   perform set_event_app_ref(v_oe, 'swapcard', 'ex_1');
   perform set_event_app_ref(v_oe, 'swapcard', 'ex_2', '{"source": "test"}'::jsonb);

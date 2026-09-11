@@ -7,7 +7,7 @@ Deal erreicht Phase **„Onboarding Automation“** → Abgleich alle 15 Minuten
 2. **Webhook optional:** Service-Schlüssel kennen keine Webhooks. Der Ingest läuft deshalb über den Abgleich alle 15 Minuten (unten). Wer später Sekunden statt Minuten braucht, legt eine Projekt-App über die HubSpot-CLI mit Subscription *Deal · Property change · `dealstage`* auf `https://portal.chef-treff.de/api/webhooks/hubspot` an und setzt deren Client Secret als `HUBSPOT_CLIENT_SECRET`; die Route prüft die Signatur v3 und ist ohne Secret wirkungslos (401).
 3. **IDs eintragen — macht den Ingest scharf** (ab dann verarbeitet der Abgleich alle 15 Minuten jeden Deal in der Phase, legt Organisationen und Kontakte an und verschickt Einladungen an echte Adressen; deshalb erst nach Konrads Freigabe): `node --env-file=.env.local scripts/hubspot-pipelines.mjs` zeigt Pipelines, Phasen, Zuordnungs-Labels und Firmen-Eigenschaften. Dann als Partner-Team (Admin oder `area_lead_partner`):
    ```sql
-   select set_edition_hubspot('<edition_id fls27>', '<pipeline_id>', '<stage_id Onboarding Automation>');
+   select set_edition_hubspot('<edition_id fls27>', '<pipeline_id>', '<stage_id Onboarding Automation>', '<stage_id Automation Complete>');
    ```
    Ohne Eintrag verarbeitet die Route nichts (`ignored`), der Sweep hat keine Editionen.
 4. **Zuordnungs-Labels Deal → Kontakt** im HubSpot-Portal anlegen und beim Deal setzen: *Hauptkontakt*, *Unterschrift*, *Buchhaltung*, *Event-App*, *Weiterer Kontakt*. Die Wortstämme (DE/EN) stehen in `lib/hubspot/mapping.ts` → `roleFromLabel`. Ein einzelner Login-Kontakt ohne Label wird automatisch Hauptkontakt; *Buchhaltung* bekommt keinen Login, ihre E-Mail wird Rechnungs-E-Mail (Entscheidung 1).
@@ -15,9 +15,10 @@ Deal erreicht Phase **„Onboarding Automation“** → Abgleich alle 15 Minuten
 6. **Slack:** Slack-App „ChefTreff Portal“ (api.slack.com/apps → Create New App → From scratch, Workspace ChefTreff) → *Incoming Webhooks* aktivieren → „Add New Webhook to Workspace“ → Kanal `#fls27-onboarding` → Webhook-URL → Vercel `SLACK_ONBOARDING_WEBHOOK_URL` (sensibel; wer die URL hat, kann in den Kanal posten). Mehr braucht die App nicht: Scope `incoming-webhook` kommt automatisch, kein Bot-Token, keine Event-Subscriptions, keine Verteilung; unter *Display Information* Name und Icon setzen, so erscheint der Absender im Kanal. Fallback: make-Szenario „Webhook → Slack“ als `MAKE_ONBOARDING_WEBHOOK_URL` (optional Header `x-webhook-secret` = `MAKE_WEBHOOK_SECRET`). Ohne URL wird nur geloggt.
 
 ## Bestandsaufnahme 11.09.2026 (Service-Schlüssel gesetzt, nur gelesen)
-- **Pipeline „Future Leader Summit“** `379213775`; Phase **„Onboarding Start (Automation)“** `3019026648` (0 Deals), „Signed“ `586899154` (1 Deal), „Onboarding Operations (Automation Complete)“ `3569180889` (0) — Letztere wäre die natürliche Erfolgs-Phase nach dem Ingest (heute setzt der Ingest nur bei Gate-Fehlern zurück; Vorschlag: bei Erfolg nach „Automation Complete“ schieben, Entscheidung Konrad). **Noch nicht eingetragen.**
+- **Pipeline „Future Leader Summit“** `379213775`; Phase **„Onboarding Start (Automation)“** `3019026648` (0 Deals), „Signed“ `586899154` (1 Deal), „Onboarding Operations (Automation Complete)“ `3569180889` (0) — Letztere ist die **Erfolgs-Phase** (0058, Entscheidung Konrad 11.09.): nach gelungenem Ingest schiebt der Sweep den Deal dorthin, sofern `hubspot_done_stage_id` gesetzt ist. **IDs noch nicht eingetragen — erst nach Konrads Freigabe, wenn alles andere steht.**
 - **Zuordnungs-Labels Deal → Kontakt fehlen** (nur das Standard-Label ohne Namen): *Hauptkontakt*, *Unterschrift*, *Buchhaltung*, *Event-App*, *Weiterer Kontakt* im Portal anlegen (Schritt 4), sonst wird nur ein einzelner Kontakt automatisch Hauptkontakt.
-- **Firmen-Eigenschaften** (intern) und was der Ingest heute erwartet — Vorschlag, Freigabe Konrad, danach `COMPANY_PROPERTIES`/`lib/hubspot/mapping.ts` anpassen:
+- **Kontakt-Labels** trägt das Sales-Team nach (Entscheidung Konrad 11.09.); für den Start genügt der Hauptkontakt, den Rest ergänzt der Partner im Portal.
+- **Firmen-Eigenschaften** — Zuordnung **umgesetzt** in `lib/hubspot/mapping.ts` (11.09.; Portal-Eigenschaften gleichen Namens haben Vorrang, HubSpot-Eigenschaften sind der Fallback):
 
   | Portal-Feld | HubSpot heute | Vorschlag |
   |---|---|---|

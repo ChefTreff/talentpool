@@ -22,8 +22,10 @@ export type ExhibitorRow = {
   org_type: string | null;
   booth_number: string | null;
   onboarding_status: string;
-  logo_path: string | null;
-  logo_mime: string | null;
+  /** Freigegebenes SVG (Website, Druck) und PNG (Event-App) — aktuelle Fassung der akzeptierten Pflicht; 0057. */
+  logo_svg_path: string | null;
+  logo_png_path: string | null;
+  logo_png_asset_id: string | null;
   swapcard_exhibitor_id: string | null;
   members: { person_id: string; first_name: string | null; last_name: string | null; email: string | null; position: string | null }[];
 };

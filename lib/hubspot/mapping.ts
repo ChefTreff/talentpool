@@ -10,6 +10,8 @@ export const COMPANY_PROPERTIES = [
   "name", "legal_name", "communication_name", "address", "zip", "city", "country", "website", "domain",
   "description", "organization_type", "partner_category", "invoice_email", "invoice_name", "vat_id",
   "po_number", "sponsoring_level",
+  // Bestandsaufnahme 11.09.2026: so heißen die Eigenschaften im ChefTreff-Portal wirklich (Runbook HubSpot-Ingest, „Zuordnung“)
+  "fls_booth_type", "fls_partner_type", "ct_company_type", "purchase_ordner", "invoice_contact",
 ] as const;
 export const CONTACT_PROPERTIES = ["email", "firstname", "lastname", "jobtitle"] as const;
 export const LINE_ITEM_PROPERTIES = ["name", "hs_sku", "quantity", "price"] as const;
@@ -83,6 +85,43 @@ export type HubspotRecords = {
   portalId: string | number | null;
 };
 
+/** HubSpot „CT Company Type“ → Vokabular `organization_type`. Unbekannte Werte bleiben leer, die Datenbank setzt dann `corporate`. */
+const ORG_TYPES: Record<string, string> = {
+  corporate: "corporate",
+  startup: "startup",
+  "universität": "university",
+  initiative: "initiative",
+  stiftung: "initiative",
+  media: "media",
+  "service / kooperation": "agency",
+};
+export function orgTypeFromHubspot(value: string | null | undefined): string | null {
+  const v = clean(value)?.toLowerCase();
+  return v ? (ORG_TYPES[v] ?? null) : null;
+}
+
+/** HubSpot „FLS Partner Type“ → `partner_category` (das Vokabular kennt nur `talent` und `startup`; alles andere bleibt leer). */
+export function partnerCategoryFromHubspot(value: string | null | undefined): string | null {
+  const v = clean(value)?.toLowerCase();
+  if (!v) return null;
+  if (v.startsWith("hr")) return "talent";
+  if (v.startsWith("startup")) return "startup";
+  return null;
+}
+
+/** HubSpot „FLS Booth Type“ („18qm Premium“, „25qm+ Signature“, „Main Stage Loge“) → Sponsoring-Level ohne Größenangabe. */
+export function levelFromBoothType(value: string | null | undefined): string | null {
+  const v = clean(value);
+  if (!v) return null;
+  return v.replace(/^[\d.,]+\s*qm\+?\s*/i, "").trim() || null;
+}
+
+/** Nur übernehmen, wenn es wie eine E-Mail aussieht (`invoice_contact` kann auch ein Name sein). */
+export function emailOrNull(value: string | null | undefined): string | null {
+  const v = clean(value)?.toLowerCase() ?? null;
+  return v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? v : null;
+}
+
 /** Aus den HubSpot-Objekten den Payload für `ingest_partner_deal` bauen — rein, ohne Netz. */
 export function buildIngestPayload(r: HubspotRecords): IngestPayload {
   const d = r.deal.properties;
@@ -118,13 +157,13 @@ export function buildIngestPayload(r: HubspotRecords): IngestPayload {
       country: clean(c.country),
       website: clean(c.website) ?? (clean(c.domain) ? `https://${clean(c.domain)}` : null),
       description: clean(c.description),
-      type: clean(c.organization_type),
-      partner_category: clean(c.partner_category),
-      invoice_email: clean(c.invoice_email)?.toLowerCase() ?? null,
-      invoice_name: clean(c.invoice_name),
+      type: clean(c.organization_type) ?? orgTypeFromHubspot(c.ct_company_type),
+      partner_category: clean(c.partner_category) ?? partnerCategoryFromHubspot(c.fls_partner_type),
+      invoice_email: clean(c.invoice_email)?.toLowerCase() ?? emailOrNull(c.invoice_contact),
+      invoice_name: clean(c.invoice_name) ?? clean(c.legal_name) ?? clean(c.name),
       vat_id: clean(c.vat_id),
-      po_number: clean(c.po_number),
-      sponsoring_level: clean(c.sponsoring_level),
+      po_number: clean(c.po_number) ?? clean(c.purchase_ordner),
+      sponsoring_level: clean(c.sponsoring_level) ?? levelFromBoothType(c.fls_booth_type),
     },
     contacts,
     line_items: r.lineItems.map((li) => ({

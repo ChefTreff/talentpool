@@ -68,3 +68,8 @@ export function chunks<T>(items: T[], size: number): T[][] {
   for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
   return out;
 }
+
+/** Öffentliche Kopie des freigegebenen PNG: eine Datei je Fassung (Asset-ID), damit eine neue Freigabe eine neue URL bekommt. */
+export function publicLogoPath(row: Pick<ExhibitorRow, "edition_slug" | "org_id" | "logo_png_asset_id">): string | null {
+  return row.logo_png_asset_id ? `${row.edition_slug}/${row.org_id}/${row.logo_png_asset_id}.png` : null;
+}
