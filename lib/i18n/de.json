@@ -1138,7 +1138,7 @@
   },
   "volunteers": {
     "title": "Volunteers",
-    "lead": "Lead",
+    "lead": "Bewirb dich als Volunteer und behalte deine Schichten im Blick.",
     "navProfile": "Bewerbung & Profil",
     "navShifts": "Meine Schichten",
     "progress": "Fortschritt der Bewerbung",
@@ -1193,6 +1193,7 @@
     "shift_waitlisted": "Warteliste",
     "shift_no_show": "nicht erschienen",
     "waitlistHint": "Du stehst auf der Warteliste. Wird ein Platz frei, rückst du automatisch nach und wir schreiben dir.",
+    "leadLabel": "Lead",
     "confirm": "Schicht bestätigen",
     "confirmed": "Bestätigt. Danke!",
     "decline": "Absagen",

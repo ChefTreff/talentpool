@@ -91,7 +91,7 @@ export function ShiftList({
                 {" · "}
                 {time.format(new Date(s.start_at))}–{time.format(new Date(s.end_at))}
                 {s.location && ` · ${s.location}`}
-                {s.lead_name && ` · ${t.lead}: ${s.lead_name}`}
+                {s.lead_name && ` · ${t.leadLabel}: ${s.lead_name}`}
               </p>
               {s.briefing_md && (
                 <p className="ct-help mt-2 whitespace-pre-line border-l-2 border-border pl-3">

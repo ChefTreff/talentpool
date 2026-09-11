@@ -37,13 +37,13 @@ export const getVolunteerScope = cache(
       .limit(1);
     const edition = (editions ?? [])[0] ?? null;
 
-    const { data: dayRows } = edition
-      ? await supabase
-          .from("event_day")
-          .select("id,day_date,label_de,label_en")
-          .eq("event_id", edition.id)
-          .order("sort_order")
-      : { data: [] };
+    /**
+     * Die Tage über `volunteer_days()` statt über die Tabelle: `event_day`
+     * trägt zwar einen SELECT-Grant für `authenticated`, aber keine
+     * RLS-Policy — direkt gelesen kommt nichts zurück. Die RPC liefert die
+     * Tage der Edition **und** ihrer Events (`summit-27`, `hackathon-27`).
+     */
+    const { data: dayRows } = await supabase.rpc("volunteer_days");
 
     return { profile, days: (dayRows ?? []) as EventDay[], edition };
   },

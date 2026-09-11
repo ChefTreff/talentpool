@@ -89,7 +89,13 @@ export function ProfileView({
           </span>
         </div>
         <p className="ct-help mt-2">{t[`statusBody_${profile.status}`] ?? ""}</p>
-        {profile.decision_note && <p className="ct-help mt-1">{profile.decision_note}</p>}
+        {/* Die Notiz gehört zur Entscheidung des Teams. Nach einem Rückzug
+            gilt die nicht mehr — dann stünde dort „willkommen" über einer
+            zurückgezogenen Bewerbung. */}
+        {profile.decision_note &&
+          (profile.status === "accepted" || profile.status === "declined") && (
+            <p className="ct-help mt-1">{profile.decision_note}</p>
+          )}
         {profile.status === "accepted" && (
           <p className="mt-3">
             <Link href="/volunteers/schichten" className="ct-link">

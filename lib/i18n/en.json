@@ -1138,7 +1138,7 @@
   },
   "volunteers": {
     "title": "Volunteers",
-    "lead": "Lead",
+    "lead": "Apply as a volunteer and keep track of your shifts.",
     "navProfile": "Application & profile",
     "navShifts": "My shifts",
     "progress": "Application progress",
@@ -1193,6 +1193,7 @@
     "shift_waitlisted": "waiting list",
     "shift_no_show": "no show",
     "waitlistHint": "You are on the waiting list. If a place opens up you move up automatically and we will write to you.",
+    "leadLabel": "Lead",
     "confirm": "Confirm shift",
     "confirmed": "Confirmed. Thank you!",
     "decline": "Decline",
