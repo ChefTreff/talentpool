@@ -18,3 +18,10 @@ Kontingente entstehen in der Datenbank aus gebuchten Ticket-Produkten (`product.
 - `ticket_allocations_admin(edition?)`: alle Kontingente mit Status, Fehler, vivenu-IDs.
 - `set_ticket_allocation(id, quantity?, coupon_code?, undershop_url?, status?, notes?)`: manuelle Korrektur mit Audit; eine geänderte Menge bei vorhandenem Coupon wird beim nächsten Lauf nach vivenu geschrieben.
 - Genutzte Tickets (`used_count`) füllt der vivenu-Ingest aus Welle 1 (A7b), sobald er läuft.
+
+## Antworten vivenu (11.09.2026) — bestätigt und ergänzt
+- ~100 Undershops am Event sind unproblematisch; **während der Sync läuft keine manuellen Undershop-Änderungen im Dashboard** (PUT überschreibt das Array).
+- Einlösungen zählen: Transaktionen lesen, `appliedDiscountInfo[].discountId` = unsere `vivenu_coupon_id` ⇒ `used_count` (Ticket-Ingest A7b).
+- Dev (`vivenu.dev`) und Prod verhalten sich identisch; Rate-Limit praktisch höher als 1.000/h, bei 429 mit Backoff wiederholen (Folgeaufgabe im Client).
+- Webhooks: Raw-Body signieren, Webhook-ID für Idempotenz, 7 Versuche mit Backoff; Personalisierung kommt als `ticket.updated`.
+
