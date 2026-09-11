@@ -121,7 +121,8 @@ export function ShopView({
 
   const cart = cartOf(orders);
 
-  const history = orders.filter((o) => o.status !== "draft");
+  // Die Bestellung im Warenkorb steht nicht noch einmal in der Historie.
+  const history = orders.filter((o) => o.id !== cart?.id);
   const inCart = useMemo(() => {
     const map = new Map<string, number>();
     for (const line of cart?.lines ?? []) map.set(line.sku, line.qty);
@@ -351,6 +352,7 @@ export function ShopView({
           <h2 id="h-cart" className="ct-h3 mb-3 text-ink">
             {t.cart}
           </h2>
+          {cart.status === "editing" && <p className="ct-help mb-2">{t.cartReopened}</p>}
           <Card>
             <ul className="flex flex-col gap-2">
               {cart.lines.map((line) => (

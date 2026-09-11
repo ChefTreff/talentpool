@@ -1137,7 +1137,8 @@
     "logoHint": "From the files you submitted. If something is missing, upload it in the files hub.",
     "noAssets": "No file yet — please upload one in the files hub first.",
     "maxChars": "At most",
-    "requiredLabel": "required"
+    "requiredLabel": "required",
+    "cartReopened": "This order is open again — confirm it once more, otherwise the change is left hanging."
   },
   "adminPartner": {
     "title": "Partners",

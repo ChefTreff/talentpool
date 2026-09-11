@@ -1137,7 +1137,8 @@
     "logoHint": "Aus euren eingereichten Dateien. Fehlt etwas, ladet es im Dateien-Hub hoch.",
     "noAssets": "Es liegt noch keine Datei — bitte zuerst im Dateien-Hub hochladen.",
     "maxChars": "Höchstens",
-    "requiredLabel": "Pflichtfeld"
+    "requiredLabel": "Pflichtfeld",
+    "cartReopened": "Diese Bestellung ist wieder offen — bestätigt sie erneut, sonst bleibt die Änderung liegen."
   },
   "adminPartner": {
     "title": "Partner",

@@ -8,6 +8,7 @@ import {
   sizesTotal,
   type MerchField,
 } from "@/lib/partner/merch";
+import { cartOf, type ShopOrder } from "@/app/(partner)/partner/types";
 
 /** Ein Shirt, wie ein Merch-Artikel 2027 aussehen könnte (Entscheidung 14). */
 const SHIRT: MerchField[] = [
@@ -154,5 +155,54 @@ describe("Merch-Konfiguration anzeigen", () => {
   it("zeigt nichts an, wo nichts konfiguriert ist", () => {
     assert.deepEqual(describeMerch(SHIRT, null, "de"), []);
     assert.deepEqual(describeMerch(SHIRT, {}, "de"), []);
+  });
+});
+
+/**
+ * `shop_edit` setzt eine bestätigte Bestellung auf `editing` zurück. Der
+ * Bestätigen-Knopf steht nur am Warenkorb — findet `cartOf` die wieder
+ * geöffnete Bestellung nicht, kommt der Partner nicht mehr heraus
+ * (Fund im Walkthrough zu PR #20).
+ */
+describe("Was der Warenkorb ist", () => {
+  const order = (id: string, status: ShopOrder["status"], editable = true) =>
+    ({
+      id,
+      order_no: id,
+      phase: 1,
+      status,
+      note: null,
+      confirmed_at: null,
+      completed_at: null,
+      cancelled_at: null,
+      net_cents: 0,
+      vat_cents: 0,
+      gross_cents: 0,
+      lines: [],
+      editable,
+      created_at: "",
+      updated_at: "",
+    }) satisfies ShopOrder;
+
+  it("nimmt den Entwurf", () => {
+    assert.equal(cartOf([order("a", "completed"), order("b", "draft")])?.id, "b");
+  });
+
+  it("nimmt die wieder geöffnete Bestellung", () => {
+    assert.equal(cartOf([order("a", "completed", false), order("b", "editing")])?.id, "b");
+  });
+
+  it("bevorzugt den Entwurf vor einer wieder geöffneten Bestellung", () => {
+    assert.equal(cartOf([order("b", "editing"), order("c", "draft")])?.id, "c");
+  });
+
+  it("lässt bestätigte, abgeschlossene und stornierte Bestellungen in der Historie", () => {
+    for (const status of ["pending", "completed", "cancelled"] as const) {
+      assert.equal(cartOf([order("a", status)]), null, status);
+    }
+  });
+
+  it("nimmt keine Bestellung aus einer abgelaufenen Phase", () => {
+    assert.equal(cartOf([order("a", "editing", false)]), null);
   });
 });
