@@ -74,6 +74,8 @@ export function SessionDrawer({
   eventId,
   sessionId,
   slotId,
+  canPublish = true,
+  hostOrgId,
   labels,
   locale,
   t,
@@ -85,6 +87,10 @@ export function SessionDrawer({
   eventId: string;
   sessionId: string | null;
   slotId: string | null;
+  /** Veröffentlichen anbieten? Nur das Programm-Team darf es (`publish_session`). */
+  canPublish?: boolean;
+  /** Gastgebende Org für neu angelegte Sessions (Partner-Bühne). */
+  hostOrgId?: string;
   labels: BoardLabels;
   locale: "de" | "en";
   t: ProgrammeStrings;
@@ -213,6 +219,10 @@ export function SessionDrawer({
           ? new Date(draft.application_deadline).toISOString()
           : "",
         confirm_by_hours: draft.confirm_by_hours,
+        // Nur beim Anlegen: `upsert_session` setzt die Gastgeberin nicht von
+        // selbst, und ohne sie fände der Partner seine Session später nicht
+        // unter „Bewerber" wieder.
+        ...(!id && hostOrgId ? { host_org_id: hostOrgId } : {}),
       });
       if (!res.ok) {
         toast("error", message(res.key));
@@ -291,7 +301,7 @@ export function SessionDrawer({
           <Button onClick={save} loading={pending} disabled={titleMissing}>
             {t.save}
           </Button>
-          {id && !isPublished && (
+          {canPublish && id && !isPublished && (
             <Button
               variant="secondary"
               disabled={pending}
@@ -304,7 +314,7 @@ export function SessionDrawer({
               {t.publish}
             </Button>
           )}
-          {id && isPublished && (
+          {canPublish && id && isPublished && (
             <Button
               variant="secondary"
               disabled={pending}
@@ -316,6 +326,10 @@ export function SessionDrawer({
             >
               {t.unpublish}
             </Button>
+          )}
+          {/* Ohne das Recht steht statt des Knopfes, wer entscheidet. */}
+          {!canPublish && id && !isPublished && (
+            <p className="ct-help self-center">{t.awaitingRelease}</p>
           )}
           {id && detail?.slot_id && (
             <Button

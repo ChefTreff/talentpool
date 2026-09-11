@@ -61,6 +61,7 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     files: { href: "/partner/dateien", label: t.partner.navFiles },
     tickets: { href: "/partner/tickets", label: t.partner.navTickets },
     applicants: { href: "/partner/bewerber", label: t.partner.navApplicants },
+    stage: { href: "/partner/buehne", label: t.partner.navStage },
   };
 
   const pick = (keys: PartnerNavKey[]) =>
