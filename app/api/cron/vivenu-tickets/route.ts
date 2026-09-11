@@ -58,7 +58,8 @@ export async function GET(request: Request) {
   });
   const job = (jobId as number | null) ?? null;
 
-  const stats = { editions: 0, tickets: 0, created: 0, updated: 0, unknown_event: 0, errors: 0 };
+  const stats = { editions: 0, tickets: 0, created: 0, updated: 0, stale: 0, unknown_event: 0, backfilled: 0, errors: 0 };
+  const unknownTypes = new Set<string>();
   try {
     for (const edition of targets) {
       stats.editions += 1;
@@ -79,12 +80,29 @@ export async function GET(request: Request) {
           });
           continue;
         }
-        const outcome = String((data as { outcome?: string } | null)?.outcome ?? "");
+        const result = data as { outcome?: string; ticket_type_id?: string; pass_type_missing?: boolean } | null;
+        const outcome = String(result?.outcome ?? "");
         if (outcome === "created") stats.created += 1;
         else if (outcome === "updated") stats.updated += 1;
+        else if (outcome === "stale") stats.stale += 1;
         else if (outcome === "unknown_event") stats.unknown_event += 1;
+        if (result?.pass_type_missing && result.ticket_type_id) unknownTypes.add(result.ticket_type_id);
       }
     }
+    // Einmal je Typ melden, nicht je Ticket.
+    for (const ticketTypeId of unknownTypes) {
+      await admin.rpc("record_sync_error", {
+        p_job_id: job,
+        p_object_type: "vivenu_ticket_type",
+        p_object_id: ticketTypeId,
+        p_message: `Tickettyp ${ticketTypeId} fehlt in ticket_type_map — Pass-Typ bleibt leer.`,
+        p_payload: { ticket_type_id: ticketTypeId },
+      });
+    }
+    // Was inzwischen zugeordnet wurde, jetzt nachtragen.
+    const { data: filled } = await admin.rpc("backfill_ticket_pass_types");
+    stats.backfilled = Number(filled ?? 0);
+
     if (job) {
       await admin.rpc("finish_sync_job", {
         p_id: job,
