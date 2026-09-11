@@ -40,3 +40,4 @@ Drei DNS-Einträge werden **nicht angefasst**: `chef-treff.de MX` (Google Worksp
 | Datum | Wer | Ergebnis |
 |---|---|---|
 | 11.09.2026 | Konrad / Team-Portal | Teil A gestartet: Team-Portal zieht kurzfristig auf `team.chef-treff.de`; Übergabe-Regeln (DNS bei IONOS, drei geschützte Einträge, DMARC strict) dokumentiert; Weiterleitungen alter Team-Pfade in `next.config.ts`. |
+| 11.09.2026 | Konrad / Claude | **Teil B erfolgt:** `portal.chef-treff.de` liefert die Plattform (200 auf `/login`, `/belege` → team.). `NEXT_PUBLIC_SITE_URL` (Production) auf `https://portal.chef-treff.de` gesetzt (Claude, wirksam mit dem nächsten Deploy). Sicherheits-Header + CSP (Report-Only) ergänzt (Runbook `sicherheits-header.md`). **Offen (Konrad):** Supabase Auth → Site URL `https://portal.chef-treff.de`, Redirect `https://portal.chef-treff.de/auth/callback`; Prüfung Magic-Link-Login auf der neuen Domain. |

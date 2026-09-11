@@ -85,7 +85,7 @@ export type HubspotRecords = {
   portalId: string | number | null;
 };
 
-/** HubSpot „CT Company Type“ → Vokabular `organization_type` (Stiftung = eigener Typ `foundation`, 0059). Unbekannte Werte bleiben leer, die Datenbank setzt dann `corporate`. */
+/** HubSpot „CT Company Type“ → Vokabular `organization_type` (Stiftung = `foundation`, Service / Kooperation = `service`; 0059/0060). Unbekannte Werte bleiben leer, die Datenbank setzt dann `corporate`. */
 const ORG_TYPES: Record<string, string> = {
   corporate: "corporate",
   startup: "startup",
@@ -93,7 +93,7 @@ const ORG_TYPES: Record<string, string> = {
   initiative: "initiative",
   stiftung: "foundation",
   media: "media",
-  "service / kooperation": "agency",
+  "service / kooperation": "service",
 };
 export function orgTypeFromHubspot(value: string | null | undefined): string | null {
   const v = clean(value)?.toLowerCase();

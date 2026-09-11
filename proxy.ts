@@ -14,8 +14,8 @@ import { supabaseAnonKey, supabaseUrl } from "@/lib/supabase/env";
  * Ohne gesetzte Env-Variablen No-Op (lokaler Start vor `.env.local`).
  */
 
-/** Öffentlich erreichbar, auch ohne Login (Arbeitsauftrag B6). */
-const PUBLIC_PATHS = ["/", "/login", "/tickets/bestaetigung"];
+/** Öffentlich erreichbar, auch ohne Login (Arbeitsauftrag B6). `/api/csp-report` nimmt Browser-Meldungen zur CSP an. */
+const PUBLIC_PATHS = ["/", "/login", "/tickets/bestaetigung", "/api/csp-report"];
 // `/api/cron/` prüft das Vercel-Cron-Secret selbst, `/api/webhooks/` die Signatur des Absenders;
 // ohne Ausnahme würde der Proxy beide zum Login umleiten.
 const PUBLIC_PREFIXES = ["/auth/", "/api/cron/", "/api/webhooks/"];
@@ -27,8 +27,47 @@ function isPublic(pathname: string): boolean {
   );
 }
 
+/**
+ * Content-Security-Policy mit Nonce je Anfrage. Next liest den Nonce aus dem CSP-Header der **Anfrage** und setzt ihn an seine
+ * Inline-Skripte; `'strict-dynamic'` erlaubt die von dort nachgeladenen Chunks. Bis `CSP_ENFORCE=true` läuft die Richtlinie als
+ * Report-Only — Verstöße landen über `report-uri` in `/api/csp-report` (Vercel-Logs), ohne die Seite zu blockieren.
+ * Nonce-freie Grundregeln (frame-ancestors, base-uri, object-src, form-action) stehen zusätzlich in `next.config.ts`.
+ */
+function buildCsp(nonce: string): string {
+  const sb = supabaseUrl();
+  const sbHttps = sb ? new URL(sb).origin : "";
+  const sbWss = sbHttps.replace(/^https:/, "wss:");
+  const dev = process.env.NODE_ENV !== "production";
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    `img-src 'self' data: blob: ${sbHttps}`.trim(),
+    "font-src 'self' data:",
+    `connect-src 'self' ${sbHttps} ${sbWss}${dev ? " ws://localhost:* http://localhost:*" : ""}`.replace(/\s+/g, " ").trim(),
+    "media-src 'self' blob:",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "report-uri /api/csp-report",
+  ].join("; ");
+}
+
+const CSP_HEADER = process.env.CSP_ENFORCE === "true" ? "Content-Security-Policy" : "Content-Security-Policy-Report-Only";
+
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const nonce = btoa(crypto.randomUUID());
+  const csp = buildCsp(nonce);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set(CSP_HEADER, csp);
+  const withCsp = (res: NextResponse) => {
+    res.headers.set(CSP_HEADER, csp);
+    return res;
+  };
+  let response = withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
 
   const url = supabaseUrl();
   const key = supabaseAnonKey();
@@ -41,7 +80,7 @@ export async function proxy(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        response = NextResponse.next({ request });
+        response = withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),
         );

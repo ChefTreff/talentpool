@@ -29,7 +29,7 @@ Deal erreicht Phase **„Onboarding Automation“** → Abgleich alle 15 Minuten
   | `invoice_name` | fehlt | Standard `name`, sonst neue Eigenschaft |
   | `vat_id` | `vat_id` ✅ | — |
   | `po_number` | `purchase_ordner` (Tippfehler im internen Namen) | so übernehmen |
-  | `organization_type` | `ct_company_type` (Corporate, VC, Startup, Universität, Initiative, Stiftung, Media, Service / Kooperation, Catering, Important, Other) | Zuordnung auf das Vokabular `organization_type`: Corporate ⇒ corporate, Startup ⇒ startup, Universität ⇒ university, Initiative ⇒ initiative, **Stiftung ⇒ foundation (0059)**, Media ⇒ media, Service / Kooperation ⇒ agency; VC, Catering, Important, Other bleiben leer ⇒ corporate |
+  | `organization_type` | `ct_company_type` (Corporate, VC, Startup, Universität, Initiative, Stiftung, Media, Service / Kooperation, Catering, Important, Other) | Zuordnung auf das Vokabular `organization_type`: Corporate ⇒ corporate, Startup ⇒ startup, Universität ⇒ university, Initiative ⇒ initiative, **Stiftung ⇒ foundation (0059)**, Media ⇒ media, **Service / Kooperation ⇒ service (0060)**; VC, Catering, Important, Other bleiben leer ⇒ corporate |
   | `partner_category` | `fls_partner_type` (HR, Marketing, Startup, Hackathon, ZEIT, Agency Partner) | HR Partner → `talent`, Startup Partner → `startup`; Rest klären (Vokabular kennt nur startup/talent) |
   | `sponsoring_level` | `fls_booth_type` (1,5qm Start Up, 4qm Intro, 9qm General, 18qm Premium, 25qm+ Signature, Main Stage Loge, Gemeinschaftsstand) | Level aus dem Standtyp; `fls_sponsoring` sind Sponsoring-Arten (Speaker Lounge, Food, …), kein Level |
   | Logo | `logo` (string) | optional als Vorbelegung |

@@ -79,6 +79,7 @@ describe("Zuordnung der ChefTreff-Eigenschaften (Bestandsaufnahme 11.09.)", () =
     assert.equal(orgTypeFromHubspot("Corporate"), "corporate");
     assert.equal(orgTypeFromHubspot("Universität"), "university");
     assert.equal(orgTypeFromHubspot("Stiftung"), "foundation");
+    assert.equal(orgTypeFromHubspot("Service / Kooperation"), "service");
     assert.equal(orgTypeFromHubspot("Initiative"), "initiative");
     assert.equal(orgTypeFromHubspot("VC"), null);
     assert.equal(emailOrNull("Rechnung@Test.Example"), "rechnung@test.example");
