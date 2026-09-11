@@ -5,7 +5,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Tabs } from "./Tabs";
+import { SectionTabs } from "@/components/layout/SectionTabs";
 
 /**
  * Gemeinsamer Rahmen aller Partner-Admin-Seiten: Gate, Reiter und die eine
@@ -33,7 +33,13 @@ export async function partnerAdminShell(pathname: string): Promise<
   const { data: team } = await supabase.rpc("is_partner_team");
 
   const items = [
-    { href: "/admin/partner", label: t.adminPartner.tabList },
+    {
+      href: "/admin/partner",
+      label: t.adminPartner.tabList,
+      exact: true,
+      // Die Detailseite einer Organisation gehört zur Liste.
+      detailPattern: "^/admin/partner/[0-9a-f-]{36}$",
+    },
     { href: "/admin/partner/review", label: t.adminPartner.tabReview },
     { href: "/admin/partner/kontingente", label: t.adminPartner.tabAllocations },
     { href: "/admin/partner/bestellungen", label: t.adminPartner.tabOrders },
@@ -45,7 +51,7 @@ export async function partnerAdminShell(pathname: string): Promise<
   const frame = (title: string, description: string, children: ReactNode) => (
     <>
       <PageHeader title={title} description={description} />
-      <Tabs items={items} label={t.adminPartner.title} />
+      <SectionTabs items={items} label={t.adminPartner.title} />
       {children}
     </>
   );

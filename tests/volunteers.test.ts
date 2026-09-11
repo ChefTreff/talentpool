@@ -2,6 +2,13 @@ import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { isTooYoung, volunteerInvite } from "@/lib/volunteers/rules";
 import { canSeeShifts, type VolunteerProfile } from "@/app/(volunteers)/volunteers/types";
+import {
+  candidatesFor,
+  freeSeats,
+  shiftTotals,
+  type ShiftRow,
+  type VolunteerRow,
+} from "@/app/(admin)/admin/volunteers/types";
 
 /** Summit 27 beginnt am 16.04.2027 (Masterplan). */
 const FIRST_DAY = "2027-04-16";
@@ -94,5 +101,72 @@ describe("Hinweis im Teilnehmerportal", () => {
   it("fasst nach Absage und Rückzug nicht nach", () => {
     assert.equal(volunteerInvite("declined"), null);
     assert.equal(volunteerInvite("withdrawn"), null);
+  });
+});
+
+/** Schichtplan-Rechnung: freie Plätze, Kandidaten, Summen (B3). */
+describe("Schichtplan", () => {
+  const shift = (over: Partial<ShiftRow> = {}): ShiftRow => ({
+    id: "s1",
+    event_day_id: "d1",
+    area: "checkin",
+    position: "Einlass",
+    start_at: "2027-04-16T08:00:00Z",
+    end_at: "2027-04-16T12:00:00Z",
+    capacity: 2,
+    overbook: 1,
+    location: null,
+    lead_person_id: null,
+    lead_name: null,
+    briefing_md: null,
+    active: true,
+    taken: 0,
+    waitlisted: 0,
+    people: [],
+    ...over,
+  });
+  const person = (id: string, status: VolunteerRow["status"]): VolunteerRow => ({
+    profile_id: `p-${id}`,
+    person_id: id,
+    display_name: id,
+    email: `${id}@test`,
+    status,
+    shirt_size: null,
+    areas: null,
+    day_prefs: null,
+    availability: null,
+    buddy_note: null,
+    notes_internal: null,
+    applied_at: "",
+    decided_at: null,
+    shifts_assigned: 0,
+    shifts_confirmed: 0,
+    birthdate: null,
+  });
+
+  it("rechnet die Überbuchung in die freien Plätze ein (E9)", () => {
+    assert.equal(freeSeats(shift({ taken: 0 })), 3);
+    assert.equal(freeSeats(shift({ taken: 3 })), 0);
+    assert.equal(freeSeats(shift({ taken: 4 })), -1);
+  });
+
+  it("schlägt nur angenommene Bewerbungen vor", () => {
+    const people = [person("a", "accepted"), person("b", "applied"), person("c", "declined")];
+    assert.deepEqual(
+      candidatesFor(shift(), people).map((v) => v.person_id),
+      ["a"],
+    );
+  });
+
+  it("schlägt niemanden vor, der schon auf der Schicht steht", () => {
+    const s = shift({
+      people: [{ assignment_id: "x", person_id: "a", status: "waitlisted", name: "a" }],
+    });
+    assert.deepEqual(candidatesFor(s, [person("a", "accepted"), person("d", "accepted")]).map((v) => v.person_id), ["d"]);
+  });
+
+  it("zählt Plätze, Belegung und Warteliste zusammen", () => {
+    const totals = shiftTotals([shift({ taken: 1 }), shift({ taken: 3, waitlisted: 2 })]);
+    assert.deepEqual(totals, { shifts: 2, seats: 6, taken: 4, waitlisted: 2, open: 2 });
   });
 });
