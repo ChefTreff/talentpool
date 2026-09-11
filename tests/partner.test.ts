@@ -182,6 +182,19 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     { code: "P0001", message: "answers_incomplete", key: "answers_incomplete" },
     { code: "P0001", message: "fulfilled_by_order", key: "fulfilled_by_order" },
     { code: "22023", message: "quantity_required", key: "quantity_required" },
+    // Partner-Admin (B9)
+    { code: "22023", message: "invalid_status", key: "invalid_status" },
+    { code: "22023", message: "invalid_quantity", key: "invalid_quantity" },
+    { code: "22023", message: "invalid_sku", key: "invalid_sku" },
+    { code: "22023", message: "invalid_category", key: "invalid_category" },
+    { code: "22023", message: "fields_required", key: "fields_required" },
+    { code: "22023", message: "note_required", key: "note_required" },
+    { code: "P0001", message: "not_pending", key: "not_pending" },
+    { code: "P0002", message: "allocation_not_found", key: "allocation_not_found" },
+    { code: "P0002", message: "request_not_found", key: "request_not_found" },
+    { code: "P0002", message: "edition_not_found", key: "edition_not_found" },
+    { code: "P0002", message: "template_not_found", key: "template_not_found" },
+    { code: "P0002", message: "sync_error_not_found", key: "sync_error_not_found" },
   ];
 
   for (const c of CASES) {

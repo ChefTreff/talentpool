@@ -18,6 +18,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     { href: "/admin", label: t.admin.nav.overview },
     { href: "/admin/programm", label: t.admin.nav.programme },
     { href: "/admin/bewerbungen", label: t.admin.nav.applications },
+    { href: "/admin/partner", label: t.admin.nav.partners },
     { href: "/admin/rollen", label: t.admin.nav.roles },
     { href: "/admin/speaker-tickets", label: t.admin.nav.speakerTickets },
     { href: "/admin/reisekosten", label: t.admin.nav.expenses },
