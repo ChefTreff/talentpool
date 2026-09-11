@@ -488,3 +488,7 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 
 ## 2026-09-11 — Altes Supabase-Projekt gelöscht; Reihenfolge der externen Freigaben
 - Dublin-Projekt von Konrad gelöscht (Pro-Plan ließ kein Pausieren zu; nichts mehr zu sichern). Externe Schritte: Sanity-Werte nächste Woche (Trockenlauf A11), HubSpot-Ingest **ganz am Ende** vor dem Prozessstart 01.11., Swapcard-Kategorien ebenfalls am Ende (bis dahin kein `type`).
+
+## 2026-09-11 — Welle 4 PR #21 Volunteers: Migration 0065 angewendet; PR #20 Merch gemergt
+- PR #20 gemergt (a20c37c) inkl. Fund aus B8: wieder geöffnete Bestellungen (`editing`) rutschten in die Historie ohne Bestätigen-Knopf — behoben.
+- Migration 0065 (Build-Session) nach Review angewendet (`20260911165420`): `volunteer_profile`, `shift`, `shift_assignment` ohne Grants, RPCs für Bewerbung/Profil/Schichten/Team, Warteliste mit Nachrücken, Erinnerung 48 h, Mail-Vorlagen. **Entscheidungen:** `/volunteers` ist nur login-gegated (Rolle `volunteer` entsteht erst mit der Zusage; Schutz über RPCs); `is_volunteer_team()` = admin, `area_lead_volunteers`, `volunteer_lead`; Link zur Volunteer-Bewerbung aus dem Talent-Bereich (Kachel auf `/meine`). Smoke-Test scheiterte auf Frankfurt an fehlenden `event_day`-Zeilen (NULL im RAISE-Detail) ⇒ Korrektur 0066 im selben PR angefordert.
