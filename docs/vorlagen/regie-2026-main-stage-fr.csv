@@ -1,0 +1,89 @@
+Main,,,,,,,,,,,
+,,,,,,,,,,,
+Stage,Main Stage,,,,,,,,,,
+Tag,10.04.2026,,,,,,,,,,
+Anforderungen:,,,,,,,,,,,
+Lichteinstellung:,,,,,,,,,,,
+,,,,,,,,,,,
+Start,Dauer,End,Aktion,Slot ID,Format (Panel/Keynote...),Title,Moderation,Regie,Backstage ,Mobiliar,"Sonstige Notizen, Watchouts"
+,,,,,,,,,,,
+11:30:00,00:10:00,11:40:00,Besprechung Technik und Team,,,,,,,,
+11:40:00,00:15:00,11:55:00,Soundcheck Moderator,,,,,,,,
+11:55:00,00:10:00,12:05:00,Vorbereitung,,,,,,,,
+12:05:00,00:25:00,12:30:00,Crew Briefing: Allgemein,,,,,,,,
+12:30:00,00:00:00,12:30:00,DOORS OPEN,,,,,,,,
+12:30:00,00:00:00,12:30:00,Einlass,,,,,,Verkabeln und Slides einstellen üben,,
+12:30:00,00:05:00,12:35:00,Puffer,,,,,,,,
+12:35:00,00:00:00,12:35:00,Doors open Stage,,,,,,,,
+12:35:00,00:00:00,12:35:00,Einlass Stages,,,,,,"Es gibt stets die identischen Abläufe. Es ist darauf zu achten, dass die Speaker rechtzeitig da sind, verkabelt werden, 
+die Slides da sind und es ein Getränk gibt. Anschließend entkabeln und Getränke tauschen",,
+12:35:00,00:09:00,12:44:00,Set-Up Stellen,,,,,,"Slides vorbereiten, Henni  & Lara verkabeln, Wasser für Henni & Lara
+ & ersten Speaker vorbereiten",,
+12:44:00,00:10:00,12:54:00,Einspielen Countdown-Video,,,,,,,,
+12:54:00,00:03:00,12:57:00,Start Moderation,,,,,,,,
+12:57:00,00:03:00,13:00:00,Intro Video,,,,,,,,
+13:00:00,00:01:00,13:01:00,Aufgang Speaker,,,,,,Wasser für Frau Leonhard,Rednerpult für Frau Leonhard,
+13:01:00,00:28:00,13:29:00,Welcome Session,SL038,Keynote,Welcome to all Future Leaders!,"Henni ( Headset 1)
+Lara ( Headset 2)
+Melanie Leonhard (Handmic 1)","- Video File included
+-  No Slides - Only Backdrop","Verkabeln nächster Speaker, Slides vorbereiten",,
+13:29:00,00:01:00,13:30:00,Abgang Speaker + Übergangsmoderation,,,,"Henni ( Headset 1)
+Lara ( Headset 2)",,,Rednerpult von der Bühne holen,
+13:30:00,00:00:30,13:30:30,Aufgang Malte Kosub,,,,,,"Slides einstellen, Wasser mitgeben, altes Wasser holen",,
+13:30:30,00:09:00,13:39:30,Talk auf der Bühne,SL039,Interview,The Parloa Story – You Only Need One Yes,Malte Kosub (Headset 4),-Only Slides,"Vorbereitung Mikrophonierung nächster Speaker, Letzten Speaker entkabeln",Lounge Setup auf der Bühne,
+13:39:30,00:00:30,13:40:00,Abgang Malte Kosub / Aufgang Henni,,,,,,"Verkabeln nächster Speaker, Slides vorbereiten",,
+13:40:00,00:01:00,13:41:00,Anmoderation Henni,,,,Henni ( Headset 1),,,,
+13:41:00,00:33:00,14:14:00,Disskussion Panel,SL040,Panel,"Move Fast, Stay Responsible – 
+AI Transformation When Failure Is Not an Option","Henni ( Headset 1)
+Jens Baas (Headset 3)
+Katrin Suder (Headset 5)
+Malte Kosub (Headset 4)",-  No Slides - Only Backdrop,"Slides einstellen, Wasser mitgeben",,
+14:14:00,00:01:00,14:15:00,Abgang Speaker + Übergangsmoderation Lara,,,,Lara ( Headset 2),,"Slides einstellen, Wasser mitgeben, altes Wasser holen",,
+14:15:00,00:29:00,14:44:00,Moderation Keynote,SL041,Keynote,"Why AI Fails – 
+and How Companies Finally Make It Pay Off",Wil van der Aalst (Headset 6),"-Custom Fonts provided
+-Video File included","Vorbereitung Mikrophonierung nächster Speaker, Letzten Speaker entkabeln",,
+14:44:00,00:01:00,14:45:00,Abgang Speaker + Übergangsmoderation Lara,,,,Lara ( Headset 2),,"Verkabeln nächster Speaker, Slides vorbereiten",,
+14:45:00,00:24:00,15:09:00,Moderation Keynote,SL042,Keynote,"Movements > Marketing – 
+Was Startups von Wahlkampfkampagnen lernen können",Julius van de Laar (Headset 3),"-Custom Fonts provided
+-Video File included
+-Audio File included
+
+""Gotham"" Fonts uploaded",,,
+15:09:00,00:01:00,15:10:00,Abgang Speaker + Übergangsmoderation Iman,,,,Iman (Headset 4),,"Slides einstellen, Wasser mitgeben",,
+15:10:00,00:29:00,15:39:00,Talk auf der Bühne,SL043,Interview,"Survive the AI Hype – 
+Die Geschäftsmodelle von morgen und wie man aus Krisen gestärkt hervorgeht","Iman (Headset 4)
+Saygin Yalcin (Headset 5)",-  No Slides - Only Backdrop,"Vorbereitung Mikrophonierung nächster Speaker, Letzten Speaker entkabeln",Lounge Setup auf der Bühne,
+15:39:00,00:01:00,15:40:00,Abgang Speaker + Übergangsmoderation Henni,,,,Henni ( Headset 1),,"Verkabeln nächster Speaker, Slides vorbereiten",,
+15:40:00,00:29:00,16:09:00,Moderation Keynote,SL044,Keynote,"Leadership ohne Filter:
+ Infrastruktur. Verantwortung. Zukunft.",Marcel de Groot (Headset 3),-  No Slides - Only Backdrop,,,
+16:09:00,00:01:00,16:10:00,Abgang Speaker + Übergangsmoderation Lara,,,,Lara ( Headset 2),,,,
+16:10:00,00:19:00,16:29:00,Moderation Keynote,SL045,Keynote,"Karriere war nie das Ziel: 
+Mit Leidenschaft und Haltung in den Vorstand! ",Katja Groß (Headset 4),- Only Slides,"Slides einstellen, Wasser mitgeben",,
+16:29:00,00:01:00,16:30:00,Abgang Speaker + Übergangsmoderation Henni,,,,Henni ( Headset 1),,"Vorbereitung Mikrophonierung nächster Speaker, Letzten Speaker entkabeln",,
+16:30:00,00:24:00,16:54:00,Talk auf der Bühne,SL047,Interview,"The VC Playbook – 
+So investiert einer der erfolgreichsten Investoren Europas ","Henni ( Headset 1)
+Florian Heinemann (Headset 3)",-  No Slides - Only Backdrop,"Vorbereitung Mikrophonierung nächster Speaker, Letzten Speaker entkabeln",,
+16:54:00,00:01:00,16:55:00,Abgang Speaker + Übergangsmoderation Henni,,,,Henni ( Headset 1),,"Verkabeln nächster Speaker, Slides vorbereiten",,
+16:55:00,00:34:00,17:29:00,Disskussion Panel,SL046,Panel,"Werte in der Krise – 
+Wie wir Brücken bauen, wenn die Gesellschaft auseinanderdriftet ","Henni (Headset 1)
+Julia Becker (Headset 4)
+Kirsten Fehrs (Headset 5)
+Dr. Michael Otto (Headset 6)",-  No Slides - Only Backdrop,,,
+17:29:00,00:01:00,17:30:00,Abgang Speaker + Übergangsmoderation Lara,,,,Lara ( Headset 2),,"Slides einstellen, Wasser mitgeben",,
+17:30:00,00:29:00,17:59:00,Disskussion Panel,SL048,Pannel,"Raising the Ambition and Building
+ the new European Industries","Lara ( Headset 2)
+Judith Dada (Headset 3)
+Lennard Schmidt (Headset 7)",-  No Slides - Only Backdrop,"Vorbereitung Mikrophonierung nächster Speaker, Letzten Speaker entkabeln",,
+17:59:00,00:01:00,18:00:00,Abgang Speaker + Übergangsmoderation Lara,,,,Lara ( Headset 2),,"Verkabeln nächster Speaker, Slides vorbereiten",,
+18:00:00,00:24:00,18:24:00,Moderation Keynote,SL176,Key,Die Welt unter meinem Boot,Boris Herrmann (Headset 4),-Only Slides,,,
+18:24:00,00:01:00,18:25:00,Abgang Speaker + Übergangsmoderation Henni,,,,Henni ( Headset 1),,"Slides einstellen, Wasser mitgeben",,
+18:25:00,00:24:00,18:49:00,Disskussion Panel,SL050,Panel,"Das Unicorn-Playbook -
+ zwei der erfolgreichsten Gründer über Trends, Updates & Ausblick 2027","Henni ( Headset 1)
+Tarek Müller (Headset 5)
+Philipp Schröder (Headset 6)",-  No Slides - Only Backdrop,"Vorbereitung Mikrophonierung nächster Speaker, Letzten Speaker entkabeln",,
+18:49:00,00:01:00,18:50:00,Abgang Speaker + Übergangsmoderation Henni,,,,Henni ( Headset 1),,,,
+18:50:00,00:24:00,19:14:00,Moderation Keynote,SL049,Keynote,Mutter aller Probleme,Aladin El-Mafaalani (Headset 3),SLIDES!!,"Verkabeln nächster Speaker, Slides vorbereiten",,
+19:14:00,00:01:00,19:15:00,Abgang Speaker + Übergangsmoderation Henni,,,,Henni ( Headset 1),,,,
+19:15:00,00:44:00,19:59:00,Moderation Keynote,SL174,Keynote,KI vs. Mensch: Welche Intelligenz bestimmt die Zukunft?,Richard David Precht (Headset 4),-  No Slides - Only Backdrop,"Slides einstellen, Wasser mitgeben",,
+19:59:00,00:01:00,20:00:00,Closing Henni,,Closing Day I,,Henni ( Headset 1),, Letzten Speaker entkabeln,,
+Ende,,,,,,,,,,,
