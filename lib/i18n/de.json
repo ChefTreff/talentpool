@@ -1200,7 +1200,14 @@
     "declineTitle": "Schicht absagen?",
     "declineBody": "Wir rücken jemanden von der Warteliste nach. Sag uns gern kurz, woran es liegt.",
     "declineReason": "Grund",
-    "declineReasonHint": "Freiwillig."
+    "declineReasonHint": "Freiwillig.",
+    "inviteTitle": "Beim Summit mithelfen?",
+    "inviteBody": "Volunteers machen den Summit möglich — zwei Tage hinter den Kulissen, mit Shirt, Verpflegung und Ticket.",
+    "inviteCta": "Als Volunteer bewerben",
+    "inviteApplied": "Deine Volunteer-Bewerbung ist in Prüfung. Wir melden uns mit der Zusage und deinen Schichten.",
+    "inviteCtaOpen": "Zu meiner Bewerbung",
+    "inviteAccepted": "Du bist als Volunteer dabei. Deine Schichten stehen im Volunteer-Bereich.",
+    "inviteCtaShifts": "Zu meinen Schichten"
   },
   "adminPartner": {
     "title": "Partner",

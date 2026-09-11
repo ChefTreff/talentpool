@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { isTooYoung } from "@/lib/volunteers/rules";
+import { isTooYoung, volunteerInvite } from "@/lib/volunteers/rules";
 import { canSeeShifts, type VolunteerProfile } from "@/app/(volunteers)/volunteers/types";
 
 /** Summit 27 beginnt am 16.04.2027 (Masterplan). */
@@ -65,5 +65,34 @@ describe("Wer Schichten sieht", () => {
 
   it("nicht ohne Bewerbung", () => {
     assert.equal(canSeeShifts(null), false);
+  });
+});
+
+/**
+ * Der Volunteer-Bereich erscheint im Umschalter erst mit der Rolle, die es
+ * erst mit der Zusage gibt. Der Hinweis im Teilnehmerportal ist deshalb der
+ * einzige Weg von innen zur Bewerbung.
+ */
+describe("Hinweis im Teilnehmerportal", () => {
+  it("lädt ohne Bewerbung zur Bewerbung ein", () => {
+    assert.deepEqual(volunteerInvite(null), {
+      href: "/volunteers",
+      bodyKey: "inviteBody",
+      ctaKey: "inviteCta",
+    });
+  });
+
+  it("zeigt den Stand, solange die Bewerbung läuft", () => {
+    assert.equal(volunteerInvite("applied")?.ctaKey, "inviteCtaOpen");
+    assert.equal(volunteerInvite("applied")?.href, "/volunteers");
+  });
+
+  it("führt nach der Zusage direkt zu den Schichten", () => {
+    assert.equal(volunteerInvite("accepted")?.href, "/volunteers/schichten");
+  });
+
+  it("fasst nach Absage und Rückzug nicht nach", () => {
+    assert.equal(volunteerInvite("declined"), null);
+    assert.equal(volunteerInvite("withdrawn"), null);
   });
 });

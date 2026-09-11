@@ -24,3 +24,32 @@ export function isTooYoung(birthdate: string, firstDay: string | null): boolean 
   limit.setFullYear(limit.getFullYear() - 18);
   return born > limit;
 }
+
+/** Stand einer Volunteer-Bewerbung, wie ihn `my_volunteer_profile()` liefert. */
+export type VolunteerInviteStatus = "applied" | "accepted" | "declined" | "withdrawn" | null;
+
+export type VolunteerInvite = {
+  href: string;
+  /** Schlüssel im Wörterbuch-Block `volunteers`. */
+  bodyKey: "inviteBody" | "inviteApplied" | "inviteAccepted";
+  ctaKey: "inviteCta" | "inviteCtaOpen" | "inviteCtaShifts";
+};
+
+/**
+ * Was im Teilnehmerportal zur Volunteer-Bewerbung stehen soll — `null` heißt
+ * „nichts zeigen".
+ *
+ * Nach einer Absage oder einem Rückzug fassen wir nicht nach: der Weg über
+ * `/volunteers` bleibt offen, aber ein Aufruf im eigenen Portal wäre an der
+ * Stelle aufdringlich.
+ */
+export function volunteerInvite(status: VolunteerInviteStatus): VolunteerInvite | null {
+  if (status === "declined" || status === "withdrawn") return null;
+  if (status === "accepted") {
+    return { href: "/volunteers/schichten", bodyKey: "inviteAccepted", ctaKey: "inviteCtaShifts" };
+  }
+  if (status === "applied") {
+    return { href: "/volunteers", bodyKey: "inviteApplied", ctaKey: "inviteCtaOpen" };
+  }
+  return { href: "/volunteers", bodyKey: "inviteBody", ctaKey: "inviteCta" };
+}

@@ -1200,7 +1200,14 @@
     "declineTitle": "Decline the shift?",
     "declineBody": "We will move someone up from the waiting list. Feel free to tell us briefly why.",
     "declineReason": "Reason",
-    "declineReasonHint": "Optional."
+    "declineReasonHint": "Optional.",
+    "inviteTitle": "Want to help at the summit?",
+    "inviteBody": "Volunteers make the summit happen — two days behind the scenes, with a shirt, food and a ticket.",
+    "inviteCta": "Apply as a volunteer",
+    "inviteApplied": "Your volunteer application is under review. We will get back to you with the confirmation and your shifts.",
+    "inviteCtaOpen": "To my application",
+    "inviteAccepted": "You are on the volunteer team. Your shifts are in the volunteer area.",
+    "inviteCtaShifts": "To my shifts"
   },
   "adminPartner": {
     "title": "Partners",
