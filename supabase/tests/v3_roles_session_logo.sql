@@ -41,6 +41,7 @@ begin
   -- Logo-Pflichten (0057)
   update organization set address_street = 'Weg 1', address_zip = '20095', address_city = 'Hamburg' where id = v_org;
   update org_edition set invoice_email = 'rechnung@example.com', description_de = 'Wir.' where id = v_oe;
+  insert into t_res values ('06b_vocab_foundation', (select 'foundation=' || is_vocab_key('organization_type', 'foundation')::text || ' initiative=' || is_vocab_key('organization_type', 'initiative')::text));
   insert into t_res values ('07_templates', (select string_agg(key || ':' || (file_rules->>'ext'), ' ' order by key) from deliverable_template where key in ('logo_vector', 'logo_png')));
   v_path := v_ed::text || '/' || v_org::text || '/logo_vector/logo.eps';
   insert into storage.objects (bucket_id, name) values ('partner-assets', v_path);
