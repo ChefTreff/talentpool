@@ -134,6 +134,18 @@ const BUSINESS_KEYS = new Set([
   "edition_not_found",
   "template_not_found",
   "sync_error_not_found",
+  // Volunteers (Migration 0065)
+  "too_young",
+  "birthdate_required",
+  "invalid_shirt_size",
+  "invalid_area",
+  "shift_full",
+  "shift_overlap",
+  "not_accepted",
+  "not_assigned",
+  "profile_not_found",
+  "shift_not_found",
+  "day_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {
