@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-11 12:23 UTC · 57 Tabellen · 6 Views · 227 Funktionen
+> Stand: 2026-09-11 12:42 UTC · 57 Tabellen · 6 Views · 229 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1272,6 +1272,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_suppressed` | p_email: text |
 | `is_u35` | p_birthdate: date, p_ref: date |
 | `is_vocab_key` | p_key: text, p_vocabulary: text |
+| `list_external_refs` | p_object_type: text, p_system: text |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
 | `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
 | `manager_speakers` | p_edition_id: uuid |
@@ -1353,6 +1354,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_event_app_ref` | p_external_id: text, p_meta: jsonb, p_org_edition_id: uuid, p_system: text |
 | `set_expense_bank_details` | p_bic: text, p_claim_id: uuid, p_holder: text, p_iban: text |
 | `set_expense_integration` | p_claim_id: uuid, p_invoice_asset_id: uuid, p_qonto_sent: boolean, p_sevdesk_ref: text |
+| `set_external_ref` | p_external_id: text, p_meta: jsonb, p_object_id: uuid, p_object_type: text, p_system: text |
 | `set_org_sevdesk_contact` | p_contact_id: text, p_org_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |

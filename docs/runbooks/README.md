@@ -21,3 +21,4 @@ Regeln für alle Runbooks:
 > Status: Skelette aus Welle 0. Jede Welle, die ein Verfahren zum ersten Mal
 > anwendet, füllt die zugehörigen Lücken (`TODO`) auf.
 - `sicherheits-header.md` — Sicherheits-Header und Content-Security-Policy (Report-Only → scharf über `CSP_ENFORCE`), Prüfbefehl, Regeln für Code.
+- `sanity-partner-logos.md` — Partner-Logos als `portalPartnerLogo` nach Sanity (Trockenlauf Standard, Schutzregeln, Studio-Schema für das Web-Team).

@@ -458,3 +458,8 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 
 ## 2026-09-11 — Domain-Umzug abgeschlossen
 - `portal.chef-treff.de` ist produktiv (Konrad: DNS/Vercel; Claude: `NEXT_PUBLIC_SITE_URL`, Weiterleitungen, Header), Supabase Auth auf die neue Domain umgestellt, Magic-Link-Login getestet. Die vercel.app-Adresse bleibt als Deployment-URL erreichbar; Deployment-Protection schützt weiterhin Preview-Deployments, die Produktionsdomain ist öffentlich.
+
+## 2026-09-11 — Welle 3 A11 Sanity-Veröffentlichung gebaut (Trockenlauf), Migration 0062
+- Dokumenttyp **`portalPartnerLogo`** mit fester ID `portalPartnerLogo.<org_id>` (ein Dokument je Organisation, erneute Freigabe ersetzt), Felder orgId, editionSlug, name, website, sponsoringLevel, partnerCategory, logoSvg (Asset), logoSvgPath, logoPngUrl, publishedAt — Kontrakt für das Web-Team im Runbook `sanity-partner-logos.md`.
+- Quelle ist der Aussteller-Export (nur Zeilen mit freigegebenem SVG); „genau ein Upsert je Freigabe“ über `external_ref` (0062: `set_external_ref`/`list_external_refs`, Systeme sanity/swapcard, service_role oder Team) mit der veröffentlichten Fassung im `meta` — nur geänderte Fassungen werden erneut geschrieben.
+- Trockenlauf Standard und über die Sanity-API selbst (`dryRun=true`, prüft ohne zu schreiben; keine Assets); Echtlauf erst mit Editor-Token nach Freigabe des Web-Teams. Admin-Route `POST /api/admin/sanity/partner-logos` (Team), Läufe in `integration.sync_job` (system `sanity`).
