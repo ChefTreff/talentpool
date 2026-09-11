@@ -374,13 +374,16 @@ export async function syncAllocation(id: string): Promise<AdminResult<{ status: 
  * laufen ohne `dryRun: false` als Trockenlauf — die Oberfläche fragt vor dem
  * scharfen Lauf noch einmal nach.
  */
-export async function runShopInvoices(input: {
-  editionId: string;
-  dryRun: boolean;
-  orgId?: string | null;
-}): Promise<AdminResult<DryRunResult>> {
-  await requireArea("admin", PATH);
-  const res = await fetch(await selfUrl("/api/admin/sevdesk/shop-invoices"), {
+/**
+ * Antwort der beiden Routen lesen. Sie antworten mit JSON — ausser wenn das
+ * Gate umleitet (`requireArea` schickt auf /login). `redirect: "manual"` fängt
+ * das ab, statt eine HTML-Seite durch `JSON.parse` zu schicken.
+ */
+async function postAdminRoute(
+  path: string,
+  input: { editionId: string; dryRun: boolean; orgId?: string | null },
+): Promise<AdminResult<DryRunResult>> {
+  const res = await fetch(await selfUrl(path), {
     method: "POST",
     headers: { "content-type": "application/json", cookie: (await headers()).get("cookie") ?? "" },
     body: JSON.stringify({
@@ -389,11 +392,29 @@ export async function runShopInvoices(input: {
       orgId: input.orgId ?? undefined,
     }),
     cache: "no-store",
+    redirect: "manual",
   });
-  const body = (await res.json()) as DryRunResult;
-  refresh("bestellungen");
-  if (!res.ok) return { ok: false, key: "unknown", detail: body.error ?? `HTTP ${res.status}` };
+  let body: DryRunResult | null = null;
+  try {
+    body = (await res.json()) as DryRunResult;
+  } catch {
+    body = null;
+  }
+  if (!res.ok || !body) {
+    return { ok: false, key: "unknown", detail: body?.error ?? `HTTP ${res.status}` };
+  }
   return { ok: true, data: body };
+}
+
+export async function runShopInvoices(input: {
+  editionId: string;
+  dryRun: boolean;
+  orgId?: string | null;
+}): Promise<AdminResult<DryRunResult>> {
+  await requireArea("admin", PATH);
+  const res = await postAdminRoute("/api/admin/sevdesk/shop-invoices", input);
+  refresh("bestellungen");
+  return res;
 }
 
 export async function runSwapcardExhibitors(input: {
@@ -402,20 +423,9 @@ export async function runSwapcardExhibitors(input: {
   orgId?: string | null;
 }): Promise<AdminResult<DryRunResult>> {
   await requireArea("admin", PATH);
-  const res = await fetch(await selfUrl("/api/admin/swapcard/exhibitors"), {
-    method: "POST",
-    headers: { "content-type": "application/json", cookie: (await headers()).get("cookie") ?? "" },
-    body: JSON.stringify({
-      editionId: input.editionId,
-      dryRun: input.dryRun,
-      orgId: input.orgId ?? undefined,
-    }),
-    cache: "no-store",
-  });
-  const body = (await res.json()) as DryRunResult;
+  const res = await postAdminRoute("/api/admin/swapcard/exhibitors", input);
   refresh("integrationen");
-  if (!res.ok) return { ok: false, key: "unknown", detail: body.error ?? `HTTP ${res.status}` };
-  return { ok: true, data: body };
+  return res;
 }
 
 // === Produktstamm ===========================================================

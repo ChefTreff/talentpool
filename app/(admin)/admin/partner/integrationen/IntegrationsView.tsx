@@ -23,9 +23,11 @@ import type { AdminEdition, DryRunResult, IngestLogRow } from "../types";
 type Strings = Record<string, string>;
 
 const LOG_TONE: Record<string, BadgeTone> = {
+  open: "warning",
+  resolved: "success",
   received: "accent",
   processed: "success",
-  done: "success",
+  duplicate: "neutral",
   error: "error",
   failed: "error",
   ignored: "neutral",
@@ -300,7 +302,12 @@ export function IntegrationsView({
                         {t.markResolved}
                       </Button>
                     )}
-                    {row.external_id && (
+                    {/*
+                      Nur bei einem Sync-Fehler ist `external_id` eine Deal-Id;
+                      bei einem Webhook ist es die Id des Ereignisses, damit
+                      liesse sich kein Deal holen.
+                    */}
+                    {row.kind === "sync_error" && row.external_id && (
                       <Button
                         size="sm"
                         variant="ghost"
