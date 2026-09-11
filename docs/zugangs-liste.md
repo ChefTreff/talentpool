@@ -27,4 +27,4 @@
 | `alarm@chef-treff.de` | Google Workspace | Alarm-Gruppe (Supabase, Vercel, Webhook-Sweeps) | Google Admin → Gruppe anlegen | Betrieb |
 | Qonto Rechnungseingang | Qonto | Auslagen-PDFs per Mail | keine API; nur die Eingangsadresse als `QONTO_INBOX_EMAIL` | 2 |
 
-**Regeln:** ein Key pro System und Umgebung · Rechte minimal · Rotation dokumentiert (Datum, Grund) · alte Keys nach Umstellung widerrufen (vivenu, Swapcard, make-Blueprints) · Keys nie in Screenshots oder Support-Tickets.
+**Regeln:** neue Werte mit `sh scripts/env-set.sh NAME` setzen (unsichtbare Eingabe ⇒ Vercel sensibel + `.env.local` + Worktrees; `--config` für IDs/URLs, `--no-local` ohne lokalen Bedarf) · ein Key pro System und Umgebung · Rechte minimal · Rotation dokumentiert (Datum, Grund) · alte Keys nach Umstellung widerrufen (vivenu, Swapcard, make-Blueprints) · Keys nie in Screenshots oder Support-Tickets.
