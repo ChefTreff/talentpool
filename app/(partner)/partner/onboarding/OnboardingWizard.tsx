@@ -74,7 +74,7 @@ export function OnboardingWizard({
   orgId,
   editionId,
   overview,
-  logo,
+  logos,
   contacts,
   canManage,
   locale,
@@ -87,7 +87,8 @@ export function OnboardingWizard({
   orgId: string;
   editionId: string;
   overview: PartnerOverview;
-  logo: Deliverable | null;
+  /** Die Logo-Pflichten aus `my_deliverables` — seit 0057 SVG **und** PNG. */
+  logos: Deliverable[];
   contacts: PartnerContact[];
   canManage: boolean;
   locale: Locale;
@@ -100,7 +101,7 @@ export function OnboardingWizard({
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Draft>(() => draftFrom(overview));
 
@@ -113,8 +114,10 @@ export function OnboardingWizard({
 
   // Pass-Typ nur, wenn Ticket-Produkte gebucht sind (Arbeitsauftrag B2).
   const hasTickets = overview.products.some((p) => p.category === "tickets");
-  const currentLogo = logo?.assets.find((a) => a.status !== "rejected") ?? logo?.assets[0] ?? null;
-  const rules: FileRules = logo?.file_rules ?? null;
+  /** Aktuelle Fassung einer Logo-Pflicht, falls es eine gibt. */
+  const currentOf = (d: Deliverable) =>
+    d.assets.find((a) => a.status !== "rejected") ?? d.assets[0] ?? null;
+  const allLogosThere = logos.length > 0 && logos.every((d) => currentOf(d) !== null);
 
   const steps = useMemo(
     () => [
@@ -146,9 +149,12 @@ export function OnboardingWizard({
    * Logo-Upload. Der doppelte Riegel steht nur hier: einmal im Browser aus
    * `file_rules`, damit niemand 20 MB hochlädt, um dann abgewiesen zu werden —
    * und einmal in `register_partner_asset`, worauf allein Verlass ist.
+   *
+   * Seit Migration 0057 gibt es zwei Logo-Pflichten (SVG und PNG); der Ablauf
+   * ist für beide derselbe, die Art im Pfad ist der Schlüssel der Pflicht.
    */
-  async function onLogo(file: File) {
-    if (!logo) return;
+  async function onLogo(logo: Deliverable, file: File) {
+    const rules: FileRules = logo.file_rules;
     const bad = checkFileRules(file, rules);
     if (bad) {
       const allowed = (rules?.ext ?? []).map((e) => `.${e}`).join(", ");
@@ -160,10 +166,10 @@ export function OnboardingWizard({
       );
       return;
     }
-    setUploading(true);
+    setUploading(logo.key);
     try {
       const supabase = createSupabaseBrowserClient();
-      const path = `${editionId}/${orgId}/logo_vector/${crypto.randomUUID()}-${safeFileName(file.name)}`;
+      const path = `${editionId}/${orgId}/${logo.key}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
       const up = await supabase.storage.from(BUCKET).upload(path, file, {
         contentType: file.type || undefined,
         upsert: false,
@@ -174,7 +180,7 @@ export function OnboardingWizard({
       }
       const reg = await registerPartnerAsset({
         orgId,
-        kind: "logo_vector",
+        kind: logo.key,
         storagePath: path,
         filename: file.name,
         mime: file.type || null,
@@ -195,16 +201,13 @@ export function OnboardingWizard({
       toast("success", t.logoDone.replace("{v}", String(reg.data.version)));
       router.refresh();
     } finally {
-      setUploading(false);
+      setUploading(null);
     }
   }
 
-  async function onDownloadLogo() {
-    if (!currentLogo) return;
+  async function onDownloadLogo(path: string) {
     const supabase = createSupabaseBrowserClient();
-    const { data, error } = await supabase.storage
-      .from(BUCKET)
-      .createSignedUrl(currentLogo.storage_path, 60);
+    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 60);
     if (error || !data?.signedUrl) {
       toast("error", t.downloadFailed);
       return;
@@ -344,70 +347,87 @@ export function OnboardingWizard({
       {step === 2 && (
         <Card>
           <h2 className="ct-h3 mb-1 text-ink">{t.stepLogo}</h2>
-          <p className="ct-help mb-4">
-            {(locale === "en" ? logo?.description_en : logo?.description_de) ?? t.stepLogoHint}
-          </p>
+          <p className="ct-help mb-4">{t.stepLogoHint}</p>
 
-          {!logo ? (
+          {logos.length === 0 ? (
             <p className="ct-help">{t.logoMissingDeliverable}</p>
           ) : (
-            <>
-              {currentLogo ? (
-                <div className="mb-4 rounded-ct-md border p-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button type="button" onClick={onDownloadLogo} className="ct-link text-left">
-                      {currentLogo.filename ?? currentLogo.storage_path.split("/").pop()}
-                    </button>
-                    <span className="ct-help">v{currentLogo.version}</span>
-                    <Badge
-                      tone={
-                        logo.status === "accepted"
-                          ? "success"
-                          : logo.status === "rejected"
-                            ? "error"
-                            : "accent"
-                      }
-                    >
-                      {t[`deliverable_${logo.status}`] ?? logo.status}
-                    </Badge>
-                  </div>
-                  {logo.submitted_at && (
-                    <p className="ct-help mt-1">
-                      {t.submittedOn} {dateTime.format(new Date(logo.submitted_at))}
+            <div className="flex flex-col gap-6">
+              {logos.map((logo) => {
+                const current = currentOf(logo);
+                const rules: FileRules = logo.file_rules;
+                return (
+                  <section key={logo.id}>
+                    <h3 className="ct-label text-ink">
+                      {(locale === "en" ? logo.label_en : logo.label_de) ?? logo.key}
+                    </h3>
+                    <p className="ct-help mb-3">
+                      {(locale === "en" ? logo.description_en : logo.description_de) ?? ""}
                     </p>
-                  )}
-                  {logo.review_note && (
-                    <p className="ct-help mt-1 text-error-ink">
-                      {t.reviewNote}: {logo.review_note}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="ct-help mb-4">{t.logoNone}</p>
-              )}
 
-              <Field
-                label={currentLogo ? t.logoReplace : t.logoUpload}
-                htmlFor="logo-file"
-                hint={t.logoHint
-                  .replace("{allowed}", (rules?.ext ?? []).map((e) => `.${e}`).join(", "))
-                  .replace("{max}", formatBytes(rules?.max_bytes ?? 0))}
-              >
-                <input
-                  id="logo-file"
-                  type="file"
-                  accept={acceptAttribute(rules)}
-                  disabled={uploading || pending}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    e.target.value = "";
-                    if (file) void onLogo(file);
-                  }}
-                  className="text-[14px]"
-                />
-              </Field>
-              {uploading && <p className="ct-help mt-2">{t.logoUploading}</p>}
-            </>
+                    {current ? (
+                      <div className="mb-3 rounded-ct-md border p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => onDownloadLogo(current.storage_path)}
+                            className="ct-link text-left"
+                          >
+                            {current.filename ?? current.storage_path.split("/").pop()}
+                          </button>
+                          <span className="ct-help">v{current.version}</span>
+                          <Badge
+                            tone={
+                              logo.status === "accepted"
+                                ? "success"
+                                : logo.status === "rejected"
+                                  ? "error"
+                                  : "accent"
+                            }
+                          >
+                            {t[`deliverable_${logo.status}`] ?? logo.status}
+                          </Badge>
+                        </div>
+                        {logo.submitted_at && (
+                          <p className="ct-help mt-1">
+                            {t.submittedOn} {dateTime.format(new Date(logo.submitted_at))}
+                          </p>
+                        )}
+                        {logo.review_note && (
+                          <p className="ct-help mt-1 text-error-ink">
+                            {t.reviewNote}: {logo.review_note}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="ct-help mb-3">{t.logoNone}</p>
+                    )}
+
+                    <Field
+                      label={current ? t.logoReplace : t.logoUpload}
+                      htmlFor={`logo-${logo.key}`}
+                      hint={t.logoHint
+                        .replace("{allowed}", (rules?.ext ?? []).map((e) => `.${e}`).join(", "))
+                        .replace("{max}", formatBytes(rules?.max_bytes ?? 0))}
+                    >
+                      <input
+                        id={`logo-${logo.key}`}
+                        type="file"
+                        accept={acceptAttribute(rules)}
+                        disabled={uploading !== null || pending}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          e.target.value = "";
+                          if (file) void onLogo(logo, file);
+                        }}
+                        className="text-[14px]"
+                      />
+                    </Field>
+                    {uploading === logo.key && <p className="ct-help mt-2">{t.logoUploading}</p>}
+                  </section>
+                );
+              })}
+            </div>
           )}
 
           <div className="mt-6 flex gap-2">
@@ -515,7 +535,7 @@ export function OnboardingWizard({
       )}
 
       {/* Was noch fehlt, damit der Stand auf „ausgefüllt" springt. */}
-      {!done && <MissingHint draft={draft} hasLogo={Boolean(currentLogo)} t={t} />}
+      {!done && <MissingHint draft={draft} hasLogo={allLogosThere} t={t} />}
     </div>
   );
 }

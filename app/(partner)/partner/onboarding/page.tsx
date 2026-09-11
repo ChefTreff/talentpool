@@ -40,8 +40,12 @@ export default async function PartnerOnboardingPage() {
   const overview = (overviewJson ?? null) as PartnerOverview | null;
   if (!overview) notFound();
 
-  const logo =
-    ((deliverableRows ?? []) as Deliverable[]).find((d) => d.key === "logo_vector") ?? null;
+  // Seit Migration 0057 sind es zwei: SVG und PNG. Welche es genau sind,
+  // steht in den Vorlagen — die Seite sucht nach dem Präfix, statt die
+  // Schlüssel noch einmal fest hinzuschreiben.
+  const logos = ((deliverableRows ?? []) as Deliverable[])
+    .filter((d) => d.key.startsWith("logo_"))
+    .sort((a, b) => a.sort - b.sort);
   const contacts = (contactRows ?? []) as PartnerContact[];
   const editable = canEditOnboarding(overview.roles, overview.team);
 
@@ -64,7 +68,7 @@ export default async function PartnerOnboardingPage() {
         orgId={current.org_id}
         editionId={current.edition_id}
         overview={overview}
-        logo={logo}
+        logos={logos}
         contacts={contacts}
         canManage={overview.team || overview.roles.includes("primary_ops")}
         locale={locale}

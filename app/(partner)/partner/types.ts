@@ -306,3 +306,81 @@ export const APPLICATION_DECISIONS = [
 
 /** Pass-Typen, die ein Partner nachfragen kann (Kontrakt B5). */
 export const REQUEST_PASS_TYPES = ["partner", "talent", "startup", "investor"] as const;
+
+// === Messeshop ==============================================================
+
+/** `shop_phase_info()`. `phase = 0` heißt geschlossen. */
+export type ShopPhase = {
+  phase: 0 | 1 | 2 | 3;
+  ends_at: string | null;
+  /** Nur noch Nachbestellung: Produkte mit `late_orderable`. */
+  late_only: boolean;
+  phase1_ends: string | null;
+  phase2_ends: string | null;
+  phase3_ends: string | null;
+};
+
+/** Zeile aus `shop_catalogue()`. */
+export type ShopProduct = {
+  sku: string;
+  name_de: string | null;
+  name_en: string | null;
+  description_de: string | null;
+  description_en: string | null;
+  category: string | null;
+  unit: string | null;
+  net_price_cents: number | null;
+  vat_rate: number | null;
+  images: { url: string; name: string; path: string; size: number; type: string }[] | null;
+  shop_hint_de: string | null;
+  shop_hint_en: string | null;
+  merch_config: Record<string, unknown> | null;
+  late_orderable: boolean;
+  available_until: string | null;
+  /** `null`, wenn der Bestand nicht geführt wird. */
+  stock_available: number | null;
+  track_stock: boolean;
+  /** Kein Warenkorb, sondern eine Anfrage ans Team. */
+  request_only: boolean;
+  /** Sagt die RPC: Phase, Bestand und Frist sind schon eingerechnet. */
+  orderable: boolean;
+  shop_sort: number | null;
+};
+
+/** Zeile aus `shop_my_orders()`. */
+export type ShopOrder = {
+  id: string;
+  order_no: string | null;
+  phase: number;
+  status: "draft" | "pending" | "editing" | "completed" | "cancelled";
+  note: string | null;
+  confirmed_at: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
+  net_cents: number;
+  vat_cents: number;
+  gross_cents: number;
+  lines: ShopOrderLine[];
+  /** Darf der Partner die Bestellung gerade ändern? */
+  editable: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ShopOrderLine = {
+  sku: string;
+  name_de: string | null;
+  name_en: string | null;
+  category: string | null;
+  unit: string | null;
+  vat_rate: number | null;
+  price_net_cents: number;
+  qty: number;
+  line_net_cents: number;
+  merch_config: Record<string, unknown> | null;
+};
+
+/** Der Entwurf der laufenden Phase ist der Warenkorb. */
+export function cartOf(orders: readonly ShopOrder[]): ShopOrder | null {
+  return orders.find((o) => o.status === "draft") ?? null;
+}
