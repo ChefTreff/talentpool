@@ -72,6 +72,12 @@ export default async function PartnerDashboard() {
     (acc, a) => ({ used: acc.used + a.used_count, total: acc.total + a.quantity }),
     { used: 0, total: 0 },
   );
+  // Seit Migration 0051 sagt das Kontingent, ob vivenu schon so weit ist.
+  // Solange nicht, stehen Menge und Pass-Typ fest, Code und Link fehlen noch.
+  const ticketsPending =
+    o.ticket_allocations.length > 0 &&
+    o.ticket_allocations.every((a) => a.status === "pending_vivenu");
+  const ticketsBroken = o.ticket_allocations.some((a) => a.status === "error");
   const status = o.edition.onboarding_status;
   // Fristen, die noch kommen — vergangene helfen auf dem Dashboard nicht.
   const upcoming = o.deadlines
@@ -108,7 +114,15 @@ export default async function PartnerDashboard() {
         <StatCard
           label={t.partner.statTickets}
           value={o.ticket_allocations.length > 0 ? `${tickets.used} / ${tickets.total}` : "—"}
-          hint={o.ticket_allocations.length > 0 ? t.partner.statTicketsHint : t.partner.statNoTickets}
+          hint={
+            o.ticket_allocations.length === 0
+              ? t.partner.statNoTickets
+              : ticketsBroken
+                ? t.partner.statTicketsError
+                : ticketsPending
+                  ? t.partner.statTicketsPending
+                  : t.partner.statTicketsHint
+          }
         />
         <StatCard label={t.partner.statProducts} value={o.products.length} />
         <StatCard label={t.partner.statContacts} value={o.contacts_count} />
@@ -154,8 +168,9 @@ export default async function PartnerDashboard() {
               </div>
             )}
           </dl>
-          {/* Die Checkliste selbst kommt mit B4; bis dahin zählt die Kachel. */}
-          <p className="ct-help mt-3">{t.partner.checklistSoon}</p>
+          <Link href="/partner/checkliste" className="ct-link mt-3 inline-block">
+            {t.partner.checklistOpen}
+          </Link>
         </Card>
 
         <Card>

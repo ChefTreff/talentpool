@@ -18,7 +18,7 @@ export function couponCode(editionSlug: string, orgSlug: string | null, orgName:
   return `${editionSlug.toUpperCase()}-${org}-${passType.toUpperCase().slice(0, 4)}-${rnd}`;
 }
 
-export type UnderShopLike = { _id?: string; url?: string; shopUrl?: string };
+export type UnderShopLike = { _id?: string; name?: string; url?: string; shopUrl?: string };
 
 /** Undershop-Link, wenn vivenu ihn nicht selbst liefert. Bis zum Sandbox-Lauf ein Kandidat — das Team kann ihn über set_ticket_allocation überschreiben. */
 export function undershopUrl(eventId: string, shop: UnderShopLike): string | null {

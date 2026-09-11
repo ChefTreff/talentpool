@@ -54,14 +54,7 @@ export type PartnerOverview = {
   };
   contacts_count: number;
   products: PartnerProduct[];
-  ticket_allocations: {
-    id: string;
-    pass_type: string;
-    quantity: number;
-    coupon_code: string | null;
-    undershop_url: string | null;
-    used_count: number;
-  }[];
+  ticket_allocations: TicketAllocation[];
   deadlines: PartnerDeadline[];
   booth: {
     booth_number: string | null;
@@ -80,6 +73,25 @@ export type PartnerOverview = {
     overdue: number;
     next_due: string | null;
   };
+  /** Sessions mit dieser Org als Gastgeber (seit Migration 0051). */
+  sessions_count: number;
+  /** Eigene Bühne (seit Migration 0051). */
+  has_stage: boolean;
+};
+
+/**
+ * Ticket-Kontingent. `status` seit Migration 0051: solange vivenu den Coupon
+ * nicht angelegt hat, steht `pending_vivenu` und es gibt weder Code noch Link.
+ * `disabled`-Zeilen liefert die RPC nicht mehr.
+ */
+export type TicketAllocation = {
+  id: string;
+  pass_type: string;
+  quantity: number;
+  coupon_code: string | null;
+  undershop_url: string | null;
+  used_count: number;
+  status: "pending_vivenu" | "active" | "error";
 };
 
 export type PartnerProduct = {

@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { acceptAttribute, checkFileRules, extensionOf } from "@/lib/partner/file-rules";
-import { visibleNavKeys, STAGE_SKU } from "@/app/(partner)/partner/nav";
+import { visibleNavKeys, STAGE_SKU, type NavInput } from "@/app/(partner)/partner/nav";
 import type { PartnerProduct } from "@/app/(partner)/partner/types";
 import { toRpcFailure } from "@/lib/rpc-error";
 import de from "@/lib/i18n/de.json" with { type: "json" };
@@ -81,42 +81,54 @@ const product = (p: Partial<PartnerProduct>): PartnerProduct => ({
   ...p,
 });
 
+const nav = (input: Partial<NavInput>) =>
+  visibleNavKeys({ products: [], sessions_count: 0, has_stage: false, ...input });
+
 describe("Menü folgt den gebuchten Leistungen", () => {
   it("zeigt ohne Produkte nur das, was jede Org hat", () => {
-    const keys = visibleNavKeys([]);
-    assert.deepEqual(keys.includes("tickets"), false);
-    assert.deepEqual(keys.includes("stage"), false);
-    assert.deepEqual(keys.includes("applicants"), false);
+    const keys = nav({});
+    assert.equal(keys.includes("tickets"), false);
+    assert.equal(keys.includes("stage"), false);
+    assert.equal(keys.includes("applicants"), false);
     for (const always of ["dashboard", "onboarding", "contacts", "checklist", "files", "shop"]) {
       assert.ok(keys.includes(always as never), `fehlt: ${always}`);
     }
   });
 
-  it("blendet die Bühne nur mit Bühnenprodukt ein", () => {
-    assert.equal(visibleNavKeys([product({ sku: STAGE_SKU })]).includes("stage"), true);
-    assert.equal(
-      visibleNavKeys([product({ sku: "I-50131", category: "standflaeche" })]).includes("stage"),
-      false,
-    );
-  });
-
   it("blendet Tickets nur mit Ticket-Produkt ein", () => {
     assert.equal(
-      visibleNavKeys([product({ sku: "I-32776", category: "tickets" })]).includes("tickets"),
+      nav({ products: [product({ sku: "I-32776", category: "tickets" })] }).includes("tickets"),
       true,
     );
+    assert.equal(nav({ products: [product({ category: "standflaeche" })] }).includes("tickets"), false);
+  });
+
+  /**
+   * Review PR #14: Bewerber hängen nicht an Produktkategorien. `stage_products`
+   * enthält auch reine Speaking-Slots ohne Bewerbungsverfahren, und die
+   * Kategorien hießen im Code ohnehin anders als im Vokabular.
+   */
+  it("blendet Bewerber an den Sessions der Org ein, nicht an Kategorien", () => {
+    assert.equal(nav({ sessions_count: 1 }).includes("applicants"), true);
+    assert.equal(nav({ sessions_count: 0 }).includes("applicants"), false);
     assert.equal(
-      visibleNavKeys([product({ category: "standflaeche" })]).includes("tickets"),
+      nav({ products: [product({ category: "stage_products" })] }).includes("applicants"),
+      false,
+      "Kategorie allein reicht nicht",
+    );
+    assert.equal(
+      nav({ products: [product({ category: "company_tours" })] }).includes("applicants"),
       false,
     );
   });
 
-  it("blendet Bewerber nur mit Format-Produkt ein", () => {
+  it("blendet die Bühne bei eigener Bühne oder Bühnenprodukt ein", () => {
+    assert.equal(nav({ has_stage: true }).includes("stage"), true);
+    assert.equal(nav({ products: [product({ sku: STAGE_SKU })] }).includes("stage"), true);
     assert.equal(
-      visibleNavKeys([product({ category: "masterclass" })]).includes("applicants"),
-      true,
+      nav({ products: [product({ sku: "I-50131", category: "standflaeche" })] }).includes("stage"),
+      false,
     );
-    assert.equal(visibleNavKeys([product({ category: "tickets" })]).includes("applicants"), false);
   });
 });
 
