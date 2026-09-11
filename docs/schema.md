@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-11 08:38 UTC · 57 Tabellen · 6 Views · 220 Funktionen
+> Stand: 2026-09-11 09:04 UTC · 57 Tabellen · 6 Views · 222 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -166,6 +166,8 @@ Checklisten-Vorlagen je Produkt/Kategorie/alle; daraus entstehen die Pflichten (
 | `active` | boolean | ja | `true` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `answers_schema` | jsonb |  |  |  | Formular-Pflichten: [{key, label_de, label_en, type text\|textarea\|select\|number\|boolean\|date, required, options[]}]; submit_deliverable prüft required. |
+| `fulfilled_by_sku` | text |  |  | `product.sku` | Buchungs-Pflicht gilt als eingereicht, sobald eine bestätigte Shop-Bestellung dieses Produkt enthält; Storno setzt sie zurück. |
 
 ### `event`
 Format/Termin (Summit, Hackathon, Side-Event, Community). is_edition = Klammer wie FLS27-Woche; Kinder verweisen über edition_id.
@@ -1278,6 +1280,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_expense_claims` | args: ? |
 | `my_hospitality` | p_edition_id: uuid |
 | `my_manager_scope` | args: ? |
+| `my_partner_assets` | p_edition_id: uuid, p_org_id: uuid |
 | `my_partner_orgs` | args: ? |
 | `my_partner_stages` | args: ? |
 | `my_roles` | args: ? |
@@ -1379,6 +1382,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_request_product` | p_edition_id: uuid, p_org_id: uuid, p_sku: text, p_text: text |
 | `shop_requests_admin` | p_edition_id: uuid |
 | `shop_stock_available` | p_sku: text |
+| `shop_sync_fulfilled_deliverables` | p_org_edition_id: uuid |
 | `shop_upsert_line` | p_edition_id: uuid, p_merch_config: jsonb, p_org_id: uuid, p_qty: numeric, p_sku: text |
 | `slot_has_published_session` | p_slot_id: uuid |
 | `speaker_asset_path_allowed` | p_name: text |

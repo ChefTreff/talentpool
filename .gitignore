@@ -42,3 +42,8 @@ next-env.d.ts
 
 # Env-Vorlage (nur Platzhalter) darf ins Repo
 !.env.local.example
+
+# macOS-/Editor-Duplikate wie „page 2.tsx“ (Fund Build-Session 11.09.); sie würden von next build typgeprüft
+* [0-9].ts
+* [0-9].tsx
+* [0-9].mjs
