@@ -11,10 +11,10 @@ import {
   getPortalId,
   previousStage,
   setDealStage,
-} from "./client";
-import { buildIngestPayload } from "./mapping";
-import { notifyOnboardingChannel } from "./notify";
-import type { IngestPayload, IngestResult } from "./types";
+} from "@/lib/hubspot/client";
+import { buildIngestPayload } from "@/lib/hubspot/mapping";
+import { notifyOnboardingChannel } from "@/lib/hubspot/notify";
+import type { IngestPayload, IngestResult } from "@/lib/hubspot/types";
 
 export type DealRun = {
   dealId: string;

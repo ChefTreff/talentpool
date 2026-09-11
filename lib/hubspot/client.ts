@@ -1,5 +1,5 @@
 import "server-only";
-import { COMPANY_PROPERTIES, CONTACT_PROPERTIES, DEAL_PROPERTIES, LINE_ITEM_PROPERTIES } from "./mapping";
+import { COMPANY_PROPERTIES, CONTACT_PROPERTIES, DEAL_PROPERTIES, LINE_ITEM_PROPERTIES } from "@/lib/hubspot/mapping";
 
 /**
  * HubSpot-CRM-API mit dem Private-App-Token (`HUBSPOT_ACCESS_TOKEN`, nur Vercel-Env).

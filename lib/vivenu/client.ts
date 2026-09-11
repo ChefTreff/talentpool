@@ -1,4 +1,5 @@
 import "server-only";
+import { vivenuBase } from "@/lib/vivenu/naming";
 
 /**
  * vivenu-API (Doku docs.vivenu.dev). Sandbox `vivenu.dev`, Produktion `vivenu.com`; `VIVENU_SANDBOX=false` schaltet um.
@@ -15,12 +16,7 @@ export class VivenuError extends Error {
   }
 }
 
-export function vivenuBase(): { api: string; shop: string } {
-  const prod = process.env.VIVENU_SANDBOX?.trim().toLowerCase() === "false";
-  return prod
-    ? { api: "https://vivenu.com/api", shop: "https://vivenu.com" }
-    : { api: "https://vivenu.dev/api", shop: "https://vivenu.dev" };
-}
+export { vivenuBase } from "@/lib/vivenu/naming";
 
 export function hasVivenuKey(): boolean {
   return Boolean(process.env.VIVENU_API_KEY?.trim());

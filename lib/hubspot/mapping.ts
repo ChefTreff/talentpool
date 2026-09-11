@@ -1,4 +1,4 @@
-import type { ContactRole, IngestPayload } from "./types";
+import type { ContactRole, IngestPayload } from "@/lib/hubspot/types";
 
 /**
  * Welche HubSpot-Eigenschaften der Ingest liest. Interne Namen der Custom Properties

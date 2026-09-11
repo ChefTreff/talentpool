@@ -1,7 +1,7 @@
 import "server-only";
-import { randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { VivenuError, createCoupon, getEvent, hasVivenuKey, putUnderShops, updateCoupon, vivenuBase, type UnderShop } from "./client";
+import { VivenuError, createCoupon, getEvent, hasVivenuKey, putUnderShops, updateCoupon, type UnderShop } from "@/lib/vivenu/client";
+import { couponCode, undershopName, undershopUrl } from "@/lib/vivenu/naming";
 
 /** Zeile aus `ticket_allocations_pending()`. */
 export type PendingAllocation = {
@@ -31,24 +31,6 @@ export type ProvisionSummary = {
   skipped?: string;
   runs: { id: string; org: string; pass_type: string; outcome: string; detail?: string }[];
 };
-
-export function undershopName(editionSlug: string, orgName: string): string {
-  return `${editionSlug.toUpperCase()} · ${orgName}`.slice(0, 80);
-}
-
-export function couponCode(editionSlug: string, orgSlug: string | null, orgName: string, passType: string): string {
-  const org = (orgSlug ?? orgName).toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 10) || "PARTNER";
-  const rnd = randomBytes(3).toString("hex").toUpperCase();
-  return `${editionSlug.toUpperCase()}-${org}-${passType.toUpperCase().slice(0, 4)}-${rnd}`;
-}
-
-/** Undershop-Link, wenn vivenu ihn nicht selbst liefert. Bis zum Sandbox-Lauf ein Kandidat — das Team kann ihn über set_ticket_allocation überschreiben. */
-export function undershopUrl(eventId: string, shop: UnderShop): string | null {
-  const own = (shop.shopUrl ?? shop.url) as string | undefined;
-  if (own) return own;
-  if (!shop._id) return null;
-  return `${vivenuBase().shop}/e/${eventId}/${shop._id}`;
-}
 
 /**
  * Offene Kontingente in vivenu anlegen: je Event einmal lesen, je Partner einen Undershop (alle Pass-Typen der Org, Preis 0, Freischaltung per

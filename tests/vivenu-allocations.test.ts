@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { couponCode, undershopName, undershopUrl } from "@/lib/vivenu/allocations";
+import { couponCode, undershopName, undershopUrl } from "@/lib/vivenu/naming";
 
 describe("vivenu-Kontingente", () => {
   it("bildet Undershop-Namen und Coupon-Codes aus Edition und Org", () => {
