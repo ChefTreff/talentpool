@@ -74,3 +74,4 @@ Ziel: Welle 4 in einem Zug durchbauen, ohne auf Reviews zu warten. Reihenfolge, 
 - 11.09.2026 (Nacht): E1 = 18 Jahre mit Geburtsdatum, E8 = Konto je Gerät bestätigt; Regie-Vorlage als CSV im Repo (`docs/vorlagen/`), Volunteer-Bereiche folgen als CSV-Export.
 - 11.09.2026 (Nacht, II): Volunteer-Tabelle 2026 komplett auslesen und optimiert ableiten = Aufgabe der Architektur-Session nächste Woche (Konrad). Sonst freigegeben.
 - 11.09.2026 (Nacht, III): Durchlaufpaket E für die Pause der Architektur-Session (Pausenregel Migrationen, PR 21–28, Bericht bei Rückkehr). 0066 live.
+- 11.09.2026 (Nacht, IV): Feedback-Runde 1 als Querschnitts-Auftrag F (`docs/feedback-runde-1-2026-09-11.md`): Seitenleiste überall, Bereiche als eigene Portale ohne Spur der anderen, Admin nach Bereichen, Programm-Tabelle, Abgleich mit Alt-Portalen, Testdaten für Konrad. Subdomains vorerst nicht (Cookie-Grenze zu team.chef-treff.de, kein Sicherheitsgewinn).
