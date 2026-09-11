@@ -123,6 +123,17 @@ const BUSINESS_KEYS = new Set([
   "unknown_sku",
   "text_required",
   "order_not_found",
+  // Partner-Admin B9 (Migrationen 0044-0061)
+  "invalid_status",
+  "invalid_quantity",
+  "invalid_sku",
+  "fields_required",
+  "note_required",
+  "allocation_not_found",
+  "request_not_found",
+  "edition_not_found",
+  "template_not_found",
+  "sync_error_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {
