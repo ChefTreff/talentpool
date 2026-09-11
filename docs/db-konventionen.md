@@ -44,6 +44,8 @@ Jeder neue Schlüssel gehört im selben PR in `lib/rpc-error.ts` (`BUSINESS_KEYS
 - Postgres-Regex: Wiederholungen max. `{255}`.
 - `raise … using detail = <ausdruck>`: der Ausdruck darf nie NULL sein (22004) — `coalesce(x::text, 'null')`. Tests dürfen keine Stammdaten voraussetzen (z. B. `event_day` für FLS27 existiert noch nicht) — fehlende Wegwerf-Stammdaten im Test anlegen.
 - Trigger: `after insert or update of <spalten> or delete … for each row`, Funktion `return coalesce(new, old)`, security definer + revoke.
+- Inserts aus fremden Payloads (Webhooks, Importe): ein ausdrückliches NULL sticht den Spalten-Default aus — jede NOT-NULL-Spalte mit `coalesce(wert, default)` absichern (0078). Nachträge/Backfills brauchen einen Test, der die Wirkung belegt, nicht nur den fehlerfreien Durchlauf (0076).
+- Angewendete Migrationen liegen am selben Tag in einem gemergten PR — kein offener oder verworfener Branch mit angewendeten Migrationen (Drift).
 
 ## 5 · Tabellen, Grants, Storage
 - RLS auf jeder Tabelle, Spalten-Grants statt Tabellen-Grants für sensible Spalten (`revoke select (spalte)` wirkt nicht gegen einen Tabellen-Grant — 0032). **Keine Grants für `anon`** (seit 0063 hat anon nur `select` auf `vocab_term`); für `authenticated` nur die Grants, die eine Policy trägt — Schreiben läuft über RPCs.
