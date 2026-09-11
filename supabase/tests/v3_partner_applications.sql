@@ -1,6 +1,6 @@
 -- Smoke-Test 0047: Bewerber-Auswahl für Partner-Formate — Session mit host_org_id, partner_sessions mit Zählern, partner_applications nur für aktive
 -- primary_ops/additional/signing (event_app_member 42501, abgelaufene Rolle 42501, fremde Org 42501), Consent-Filter wie im Team-RPC, Audit je Abruf,
--- Entscheidung über decide_application, release_decisions bleibt Team, my_partner_stages über stage.partner_org_id.
+-- Entscheidung über decide_application, release_decisions bleibt Team, my_partner_stages über stage.partner_org_id. 0056: person_id ohne Einwilligung nur fürs Team.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -45,6 +45,7 @@ begin
                                                                || ' answers_visible=' || count(*) filter (where answers is not null)::text || ' profile_uni=' || max(profile->>'university') from partner_applications(v_session)));
   insert into t_res values ('05_audit_view', (select count(*)::text || ' org_ok=' || max((after->>'org_id' = v_org::text)::text) || ' rows=' || max(after->>'rows') || ' team=' || max(after->>'team')
                                                from audit_log where action = 'application.partner_view' and object_id = v_session::text));
+  insert into t_res values ('05b_person_id_hidden', (select count(*) filter (where person_id is null)::text || '/' || count(*)::text || ' hidden_has_no_id=' || bool_and(consent_share or person_id is null)::text from partner_applications(v_session)));  -- 0056: Partner sehen ohne Einwilligung keine Personen-ID
   begin
     perform partner_applications(v_session2);
     insert into t_res values ('06_foreign_applications', 'ALLOWED (BUG)');

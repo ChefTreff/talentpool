@@ -17,15 +17,20 @@ export function normalizeWebsite(url: string | null | undefined): string | undef
   return /^https?:\/\//i.test(t) ? t : `https://${t}`;
 }
 
-/** Logo-Typ in der App = Sponsoring-Level (Arbeitsauftrag A12); ohne Level die Partnerkategorie. */
+/**
+ * Logo-Typ in der App = Sponsoring-Level (Arbeitsauftrag A12); ohne Level die Partnerkategorie. Wird bis zur Entscheidung, was `type` 2027
+ * bedeutet (2026 stand dort die Branche), **nicht** an Swapcard gesendet — siehe docs/runbooks/swapcard-aussteller.md.
+ */
 export function exhibitorType(row: Pick<ExhibitorRow, "sponsoring_level" | "partner_category">): string | undefined {
   return row.sponsoring_level?.trim() || row.partner_category?.trim() || undefined;
 }
 
-export function toExhibitorUpsert(row: ExhibitorRow, opts: { locale?: "de" | "en"; logoUrl?: string | null } = {}): ExhibitorUpsert {
+export function toExhibitorUpsert(row: ExhibitorRow, opts: { logoUrl?: string | null } = {}): ExhibitorUpsert {
   const item: ExhibitorUpsert = { clientId: row.org_id, name: row.name.trim() };
-  const description = exhibitorDescription(row, opts.locale ?? "de");
+  const description = exhibitorDescription(row, "de");
   if (description) item.description = description;
+  const descriptionEn = row.description_en?.trim() ? exhibitorDescription(row, "en") : undefined;
+  if (descriptionEn && descriptionEn !== description) item.descriptionEn = descriptionEn;
   const website = normalizeWebsite(row.website);
   if (website) item.websiteUrl = website;
   if (opts.logoUrl) item.logoUrl = opts.logoUrl;
@@ -48,13 +53,12 @@ export function matchRemote(remotes: RemoteExhibitor[], row: Pick<ExhibitorRow, 
   return remotes.find((r) => r.name.trim().toLowerCase() === wanted);
 }
 
-/** Muss der Aussteller in der App geschrieben werden? Logo zählt nur, wenn wir eines liefern. */
+/** Muss der Aussteller in der App geschrieben werden? Logo zählt nur, wenn wir eines liefern; `type` wird noch nicht gesendet und zählt nicht. */
 export function exhibitorChanged(remote: RemoteExhibitor, wanted: ExhibitorUpsert): boolean {
   const same = (a: string | null | undefined, b: string | undefined) => (a ?? "").trim() === (b ?? "").trim();
   if (!same(remote.name, wanted.name)) return true;
   if (!same(remote.description, wanted.description)) return true;
   if (!same(remote.websiteUrl, wanted.websiteUrl)) return true;
-  if (remote.type !== undefined && !same(remote.type, wanted.type)) return true;
   if (wanted.logoUrl !== undefined && !same(remote.logoUrl, wanted.logoUrl)) return true;
   return false;
 }

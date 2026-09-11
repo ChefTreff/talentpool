@@ -75,10 +75,21 @@ console.log("\n## Event (Felder)");
 console.log((d.event?.fields ?? []).map((f) => `${f.name}${f.args?.length ? "(…)" : ""}`).join(", ") || "(Typ Event nicht gefunden)");
 
 if (eventId) {
-  console.log(`\n## Event ${eventId.slice(0, 4)}… (Versuch mit event(id:))`);
-  const ev = await gql(`query PortalEvent($id: ID!) { event(id: $id) { id title beginsAt endsAt } }`, { id: eventId });
-  if (ev.json?.data?.event) console.log(JSON.stringify(ev.json.data.event));
-  else console.log(`kein Treffer – Antwort ${ev.status}: ${(ev.json?.errors ?? []).map((e) => e.message).join("; ") || ev.text.slice(0, 300)}`);
+  console.log(`\n## Event ${eventId.slice(0, 4)}…`);
+  const ev = await gql(`query PortalEvent($id: ID!) { event(id: $id) { id title beginsAt endsAt totalExhibitors isPublic visibility language community { id } } }`, { id: eventId });
+  if (!ev.json?.data?.event) {
+    console.log(`kein Treffer – Antwort ${ev.status}: ${(ev.json?.errors ?? []).map((e) => e.message).join("; ") || ev.text.slice(0, 300)}`);
+  } else {
+    const e = ev.json.data.event;
+    console.log(JSON.stringify({ ...e, community: undefined }));
+    const cid = e.community?.id;
+    if (cid) {
+      const list = await gql(`query($c: ID!, $e: [ID!]) { inEvent: exhibitorsV2(communityId: $c, filter: { eventIds: $e }, cursor: { first: 5 }) { totalCount nodes { id name clientIds } } all: exhibitorsV2(communityId: $c, cursor: { first: 1 }) { totalCount } }`, { c: cid, e: [eventId] });
+      const d = list.json?.data;
+      console.log(`Aussteller im Event: ${d?.inEvent?.totalCount ?? "?"} (Community gesamt: ${d?.all?.totalCount ?? "?"})`);
+      for (const n of d?.inEvent?.nodes ?? []) console.log(`- ${n.name} (${n.clientIds?.join(",") || "ohne clientId"})`);
+    }
+  }
 } else {
   console.log("\nSWAPCARD_EVENT_ID fehlt – Event-Abfrage übersprungen.");
 }

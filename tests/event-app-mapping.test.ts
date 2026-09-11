@@ -12,10 +12,12 @@ const row: ExhibitorRow = {
 };
 
 describe("Event-App-Abbildung", () => {
-  it("bildet die Org auf einen Aussteller ab: clientId = Org-ID, Typ = Sponsoring-Level, Website mit https", () => {
+  it("bildet die Org auf einen Aussteller ab: clientId = Org-ID, Beschreibung DE + EN, Website mit https, Typ = Sponsoring-Level", () => {
     const item = toExhibitorUpsert(row);
-    assert.deepEqual(item, { clientId: "org1", name: "Expo", description: "Wir bauen Messen.", websiteUrl: "https://expo.example", type: "Premium", booth: "A12" });
-    assert.equal(toExhibitorUpsert(row, { locale: "en" }).description, "We build fairs.");
+    assert.deepEqual(item, {
+      clientId: "org1", name: "Expo", description: "Wir bauen Messen.", descriptionEn: "We build fairs.", websiteUrl: "https://expo.example", type: "Premium", booth: "A12",
+    });
+    assert.equal(toExhibitorUpsert({ ...row, description_en: null }).descriptionEn, undefined);
     assert.equal(exhibitorDescription({ description_de: "  ", description_en: "EN" }), "EN");
     assert.equal(exhibitorType(row), "Premium");
     assert.equal(normalizeWebsite("https://a.b"), "https://a.b");
@@ -39,18 +41,19 @@ describe("Event-App-Abbildung", () => {
     assert.equal(matchRemote(remotes.slice(2), row), undefined);
   });
 
-  it("schreibt nur, wenn sich etwas geändert hat; Logo zählt nur mit eigenem Wert", () => {
+  it("schreibt nur, wenn sich etwas geändert hat; Logo zählt nur mit eigenem Wert, type noch gar nicht", () => {
     const wanted = toExhibitorUpsert(row);
-    const same = { id: "r1", name: "Expo", description: "Wir bauen Messen.", websiteUrl: "https://expo.example", logoUrl: "https://cdn/x.png" };
+    const same = { id: "r1", name: "Expo", description: "Wir bauen Messen.", websiteUrl: "https://expo.example", logoUrl: "https://cdn/x.png", type: "Tech" };
     assert.equal(exhibitorChanged(same, wanted), false);
     assert.equal(exhibitorChanged({ ...same, description: "alt" }, wanted), true);
     assert.equal(exhibitorChanged(same, { ...wanted, logoUrl: "https://cdn/y.png" }), true);
   });
 
-  it("gibt an Swapcard nur bekannte Felder weiter (keine Standnummer)", () => {
+  it("gibt an Swapcard nur geprüfte Felder weiter: inputId = clientId, EN als Übersetzung, Standnummer, bestehende ID, kein type", () => {
     assert.deepEqual(toSwapcardInput(toExhibitorUpsert(row)), {
-      clientId: "org1", name: "Expo", description: "Wir bauen Messen.", websiteUrl: "https://expo.example", type: "Premium",
+      inputId: "org1", clientId: "org1", name: "Expo", description: "Wir bauen Messen.",
+      descriptionTranslations: [{ language: "en_US", value: "We build fairs." }], websiteUrl: "https://expo.example", booth: "A12",
     });
+    assert.equal(toSwapcardInput({ ...toExhibitorUpsert(row), existingId: "RXhoaWJpdG9y" }).id, "RXhoaWJpdG9y");
   });
 });
-

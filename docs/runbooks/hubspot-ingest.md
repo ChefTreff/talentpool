@@ -5,7 +5,7 @@ Deal erreicht Phase **„Onboarding Automation“** → Abgleich alle 15 Minuten
 ## Einrichtung (einmalig)
 1. **Service-Schlüssel** in HubSpot (Settings → Integrationen → Service-Schlüssel; braucht Developer-Tools-Zugriff, ein Schlüssel bekommt nur Scopes, die der anlegende Nutzer selbst hat): `crm.objects.deals.read` + `.write` (Phase zurücksetzen), `crm.objects.companies.read`, `crm.objects.contacts.read`, `crm.objects.line_items.read`, `crm.objects.owners.read` (Deal-Owner für die Gate-Mail), `crm.schemas.deals.read` (Pipelines), `crm.schemas.companies.read` (Einrichtungsskript). Wert → Vercel `HUBSPOT_ACCESS_TOKEN` (sensibel, nie im Chat). Rotation über die Schlüsselverwaltung (7 Tage Karenz). **Keine Legacy Private App** mehr anlegen (HubSpot schaltet das Anlegen ab 26.10.2026 ab; Entscheidungslog 11.09.).
 2. **Webhook optional:** Service-Schlüssel kennen keine Webhooks. Der Ingest läuft deshalb über den Abgleich alle 15 Minuten (unten). Wer später Sekunden statt Minuten braucht, legt eine Projekt-App über die HubSpot-CLI mit Subscription *Deal · Property change · `dealstage`* auf `https://portal.chef-treff.de/api/webhooks/hubspot` an und setzt deren Client Secret als `HUBSPOT_CLIENT_SECRET`; die Route prüft die Signatur v3 und ist ohne Secret wirkungslos (401).
-3. **IDs eintragen:** `node --env-file=.env.local scripts/hubspot-pipelines.mjs` zeigt Pipelines, Phasen, Zuordnungs-Labels und Firmen-Eigenschaften. Dann als Partner-Team (Admin oder `area_lead_partner`):
+3. **IDs eintragen — macht den Ingest scharf** (ab dann verarbeitet der Abgleich alle 15 Minuten jeden Deal in der Phase, legt Organisationen und Kontakte an und verschickt Einladungen an echte Adressen; deshalb erst nach Konrads Freigabe): `node --env-file=.env.local scripts/hubspot-pipelines.mjs` zeigt Pipelines, Phasen, Zuordnungs-Labels und Firmen-Eigenschaften. Dann als Partner-Team (Admin oder `area_lead_partner`):
    ```sql
    select set_edition_hubspot('<edition_id fls27>', '<pipeline_id>', '<stage_id Onboarding Automation>');
    ```
@@ -13,6 +13,26 @@ Deal erreicht Phase **„Onboarding Automation“** → Abgleich alle 15 Minuten
 4. **Zuordnungs-Labels Deal → Kontakt** im HubSpot-Portal anlegen und beim Deal setzen: *Hauptkontakt*, *Unterschrift*, *Buchhaltung*, *Event-App*, *Weiterer Kontakt*. Die Wortstämme (DE/EN) stehen in `lib/hubspot/mapping.ts` → `roleFromLabel`. Ein einzelner Login-Kontakt ohne Label wird automatisch Hauptkontakt; *Buchhaltung* bekommt keinen Login, ihre E-Mail wird Rechnungs-E-Mail (Entscheidung 1).
 5. **Firmen-Eigenschaften** (interne Namen, sonst in `COMPANY_PROPERTIES` anpassen): `legal_name`, `communication_name` (Fallback jeweils `name`), `address`, `zip`, `city`, `country`, `website`/`domain`, `description`, `invoice_email`, `invoice_name`, `vat_id`, `po_number`, `organization_type` (Vokabular), `partner_category` (Vokabular), `sponsoring_level`. Line-Items brauchen `hs_sku` = Item-ID `I-nnnnn`.
 6. **Slack:** Slack-App „ChefTreff Portal“ (api.slack.com/apps → Create New App → From scratch, Workspace ChefTreff) → *Incoming Webhooks* aktivieren → „Add New Webhook to Workspace“ → Kanal `#fls27-onboarding` → Webhook-URL → Vercel `SLACK_ONBOARDING_WEBHOOK_URL` (sensibel; wer die URL hat, kann in den Kanal posten). Mehr braucht die App nicht: Scope `incoming-webhook` kommt automatisch, kein Bot-Token, keine Event-Subscriptions, keine Verteilung; unter *Display Information* Name und Icon setzen, so erscheint der Absender im Kanal. Fallback: make-Szenario „Webhook → Slack“ als `MAKE_ONBOARDING_WEBHOOK_URL` (optional Header `x-webhook-secret` = `MAKE_WEBHOOK_SECRET`). Ohne URL wird nur geloggt.
+
+## Bestandsaufnahme 11.09.2026 (Service-Schlüssel gesetzt, nur gelesen)
+- **Pipeline „Future Leader Summit“** `379213775`; Phase **„Onboarding Start (Automation)“** `3019026648` (0 Deals), „Signed“ `586899154` (1 Deal), „Onboarding Operations (Automation Complete)“ `3569180889` (0) — Letztere wäre die natürliche Erfolgs-Phase nach dem Ingest (heute setzt der Ingest nur bei Gate-Fehlern zurück; Vorschlag: bei Erfolg nach „Automation Complete“ schieben, Entscheidung Konrad). **Noch nicht eingetragen.**
+- **Zuordnungs-Labels Deal → Kontakt fehlen** (nur das Standard-Label ohne Namen): *Hauptkontakt*, *Unterschrift*, *Buchhaltung*, *Event-App*, *Weiterer Kontakt* im Portal anlegen (Schritt 4), sonst wird nur ein einzelner Kontakt automatisch Hauptkontakt.
+- **Firmen-Eigenschaften** (intern) und was der Ingest heute erwartet — Vorschlag, Freigabe Konrad, danach `COMPANY_PROPERTIES`/`lib/hubspot/mapping.ts` anpassen:
+
+  | Portal-Feld | HubSpot heute | Vorschlag |
+  |---|---|---|
+  | `legal_name` | fehlt | Standard `name` |
+  | `communication_name` | `communication_name` ✅ | — |
+  | Adresse, PLZ, Ort, Land, Website, Beschreibung | Standard `address`/`address2`, `zip`, `city`, `country`, `website`/`domain`, `description` ✅ | — |
+  | `invoice_email` | `invoice_contact` (string) | prüfen, ob dort eine E-Mail steht; sonst neue Eigenschaft |
+  | `invoice_name` | fehlt | Standard `name`, sonst neue Eigenschaft |
+  | `vat_id` | `vat_id` ✅ | — |
+  | `po_number` | `purchase_ordner` (Tippfehler im internen Namen) | so übernehmen |
+  | `organization_type` | `ct_company_type` (Corporate, VC, Startup, Universität, Initiative, Stiftung, Media, Service / Kooperation, Catering, Important, Other) | Zuordnungstabelle auf das Vokabular `organization_type` |
+  | `partner_category` | `fls_partner_type` (HR, Marketing, Startup, Hackathon, ZEIT, Agency Partner) | HR Partner → `talent`, Startup Partner → `startup`; Rest klären (Vokabular kennt nur startup/talent) |
+  | `sponsoring_level` | `fls_booth_type` (1,5qm Start Up, 4qm Intro, 9qm General, 18qm Premium, 25qm+ Signature, Main Stage Loge, Gemeinschaftsstand) | Level aus dem Standtyp; `fls_sponsoring` sind Sponsoring-Arten (Speaker Lounge, Food, …), kein Level |
+  | Logo | `logo` (string) | optional als Vorbelegung |
+  | Line-Items | `hs_sku` ✅ | — |
 
 ## Ablauf
 - **Webhook:** Signatur v3 (`X-HubSpot-Signature-v3`, `X-HubSpot-Request-Timestamp`, Fenster 5 Min.) → 401 bei Fehler, keine Verarbeitung. Jedes Ereignis nach `integration.webhook_event` (`record_webhook_event`, Duplikat je `(source, external_id)`). Antwort sofort; Verarbeitung danach (`after`). Relevant sind nur `deal.propertyChange`/`dealstage` mit der Phase einer Edition (`hubspot_editions`), alles andere `ignored`.

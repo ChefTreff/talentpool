@@ -1,7 +1,7 @@
 /**
  * Event-App-Adapter (Welle 3 A12, Entscheidung 13: Swapcard bleibt 2027, Eigenbau/Conferras wird für 2028 evaluiert).
  * Der Portal-Code spricht nur diesen Vertrag; Swapcard ist eine Implementierung (`lib/event-app/swapcard`).
- * Umfang in Welle 3: Aussteller (Name, Beschreibung, Website, Logo, Typ = Sponsoring-Level). Personen, Sessions und Mitglieder folgen in Welle 4/5.
+ * Umfang in Welle 3: Aussteller (Name, Beschreibung DE/EN, Website, Logo, Standnummer). Personen, Sessions und Mitglieder folgen in Welle 4/5.
  */
 
 /** Zeile aus `event_app_exhibitors(p_edition_id?)` (Migration 0055). */
@@ -28,15 +28,20 @@ export type ExhibitorRow = {
   members: { person_id: string; first_name: string | null; last_name: string | null; email: string | null; position: string | null }[];
 };
 
-/** Was der Adapter je Aussteller anlegt oder aktualisiert — systemneutral und bewusst schmal. `clientId` ist unsere Org-ID. */
+/**
+ * Was der Adapter je Aussteller anlegt oder aktualisiert — systemneutral und bewusst schmal. `clientId` ist unsere Org-ID;
+ * `existingId` verweist auf einen Aussteller, den die App schon kennt (etwa aus dem Vorjahr) — dann wird er aktualisiert statt verdoppelt.
+ */
 export type ExhibitorUpsert = {
   clientId: string;
   name: string;
   description?: string;
+  descriptionEn?: string;
   websiteUrl?: string;
   logoUrl?: string;
   type?: string;
   booth?: string;
+  existingId?: string;
 };
 
 /** Aussteller, wie ihn die App zurückgibt. */
@@ -50,9 +55,17 @@ export type RemoteExhibitor = {
   type?: string | null;
 };
 
+/** Ergebnis eines Upserts: je Eingabe (`inputId` = clientId) der Aussteller oder ein Prüf-Fehler. */
+export type UpsertOutcome = {
+  results: { inputId: string; exhibitor: RemoteExhibitor }[];
+  errors: { inputId: string; code: string; message: string; path: string[] }[];
+};
+
 export interface EventAppAdapter {
   readonly system: "swapcard";
-  listExhibitors(eventId: string): Promise<RemoteExhibitor[]>;
-  upsertExhibitors(eventId: string, items: ExhibitorUpsert[]): Promise<RemoteExhibitor[]>;
+  /** Aussteller des Events oder der ganzen Community (dort liegen auch die Vorjahre). */
+  listExhibitors(eventId: string, scope?: "event" | "community"): Promise<RemoteExhibitor[]>;
+  /** `validateOnly` lässt die App prüfen, ohne zu schreiben (Trockenlauf mit echter Validierung). */
+  upsertExhibitors(eventId: string, items: ExhibitorUpsert[], opts?: { validateOnly?: boolean }): Promise<UpsertOutcome>;
   deleteExhibitors(eventId: string, ids: string[]): Promise<void>;
 }

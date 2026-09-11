@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { EventAppAdapter, ExhibitorRow, ExhibitorUpsert, RemoteExhibitor } from "@/lib/event-app/types";
-import { chunks, exhibitorChanged, matchRemote, toExhibitorUpsert } from "@/lib/event-app/mapping";
+import { exhibitorChanged, matchRemote, toExhibitorUpsert } from "@/lib/event-app/mapping";
 
 export type SyncSummary = {
   dryRun: boolean;
@@ -9,7 +9,11 @@ export type SyncSummary = {
   events: number;
   create: number;
   update: number;
+  /** Aussteller, den die Community schon kennt (Vorjahr): wird ans Event gehängt und aktualisiert statt verdoppelt. */
+  attach: number;
   unchanged: number;
+  /** Im Trockenlauf: Eingaben, die Swapcard mit `validateOnly` angenommen hat. */
+  validated: number;
   refs: number;
   errors: number;
   skipped?: string;
@@ -17,10 +21,10 @@ export type SyncSummary = {
 };
 
 /**
- * Aussteller einer Edition in die Event-App bringen: `event_app_exhibitors()` → Abbildung → bestehende Aussteller je Event lesen → nur Neues und
- * Geändertes schreiben → App-ID je Org×Edition in `external_ref` (`set_event_app_ref`). `dryRun` (Standard in der Admin-Route) rechnet alles durch und
- * schreibt nichts nach Swapcard. Ohne Adapter (kein `SWAPCARD_API_KEY`) endet der Lauf als `skipped`. Logos werden noch nicht übertragen: der Bucket
- * `partner-assets` ist privat und Swapcard braucht eine öffentlich abrufbare Bilddatei (Rasterformat) — offener Punkt im Runbook.
+ * Aussteller einer Edition in die Event-App bringen: `event_app_exhibitors()` → Abbildung → bestehende Aussteller des Events und der Community lesen →
+ * nur Neues und Geändertes schreiben (`upsertEventExhibitorsV2`), App-ID je Org×Edition in `external_ref` (`set_event_app_ref`).
+ * `dryRun` (Standard in der Admin-Route) rechnet alles durch und lässt Swapcard mit `validateOnly` prüfen — geschrieben wird nichts.
+ * Ohne Adapter (kein `SWAPCARD_API_KEY`) endet der Lauf als `skipped`. Logos werden noch nicht übertragen (privater Bucket, Rasterformat nötig; Runbook).
  */
 export async function syncExhibitors(opts: {
   admin: SupabaseClient;
@@ -31,7 +35,7 @@ export async function syncExhibitors(opts: {
   orgId?: string | null;
 }): Promise<SyncSummary> {
   const { admin, adapter, dryRun, jobId } = opts;
-  const summary: SyncSummary = { dryRun, rows: 0, events: 0, create: 0, update: 0, unchanged: 0, refs: 0, errors: 0, runs: [] };
+  const summary: SyncSummary = { dryRun, rows: 0, events: 0, create: 0, update: 0, attach: 0, unchanged: 0, validated: 0, refs: 0, errors: 0, runs: [] };
 
   const { data, error } = await admin.rpc("event_app_exhibitors", { p_edition_id: opts.editionId ?? null });
   if (error) throw new Error(`event_app_exhibitors: ${error.message}`);
@@ -52,44 +56,62 @@ export async function syncExhibitors(opts: {
 
   for (const [eventId, eventRows] of byEvent) {
     summary.events += 1;
-    let remotes: RemoteExhibitor[];
+    let inEvent: RemoteExhibitor[];
+    let inCommunity: RemoteExhibitor[];
     try {
-      remotes = await adapter.listExhibitors(eventId);
+      inEvent = await adapter.listExhibitors(eventId, "event");
+      inCommunity = await adapter.listExhibitors(eventId, "community");
     } catch (e) {
-      await failAll(admin, eventRows, summary, jobId, e, "exhibitors lesen");
+      await failAll(admin, eventRows, summary, jobId, e, "exhibitors lesen", dryRun);
       continue;
     }
 
-    const pending: { row: ExhibitorRow; wanted: ExhibitorUpsert; existing?: RemoteExhibitor }[] = [];
+    const pending: { row: ExhibitorRow; wanted: ExhibitorUpsert; existing?: RemoteExhibitor; kind: "create" | "update" | "attach" }[] = [];
     for (const row of eventRows) {
-      const wanted = toExhibitorUpsert(row, { locale: "de", logoUrl: null });
-      const existing = matchRemote(remotes, row);
+      const wanted = toExhibitorUpsert(row, { logoUrl: null });
+      const existing = matchRemote(inEvent, row);
       if (existing && !exhibitorChanged(existing, wanted)) {
         summary.unchanged += 1;
         summary.runs.push({ org: row.name, outcome: "unchanged", detail: existing.id });
         if (!dryRun && row.swapcard_exhibitor_id !== existing.id) await saveRef(admin, row, existing.id, adapter.system, summary);
         continue;
       }
-      pending.push({ row, wanted, existing });
-      if (existing) summary.update += 1;
-      else summary.create += 1;
-      summary.runs.push({ org: row.name, outcome: `${dryRun ? "would_" : ""}${existing ? "update" : "create"}`, detail: existing?.id });
-    }
-    if (dryRun) continue;
-
-    for (const part of chunks(pending, 25)) {
-      try {
-        const result = await adapter.upsertExhibitors(eventId, part.map((p) => p.wanted));
-        for (const p of part) {
-          const remote =
-            result.find((r) => (r.clientIds ?? []).includes(p.row.org_id)) ??
-            result.find((r) => r.name.trim().toLowerCase() === p.wanted.name.toLowerCase()) ??
-            p.existing;
-          if (remote && remote.id !== p.row.swapcard_exhibitor_id) await saveRef(admin, p.row, remote.id, adapter.system, summary);
+      let kind: "create" | "update" | "attach" = existing ? "update" : "create";
+      if (existing) {
+        wanted.existingId = existing.id;
+      } else {
+        const known = matchRemote(inCommunity, row);
+        if (known) {
+          wanted.existingId = known.id;
+          kind = "attach";
         }
-      } catch (e) {
-        await failAll(admin, part.map((p) => p.row), summary, jobId, e, "upsert");
       }
+      pending.push({ row, wanted, existing, kind });
+      summary[kind] += 1;
+      summary.runs.push({ org: row.name, outcome: `${dryRun ? "would_" : ""}${kind}`, detail: wanted.existingId });
+    }
+    if (pending.length === 0) continue;
+
+    try {
+      const outcome = await adapter.upsertExhibitors(eventId, pending.map((p) => p.wanted), { validateOnly: dryRun });
+      const byInput = new Map(pending.map((p) => [p.row.org_id, p]));
+      for (const err of outcome.errors) {
+        const p = byInput.get(err.inputId);
+        summary.errors += 1;
+        summary.runs.push({ org: p?.row.name ?? err.inputId, outcome: dryRun ? "invalid" : "error", detail: `${err.code} ${err.path.join(".")}: ${err.message}`.slice(0, 300) });
+        if (!dryRun && p) await recordError(admin, p.row, jobId, `${err.code} ${err.path.join(".")}: ${err.message}`);
+      }
+      for (const res of outcome.results) {
+        const p = byInput.get(res.inputId);
+        if (!p) continue;
+        if (dryRun) {
+          summary.validated += 1;
+          continue;
+        }
+        if (res.exhibitor.id !== p.row.swapcard_exhibitor_id) await saveRef(admin, p.row, res.exhibitor.id, adapter.system, summary);
+      }
+    } catch (e) {
+      await failAll(admin, pending.map((p) => p.row), summary, jobId, e, "upsert", dryRun);
     }
   }
   return summary;
@@ -110,17 +132,21 @@ async function saveRef(admin: SupabaseClient, row: ExhibitorRow, externalId: str
   summary.refs += 1;
 }
 
-async function failAll(admin: SupabaseClient, rows: ExhibitorRow[], summary: SyncSummary, jobId: number | null, e: unknown, step: string) {
+async function recordError(admin: SupabaseClient, row: ExhibitorRow, jobId: number | null, message: string) {
+  await admin.rpc("record_sync_error", {
+    p_job_id: jobId,
+    p_object_type: "org_edition",
+    p_object_id: row.org_edition_id,
+    p_message: message.slice(0, 500),
+    p_payload: { org_id: row.org_id, edition: row.edition_slug },
+  });
+}
+
+async function failAll(admin: SupabaseClient, rows: ExhibitorRow[], summary: SyncSummary, jobId: number | null, e: unknown, step: string, dryRun: boolean) {
   const message = e instanceof Error ? e.message : String(e);
   for (const row of rows) {
     summary.errors += 1;
     summary.runs.push({ org: row.name, outcome: "error", detail: `${step}: ${message.slice(0, 200)}` });
-    await admin.rpc("record_sync_error", {
-      p_job_id: jobId,
-      p_object_type: "org_edition",
-      p_object_id: row.org_edition_id,
-      p_message: `${step}: ${message}`.slice(0, 500),
-      p_payload: { org_id: row.org_id, edition: row.edition_slug },
-    });
+    if (!dryRun) await recordError(admin, row, jobId, `${step}: ${message}`);
   }
 }
