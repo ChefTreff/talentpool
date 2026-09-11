@@ -16,6 +16,8 @@ import type { EventDay, VolunteerProfile } from "./types";
 export const getVolunteerScope = cache(
   async (): Promise<{
     profile: VolunteerProfile | null;
+    /** Wie viele Schichten diese Person leitet — steuert den Menüpunkt. */
+    leadShifts: number;
     days: EventDay[];
     edition: { id: string; name: string | null; start_date: string | null; timezone: string | null } | null;
   }> => {
@@ -24,6 +26,11 @@ export const getVolunteerScope = cache(
 
     const { data: profileJson } = await supabase.rpc("my_volunteer_profile");
     const profile = (profileJson ?? null) as VolunteerProfile | null;
+
+    // Leitet diese Person Schichten? Die RPC gibt nur die eigenen heraus,
+    // die Zahl genügt für den Menüpunkt.
+    const { data: leadRows } = await supabase.rpc("my_lead_shifts");
+    const leadShifts = (leadRows ?? []).length;
 
     // Dieselbe Edition, die `volunteer_edition()` in SQL wählt: die nächste,
     // die nicht vorbei ist.
@@ -45,6 +52,6 @@ export const getVolunteerScope = cache(
      */
     const { data: dayRows } = await supabase.rpc("volunteer_days");
 
-    return { profile, days: (dayRows ?? []) as EventDay[], edition };
+    return { profile, leadShifts, days: (dayRows ?? []) as EventDay[], edition };
   },
 );
