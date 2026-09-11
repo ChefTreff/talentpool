@@ -123,6 +123,8 @@ const BUSINESS_KEYS = new Set([
   "unknown_sku",
   "text_required",
   "order_not_found",
+  // Merch-Konfiguration (Migration 0064)
+  "merch_incomplete",
   // Partner-Admin B9 (Migrationen 0044-0061)
   "invalid_status",
   "invalid_quantity",

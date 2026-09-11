@@ -42,6 +42,7 @@ Jeder neue Schlüssel gehört im selben PR in `lib/rpc-error.ts` (`BUSINESS_KEYS
 - `role_assignment_valid_chk`: `valid_to > valid_from`; in derselben Transaktion ist `valid_from = now()` ⇒ beenden über `delete`, nicht `valid_to = now()`.
 - `queue_mail` dedupliziert je Person: Fan-outs brauchen die Person im Schlüssel (0042).
 - Postgres-Regex: Wiederholungen max. `{255}`.
+- `raise … using detail = <ausdruck>`: der Ausdruck darf nie NULL sein (22004) — `coalesce(x::text, 'null')`. Tests dürfen keine Stammdaten voraussetzen (z. B. `event_day` für FLS27 existiert noch nicht) — fehlende Wegwerf-Stammdaten im Test anlegen.
 - Trigger: `after insert or update of <spalten> or delete … for each row`, Funktion `return coalesce(new, old)`, security definer + revoke.
 
 ## 5 · Tabellen, Grants, Storage

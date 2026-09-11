@@ -380,7 +380,20 @@ export type ShopOrderLine = {
   merch_config: Record<string, unknown> | null;
 };
 
-/** Der Entwurf der laufenden Phase ist der Warenkorb. */
+/**
+ * Der Warenkorb ist die offene Bestellung der laufenden Phase.
+ *
+ * Das ist der Entwurf — und nach `shop_edit` auch die wieder geöffnete
+ * Bestellung (`editing`). Sonst hätte sie keinen Bestätigen-Knopf mehr:
+ * `shop_confirm` nimmt `draft` und `editing`, der Warenkorb ist aber die
+ * einzige Stelle, an der er steht. Je Org und Phase gibt es höchstens eine
+ * aktive Bestellung (partieller Unique-Index), `editable` schließt
+ * abgelaufene Phasen aus.
+ */
 export function cartOf(orders: readonly ShopOrder[]): ShopOrder | null {
-  return orders.find((o) => o.status === "draft") ?? null;
+  return (
+    orders.find((o) => o.status === "draft") ??
+    orders.find((o) => o.status === "editing" && o.editable) ??
+    null
+  );
 }

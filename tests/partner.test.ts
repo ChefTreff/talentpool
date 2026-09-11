@@ -195,6 +195,7 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     { code: "P0002", message: "profile_not_found", key: "profile_not_found" },
     { code: "P0002", message: "shift_not_found", key: "shift_not_found" },
     { code: "P0002", message: "day_not_found", key: "day_not_found" },
+    { code: "P0001", message: "merch_incomplete", key: "merch_incomplete" },
     // Partner-Admin (B9)
     { code: "22023", message: "invalid_status", key: "invalid_status" },
     { code: "22023", message: "invalid_quantity", key: "invalid_quantity" },

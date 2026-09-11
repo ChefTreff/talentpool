@@ -87,6 +87,8 @@ export type AdminOrder = {
     price_net_cents: number;
     line_net_cents: number;
     unit: string | null;
+    /** Merch-Konfiguration der Zeile (S4), `null` bei allem anderen. */
+    merch_config: Record<string, unknown> | null;
   }[];
   created_at: string;
   updated_at: string;
@@ -174,6 +176,8 @@ export type AdminProduct = {
   purchase_note_de: string | null;
   purchase_note_en: string | null;
   internal_comment: string | null;
+  /** Schema der Konfigurationsfelder (S4); `null` = kein Merch-Artikel. */
+  merch_config: unknown;
   images: { url: string; name: string; path: string }[] | null;
   source_hubspot: boolean;
   source_shop: boolean;
