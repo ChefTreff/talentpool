@@ -24,6 +24,7 @@ import {
   submitDeliverable,
 } from "../actions";
 import { ContactList } from "../kontakte/ContactList";
+import { BUCKET, safeFileName } from "../upload";
 import {
   PASS_TYPES,
   type Deliverable,
@@ -32,18 +33,6 @@ import {
 } from "../types";
 
 type Strings = Record<string, string>;
-
-const BUCKET = "partner-assets";
-
-/** Dateinamen auf das reduzieren, was in einem Storage-Pfad nicht stört. */
-function safeFileName(name: string): string {
-  const cleaned = name
-    .normalize("NFKD")
-    .replace(/[^A-Za-z0-9._-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^[-.]+/, "");
-  return (cleaned || "datei").slice(-80);
-}
 
 type Draft = {
   legal_name: string;

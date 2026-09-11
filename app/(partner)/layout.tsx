@@ -42,7 +42,13 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     p_edition_id: current.edition_id,
   });
   const overview = (overviewJson ?? null) as PartnerOverview | null;
-  const allowed = new Set<PartnerNavKey>(visibleNavKeys(overview?.products ?? []));
+  const allowed = new Set<PartnerNavKey>(
+    visibleNavKeys({
+      products: overview?.products ?? [],
+      sessions_count: overview?.sessions_count ?? 0,
+      has_stage: overview?.has_stage ?? false,
+    }),
+  );
 
   // Was in diesem Baustein schon existiert. Der Rest steht in `visibleNavKeys`
   // bereit und wird hier freigeschaltet, sobald die Seite dazukommt.
@@ -50,6 +56,8 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     dashboard: { href: "/partner", label: t.partner.navDashboard },
     onboarding: { href: "/partner/onboarding", label: t.partner.navCompany },
     contacts: { href: "/partner/kontakte", label: t.partner.navContacts },
+    checklist: { href: "/partner/checkliste", label: t.partner.navChecklist },
+    files: { href: "/partner/dateien", label: t.partner.navFiles },
   };
 
   const pick = (keys: PartnerNavKey[]) =>
