@@ -7,7 +7,7 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import { BUCKET } from "../upload";
-import type { DeliverableAsset } from "../types";
+import type { PartnerAsset } from "../types";
 
 type Strings = Record<string, string>;
 
@@ -17,13 +17,7 @@ const TONE: Record<string, BadgeTone> = {
   rejected: "error",
 };
 
-export type FileRow = DeliverableAsset & {
-  /** Art des Uploads = Schlüssel der Pflicht (`logo_vector`, `backdrop_print`, …). */
-  kind: string;
-  /** Ersetzte Fassungen bleiben lesbar, sind aber nicht mehr die aktuelle. */
-  is_current: boolean;
-  deliverableLabel: string;
-};
+export type FileRow = PartnerAsset & { deliverableLabel: string };
 
 export function FileList({
   rows,
@@ -96,6 +90,7 @@ export function FileList({
               <Badge tone={TONE[row.status] ?? "neutral"}>
                 {t[`asset_${row.status}`] ?? row.status}
               </Badge>
+              {row.review_note && <div className="ct-help">{row.review_note}</div>}
             </Td>
             <Td className="text-muted tabular-nums">
               {dateTime.format(new Date(row.created_at))}

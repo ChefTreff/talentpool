@@ -14,11 +14,12 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
-import { Textarea } from "@/components/ui/Input";
+import { Input, Textarea } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { registerPartnerAsset, submitDeliverable } from "../actions";
 import { safeFileName, BUCKET } from "../upload";
-import type { Deliverable, DeliverableAsset, PartnerOverview } from "../types";
+import type { AnswerField, Deliverable, DeliverableAsset, PartnerOverview } from "../types";
 
 type Strings = Record<string, string>;
 
@@ -65,7 +66,9 @@ export function ChecklistView({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState<string | null>(null);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  // Antworten je Pflicht: der Schlüssel ist das Feld aus `answers_schema`,
+  // ohne Schema steht alles unter `note`.
+  const [answers, setAnswers] = useState<Record<string, Record<string, string>>>({});
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, {
@@ -92,6 +95,40 @@ export function ChecklistView({
    */
   const badgeStatus = (d: Deliverable) =>
     d.status === "open" && isOverdue(d) ? "overdue" : d.status;
+
+  const answerOf = (d: Deliverable, key: string) => answers[d.id]?.[key] ?? "";
+  const setAnswer = (d: Deliverable, key: string, value: string) =>
+    setAnswers((prev) => ({ ...prev, [d.id]: { ...(prev[d.id] ?? {}), [key]: value } }));
+  const fieldLabel = (f: AnswerField) =>
+    (locale === "en" ? f.label_en : f.label_de) ?? f.label_de ?? f.key;
+
+  /** Alle Pflichtfelder gefüllt? Die RPC prüft es noch einmal. */
+  function formComplete(d: Deliverable): boolean {
+    const schema = d.answers_schema;
+    if (!schema) return answerOf(d, "note").trim() !== "";
+    return schema
+      .filter((f) => f.required)
+      // `boolean` gilt als beantwortet, sobald angehakt ist; alles andere
+      // braucht einen Wert.
+      .every((f) =>
+        f.type === "boolean" ? answerOf(d, f.key) === "true" : answerOf(d, f.key).trim() !== "",
+      );
+  }
+
+  /** Antworten so formen, wie die Felder es vorgeben (Zahl, Wahrheitswert …). */
+  function answerPayload(d: Deliverable): Record<string, unknown> {
+    const schema = d.answers_schema;
+    if (!schema) return { note: answerOf(d, "note").trim() };
+    const out: Record<string, unknown> = {};
+    for (const f of schema) {
+      const raw = answerOf(d, f.key);
+      if (f.type === "boolean") out[f.key] = raw === "true";
+      else if (raw.trim() === "") continue;
+      else if (f.type === "number") out[f.key] = Number(raw);
+      else out[f.key] = raw.trim();
+    }
+    return out;
+  }
 
   async function onUpload(d: Deliverable, file: File) {
     const rules: FileRules = d.file_rules;
@@ -160,15 +197,21 @@ export function ChecklistView({
   }
 
   function onSubmitForm(d: Deliverable) {
-    const note = (answers[d.id] ?? "").trim();
-    if (note === "") {
+    if (!formComplete(d)) {
       toast("error", message("answers_required"));
       return;
     }
     startTransition(async () => {
-      const res = await submitDeliverable(d.id, [], { note });
+      const res = await submitDeliverable(d.id, [], answerPayload(d));
       if (!res.ok) {
-        toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+        // `answers_incomplete` nennt das fehlende Feld im Detail — den
+        // Schlüssel übersetzen wir in die Beschriftung, die danebensteht.
+        const field = d.answers_schema?.find((f) => f.key === res.detail);
+        toast(
+          "error",
+          message(res.key) +
+            (field ? ` (${fieldLabel(field)})` : res.detail ? ` (${res.detail})` : ""),
+        );
         return;
       }
       toast("success", t.markedDone);
@@ -261,11 +304,29 @@ export function ChecklistView({
                           ))}
                         </ul>
                       )}
-                      {d.type === "form" && d.status !== "open" && d.answers?.note != null && (
-                        <p className="ct-help mt-2 whitespace-pre-line">
-                          {String(d.answers.note)}
-                        </p>
-                      )}
+                      {d.type === "form" &&
+                        d.status !== "open" &&
+                        Object.keys(d.answers ?? {}).length > 0 && (
+                          <dl className="ct-help mt-2 flex flex-col gap-0.5">
+                            {Object.entries(d.answers).map(([key, value]) => {
+                              const field = d.answers_schema?.find((f) => f.key === key);
+                              return (
+                                <div key={key} className="flex flex-wrap gap-1">
+                                  <dt className="font-semibold">
+                                    {field ? fieldLabel(field) : key}:
+                                  </dt>
+                                  <dd className="whitespace-pre-line">
+                                    {typeof value === "boolean"
+                                      ? value
+                                        ? t.yes
+                                        : t.no
+                                      : String(value)}
+                                  </dd>
+                                </div>
+                              );
+                            })}
+                          </dl>
+                        )}
                     </div>
 
                     <div className="flex w-full max-w-[320px] flex-col gap-2">
@@ -303,24 +364,76 @@ export function ChecklistView({
                         </>
                       ) : d.type === "form" ? (
                         <>
-                          <Field label={t.answer} htmlFor={`a-${d.id}`} hint={t.answerHint}>
-                            <Textarea
-                              id={`a-${d.id}`}
-                              rows={4}
-                              value={answers[d.id] ?? ""}
-                              onChange={(e) =>
-                                setAnswers((prev) => ({ ...prev, [d.id]: e.target.value }))
-                              }
-                            />
-                          </Field>
+                          {(d.answers_schema ?? []).length > 0 ? (
+                            d.answers_schema!.map((f) => (
+                              <Field
+                                key={f.key}
+                                label={fieldLabel(f)}
+                                htmlFor={`a-${d.id}-${f.key}`}
+                                required={f.required}
+                                requiredLabel={t.requiredLabel}
+                              >
+                                {f.type === "textarea" ? (
+                                  <Textarea
+                                    id={`a-${d.id}-${f.key}`}
+                                    rows={4}
+                                    value={answerOf(d, f.key)}
+                                    onChange={(e) => setAnswer(d, f.key, e.target.value)}
+                                  />
+                                ) : f.type === "select" ? (
+                                  <Select
+                                    id={`a-${d.id}-${f.key}`}
+                                    value={answerOf(d, f.key)}
+                                    placeholder={t.choose}
+                                    options={(f.options ?? []).map((o) => ({ value: o, label: o }))}
+                                    onChange={(e) => setAnswer(d, f.key, e.target.value)}
+                                  />
+                                ) : f.type === "boolean" ? (
+                                  // Die Beschriftung steht schon im `Field`
+                                  // darüber und zeigt per `htmlFor` hierher.
+                                  <input
+                                    id={`a-${d.id}-${f.key}`}
+                                    type="checkbox"
+                                    className="h-5 w-5"
+                                    checked={answerOf(d, f.key) === "true"}
+                                    onChange={(e) =>
+                                      setAnswer(d, f.key, e.target.checked ? "true" : "false")
+                                    }
+                                  />
+                                ) : (
+                                  <Input
+                                    id={`a-${d.id}-${f.key}`}
+                                    type={f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}
+                                    value={answerOf(d, f.key)}
+                                    onChange={(e) => setAnswer(d, f.key, e.target.value)}
+                                  />
+                                )}
+                              </Field>
+                            ))
+                          ) : (
+                            // Ohne Schema bleibt es bei einem Freitextfeld.
+                            <Field label={t.answer} htmlFor={`a-${d.id}-note`} hint={t.answerHint}>
+                              <Textarea
+                                id={`a-${d.id}-note`}
+                                rows={4}
+                                value={answerOf(d, "note")}
+                                onChange={(e) => setAnswer(d, "note", e.target.value)}
+                              />
+                            </Field>
+                          )}
                           <Button
                             size="sm"
-                            disabled={pending || (answers[d.id] ?? "").trim() === ""}
+                            disabled={pending || !formComplete(d)}
                             onClick={() => onSubmitForm(d)}
                           >
                             {t.submit}
                           </Button>
                         </>
+                      ) : d.fulfilled_by_sku ? (
+                        // Diese Pflicht erledigt die Bestellung im Messeshop
+                        // (Migration 0054). Ein Knopf hier liefe in
+                        // `fulfilled_by_order` — also gar nicht erst anbieten.
+                        <p className="ct-help">{t.fulfilledByShop}</p>
                       ) : (
                         <>
                           <p className="ct-help">

@@ -82,7 +82,13 @@ const product = (p: Partial<PartnerProduct>): PartnerProduct => ({
 });
 
 const nav = (input: Partial<NavInput>) =>
-  visibleNavKeys({ products: [], sessions_count: 0, has_stage: false, ...input });
+  visibleNavKeys({
+    products: [],
+    sessions_count: 0,
+    has_stage: false,
+    has_allocations: false,
+    ...input,
+  });
 
 describe("Menü folgt den gebuchten Leistungen", () => {
   it("zeigt ohne Produkte nur das, was jede Org hat", () => {
@@ -101,6 +107,8 @@ describe("Menü folgt den gebuchten Leistungen", () => {
       true,
     );
     assert.equal(nav({ products: [product({ category: "standflaeche" })] }).includes("tickets"), false);
+    // Das Team kann ein Kontingent auch ohne passendes Produkt eintragen.
+    assert.equal(nav({ has_allocations: true }).includes("tickets"), true);
   });
 
   /**

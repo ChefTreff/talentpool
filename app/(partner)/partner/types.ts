@@ -148,6 +148,20 @@ export type Deliverable = {
   answers: Record<string, unknown>;
   assets: DeliverableAsset[];
   sort: number;
+  /** Seit 0053: Feldliste für `form`. `null` = kein Schema, dann Freitext. */
+  answers_schema: AnswerField[] | null;
+  /** Seit 0054: Diese Pflicht erledigt eine bestätigte Shop-Bestellung. */
+  fulfilled_by_sku: string | null;
+};
+
+/** Ein Feld einer Formular-Pflicht (`deliverable_template.answers_schema`). */
+export type AnswerField = {
+  key: string;
+  label_de: string | null;
+  label_en: string | null;
+  type: "text" | "textarea" | "select" | "number" | "boolean" | "date";
+  required: boolean;
+  options?: string[] | null;
 };
 
 export type DeliverableAsset = {
@@ -192,3 +206,103 @@ export const PASS_TYPES = ["talent", "startup"] as const;
 export function orgLabel(org: Pick<PartnerOrg, "communication_name" | "legal_name">): string {
   return org.communication_name || org.legal_name || "—";
 }
+
+/** Zeile aus `my_partner_assets()` — alle Fassungen, neueste zuerst. */
+export type PartnerAsset = {
+  id: string;
+  deliverable_id: string | null;
+  deliverable_key: string | null;
+  label_de: string | null;
+  label_en: string | null;
+  kind: string;
+  storage_path: string;
+  filename: string | null;
+  mime: string | null;
+  size_bytes: number | null;
+  version: number;
+  is_current: boolean;
+  status: string;
+  review_note: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+};
+
+/** Zeile aus `my_ticket_allocations()`. */
+export type TicketAllocationRow = {
+  id: string;
+  pass_type: string;
+  quantity: number;
+  used_count: number;
+  /** Nur bei `status = active` gefüllt — die RPC hält sie sonst zurück. */
+  coupon_code: string | null;
+  undershop_url: string | null;
+  status: "pending_vivenu" | "active" | "error";
+  codes_due_at: string | null;
+};
+
+/** Zeile aus `partner_sessions()`. */
+export type PartnerSession = {
+  id: string;
+  event_id: string;
+  event_slug: string | null;
+  title_de: string | null;
+  title_en: string | null;
+  format: string | null;
+  access_mode: string | null;
+  publish_status: string | null;
+  capacity: number | null;
+  application_deadline: string | null;
+  start_at: string | null;
+  end_at: string | null;
+  stage_name: string | null;
+  /** Erst nach der Freigabe verschickt ChefTreff die Entscheidungen. */
+  released: boolean;
+  counts: {
+    total: number;
+    applied: number;
+    shortlisted: number;
+    accepted: number;
+    waitlisted: number;
+    confirmed: number;
+    declined: number;
+  };
+};
+
+/**
+ * Zeile aus `partner_applications()`. Ohne `consent_share` liefert die RPC
+ * Name, Antworten und Profil als `null` — angezeigt wird die Zeile trotzdem,
+ * nur eben ohne die Daten.
+ */
+export type PartnerApplication = {
+  id: string;
+  person_id: string | null;
+  display_name: string | null;
+  status: string;
+  rank: number | null;
+  answers: Record<string, unknown> | null;
+  consent_share: boolean;
+  confirm_by: string | null;
+  confirmed_at: string | null;
+  decided_at: string | null;
+  created_at: string;
+  profile: {
+    occupation_status?: string | null;
+    career_level?: string | null;
+    employer_name?: string | null;
+    university?: string | null;
+    study_field?: string | null;
+    city?: string | null;
+    linkedin_url?: string | null;
+  } | null;
+};
+
+/** Entscheidungen, die ein Partner treffen darf (Kontrakt B6). */
+export const APPLICATION_DECISIONS = [
+  "shortlisted",
+  "accepted",
+  "waitlisted",
+  "declined",
+] as const;
+
+/** Pass-Typen, die ein Partner nachfragen kann (Kontrakt B5). */
+export const REQUEST_PASS_TYPES = ["partner", "talent", "startup", "investor"] as const;
