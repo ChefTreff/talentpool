@@ -97,6 +97,17 @@ const BUSINESS_KEYS = new Set([
   "not_cancellable",
   "not_approved",
   "barcode_required",
+  // Partner-Portal (Migrationen 0040-0042)
+  "primary_exists",
+  "primary_required",
+  "roles_required",
+  "invalid_pass_type",
+  "file_rules",
+  "asset_required",
+  "answers_required",
+  "deliverable_not_found",
+  "org_edition_not_found",
+  "org_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {
