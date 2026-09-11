@@ -1525,7 +1525,15 @@
     "merchType_boolean": "Yes/no",
     "merchType_date": "Date",
     "merchType_logo": "Logo (from the files)",
-    "merchType_sizes": "Size distribution"
+    "merchType_sizes": "Size distribution",
+    "addContactTitle": "Assign contact",
+    "addContactLead": "The person is found or created by email address and receives an invitation. A second main contact is refused by the database — transfer it instead.",
+    "addContact": "Assign contact",
+    "contactAdded": "Contact assigned.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "contactPosition": "Position",
+    "contactRole_event_app_member": "Event app"
   },
   "adminVolunteers": {
     "title": "Volunteers",

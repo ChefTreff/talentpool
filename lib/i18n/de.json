@@ -1525,7 +1525,15 @@
     "merchType_boolean": "Ja/Nein",
     "merchType_date": "Datum",
     "merchType_logo": "Logo (aus den Dateien)",
-    "merchType_sizes": "Größenverteilung"
+    "merchType_sizes": "Größenverteilung",
+    "addContactTitle": "Kontakt zuordnen",
+    "addContactLead": "Die Person wird über die Mailadresse gefunden oder angelegt und bekommt eine Einladung. Einen zweiten Hauptkontakt weist die Datenbank ab — übertrage ihn stattdessen.",
+    "addContact": "Kontakt zuordnen",
+    "contactAdded": "Kontakt zugeordnet.",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "contactPosition": "Position",
+    "contactRole_event_app_member": "Event-App"
   },
   "adminVolunteers": {
     "title": "Volunteers",
