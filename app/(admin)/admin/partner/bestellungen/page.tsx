@@ -1,8 +1,9 @@
 import { EmptyState } from "@/components/ui/EmptyState";
+import { parseMerchSchema, type MerchField } from "@/lib/partner/merch";
 import { EditionPicker } from "../EditionPicker";
 import { loadEditions, pickEdition } from "../editions";
 import { partnerAdminShell } from "../shell";
-import type { AdminOrder, AdminRequest, ShopReportRow } from "../types";
+import type { AdminOrder, AdminProduct, AdminRequest, ShopReportRow } from "../types";
 import { OrdersView } from "./OrdersView";
 
 export const dynamic = "force-dynamic";
@@ -32,11 +33,20 @@ export default async function AdminOrdersPage({
     );
   }
 
-  const [{ data: orders }, { data: requests }, { data: report }] = await Promise.all([
-    supabase.rpc("shop_orders_admin", { p_edition_id: current.id }),
-    supabase.rpc("shop_requests_admin", { p_edition_id: current.id }),
-    supabase.rpc("shop_report", { p_edition_id: current.id }),
-  ]);
+  const [{ data: orders }, { data: requests }, { data: report }, { data: products }] =
+    await Promise.all([
+      supabase.rpc("shop_orders_admin", { p_edition_id: current.id }),
+      supabase.rpc("shop_requests_admin", { p_edition_id: current.id }),
+      supabase.rpc("shop_report", { p_edition_id: current.id }),
+      supabase.rpc("admin_products"),
+    ]);
+
+  // Nur die Merch-Artikel: ohne Schema gibt es an einer Zeile nichts anzuzeigen.
+  const merchSchemas: Record<string, MerchField[]> = {};
+  for (const p of (products ?? []) as AdminProduct[]) {
+    const fields = parseMerchSchema(p.merch_config);
+    if (fields) merchSchemas[p.sku] = fields;
+  }
 
   return frame(
     t.adminPartner.ordersTitle,
@@ -52,6 +62,7 @@ export default async function AdminOrdersPage({
         orders={(orders ?? []) as AdminOrder[]}
         requests={(requests ?? []) as AdminRequest[]}
         report={(report ?? []) as ShopReportRow[]}
+        merchSchemas={merchSchemas}
         dateLocale={t.meta.dateLocale}
         t={t.adminPartner}
         common={{ cancel: t.common.cancel, none: t.common.none, save: t.common.save }}

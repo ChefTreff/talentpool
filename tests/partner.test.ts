@@ -182,6 +182,7 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     { code: "P0001", message: "answers_incomplete", key: "answers_incomplete" },
     { code: "P0001", message: "fulfilled_by_order", key: "fulfilled_by_order" },
     { code: "22023", message: "quantity_required", key: "quantity_required" },
+    { code: "P0001", message: "merch_incomplete", key: "merch_incomplete" },
     // Partner-Admin (B9)
     { code: "22023", message: "invalid_status", key: "invalid_status" },
     { code: "22023", message: "invalid_quantity", key: "invalid_quantity" },

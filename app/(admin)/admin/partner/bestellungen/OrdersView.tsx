@@ -17,6 +17,7 @@ import {
   answerRequest,
   runShopInvoices,
 } from "../actions";
+import { describeMerch, type MerchField } from "@/lib/partner/merch";
 import { money } from "../format";
 import {
   ORDER_STATUS,
@@ -48,6 +49,7 @@ export function OrdersView({
   orders,
   requests,
   report,
+  merchSchemas,
   dateLocale,
   t,
   common,
@@ -57,6 +59,8 @@ export function OrdersView({
   orders: AdminOrder[];
   requests: AdminRequest[];
   report: ShopReportRow[];
+  /** Merch-Schema je SKU (S4) — nur zum Anzeigen der Konfiguration. */
+  merchSchemas: Record<string, MerchField[]>;
   dateLocale: string;
   t: Strings;
   common: { cancel: string; none: string; save: string };
@@ -229,6 +233,15 @@ export function OrdersView({
                                 <Td>
                                   {line.name_de ?? line.sku}
                                   <div className="ct-help">{line.sku}</div>
+                                  {describeMerch(
+                                    merchSchemas[line.sku] ?? [],
+                                    line.merch_config,
+                                    "de",
+                                  ).map((row) => (
+                                    <div key={row.label} className="ct-help">
+                                      {row.label}: {row.value}
+                                    </div>
+                                  ))}
                                 </Td>
                                 <Td numeric>
                                   <Input

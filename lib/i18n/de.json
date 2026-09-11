@@ -149,7 +149,8 @@
     "edition_not_found": "Diese Edition gibt es nicht.",
     "template_not_found": "Diese Vorlage gibt es nicht.",
     "sync_error_not_found": "Dieser Fehler ist schon erledigt.",
-    "config_missing": "Eine Einstellung auf dem Server fehlt."
+    "config_missing": "Eine Einstellung auf dem Server fehlt.",
+    "merch_incomplete": "Für diese Zeile fehlt noch eine Angabe in der Konfiguration."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1123,7 +1124,21 @@
     "order_completed": "Abgeschlossen",
     "order_cancelled": "Storniert",
     "confirmedOn": "bestätigt",
-    "invoiceHint": "Die Rechnung kommt nach dem Summit über SevDesk. Im Portal wird nichts bezahlt."
+    "invoiceHint": "Die Rechnung kommt nach dem Summit über SevDesk. Im Portal wird nichts bezahlt.",
+    "merchLead": "Diese Angaben braucht die Produktion.",
+    "merchEdit": "Konfiguration",
+    "merchMissing": "Konfiguration fehlt",
+    "merchIncomplete": "Diese Zeilen sind noch nicht vollständig konfiguriert",
+    "sizesHint": "Die Größen müssen zusammen der Bestellmenge entsprechen.",
+    "sizesSum": "Die Summe passt nicht zur Bestellmenge",
+    "tooLong": "Das ist zu lang",
+    "notAnOption": "Diesen Wert gibt es nicht.",
+    "fieldRequired": "Bitte ausfüllen.",
+    "logoHint": "Aus euren eingereichten Dateien. Fehlt etwas, ladet es im Dateien-Hub hoch.",
+    "noAssets": "Es liegt noch keine Datei — bitte zuerst im Dateien-Hub hochladen.",
+    "maxChars": "Höchstens",
+    "requiredLabel": "Pflichtfeld",
+    "cartReopened": "Diese Bestellung ist wieder offen — bestätigt sie erneut, sonst bleibt die Änderung liegen."
   },
   "adminPartner": {
     "title": "Partner",
@@ -1411,7 +1426,21 @@
     "dealsReprocessHint": "Ein Deal lässt sich unter „Integrationen\" erneut verarbeiten.",
     "bookedTitle": "Gebucht",
     "bookedLead": "Produkte aus dem Deal und aus dem Messeshop.",
-    "bookedEmpty": "Noch nichts gebucht."
+    "bookedEmpty": "Noch nichts gebucht.",
+    "merchTitle": "Merch-Konfiguration",
+    "merchHint": "Felder, die der Partner beim Bestellen ausfüllt (S4). Keine Felder = kein Merch-Artikel.",
+    "merchAddField": "Feld hinzufügen",
+    "merchClear": "Alle Felder entfernen",
+    "merchSizes": "Größen",
+    "merchMaxLength": "Zeichengrenze",
+    "merchType_text": "Text",
+    "merchType_textarea": "Mehrzeilig",
+    "merchType_number": "Zahl",
+    "merchType_select": "Auswahl",
+    "merchType_boolean": "Ja/Nein",
+    "merchType_date": "Datum",
+    "merchType_logo": "Logo (aus den Dateien)",
+    "merchType_sizes": "Größenverteilung"
   },
   "admin": {
     "brand": "ChefTreff Admin",

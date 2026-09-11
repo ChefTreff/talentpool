@@ -10,6 +10,11 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
+import {
+  MERCH_FIELD_TYPES,
+  parseMerchSchema,
+  type MerchField,
+} from "@/lib/partner/merch";
 import { saveProduct, saveProductComponent } from "../actions";
 import { money } from "../format";
 import type { AdminProduct, ProductComponent } from "../types";
@@ -46,6 +51,7 @@ const BLANK: AdminProduct = {
   purchase_note_de: null,
   purchase_note_en: null,
   internal_comment: null,
+  merch_config: null,
   images: null,
   source_hubspot: false,
   source_shop: true,
@@ -85,6 +91,8 @@ export function ProductEditor({
   const [filter, setFilter] = useState("");
   const [draft, setDraft] = useState<AdminProduct | null>(null);
   const [component, setComponent] = useState({ sku: "", qty: "1" });
+  /** `null` = kein Merch-Artikel; die leere Liste schaltet die Felder frei. */
+  const [merch, setMerch] = useState<MerchField[] | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const isNew = draft !== null && !products.some((p) => p.sku === draft.sku);
@@ -148,6 +156,9 @@ export function ProductEditor({
     // Werte schicken wir gar nicht erst mit, sonst wird aus „nicht gesetzt"
     // ein ungültiger Schlüssel.
     if (draft.category) payload.category = draft.category;
+    // Merch-Schema (S4): leere Liste heißt „kein Merch-Artikel", sonst stünde
+    // im Shop ein Dialog ohne Felder.
+    payload.merch_config = merch && merch.length > 0 ? merch : null;
     payload.pass_type = draft.pass_type || null;
     payload.grants_role = draft.grants_role || null;
 
@@ -159,6 +170,7 @@ export function ProductEditor({
       }
       toast("success", t.productSaved);
       setDraft(null);
+      setMerch(null);
       router.refresh();
     });
   }
@@ -189,7 +201,13 @@ export function ProductEditor({
           title={t.productsTitle}
           description={`${t.productsLead} · ${products.length}`}
           action={
-            <Button disabled={pending} onClick={() => setDraft({ ...BLANK })}>
+            <Button
+              disabled={pending}
+              onClick={() => {
+                setDraft({ ...BLANK });
+                setMerch(null);
+              }}
+            >
               {t.productNew}
             </Button>
           }
@@ -234,7 +252,10 @@ export function ProductEditor({
                       size="sm"
                       variant="secondary"
                       disabled={pending}
-                      onClick={() => setDraft({ ...p })}
+                      onClick={() => {
+                        setDraft({ ...p });
+                        setMerch(parseMerchSchema(p.merch_config));
+                      }}
                     >
                       {t.edit}
                     </Button>
@@ -414,6 +435,150 @@ export function ProductEditor({
             ))}
           </div>
 
+          <div className="mt-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="ct-h3 text-ink">{t.merchTitle}</h3>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={pending}
+                  onClick={() =>
+                    setMerch([
+                      ...(merch ?? []),
+                      {
+                        key: "",
+                        label_de: "",
+                        label_en: "",
+                        type: "text",
+                        required: true,
+                        options: null,
+                        max_length: null,
+                      },
+                    ])
+                  }
+                >
+                  {t.merchAddField}
+                </Button>
+                {merch && merch.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={pending}
+                    onClick={() => setMerch(null)}
+                  >
+                    {t.merchClear}
+                  </Button>
+                )}
+              </div>
+            </div>
+            <p className="ct-help mt-1">{t.merchHint}</p>
+            <ul className="mt-3 flex flex-col gap-3">
+              {(merch ?? []).map((f, i) => {
+                const patchField = (part: Partial<MerchField>) =>
+                  setMerch((all) => (all ?? []).map((x, j) => (j === i ? { ...x, ...part } : x)));
+                return (
+                  <li key={i} className="rounded-ct-md border p-3">
+                    <div className="grid gap-3 md:grid-cols-4">
+                      <Field label={t.fieldKey} htmlFor={`mf-key-${i}`}>
+                        <Input
+                          id={`mf-key-${i}`}
+                          value={f.key}
+                          onChange={(e) => patchField({ key: e.target.value })}
+                        />
+                      </Field>
+                      <Field label={t.fieldLabelDe} htmlFor={`mf-de-${i}`}>
+                        <Input
+                          id={`mf-de-${i}`}
+                          value={f.label_de ?? ""}
+                          onChange={(e) => patchField({ label_de: e.target.value })}
+                        />
+                      </Field>
+                      <Field label={t.fieldLabelEn} htmlFor={`mf-en-${i}`}>
+                        <Input
+                          id={`mf-en-${i}`}
+                          value={f.label_en ?? ""}
+                          onChange={(e) => patchField({ label_en: e.target.value })}
+                        />
+                      </Field>
+                      <Field label={t.fieldType} htmlFor={`mf-type-${i}`}>
+                        <Select
+                          id={`mf-type-${i}`}
+                          value={f.type}
+                          options={MERCH_FIELD_TYPES.map((value) => ({
+                            value,
+                            label: t[`merchType_${value}`] ?? value,
+                          }))}
+                          onChange={(e) =>
+                            patchField({ type: e.target.value as MerchField["type"] })
+                          }
+                        />
+                      </Field>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-end gap-3">
+                      {(f.type === "select" || f.type === "sizes") && (
+                        <Field
+                          label={f.type === "sizes" ? t.merchSizes : t.fieldOptions}
+                          htmlFor={`mf-opt-${i}`}
+                          hint={t.fieldOptionsHint}
+                          className="min-w-[280px] flex-1"
+                        >
+                          <Input
+                            id={`mf-opt-${i}`}
+                            value={(f.options ?? []).join(", ")}
+                            onChange={(e) =>
+                              patchField({
+                                options: e.target.value
+                                  .split(",")
+                                  .map((o) => o.trim())
+                                  .filter(Boolean),
+                              })
+                            }
+                          />
+                        </Field>
+                      )}
+                      {(f.type === "text" || f.type === "textarea") && (
+                        <Field label={t.merchMaxLength} htmlFor={`mf-max-${i}`} className="w-40">
+                          <Input
+                            id={`mf-max-${i}`}
+                            type="number"
+                            min={1}
+                            value={f.max_length == null ? "" : String(f.max_length)}
+                            onChange={(e) =>
+                              patchField({
+                                max_length:
+                                  e.target.value === "" ? null : Number(e.target.value),
+                              })
+                            }
+                          />
+                        </Field>
+                      )}
+                      <label className="ct-label flex items-center gap-2 text-ink">
+                        <input
+                          type="checkbox"
+                          className="h-5 w-5"
+                          checked={f.required}
+                          onChange={(e) => patchField({ required: e.target.checked })}
+                        />
+                        {t.fieldRequired}
+                      </label>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={pending}
+                        onClick={() =>
+                          setMerch((all) => (all ?? []).filter((_, j) => j !== i))
+                        }
+                      >
+                        {t.schemaRemoveField}
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
           {!isNew && (
             <div className="mt-6">
               <h3 className="ct-h3 text-ink">{t.componentsTitle}</h3>
@@ -460,7 +625,14 @@ export function ProductEditor({
             <Button disabled={pending} onClick={onSave}>
               {common.save}
             </Button>
-            <Button variant="secondary" disabled={pending} onClick={() => setDraft(null)}>
+            <Button
+              variant="secondary"
+              disabled={pending}
+              onClick={() => {
+                setDraft(null);
+                setMerch(null);
+              }}
+            >
               {common.cancel}
             </Button>
           </div>
