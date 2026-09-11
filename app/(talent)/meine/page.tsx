@@ -4,6 +4,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { MeineView } from "./MeineView";
+import { VolunteerInvite } from "./VolunteerInvite";
+import type { VolunteerProfile } from "@/app/(volunteers)/volunteers/types";
+
 import type { MyApplication, MyRegistration, ParticipationSession } from "./types";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +32,7 @@ export default async function MeinePage() {
     { data: eventRows },
     { data: personId },
     { data: ticketRows },
+    { data: volunteerJson },
     vocab,
   ] = await Promise.all([
     supabase.rpc("my_applications"),
@@ -43,6 +47,8 @@ export default async function MeinePage() {
     // `ticket_self_sel` zeigt auch gekaufte fremde Tickets, deshalb der
     // Vergleich auf `person_id` — genau wie in `confirm_application`.
     supabase.from("ticket").select("event_id, person_id").eq("status", "valid"),
+    // Für den Hinweis auf die Volunteer-Bewerbung: nur der eigene Stand.
+    supabase.rpc("my_volunteer_profile"),
     loadVocabMap(supabase, locale),
   ]);
 
@@ -79,6 +85,10 @@ export default async function MeinePage() {
   return (
     <div className="max-w-[800px]">
       <PageHeader title={t.participation.title} description={t.participation.lead} />
+      <VolunteerInvite
+        status={((volunteerJson ?? null) as VolunteerProfile | null)?.status ?? null}
+        t={t.volunteers}
+      />
       <MeineView
         applications={applications}
         registrations={registrations}
