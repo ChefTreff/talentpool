@@ -77,13 +77,27 @@ export async function POST(request: Request) {
 
   after(async () => {
     const outcomes: string[] = [];
+    // Unbekannte Tickettypen einmal je Typ melden, nicht je Ticket: bei einer
+    // Bestellung mit 50 gleichen Tickets sonst 50 identische Fehlerzeilen.
+    const unknownTypes = new Set<string>();
     try {
       for (const ticket of tickets) {
         const { data, error: rpcError } = await admin.rpc("ingest_vivenu_ticket", {
           p_data: toIngestPayload(ticket),
         });
         if (rpcError) throw rpcError;
-        outcomes.push(String((data as { outcome?: string } | null)?.outcome ?? "unknown"));
+        const result = data as { outcome?: string; ticket_type_id?: string; pass_type_missing?: boolean } | null;
+        outcomes.push(String(result?.outcome ?? "unknown"));
+        if (result?.pass_type_missing && result.ticket_type_id) unknownTypes.add(result.ticket_type_id);
+      }
+      for (const ticketTypeId of unknownTypes) {
+        await admin.rpc("record_sync_error", {
+          p_job_id: null,
+          p_object_type: "vivenu_ticket_type",
+          p_object_id: ticketTypeId,
+          p_message: `Tickettyp ${ticketTypeId} fehlt in ticket_type_map — Pass-Typ bleibt leer, Nachtrag über den Sweep.`,
+          p_payload: { ticket_type_id: ticketTypeId },
+        });
       }
       await admin.rpc("finish_webhook_event", {
         p_id: recordId,
