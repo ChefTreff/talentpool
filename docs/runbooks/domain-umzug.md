@@ -1,6 +1,6 @@
 # Runbook · Domain-Umzug (Team-Portal → team., Plattform → portal.)
 
-**Auslöser:** Go-live der Plattform unter `portal.chef-treff.de` (spätestens 14.10.2026). Das alte Team-Portal (eigenes Supabase-Projekt `teamportal`, Frankfurt) belegt die Domain heute.
+**Stand 11.09.2026:** Umzug erledigt — `portal.chef-treff.de` liefert die Plattform, das Team-Portal läuft auf `team.chef-treff.de`. Die Schritte unten bleiben als Vorlage für künftige Domain-Wechsel.
 **Empfehlung:** Teil A Anfang Oktober, Teil B am Go-live-Tag. Beide Teile sind in Minuten rückrollbar (DNS/Domain-Zuordnung zurück).
 
 ## Voraussetzungen
@@ -40,4 +40,4 @@ Drei DNS-Einträge werden **nicht angefasst**: `chef-treff.de MX` (Google Worksp
 | Datum | Wer | Ergebnis |
 |---|---|---|
 | 11.09.2026 | Konrad / Team-Portal | Teil A gestartet: Team-Portal zieht kurzfristig auf `team.chef-treff.de`; Übergabe-Regeln (DNS bei IONOS, drei geschützte Einträge, DMARC strict) dokumentiert; Weiterleitungen alter Team-Pfade in `next.config.ts`. |
-| 11.09.2026 | Konrad / Claude | **Teil B erfolgt:** `portal.chef-treff.de` liefert die Plattform (200 auf `/login`, `/belege` → team.). `NEXT_PUBLIC_SITE_URL` (Production) auf `https://portal.chef-treff.de` gesetzt (Claude, wirksam mit dem nächsten Deploy). Sicherheits-Header + CSP (Report-Only) ergänzt (Runbook `sicherheits-header.md`). **Offen (Konrad):** Supabase Auth → Site URL `https://portal.chef-treff.de`, Redirect `https://portal.chef-treff.de/auth/callback`; Prüfung Magic-Link-Login auf der neuen Domain. |
+| 11.09.2026 | Konrad / Claude | **Teil B erfolgt:** `portal.chef-treff.de` liefert die Plattform (200 auf `/login`, `/belege` → team.). `NEXT_PUBLIC_SITE_URL` (Production) auf `https://portal.chef-treff.de` gesetzt (Claude, wirksam mit dem nächsten Deploy). Sicherheits-Header + CSP (Report-Only) ergänzt (Runbook `sicherheits-header.md`). Supabase Auth (Site URL, Redirect `…/auth/callback`) von Konrad umgestellt, **Magic-Link-Login auf der neuen Domain getestet ✅**. Teil B damit abgeschlossen; Schritt 11 (Alt-Domains partner./speaker./partnerhub. → 301) bleibt für die Abschaltung der Alt-Systeme. |
