@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-11 08:01 UTC · 57 Tabellen · 6 Views · 216 Funktionen
+> Stand: 2026-09-11 08:38 UTC · 57 Tabellen · 6 Views · 220 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1311,6 +1311,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |
 | `publish_session` | p_session_id: uuid |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
+| `record_shop_invoice` | p_meta: jsonb, p_order_ids: uuid[], p_org_id: uuid, p_sevdesk_contact_id: text, p_sevdesk_invoice_id: text |
 | `record_sync_error` | p_job_id: bigint, p_message: text, p_object_id: text, p_object_type: text, p_payload: jsonb |
 | `record_webhook_event` | p_event_type: text, p_external_id: text, p_headers: jsonb, p_payload: jsonb, p_signature_valid: boolean, p_source: text |
 | `refresh_deliverable_due` | args: ? |
@@ -1344,6 +1345,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_edition_vivenu` | p_edition_id: uuid, p_vivenu_event_id: text |
 | `set_expense_bank_details` | p_bic: text, p_claim_id: uuid, p_holder: text, p_iban: text |
 | `set_expense_integration` | p_claim_id: uuid, p_invoice_asset_id: uuid, p_qonto_sent: boolean, p_sevdesk_ref: text |
+| `set_org_sevdesk_contact` | p_contact_id: text, p_org_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
 | `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
@@ -1360,6 +1362,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_catalogue` | p_edition_id: uuid, p_org_id: uuid |
 | `shop_confirm` | p_note: text, p_order_id: uuid |
 | `shop_edit` | p_order_id: uuid |
+| `shop_invoice_candidates` | p_edition_id: uuid |
+| `shop_invoice_refs` | p_edition_id: uuid |
 | `shop_my_orders` | p_edition_id: uuid, p_org_id: uuid |
 | `shop_order_lines_json` | p_order_id: uuid |
 | `shop_order_org` | p_order_id: uuid |
