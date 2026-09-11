@@ -19,11 +19,15 @@ export const dynamic = "force-dynamic";
  */
 export default async function VolunteersLayout({ children }: { children: ReactNode }) {
   const { t } = await getI18n();
-  const { profile } = await getVolunteerScope();
+  const { profile, leadShifts } = await getVolunteerScope();
 
   const items = [{ href: "/volunteers", label: t.volunteers.navProfile }];
   if (canSeeShifts(profile)) {
     items.push({ href: "/volunteers/schichten", label: t.volunteers.navShifts });
+  }
+  // Bereichsleitung: nur, wer wirklich eine Schicht leitet.
+  if (leadShifts > 0) {
+    items.push({ href: "/volunteers/team", label: t.volunteers.navLead });
   }
 
   return (

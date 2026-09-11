@@ -1223,7 +1223,16 @@
     "inviteApplied": "Deine Volunteer-Bewerbung ist in Prüfung. Wir melden uns mit der Zusage und deinen Schichten.",
     "inviteCtaOpen": "Zu meiner Bewerbung",
     "inviteAccepted": "Du bist als Volunteer dabei. Deine Schichten stehen im Volunteer-Bereich.",
-    "inviteCtaShifts": "Zu meinen Schichten"
+    "inviteCtaShifts": "Zu meinen Schichten",
+    "navLead": "Mein Bereich",
+    "leadTitle": "Mein Bereich",
+    "leadLead": "Deine Schichten und wer darauf steht.",
+    "leadEmptyTitle": "Keine Schichten in deiner Leitung",
+    "leadEmptyBody": "Sobald dich das Team als Leitung einer Schicht einträgt, stehen hier deine Leute.",
+    "confirmedOf": "bestätigt",
+    "lead_assigned": "zugeteilt",
+    "lead_confirmed": "bestätigt",
+    "leadNobody": "Noch niemand eingeteilt."
   },
   "adminPartner": {
     "title": "Partner",

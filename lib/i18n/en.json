@@ -1223,7 +1223,16 @@
     "inviteApplied": "Your volunteer application is under review. We will get back to you with the confirmation and your shifts.",
     "inviteCtaOpen": "To my application",
     "inviteAccepted": "You are on the volunteer team. Your shifts are in the volunteer area.",
-    "inviteCtaShifts": "To my shifts"
+    "inviteCtaShifts": "To my shifts",
+    "navLead": "My area",
+    "leadTitle": "My area",
+    "leadLead": "Your shifts and who is on them.",
+    "leadEmptyTitle": "No shifts under your lead",
+    "leadEmptyBody": "As soon as the team names you as the lead of a shift, your people show up here.",
+    "confirmedOf": "confirmed",
+    "lead_assigned": "assigned",
+    "lead_confirmed": "confirmed",
+    "leadNobody": "Nobody scheduled yet."
   },
   "adminPartner": {
     "title": "Partners",
