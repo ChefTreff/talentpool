@@ -108,6 +108,10 @@ const BUSINESS_KEYS = new Set([
   "deliverable_not_found",
   "org_edition_not_found",
   "org_not_found",
+  // Nachträge aus dem B4-Review (Migrationen 0053/0054) und B5
+  "answers_incomplete",
+  "fulfilled_by_order",
+  "quantity_required",
 ]);
 
 const BY_CODE: Record<string, string> = {

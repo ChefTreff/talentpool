@@ -6,19 +6,17 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
-import type { Deliverable, PartnerOverview } from "../types";
+import type { PartnerAsset } from "../types";
 import { FileList, type FileRow } from "./FileList";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Alles an einer Stelle, was diese Organisation hochgeladen hat.
+ * Alles an einer Stelle, was diese Organisation hochgeladen hat — quer über
+ * die Pflichten, neueste zuerst, ersetzte Fassungen bleiben lesbar.
  *
- * Gelesen wird `partner_asset` direkt — unter RLS, mit dem Session-Client, wie
- * das Board seine Sichten liest. `my_deliverables` liefert nur die **aktuelle**
- * Fassung je Pflicht; hier sollen aber auch die ersetzten Fassungen stehen
- * (Kontrakt B4: „alte bleiben lesbar"). Die Beschriftung kommt weiterhin aus
- * der RPC, damit Datei und Pflicht dieselben Worte tragen.
+ * `my_partner_assets` (Migration 0053) liefert genau das; der Direktzugriff
+ * auf `partner_asset` aus PR #15 ist damit erledigt.
  */
 export default async function PartnerFilesPage() {
   await requireArea("partner", "/partner/dateien");
@@ -27,36 +25,16 @@ export default async function PartnerFilesPage() {
   if (!current) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const { data: overviewJson } = await supabase.rpc("partner_overview", {
+  const { data: rows } = await supabase.rpc("my_partner_assets", {
     p_org_id: current.org_id,
     p_edition_id: current.edition_id,
   });
-  const overview = (overviewJson ?? null) as PartnerOverview | null;
-  if (!overview) notFound();
 
-  const [{ data: assetRows }, { data: deliverableRows }] = await Promise.all([
-    supabase
-      .from("partner_asset")
-      .select("id, kind, filename, mime, size_bytes, version, is_current, status, storage_path, created_at, deliverable_id")
-      .eq("org_edition_id", overview.edition.id)
-      .order("created_at", { ascending: false }),
-    supabase.rpc("my_deliverables", {
-      p_org_id: current.org_id,
-      p_edition_id: current.edition_id,
-    }),
-  ]);
-
-  const labels = new Map<string, string>();
-  for (const d of (deliverableRows ?? []) as Deliverable[]) {
-    labels.set(d.id, (locale === "en" ? d.label_en : d.label_de) ?? d.label_de ?? d.key);
-  }
-
-  const files: FileRow[] = (
-    (assetRows ?? []) as (Omit<FileRow, "deliverableLabel"> & { deliverable_id: string | null })[]
-  ).map((a) => ({
+  const files: FileRow[] = ((rows ?? []) as PartnerAsset[]).map((a) => ({
     ...a,
     // Ohne Pflicht dahinter bleibt die Art des Uploads als Beschriftung.
-    deliverableLabel: (a.deliverable_id && labels.get(a.deliverable_id)) || a.kind,
+    deliverableLabel:
+      (locale === "en" ? a.label_en : a.label_de) ?? a.label_de ?? a.deliverable_key ?? a.kind,
   }));
 
   return (

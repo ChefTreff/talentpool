@@ -189,3 +189,49 @@ export async function removeContact(
   refresh();
   return { ok: true, data: undefined };
 }
+
+// === Tickets ================================================================
+
+/**
+ * „Mehr Tickets" — eine Anfrage ans Team, kein Selbstbedienungs-Kontingent.
+ * Ein Mail-Fallback gibt es mit Absicht nicht (Arbeitsauftrag B5).
+ */
+export async function requestTicketIncrease(input: {
+  orgId: string;
+  passType: string;
+  additional: number;
+  text: string;
+}): Promise<PartnerResult<{ request_id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("request_ticket_increase", {
+    p_org_id: input.orgId,
+    p_pass_type: input.passType,
+    p_additional: input.additional,
+    p_text: input.text.trim() ? input.text.trim() : null,
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/tickets`);
+  return { ok: true, data: { request_id: data as string } };
+}
+
+// === Bewerber ===============================================================
+
+/**
+ * Entscheidung über eine Bewerbung. Die Mail geht **nicht** von hier raus —
+ * versendet wird erst nach `release_decisions` durch das Team (Antwort 13).
+ */
+export async function decideApplication(
+  applicationId: string,
+  status: string,
+  rank?: number | null,
+): Promise<PartnerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("decide_application", {
+    p_application_id: applicationId,
+    p_status: status,
+    p_rank: rank ?? null,
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/bewerber`);
+  return { ok: true, data: undefined };
+}

@@ -33,6 +33,12 @@ export type NavInput = {
   sessions_count: number;
   /** Bühne mit `partner_org_id` = Org. */
   has_stage: boolean;
+  /**
+   * Kontingente aus `partner_overview.ticket_allocations`. Das Team kann eins
+   * auch ohne passendes Produkt eintragen — dann gehört der Menüpunkt trotzdem
+   * hin (Kontrakt B5–B9).
+   */
+  has_allocations: boolean;
 };
 
 /**
@@ -51,7 +57,9 @@ export function visibleNavKeys(input: NavInput): PartnerNavKey[] {
     // Der Shop steht jedem Partner offen, sobald es die Edition gibt.
     "shop",
   ];
-  if (input.products.some((p) => p.category === "tickets")) keys.push("tickets");
+  if (input.has_allocations || input.products.some((p) => p.category === "tickets")) {
+    keys.push("tickets");
+  }
   if (input.sessions_count > 0) keys.push("applicants");
   if (input.has_stage || input.products.some((p) => p.sku === STAGE_SKU)) keys.push("stage");
   return keys;

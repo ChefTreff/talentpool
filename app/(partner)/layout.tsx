@@ -47,6 +47,7 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
       products: overview?.products ?? [],
       sessions_count: overview?.sessions_count ?? 0,
       has_stage: overview?.has_stage ?? false,
+      has_allocations: (overview?.ticket_allocations.length ?? 0) > 0,
     }),
   );
 
@@ -58,6 +59,8 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     contacts: { href: "/partner/kontakte", label: t.partner.navContacts },
     checklist: { href: "/partner/checkliste", label: t.partner.navChecklist },
     files: { href: "/partner/dateien", label: t.partner.navFiles },
+    tickets: { href: "/partner/tickets", label: t.partner.navTickets },
+    applicants: { href: "/partner/bewerber", label: t.partner.navApplicants },
   };
 
   const pick = (keys: PartnerNavKey[]) =>
