@@ -11,6 +11,7 @@ import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import {
+  adminUpsertContact,
   grantStageEditor,
   revokeStageEditor,
   saveBooth,
@@ -76,6 +77,7 @@ export function OrgDetail({
   const editionId = overview.edition?.edition_id ?? null;
 
   const [status, setStatus] = useState(overview.edition?.onboarding_status ?? "none");
+  const [contact, setContact] = useState({ email: "", first: "", last: "", position: "", role: "additional" });
   const [booth, setBooth] = useState({
     booth_number: overview.booth?.booth_number ?? "",
     booth_type: overview.booth?.booth_type ?? "",
@@ -290,6 +292,85 @@ export function OrgDetail({
             })}
           </Tbody>
         </Table>
+
+        {/*
+          Kontakt zuordnen (F5): `upsert_partner_contact` legt die Person über
+          die Mailadresse an oder findet sie, setzt die Mitgliedschaft und
+          verschickt die Einladung. Ein zweiter Hauptkontakt wird abgelehnt
+          (P0001 `primary_exists`) — deshalb steht das auch dabei.
+        */}
+        <div className="mt-6 border-t pt-4">
+          <h3 className="ct-h3 text-ink">{t.addContactTitle}</h3>
+          <p className="ct-help mt-1">{t.addContactLead}</p>
+          <div className="mt-3 grid gap-3 md:grid-cols-5">
+            <Field label={t.colEmail} htmlFor="c-email">
+              <Input
+                id="c-email"
+                type="email"
+                value={contact.email}
+                onChange={(e) => setContact((c) => ({ ...c, email: e.target.value }))}
+              />
+            </Field>
+            <Field label={t.firstName} htmlFor="c-first">
+              <Input
+                id="c-first"
+                value={contact.first}
+                onChange={(e) => setContact((c) => ({ ...c, first: e.target.value }))}
+              />
+            </Field>
+            <Field label={t.lastName} htmlFor="c-last">
+              <Input
+                id="c-last"
+                value={contact.last}
+                onChange={(e) => setContact((c) => ({ ...c, last: e.target.value }))}
+              />
+            </Field>
+            <Field label={t.contactPosition} htmlFor="c-pos">
+              <Input
+                id="c-pos"
+                value={contact.position}
+                onChange={(e) => setContact((c) => ({ ...c, position: e.target.value }))}
+              />
+            </Field>
+            <Field label={t.colRoles} htmlFor="c-role">
+              <Select
+                id="c-role"
+                value={contact.role}
+                options={["primary_ops", "additional", "signing", "event_app_member"].map((r) => ({
+                  value: r,
+                  label: t[`contactRole_${r}`] ?? r,
+                }))}
+                onChange={(e) => setContact((c) => ({ ...c, role: e.target.value }))}
+              />
+            </Field>
+          </div>
+          <div className="mt-3">
+            <Button
+              size="sm"
+              disabled={
+                pending || !contact.email.trim() || !contact.first.trim() || !contact.last.trim()
+              }
+              onClick={() =>
+                run(
+                  adminUpsertContact({
+                    orgId,
+                    email: contact.email.trim(),
+                    firstName: contact.first.trim(),
+                    lastName: contact.last.trim(),
+                    roles: [contact.role],
+                    position: contact.position,
+                  }).then((res) => {
+                    if (res.ok) setContact({ email: "", first: "", last: "", position: "", role: "additional" });
+                    return res;
+                  }),
+                  t.contactAdded,
+                )
+              }
+            >
+              {t.addContact}
+            </Button>
+          </div>
+        </div>
       </Card>
 
       <Card>
