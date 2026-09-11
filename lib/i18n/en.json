@@ -149,7 +149,8 @@
     "edition_not_found": "That edition does not exist.",
     "template_not_found": "That template does not exist.",
     "sync_error_not_found": "That error is already resolved.",
-    "config_missing": "A server setting is missing."
+    "config_missing": "A server setting is missing.",
+    "merch_incomplete": "This line is still missing a detail in its configuration."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1123,7 +1124,20 @@
     "order_completed": "Completed",
     "order_cancelled": "Cancelled",
     "confirmedOn": "confirmed",
-    "invoiceHint": "The invoice comes after the summit via SevDesk. Nothing is paid in the portal."
+    "invoiceHint": "The invoice comes after the summit via SevDesk. Nothing is paid in the portal.",
+    "merchLead": "Production needs these details.",
+    "merchEdit": "Configuration",
+    "merchMissing": "configuration missing",
+    "merchIncomplete": "These lines are not fully configured yet",
+    "sizesHint": "The sizes together must match the ordered quantity.",
+    "sizesSum": "The total does not match the ordered quantity",
+    "tooLong": "That is too long",
+    "notAnOption": "That value does not exist.",
+    "fieldRequired": "Please fill this in.",
+    "logoHint": "From the files you submitted. If something is missing, upload it in the files hub.",
+    "noAssets": "No file yet — please upload one in the files hub first.",
+    "maxChars": "At most",
+    "requiredLabel": "required"
   },
   "adminPartner": {
     "title": "Partners",
@@ -1411,7 +1425,21 @@
     "dealsReprocessHint": "A deal can be reprocessed under „Integrations“.",
     "bookedTitle": "Booked",
     "bookedLead": "Products from the deal and from the expo shop.",
-    "bookedEmpty": "Nothing booked yet."
+    "bookedEmpty": "Nothing booked yet.",
+    "merchTitle": "Merch configuration",
+    "merchHint": "Fields the partner fills in when ordering (S4). No fields = not a merch article.",
+    "merchAddField": "Add field",
+    "merchClear": "Remove all fields",
+    "merchSizes": "Sizes",
+    "merchMaxLength": "Character limit",
+    "merchType_text": "Text",
+    "merchType_textarea": "Multi-line",
+    "merchType_number": "Number",
+    "merchType_select": "Choice",
+    "merchType_boolean": "Yes/no",
+    "merchType_date": "Date",
+    "merchType_logo": "Logo (from the files)",
+    "merchType_sizes": "Size distribution"
   },
   "admin": {
     "brand": "ChefTreff Admin",

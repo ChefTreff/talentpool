@@ -12,6 +12,14 @@ import { ConfirmDialog } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
 import {
+  checkMerchValues,
+  describeMerch,
+  parseMerchSchema,
+  type MerchField,
+  type MerchValues,
+} from "@/lib/partner/merch";
+import { MerchDialog, type MerchAsset } from "./MerchDialog";
+import {
   shopCancel,
   shopConfirm,
   shopEdit,
@@ -50,6 +58,7 @@ export function ShopView({
   products,
   orders,
   categories,
+  merchAssets,
   canOrder,
   locale,
   dateLocale,
@@ -63,6 +72,8 @@ export function ShopView({
   orders: ShopOrder[];
   /** Beschriftungen aus dem Vokabular `product_category`. */
   categories: Record<string, string>;
+  /** Aktuelle Dateien der Organisation — Auswahl für ein Logo-Feld (S4). */
+  merchAssets: MerchAsset[];
   canOrder: boolean;
   locale: Locale;
   dateLocale: string;
@@ -79,6 +90,9 @@ export function ShopView({
   const [asking, setAsking] = useState<ShopProduct | null>(null);
   const [requestText, setRequestText] = useState("");
   const [askConfirm, setAskConfirm] = useState(false);
+  const [configuring, setConfiguring] = useState<
+    { product: ShopProduct; fields: MerchField[]; qty: number; initial: Record<string, unknown> | null } | null
+  >(null);
   const [askCancel, setAskCancel] = useState<ShopOrder | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
@@ -92,13 +106,39 @@ export function ShopView({
   const description = (p: ShopProduct) =>
     (locale === "en" ? p.description_en : p.description_de) ?? p.description_de;
 
+  /**
+   * Welche Produkte eine Konfiguration verlangen, steht am Produkt (S4).
+   * Kein Merch-Schema ⇒ der Knopf legt wie bisher direkt in den Warenkorb.
+   */
+  const merchOf = useMemo(() => {
+    const map = new Map<string, MerchField[]>();
+    for (const p of products) {
+      const fields = parseMerchSchema(p.merch_config);
+      if (fields) map.set(p.sku, fields);
+    }
+    return map;
+  }, [products]);
+
   const cart = cartOf(orders);
+
   const history = orders.filter((o) => o.status !== "draft");
   const inCart = useMemo(() => {
     const map = new Map<string, number>();
     for (const line of cart?.lines ?? []) map.set(line.sku, line.qty);
     return map;
   }, [cart]);
+
+  /**
+   * Zeilen, deren Konfiguration noch nicht vollständig ist. Bestätigen wäre
+   * sonst eine Bestellung ohne Größen — `shop_confirm` weist sie ohnehin ab.
+   */
+  const incomplete = (cart?.lines ?? []).filter((line) => {
+    const fields = merchOf.get(line.sku);
+    if (!fields) return false;
+    return (
+      checkMerchValues(fields, (line.merch_config ?? {}) as MerchValues, line.qty).length > 0
+    );
+  });
 
   const tabs = useMemo(() => {
     const keys = [...new Set(products.map((p) => p.category ?? ""))].filter(Boolean);
@@ -126,6 +166,18 @@ export function ShopView({
     const value = Number(raw);
     if (!Number.isFinite(value) || value <= 0) {
       toast("error", t.qtyInvalid);
+      return;
+    }
+    const fields = merchOf.get(p.sku);
+    if (fields) {
+      // Erst konfigurieren, dann in den Warenkorb — eine halbe Konfiguration
+      // soll gar nicht erst entstehen.
+      setConfiguring({
+        product: p,
+        fields,
+        qty: value,
+        initial: cart?.lines.find((l) => l.sku === p.sku)?.merch_config ?? null,
+      });
       return;
     }
     run(shopUpsertLine({ orgId, sku: p.sku, qty: value }), t.added);
@@ -311,6 +363,32 @@ export function ShopView({
                     {line.qty} × {money(line.price_net_cents, dateLocale)} ={" "}
                     {money(line.line_net_cents, dateLocale)}
                   </span>
+                  <MerchSummary
+                    fields={merchOf.get(line.sku)}
+                    config={line.merch_config}
+                    locale={locale}
+                    empty={t.merchMissing}
+                  />
+                  {canOrder && cart.editable && merchOf.has(line.sku) && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => {
+                        const product = products.find((p) => p.sku === line.sku);
+                        const fields = merchOf.get(line.sku);
+                        if (!product || !fields) return;
+                        setConfiguring({
+                          product,
+                          fields,
+                          qty: line.qty,
+                          initial: line.merch_config,
+                        });
+                      }}
+                    >
+                      {t.merchEdit}
+                    </Button>
+                  )}
                   {canOrder && cart.editable && (
                     <Button
                       size="sm"
@@ -335,9 +413,16 @@ export function ShopView({
                     onChange={(e) => setNote(e.target.value)}
                   />
                 </Field>
+                {incomplete.length > 0 && (
+                  <p className="ct-help text-error-ink">
+                    {t.merchIncomplete}: {incomplete.map((l) => name(l)).join(", ")}
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    disabled={pending || cart.lines.length === 0 || closed}
+                    disabled={
+                      pending || cart.lines.length === 0 || closed || incomplete.length > 0
+                    }
                     onClick={() => setAskConfirm(true)}
                   >
                     {t.confirm}
@@ -384,6 +469,11 @@ export function ShopView({
                   {o.lines.map((line) => (
                     <li key={line.sku} className="tabular-nums">
                       {line.qty} × {name(line)} — {money(line.line_net_cents, dateLocale)}
+                      <MerchSummary
+                        fields={merchOf.get(line.sku)}
+                        config={line.merch_config}
+                        locale={locale}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -476,7 +566,54 @@ export function ShopView({
           }}
         />
       )}
+      {configuring && (
+        <MerchDialog
+          title={name(configuring.product)}
+          fields={configuring.fields}
+          initial={configuring.initial}
+          qty={configuring.qty}
+          assets={merchAssets}
+          locale={locale}
+          pending={pending}
+          t={t}
+          common={{ cancel: common.cancel, save: common.save, none: common.none }}
+          onCancel={() => setConfiguring(null)}
+          onSave={(config) => {
+            const { product, qty: amount } = configuring;
+            setConfiguring(null);
+            run(
+              shopUpsertLine({ orgId, sku: product.sku, qty: amount, merchConfig: config }),
+              t.added,
+            );
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+/**
+ * Konfiguration einer Zeile in einem Satz. `empty` sagt, dass noch etwas
+ * fehlt — ohne Text bleibt die Zeile stumm (Historie).
+ */
+function MerchSummary({
+  fields,
+  config,
+  locale,
+  empty,
+}: {
+  fields: MerchField[] | undefined;
+  config: Record<string, unknown> | null;
+  locale: Locale;
+  empty?: string;
+}) {
+  if (!fields) return null;
+  const rows = describeMerch(fields, config, locale);
+  if (rows.length === 0) return empty ? <span className="ct-help text-error-ink">{empty}</span> : null;
+  return (
+    <span className="ct-help">
+      {rows.map((r) => `${r.label}: ${r.value}`).join(" · ")}
+    </span>
   );
 }
 
