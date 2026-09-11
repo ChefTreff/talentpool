@@ -16,7 +16,8 @@ export const maxDuration = 60;
  * 3. Sofort antworten, dann verarbeiten (`after`): nur Ereignisse, deren neue Phase die
  *    „Onboarding Automation“-Phase einer Edition ist (`hubspot_editions`). Alles andere `ignored`.
  * Kein Nutzerkontext: service_role nach der Signaturprüfung; die Route ist im Proxy öffentlich
- * und schützt sich selbst. Was fehlt, holt der nächtliche Sweep nach.
+ * und schützt sich selbst. Optional: Service-Schlüssel liefern keine Webhooks, der Sweep alle 15 Minuten ist der
+ * Hauptweg; diese Route braucht eine Projekt-App mit `HUBSPOT_CLIENT_SECRET` (docs/runbooks/hubspot-ingest.md).
  */
 export async function POST(request: Request) {
   const body = await request.text();

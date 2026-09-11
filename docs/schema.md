@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-11 09:04 UTC · 57 Tabellen · 6 Views · 222 Funktionen
+> Stand: 2026-09-11 09:56 UTC · 57 Tabellen · 6 Views · 225 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -192,6 +192,7 @@ Format/Termin (Summit, Hackathon, Side-Event, Community). is_edition = Klammer w
 | `hubspot_pipeline_id` | text |  |  |  | HubSpot-Deal-Pipeline der Edition; der Ingest ordnet Deals darüber zu. |
 | `hubspot_onboarding_stage_id` | text |  |  |  | Deal-Phase „Onboarding Automation"; der Webhook auf diese Phase löst den Ingest aus. |
 | `vivenu_event_id` | text |  |  |  | vivenu-Event der Edition (Shop mit Undershops); Team setzt es über set_edition_vivenu. |
+| `swapcard_event_id` | text |  |  |  | Swapcard-Event der Edition (Content-API); gesetzt über set_edition_swapcard. Ohne Wert überträgt der Adapter nichts. |
 
 ### `event_day`
 Veranstaltungstag eines Events (Einlass, Programmbeginn/-ende).
@@ -1232,6 +1233,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `effective_pass_type` | p_org_edition_id: uuid, p_product_pass_type: text |
 | `email_hash` | p_email: text |
 | `ensure_speaker_ticket` | p_profile_id: uuid |
+| `event_app_exhibitors` | p_edition_id: uuid |
 | `expense_bank_details` | p_claim_id: uuid |
 | `expense_eligibility` | p_profile_id: uuid |
 | `expense_queue` | p_edition_id: uuid |
@@ -1345,7 +1347,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_speakers_public` | p_session_id: uuid |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
 | `set_edition_hubspot` | p_edition_id: uuid, p_pipeline_id: text, p_stage_id: text |
+| `set_edition_swapcard` | p_edition_id: uuid, p_swapcard_event_id: text |
 | `set_edition_vivenu` | p_edition_id: uuid, p_vivenu_event_id: text |
+| `set_event_app_ref` | p_external_id: text, p_meta: jsonb, p_org_edition_id: uuid, p_system: text |
 | `set_expense_bank_details` | p_bic: text, p_claim_id: uuid, p_holder: text, p_iban: text |
 | `set_expense_integration` | p_claim_id: uuid, p_invoice_asset_id: uuid, p_qonto_sent: boolean, p_sevdesk_ref: text |
 | `set_org_sevdesk_contact` | p_contact_id: text, p_org_id: uuid |

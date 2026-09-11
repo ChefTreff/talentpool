@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/cron/hubspot-sweep",
-      "schedule": "15 3 * * *"
+      "schedule": "*/15 * * * *"
     },
     {
       "path": "/api/cron/vivenu-allocations",

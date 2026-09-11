@@ -6,7 +6,7 @@ import { ingestDeal } from "@/lib/hubspot/ingest";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-/** Deals je Lauf — mehr holt die nächste Nacht; hält den Lauf unter der Funktionslaufzeit. */
+/** Deals je Lauf — mehr holt der nächste Lauf (alle 15 Minuten); hält den Lauf unter der Funktionslaufzeit. */
 const MAX_PER_RUN = 25;
 
 function authorized(request: Request): boolean {
@@ -18,8 +18,9 @@ function authorized(request: Request): boolean {
 }
 
 /**
- * Nächtlicher Abgleich (Vercel Cron, vercel.json): alle Deals in der Phase „Onboarding
- * Automation“ jeder Edition gegen `partner_deal` — was der Webhook verpasst hat, wird nachgeholt.
+ * Abgleich alle 15 Minuten (Vercel Cron, vercel.json): alle Deals in der Phase „Onboarding
+ * Automation“ jeder Edition gegen `partner_deal`. Das ist der Hauptweg des Ingests: HubSpot-Service-Schlüssel
+ * kennen keine Webhooks (Entscheidung 11.09.), der Webhook unter /api/webhooks/hubspot bleibt optional.
  * Mit `?deal=<id>` verarbeitet die Route genau einen Deal (erster Test, Wiederholung nach einem
  * Gate-Fehler); dabei wird die Phase nicht zurückgesetzt, weil der Deal dann meist schon dort steht,
  * wo das Sales-Team ihn haben will. Nur mit `CRON_SECRET`, service_role nach der Prüfung.
