@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Board } from "@/components/programme/Board";
 import { loadBoard } from "@/components/programme/load";
+import { canPublishSessions } from "@/components/programme/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export default async function ProgrammPage({
   // Gate je Seite, nicht nur im Layout. Die Board-RPCs prüfen zusätzlich
   // can_edit_slot()/can_edit_session() — ein Speaker-Manager darf hier lesen,
   // aber nur im eigenen Scope schreiben.
-  await requireArea("admin", PATH);
+  const { roleNames } = await requireArea("admin", PATH);
   const { t } = await getI18n();
   const { event, tag } = await searchParams;
 
@@ -42,6 +43,7 @@ export default async function ProgrammPage({
       <PageHeader title={t.admin.programme.title} description={t.admin.programme.lead} />
       <Board
         basePath={PATH}
+        canPublish={canPublishSessions(roleNames)}
         events={board.events}
         currentEventId={board.currentEvent.id}
         currentEventSlug={board.currentEvent.slug}

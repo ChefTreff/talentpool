@@ -770,6 +770,7 @@
     "navFiles": "Dateien",
     "navTickets": "Tickets",
     "navApplicants": "Bewerber",
+    "navStage": "Standbühne",
     "groupOverview": "Übersicht",
     "groupCompany": "Euer Unternehmen",
     "groupSummit": "Euer Summit",
@@ -1026,6 +1027,15 @@
     "profile_study_field": "Fach",
     "profile_city": "Ort"
   },
+  "partnerStage": {
+    "title": "Standbühne",
+    "lead": "Euer Programm auf der eigenen Bühne",
+    "emptyTitle": "Noch keine Bühne",
+    "emptyBody": "Eure Bühne wird von der Produktion eingerichtet. Sobald sie steht, könnt ihr hier planen.",
+    "ownStages": "Eure Bühne",
+    "readOnlyHint": "Andere Bühnen seht ihr zur Orientierung, ändern könnt ihr nur die eigene.",
+    "releaseHint": "Veröffentlicht wird durch das Programm-Team. Was ihr anlegt, steht so lange auf „Entwurf“."
+  },
   "admin": {
     "brand": "ChefTreff Admin",
     "nav": {
@@ -1116,7 +1126,8 @@
       "questions": "Fragen zur Bewerbung",
       "questionsHint": "Aus dem Fragenkatalog. Änderungen werden sofort gespeichert.",
       "questionRequired": "Pflichtfrage",
-      "questionsSaved": "Fragen gespeichert"
+      "questionsSaved": "Fragen gespeichert",
+      "awaitingRelease": "Veröffentlichung durch das Programm-Team"
     },
     "applications": {
       "title": "Bewerbungen",

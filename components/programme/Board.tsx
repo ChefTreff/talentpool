@@ -58,6 +58,8 @@ type Stats = {
 
 export function Board({
   basePath,
+  canPublish = true,
+  hostOrgId,
   events,
   currentEventId,
   currentEventSlug,
@@ -75,6 +77,13 @@ export function Board({
 }: {
   /** Route, unter der das Board hängt — Event- und Tagwahl verlinken dorthin. */
   basePath: string;
+  /**
+   * Darf hier veröffentlicht werden? Entschieden wird es in `publish_session`;
+   * die Oberfläche bietet den Knopf nur an, wo er auch greifen kann.
+   */
+  canPublish?: boolean;
+  /** Gastgebende Org für neu angelegte Sessions (Partner-Bühne). */
+  hostOrgId?: string;
   events: { id: string; slug: string; name: string }[];
   currentEventId: string;
   currentEventSlug: string;
@@ -583,6 +592,8 @@ export function Board({
           eventId={currentEventId}
           sessionId={editing.sessionId}
           slotId={editing.slotId}
+          canPublish={canPublish}
+          hostOrgId={hostOrgId}
           labels={labels}
           locale={locale}
           t={t}

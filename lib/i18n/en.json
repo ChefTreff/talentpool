@@ -770,6 +770,7 @@
     "navFiles": "Files",
     "navTickets": "Tickets",
     "navApplicants": "Applicants",
+    "navStage": "Your stage",
     "groupOverview": "Overview",
     "groupCompany": "Your company",
     "groupSummit": "Your summit",
@@ -1026,6 +1027,15 @@
     "profile_study_field": "Field",
     "profile_city": "City"
   },
+  "partnerStage": {
+    "title": "Your stage",
+    "lead": "Your programme on your own stage",
+    "emptyTitle": "No stage yet",
+    "emptyBody": "Your stage is set up by the production team. Once it exists you can plan here.",
+    "ownStages": "Your stage",
+    "readOnlyHint": "Other stages are shown for orientation; you can only change your own.",
+    "releaseHint": "Publishing is done by the programme team. Until then whatever you create stays a draft."
+  },
   "admin": {
     "brand": "ChefTreff Admin",
     "nav": {
@@ -1116,7 +1126,8 @@
       "questions": "Application questions",
       "questionsHint": "From the question catalogue. Changes save immediately.",
       "questionRequired": "Required question",
-      "questionsSaved": "Questions saved"
+      "questionsSaved": "Questions saved",
+      "awaitingRelease": "Published by the programme team"
     },
     "applications": {
       "title": "Applications",

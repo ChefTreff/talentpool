@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Board } from "@/components/programme/Board";
 import { loadBoard } from "@/components/programme/load";
+import { canPublishSessions } from "@/components/programme/permissions";
 import type { ManagerScope } from "../types";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export default async function LeadBoardPage({
 }: {
   searchParams: Promise<{ event?: string; tag?: string }>;
 }) {
-  await requireAnyArea(["admin", "speaker-leads"], PATH);
+  const { roleNames } = await requireAnyArea(["admin", "speaker-leads"], PATH);
   const { t } = await getI18n("de");
   const { event, tag } = await searchParams;
 
@@ -62,6 +63,7 @@ export default async function LeadBoardPage({
       <PageHeader title={t.leads.boardTitle} description={t.leads.boardLead} />
       <Board
         basePath={PATH}
+        canPublish={canPublishSessions(roleNames)}
         events={board.events}
         currentEventId={board.currentEvent.id}
         currentEventSlug={board.currentEvent.slug}

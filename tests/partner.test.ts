@@ -4,6 +4,7 @@ import { acceptAttribute, checkFileRules, extensionOf } from "@/lib/partner/file
 import { visibleNavKeys, STAGE_SKU, type NavInput } from "@/app/(partner)/partner/nav";
 import type { PartnerProduct } from "@/app/(partner)/partner/types";
 import { toRpcFailure } from "@/lib/rpc-error";
+import { canPublishSessions } from "@/components/programme/permissions";
 import de from "@/lib/i18n/de.json" with { type: "json" };
 import en from "@/lib/i18n/en.json" with { type: "json" };
 
@@ -177,4 +178,30 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
       assert.ok(en.rpc[c.key as keyof typeof en.rpc], `Text fehlt in en.json: ${c.key}`);
     });
   }
+});
+
+/**
+ * `publish_session` verlangt `is_programme_editor()` — Admin oder
+ * Programm-Team. Staff allein genügt nicht, ein Bühnen-Editor schon gar nicht.
+ */
+describe("Wer im Board veröffentlichen darf", () => {
+  it("Admin und Programm-Team", () => {
+    assert.equal(canPublishSessions(["admin"]), true);
+    assert.equal(canPublishSessions(["programme_team"]), true);
+    assert.equal(canPublishSessions(["programme_team", "speaker_manager"]), true);
+  });
+
+  it("sonst niemand", () => {
+    for (const roles of [
+      [],
+      ["standbuehne_editor"],
+      ["partner_contact"],
+      ["speaker_manager"],
+      ["area_lead_speaker"],
+      ["area_lead_partner"],
+      ["production_team"],
+    ]) {
+      assert.equal(canPublishSessions(roles), false, `darf nicht: ${roles.join(",") || "ohne Rolle"}`);
+    }
+  });
 });

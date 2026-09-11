@@ -12,12 +12,13 @@ import type { SessionSpeaker } from "./types";
  * service_role: `can_edit_slot()`/`can_edit_session()` prüfen gegen
  * `current_person_id()`, und genau diese Prüfung wollen wir hier.
  *
- * Das Board steht in zwei Bereichen: `/admin/programm` für das Team,
- * `/speaker-leads/board` für die Leads. Das Gate davor lässt beide herein;
- * wer welchen Slot ändern darf, bleibt Sache der Datenbank. Beide Pfade werden
- * neu geladen, sonst zeigt der jeweils andere Bereich einen alten Stand.
+ * Das Board steht in drei Bereichen: `/admin/programm` für das Team,
+ * `/speaker-leads/board` für die Leads, `/partner/buehne` für die Partner mit
+ * eigener Bühne. Das Gate davor lässt alle drei herein; wer welchen Slot
+ * ändern darf, bleibt Sache der Datenbank. Alle Pfade werden neu geladen,
+ * sonst zeigt ein anderer Bereich einen alten Stand.
  */
-const BOARD_PATHS = ["/admin/programm", "/speaker-leads/board"] as const;
+const BOARD_PATHS = ["/admin/programm", "/speaker-leads/board", "/partner/buehne"] as const;
 
 function revalidateBoard() {
   for (const path of BOARD_PATHS) revalidatePath(path);
@@ -34,7 +35,7 @@ function fail(error: unknown): { ok: false; key: string; detail?: string } {
 }
 
 async function client() {
-  await requireAnyArea(["admin", "speaker-leads"], BOARD_PATHS[0]);
+  await requireAnyArea(["admin", "speaker-leads", "partner"], BOARD_PATHS[0]);
   return createSupabaseServerClient();
 }
 
@@ -109,6 +110,11 @@ export type SessionInput = {
   application_deadline?: string;
   confirm_by_hours?: string;
   track_id?: string;
+  /**
+   * Gastgebende Organisation. Ein Bühnen-Editor legt Sessions für die eigene
+   * Org an — `upsert_session` setzt das nicht von selbst, es muss mit.
+   */
+  host_org_id?: string;
 };
 
 /** Anlegen oder ändern. `upsert_session` macht ein Teilupdate über die Schlüssel. */
