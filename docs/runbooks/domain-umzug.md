@@ -4,8 +4,15 @@
 **Empfehlung:** Teil A Anfang Oktober, Teil B am Go-live-Tag. Beide Teile sind in Minuten rückrollbar (DNS/Domain-Zuordnung zurück).
 
 ## Voraussetzungen
-- Zugriff auf DNS (Registrar) für `chef-treff.de`, auf beide Vercel-Projekte und beide Supabase-Projekte.
+- DNS liegt bei **IONOS**; die Zone `chef-treff.de` pflegt zentral ein Freelancer. Wir legen **keine Einträge selbst an**, sondern geben den CNAME-Wert aus Vercel weiter (Übergabe-Info Team-Portal, 11.09.2026). Zugriff auf beide Vercel-Projekte (`cheftreff-teamportal`, `talentpool`) und beide Supabase-Projekte.
 - Google-OAuth-Client des Team-Portals (falls SSO genutzt) bekannt.
+
+## Übergabe-Regeln des Team-Portals (11.09.2026)
+Drei DNS-Einträge werden **nicht angefasst**: `chef-treff.de MX` (Google Workspace, ganze Firma), `send.chef-treff.de MX + SPF` (Mailversand über Resend) und `resend._domainkey.chef-treff.de` (DKIM dazu). Die letzten beiden sind als „Team-Portal“ beschriftet, tragen aber **auch unseren Versand**: die Plattform sendet als `@chef-treff.de` (`RESEND_FROM`) über denselben Resend-Workspace — nur dort kann die Domain mit diesem DKIM-Schlüssel verifiziert sein (Resend nutzt je Domain den festen Selektor `resend._domainkey`). Beim Abbau des alten Team-Portals dürfen diese Einträge also nicht mit entfernt werden.
+
+**DMARC steht scharf** (`p=reject; sp=reject; aspf=s; adkim=s`). Für unseren Versand heißt das: Absender `@chef-treff.de` ⇒ DKIM `d=chef-treff.de` ist exakt ausgerichtet, DMARC besteht (SPF über den Return-Path `send.chef-treff.de` ist unter `aspf=s` nicht ausgerichtet, DMARC braucht aber nur eine der beiden Prüfungen). Ein Absender `@portal.chef-treff.de` wäre **nicht** gedeckt: er bräuchte einen eigenen DKIM-Schlüssel unter `<selektor>._domainkey.portal.chef-treff.de` und einen Return-Path auf einer weiteren Subdomain (z. B. `send.portal.chef-treff.de` mit MX + SPF) — an `portal.chef-treff.de` selbst darf neben dem CNAME nichts stehen (RFC 1034). Niemals einen zweiten `v=spf1`-Eintrag an `chef-treff.de` anlegen (PermError für die ganze Firma inkl. Google Workspace). **Entscheidung:** Wir bleiben beim Absender `@chef-treff.de`; Reply-To sind die Rollen-Postfächer (Google Workspace).
+
+**Alte Links:** In verschickten internen Mails stehen `portal.chef-treff.de/belege`, `/abwesenheiten`, `/signatur`. Nach der Übergabe leitet die Plattform diese Pfade (und Unterpfade) mit 307 auf `team.chef-treff.de` weiter (`next.config.ts`, nur für den Host `portal.chef-treff.de`); alles andere bekommt den normalen 404 bzw. die Login-Seite.
 
 ## Teil A · Team-Portal auf `team.chef-treff.de` (parallel zu portal.)
 1. Vercel → Projekt des Team-Portals → Settings → Domains → `team.chef-treff.de` hinzufügen; DNS-Eintrag laut Vercel-Anzeige setzen (CNAME). Warten bis „Valid".
@@ -16,7 +23,7 @@
 
 ## Teil B · Plattform auf `portal.chef-treff.de` (Go-live)
 6. Vercel → Team-Portal-Projekt → Domain `portal.chef-treff.de` entfernen.
-7. Vercel → Projekt `talentpool` → Domains → `portal.chef-treff.de` hinzufügen (DNS-Eintrag prüfen/anpassen). Warten bis „Valid".
+7. Vercel → Projekt `talentpool` → Domains → `portal.chef-treff.de` hinzufügen. Vercel zeigt den nötigen CNAME (Standard `cname.vercel-dns.com`, bei neueren Projekten ein projektspezifischer `*.vercel-dns-0xx.com`-Wert) — **diesen Wert an den Freelancer geben**, der den vorhandenen CNAME bei IONOS anpasst (zeigt heute auf das Team-Portal-Projekt; innerhalb desselben Vercel-Teams reicht meist die Umhängung der Domain, der DNS-Wert bleibt dann gleich). Warten bis „Valid".
 8. Vercel → `talentpool` → Environment Variables: `NEXT_PUBLIC_SITE_URL=https://portal.chef-treff.de` (Production) → Redeploy.
 9. Supabase (Plattform-Projekt) → Authentication → URL Configuration: Site URL `https://portal.chef-treff.de`, Redirect `https://portal.chef-treff.de/auth/callback` ergänzen; alte Vercel-URL vorerst behalten.
 10. Vercel → `talentpool` → Deployment Protection für Production ausschalten (Preview geschützt lassen).
@@ -32,4 +39,4 @@
 ## Historie
 | Datum | Wer | Ergebnis |
 |---|---|---|
-| TODO | | |
+| 11.09.2026 | Konrad / Team-Portal | Teil A gestartet: Team-Portal zieht kurzfristig auf `team.chef-treff.de`; Übergabe-Regeln (DNS bei IONOS, drei geschützte Einträge, DMARC strict) dokumentiert; Weiterleitungen alter Team-Pfade in `next.config.ts`. |
