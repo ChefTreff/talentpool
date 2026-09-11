@@ -45,7 +45,7 @@ Jeder neue Schlüssel gehört im selben PR in `lib/rpc-error.ts` (`BUSINESS_KEYS
 - Trigger: `after insert or update of <spalten> or delete … for each row`, Funktion `return coalesce(new, old)`, security definer + revoke.
 
 ## 5 · Tabellen, Grants, Storage
-- RLS auf jeder Tabelle, Spalten-Grants statt Tabellen-Grants für sensible Spalten (`revoke select (spalte)` wirkt nicht gegen einen Tabellen-Grant — 0032).
+- RLS auf jeder Tabelle, Spalten-Grants statt Tabellen-Grants für sensible Spalten (`revoke select (spalte)` wirkt nicht gegen einen Tabellen-Grant — 0032). **Keine Grants für `anon`** (seit 0063 hat anon nur `select` auf `vocab_term`); für `authenticated` nur die Grants, die eine Policy trägt — Schreiben läuft über RPCs.
 - Integrations-/Protokolltabellen (`external_ref`, `sync_*`, `webhook_event`) ohne Grants für anon/authenticated; das Team liest über RPCs.
 - Buckets privat mit Pfadregel `<edition>/<org>/<kind>/<datei>` (`*_path_allowed(name, write)`); öffentliche Buckets nur für von Natur aus öffentliche Inhalte (Produktbilder, freigegebene Logos), Schreiben nur service_role.
 - Referenzen zu Fremdsystemen in `external_ref` (system, object_type, object_id ⇒ external_id, meta) über `set_external_ref`/`list_external_refs`.
