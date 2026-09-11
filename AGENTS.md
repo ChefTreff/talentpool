@@ -9,7 +9,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 ## Quelle der Wahrheit (zuerst lesen)
 1. `docs/masterplan.md` — freigegebener Plan (v0.1d): Komponenten, Datenmodell, Rollen, Integrationen, Bau-Wellen.
 2. `docs/entscheidungen.md` — Entscheidungslog. **Jede Abweichung vom Masterplan wird hier eingetragen, sonst gilt sie nicht.**
-3. `docs/arbeitsauftrag-welle-*.md` — konkreter Arbeitsauftrag der laufenden Welle mit Akzeptanzkriterien.
+3. `docs/arbeitsauftrag-welle-*.md` — konkreter Arbeitsauftrag der laufenden Welle mit Akzeptanzkriterien; `docs/db-konventionen.md` — Regeln für Migrationen, RPCs und Tests.
 4. `docs/legacy-inventar.md`, `docs/feedback-fls26.md`, `docs/fragenkatalog-2026-09-07.md` — Herkunft der Anforderungen.
 5. `docs/design-briefing.md` — Tokens, Schriften (Sharp Sans SemiBold als Textschnitt, ABC Laica Italic), Events-Theme, **kein Dark Mode**, DE/EN.
 
@@ -23,7 +23,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 ## Arbeitsweise
 - 80-%-Lösung je Bereich → Feedback von Konrad → schärfen. Nichts bauen, was nicht im Masterplan oder Entscheidungslog steht.
 - Build-Sessions arbeiten auf Feature-Branches (`welle-N/<thema>`), **ein PR je Baustein** (ein Abschnitt des Arbeitsauftrags, z. B. B3 + B6) gegen `main`; ein Review-Durchgang durch die Architektur-/Security-Session (Sicherheitsgrenzen, Kontrakte, Datenverlust) vor dem Merge, Nachbesserungen als Diff-Prüfung; UI-Details über Konrads Feedback-Runden. `main` deployt automatisch auf Vercel.
-- Datenbankänderungen nur als Migration unter `supabase/migrations/` (zusätzlich per Supabase-MCP `apply_migration` auf Projekt `jqmqvgaiyjudkvtncijw` anwenden; Datei danach auf die vom Server vergebene Version umbenennen). Nie direkt im Dashboard „mal eben" ändern. **Jede Migration endet mit `select harden_definer_functions();`** (entzieht anon das EXECUTE auf SECURITY-DEFINER-Funktionen, pinnt search_path).
+- Datenbankänderungen nur als Migration unter `supabase/migrations/` nach `docs/db-konventionen.md` (Kopf, Rechteprüfung, Fehlerschlüssel, Test je Migration). **Anwenden** (Supabase-MCP `apply_migration` auf Projekt `jqmqvgaiyjudkvtncijw`, Umbenennen auf die Server-Version, Entscheidungslog) macht ausschließlich die Architektur-/Security-Session. Nie direkt im Dashboard „mal eben" ändern. **Jede Migration endet mit `select harden_definer_functions();`** (entzieht anon das EXECUTE auf SECURITY-DEFINER-Funktionen, pinnt search_path).
 - Konrad loggt sich für Browser-Walkthroughs selbst ein; Alt-Systeme nur deaktivieren, nie löschen.
 
 ## Toolchain auf diesem Mac
@@ -36,5 +36,5 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 2. Einmalig im Worktree: `source "$HOME/.zshenv" && npm install`. Dann `.env.local` aus dem Haupt-Checkout übernehmen (dort pflegt Konrad sie mit `sh scripts/env-pull.sh --worktrees`, das kopiert sie in alle Worktrees). Achtung: `SUPABASE_SECRET_KEY` ist in Vercel sensibel, `vercel env pull` liefert dafür nur einen Platzhalter; den echten Wert trägt nur Konrad ein. Die Datei ist gitignored und darf nie committet werden.
 3. Dev-Server nur über `.claude/launch.json`, Konfiguration **`talentpool-dev-worktree`** (Port 3001), damit der Haupt-Checkout auf 3000 weiterlaufen kann. Magic-Link-Login lokal braucht `http://localhost:3001/auth/callback` in den Supabase-Redirect-URLs (Konrad trägt das ein).
 4. Kontext kommt aus dem Repo, nicht aus dem Session-Gedächtnis: `AGENTS.md`, `docs/masterplan.md`, `docs/entscheidungen.md`, `docs/arbeitsauftrag-welle-*.md`.
-5. Keine Änderungen an `supabase/migrations/`, `docs/masterplan.md`, `docs/entscheidungen.md`. Offene Fragen und Abweichungswünsche in die PR-Beschreibung.
+5. Migrationen dürfen **als Dateien** im PR liegen (mit Test, nach `docs/db-konventionen.md`), werden aber **nie selbst angewendet** — Anwenden, Umbenennen und Entscheidungslog macht die Architektur-Session; PR-Titel mit „Migration enthalten“, Walkthrough gegen die Datenbank erst nach ihrem Kommentar „Migration live“. Keine Änderungen an `docs/masterplan.md`, `docs/entscheidungen.md`. Offene Fragen und Abweichungswünsche in die PR-Beschreibung.
 6. Fertig = `npm run build` und `npm run lint` grün, PR gegen `main` mit kurzer Beschreibung, was getestet wurde. Review und Merge macht die Architektur-Session.
