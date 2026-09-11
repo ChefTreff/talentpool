@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-11 07:09 UTC · 57 Tabellen · 6 Views · 207 Funktionen
+> Stand: 2026-09-11 07:45 UTC · 57 Tabellen · 6 Views · 216 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -189,6 +189,7 @@ Format/Termin (Summit, Hackathon, Side-Event, Community). is_edition = Klammer w
 | `status` | text | ja | `planning` |  |  |
 | `hubspot_pipeline_id` | text |  |  |  | HubSpot-Deal-Pipeline der Edition; der Ingest ordnet Deals darüber zu. |
 | `hubspot_onboarding_stage_id` | text |  |  |  | Deal-Phase „Onboarding Automation"; der Webhook auf diese Phase löst den Ingest aus. |
+| `vivenu_event_id` | text |  |  |  | vivenu-Event der Edition (Shop mit Undershops); Team setzt es über set_edition_vivenu. |
 
 ### `event_day`
 Veranstaltungstag eines Events (Einlass, Programmbeginn/-ende).
@@ -385,7 +386,7 @@ Gebuchte Leistungen je Partner × Edition (aus HubSpot-Line-Items); steuert Chec
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `org_ticket_allocation`
-Ticket-Kontingent je Partner (Code/Secret Shop) und Pass-Typ.
+Ticket-Kontingent je Partner × Edition × Pass-Typ, abgeleitet aus Ticket-Produkten; Coupon/Undershop kommen aus vivenu (Route), Status pending_vivenu bis dahin.
 
 | Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
 |---|---|---|---|---|---|
@@ -400,6 +401,12 @@ Ticket-Kontingent je Partner (Code/Secret Shop) und Pass-Typ.
 | `notes` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `org_edition_id` | uuid |  |  | `org_edition.id` |  |
+| `status` | text | ja | `pending_vivenu` |  |  |
+| `vivenu_coupon_id` | text |  |  |  |  |
+| `vivenu_undershop_id` | text |  |  |  |  |
+| `last_error` | text |  |  |  |  |
+| `synced_at` | timestamp with time zone |  |  |  |  |
 
 ### `organization`
 Partner, Startups, Initiativen, Hochschulen, Agenturen. HubSpot-Company über hubspot_id.
@@ -1220,6 +1227,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `deliverable_due` | p_oe: public.org_edition, p_template: public.deliverable_template |
 | `detach_session` | p_session_id: uuid |
 | `edition_valid_to` | p_edition_id: uuid |
+| `effective_pass_type` | p_org_edition_id: uuid, p_product_pass_type: text |
 | `email_hash` | p_email: text |
 | `ensure_speaker_ticket` | p_profile_id: uuid |
 | `expense_bank_details` | p_claim_id: uuid |
@@ -1278,6 +1286,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_speaker_profile` | p_edition_id: uuid |
 | `my_speaker_profile_id` | p_edition_id: uuid |
 | `my_speaker_tickets` | p_edition_id: uuid |
+| `my_ticket_allocations` | p_edition_id: uuid, p_org_id: uuid |
 | `notify_partner_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `partner_admin_overview` | p_edition_id: uuid |
@@ -1314,6 +1323,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `remove_assistant` | p_profile_id: uuid |
 | `remove_partner_contact` | p_org_id: uuid, p_person_id: uuid |
 | `request_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
+| `request_ticket_increase` | p_additional: integer, p_edition_id: uuid, p_org_id: uuid, p_pass_type: text, p_text: text |
 | `resolve_sync_error` | p_id: bigint |
 | `resync_deliverables` | p_edition_id: uuid |
 | `review_deliverable` | p_accepted: boolean, p_deliverable_id: uuid, p_note: text |
@@ -1331,6 +1341,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_speakers_public` | p_session_id: uuid |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
 | `set_edition_hubspot` | p_edition_id: uuid, p_pipeline_id: text, p_stage_id: text |
+| `set_edition_vivenu` | p_edition_id: uuid, p_vivenu_event_id: text |
 | `set_expense_bank_details` | p_bic: text, p_claim_id: uuid, p_holder: text, p_iban: text |
 | `set_expense_integration` | p_claim_id: uuid, p_invoice_asset_id: uuid, p_qonto_sent: boolean, p_sevdesk_ref: text |
 | `set_primary_email` | p_email_id: uuid |
@@ -1340,6 +1351,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
 | `set_speaker_pipeline` | p_profile_id: uuid, p_status: text |
 | `set_tech_check` | p_asset_id: uuid, p_note: text, p_status: text |
+| `set_ticket_allocation` | p_coupon_code: text, p_id: uuid, p_notes: text, p_quantity: integer, p_status: text, p_undershop_url: text |
+| `set_ticket_allocation_vivenu` | p_coupon_code: text, p_error: text, p_id: uuid, p_status: text, p_undershop_url: text, p_vivenu_coupon_id: text, p_vivenu_undershop_id: text |
 | `set_ticket_issued` | p_barcode: text, p_ticket_id: uuid, p_ticket_type_map_id: uuid, p_vivenu_ticket_id: text, p_vivenu_transaction_id: text |
 | `shop_admin_set_line` | p_merch_config: jsonb, p_order_id: uuid, p_qty: numeric, p_sku: text |
 | `shop_admin_set_status` | p_note: text, p_order_id: uuid, p_status: text |
@@ -1374,7 +1387,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `submit_expense` | p_claim_id: uuid |
 | `submit_session_content` | p_data: jsonb, p_session_id: uuid |
 | `sync_deliverables` | p_org_edition_id: uuid |
+| `sync_ticket_allocations` | p_org_edition_id: uuid |
 | `template_applies` | p_org_edition_id: uuid, p_template: public.deliverable_template |
+| `ticket_allocations_admin` | p_edition_id: uuid |
+| `ticket_allocations_pending` | args: ? |
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
 | `update_my_speaker_profile` | p_data: jsonb |
