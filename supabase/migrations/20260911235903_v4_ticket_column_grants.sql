@@ -1,4 +1,4 @@
--- VORSCHLAG, NICHT ANGEWENDET · `ticket`: Tabellen-Grant durch Spalten-Grants ersetzen.
+-- 0074 · `ticket`: Tabellen-Grant durch Spalten-Grants ersetzen (Vorschlag Build-Session PR #23, geprüft und angewendet von der Architektur-Session am 11.09.2026).
 --
 -- Fund aus PR 23 (Welle 4): `authenticated` hat `grant select on ticket` — einen **Tabellen**-Grant. Damit liest jede
 -- angemeldete Person alle Spalten ihrer eigenen Tickets (RLS `ticket_self_sel` grenzt die Zeilen ein, nicht die Spalten),
@@ -12,8 +12,6 @@
 -- Alles andere läuft über SECURITY-DEFINER-RPCs (`my_speaker_tickets`, `my_ticket_allocations`, `personalize_ticket`),
 -- die von Grants unberührt sind. Der Spalten-Grant kann deshalb sehr schmal sein.
 --
--- Änderung an einer fremden Tabelle ⇒ in der Pause der Architektur-Session nicht angewendet (Arbeitsauftrag Welle 4,
--- Abschnitt E). Bitte prüfen und anwenden; danach `docs/datenmodell-v2.md` und diesen Vorschlag entfernen.
 set search_path = public, extensions;
 
 revoke select on ticket from authenticated;
