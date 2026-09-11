@@ -1,6 +1,7 @@
--- Smoke-Test 0065: Volunteer-Bewerbung, Zuteilung, Warteliste. Belegt: Bewerbung ohne Einwilligung ⇒ P0001 consent_required;
+-- Smoke-Test 0065/0066: Volunteer-Bewerbung, Zuteilung, Warteliste. Belegt: Bewerbung ohne Einwilligung ⇒ P0001 consent_required;
 -- unter 18 am ersten Eventtag ⇒ P0001 too_young mit Datum; unbekannte Shirt-Größe/Bereich ⇒ 22023; zweite Bewerbung ⇒ 23505 already_applied;
 -- Zuteilung nur für angenommene Volunteers (P0001 not_accepted); Kapazität+Überbuchung voll ⇒ Warteliste, ausdrückliches `assigned` ⇒ P0001 shift_full;
+-- 0066: leere Einträge in day_prefs fallen weg, unbekannte und unförmige Ids ⇒ P0002 day_not_found (kein 22004/22P02);
 -- Überschneidung ⇒ P0001 shift_overlap; Absage zieht die Warteliste nach; Team-RPCs für Fremde 42501; Tabellen ohne Grants.
 begin;
 create temp table t_res (step text, result text) on commit drop;
@@ -13,6 +14,12 @@ begin
   delete from role_assignment where person_id = v_pid; delete from staff_user where auth_user_id = v_uid;
   select e.id, e.start_date into v_ed, v_start from event e where e.is_edition and e.slug = 'fls27';
   select d.id into v_day from event_day d where d.event_id = v_ed order by d.sort_order limit 1;
+  if v_day is null then
+    -- FLS27 hat noch keine Tage; der Rollback räumt den Wegwerf-Tag wieder weg.
+    insert into event_day (event_id, day_date, label_de, label_en, sort_order)
+    values (v_ed, coalesce((select e.start_date from event e where e.id = v_ed), current_date), 'Testtag', 'Test day', 99)
+    returning id into v_day;
+  end if;
 
   -- Zwei weitere Wegwerf-Personen für Kapazität und Warteliste
   insert into person (first_name, last_name, birthdate) values ('Vera', 'Volunteer', '1995-01-01') returning id into v_p2;
@@ -58,12 +65,43 @@ begin
     insert into t_res values ('04_bereich', 'rejected ' || sqlerrm || ' ' || coalesce(v_detail, ''));
   end;
 
+  -- 04b unbekannter und unförmiger Tag (0066: sauberer Schlüssel statt 22004/22P02)
+  begin
+    perform apply_volunteer(jsonb_build_object('edition_id', v_ed, 'birthdate', '1995-01-01',
+                                               'day_prefs', jsonb_build_array('00000000-0000-0000-0000-000000000000')));
+    insert into t_res values ('04b_tag_unbekannt', 'ALLOWED (BUG)');
+  exception when others then
+    get stacked diagnostics v_detail = pg_exception_detail;
+    insert into t_res values ('04b_tag_unbekannt', 'rejected ' || sqlstate || ' ' || sqlerrm || ' ' || coalesce(v_detail, ''));
+  end;
+  begin
+    perform apply_volunteer(jsonb_build_object('edition_id', v_ed, 'birthdate', '1995-01-01',
+                                               'day_prefs', jsonb_build_array('kein-uuid')));
+    insert into t_res values ('04c_tag_unfoermig', 'ALLOWED (BUG)');
+  exception when others then
+    get stacked diagnostics v_detail = pg_exception_detail;
+    insert into t_res values ('04c_tag_unfoermig', 'rejected ' || sqlstate || ' ' || sqlerrm || ' ' || coalesce(v_detail, ''));
+  end;
+
   -- 05 gültige Bewerbung (ohne Bereiche — das Vokabular ist noch leer)
+  -- Leerer Eintrag und JSON-null fallen weg (0066), der echte Tag bleibt stehen.
   v_prof := apply_volunteer(jsonb_build_object('edition_id', v_ed, 'birthdate', '1995-01-01', 'shirt_size', 'L',
-                                               'day_prefs', jsonb_build_array(v_day::text),
+                                               'day_prefs', jsonb_build_array(v_day::text, '', null),
                                                'availability', jsonb_build_object('fr', 'ab 12')));
   insert into t_res values ('05_beworben', (select status from volunteer_profile where id = v_prof)
+                                           || ' tage=' || (select cardinality(day_prefs)::text from volunteer_profile where id = v_prof)
                                            || ' mail=' || (select count(*)::text from mail_log where person_id = v_pid and template_key = 'volunteer_applied'));
+
+  -- 05b eigene Wünsche ändern: Tage werden jetzt genauso geprüft (0066)
+  perform update_my_volunteer_profile(jsonb_build_object('day_prefs', jsonb_build_array(v_day::text, '')));
+  insert into t_res values ('05b_wuensche_geaendert',
+    'tage=' || (select cardinality(day_prefs)::text from volunteer_profile where id = v_prof));
+  begin
+    perform update_my_volunteer_profile(jsonb_build_object('day_prefs', jsonb_build_array('kein-uuid')));
+    insert into t_res values ('05c_wuensche_unfoermig', 'ALLOWED (BUG)');
+  exception when others then
+    insert into t_res values ('05c_wuensche_unfoermig', 'rejected ' || sqlstate || ' ' || sqlerrm);
+  end;
 
   -- 06 zweite Bewerbung
   begin
@@ -169,7 +207,8 @@ begin
     'profile=' || has_table_privilege('authenticated', 'volunteer_profile', 'select')::text ||
     ' shift=' || has_table_privilege('authenticated', 'shift', 'select')::text ||
     ' assignment=' || has_table_privilege('authenticated', 'shift_assignment', 'insert')::text ||
-    ' promote=' || has_function_privilege('authenticated', 'promote_shift_waitlist(uuid)', 'execute')::text);
+    ' promote=' || has_function_privilege('authenticated', 'promote_shift_waitlist(uuid)', 'execute')::text ||
+    ' day_prefs=' || has_function_privilege('authenticated', 'volunteer_day_prefs(jsonb,uuid)', 'execute')::text);
 end $$;
 select * from t_res order by step;
 rollback;
