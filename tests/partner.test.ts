@@ -168,6 +168,20 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     { code: "P0002", message: "org_not_found", key: "org_not_found" },
     { code: "42501", message: "not allowed", key: "not_allowed" },
     { code: "28000", message: "not authenticated", key: "not_authenticated" },
+    // Messeshop
+    { code: "P0001", message: "phase_closed", key: "phase_closed" },
+    { code: "P0001", message: "late_only", key: "late_only" },
+    { code: "P0001", message: "not_available", key: "not_available" },
+    { code: "P0001", message: "order_pending", key: "order_pending" },
+    { code: "P0001", message: "out_of_stock", key: "out_of_stock" },
+    { code: "22023", message: "empty_order", key: "empty_order" },
+    { code: "22023", message: "request_only", key: "request_only" },
+    { code: "22023", message: "unknown_sku", key: "unknown_sku" },
+    { code: "22023", message: "text_required", key: "text_required" },
+    { code: "P0002", message: "order_not_found", key: "order_not_found" },
+    { code: "P0001", message: "answers_incomplete", key: "answers_incomplete" },
+    { code: "P0001", message: "fulfilled_by_order", key: "fulfilled_by_order" },
+    { code: "22023", message: "quantity_required", key: "quantity_required" },
   ];
 
   for (const c of CASES) {

@@ -112,6 +112,17 @@ const BUSINESS_KEYS = new Set([
   "answers_incomplete",
   "fulfilled_by_order",
   "quantity_required",
+  // Messeshop (Migration 0048)
+  "phase_closed",
+  "late_only",
+  "not_available",
+  "order_pending",
+  "out_of_stock",
+  "empty_order",
+  "request_only",
+  "unknown_sku",
+  "text_required",
+  "order_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {

@@ -235,3 +235,106 @@ export async function decideApplication(
   revalidatePath(`${PATH}/bewerber`);
   return { ok: true, data: undefined };
 }
+
+// === Messeshop ==============================================================
+
+/**
+ * Alle Schreibwege des Shops. Die Phase erzwingt die Datenbank in **jeder**
+ * RPC (P0001 `phase_closed` / `late_only`), der Bestand ebenso — die
+ * Oberfläche zeigt nur, was ohnehin gilt.
+ */
+const SHOP_PATH = "/partner/shop";
+
+function refreshShop() {
+  revalidatePath(SHOP_PATH);
+  // Das Lunch-Paket hängt als Pflicht an der Bestellung.
+  revalidatePath(`${PATH}/checkliste`);
+  revalidatePath(PATH);
+}
+
+export async function shopUpsertLine(input: {
+  orgId: string;
+  sku: string;
+  qty: number;
+  merchConfig?: Record<string, unknown> | null;
+}): Promise<PartnerResult<{ order_id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("shop_upsert_line", {
+    p_org_id: input.orgId,
+    p_sku: input.sku,
+    p_qty: input.qty,
+    p_merch_config: input.merchConfig ?? null,
+  });
+  if (error) return fail(error);
+  refreshShop();
+  return { ok: true, data: { order_id: data as string } };
+}
+
+export async function shopRemoveLine(
+  orderId: string,
+  sku: string,
+): Promise<PartnerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("shop_remove_line", {
+    p_order_id: orderId,
+    p_sku: sku,
+  });
+  if (error) return fail(error);
+  refreshShop();
+  return { ok: true, data: undefined };
+}
+
+export type ShopTotals = {
+  order_id: string;
+  order_no: string;
+  net_cents: number;
+  vat_cents: number;
+  gross_cents: number;
+};
+
+export async function shopConfirm(
+  orderId: string,
+  note: string,
+): Promise<PartnerResult<ShopTotals>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("shop_confirm", {
+    p_order_id: orderId,
+    p_note: note.trim() ? note.trim() : null,
+  });
+  if (error) return fail(error);
+  refreshShop();
+  return { ok: true, data: data as ShopTotals };
+}
+
+export async function shopEdit(orderId: string): Promise<PartnerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("shop_edit", { p_order_id: orderId });
+  if (error) return fail(error);
+  refreshShop();
+  return { ok: true, data: undefined };
+}
+
+export async function shopCancel(orderId: string): Promise<PartnerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("shop_cancel", { p_order_id: orderId });
+  if (error) return fail(error);
+  refreshShop();
+  return { ok: true, data: undefined };
+}
+
+/** Anfrage-Produkte und Freitext — kein Kauf zu 0 €. */
+export async function shopRequestProduct(input: {
+  orgId: string;
+  text: string;
+  sku?: string | null;
+}): Promise<PartnerResult<{ request_id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("shop_request_product", {
+    p_org_id: input.orgId,
+    p_text: input.text,
+    p_sku: input.sku ?? null,
+  });
+  if (error) return fail(error);
+  refreshShop();
+  return { ok: true, data: { request_id: data as string } };
+}
