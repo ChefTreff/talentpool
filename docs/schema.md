@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-11 07:45 UTC · 57 Tabellen · 6 Views · 216 Funktionen
+> Stand: 2026-09-11 08:01 UTC · 57 Tabellen · 6 Views · 216 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -605,7 +605,7 @@ Produktstamm (Pakete, Zusatzleistungen, Shop-Artikel). SKU = Item-ID der Item-Li
 | `purchase_note_de` | text |  |  |  |  |
 | `purchase_note_en` | text |  |  |  |  |
 | `merch_config` | jsonb |  |  |  |  |
-| `images` | jsonb | ja |  |  |  |
+| `images` | jsonb | ja |  |  | Bilder aus dem Bucket product-images: [{path, url, name, type, size}] — öffentlich lesbar, Pflege über Import-Skript/Admin. |
 | `source_hubspot` | boolean | ja | `false` |  |  |
 | `source_shop` | boolean | ja | `false` |  |  |
 | `internal_comment` | text |  |  |  |  |
