@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-10 17:36 UTC · 53 Tabellen · 6 Views · 184 Funktionen
+> Stand: 2026-09-11 07:09 UTC · 57 Tabellen · 6 Views · 207 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -774,6 +774,61 @@ Vom Speaker eingereichte Session-Inhalte; final steht in session (Freigabe kopie
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `shop_order`
+Messeshop-Bestellung je Partner × Edition × Phase; MS-JJJJ-NNNN; eine aktive je Org und Phase.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_edition_id` | uuid | ja |  | `org_edition.id` |  |
+| `order_no` | text | ja |  |  |  |
+| `phase` | integer | ja |  |  |  |
+| `status` | text | ja | `draft` |  |  |
+| `note` | text |  |  |  |  |
+| `internal_note` | text |  |  |  |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `confirmed_by` | uuid |  |  | `person.id` |  |
+| `confirmed_at` | timestamp with time zone |  |  |  |  |
+| `completed_at` | timestamp with time zone |  |  |  |  |
+| `cancelled_at` | timestamp with time zone |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `shop_order_line`
+Bestellzeile mit Snapshot der Produktdaten zum Zeitpunkt der Bestätigung.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `order_id` | uuid | ja |  | `shop_order.id` |  |
+| `product_sku` | text | ja |  | `product.sku` |  |
+| `name_de` | text | ja |  |  |  |
+| `name_en` | text |  |  |  |  |
+| `category` | text |  |  |  |  |
+| `unit` | text |  |  |  |  |
+| `vat_rate` | numeric | ja | `7` |  |  |
+| `price_net_cents` | integer | ja | `0` |  |  |
+| `qty` | numeric | ja |  |  |  |
+| `merch_config` | jsonb |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `shop_request`
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_edition_id` | uuid | ja |  | `org_edition.id` |  |
+| `product_sku` | text |  |  | `product.sku` |  |
+| `text` | text | ja |  |  |  |
+| `status` | text | ja | `open` |  |  |
+| `answer` | text |  |  |  |  |
+| `answered_by` | uuid |  |  | `person.id` |  |
+| `answered_at` | timestamp with time zone |  |  |  |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `slot`
 Zeitfenster auf einer Bühne. Genau eine Session kann darauf liegen. Farbe im Board = status.
 
@@ -916,6 +971,19 @@ Bühne × Tag: Öffnungszeiten und Slot-Kontingent (allgemeine Slot-Logik, Antwo
 | `notes` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `stock_ledger`
+Lagerbuch, nur anhängen: Reservierung (negativ) und Freigabe (positiv) je Bestellung; Team-Korrekturen ohne Bestellung.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | bigint | PK |  |  |  |
+| `product_sku` | text | ja |  | `product.sku` |  |
+| `order_id` | uuid |  |  | `shop_order.id` |  |
+| `delta` | integer | ja |  |  |  |
+| `comment` | text |  |  |  |  |
+| `created_by` | uuid |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `suppression`
 sha256(lower(email)) gelöschter/gesperrter Adressen. Vor jedem Import und Mailversand prüfen.
@@ -1253,6 +1321,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `roles_of_person` | p_person_id: uuid |
 | `run_application_housekeeping` | args: ? |
 | `run_partner_housekeeping` | args: ? |
+| `run_shop_finalization` | args: ? |
 | `search_organizations` | p_limit: integer, p_query: text |
 | `search_people` | p_limit: integer, p_query: text |
 | `send_partner_reminders` | args: ? |
@@ -1272,6 +1341,28 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_speaker_pipeline` | p_profile_id: uuid, p_status: text |
 | `set_tech_check` | p_asset_id: uuid, p_note: text, p_status: text |
 | `set_ticket_issued` | p_barcode: text, p_ticket_id: uuid, p_ticket_type_map_id: uuid, p_vivenu_ticket_id: text, p_vivenu_transaction_id: text |
+| `shop_admin_set_line` | p_merch_config: jsonb, p_order_id: uuid, p_qty: numeric, p_sku: text |
+| `shop_admin_set_status` | p_note: text, p_order_id: uuid, p_status: text |
+| `shop_cancel` | p_order_id: uuid |
+| `shop_catalogue` | p_edition_id: uuid, p_org_id: uuid |
+| `shop_confirm` | p_note: text, p_order_id: uuid |
+| `shop_edit` | p_order_id: uuid |
+| `shop_my_orders` | p_edition_id: uuid, p_org_id: uuid |
+| `shop_order_lines_json` | p_order_id: uuid |
+| `shop_order_org` | p_order_id: uuid |
+| `shop_order_reserved` | p_order_id: uuid, p_sku: text |
+| `shop_order_totals` | p_order_id: uuid |
+| `shop_orders_admin` | p_edition_id: uuid |
+| `shop_phase` | p_edition_id: uuid |
+| `shop_phase_info` | p_edition_id: uuid, p_org_id: uuid |
+| `shop_reconcile_ledger` | p_order_id: uuid, p_release: boolean |
+| `shop_remove_line` | p_order_id: uuid, p_sku: text |
+| `shop_report` | p_edition_id: uuid |
+| `shop_request_answer` | p_answer: text, p_id: uuid, p_status: text |
+| `shop_request_product` | p_edition_id: uuid, p_org_id: uuid, p_sku: text, p_text: text |
+| `shop_requests_admin` | p_edition_id: uuid |
+| `shop_stock_available` | p_sku: text |
+| `shop_upsert_line` | p_edition_id: uuid, p_merch_config: jsonb, p_org_id: uuid, p_qty: numeric, p_sku: text |
 | `slot_has_published_session` | p_slot_id: uuid |
 | `speaker_asset_path_allowed` | p_name: text |
 | `speaker_is_confirmed` | p_status: text |

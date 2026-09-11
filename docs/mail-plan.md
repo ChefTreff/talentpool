@@ -1,4 +1,4 @@
-# Mail-Plan (Stand 10.09.2026, Migrationen bis 0046)
+# Mail-Plan (Stand 10.09.2026, Migrationen bis 0048)
 
 Grundsatz aus dem Feedback FLS26 (T9, P4): so wenige System-Mails wie möglich, jede Mail hat ein Ereignis, Erinnerungen nur bei offenem Deliverable. **Die Datenbank entscheidet**, wann eine Mail fällig ist (Trigger und RPCs rufen `queue_mail()`), der Worker verschickt nur (`lib/mail/queue.ts`, Vercel Cron `/api/cron/mail` alle 10 Minuten, Resend, Idempotenzschlüssel `mail_log-<id>`, drei Versuche, Dry-Run in der Entwicklung).
 
@@ -27,6 +27,9 @@ Grundsatz aus dem Feedback FLS26 (T9, P4): so wenige System-Mails wie möglich, 
 | `partner_deliverable_received` | Partner | `submit_deliverable` (Einreichung einer Pflicht aus der Checkliste, P1) | einreichende Person + `primary_ops` | Pflicht (`deliverable`) × Person | 0041 |
 | `partner_deliverable_rejected` | Partner | `review_deliverable` (Team, Ablehnung; Grund Pflicht und in der Mail) | einreichende Person + `primary_ops` | Pflicht × Person je Entscheidung | 0041 |
 | `partner_reminder_digest` | Partner | Housekeeping (`run_partner_housekeeping` im Cron `/api/cron/mail`): alle Pflichten, die überfällig, zurückgewiesen oder innerhalb `reminder_lead_hours` der Frist (Default 7 Tage) fällig sind — **eine** Mail je Org × Edition, frühestens 7 Tage nach der letzten (`mail_log`-Prüfung), keine Einzel-Reminder (T9/P4) | `primary_ops` + `additional` | Org × Edition je Woche | 0045/0046 |
+| `shop_order_confirmed` | Partner | `shop_confirm` (Bestellung bestätigt; Positionen, Summe netto, Frist bis zur Verbindlichkeit) | Bestätigende + `primary_ops` | Bestellung × Person je Bestätigung | 0048 |
+| `shop_order_completed` | Partner | Housekeeping `run_shop_finalization` (Phasenfrist vorbei ⇒ verbindlich) | Bestätigende + `primary_ops` | Bestellung × Person | 0048 |
+| `shop_request_received` | Partner → Team | `shop_request_product` (Anfrage-Produkt oder Freitext) | `area_lead_partner` (Fallback Admins) | Anfrage | 0048 |
 | `partner_gate_failed` | HubSpot → Sales | `ingest_partner_deal` (Gate-Fehler; Fehlerliste, Deal-Link) | Deal-Owner als `person` (E-Mail), sonst `area_lead_partner`, sonst Admins | je Gate-Fehler (kein Bezugsobjekt-Dedupe: jede Wiederholung ist ein neuer Versuch) | 0043 |
 | `presentation_reminder` | Speaker | Housekeeping (`send_presentation_reminders`): `reminder_lead_hours` (Default 48) vor der wirksamen Fälligkeit (Deadline ∧ 48 h vor Slot), nur mit Slot in der Zukunft, ohne aktuelle Präsentation, Session nicht abgesagt | Speaker (nicht Assistenz) | Speaker × Session | 0035 |
 
