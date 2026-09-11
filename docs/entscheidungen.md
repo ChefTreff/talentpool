@@ -485,3 +485,6 @@ Format: Datum · Entscheidung · Begründung · Quelle. Änderungen nur ergänze
 
 ## 2026-09-11 — Migration 0064 (Build-Session, PR #20): Merch-Konfiguration serverseitig geprüft
 - Erster Durchlauf der neuen Arbeitsteilung: Migration von der Build-Session als Datei, Review hier nach `db-konventionen`, angewendet als `20260911134144`, Smoke-Test 10/10. `shop_confirm` weist unvollständige Merch-Konfigurationen ab (P0001 `merch_incomplete`, detail `<sku>:<feld>`); Feldarten wie `answers_schema` plus `logo` (bereits eingereichte Datei) und `sizes` (Größenverteilung = Bestellmenge). Prüfung bewusst erst beim Bestätigen; Logo-Bezug als Asset-Id ohne Fremdschlüssel (verbindliche Bestellung zeigt auf die damalige Fassung). Merch-Artikel selbst legt Konrad an — „Produkte anlegen genügt“ gilt jetzt wirklich.
+
+## 2026-09-11 — Altes Supabase-Projekt gelöscht; Reihenfolge der externen Freigaben
+- Dublin-Projekt von Konrad gelöscht (Pro-Plan ließ kein Pausieren zu; nichts mehr zu sichern). Externe Schritte: Sanity-Werte nächste Woche (Trockenlauf A11), HubSpot-Ingest **ganz am Ende** vor dem Prozessstart 01.11., Swapcard-Kategorien ebenfalls am Ende (bis dahin kein `type`).
