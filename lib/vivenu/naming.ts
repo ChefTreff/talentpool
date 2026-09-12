@@ -1,11 +1,29 @@
 import { randomBytes } from "node:crypto";
 
 /** Reine Helfer ohne `server-only`, damit sie im Node-Test laufen. */
+
+const SANDBOX = { api: "https://vivenu.dev/api", shop: "https://vivenu.dev" } as const;
+const PRODUCTION = { api: "https://vivenu.com/api", shop: "https://vivenu.com" } as const;
+
+/**
+ * Sandbox oder Produktion.
+ *
+ * Nur `true` und `false` zählen. Alles andere ist ein Tippfehler und wird
+ * laut gemeldet, statt still zu wirken — im September stand in der Umgebung
+ * `VIVENU_SANDBOX=turtrue`, was mit dem alten Vergleich („ist es `false`?")
+ * zufällig Sandbox ergab. Zufällig richtig ist nicht richtig: derselbe
+ * Tippfehler bei `false` hätte gegen die Produktion gezeigt.
+ *
+ * Im Zweifel Sandbox — die Richtung, in der nichts Echtes passiert.
+ */
 export function vivenuBase(): { api: string; shop: string } {
-  const prod = process.env.VIVENU_SANDBOX?.trim().toLowerCase() === "false";
-  return prod
-    ? { api: "https://vivenu.com/api", shop: "https://vivenu.com" }
-    : { api: "https://vivenu.dev/api", shop: "https://vivenu.dev" };
+  const raw = process.env.VIVENU_SANDBOX?.trim().toLowerCase();
+  if (raw === "false") return PRODUCTION;
+  if (raw === "true" || raw === undefined || raw === "") return SANDBOX;
+  console.warn(
+    `[vivenu] VIVENU_SANDBOX ist "${raw}" — erwartet wird "true" oder "false". Es gilt die Sandbox.`,
+  );
+  return SANDBOX;
 }
 
 export function undershopName(editionSlug: string, orgName: string): string {

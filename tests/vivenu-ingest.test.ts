@@ -2,6 +2,7 @@ import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { expectedDigest, verifyVivenuSignature } from "@/lib/vivenu/signature";
 import { retryDelayMs } from "@/lib/vivenu/backoff";
+import { vivenuBase } from "@/lib/vivenu/naming";
 import {
   isIngestable,
   TICKET_EVENTS,
@@ -158,5 +159,41 @@ describe("Wartezeit bei 429", () => {
   it("ignoriert Unsinn im Header", () => {
     assert.equal(retryDelayMs(0, "bald"), 500);
     assert.equal(retryDelayMs(0, "-5"), 500);
+  });
+});
+
+/**
+ * `VIVENU_SANDBOX` entscheidet, gegen welche Umgebung geschrieben wird. Ein
+ * Tippfehler darf nicht still wirken — in der Umgebung stand einmal
+ * `turtrue`, was mit dem alten Vergleich zufällig Sandbox ergab.
+ */
+describe("Sandbox oder Produktion", () => {
+  const withEnv = (value: string | undefined, run: () => void) => {
+    const before = process.env.VIVENU_SANDBOX;
+    if (value === undefined) delete process.env.VIVENU_SANDBOX;
+    else process.env.VIVENU_SANDBOX = value;
+    try {
+      run();
+    } finally {
+      if (before === undefined) delete process.env.VIVENU_SANDBOX;
+      else process.env.VIVENU_SANDBOX = before;
+    }
+  };
+
+  it("nur \u201efalse\u201c führt in die Produktion", () => {
+    withEnv("false", () => assert.equal(vivenuBase().api, "https://vivenu.com/api"));
+    withEnv("FALSE", () => assert.equal(vivenuBase().api, "https://vivenu.com/api"));
+  });
+
+  it("\u201etrue\u201c, leer und nicht gesetzt sind Sandbox", () => {
+    for (const value of ["true", "", undefined]) {
+      withEnv(value, () => assert.equal(vivenuBase().api, "https://vivenu.dev/api"));
+    }
+  });
+
+  it("ein Tippfehler landet in der Sandbox, nicht in der Produktion", () => {
+    for (const typo of ["turtrue", "fasle", "0", "1", "ja"]) {
+      withEnv(typo, () => assert.equal(vivenuBase().api, "https://vivenu.dev/api", typo));
+    }
   });
 });
