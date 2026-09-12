@@ -1,5 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
+import { createHmac } from "node:crypto";
 import { expectedDigest, verifyVivenuSignature } from "@/lib/vivenu/signature";
 import { retryDelayMs } from "@/lib/vivenu/backoff";
 import { vivenuBase } from "@/lib/vivenu/naming";
@@ -43,24 +44,26 @@ describe("vivenu-Webhook-Signatur", () => {
   const body = JSON.stringify({ id: "wh_1", type: "ticket.updated", data: TICKET });
 
   it("nimmt den Hex-Digest über den Raw-Body", () => {
-    const sig = expectedDigest(SECRET, body, "hex");
+    const sig = expectedDigest(SECRET, body);
     assert.deepEqual(verifyVivenuSignature({ rawBody: body, signature: sig, secret: SECRET }), {
       ok: true,
       encoding: "hex",
     });
   });
 
-  it("nimmt Base64 und ein vorangestelltes sha256=", () => {
-    const b64 = expectedDigest(SECRET, body, "base64");
-    assert.equal(verifyVivenuSignature({ rawBody: body, signature: b64, secret: SECRET }).ok, true);
+  it("nimmt nur Hex — Base64 und ein sha256=-Präfix werden abgewiesen", () => {
+    // Am 12.09. an sechs echten Sandbox-Webhooks gemessen: immer hex, kein Präfix.
+    // Eine zweite zugelassene Form wäre eine zweite Tür.
+    const b64 = createHmac("sha256", SECRET).update(body, "utf8").digest("base64");
+    assert.equal(verifyVivenuSignature({ rawBody: body, signature: b64, secret: SECRET }).ok, false);
     assert.equal(
-      verifyVivenuSignature({ rawBody: body, signature: `sha256=${b64}`, secret: SECRET }).ok,
-      true,
+      verifyVivenuSignature({ rawBody: body, signature: `sha256=${expectedDigest(SECRET, body)}`, secret: SECRET }).ok,
+      false,
     );
   });
 
   it("weist ab, wenn der Body auch nur ein Zeichen anders ist", () => {
-    const sig = expectedDigest(SECRET, body, "hex");
+    const sig = expectedDigest(SECRET, body);
     const v = verifyVivenuSignature({ rawBody: body + " ", signature: sig, secret: SECRET });
     assert.deepEqual(v, { ok: false, reason: "mismatch" });
   });
@@ -68,7 +71,7 @@ describe("vivenu-Webhook-Signatur", () => {
   it("weist ab, wenn der neu zusammengesetzte JSON-String gehasht würde", () => {
     // Genau die Falle aus der vivenu-Antwort: Felder werden umsortiert.
     const reserialised = JSON.stringify(JSON.parse(body));
-    const sig = expectedDigest(SECRET, body, "hex");
+    const sig = expectedDigest(SECRET, body);
     if (reserialised !== body) {
       assert.equal(
         verifyVivenuSignature({ rawBody: reserialised, signature: sig, secret: SECRET }).ok,

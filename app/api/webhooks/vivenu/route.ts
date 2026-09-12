@@ -3,6 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { verifyVivenuSignature } from "@/lib/vivenu/signature";
 import {
   isIngestable,
+  redactSecrets,
   TICKET_EVENTS,
   ticketsOf,
   toIngestPayload,
@@ -55,7 +56,8 @@ export async function POST(request: Request) {
     p_source: "vivenu",
     p_event_type: type,
     p_external_id: id,
-    p_payload: hook as unknown as Record<string, unknown>,
+    // Ohne Ticket-Codes: das Protokoll braucht sie nicht (lib/vivenu/tickets.ts).
+    p_payload: redactSecrets(hook) as unknown as Record<string, unknown>,
     p_headers: { signature_encoding: verdict.encoding },
     p_signature_valid: true,
   });

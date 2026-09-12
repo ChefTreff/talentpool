@@ -143,10 +143,11 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
       }
       // Zeilen ohne `baseTicket` zeigen auf nichts und können nichts verkaufen —
       // Schrott aus den Fehlversuchen vom 12.09. Sie müssen weg, sonst weist
-      // vivenu das ganze PUT ab (`baseTicket` ist Pflichtfeld).
-      const tickets = (shop.tickets ?? []).filter((t) => Boolean(t.baseTicket));
+      // vivenu das ganze PUT ab (`baseTicket` ist Pflichtfeld). Ebenso Zeilen
+      // auf Tickettypen, die es im Event nicht mehr gibt.
+      const tickets = (shop.tickets ?? []).filter((t) => Boolean(t.baseTicket) && typeNames.has(String(t.baseTicket)));
       let touched = tickets.length !== (shop.tickets ?? []).length;
-      if (touched) console.warn(`[vivenu] Undershop ${shop._id ?? wantedName}: ${(shop.tickets ?? []).length - tickets.length} Ticketzeile(n) ohne baseTicket entfernt.`);
+      if (touched) console.warn(`[vivenu] Undershop ${shop._id ?? wantedName}: ${(shop.tickets ?? []).length - tickets.length} Ticketzeile(n) ohne gueltigen Tickettyp entfernt.`);
       for (const [baseTicket, amount] of wanted) {
         // vivenu legt neue Tickettypen von selbst in jedem Undershop ab — inaktiv
         // und zum vollen Preis. Eine solche Zeile wird übernommen, nicht verdoppelt.

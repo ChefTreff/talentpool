@@ -151,12 +151,16 @@ export async function listTickets(
   const out: VivenuTicketRow[] = [];
   const page = 100;
   for (let skip = 0; skip < limit; skip += page) {
+    // `event` (Liste von Event-Ids), nicht `eventId`: vivenu weist alles
+    // Unbekannte mit 400 ab, statt es zu ignorieren. Der Zeitfilter heisst
+    // `updatedAt[$gt]`; `modifiedSince` gibt es nicht. Beides am 12.09. gegen
+    // `/api/openapi.json` geprüft, nachdem der Sweep mit 400 stehenblieb.
     const query = new URLSearchParams({
-      eventId,
+      event: eventId,
       top: String(Math.min(page, limit - skip)),
       skip: String(skip),
     });
-    if (options.since) query.set("modifiedSince", options.since);
+    if (options.since) query.set("updatedAt[$gt]", options.since);
     const res = await vv<{ docs?: VivenuTicketRow[]; rows?: VivenuTicketRow[] }>(`/tickets?${query}`);
     const batch = res.docs ?? res.rows ?? [];
     out.push(...batch);

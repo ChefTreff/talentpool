@@ -177,24 +177,55 @@ const steps = {
     }
   },
 
-  /** Ein Freiticket anlegen — ohne Mailversand, klar gekennzeichnet. */
+  /**
+   * Personalisierung wie im Portal: `POST /tickets/personalize/{id}/{secret}`.
+   * Das Secret kommt aus `ticket_secret` und wird nie ausgegeben.
+   */
+  async personalisieren() {
+    const id = args[1];
+    if (!id) throw new Error("Ticket-Id angeben: … personalisieren <vivenuTicketId>");
+    const { data: row, error: ticketErr } = await admin
+      .from("ticket").select("id").eq("vivenu_ticket_id", id).maybeSingle();
+    if (ticketErr) throw ticketErr;
+    if (!row) throw new Error(`Ticket ${id} ist bei uns nicht bekannt.`);
+    const { data: sec, error } = await admin
+      .from("ticket_secret").select("secret").eq("ticket_id", row.id).maybeSingle();
+    if (error) throw error;
+    const data = sec?.secret;
+    if (!data) throw new Error(`Kein Secret zu Ticket ${id} gespeichert.`);
+    const body = { firstname: MARK, lastname: "Personalisiert", extraFields: {} };
+    console.log("Anfrage:", JSON.stringify(body), "(Secret verborgen)");
+    const res = await vv(`/tickets/personalize/${encodeURIComponent(id)}/${encodeURIComponent(data)}`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    console.log("Antwort:", JSON.stringify(res).slice(0, 400));
+  },
+
+  /**
+   * Ein Freiticket anlegen — ohne Mailversand, klar gekennzeichnet.
+   * Der Pfad ist `POST /tickets/free`; `create-free-tickets` aus der Doku gibt es
+   * nicht. Die Positionen heissen `items` (nicht `tickets`), der Vorname `prename`.
+   */
   async freiticket() {
     const ed = await edition();
     const ev = await vv(`/events/${encodeURIComponent(ed.vivenu_event_id)}`);
-    const type = (ev.tickets ?? ev.ticketTypes ?? [])[0];
+    const type = (ev.tickets ?? []).find((t) => !String(t.name ?? "").startsWith(MARK));
     if (!type) throw new Error("Kein Tickettyp im Event.");
     const body = {
       eventId: ed.vivenu_event_id,
-      tickets: [{ ticketTypeId: String(type._id ?? type.id), amount: 1 }],
-      firstname: MARK,
-      lastname: "Sandboxlauf",
+      items: [{ type: "ticket", ticketTypeId: String(type._id), amount: 1 }],
+      prename: MARK,
+      lastname: "Freiticket",
       email: "delivered+vvsandbox@resend.dev",
       sendMail: false,
+      addToCustomers: false,
     };
     console.log("Anfrage:", JSON.stringify(body));
-    const res = await vv(`/tickets/create-free-tickets`, { method: "POST", body: JSON.stringify(body) });
-    console.log("Antwort-Felder:", Object.keys(res).sort().join(", "));
-    console.log(JSON.stringify(res).slice(0, 800));
+    const res = await vv(`/tickets/free`, { method: "POST", body: JSON.stringify(body) });
+    const list = Array.isArray(res) ? res : (res.tickets ?? [res]);
+    console.log("Antwort-Felder:", Object.keys(Array.isArray(res) ? res[0] ?? {} : res).sort().join(", "));
+    for (const t of list) console.log(`  Ticket ${t._id ?? "?"} ${JSON.stringify(t.ticketName ?? t.name ?? "")} status=${t.status ?? "?"}`);
   },
 
   /** Das Wegwerf-Ticket wieder entwerten. */

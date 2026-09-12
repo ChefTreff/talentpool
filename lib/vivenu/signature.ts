@@ -8,19 +8,25 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  * `JSON.stringify(JSON.parse(body))` ordnet Felder um und ändert
  * Zahlenformate, die Signatur stimmt dann nie.
  *
- * Der genaue Aufbau des Headers ist von vivenu nur als „laut Doku" bestätigt.
- * Deshalb zwei Dinge: die Prüfung akzeptiert Hex **und** Base64 und ein
- * vorangestelltes `sha256=`, und ohne gesetztes Secret wird **abgelehnt**,
- * nicht durchgewunken. Was wirklich ankommt, klärt der erste Sandbox-Lauf;
- * bis dahin steht die Frage in der PR-Beschreibung.
+ * Header `x-vivenu-signature`, HMAC-SHA256 über den Raw-Body, **hexadezimal**,
+ * ohne Präfix. Am 12.09. an sechs echten Webhooks der Sandbox gemessen
+ * (`ticket.created`, `ticket.updated`, `transaction.complete`,
+ * `checkout.completed`, `checkout.detailsSubmitted`, `customer.created`) —
+ * alle hex. Das Geheimnis ist der `hmacKey` der Webhook-Konfiguration
+ * (`GET /api/webhooks`); er steht als `VIVENU_WEBHOOK_SECRET` in der Umgebung.
+ *
+ * Die vorherige Fassung liess zusätzlich Base64 und ein `sha256=`-Präfix zu,
+ * solange das Format offen war. Beides ist jetzt raus: eine zweite akzeptierte
+ * Form ist eine zweite Tür, durch die eine falsch berechnete Signatur passen
+ * kann. Ohne gesetztes Secret wird abgelehnt, nicht durchgewunken.
  */
 export type VivenuSignatureVerdict =
-  | { ok: true; encoding: "hex" | "base64" }
+  | { ok: true; encoding: "hex" }
   | { ok: false; reason: "missing_secret" | "missing_header" | "mismatch" };
 
 /** Erwarteter Digest über den Raw-Body. */
-export function expectedDigest(secret: string, rawBody: string, encoding: "hex" | "base64"): string {
-  return createHmac("sha256", secret).update(rawBody, "utf8").digest(encoding);
+export function expectedDigest(secret: string, rawBody: string): string {
+  return createHmac("sha256", secret).update(rawBody, "utf8").digest("hex");
 }
 
 function sameString(a: string, b: string): boolean {
@@ -37,13 +43,6 @@ export function verifyVivenuSignature(input: {
   if (!input.secret?.trim()) return { ok: false, reason: "missing_secret" };
   const given = input.signature?.trim();
   if (!given) return { ok: false, reason: "missing_header" };
-
-  // `sha256=<digest>` kommt bei mehreren Anbietern vor; beides zulassen.
-  const value = given.startsWith("sha256=") ? given.slice("sha256=".length) : given;
-  for (const encoding of ["hex", "base64"] as const) {
-    if (sameString(expectedDigest(input.secret, input.rawBody, encoding), value)) {
-      return { ok: true, encoding };
-    }
-  }
-  return { ok: false, reason: "mismatch" };
+  if (!sameString(expectedDigest(input.secret, input.rawBody), given)) return { ok: false, reason: "mismatch" };
+  return { ok: true, encoding: "hex" };
 }
