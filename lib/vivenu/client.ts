@@ -45,7 +45,30 @@ async function vv<T>(path: string, init?: RequestInit): Promise<T> {
   throw last ?? new Error("vivenu: unerreichbar");
 }
 
-export type UnderShopTicket = { ticketTypeId: string; price?: number; active?: boolean; [k: string]: unknown };
+/**
+ * Ein Tickettyp im Undershop.
+ *
+ * Die Verknüpfung läuft über **`baseTicket`** — die Id des Tickettyps am
+ * Event. `_id` ist die eigene Id *dieser Zeile*, die vivenu beim Anlegen
+ * vergibt; sie ist nie die Id eines Tickettyps.
+ *
+ * Das war am 12.09. zweimal falsch: erst mit `ticketTypeId` (vivenu wirft das
+ * Feld weg), dann mit `_id` — da nimmt vivenu die Id an, aber sie zeigt auf
+ * nichts, und der Shop verkauft nichts. Erst als Konrad einen Tickettyp
+ * anlegte und vivenu ihn von selbst in jeden Undershop schrieb, war das
+ * richtige Feld zu sehen; `/api/openapi.json` bestätigt es:
+ * `_id`, `baseTicket`, `name`, `price`, `amount`, `active` sind Pflicht,
+ * `_id` vergibt der Server.
+ */
+export type UnderShopTicket = {
+  _id?: string;
+  baseTicket: string;
+  name?: string;
+  price?: number;
+  amount?: number;
+  active?: boolean;
+  [k: string]: unknown;
+};
 export type UnderShop = {
   _id?: string;
   name: string;
@@ -56,7 +79,8 @@ export type UnderShop = {
   shopUrl?: string;
   [k: string]: unknown;
 };
-export type VivenuEvent = { _id: string; name?: string; slug?: string; underShops?: UnderShop[]; [k: string]: unknown };
+export type VivenuTicketType = { _id: string; name?: string; price?: number; amount?: number; active?: boolean; [k: string]: unknown };
+export type VivenuEvent = { _id: string; name?: string; slug?: string; tickets?: VivenuTicketType[]; underShops?: UnderShop[]; [k: string]: unknown };
 export type VivenuCoupon = { _id: string; code?: string; [k: string]: unknown };
 
 export function getEvent(eventId: string): Promise<VivenuEvent> {
@@ -68,23 +92,51 @@ export function putUnderShops(eventId: string, underShops: UnderShop[]): Promise
   return vv<VivenuEvent>(`/events/${encodeURIComponent(eventId)}`, { method: "PUT", body: JSON.stringify({ underShops }) });
 }
 
+/**
+ * Coupon-Felder nach `CouponCreateResource` aus `/api/openapi.json` (Sandbox-Lauf 12.09.).
+ *
+ * Drei Fallen, die die Vorlage aus der Doku nicht zeigte:
+ * - Der Rabatt ist **flach** (`discountType` + `discountValue`), kein
+ *   verschachteltes `discount`-Objekt. `var` ist der prozentuale Typ, also
+ *   100 % = `{ discountType: "var", discountValue: 100 }`.
+ * - `allowAllEvents` und `allowAllTickets` stehen per Vorgabe auf `true`.
+ *   Wer nur `allowedEvents`/`allowedTickets` setzt, bekommt trotzdem einen
+ *   Coupon, der auf **allen** Events des Verkäuferkontos 100 % gibt. Beide
+ *   Schalter müssen ausdrücklich auf `false`.
+ * - `maxUsage` ist per Vorgabe **1**; eine Nutzung ist eine abgeschlossene
+ *   Transaktion. Ein Partner, der seine Plätze in zwei Käufen abruft, stünde
+ *   sonst nach dem ersten vor einem toten Code. `maxTickets` begrenzt die
+ *   Stückzahl, `maxUsage` die Zahl der Käufe.
+ *
+ * `unlocks` braucht zusätzlich `target: "underShop"`.
+ */
 export type CouponInput = {
   name: string;
-  code: string;
-  discount: { type: "percentage" | "fixed"; value: number };
+  code?: string;
+  couponType?: "coupon";
+  discountType?: "fix" | "var" | "fixPerItem" | "waiveFees";
+  discountValue?: number;
+  maxUsage?: number;
   maxTickets?: number;
+  singleUsage?: boolean;
+  allowAllEvents?: boolean;
+  allowedEvents?: string[];
+  allowAllTickets?: boolean;
   allowedTickets?: string[];
-  unlocks?: { eventId: string; underShopId: string }[];
+  unlocks?: { target: "underShop"; eventId: string; underShopId: string }[];
   active?: boolean;
-  sellerId?: string;
+  note?: string;
 };
 
 export function createCoupon(input: CouponInput): Promise<VivenuCoupon> {
-  return vv<VivenuCoupon>("/coupons", { method: "POST", body: JSON.stringify(input) });
+  // Singular: `/coupons` gibt 404. Im Sandbox-Lauf am 12.09. über
+  // `/openapi.json` bestätigt — die API kennt `/api/coupon`.
+  return vv<VivenuCoupon>("/coupon", { method: "POST", body: JSON.stringify(input) });
 }
 
 export function updateCoupon(couponId: string, patch: Partial<CouponInput>): Promise<VivenuCoupon> {
-  return vv<VivenuCoupon>(`/coupons/${encodeURIComponent(couponId)}`, { method: "POST", body: JSON.stringify(patch) });
+  // Ändern ist laut Schema PUT, nicht POST.
+  return vv<VivenuCoupon>(`/coupon/${encodeURIComponent(couponId)}`, { method: "PUT", body: JSON.stringify(patch) });
 }
 
 /**
@@ -99,12 +151,16 @@ export async function listTickets(
   const out: VivenuTicketRow[] = [];
   const page = 100;
   for (let skip = 0; skip < limit; skip += page) {
+    // `event` (Liste von Event-Ids), nicht `eventId`: vivenu weist alles
+    // Unbekannte mit 400 ab, statt es zu ignorieren. Der Zeitfilter heisst
+    // `updatedAt[$gt]`; `modifiedSince` gibt es nicht. Beides am 12.09. gegen
+    // `/api/openapi.json` geprüft, nachdem der Sweep mit 400 stehenblieb.
     const query = new URLSearchParams({
-      eventId,
+      event: eventId,
       top: String(Math.min(page, limit - skip)),
       skip: String(skip),
     });
-    if (options.since) query.set("modifiedSince", options.since);
+    if (options.since) query.set("updatedAt[$gt]", options.since);
     const res = await vv<{ docs?: VivenuTicketRow[]; rows?: VivenuTicketRow[] }>(`/tickets?${query}`);
     const batch = res.docs ?? res.rows ?? [];
     out.push(...batch);

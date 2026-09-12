@@ -97,3 +97,25 @@ export function isIngestable(ticket: VivenuTicket): boolean {
   return typeof ticket._id === "string" && ticket._id.trim() !== "" &&
     typeof ticket.eventId === "string" && ticket.eventId.trim() !== "";
 }
+
+/**
+ * Den Ticket-Code aus dem Rohpayload nehmen, bevor er ins Webhook-Protokoll geht.
+ *
+ * `ticket.secret` und `transaction.secret` stehen im Klartext im Payload. Sie
+ * gehören nach 0072 in `ticket_secret` (RLS an, keine Grants) und nicht in ein
+ * Protokoll, das Monate liegen bleibt. `integration.webhook_event` ist zwar nur
+ * für `service_role` lesbar — aber ein Geheimnis, das nicht gespeichert wird,
+ * kann auch nicht aus dem falschen Backup fallen. Die Signaturprüfung läuft
+ * vorher und gegen den **unveränderten** Raw-Body.
+ */
+export function redactSecrets<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(redactSecrets) as unknown as T;
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = k === "secret" && typeof v === "string" ? "[entfernt]" : redactSecrets(v);
+    }
+    return out as unknown as T;
+  }
+  return value;
+}
