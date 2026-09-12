@@ -64,7 +64,7 @@ export default async function VokabularPage() {
                     <Td className="font-mono text-[13px] text-muted">{term.key}</Td>
                     <Td>{term.label_de}</Td>
                     <Td className="text-muted">{term.label_en ?? t.common.none}</Td>
-                    <Td className="font-mono text-[13px] text-muted-soft">
+                    <Td className="font-mono text-[13px] text-muted">
                       {term.parent_key ?? ""}
                     </Td>
                     <Td>

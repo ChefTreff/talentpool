@@ -11,7 +11,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 2. `docs/entscheidungen.md` — Entscheidungslog. **Jede Abweichung vom Masterplan wird hier eingetragen, sonst gilt sie nicht.**
 3. `docs/arbeitsauftrag-welle-*.md` — konkreter Arbeitsauftrag der laufenden Welle mit Akzeptanzkriterien; `docs/db-konventionen.md` — Regeln für Migrationen, RPCs und Tests.
 4. `docs/legacy-inventar.md`, `docs/feedback-fls26.md`, `docs/fragenkatalog-2026-09-07.md` — Herkunft der Anforderungen.
-5. `docs/design-briefing.md` — Tokens, Schriften (Sharp Sans SemiBold als Textschnitt, ABC Laica Italic), Events-Theme, **kein Dark Mode**, DE/EN.
+5. `docs/design-briefing.md` — Tokens, Schriften (Sharp Sans SemiBold als Textschnitt, ABC Laica Italic), Events-Theme, **kein Dark Mode**, DE/EN. Ausführende Schicht für UI-Arbeit: Skill `.claude/skills/portal-design/` (`/portal-design`).
 
 ## Nicht verhandelbar
 - **Sicherheit ist Backbone:** RLS auf jeder Tabelle, Spalten-Grants, `service_role` nur serverseitig nach Rollenprüfung, SECURITY-DEFINER-Funktionen mit gepinntem `search_path`, Webhook-Signaturen + Idempotenz, Audit-Log für Admin-Aktionen. Keine Abkürzungen „für später".
@@ -35,6 +35,6 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 1. Du arbeitest in einem Git-Worktree auf einem Feature-Branch (`welle-N/<thema>`). `main` gehört der Architektur-Session; nie direkt auf `main` committen.
 2. Einmalig im Worktree: `source "$HOME/.zshenv" && npm install`. Dann `.env.local` aus dem Haupt-Checkout übernehmen (dort pflegt Konrad sie mit `sh scripts/env-pull.sh --worktrees`, das kopiert sie in alle Worktrees). Achtung: `SUPABASE_SECRET_KEY` ist in Vercel sensibel, `vercel env pull` liefert dafür nur einen Platzhalter; den echten Wert trägt nur Konrad ein. Die Datei ist gitignored und darf nie committet werden.
 3. Dev-Server nur über `.claude/launch.json`, Konfiguration **`talentpool-dev-worktree`** (Port 3001), damit der Haupt-Checkout auf 3000 weiterlaufen kann. Magic-Link-Login lokal braucht `http://localhost:3001/auth/callback` in den Supabase-Redirect-URLs (Konrad trägt das ein).
-4. Kontext kommt aus dem Repo, nicht aus dem Session-Gedächtnis: `AGENTS.md`, `docs/masterplan.md`, `docs/entscheidungen.md`, `docs/arbeitsauftrag-welle-*.md`.
+4. Kontext kommt aus dem Repo, nicht aus dem Session-Gedächtnis: `AGENTS.md`, `docs/masterplan.md`, `docs/entscheidungen.md`, `docs/arbeitsauftrag-welle-*.md`. **UI-Arbeit lädt zusätzlich den Skill `/portal-design`** (`.claude/skills/portal-design/`, verbindlich seit 12.09.2026: Tokens nur als Tailwind-Klassen, Komponenten aus `components/ui`, Kontrast gemessen, kein Dark Mode).
 5. Migrationen dürfen **als Dateien** im PR liegen (mit Test, nach `docs/db-konventionen.md`), werden aber **nie selbst angewendet** — Anwenden, Umbenennen und Entscheidungslog macht die Architektur-Session; PR-Titel mit „Migration enthalten“, Walkthrough gegen die Datenbank erst nach ihrem Kommentar „Migration live“. Keine Änderungen an `docs/masterplan.md`, `docs/entscheidungen.md`. Offene Fragen und Abweichungswünsche in die PR-Beschreibung.
 6. Fertig = `npm run build` und `npm run lint` grün, PR gegen `main` mit kurzer Beschreibung, was getestet wurde. Review und Merge macht die Architektur-Session.

@@ -7,8 +7,9 @@ export type ButtonSize = "md" | "sm";
 
 /**
  * Portal-Form: 8-px-Rechteck, konsequent (Design-Briefing §5).
- * Primary füllt mit `accent-strong` (#5B5BD9) statt `accent` (#6D6DEF):
- * #6D6DEF trägt hellen Text nur mit ~3.8:1 und verfehlt AA — siehe PR-Notiz.
+ * Primary füllt mit `accent-strong` (#5B5BD9) statt `accent` (#6262DC seit 12.09.2026):
+ * der Button-Text ist `text-on-navy` (#F5F4F2), und den trägt `accent` nur mit 4.44:1;
+ * `accent-strong` erreicht 4.85:1 (AA). Regeln: Skill /portal-design, referenzen/tokens.md.
  */
 const base =
   "inline-flex items-center justify-center gap-2 rounded-ct-md font-sans text-[14px] font-semibold leading-5 " +

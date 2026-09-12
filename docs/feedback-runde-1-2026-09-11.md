@@ -18,4 +18,4 @@ Gilt für die Build-Session als **Querschnitts-Auftrag F** neben Welle 4 (Abschn
 - **F4** Abgleich-Walkthrough Speaker- und Partner-Portal gegen den Altbestand (Punkt 4), Lückenliste als PR-Beschreibung/Doku `docs/feedback-runde-1-abgleich.md`.
 - **F5** Admin-Funktionen „Speaker anlegen“, „Kontakt zuordnen“ sichtbar machen; Testdaten für Konrad (Punkt 5).
 - **F6** Bewerbungs-Übersicht überarbeiten — nach Termin mit Konrad.
-- **F7** Design-Durchgang nach dem geschärften Briefing/Skill (mehr Brand Book: Farbe, Elemente), nach F1 auf der neuen Shell; Tokens in `app/globals.css`/Komponenten, keine Sonderwege je Bereich.
+- **F7** Design-Durchgang nach dem geschärften Briefing/Skill (mehr Brand Book: Farbe, Elemente), nach F1 auf der neuen Shell; Tokens in `app/globals.css`/Komponenten, keine Sonderwege je Bereich. Mit geladenem Skill `/portal-design` (verbindlich seit 12.09.2026); Akzent seit 12.09. `#6262DC` über den Token.

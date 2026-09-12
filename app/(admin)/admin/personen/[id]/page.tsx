@@ -201,7 +201,7 @@ export default async function PersonDetail({
                     · {vlabel(vocab, "ticket_type", r.ticket_type)}
                   </span>
                 )}
-                {r.source && <span className="text-muted-soft">· {r.source}</span>}
+                {r.source && <span className="text-muted">· {r.source}</span>}
               </li>
             );
           })}

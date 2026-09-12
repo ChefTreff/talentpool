@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* =============================================================================
- * ChefTreff-Portal · Design-Tokens (docs/design-briefing.md v0.3)
+ * ChefTreff-Portal · Design-Tokens (docs/design-briefing.md v0.5 · Skill .claude/skills/portal-design)
  * Theme = Events, ausschließlich. Kein Dark Mode (Entscheidung 08.09.2026) —
  * die Tokens bleiben theme-fähig, ausgeliefert wird nur Light.
  * ========================================================================== */
@@ -24,10 +24,11 @@
   --ct-muted-soft: #8a94a6;    /* Platzhalter, deaktiviert */
 
   /* --- Aktions-Akzent (Events) --------------------------------------------- */
-  /* #6D6DEF nur für Flächen ohne Text darauf, Ränder, Fokus-Ring.
-     Text/Links/Button-Fill: #5B5BD9 — #6D6DEF trägt hellen Text nur mit 3.8:1.
+  /* #6262DC = Brandbook Final, Feld FARBEN (Entscheidung 12.09.2026; bis dahin #6D6DEF aus den älteren CI-Vorgaben).
+     Flächen, Ränder, Fokus-Ring, Icons: #6262DC — trägt weißen Text #FFFFFF (4.88:1), Off-White #F5F4F2 nur mit 4.44:1.
+     Text/Links auf dem Off-White-Grund und Button-Fill: #5B5BD9 (4.85:1) — #6262DC erreicht dort nur 4.44:1.
      Auf der Soft-Fläche #E8E8FC reicht auch #5B5BD9 nicht (4.4:1) -> #4A4AC5. */
-  --ct-accent: #6d6def;
+  --ct-accent: #6262dc;
   --ct-accent-strong: #5b5bd9;
   --ct-accent-deep: #4a4ac5;
   --ct-accent-soft: #e8e8fc;
