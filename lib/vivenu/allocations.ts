@@ -73,14 +73,14 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
       let shop = shops.find((s) => (knownId && s._id === knownId) || s.name === wantedName);
       const wantedTickets = [...new Set(orgRows.filter((r) => r.status !== "disabled").flatMap((r) => r.ticket_type_ids))];
       if (!shop) {
-        shop = { name: wantedName, active: true, unlockMode: "couponCode", tickets: wantedTickets.map((t) => ({ ticketTypeId: t, price: 0, active: true })) };
+        shop = { name: wantedName, active: true, unlockMode: "couponCode", tickets: wantedTickets.map((t) => ({ _id: t, price: 0, active: true })) };
         shops.push(shop);
         changed = true;
       } else {
-        const have = new Set((shop.tickets ?? []).map((t) => t.ticketTypeId));
+        const have = new Set((shop.tickets ?? []).map((t) => t._id));
         const missing = wantedTickets.filter((t) => !have.has(t));
         if (missing.length > 0) {
-          shop.tickets = [...(shop.tickets ?? []), ...missing.map((t) => ({ ticketTypeId: t, price: 0, active: true }))];
+          shop.tickets = [...(shop.tickets ?? []), ...missing.map((t) => ({ _id: t, price: 0, active: true }))];
           shop.active = true;
           shop.unlockMode = shop.unlockMode ?? "couponCode";
           changed = true;

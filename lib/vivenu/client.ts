@@ -45,7 +45,15 @@ async function vv<T>(path: string, init?: RequestInit): Promise<T> {
   throw last ?? new Error("vivenu: unerreichbar");
 }
 
-export type UnderShopTicket = { ticketTypeId: string; price?: number; active?: boolean; [k: string]: unknown };
+/**
+ * Ein Tickettyp im Undershop.
+ *
+ * Die Verknüpfung läuft über **`_id`** — das ist die Id des Tickettyps am
+ * Event, nicht eine eigene. Im Sandbox-Lauf am 12.09. nachgemessen: mit
+ * `ticketTypeId`, `ticketId`, `baseTicketId` oder `refId` wirft vivenu die
+ * Angabe weg und vergibt eine neue Id, der Shop verkauft dann nichts.
+ */
+export type UnderShopTicket = { _id: string; price?: number; active?: boolean; amount?: number; [k: string]: unknown };
 export type UnderShop = {
   _id?: string;
   name: string;
