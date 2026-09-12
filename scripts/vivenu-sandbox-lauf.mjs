@@ -66,7 +66,7 @@ function guessPassType(name) {
   if (/partner|aussteller|exhibitor/.test(n)) return "partner";
   if (/startup|gründer|founder/.test(n)) return "startup";
   if (/investor/.test(n)) return "investor";
-  if (/talent|student|studi/.test(n)) return "talent";
+  if (/talent|student|studi|teilnehmer|attendee/.test(n)) return "talent";
   if (/speaker/.test(n)) return "speaker";
   if (/crew|volunteer|helfer/.test(n)) return "crew";
   if (/supporter|förder/.test(n)) return "supporter";
@@ -124,30 +124,56 @@ const steps = {
       return;
     }
     const neu = rows.filter((r) => !have.has(r.vivenu_ticket_type_id));
-    if (neu.length === 0) {
-      console.log("\nNichts Neues.");
-      return;
+    if (neu.length > 0) {
+      const { error } = await admin.from("ticket_type_map").insert(neu);
+      if (error) throw error;
+      console.log(`\n${neu.length} Zeile(n) angelegt.`);
     }
-    const { error } = await admin.from("ticket_type_map").insert(neu);
-    if (error) throw error;
-    console.log(`\n${neu.length} Zeilen angelegt. Danach lohnt ein Sweep-Lauf (backfill_ticket_pass_types).`);
+    // Name und Pass-Typ bestehender Zeilen nachziehen — Konrad benennt im
+    // Dashboard um, die Zuordnung soll dem folgen.
+    for (const r of rows.filter((x) => have.has(x.vivenu_ticket_type_id))) {
+      const { error } = await admin
+        .from("ticket_type_map")
+        .update({ vivenu_ticket_name: r.vivenu_ticket_name, active: r.active, updated_at: new Date().toISOString() })
+        .eq("event_id", r.event_id)
+        .eq("vivenu_ticket_type_id", r.vivenu_ticket_type_id);
+      if (error) throw error;
+    }
+    // Zeilen, deren Tickettyp es im Event nicht mehr gibt, sind tot.
+    const live = new Set(rows.map((r) => r.vivenu_ticket_type_id));
+    const tot = (known ?? []).filter((k) => !live.has(k.vivenu_ticket_type_id));
+    for (const k of tot) {
+      const { error } = await admin
+        .from("ticket_type_map")
+        .delete()
+        .eq("event_id", ed.id)
+        .eq("vivenu_ticket_type_id", k.vivenu_ticket_type_id);
+      if (error) throw error;
+      console.log(`entfernt    ${k.vivenu_ticket_type_id} (Tickettyp im Event nicht mehr vorhanden)`);
+    }
+    console.log("\nFertig. Danach lohnt ein Sweep-Lauf (backfill_ticket_pass_types).");
   },
 
   /** Undershops und Coupons lesen — Feldnamen gegen lib/vivenu abgleichen. */
   async shops() {
     const ed = await edition();
     const ev = await vv(`/events/${encodeURIComponent(ed.vivenu_event_id)}`);
+    const typen = new Map((ev.tickets ?? []).map((t) => [String(t._id), t.name]));
+    const shopBase = process.env.VIVENU_SHOP_BASE?.trim().replace(/\/+$/, "");
     for (const s of ev.underShops ?? []) {
       console.log(`Undershop ${s._id} ${JSON.stringify(s.name)}`);
-      console.log(`  url=${s.url ?? "—"}  shopUrl=${s.shopUrl ?? "—"}  unlockMode=${s.unlockMode ?? "—"}`);
-      console.log(`  tickets: ${JSON.stringify(s.tickets ?? [])}`.slice(0, 300));
+      console.log(`  unlockMode=${s.unlockMode ?? "—"}  aktiv=${s.active ?? "—"}  link=${shopBase ? `${shopBase}/event/${ed.vivenu_event_id}/${s._id}` : "(VIVENU_SHOP_BASE fehlt)"}`);
+      for (const t of s.tickets ?? []) {
+        console.log(`    baseTicket=${t.baseTicket ?? "— (verwaist)"} ${JSON.stringify(typen.get(t.baseTicket) ?? "?")} preis=${t.price} menge=${t.amount ?? "—"} aktiv=${t.active}`);
+      }
     }
-    const coupons = await vv(`/coupons?top=50`);
+    // Liste: `/coupon` kennt nur POST, gelesen wird ueber `/coupon/rich`.
+    const coupons = await vv(`/coupon/rich?top=50`);
     const list = Array.isArray(coupons) ? coupons : (coupons.docs ?? coupons.rows ?? []);
     console.log(`\nCoupons (${list.length}):`);
     for (const c of list) {
-      console.log(`  ${c._id}  code=${c.code ?? "—"}  unlocks=${JSON.stringify(c.unlocks ?? [])}`.slice(0, 240));
-      console.log(`      Felder: ${Object.keys(c).sort().join(", ")}`);
+      console.log(`  ${c._id}  code=${c.code ?? "—"}  ${c.discountType ?? "—"}/${c.discountValue ?? "—"}  maxTickets=${c.maxTickets ?? "—"}  maxUsage=${c.maxUsage ?? "—"}  aktiv=${c.active}`);
+      console.log(`      allowAllEvents=${c.allowAllEvents}  allowAllTickets=${c.allowAllTickets}  unlocks=${JSON.stringify(c.unlocks ?? [])}`.slice(0, 300));
     }
   },
 

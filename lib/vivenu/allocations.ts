@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { VivenuError, createCoupon, getEvent, hasVivenuKey, putUnderShops, updateCoupon, type UnderShop } from "@/lib/vivenu/client";
+import { VivenuError, createCoupon, getEvent, hasVivenuKey, putUnderShops, updateCoupon, type CouponInput, type UnderShop, type UnderShopTicket } from "@/lib/vivenu/client";
 import { couponCode, undershopName, undershopUrl } from "@/lib/vivenu/naming";
 
 /** Zeile aus `ticket_allocations_pending()`. */
@@ -66,25 +66,59 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
     const orgs = new Map<string, PendingAllocation[]>();
     for (const r of eventRows) orgs.set(r.org_id, [...(orgs.get(r.org_id) ?? []), r]);
     let changed = false;
+    const typeNames = new Map((event.tickets ?? []).map((t) => [String(t._id), String(t.name ?? "Ticket")]));
     for (const [, orgRows] of orgs) {
       const first = orgRows[0];
       const wantedName = undershopName(first.edition_slug, first.org_name);
       const knownId = orgRows.map((r) => r.vivenu_undershop_id ?? r.org_undershop_id).find(Boolean);
       let shop = shops.find((s) => (knownId && s._id === knownId) || s.name === wantedName);
-      const wantedTickets = [...new Set(orgRows.filter((r) => r.status !== "disabled").flatMap((r) => r.ticket_type_ids))];
+      // Je Tickettyp die Summe der Kontingente dieser Org — das ist die Stückzahl,
+      // die der Undershop höchstens hergeben darf.
+      const wanted = new Map<string, number>();
+      for (const r of orgRows) {
+        if (r.status === "disabled") continue;
+        for (const t of r.ticket_type_ids) wanted.set(t, (wanted.get(t) ?? 0) + r.quantity);
+      }
+      const row = (baseTicket: string): UnderShopTicket => ({
+        baseTicket,
+        name: typeNames.get(baseTicket) ?? "Ticket",
+        price: 0,
+        amount: wanted.get(baseTicket) ?? 0,
+        active: true,
+      });
       if (!shop) {
-        shop = { name: wantedName, active: true, unlockMode: "couponCode", tickets: wantedTickets.map((t) => ({ _id: t, price: 0, active: true })) };
+        shop = { name: wantedName, active: true, unlockMode: "couponCode", tickets: [...wanted.keys()].map(row) };
         shops.push(shop);
         changed = true;
-      } else {
-        const have = new Set((shop.tickets ?? []).map((t) => t._id));
-        const missing = wantedTickets.filter((t) => !have.has(t));
-        if (missing.length > 0) {
-          shop.tickets = [...(shop.tickets ?? []), ...missing.map((t) => ({ _id: t, price: 0, active: true }))];
-          shop.active = true;
-          shop.unlockMode = shop.unlockMode ?? "couponCode";
-          changed = true;
+        continue;
+      }
+      // Zeilen ohne `baseTicket` zeigen auf nichts und können nichts verkaufen —
+      // Schrott aus den Fehlversuchen vom 12.09. Sie müssen weg, sonst weist
+      // vivenu das ganze PUT ab (`baseTicket` ist Pflichtfeld).
+      const tickets = (shop.tickets ?? []).filter((t) => Boolean(t.baseTicket));
+      let touched = tickets.length !== (shop.tickets ?? []).length;
+      if (touched) console.warn(`[vivenu] Undershop ${shop._id ?? wantedName}: ${(shop.tickets ?? []).length - tickets.length} Ticketzeile(n) ohne baseTicket entfernt.`);
+      for (const [baseTicket, amount] of wanted) {
+        // vivenu legt neue Tickettypen von selbst in jedem Undershop ab — inaktiv
+        // und zum vollen Preis. Eine solche Zeile wird übernommen, nicht verdoppelt.
+        const existing = tickets.find((t) => t.baseTicket === baseTicket);
+        if (!existing) {
+          tickets.push(row(baseTicket));
+          touched = true;
+          continue;
         }
+        if (existing.price !== 0 || existing.active !== true || existing.amount !== amount) {
+          existing.price = 0;
+          existing.active = true;
+          existing.amount = amount;
+          touched = true;
+        }
+      }
+      if (touched) {
+        changed = true;
+        shop.tickets = tickets;
+        shop.active = true;
+        shop.unlockMode = shop.unlockMode ?? "couponCode";
       }
     }
     let currentShops = shops;
@@ -113,7 +147,7 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
         if (!shop?._id) throw new Error("Undershop ohne _id in der vivenu-Antwort");
         if (r.ticket_type_ids.length === 0) throw new Error(`keine Tickettypen für Pass-Typ ${r.pass_type} in ticket_type_map`);
         if (r.vivenu_coupon_id) {
-          await updateCoupon(r.vivenu_coupon_id, { active: true, maxTickets: r.quantity, allowedTickets: r.ticket_type_ids, unlocks: [{ eventId, underShopId: shop._id }] });
+          await updateCoupon(r.vivenu_coupon_id, couponFields(eventId, shop._id, r));
           await admin.rpc("set_ticket_allocation_vivenu", {
             p_id: r.id, p_status: "active", p_vivenu_undershop_id: shop._id, p_undershop_url: undershopUrl(eventId, shop),
           });
@@ -121,15 +155,7 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
           summary.runs.push({ id: r.id, org: r.org_name, pass_type: r.pass_type, outcome: "updated" });
         } else {
           const code = r.coupon_code ?? couponCode(r.edition_slug, r.org_slug, r.org_name, r.pass_type);
-          const coupon = await createCoupon({
-            name: `${shopName} · ${r.pass_type}`,
-            code,
-            discount: { type: "percentage", value: 100 },
-            maxTickets: r.quantity,
-            allowedTickets: r.ticket_type_ids,
-            unlocks: [{ eventId, underShopId: shop._id }],
-            active: true,
-          });
+          const coupon = await createCoupon({ name: `${shopName} · ${r.pass_type}`, code, ...couponFields(eventId, shop._id, r) });
           await admin.rpc("set_ticket_allocation_vivenu", {
             p_id: r.id, p_status: "active", p_coupon_code: coupon.code ?? code, p_vivenu_coupon_id: String(coupon._id),
             p_vivenu_undershop_id: shop._id, p_undershop_url: undershopUrl(eventId, shop),
@@ -143,6 +169,29 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
     }
   }
   return summary;
+}
+
+/**
+ * Die Rabatt- und Grenzfelder eines Kontingent-Coupons. Anlegen und Ändern
+ * setzen dieselben Werte, damit ein nachträglich erhöhtes Kontingent nicht
+ * an einer alten Grenze hängen bleibt.
+ */
+function couponFields(eventId: string, underShopId: string, r: PendingAllocation): Partial<CouponInput> {
+  return {
+    discountType: "var",
+    discountValue: 100,
+    // Ohne die beiden `allowAll…: false` gälte der Coupon fuer alle Events und
+    // alle Tickettypen des Kontos — siehe CouponInput in lib/vivenu/client.ts.
+    allowAllEvents: false,
+    allowedEvents: [eventId],
+    allowAllTickets: false,
+    allowedTickets: r.ticket_type_ids,
+    unlocks: [{ target: "underShop", eventId, underShopId }],
+    maxTickets: r.quantity,
+    maxUsage: Math.max(1, r.quantity),
+    singleUsage: false,
+    active: true,
+  };
 }
 
 async function failOne(admin: SupabaseClient, r: PendingAllocation, summary: ProvisionSummary, jobId: number | null, e: unknown) {
