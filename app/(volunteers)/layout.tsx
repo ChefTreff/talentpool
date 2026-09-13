@@ -21,7 +21,10 @@ export default async function VolunteersLayout({ children }: { children: ReactNo
   const { t } = await getI18n();
   const { profile, leadShifts } = await getVolunteerScope();
 
-  const items = [{ href: "/volunteers", label: t.volunteers.navProfile }];
+  const items = [
+    { href: "/volunteers", label: t.volunteers.navProfile },
+    { href: "/volunteers/wiki", label: t.volunteers.navWiki },
+  ];
   if (canSeeShifts(profile)) {
     items.push({ href: "/volunteers/schichten", label: t.volunteers.navShifts });
   }

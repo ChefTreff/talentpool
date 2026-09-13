@@ -63,13 +63,14 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     applicants: { href: "/partner/bewerber", label: t.partner.navApplicants },
     stage: { href: "/partner/buehne", label: t.partner.navStage },
     shop: { href: "/partner/shop", label: t.partner.navShop },
+    wiki: { href: "/partner/wiki", label: t.partner.navWiki },
   };
 
   const pick = (keys: PartnerNavKey[]) =>
     keys.filter((k) => allowed.has(k) && PAGES[k]).map((k) => PAGES[k]!);
 
   const groups: SidebarGroup[] = [
-    { label: t.partner.groupOverview, items: pick(["dashboard"]) },
+    { label: t.partner.groupOverview, items: pick(["dashboard", "wiki"]) },
     { label: t.partner.groupCompany, items: pick(["onboarding", "contacts"]) },
     { label: t.partner.groupSummit, items: pick(["checklist", "files", "tickets", "shop"]) },
     { label: t.partner.groupFormats, items: pick(["applicants", "stage"]) },
