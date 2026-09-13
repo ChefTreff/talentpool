@@ -63,9 +63,13 @@ async function edition() {
 /** Pass-Typ aus dem Namen des Tickettyps raten — der Mensch prüft es danach. */
 function guessPassType(name) {
   const n = (name ?? "").toLowerCase();
+  // Die Pässe des FLS27: Student, Talent, Professional, Startup, Investor,
+  // Supporter (dazu Partner, Speaker, Crew für interne Kontingente).
+  //
   // Reihenfolge ist die Logik: das engere Muster zuerst. `student` stand
   // ursprünglich in derselben Zeile wie `talent` und wäre vom Talent Pass
-  // verschluckt worden — beim FLS27 gibt es beide Pässe nebeneinander.
+  // verschluckt worden — beide gibt es nebeneinander. Was auf nichts passt,
+  // wird `professional`; das ist der Pass für alle übrigen Gäste.
   if (/partner|aussteller|exhibitor/.test(n)) return "partner";
   if (/startup|gründer|founder/.test(n)) return "startup";
   if (/investor/.test(n)) return "investor";
@@ -73,7 +77,7 @@ function guessPassType(name) {
   if (/speaker/.test(n)) return "speaker";
   if (/crew|volunteer|helfer/.test(n)) return "crew";
   if (/student|studi/.test(n)) return "student";
-  if (/talent|teilnehmer|attendee/.test(n)) return "talent";
+  if (/talent/.test(n)) return "talent";
   return "professional";
 }
 

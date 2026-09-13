@@ -22,6 +22,8 @@ Kontingente entstehen in der Datenbank aus gebuchten Ticket-Produkten (`product.
 | Undershop-Kontingent | `maxAmount` **und** `maxAmountPerOrder` nötig (`inventoryStrategy: "independent"`) | nichts gesetzt ⇒ nichts in den Warenkorb |
 | Undershop-Verkaufsfenster | `sellStart`/`sellEnd` nötig | nichts gesetzt ⇒ `POST /checkout` „Shop is not on sale" |
 | Fremde Tickettypen | nur eine ausdrücklich **inaktive** Zeile blendet sie aus (`availabilityMode: "contingentsOnly"` hilft nicht) | Undershop zeigt sonst alle Typen des Events |
+
+Der Sync schliesst dabei **nur Typen ohne Zeile**. Wer im Dashboard eine Zeile aktiviert, behält sie — der Lauf macht die Tür zu, die niemand bedacht hat, nicht die, die jemand absichtlich geöffnet hat (Entscheidung Konrad, 13.09.2026).
 | Undershop-Link | `<VIVENU_SHOP_BASE>/event/<eventId>/<underShopId>` | `https://vivenu.dev/e/<eventId>/<id>` |
 | Tickets lesen | `GET /api/tickets?event=<id>&updatedAt[$gt]=<iso>` | `?eventId=`, `?modifiedSince=` ⇒ 400 |
 | Freiticket | `POST /api/tickets/free`, Positionen in `items[]`, Vorname `prename` | `POST /api/tickets/create-free-tickets`, `tickets[]`, `firstname` |

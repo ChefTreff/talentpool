@@ -119,13 +119,19 @@ export function areasFor(roles: readonly string[], isStaff: boolean): Area[] {
 export const DEFAULT_AFTER_LOGIN = "/profil";
 
 /**
- * Wohin nach dem Login, wenn kein Ziel mitkam: in den ersten eigenen Bereich
- * (Feedback-Runde 1, Punkt 2: „Login führt direkt in den einzigen Bereich").
- * Welche das sind, entscheidet `areasFor` — das Teilnehmer-Portal ist nur dabei,
- * wenn es das einzige ist.
+ * Wohin nach dem Login, wenn kein Ziel mitkam (Feedback-Runde 1, Punkt 2:
+ * „Login führt direkt in den einzigen Bereich"). Welche Bereiche zählen,
+ * entscheidet `areasFor` — das Teilnehmer-Portal ist nur dabei, wenn es das
+ * einzige ist.
+ *
+ * Wer Admin hat, landet dort: für das Team ist das der Arbeitsplatz, und die
+ * Reihenfolge in `AREAS` würde sonst nach Zufall entscheiden — Konrad hat
+ * Speaker- und Partner-Testrollen und wäre im Speaker-Portal gelandet
+ * (Entscheidung 13.09.). Sonst gilt der erste eigene Bereich.
  */
 export function landingPathFor(areas: readonly Area[]): string {
-  return areas[0]?.path ?? DEFAULT_AFTER_LOGIN;
+  const admin = areas.find((a) => a.key === "admin");
+  return (admin ?? areas[0])?.path ?? DEFAULT_AFTER_LOGIN;
 }
 
 /** Steuerzeichen fallen in Browsern beim URL-Parsen heraus — vorher verwerfen. */

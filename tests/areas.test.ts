@@ -74,10 +74,13 @@ describe("Einstieg nach dem Login (F1)", () => {
     assert.equal(landingPathFor(areasFor([], false)), "/profil");
   });
 
-  it("nimmt für das Team den ersten Fachbereich der Liste", () => {
-    // Reihenfolge aus AREAS: Speaker vor Partner vor Admin.
-    assert.equal(landingPathFor(areasFor(["speaker", "partner_contact"], false)), "/speaker");
+  it("führt das Team nach Admin, auch mit Testrollen in anderen Bereichen", () => {
+    // Ohne diese Regel entschiede die Reihenfolge in AREAS: Speaker steht vor
+    // Admin, also wäre Konrad mit seinen Testrollen im Speaker-Portal gelandet.
     assert.equal(landingPathFor(areasFor([], true)), "/admin");
+    assert.equal(landingPathFor(areasFor(["speaker", "partner_contact"], true)), "/admin");
+    // Ohne Admin gilt weiter der erste eigene Bereich.
+    assert.equal(landingPathFor(areasFor(["speaker", "partner_contact"], false)), "/speaker");
   });
 });
 
