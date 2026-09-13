@@ -1,13 +1,17 @@
-import { getSessionContext } from "@/lib/auth";
+import { getMyAreas, getSessionContext } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ButtonLink } from "@/components/ui/Button";
+import { landingPathFor } from "@/lib/areas";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const ctx = await getSessionContext();
   const { t } = await getI18n();
+  // Der Knopf führt in den eigenen Bereich, nicht auf einen festen Pfad — sonst
+  // landet eine Speakerin auf dem Teilnehmer-Profil (Feedback-Runde 1, Punkt 2).
+  const target = ctx.user ? landingPathFor(await getMyAreas()) : "/login";
 
   return (
     <>
@@ -29,7 +33,7 @@ export default async function Home() {
           </div>
           <div className="flex flex-wrap gap-3">
             {ctx.user ? (
-              <ButtonLink href="/profil">{t.home.profileCta}</ButtonLink>
+              <ButtonLink href={target}>{t.home.profileCta}</ButtonLink>
             ) : (
               <ButtonLink href="/login">{t.home.loginCta}</ButtonLink>
             )}

@@ -1,14 +1,17 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
-import { AreaShell } from "@/components/layout/AreaShell";
+import { SidebarShell } from "@/components/layout/SidebarShell";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Admin/Manager: Desktop-first, dichte Tabellen — deshalb die breite Fläche.
+ * Admin/Manager: Desktop-first, dichte Tabellen.
  * `requireArea("admin")` prüft serverseitig; der Proxy hat nur vorsortiert.
+ *
+ * Die Punkte stehen hier noch als **eine** Liste — das Clustern nach Bereichen
+ * (Feedback-Runde 1, Punkt 7) ist F2 und kommt im nächsten Schritt; F1 bringt
+ * nur die Seitenleiste.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   await requireArea("admin");
@@ -34,22 +37,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   ];
 
   return (
-    <AreaShell area="admin" width="table">
-      <nav
-        aria-label={t.admin.brand}
-        className="mb-8 flex flex-wrap gap-1 border-b pb-3"
-      >
-        {items.map((i) => (
-          <Link
-            key={i.href}
-            href={i.href}
-            className="rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold text-muted transition-colors hover:bg-surface-hover hover:text-ink"
-          >
-            {i.label}
-          </Link>
-        ))}
-      </nav>
+    <SidebarShell
+      area="admin"
+      label={t.areas.admin.portal}
+      rootHref="/admin"
+      groups={[{ label: "", items }]}
+    >
       {children}
-    </AreaShell>
+    </SidebarShell>
   );
 }

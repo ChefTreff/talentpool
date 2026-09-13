@@ -22,7 +22,8 @@
     "shown": "angezeigt",
     "active": "aktiv",
     "inactive": "inaktiv",
-    "language": "Sprache"
+    "language": "Sprache",
+    "overview": "Übersicht"
   },
   "messages": {
     "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",
@@ -169,40 +170,49 @@
     "login": "Anmelden",
     "logout": "Abmelden",
     "myAreas": "Meine Bereiche",
-    "skipToContent": "Zum Inhalt springen"
+    "skipToContent": "Zum Inhalt springen",
+    "account": "Mein Konto"
   },
   "areas": {
     "talent": {
       "name": "Talent",
-      "description": "Profil, Programm, Bewerbungen und Tickets."
+      "description": "Profil, Programm, Bewerbungen und Tickets.",
+      "portal": "Teilnehmer-Portal"
     },
     "speaker": {
       "name": "Speaker",
-      "description": "Onboarding, Talk, Tech-Rider, Hospitality."
+      "description": "Onboarding, Talk, Tech-Rider, Hospitality.",
+      "portal": "Speaker-Portal"
     },
     "speaker-leads": {
       "name": "Speaker-Leads",
-      "description": "Akquise-Pipeline und Speaker im eigenen Scope."
+      "description": "Akquise-Pipeline und Speaker im eigenen Scope.",
+      "portal": "Speaker-Leads-Portal"
     },
     "partner": {
       "name": "Partner",
-      "description": "Checkliste, Uploads, Kontakte, Messeshop."
+      "description": "Checkliste, Uploads, Kontakte, Messeshop.",
+      "portal": "Partner-Portal"
     },
     "volunteers": {
       "name": "Volunteers",
-      "description": "Präferenzen, Schichten, Shirt, Ticket."
+      "description": "Präferenzen, Schichten, Shirt, Ticket.",
+      "portal": "Volunteer-Portal"
     },
     "hackathon": {
       "name": "Hackathon",
-      "description": "Bewerbung, Teams, Challenges, Einreichung."
+      "description": "Bewerbung, Teams, Challenges, Einreichung.",
+      "portal": "Hackathon-Portal"
     },
     "produktion": {
       "name": "Produktion",
-      "description": "Regie-Ansicht, Stände, Checklisten."
+      "description": "Regie-Ansicht, Stände, Checklisten.",
+      "portal": "Produktions-Portal"
     },
     "admin": {
       "name": "Admin",
-      "description": "Personen, Rollen, Vokabular, Dubletten."
+      "description": "Personen, Rollen, Vokabular, Dubletten.",
+      "portal": "Admin-Portal"
     }
   },
   "placeholder": {

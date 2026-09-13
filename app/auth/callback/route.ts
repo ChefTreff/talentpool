@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type { AuthError, EmailOtpType } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { safeNextPath } from "@/lib/areas";
+import { areasFor, DEFAULT_AFTER_LOGIN, landingPathFor, safeNextPath } from "@/lib/areas";
 
 /**
  * Auth-Rückkehr vom Magic-Link. Unterstützt beide Varianten:
@@ -52,6 +52,21 @@ function classify(error: AuthError): Reason {
   return "auth";
 }
 
+/**
+ * Der Einstieg nach dem Login: direkt in den eigenen Bereich (Feedback-Runde 1,
+ * Punkt 2). Gelesen wird mit derselben, gerade erzeugten Sitzung — `getMyAreas()`
+ * käme zu früh, weil das Cookie erst mit dieser Antwort beim Browser landet.
+ */
+async function landingPath(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+): Promise<string> {
+  const { data } = await supabase.rpc("session_context");
+  const ctx = (data ?? null) as { is_staff?: boolean; roles?: { role: string }[] } | null;
+  if (!ctx) return DEFAULT_AFTER_LOGIN;
+  const roles = (ctx.roles ?? []).map((r) => r.role);
+  return landingPathFor(areasFor(roles, Boolean(ctx.is_staff)));
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = firstToken(searchParams.get("code"));
@@ -60,7 +75,9 @@ export async function GET(request: NextRequest) {
   const type =
     rawType && OTP_TYPES.has(rawType as EmailOtpType) ? (rawType as EmailOtpType) : null;
   // `next` kommt aus der URL und darf nur auf einen Pfad dieses Hosts zeigen.
-  const next = safeNextPath(searchParams.get("next"));
+  // Der leere Rückfall ist Absicht: fehlt ein Ziel, entscheidet unten der
+  // Bereich der Person, nicht ein fester Pfad.
+  const next = safeNextPath(searchParams.get("next"), "");
 
   const supabase = await createSupabaseServerClient();
   let failure: AuthError | null = null;
@@ -86,7 +103,7 @@ export async function GET(request: NextRequest) {
 
   if (!failure) {
     await supabase.rpc("claim_or_create_person");
-    return NextResponse.redirect(`${origin}${next}`);
+    return NextResponse.redirect(`${origin}${next || (await landingPath(supabase))}`);
   }
 
   reason = classify(failure);
