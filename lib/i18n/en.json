@@ -1242,7 +1242,16 @@
     "confirmedOf": "confirmed",
     "lead_assigned": "assigned",
     "lead_confirmed": "confirmed",
-    "leadNobody": "Nobody scheduled yet."
+    "leadNobody": "Nobody scheduled yet.",
+    "ticketTitle": "Your ticket",
+    "ticketLead": "One code for you. Your spot is confirmed once you redeem it.",
+    "ticketPending": "You are in — your code arrives within the next few hours. We will let you know.",
+    "ticketRedeem": "Redeem ticket",
+    "ticketRedeemed": "Redeemed",
+    "ticketRedeemedBody": "Your ticket is in your inbox. See you soon!",
+    "ticketHint": "Enter the code in the shop. One code, one ticket — please do not pass it on.",
+    "copy": "Copy",
+    "copied": "Copied"
   },
   "adminPartner": {
     "title": "Partners",
@@ -1628,7 +1637,24 @@
     "overbookHint": "Seats beyond the capacity, granted deliberately.",
     "briefing": "Briefing",
     "activeShift": "Active",
-    "endBeforeStart": "The end is before the start."
+    "endBeforeStart": "The end is before the start.",
+    "tabTickets": "Tickets",
+    "ticketsTitle": "Volunteer tickets",
+    "ticketsLead": "One code per person. Redeemed means committed.",
+    "colCouponStatus": "Ticket",
+    "colCode": "Code",
+    "colIssued": "Issued",
+    "colRedeemed": "Redeemed",
+    "colReminded": "Reminded",
+    "couponNone": "open",
+    "couponPending": "waiting for vivenu",
+    "couponIssued": "code ready",
+    "couponRedeemed": "redeemed",
+    "couponError": "error",
+    "couponRevoked": "withdrawn",
+    "openCount": "{n} not redeemed yet",
+    "emptyTickets": "No acceptances yet",
+    "emptyTicketsBody": "As soon as you accept applications, the ticket codes appear here."
   },
   "admin": {
     "brand": "ChefTreff Admin",

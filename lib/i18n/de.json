@@ -1242,7 +1242,16 @@
     "confirmedOf": "bestätigt",
     "lead_assigned": "zugeteilt",
     "lead_confirmed": "bestätigt",
-    "leadNobody": "Noch niemand eingeteilt."
+    "leadNobody": "Noch niemand eingeteilt.",
+    "ticketTitle": "Dein Ticket",
+    "ticketLead": "Ein Code für dich. Erst mit dem Einlösen steht dein Platz fest.",
+    "ticketPending": "Du bist angenommen — dein Code kommt in den nächsten Stunden. Wir sagen dir Bescheid.",
+    "ticketRedeem": "Ticket einlösen",
+    "ticketRedeemed": "Eingelöst",
+    "ticketRedeemedBody": "Dein Ticket liegt in deinem Postfach. Bis bald!",
+    "ticketHint": "Code im Shop eingeben. Ein Code, ein Ticket — bitte nicht weitergeben.",
+    "copy": "Kopieren",
+    "copied": "Kopiert"
   },
   "adminPartner": {
     "title": "Partner",
@@ -1628,7 +1637,24 @@
     "overbookHint": "Plätze über die Kapazität hinaus, bewusst vergeben.",
     "briefing": "Briefing",
     "activeShift": "Aktiv",
-    "endBeforeStart": "Das Ende liegt vor dem Beginn."
+    "endBeforeStart": "Das Ende liegt vor dem Beginn.",
+    "tabTickets": "Tickets",
+    "ticketsTitle": "Volunteer-Tickets",
+    "ticketsLead": "Ein Code je Person. Eingelöst heißt zugesagt.",
+    "colCouponStatus": "Ticket",
+    "colCode": "Code",
+    "colIssued": "Ausgegeben",
+    "colRedeemed": "Eingelöst",
+    "colReminded": "Erinnert",
+    "couponNone": "offen",
+    "couponPending": "wartet auf vivenu",
+    "couponIssued": "Code da",
+    "couponRedeemed": "eingelöst",
+    "couponError": "Fehler",
+    "couponRevoked": "zurückgezogen",
+    "openCount": "{n} noch nicht eingelöst",
+    "emptyTickets": "Noch keine Zusagen",
+    "emptyTicketsBody": "Sobald ihr Bewerbungen annehmt, entstehen hier die Ticket-Codes."
   },
   "admin": {
     "brand": "ChefTreff Admin",

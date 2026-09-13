@@ -2,6 +2,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { undershopUrl } from "@/lib/vivenu/naming";
 import { ApplyForm } from "./ApplyForm";
 import { ProfileView } from "./ProfileView";
 import { getVolunteerScope } from "./scope";
@@ -48,6 +49,11 @@ export default async function VolunteersPage() {
           areas={areas}
           locale={locale}
           dateLocale={t.meta.dateLocale}
+          shopUrl={
+            edition?.vivenu_event_id && profile.undershop_id
+              ? undershopUrl(edition.vivenu_event_id, { _id: profile.undershop_id })
+              : null
+          }
           t={t.volunteers}
           common={{ cancel: t.common.cancel, save: t.common.save }}
           rpcMessages={t.rpc}
