@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Board } from "@/components/programme/Board";
 import { loadBoard } from "@/components/programme/load";
+import { TableTabs } from "@/components/programme/TableTabs";
 import { canPublishSessions } from "@/components/programme/permissions";
 import type { ManagerScope } from "../types";
 
@@ -50,6 +51,7 @@ export default async function LeadBoardPage({
     return (
       <>
         <PageHeader title={t.leads.boardTitle} description={t.leads.boardLead} />
+        <TableTabs basePath={PATH} locale="de" />
         <EmptyState
           title={t.admin.programme.noEventTitle}
           description={t.admin.programme.noEventBody}
@@ -61,6 +63,7 @@ export default async function LeadBoardPage({
   return (
     <>
       <PageHeader title={t.leads.boardTitle} description={t.leads.boardLead} />
+      <TableTabs basePath={PATH} locale="de" />
       <Board
         basePath={PATH}
         canPublish={canPublishSessions(roleNames)}

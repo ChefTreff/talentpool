@@ -2036,6 +2036,33 @@
       "markIssue": "Problem melden",
       "saved": "Gespeichert",
       "openFailed": "Die Datei ließ sich nicht öffnen."
+    },
+    "programmeTable": {
+      "tabBoard": "Kalender",
+      "tabTable": "Tabelle",
+      "filterSearch": "Suchen (Titel, Bühne, Speaker)",
+      "filterAllStages": "Alle Bühnen",
+      "filterAllDays": "Alle Tage",
+      "filterAllStatus": "Alle Status",
+      "rowCount": "{n} von {total} Zeilen",
+      "emptyTitle": "Nichts gefunden",
+      "emptyBody": "Kein Slot passt zu diesen Filtern. Filter zurücksetzen oder einen anderen Tag wählen.",
+      "colStage": "Bühne",
+      "colDay": "Tag",
+      "colTime": "Zeit",
+      "colTitle": "Titel",
+      "colFormat": "Format",
+      "colSpeakers": "Speaker",
+      "colStatus": "Status",
+      "colPublish": "Website",
+      "noSession": "Noch keine Session",
+      "noSpeakers": "keine",
+      "addSpeaker": "+ Speaker",
+      "removeSpeaker": "{name} entfernen",
+      "searchPerson": "Person suchen",
+      "searching": "sucht …",
+      "close": "Schließen",
+      "saved": "Gespeichert"
     }
   },
   "errors": {

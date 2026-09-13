@@ -2036,6 +2036,33 @@
       "markIssue": "Report an issue",
       "saved": "Saved",
       "openFailed": "The file could not be opened."
+    },
+    "programmeTable": {
+      "tabBoard": "Calendar",
+      "tabTable": "Table",
+      "filterSearch": "Search (title, stage, speaker)",
+      "filterAllStages": "All stages",
+      "filterAllDays": "All days",
+      "filterAllStatus": "All statuses",
+      "rowCount": "{n} of {total} rows",
+      "emptyTitle": "Nothing found",
+      "emptyBody": "No slot matches these filters. Reset the filters or pick another day.",
+      "colStage": "Stage",
+      "colDay": "Day",
+      "colTime": "Time",
+      "colTitle": "Title",
+      "colFormat": "Format",
+      "colSpeakers": "Speakers",
+      "colStatus": "Status",
+      "colPublish": "Website",
+      "noSession": "No session yet",
+      "noSpeakers": "none",
+      "addSpeaker": "+ Speaker",
+      "removeSpeaker": "Remove {name}",
+      "searchPerson": "Find a person",
+      "searching": "searching …",
+      "close": "Close",
+      "saved": "Saved"
     }
   },
   "errors": {

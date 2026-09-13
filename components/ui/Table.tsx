@@ -33,15 +33,22 @@ export function Thead({ children }: { children: ReactNode }) {
 export function Th({
   children,
   numeric,
+  /**
+   * Sortierrichtung dieser Spalte. Gehört an die Zelle, nicht an den Knopf
+   * darin: `aria-sort` ist nur für `columnheader` definiert.
+   */
+  sort,
   className,
 }: {
   children?: ReactNode;
   numeric?: boolean;
+  sort?: "ascending" | "descending" | "none";
   className?: string;
 }) {
   return (
     <th
       scope="col"
+      aria-sort={sort}
       className={cn(
         "ct-eyebrow px-4 py-3 text-muted",
         numeric && "text-right",

@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Board } from "@/components/programme/Board";
 import { loadBoard } from "@/components/programme/load";
+import { TableTabs } from "@/components/programme/TableTabs";
 import { canPublishSessions } from "@/components/programme/permissions";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,7 @@ export default async function ProgrammPage({
     return (
       <>
         <PageHeader title={t.admin.programme.title} description={t.admin.programme.lead} />
+        <TableTabs basePath={PATH} />
         <EmptyState
           title={t.admin.programme.noEventTitle}
           description={t.admin.programme.noEventBody}
@@ -41,6 +43,7 @@ export default async function ProgrammPage({
   return (
     <>
       <PageHeader title={t.admin.programme.title} description={t.admin.programme.lead} />
+      <TableTabs basePath={PATH} />
       <Board
         basePath={PATH}
         canPublish={canPublishSessions(roleNames)}
