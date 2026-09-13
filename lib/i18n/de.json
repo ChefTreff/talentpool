@@ -1648,7 +1648,16 @@
       "speakerTickets": "Speaker-Tickets",
       "hospitality": "Hotels",
       "deadlines": "Fristen",
-      "tech": "Technik"
+      "tech": "Technik",
+      "sections": {
+        "participants": "Teilnehmende",
+        "speaker": "Speaker",
+        "partner": "Partner",
+        "volunteers": "Volunteers",
+        "system": "System"
+      },
+      "partnerCare": "Betreuung & Messeshop",
+      "volunteersWork": "Bewerbungen & Schichten"
     },
     "overview": {
       "title": "Übersicht",

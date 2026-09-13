@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
-import { SidebarShell } from "@/components/layout/SidebarShell";
+import { SidebarShell, type SidebarGroup } from "@/components/layout/SidebarShell";
 
 export const dynamic = "force-dynamic";
 
@@ -9,40 +9,67 @@ export const dynamic = "force-dynamic";
  * Admin/Manager: Desktop-first, dichte Tabellen.
  * `requireArea("admin")` prüft serverseitig; der Proxy hat nur vorsortiert.
  *
- * Die Punkte stehen hier noch als **eine** Liste — das Clustern nach Bereichen
- * (Feedback-Runde 1, Punkt 7) ist F2 und kommt im nächsten Schritt; F1 bringt
- * nur die Seitenleiste.
+ * **Sortiert nach Portal, nicht alphabetisch** (Feedback-Runde 1, Punkt 7):
+ * Wer die Speaker betreut, findet Tickets, Reisekosten, Hotels und den
+ * Technik-Check beieinander, statt sie aus sechzehn Punkten zu fischen. Was
+ * für alle Bereiche gilt — Personen, Rollen, Fristen, Vokabular, Mail —
+ * steht unter „System".
+ *
+ * Die dritte Ebene bleibt **in** der Seite: Partner und Volunteers führen ihre
+ * Unterseiten als Reiter (`SectionTabs`). Sie hier zusätzlich aufzuzählen
+ * hieße, dieselben Links zweimal zu pflegen; die Seitenleiste nennt deshalb
+ * das Ziel und nicht jede Abzweigung.
+ *
+ * Hackathon und Produktion haben noch keine Admin-Seite — ihre Abschnitte
+ * kommen mit PR 25 und PR 28 dazu.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   await requireArea("admin");
   const { t } = await getI18n();
+  const nav = t.admin.nav;
 
-  const items = [
-    { href: "/admin", label: t.admin.nav.overview },
-    { href: "/admin/programm", label: t.admin.nav.programme },
-    { href: "/admin/bewerbungen", label: t.admin.nav.applications },
-    { href: "/admin/partner", label: t.admin.nav.partners },
-    { href: "/admin/volunteers", label: t.admin.nav.volunteers },
-    { href: "/admin/rollen", label: t.admin.nav.roles },
-    { href: "/admin/speaker-tickets", label: t.admin.nav.speakerTickets },
-    { href: "/admin/reisekosten", label: t.admin.nav.expenses },
-    { href: "/admin/hospitality", label: t.admin.nav.hospitality },
-    { href: "/admin/technik", label: t.admin.nav.tech },
-    { href: "/admin/fristen", label: t.admin.nav.deadlines },
-    { href: "/admin/personen", label: t.admin.nav.persons },
-    { href: "/admin/vokabular", label: t.admin.nav.vocab },
-    { href: "/admin/dubletten", label: t.admin.nav.duplicates },
-    { href: "/admin/mail", label: t.admin.nav.mail },
-    { href: "/admin/ui", label: t.admin.nav.ui },
+  const groups: SidebarGroup[] = [
+    { label: "", items: [{ href: "/admin", label: nav.overview }] },
+    {
+      label: nav.sections.participants,
+      items: [
+        { href: "/admin/bewerbungen", label: nav.applications },
+        { href: "/admin/programm", label: nav.programme },
+      ],
+    },
+    {
+      label: nav.sections.speaker,
+      items: [
+        { href: "/admin/speaker-tickets", label: nav.speakerTickets },
+        { href: "/admin/reisekosten", label: nav.expenses },
+        { href: "/admin/hospitality", label: nav.hospitality },
+        { href: "/admin/technik", label: nav.tech },
+      ],
+    },
+    {
+      label: nav.sections.partner,
+      items: [{ href: "/admin/partner", label: nav.partnerCare }],
+    },
+    {
+      label: nav.sections.volunteers,
+      items: [{ href: "/admin/volunteers", label: nav.volunteersWork }],
+    },
+    {
+      label: nav.sections.system,
+      items: [
+        { href: "/admin/personen", label: nav.persons },
+        { href: "/admin/rollen", label: nav.roles },
+        { href: "/admin/fristen", label: nav.deadlines },
+        { href: "/admin/vokabular", label: nav.vocab },
+        { href: "/admin/dubletten", label: nav.duplicates },
+        { href: "/admin/mail", label: nav.mail },
+        { href: "/admin/ui", label: nav.ui },
+      ],
+    },
   ];
 
   return (
-    <SidebarShell
-      area="admin"
-      label={t.areas.admin.portal}
-      rootHref="/admin"
-      groups={[{ label: "", items }]}
-    >
+    <SidebarShell area="admin" label={t.areas.admin.portal} rootHref="/admin" groups={groups}>
       {children}
     </SidebarShell>
   );

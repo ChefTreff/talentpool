@@ -1648,7 +1648,16 @@
       "speakerTickets": "Speaker tickets",
       "hospitality": "Hotels",
       "deadlines": "Deadlines",
-      "tech": "Tech"
+      "tech": "Tech",
+      "sections": {
+        "participants": "Participants",
+        "speaker": "Speakers",
+        "partner": "Partners",
+        "volunteers": "Volunteers",
+        "system": "System"
+      },
+      "partnerCare": "Support & trade-show shop",
+      "volunteersWork": "Applications & shifts"
     },
     "overview": {
       "title": "Overview",
