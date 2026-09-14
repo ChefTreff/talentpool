@@ -306,7 +306,7 @@ export function Wizard({
             type="button"
             disabled={pending}
             onClick={() => setIndex((i) => i + 1)}
-            className="ct-link text-[14px]"
+            className="ct-link ct-small"
           >
             {t.skip}
           </button>
@@ -344,7 +344,7 @@ function ChipGroup({
               aria-pressed={active}
               onClick={() => onToggle(o.key)}
               className={cn(
-                "min-h-11 rounded-ct-md border px-3 py-1.5 text-[14px] font-semibold transition-colors",
+                "min-h-11 rounded-ct-md border px-3 py-1.5 ct-label transition-colors",
                 active
                   ? "border-accent bg-accent-soft text-accent-deep"
                   : "border-border bg-surface text-ink hover:bg-surface-hover",
@@ -395,7 +395,7 @@ function ConsentRow({
                 <span aria-hidden className="ml-0.5 text-error-ink">
                   *
                 </span>
-                <span className="ml-1 text-[12px] font-semibold text-muted">
+                <span className="ml-1 ct-help font-semibold">
                   ({requiredLabel})
                 </span>
               </>

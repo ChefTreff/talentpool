@@ -96,7 +96,7 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
           {/* Rollen-Postfach, keine privaten Kontaktdaten (Arbeitsauftrag C). */}
           <a
             href={`mailto:${PARTNER_MAILBOX}`}
-            className="text-[14px] font-semibold text-on-navy underline"
+            className="ct-label text-on-navy underline"
           >
             {PARTNER_MAILBOX}
           </a>

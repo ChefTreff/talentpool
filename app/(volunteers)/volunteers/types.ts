@@ -17,6 +17,11 @@ export type VolunteerProfile = {
   decided_at: string | null;
   decision_note: string | null;
   shifts: number;
+  /** Ticket (A6). `coupon_code` und `undershop_id` nur, wenn es etwas zu zeigen gibt. */
+  coupon_status: string;
+  coupon_code: string | null;
+  redeemed_at: string | null;
+  undershop_id: string | null;
 };
 
 /** Zeile aus `my_shifts()`. */

@@ -151,7 +151,7 @@ export function ContactList({
                           title={role === "primary_ops" ? t.primaryViaTransfer : undefined}
                           onClick={() => toggleRole(c, role)}
                           className={
-                            "rounded-ct-sm border px-2 py-0.5 text-[13px] font-semibold transition-colors " +
+                            "rounded-ct-sm border px-2 py-0.5 ct-label ct-help transition-colors " +
                             (on
                               ? "border-accent bg-accent-soft text-accent-deep"
                               : "border-border bg-surface text-muted hover:bg-surface-hover") +
@@ -252,7 +252,7 @@ export function ContactList({
                     aria-pressed={draft.roles.includes(role)}
                     onClick={() => toggleDraftRole(role)}
                     className={
-                      "rounded-ct-sm border px-2 py-0.5 text-[13px] font-semibold transition-colors " +
+                      "rounded-ct-sm border px-2 py-0.5 ct-label ct-help transition-colors " +
                       (draft.roles.includes(role)
                         ? "border-accent bg-accent-soft text-accent-deep"
                         : "border-border bg-surface text-muted hover:bg-surface-hover")

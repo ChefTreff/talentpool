@@ -31,7 +31,7 @@ export function LocaleSwitcher({
             aria-pressed={active}
             onClick={() => start(async () => void (await setLocale(l)))}
             className={cn(
-              "rounded-ct-sm px-2 py-1 text-[13px] font-semibold uppercase transition-colors",
+              "rounded-ct-sm px-2 py-1 ct-label ct-help uppercase transition-colors",
               active
                 ? "bg-on-navy/15 text-on-navy"
                 : "text-on-navy-muted hover:text-on-navy disabled:opacity-50",

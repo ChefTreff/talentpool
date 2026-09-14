@@ -341,7 +341,7 @@ export function ExpenseWizard({
                   ) : (
                     <Badge tone="warning">{t.receiptMissing}</Badge>
                   )}
-                  <label className="text-[13px]">
+                  <label className="ct-help">
                     <input
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png,.webp"

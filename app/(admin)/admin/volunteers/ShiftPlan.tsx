@@ -308,7 +308,7 @@ export function ShiftPlan({
                     <Badge tone={TONE[p.status] ?? "neutral"}>
                       {t[`assign_${p.status}`] ?? p.status}
                     </Badge>
-                    <span className="text-[15px] text-ink">{p.name || common.none}</span>
+                    <span className="text-ink">{p.name || common.none}</span>
                     <Button
                       size="sm"
                       variant="ghost"

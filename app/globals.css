@@ -32,6 +32,10 @@
   --ct-accent-strong: #5b5bd9;
   --ct-accent-deep: #4a4ac5;
   --ct-accent-soft: #e8e8fc;
+  /* Highlight-Pink des Brandbooks (Entscheidung 14.09.2026): einzig für das
+     Highlight-Wort auf Navy (Login/Welcome/Begrüßung) — 8.0:1 auf #081A35.
+     Nie auf hellem Grund (auf Weiß nur 2.2:1), nie UI- oder Statusfarbe. */
+  --ct-highlight: #ff88cf;
 
   /* --- Semantik (Soft-Fläche + abgedunkelter Text, nie Farbe allein) -------- */
   --ct-success: #34d399;
@@ -90,6 +94,7 @@
   --color-accent-strong: var(--ct-accent-strong);
   --color-accent-deep: var(--ct-accent-deep);
   --color-accent-soft: var(--ct-accent-soft);
+  --color-highlight: var(--ct-highlight);
 
   --color-success: var(--ct-success);
   --color-success-soft: var(--ct-success-soft);
@@ -158,76 +163,124 @@ body {
 /* =============================================================================
  * Typografie-Rollen (Portal-Skala §3) — als Utility-Klassen, damit Komponenten
  * und Seiten dieselbe Skala benutzen.
+ *
+ * In `@layer components`, damit Tailwind-Utilities gewinnen. Ohne Layer stehen
+ * diese Regeln **ausserhalb** jeder Cascade-Layer und schlagen damit jede
+ * Utility — `class="ct-help text-on-navy-muted"` hätte auf der Navy-Leiste den
+ * dunklen Hilfstext behalten und wäre unlesbar geblieben. Mit Layer lässt sich
+ * jede Rolle mit einer Farbklasse kombinieren, und genau das braucht eine
+ * Skala, die auf Hell **und** auf Navy gilt (F7, 14.09.2026).
  * ========================================================================== */
-.ct-h1 {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 28px;
-  line-height: 32px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-@media (max-width: 767px) {
+@layer components {
   .ct-h1 {
-    font-size: 24px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 28px;
+    line-height: 32px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  @media (max-width: 767px) {
+    .ct-h1 {
+      font-size: 24px;
+      line-height: 28px;
+    }
+  }
+  .ct-h2 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 18px;
+    line-height: 24px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .ct-h3 {
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .ct-eyebrow {
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .ct-label {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .ct-help {
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--ct-muted);
+  }
+  /* 14 px ohne Fettung. Die Skala kannte 14 px nur als `.ct-label` (600) —
+     dadurch standen im Code 23-mal rohe `text-[14px]` für gewöhnlichen
+     Kleintext: Optionen in Auswahllisten, Definitionen, Hinweiszeilen. Eine
+     Skala, die den halben Bedarf nicht ausdrücken kann, wird umgangen, und
+     dann stimmt sie nirgends mehr. Weder Farbe noch Fettung — beides kommt
+     von der Stelle (F7, 14.09.2026). */
+  .ct-small {
+    font-size: 14px;
+    line-height: 20px;
+  }
+  /* Wortmarke in der Topbar: das Logo-Lockup, kein UI-Text. Eigene Rolle,
+     damit der einzige Ort mit Markenschrift im Arbeitsbereich nicht als rohe
+     Werte in einer Komponente steht (Brandbook: Sharp Sans Extrabold,
+     Versalien, Tracking ~3 %). */
+  /* Welcome-Headline: die einzige Marketing-Überschrift im Portal. Grösser als
+     `.ct-h1` (28 px), aber als Rolle statt als rohe Werte an einer Stelle. */
+  .ct-display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 40px;
+    line-height: 44px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  @media (min-width: 768px) {
+    .ct-display {
+      font-size: 52px;
+      line-height: 56px;
+    }
+  }
+  .ct-wordmark {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  /* Ein kursives Wort pro Screen — nie UI-Text. */
+  .ct-laica {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 20px;
     line-height: 28px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* Highlight-Wort auf Login/Welcome: ExtraBold Italic in Akzentfarbe (§3).
+     Eigene Familie, weil die kursiven Schnitte nicht vorgeladen werden. */
+  .ct-highlight {
+    font-family: var(--font-display-italic);
+    font-style: italic;
+    font-weight: 800;
+  }
+
+  /* Inline-Link: Akzentwort mit Unterstreichung, kein Fett/Italic. */
+  .ct-link {
+    color: var(--ct-accent-strong);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .ct-link:hover {
+    color: var(--ct-accent-deep);
   }
 }
-.ct-h2 {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 18px;
-  line-height: 24px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-.ct-h3 {
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 24px;
-}
-.ct-eyebrow {
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.ct-label {
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 20px;
-}
-.ct-help {
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--ct-muted);
-}
-/* Ein kursives Wort pro Screen — nie UI-Text. */
-.ct-laica {
-  font-family: var(--font-accent);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 20px;
-  line-height: 28px;
-  text-transform: none;
-  letter-spacing: 0;
-}
 
-/* Highlight-Wort auf Login/Welcome: ExtraBold Italic in Akzentfarbe (§3).
-   Eigene Familie, weil die kursiven Schnitte nicht vorgeladen werden. */
-.ct-highlight {
-  font-family: var(--font-display-italic);
-  font-style: italic;
-  font-weight: 800;
-}
-
-/* Inline-Link: Akzentwort mit Unterstreichung, kein Fett/Italic. */
-.ct-link {
-  color: var(--ct-accent-strong);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.ct-link:hover {
-  color: var(--ct-accent-deep);
-}

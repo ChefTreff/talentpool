@@ -54,3 +54,13 @@ Der Sync schliesst dabei **nur Typen ohne Zeile**. Wer im Dashboard eine Zeile a
 - Dev (`vivenu.dev`) und Prod verhalten sich identisch; Rate-Limit praktisch höher als 1.000/h, bei 429 mit Backoff wiederholen (Folgeaufgabe im Client).
 - Webhooks: Raw-Body signieren, Webhook-ID für Idempotenz, 7 Versuche mit Backoff; Personalisierung kommt als `ticket.updated`.
 
+## Volunteer-Tickets (Welle 4 A6, Migration 0084)
+
+Ein eigener Undershop je Edition (`FLS27 · Volunteers`) und darin ein **persönlicher** Coupon je angenommenem Volunteer — nicht ein Sammelcode. Grund: das Einlösen ist der Aktivierungsschritt (Entscheidung E2). Ein Sammelcode sagt nur, *dass* jemand eingelöst hat; ein persönlicher sagt *wer*, und genau das braucht der Schichtplan.
+
+- Route `/api/cron/volunteer-tickets` (alle 6 Stunden, `CRON_SECRET`), `?profil=<id>` für einen einzelnen. Sie legt den Shop beim ersten Lauf an und merkt ihn an `event.vivenu_volunteer_undershop_id`.
+- Coupon je Person: `maxTickets: 1`, `maxUsage: 1`, `singleUsage: true`, `allowAllEvents: false`. Code ohne I, O, 0 und 1 — er wird vorgelesen und abgeschrieben.
+- **Einlösung erkennt ein Trigger auf `ticket`**, nicht der Ingest: so greift sie auf jedem Weg, über den ein Ticket hereinkommt (Webhook, Sweep, Nachtrag). Schlüssel ist der Coupon, wenn vivenu ihn mitschickt, sonst Undershop + Person — `appliedDiscountInfo` fehlt am `ticket.created`-Webhook und steht erst an der Transaktion.
+- Erinnerung `volunteer_ticket_reminder` sieben Tage nach der Ausgabe, **einmal** (`reminded_at`).
+- Zusage zurückgenommen ⇒ Coupon `revoked`; der Code bleibt stehen, damit im Support nachvollziehbar ist, was jemand in der Hand hatte.
+- Liste „nicht eingelöst": `/admin/volunteers/tickets`, offene Fälle zuerst.

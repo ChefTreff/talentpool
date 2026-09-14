@@ -186,7 +186,7 @@ export function SpeakerDrawer({
                 }
               />
             </Field>
-            <label className="flex items-center gap-2 text-[14px] font-semibold">
+            <label className="flex items-center gap-2 ct-label">
               <input
                 type="checkbox"
                 className="size-4"
@@ -197,7 +197,7 @@ export function SpeakerDrawer({
               />
               {t.receptionEligible}
             </label>
-            <label className="flex items-center gap-2 text-[14px] font-semibold">
+            <label className="flex items-center gap-2 ct-label">
               <input
                 type="checkbox"
                 className="size-4"
@@ -251,7 +251,7 @@ export function SpeakerDrawer({
                   }
                 />
               </Field>
-              <label className="flex items-center gap-2 self-end pb-2 text-[14px] font-semibold">
+              <label className="flex items-center gap-2 self-end pb-2 ct-label">
                 <input
                   type="checkbox"
                   className="size-4"
