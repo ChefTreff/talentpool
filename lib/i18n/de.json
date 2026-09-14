@@ -2151,6 +2151,11 @@
     "teamsEmpty": "No teams yet",
     "teamsEmptyBody": "Teams appear as soon as people sign up.",
     "discord": "Discord",
-    "discordHint": "Everything else happens on Discord."
+    "discordHint": "Everything else happens on Discord.",
+    "navSchedule": "Zeitplan",
+    "scheduleTitle": "Zeitplan",
+    "scheduleLead": "Was wann passiert, und wo.",
+    "scheduleEmpty": "No schedule yet",
+    "scheduleEmptyBody": "The programme team is still putting it together. Check back soon."
   }
 }

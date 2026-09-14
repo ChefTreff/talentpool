@@ -24,6 +24,7 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ ActiveCampaign: Segment-Push + Opt-in-Rückfluss; **Reaktivierungs-Kampagne** (Lead → Talent) vorbereitet.
 - ☐ SevDesk: Rechnungsentwürfe (Partner, Messeshop, Auslagen) automatisiert; Freigabe-Flow Konrad.
 - ☐ **Badge-Druck-System** festgelegt (Oktober) und Datenquelle angebunden.
+- ☐ **Discord für den Hackathon** aufsetzen (Entscheidung E3: Discord bleibt der Kommunikationskanal). Server anlegen, Einladung erzeugen, als `HACKATHON_DISCORD_URL` setzen (`sh scripts/env-set.sh HACKATHON_DISCORD_URL --config`). Ohne die Variable bleibt die Discord-Kachel im Teilnehmerportal aus — das Portal funktioniert, nur der Verweis fehlt. Geplant in einigen Wochen (Konrad, 14.09.2026).
 
 ## Dokumentation & Reproduzierbarkeit
 - ☐ **Reproduktionstest**: frisches Supabase-Projekt + Vercel-Deploy allein aus Repo/Doku hochgezogen (Migrationen, Seeds, Env-Vorlage, Runbooks).

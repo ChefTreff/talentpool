@@ -25,6 +25,7 @@ export default async function HackathonLayout({ children }: { children: ReactNod
           items: [
             { href: "/hackathon", label: t.hackathon.navOverview },
             { href: "/hackathon/challenges", label: t.hackathon.navChallenges },
+            { href: "/hackathon/schedule", label: t.hackathon.navSchedule },
             // Bewertung und Teams beantworten die RPCs für Unbefugte mit 42501;
             // die Seiten werden dann zu 404. Die Punkte hier zu verstecken
             // hiesse, die Rollen zweimal zu pflegen — einmal in SQL, einmal im
