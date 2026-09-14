@@ -16,12 +16,15 @@ export function Countdown({
   days,
   hours,
   soon,
+  separator,
 }: {
   dueAt: string;
   /** „noch {n} Tage" */
   days: string;
   /** „noch {n} Stunden" */
   hours: string;
+  /** Trenner „ · " voranstellen (Inline-Verwendung hinter einem Datum). */
+  separator?: boolean;
   /** unter einer Stunde */
   soon: string;
 }) {
@@ -47,5 +50,8 @@ export function Countdown({
   }, [dueAt, days, hours, soon]);
 
   if (!text) return null;
-  return <> · {text}</>;
+  // `separator` ist der Trenner, wenn die Restzeit **hinter** einem Datum in
+  // derselben Zeile steht. Steht sie für sich (F9.2, grosse Frist), fällt er
+  // weg — ein führendes „·" ohne etwas davor sieht nach einem Fehler aus.
+  return separator ? <> · {text}</> : <>{text}</>;
 }

@@ -195,6 +195,7 @@ export default async function PartnerDashboard() {
                   <span className="ct-help tabular-nums">
                     {dateTime.format(new Date(d.due_at!))}
                     <Countdown
+                      separator
                       dueAt={d.due_at!}
                       days={t.partner.countdownDays}
                       hours={t.partner.countdownHours}
