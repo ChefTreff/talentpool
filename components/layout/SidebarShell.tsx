@@ -56,11 +56,16 @@ export async function SidebarShell({
   const { locale: aktiv, t } = await getI18n(locale);
   const [ctx, areas] = await Promise.all([getSessionContext(), getMyAreas()]);
 
-  // Der Admin-Bereich wird aus der Portalliste genommen und separat geführt.
-  // Das ist eine Frage der Darstellung — an den Rechten ändert sich nichts,
-  // darüber entscheidet weiterhin `is_staff()` in SQL.
+  // Zwei Bereiche stehen nicht in der Portalauswahl:
+  //   * **Admin** ist kein Portal neben den anderen, sondern die Verwaltung
+  //     dahinter — sein Weg sitzt unten in der Leiste (F8.6).
+  //   * **Einlass** ist eine Geräte-App. Das Kiosk-Konto landet direkt dort,
+  //     und das Team erreicht den Einlass über den Admin-Bereich; als Eintrag
+  //     zwischen den Portalen stünde er nur im Weg.
+  // Beides ist Darstellung — an den Rechten ändert sich nichts, darüber
+  // entscheidet weiterhin `is_staff()` in SQL.
   const portale = areas
-    .filter((a) => a.key !== "admin")
+    .filter((a) => a.key !== "admin" && a.key !== "checkin")
     .map((a) => ({ key: a.key, path: a.path, name: t.areas[a.key].name }));
   const admin = areas.find((a) => a.key === "admin");
 

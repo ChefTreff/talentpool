@@ -168,3 +168,30 @@ describe("Kiosk am Einlass (B4/E8)", () => {
     assert.equal(opensAny(["checkin"], ["admin"]), true);
   });
 });
+
+describe("Portalauswahl in der Seitenleiste (F8.6)", () => {
+  /** Was `SidebarShell` als Portalliste anbietet. */
+  const portale = (roles: string[], isStaff = false) =>
+    areasFor(roles, isStaff)
+      .filter((a) => a.key !== "admin" && a.key !== "checkin")
+      .map((a) => a.key);
+
+  it("führt weder Admin noch Einlass als Portal", () => {
+    // Admin ist die Verwaltung hinter den Portalen und steht unten in der
+    // Leiste; der Einlass ist eine Geräte-App, das Kiosk-Konto landet direkt
+    // dort und das Team erreicht ihn über den Admin-Bereich.
+    const alle = portale([], true);
+    assert.equal(alle.includes("admin"), false);
+    assert.equal(alle.includes("checkin"), false);
+    // Mit globalem Admin öffnet `canEnterArea` jeden Bereich — gerade dann
+    // dürfen die beiden nicht in der Liste stehen.
+    const konrad = portale(["admin"], true);
+    assert.equal(konrad.includes("admin"), false);
+    assert.equal(konrad.includes("checkin"), false);
+    assert.equal(konrad.includes("speaker"), true);
+  });
+
+  it("lässt die echten Portale unangetastet", () => {
+    assert.deepEqual(portale(["speaker"]), ["talent", "speaker"]);
+  });
+});
