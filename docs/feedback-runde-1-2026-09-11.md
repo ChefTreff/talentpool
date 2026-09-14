@@ -20,4 +20,4 @@ Gilt für die Build-Session als **Querschnitts-Auftrag F** neben Welle 4 (Abschn
 - **F6** Bewerbungs-Übersicht überarbeiten — nach Termin mit Konrad.
 - **F7** Design-Durchgang nach dem geschärften Briefing/Skill (mehr Brand Book: Farbe, Elemente), nach F1 auf der neuen Shell; Tokens in `app/globals.css`/Komponenten, keine Sonderwege je Bereich. Mit geladenem Skill `/portal-design` (verbindlich seit 12.09.2026); Akzent seit 12.09. `#6262DC` über den Token.
 
-**Stand 14.09.2026:** F1–F3 (#29), F5 (#23) und F7 (#34) gemergt; F7-Entscheidungen: drei Typo-Rollen akzeptiert, Highlight-Wort im Highlight-Pink (Token `highlight`). Offen: F4 (Abgleich mit den Alt-Portalen) und F6 (Bewerbungs-Übersicht, Termin mit Konrad).
+**Stand 14.09.2026:** F1–F3 (#29), F5 (#23) und F7 (#34) gemergt; F7-Entscheidungen: drei Typo-Rollen akzeptiert, Highlight-Wort im Highlight-Pink (Token `highlight`). **F4 durch** — Lückenliste in `docs/feedback-runde-1-abgleich.md`; zehn Lücken gefunden, nach Gewicht sortiert, nichts davon gebaut (Punkt 4 verlangt Rücksprache vor Nachbauten). Offen: F6 (Bewerbungs-Übersicht, Termin mit Konrad).
