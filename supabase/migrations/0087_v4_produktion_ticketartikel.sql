@@ -1,4 +1,4 @@
--- 0086 · Welle 4 · Produktion: Ticket-Kontingente gehören nicht auf die Stand-Checkliste
+-- 0087 · Welle 4 · Produktion: Ticket-Kontingente gehören nicht auf die Stand-Checkliste
 --
 -- Befund aus dem Walkthrough am 14.09.2026: Auf der Stand-Checkliste standen
 -- neben Mobiliar und Technik auch die Ticket-Kontingente eines Partners

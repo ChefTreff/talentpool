@@ -1,11 +1,11 @@
--- Smoke-Test 0086 (Produktion · Ticketartikel). Belegt:
+-- Smoke-Test 0087 (Produktion · Ticketartikel). Belegt:
 --   01 ein gebuchtes Ticket-Kontingent (`addon` / category `tickets`) steht
 --      **nicht** auf der Stand-Checkliste, ein gebuchter Shop-Artikel schon;
 --   02 dasselbe Kontingent taucht in der Bestellliste je Dienstleister nicht auf;
 --   03 der Filter hängt nicht am Namen: ein Artikel, der nur `pass_type` trägt,
 --      fällt ebenfalls raus;
 --   04 die Rechteprüfung bleibt, wo sie war (ohne Rolle 42501).
--- Vor 0086 waren 01–03 rot: `type in ('shop_item','addon')` liess die
+-- Vor 0087 waren 01–03 rot: `type in ('shop_item','addon')` liess die
 -- Kontingente durch (Walkthrough 14.09.2026).
 begin;
 create temp table t_res (step text, result text) on commit drop;
@@ -91,5 +91,5 @@ begin
 end $$;
 select * from t_res order by step;
 rollback;
--- Lauf am 14.09. gegen Frankfurt: ohne 0086 rot (01, 02, 03 „GELISTET (BUG)"),
--- mit 0086 im selben Transaktionsblock alle sechs gruen.
+-- Lauf am 14.09. gegen Frankfurt: ohne 0087 rot (01, 02, 03 „GELISTET (BUG)"),
+-- mit 0087 im selben Transaktionsblock alle sechs gruen.
