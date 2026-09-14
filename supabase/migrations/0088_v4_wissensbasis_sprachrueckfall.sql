@@ -1,4 +1,4 @@
--- 0087 · Welle 4 · Wissensbasis: Rückfall auf die andere Sprache
+-- 0088 · Welle 4 · Wissensbasis: Rückfall auf die andere Sprache
 --
 -- Befund aus dem Walkthrough am 14.09.2026: `/speaker/wiki` war leer, obwohl
 -- Artikel für die Zielgruppe da waren — sie lagen auf Englisch, die Seite

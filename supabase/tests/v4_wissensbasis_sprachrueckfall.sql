@@ -1,4 +1,4 @@
--- Smoke-Test 0087 (Wissensbasis · Sprachrückfall). Belegt:
+-- Smoke-Test 0088 (Wissensbasis · Sprachrückfall). Belegt:
 --   01 gibt es den Artikel nur auf Englisch, kommt er auch bei p_language='de'
 --      — mit `language = 'en'` in der Antwort, damit die Seite es kennzeichnen kann;
 --   02 gibt es beide Sprachen, gewinnt die gefragte;
@@ -7,7 +7,7 @@
 --   04 je Slug kommt weiterhin genau eine Zeile;
 --   05 eine unbekannte Sprache ('fr') ist kein Fehler, sondern Deutsch;
 --   06 die Rechteprüfung bleibt: fremde Zielgruppe ⇒ 42501.
--- Vor 0087 war 01 rot (leere Liste) — genau der Befund von `/speaker/wiki`
+-- Vor 0088 war 01 rot (leere Liste) — genau der Befund von `/speaker/wiki`
 -- im Walkthrough am 14.09.2026.
 begin;
 create temp table t_res (step text, result text) on commit drop;
@@ -79,5 +79,5 @@ begin
 end $$;
 select * from t_res order by step;
 rollback;
--- Lauf am 14.09. gegen Frankfurt: ohne 0087 rot in 01, 03, 04, 05;
--- mit 0087 im selben Transaktionsblock alle sieben gruen.
+-- Lauf am 14.09. gegen Frankfurt: ohne 0088 rot in 01, 03, 04, 05;
+-- mit 0088 im selben Transaktionsblock alle sieben gruen.

@@ -102,7 +102,7 @@ export function WikiView({
               {open.is_overlay && <Badge tone="accent">{t.thisEdition}</Badge>}
               {/* Die Redaktion pflegt DE und EN nicht im Gleichschritt. Gibt es
                   den Artikel nur in der anderen Sprache, liefert die RPC ihn
-                  trotzdem (0087) — dann sagen wir es, statt ihn wegzulassen. */}
+                  trotzdem (0088) — dann sagen wir es, statt ihn wegzulassen. */}
               {open.language !== locale && <Badge>{t.otherLanguage}</Badge>}
             </div>
             <Markdown source={open.body_md} />
