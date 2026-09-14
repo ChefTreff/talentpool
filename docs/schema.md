@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-14 10:05 UTC · 71 Tabellen · 6 Views · 305 Funktionen
+> Stand: 2026-09-14 10:52 UTC · 71 Tabellen · 6 Views · 306 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1507,11 +1507,12 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `finish_sync_job` | p_error: text, p_id: bigint, p_stats: jsonb, p_status: text |
 | `finish_webhook_event` | p_error: text, p_id: bigint, p_related_id: uuid, p_related_type: text, p_status: text |
 | `fmt_cents` | p_cents: integer, p_locale: text |
-| `hack_admin_overview` | p_edition_id: uuid |
-| `hack_challenges` | p_edition_id: uuid |
+| `hack_admin_overview` | p_edition_id: uuid, p_language: text |
+| `hack_challenges` | p_edition_id: uuid, p_language: text |
 | `hack_edition` | p_edition_id: uuid |
 | `hack_join_code` | args: ? |
-| `hack_judging` | p_edition_id: uuid |
+| `hack_judging` | p_edition_id: uuid, p_language: text |
+| `hack_text` | p_de: text, p_en: text, p_language: text |
 | `harden_definer_functions` | args: ? |
 | `has_role` | p_edition_id: uuid, p_role: text, p_scope_id: uuid, p_scope_type: text |
 | `hospitality_admin_overview` | p_edition_id: uuid |
@@ -1565,7 +1566,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_applications` | args: ? |
 | `my_deliverables` | p_edition_id: uuid, p_org_id: uuid |
 | `my_expense_claims` | args: ? |
-| `my_hack` | p_edition_id: uuid |
+| `my_hack` | p_edition_id: uuid, p_language: text |
 | `my_hack_team_id` | p_edition_id: uuid |
 | `my_hospitality` | p_edition_id: uuid |
 | `my_kb_audiences` | args: ? |
