@@ -18,9 +18,15 @@
 --
 -- Fehlerschlüssel: 28000, 42501, P0002 `<x>_not_found`, 22023 `invalid_<x>`,
 -- P0001 `team_full` / `team_too_small` / `already_in_team` / `not_my_team` /
--- `submission_closed`.
+-- `join_code_exhausted`. (Eine Einreichungsfrist gibt es noch nicht — sie kommt
+-- mit den Terminen der Edition.)
 --
 -- Abweichungen: `hack_team_member` statt `members[]` (oben begründet).
+-- Review Architektur-Session 14.09.2026: Partner-Jurys sehen und bewerten nur
+-- die Teams **ihrer eigenen** Challenge (`can_judge_hack_team`, über
+-- `is_member_of_org` auf `hack_challenge.org_id`); das Team sieht alle.
+-- Mentoren kommen aus dem Formularfeld `mentor_names`. Trigger- und
+-- Hilfsfunktionen ohne EXECUTE für authenticated.
 set search_path = public, extensions;
 
 insert into vocab_term (vocabulary, key, label_de, label_en, sort_order, active) values
@@ -117,6 +123,7 @@ begin
   end if;
   return new;
 end $$;
+revoke execute on function trg_hack_team_size() from public, anon, authenticated;
 
 drop trigger if exists hack_team_size on hack_team_member;
 create trigger hack_team_size before insert on hack_team_member
@@ -129,6 +136,7 @@ begin
   if new.edition_id is null then raise exception 'team_not_found' using errcode = 'P0002'; end if;
   return new;
 end $$;
+revoke execute on function trg_hack_member_edition() from public, anon, authenticated;
 
 drop trigger if exists hack_member_edition on hack_team_member;
 create trigger hack_member_edition before insert or update of team_id on hack_team_member
@@ -200,6 +208,19 @@ $$;
 create or replace function is_hack_judge() returns boolean
 language sql stable security definer set search_path = public, extensions as $$
   select is_hack_team() or has_role('hackathon_partner')
+$$;
+
+/**
+ * Darf diese Person **dieses** Team bewerten? Das Team (Admin, Bereichsleitung)
+ * immer; eine Partner-Jury nur die Teams der Challenge ihrer eigenen
+ * Organisation — Einreichungen konkurrierender Teams gehen sie nichts an.
+ */
+create or replace function can_judge_hack_team(p_team_id uuid) returns boolean
+language sql stable security definer set search_path = public, extensions as $$
+  select is_hack_team() or exists (
+    select 1 from hack_team t join hack_challenge c on c.id = t.challenge_id
+     where t.id = p_team_id and c.org_id is not null
+       and has_role('hackathon_partner') and is_member_of_org(c.org_id))
 $$;
 
 /** Die laufende Edition mit Hackathon — dieselbe Wahl wie bei den Volunteers. */
@@ -310,6 +331,7 @@ language sql volatile security definer set search_path = public, extensions as $
                            (floor(random() * 32) + 1)::integer, 1), '')
     from generate_series(1, 6)
 $$;
+revoke execute on function hack_join_code() from public, anon, authenticated;
 
 create or replace function create_hack_team(p_name text, p_edition_id uuid default null) returns uuid
 language plpgsql volatile security definer set search_path = public, extensions as $$
@@ -528,7 +550,12 @@ begin
           nullif(btrim(v_a->>'title_de'), ''),
           nullif(btrim(v_a->>'description_en'), ''), nullif(btrim(v_a->>'description_de'), ''),
           nullif(btrim(v_a->>'prizes'), ''), nullif(btrim(v_a->>'resources'), ''),
-          coalesce(v_a->'mentors', '[]'::jsonb), v_crit, 'published')
+          -- Mentoren aus dem Formular: eine Zeile je Person („Name, Rolle").
+          coalesce(v_a->'mentors',
+                   case when nullif(btrim(coalesce(v_a->>'mentor_names', '')), '') is not null
+                        then to_jsonb(array_remove(regexp_split_to_array(btrim(v_a->>'mentor_names'), '\s*\n\s*'), ''))
+                        else '[]'::jsonb end),
+          v_crit, 'published')
   on conflict (deliverable_id) do update set
     title_en = excluded.title_en, title_de = excluded.title_de,
     description_en = excluded.description_en, description_de = excluded.description_de,
@@ -562,6 +589,8 @@ begin
       left join hack_submission s on s.team_id = t.id
       left join hack_judging_score j on j.team_id = t.id and j.judge_id = current_person_id()
      where t.edition_id = hack_edition(p_edition_id) and t.status <> 'withdrawn'
+       -- Partner-Jury: nur die Teams der eigenen Challenge.
+       and can_judge_hack_team(t.id)
      order by t.name;
 end $$;
 
@@ -580,6 +609,7 @@ begin
   select coalesce(c.criteria, '[]'::jsonb) into v_crit
     from hack_team t left join hack_challenge c on c.id = t.challenge_id where t.id = p_team_id;
   if not found then raise exception 'team_not_found' using errcode = 'P0002'; end if;
+  if not can_judge_hack_team(p_team_id) then raise exception 'not allowed' using errcode = '42501'; end if;
 
   for v_f in select * from jsonb_array_elements(v_crit) loop
     v_points := nullif(p_criteria->>(v_f->>'key'), '')::numeric;

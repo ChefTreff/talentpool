@@ -7,11 +7,12 @@
 --   06 `assign_challenges` verteilt gleichmässig und fasst gesetzte Zuordnungen nicht an;
 --   07 Verlassen: letztes Mitglied zieht das Team zurück, sonst rückt ein Kapitän nach;
 --   08 Judging rechnet die Gewichte, Punkte über 10 ⇒ 22023;
---   09 Tabellen ohne Grants für authenticated.
+--   09 Tabellen ohne Grants für authenticated;
+--   10 (Review 14.09.) eine Partner-Jury sieht und bewertet nur die Teams ihrer eigenen Challenge.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
-declare v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_org uuid; v_oe uuid;
+declare v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_org uuid; v_oe uuid; v_org2 uuid; v_t3 uuid;
         v_c1 uuid; v_c2 uuid; v_t1 uuid; v_t2 uuid; v_code text; v_n integer; v_txt text;
         v_p record; v_total numeric; v_extra uuid;
 begin
@@ -115,6 +116,32 @@ begin
     perform set_hack_score(v_t2, jsonb_build_object('c1', 42));
     insert into t_res values ('08b_zu_hoch', 'ALLOWED (BUG)');
   exception when others then insert into t_res values ('08b_zu_hoch', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
+
+  -- 10 Partner-Jury sieht nur die eigene Challenge (Review 14.09.)
+  select o.id into v_org2 from organization o where o.id <> v_org order by o.created_at limit 1;
+  if v_org2 is null then
+    insert into t_res values ('10_partner_jury', 'uebersprungen (nur eine Organisation)');
+  else
+    update hack_challenge set org_id = v_org2 where id = v_c2;
+    insert into hack_team (edition_id, name, join_code, created_by, challenge_id)
+    values (v_ed, 'ZZTEST Team Drei', 'ZZTST3', v_extra, v_c2) returning id into v_t3;
+    delete from role_assignment where person_id = v_pid;
+    insert into role_assignment (person_id, role, scope_type, scope_id, valid_from)
+    values (v_pid, 'hackathon_partner', 'org', v_org, now() - interval '1 day');
+    insert into org_membership (person_id, org_id, roles) values (v_pid, v_org, '{}') on conflict do nothing;
+    insert into t_res values ('10a_partner_sieht',
+      'eigene=' || (select count(*) from hack_judging(v_ed) where team_id = v_t2) ||
+      ' fremde=' || (select count(*) from hack_judging(v_ed) where team_id = v_t3));
+    begin
+      perform set_hack_score(v_t3, jsonb_build_object('c1', 5));
+      insert into t_res values ('10b_fremdes_team_bewerten', 'ALLOWED (BUG)');
+    exception when others then insert into t_res values ('10b_fremdes_team_bewerten', 'abgewiesen ' || sqlstate); end;
+    select set_hack_score(v_t2, jsonb_build_object('c1', 7, 'c2', 7), 'ok') into v_total;
+    insert into t_res values ('10c_eigenes_team_bewerten', coalesce(v_total::text, 'null'));
+    insert into t_res values ('10d_hilfsfunktionen',
+      'join_code=' || has_function_privilege('authenticated', 'hack_join_code()', 'execute')::text ||
+      ' trigger=' || has_function_privilege('authenticated', 'trg_hack_team_size()', 'execute')::text);
+  end if;
 
   -- 09 Grants
   select count(*) into v_n from information_schema.role_table_grants
