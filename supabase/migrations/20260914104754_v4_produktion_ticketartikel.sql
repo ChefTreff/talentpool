@@ -23,6 +23,7 @@
 --
 -- Rechte, Fehlerschlüssel und Signaturen bleiben unverändert — nur die
 -- WHERE-Klausel kommt dazu. Test unten.
+set search_path = public, extensions;
 
 -- ---------------------------------------------------------------- Checkliste
 
