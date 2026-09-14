@@ -48,14 +48,14 @@ Alt: `partnerhub.chef-treff.de` (SoftR, deutsch), 10 Seiten, plus `partner.chef-
 | Onboarding: Unternehmensinfos (Logo, Beschreibung, Aktivierung) | `/partner/onboarding`, vierstufig | **vorhanden**. |
 | Onboarding: Tabelle „Eure Ansprechpartner" | `/partner/kontakte` mit Rollen und Zugang | **vorhanden**, und genau die Zusammenlegung, die das Feedback verlangt hat: **eine** Personenliste statt zwei (Kontakte hier, Event-App-Leute dort). |
 | Tickets: Shop-Zugang mit Codes, Anleitung, Frist | `/partner/tickets` mit Kontingent je Pass-Typ, Codes, Einlöse-Stand, Frist | **vorhanden**, deutlich mehr. |
-| Tickets: „mehr Tickets → Mail an Konrad" | — | **fehlt** — bewusst kein Mail-Rückfall, aber es gibt auch keinen Anfrage-Weg im Portal. Heute bleibt nur: Partner schreibt irgendwem. |
+| Tickets: „mehr Tickets → Mail an Konrad" | `request_ticket_increase`, Bearbeitung im Partner-Admin | **vorhanden** (Korrektur 14.09., siehe Abschnitt 7). |
 | **Event App**: Formular „Team-Mitglieder hinzufügen" | — | **fehlt.** Der Swapcard-Abgleich existiert (`event_app_exhibitors`, Admin-Seite „Integrationen"), aber **nur als Team-Werkzeug**. Der Partner kann seine App-Leute nicht selbst pflegen. |
 | **Event App**: Checkliste Aussteller-Profil, Lead-Scanning, offene Stellen | — | **fehlt.** |
 | Messestand: Tabelle **Standardausstattung** je Paket (was im gebuchten Paket enthalten ist) | „Gebuchte Leistungen" zeigt *was* gebucht wurde, nicht *was drin ist* | **teilweise** — der Partner sieht „Standbühne (18 qm) × 5", aber nicht „4 m Rückwand, 2 Stehtische, 4 Barhocker, Teppich, Strom, Licht, Reinigung". |
 | Messestand: **Rückwand-Upload** mit Frist und Sperre | Pflicht `backdrop_print` in `/partner/checkliste`, an das Produkt gebunden, mit Frist und Versionen | **vorhanden**, besser. |
 | Messestand: **Hallenplan** | — | **fehlt** (auch speakerseitig). |
 | Messeshop (WooCommerce, eigener Login) | `/partner/shop` mit Kategorien, Phasen, Fristen | **vorhanden**, im selben Login — die sieben Kategorien stimmen mit dem Altkatalog überein. |
-| Messeshop: **„Auf Anfrage"-Produkte** (0,00 € im Katalog, Mail an Konrad) | — | **noch offen** — im Inventar als Anfrage-Flow vorgesehen (S1–S5), im Portal nicht gesehen. |
+| Messeshop: **„Auf Anfrage"-Produkte** (0,00 € im Katalog, Mail an Konrad) | `shop_request_product`, Knopf bei `request_only` | **vorhanden** (Korrektur 14.09., siehe Abschnitt 7). Sieben solche Artikel stehen im Katalog, alle mit „(auf Anfrage)" im Namen. |
 | Messeshop: eigene Bestellhistorie | Bestellungen im Shop-Bereich | **vorhanden** (am Testkonto nur teilweise auslösbar). |
 | Hackathon: Linkseite | eigener Bereich `/hackathon` + Pflicht `hackathon_challenge` | **anders**, mehr. Kein Link aus dem Partner-Menü — wer beides hat, wechselt über den Umschalter. |
 | Media Kit / Partnergrafik | — | **fehlt** (wie speakerseitig). |
@@ -76,7 +76,7 @@ Diese Punkte sind **keine** Lücken, sondern Entscheidungen — hier nur, damit 
 
 - **Drei Logins → einer.** Partner Hub, Speaker Hub und Messeshop waren getrennte Konten; jetzt ein Login mit Bereichen (Antwort 45).
 - **Feste Countdown-Blöcke → `deadline` je Edition.** Kein Datum mehr im Fließtext.
-- **Mail-Rückfälle** („Updates per Mail an Konrad", „mehr Tickets → Konrad") wurden absichtlich nicht übernommen. Bei den Tickets fehlt dadurch aber ein Weg (siehe Tabelle).
+- **Mail-Rückfälle** („Updates per Mail an Konrad", „mehr Tickets → Konrad") wurden absichtlich nicht übernommen — an ihre Stelle sind strukturierte Anfragen getreten (`request_ticket_increase`, `shop_request_product`).
 - **Private Kontaktdaten** von Freelancern im Portal: entfällt.
 - **Speaker-Artikel für Partner sichtbar** (alt: keine Zielgruppentrennung): jetzt getrennt.
 
@@ -88,7 +88,7 @@ Vorschlag zur Reihenfolge; **nichts davon wird ohne Konrads Entscheidung gebaut.
 2. **Event-App-Selbstpflege für Partner.** Ohne sie macht das Team die Team-Mitglieder von Hand, obwohl der Swapcard-Weg schon steht. Das ist Arbeit, die wir uns sonst zurückholen.
 3. **Leistungsumfang je Paket** („was ist in meinen 18 qm drin"). Kleine Anzeige, spart erfahrungsgemäß viele Rückfragen.
 4. **Hallenplan** (Partner und Speaker). Braucht eine Datei vom Standbau, keine Logik.
-5. **Anfrage-Weg für mehr Tickets** und **Anfrage-Produkte im Shop**. Beides ersetzt heute eine Mail, die niemand mehr schreiben soll.
+5. ~~Anfrage-Weg für mehr Tickets und Anfrage-Produkte im Shop.~~ **Gestrichen** — beides gibt es (Korrektur 14.09., Abschnitt 7).
 6. **Angebote und Rechnungen im Partner-Dateibereich** (SevDesk). Anbindung existiert, Leserichtung fehlt.
 7. **Speaker-Reception: Anmeldung.** Heute nur ein Kennzeichen im Backend.
 8. **Profilfoto-Upload für Speaker.** Steht als Baustelle im Portal und zeigt dort selbst auf ein Postfach.
@@ -100,3 +100,17 @@ Vorschlag zur Reihenfolge; **nichts davon wird ohne Konrads Entscheidung gebaut.
 - **Die Alt-Portale laufen noch, ich habe sie aber nicht erneut aufgerufen.** Grundlage ist der dokumentierte Walkthrough vom 08.09. Wenn dort etwas fehlt, fehlt es auch hier — vor allem bei den Seiten, die im Inventar als „Inhaltsblock beim Lesen leer/nicht geladen" vermerkt sind (`/filehub`, nutzerbezogene Listen).
 - **Drei Funktionen waren mit Konrads Testdaten nicht auslösbar:** Session-Inhalte (keine Session zugeordnet), Standbühne (keine Bühne), Bewerber (keine Formate). Die betreffenden Zeilen sind Codebefunde und mit „am Testkonto nicht sichtbar" gekennzeichnet.
 - **Der Messeshop-Katalog wurde nicht Produkt für Produkt verglichen.** Die sieben Kategorien stimmen; ob alle ~80 Artikel übernommen sind, entscheidet die Migration, nicht dieser Abgleich.
+
+---
+
+## 7 · Korrektur vom 14.09.2026: Lücke 5 war keine
+
+**Was ich geschrieben hatte:** der Anfrage-Weg für mehr Tickets und die „Auf Anfrage"-Produkte im Shop fehlten.
+
+**Was stimmt:** Beides gibt es. `TicketView` → `requestTicketIncrease` → `request_ticket_increase`, Bearbeitung im Partner-Admin; und `ShopView` → `shopRequestProduct` → `shop_request_product`, wobei der Knopf nur bei `request_only` erscheint. Im Katalog stehen sieben solche Artikel, alle mit „(auf Anfrage)" im Namen — die „Aperitifbar/Cocktailbar inkl. Personal" aus dem Altbestand ist darunter.
+
+**Warum ich es nicht gesehen habe, und das ist die eigentliche Lehre:** Ich habe die Seiten serverseitig abgerufen und den gerenderten Text gelesen. Der Messeshop filtert seine Kategorien aber **im Browser** (`useState` auf den Reiter) — mein Abzug enthielt also nur die zuerst gewählte Kategorie. Die Anfrage-Artikel liegen in *Standgastronomie* und *Specials* und standen nie in meinem Text. Beim Ticket-Weg dasselbe Muster: der Knopf hängt an einem Zustand, den ein reiner HTML-Abruf nicht auslöst.
+
+„Im Portal nicht gesehen" ist deshalb kein Befund, sondern eine Aussage über meine Methode. Für Abgleiche dieser Art gilt ab jetzt: **ein serverseitiger Abruf zeigt nur den ersten Zustand einer Seite.** Was hinter Reitern, Aufklappern oder Zuständen liegt, braucht den Browser oder einen Blick in die Komponente.
+
+**Eine Beobachtung am Rand:** „Auf Anfrage" wird aus `net_price_cents = 0` abgeleitet. Das trifft im Katalog 57 Artikel — die übrigen 50 liegen aber in Kategorien, die gar nicht im Shop sichtbar sind (`shop_visible = false`: branding, infrastruktur, nebenkosten, standbau, company_tours, hackathon; dort fehlen schlicht die Preise). Im Shop selbst sind es genau die sieben, die es sein sollen. Wenn eine dieser Kategorien später sichtbar geschaltet wird, ohne dass Preise da sind, wird daraus auf einen Schlag ein Stapel Anfragen — das ist beim Freischalten zu bedenken, kein Fehler von heute.
