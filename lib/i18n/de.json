@@ -1654,7 +1654,11 @@
     "couponRevoked": "zurückgezogen",
     "openCount": "{n} noch nicht eingelöst",
     "emptyTickets": "Noch keine Zusagen",
-    "emptyTicketsBody": "Sobald ihr Bewerbungen annehmt, entstehen hier die Ticket-Codes."
+    "emptyTicketsBody": "Sobald ihr Bewerbungen annehmt, entstehen hier die Ticket-Codes.",
+    "ticket_cancelled": "Ticket storniert",
+    "ticket_refunded": "Ticket erstattet",
+    "ticket_blocked": "Ticket gesperrt",
+    "ticket_checked_in": "eingecheckt"
   },
   "admin": {
     "brand": "ChefTreff Admin",

@@ -1654,7 +1654,11 @@
     "couponRevoked": "withdrawn",
     "openCount": "{n} not redeemed yet",
     "emptyTickets": "No acceptances yet",
-    "emptyTicketsBody": "As soon as you accept applications, the ticket codes appear here."
+    "emptyTicketsBody": "As soon as you accept applications, the ticket codes appear here.",
+    "ticket_cancelled": "ticket cancelled",
+    "ticket_refunded": "ticket refunded",
+    "ticket_blocked": "ticket blocked",
+    "ticket_checked_in": "checked in"
   },
   "admin": {
     "brand": "ChefTreff Admin",

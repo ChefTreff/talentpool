@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { VivenuError, createCoupon, getEvent, hasVivenuKey, putUnderShops, type UnderShop } from "@/lib/vivenu/client";
+import { VivenuError, createCoupon, getEvent, hasVivenuKey, putUnderShops, updateCoupon, type UnderShop } from "@/lib/vivenu/client";
 import { undershopUrl, vivenuBase } from "@/lib/vivenu/naming";
 import { randomBytes } from "node:crypto";
 
@@ -22,10 +22,22 @@ export type PendingVolunteer = {
 export type VolunteerSummary = {
   pending: number;
   created: number;
+  /** Zurückgezogene Zusagen, deren Coupon bei vivenu abgeschaltet wurde. */
+  revoked: number;
   errors: number;
   skipped?: string;
   undershop?: string;
   runs: { profile: string; name: string | null; outcome: string; detail?: string }[];
+};
+
+/** Zeile aus `volunteer_coupon_revocations_pending()`. */
+type PendingRevocation = {
+  id: number;
+  profile_id: string;
+  vivenu_coupon_id: string | null;
+  coupon_code: string | null;
+  revoked_at: string;
+  error: string | null;
 };
 
 const SHOP_NAME = (editionSlug: string) => `${editionSlug.toUpperCase()} · Volunteers`;
@@ -58,7 +70,12 @@ export async function provisionVolunteerCoupons(
   jobId: number | null,
   only?: string,
 ): Promise<VolunteerSummary> {
-  const summary: VolunteerSummary = { pending: 0, created: 0, errors: 0, runs: [] };
+  const summary: VolunteerSummary = { pending: 0, created: 0, revoked: 0, errors: 0, runs: [] };
+
+  // Erst die Widerrufe, dann die Ausgabe: ein zurückgezogener Coupon soll nicht
+  // eine Runde länger gelten als nötig.
+  await revokeCoupons(admin, jobId, summary);
+
   const { data, error } = await admin.rpc("volunteer_coupons_pending");
   if (error) throw new Error(`volunteer_coupons_pending: ${error.message}`);
   let rows = (data ?? []) as PendingVolunteer[];
@@ -78,15 +95,40 @@ export async function provisionVolunteerCoupons(
     let shopId = first.undershop_id;
     let shopUrl: string | null = null;
 
+    // Die Tickettypen, die Volunteers ziehen dürfen — aus der Zuordnung, nicht
+    // aus dem Event. Die Edition und ihre Veranstaltungen zählen beide, weil
+    // `ticket_type_map` an der Veranstaltung hängt (siehe 0068).
+    const { data: mapRows } = await admin
+      .from("ticket_type_map")
+      .select("vivenu_ticket_type_id, event:event_id!inner(id, edition_id)")
+      .eq("pass_type", "crew")
+      .eq("active", true);
+    const crewTypes = ((mapRows ?? []) as unknown as {
+      vivenu_ticket_type_id: string;
+      event: { id: string; edition_id: string | null } | null;
+    }[])
+      .filter((m) => m.event?.id === editionId || m.event?.edition_id === editionId)
+      .map((m) => m.vivenu_ticket_type_id);
+
     try {
       const event = await getEvent(first.vivenu_event_id);
       const wantedName = SHOP_NAME(first.edition_slug);
       const shops: UnderShop[] = [...(event.underShops ?? [])];
       let shop = shops.find((s) => (shopId && s._id === shopId) || s.name === wantedName);
 
-      // Volunteers bekommen alle Tickettypen des Events zum Preis 0 — welchen
-      // Pass sie ziehen, entscheidet das Team über die Tickettypen, nicht der Shop.
-      const types = (event.tickets ?? []).map((t) => String(t._id));
+      // **Nur Crew-Tickettypen.** Vorher standen hier alle Tickettypen des
+      // Events zum Preis 0 — ein Volunteer hätte sich damit einen Partner-
+      // oder Speaker-Pass ziehen können (Review der Architektur-Session,
+      // 14.09.). Welche Typen für Volunteers gelten, sagt `ticket_type_map`:
+      // `pass_type = 'crew'`. Gibt es keinen, wird der Shop **nicht** angelegt —
+      // „alle Typen" als Rückfall wäre genau der Fehler, den wir gerade
+      // abstellen.
+      if (crewTypes.length === 0) {
+        throw new Error(
+          "Kein Tickettyp mit pass_type 'crew' in ticket_type_map — ohne ihn kein Volunteer-Shop",
+        );
+      }
+      const types = crewTypes;
       if (!shop) {
         shop = {
           name: wantedName,
@@ -102,6 +144,33 @@ export async function provisionVolunteerCoupons(
         const updated = await putUnderShops(first.vivenu_event_id, shops);
         const after = updated.underShops?.length ? updated.underShops : (await getEvent(first.vivenu_event_id)).underShops ?? [];
         shop = after.find((s) => s.name === wantedName) ?? shop;
+      }
+      else {
+        // Ein Shop aus einem früheren Lauf kann noch alle Typen führen.
+        const gewollt = new Set(types);
+        const tickets = (shop.tickets ?? []).filter((t) => Boolean(t.baseTicket));
+        let geaendert = tickets.length !== (shop.tickets ?? []).length;
+        for (const t of tickets) {
+          const soll = gewollt.has(String(t.baseTicket));
+          if (t.active !== soll || (soll && t.price !== 0)) {
+            t.active = soll;
+            if (soll) t.price = 0;
+            else t.amount = 0;
+            geaendert = true;
+          }
+        }
+        for (const typ of types) {
+          if (!tickets.some((t) => t.baseTicket === typ)) {
+            tickets.push({ baseTicket: typ, price: 0, amount: 1, active: true });
+            geaendert = true;
+          }
+        }
+        if (geaendert) {
+          shop.tickets = tickets;
+          const updated = await putUnderShops(first.vivenu_event_id, shops);
+          const after = updated.underShops?.length ? updated.underShops : (await getEvent(first.vivenu_event_id)).underShops ?? [];
+          shop = after.find((s) => s._id === shop!._id || s.name === wantedName) ?? shop;
+        }
       }
       if (!shop?._id) throw new Error("Undershop \u201eVolunteers\u201c ohne _id in der vivenu-Antwort");
       shopId = shop._id;
@@ -175,4 +244,66 @@ async function failOne(
     p_message: message.slice(0, 500),
     p_payload: e instanceof VivenuError ? { status: e.status, path: e.path } : null,
   });
+}
+
+/**
+ * Zurückgezogene Zusagen bei vivenu abschalten.
+ *
+ * Bei uns steht der Coupon nach einer Absage auf `revoked` — bei vivenu galt er
+ * weiter. Ein abgelehnter Volunteer hätte damit einen gültigen 100-%-Code in
+ * der Hand behalten (Review der Architektur-Session, 14.09.). Die Datenbank
+ * schreibt jeden Widerruf in `volunteer_coupon_revocation`; hier wird er
+ * ausgeführt und quittiert.
+ *
+ * `updateCoupon` ersetzt den Coupon (PUT), deshalb muss `name` mit — sonst
+ * antwortet vivenu mit 400. Bleibt ein Widerruf offen, steht er beim nächsten
+ * Lauf wieder da: lieber zweimal abschalten als einmal nicht.
+ */
+async function revokeCoupons(
+  admin: SupabaseClient,
+  jobId: number | null,
+  summary: VolunteerSummary,
+): Promise<void> {
+  const { data, error } = await admin.rpc("volunteer_coupon_revocations_pending");
+  if (error) {
+    console.error("[vivenu] volunteer_coupon_revocations_pending:", error.message);
+    return;
+  }
+  const rows = (data ?? []) as PendingRevocation[];
+  if (rows.length === 0) return;
+  if (!hasVivenuKey()) {
+    console.warn(`[vivenu] ${rows.length} Widerruf(e) warten – kein VIVENU_API_KEY.`);
+    return;
+  }
+
+  for (const r of rows) {
+    if (!r.vivenu_coupon_id) {
+      // Nie ausgegeben, nichts abzuschalten — Haken dran.
+      await admin.rpc("mark_volunteer_coupon_revoked", { p_id: r.id });
+      continue;
+    }
+    try {
+      await updateCoupon(r.vivenu_coupon_id, {
+        name: `Volunteer · zurückgezogen`,
+        active: false,
+        maxTickets: 0,
+        maxUsage: 0,
+      });
+      await admin.rpc("mark_volunteer_coupon_revoked", { p_id: r.id });
+      summary.revoked += 1;
+      summary.runs.push({ profile: r.profile_id, name: r.coupon_code, outcome: "revoked" });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      summary.errors += 1;
+      summary.runs.push({ profile: r.profile_id, name: r.coupon_code, outcome: "revoke_error", detail: message.slice(0, 300) });
+      await admin.rpc("mark_volunteer_coupon_revoked", { p_id: r.id, p_error: message.slice(0, 500) });
+      await admin.rpc("record_sync_error", {
+        p_job_id: jobId,
+        p_object_type: "volunteer_coupon_revocation",
+        p_object_id: r.profile_id,
+        p_message: message.slice(0, 500),
+        p_payload: e instanceof VivenuError ? { status: e.status, path: e.path } : null,
+      });
+    }
+  }
 }

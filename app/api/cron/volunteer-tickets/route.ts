@@ -19,6 +19,11 @@ function authorized(request: Request): boolean {
  * Undershop „Volunteers", danach die Erinnerung an die, die nach sieben Tagen
  * noch nicht eingelöst haben.
  *
+ * Drei Schritte in dieser Reihenfolge: zurückgezogene Zusagen bei vivenu
+ * abschalten, neue Coupons ausgeben, an Nicht-Einlöser erinnern. Der Widerruf
+ * steht vorn — ein zurückgezogener Coupon soll nicht eine Runde länger gelten
+ * als nötig.
+ *
  * `?profil=<id>` macht genau einen — für die Wiederholung nach einem Fehler.
  * Ohne `VIVENU_API_KEY` Trockenlauf; die Erinnerung läuft trotzdem, sie hängt
  * nicht an vivenu.

@@ -59,6 +59,13 @@ export function TicketTable({
               </Td>
               <Td>
                 <Badge tone={TONE[r.coupon_status] ?? "neutral"}>{label(r.coupon_status)}</Badge>
+                {/* Eingelöst und danach storniert ist nicht dasselbe wie eingelöst —
+                    der Platz ist wieder frei, die Person kommt nicht. */}
+                {r.ticket_status && r.ticket_status !== "valid" && (
+                  <div className="ct-help text-warning-ink">
+                    {t[`ticket_${r.ticket_status}`] ?? r.ticket_status}
+                  </div>
+                )}
                 {r.coupon_error && <div className="ct-help text-error-ink">{r.coupon_error}</div>}
               </Td>
               <Td className="text-muted">{r.coupon_code ?? "—"}</Td>

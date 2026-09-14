@@ -12,4 +12,6 @@ export type VolunteerTicketRow = {
   reminded_at: string | null;
   coupon_error: string | null;
   shifts: number;
+  /** Status des gezogenen Tickets — eingelöst und dann storniert ist nicht dasselbe wie eingelöst. */
+  ticket_status: string | null;
 };
