@@ -15,9 +15,9 @@ export const dynamic = "force-dynamic";
  */
 export default async function ChallengesPage() {
   await requireArea("hackathon", "/hackathon/challenges");
-  const { t } = await getI18n("en");
+  const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.rpc("hack_challenges");
+  const { data } = await supabase.rpc("hack_challenges", { p_language: locale });
   const rows = (data ?? []) as HackChallenge[];
 
   return (

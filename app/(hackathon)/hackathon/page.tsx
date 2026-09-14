@@ -19,7 +19,7 @@ export default async function HackathonPage() {
   const supabase = await createSupabaseServerClient();
 
   const [{ data: mine }, vocab] = await Promise.all([
-    supabase.rpc("my_hack"),
+    supabase.rpc("my_hack", { p_language: locale }),
     loadVocabMap(supabase, locale),
   ]);
 

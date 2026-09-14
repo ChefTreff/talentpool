@@ -17,7 +17,7 @@ export default async function HackTeamsPage() {
   const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabase.rpc("hack_admin_overview");
+  const { data, error } = await supabase.rpc("hack_admin_overview", { p_language: locale });
   if (error) notFound();
 
   // Eingereichte Challenge-Formulare, die noch keine Challenge sind.

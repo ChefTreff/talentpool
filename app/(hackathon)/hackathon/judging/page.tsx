@@ -15,9 +15,9 @@ export const dynamic = "force-dynamic";
  */
 export default async function JudgingPage() {
   await requireArea("hackathon", "/hackathon/judging");
-  const { t } = await getI18n("en");
+  const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("hack_judging");
+  const { data, error } = await supabase.rpc("hack_judging", { p_language: locale });
   if (error) notFound();
 
   return (
