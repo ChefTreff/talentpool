@@ -690,7 +690,8 @@
     "companionCancelled": "Anfrage zurückgezogen",
     "companionHistory": "Frühere Anfragen",
     "companionAssistantNote": "Anfragen darf die Assistenz; das eigene Ticket gehört dem Speaker.",
-    "qrSpeakerOnly": "Das Ticket ist ausgestellt. Den QR-Code sieht nur der Speaker selbst."
+    "qrSpeakerOnly": "Das Ticket ist ausgestellt. Den QR-Code sieht nur der Speaker selbst.",
+    "navWiki": "Wiki"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -906,7 +907,8 @@
     "logoMissingDeliverable": "Für diese Organisation ist keine Logo-Pflicht hinterlegt. Meldet euch beim Partner-Team.",
     "downloadFailed": "Die Datei lässt sich gerade nicht öffnen.",
     "stillMissing": "Zum Abschluss fehlt noch",
-    "saved": "Gespeichert"
+    "saved": "Gespeichert",
+    "navWiki": "Wiki"
   },
   "partnerContacts": {
     "title": "Kontakte",
@@ -1251,7 +1253,8 @@
     "ticketRedeemedBody": "Dein Ticket liegt in deinem Postfach. Bis bald!",
     "ticketHint": "Code im Shop eingeben. Ein Code, ein Ticket — bitte nicht weitergeben.",
     "copy": "Kopieren",
-    "copied": "Kopiert"
+    "copied": "Kopiert",
+    "navWiki": "Wiki"
   },
   "adminPartner": {
     "title": "Partner",
@@ -1687,7 +1690,8 @@
         "system": "System"
       },
       "partnerCare": "Betreuung & Messeshop",
-      "volunteersWork": "Bewerbungen & Schichten"
+      "volunteersWork": "Bewerbungen & Schichten",
+      "wiki": "Wiki"
     },
     "overview": {
       "title": "Übersicht",
@@ -2147,5 +2151,52 @@
     "csv": "Als CSV",
     "emptySuppliers": "Keine Bestellungen",
     "emptySuppliersBody": "Noch hat niemand etwas im Messeshop bestellt."
+  },
+  "wiki": {
+    "title": "Wiki",
+    "lead": "Antworten auf das, was immer wieder gefragt wird.",
+    "search": "Suchen",
+    "phase": "Phase",
+    "allPhases": "Alle Phasen",
+    "empty": "Noch keine Artikel",
+    "emptyBody": "Sobald das Team Artikel veröffentlicht, stehen sie hier.",
+    "noMatch": "Kein Artikel passt zur Suche.",
+    "thisEdition": "Für diese Edition",
+    "otherLanguage": "Nur auf Englisch",
+    "adminTitle": "Wiki",
+    "adminLead": "Artikel je Zielgruppe, Overlay je Edition.",
+    "colSlug": "Slug",
+    "colTitle": "Titel",
+    "colAudience": "Zielgruppe",
+    "colEdition": "Edition",
+    "colStatus": "Status",
+    "colLanguage": "Sprache",
+    "colOwner": "Verantwortlich",
+    "evergreen": "jahresunabhängig",
+    "newArticle": "Neuer Artikel",
+    "edit": "Bearbeiten",
+    "publish": "Veröffentlichen",
+    "unpublish": "Zurückziehen",
+    "archive": "Archivieren",
+    "saved": "Gespeichert",
+    "published": "Veröffentlicht",
+    "unpublished": "Zurückgezogen",
+    "archived": "Archiviert",
+    "fieldSlug": "Slug",
+    "fieldTitleDe": "Titel",
+    "fieldBody": "Text (Markdown)",
+    "fieldAudience": "Zielgruppen",
+    "fieldRoles": "Rollen (nur Volunteers, kommagetrennt)",
+    "fieldPhase": "Phase",
+    "fieldLanguage": "Sprache",
+    "fieldEdition": "Edition",
+    "fieldValidUntil": "Gültig bis",
+    "cancel": "Abbrechen",
+    "overlayHint": "Ohne Edition gilt der Artikel jedes Jahr. Mit Edition überlagert er den jahresunabhängigen Artikel gleichen Slugs.",
+    "statusDraft": "Entwurf",
+    "statusPublished": "Veröffentlicht",
+    "statusArchived": "Archiviert",
+    "emptyAdmin": "Noch keine Artikel",
+    "emptyAdminBody": "Lege den ersten Artikel an — Slug, Zielgruppe, Titel."
   }
 }

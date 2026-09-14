@@ -690,7 +690,8 @@
     "companionCancelled": "Request withdrawn",
     "companionHistory": "Earlier requests",
     "companionAssistantNote": "The assistant may request; your own ticket belongs to you.",
-    "qrSpeakerOnly": "The ticket has been issued. Only the speaker sees the QR code."
+    "qrSpeakerOnly": "The ticket has been issued. Only the speaker sees the QR code.",
+    "navWiki": "Wiki"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -906,7 +907,8 @@
     "logoMissingDeliverable": "No logo task is set up for this organisation. Please contact the partner team.",
     "downloadFailed": "That file cannot be opened right now.",
     "stillMissing": "Still missing",
-    "saved": "Saved"
+    "saved": "Saved",
+    "navWiki": "Wiki"
   },
   "partnerContacts": {
     "title": "Contacts",
@@ -1251,7 +1253,8 @@
     "ticketRedeemedBody": "Your ticket is in your inbox. See you soon!",
     "ticketHint": "Enter the code in the shop. One code, one ticket — please do not pass it on.",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "navWiki": "Wiki"
   },
   "adminPartner": {
     "title": "Partners",
@@ -1687,7 +1690,8 @@
         "system": "System"
       },
       "partnerCare": "Support & trade-show shop",
-      "volunteersWork": "Applications & shifts"
+      "volunteersWork": "Applications & shifts",
+      "wiki": "Wiki"
     },
     "overview": {
       "title": "Overview",
@@ -2147,5 +2151,52 @@
     "csv": "As CSV",
     "emptySuppliers": "No orders",
     "emptySuppliersBody": "Nobody has ordered in the trade-show shop yet."
+  },
+  "wiki": {
+    "title": "Wiki",
+    "lead": "Answers to what gets asked again and again.",
+    "search": "Search",
+    "phase": "Phase",
+    "allPhases": "All phases",
+    "empty": "No articles yet",
+    "emptyBody": "As soon as the team publishes articles, they appear here.",
+    "noMatch": "No article matches your search.",
+    "thisEdition": "This edition",
+    "otherLanguage": "German only",
+    "adminTitle": "Wiki",
+    "adminLead": "Articles per audience, overlay per edition.",
+    "colSlug": "Slug",
+    "colTitle": "Title",
+    "colAudience": "Audience",
+    "colEdition": "Edition",
+    "colStatus": "Status",
+    "colLanguage": "Language",
+    "colOwner": "Owner",
+    "evergreen": "evergreen",
+    "newArticle": "New article",
+    "edit": "Edit",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "archive": "Archive",
+    "saved": "Saved",
+    "published": "Published",
+    "unpublished": "Unpublished",
+    "archived": "Archived",
+    "fieldSlug": "Slug",
+    "fieldTitleDe": "Title",
+    "fieldBody": "Body (Markdown)",
+    "fieldAudience": "Audiences",
+    "fieldRoles": "Roles (volunteers only, comma separated)",
+    "fieldPhase": "Phase",
+    "fieldLanguage": "Language",
+    "fieldEdition": "Edition",
+    "fieldValidUntil": "Valid until",
+    "cancel": "Cancel",
+    "overlayHint": "Without an edition the article applies every year. With an edition it overrides the evergreen article of the same slug.",
+    "statusDraft": "Draft",
+    "statusPublished": "Published",
+    "statusArchived": "Archived",
+    "emptyAdmin": "No articles yet",
+    "emptyAdminBody": "Create the first article — slug, audience, title."
   }
 }
