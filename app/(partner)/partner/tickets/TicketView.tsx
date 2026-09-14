@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Countdown } from "../Countdown";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -94,10 +95,22 @@ export function TicketView({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* F9.2: Die Frist war eine Hilfstextzeile zwischen anderen — jetzt
+          steht sie gross und mit Restzeit. Wer Codes einlöst, entscheidet
+          danach, ob er es heute tut. */}
       {due && (
-        <p className="ct-help">
-          {t.dueOn} {dateTime.format(new Date(due))}
-        </p>
+        <Card className="border-accent-soft bg-accent-soft">
+          <p className="ct-eyebrow text-accent-deep">{t.dueOn}</p>
+          <p className="ct-h2 mt-1 text-ink">{dateTime.format(new Date(due))}</p>
+          <p className="ct-label mt-1 text-accent-deep">
+            <Countdown
+              dueAt={due}
+              days={t.countdownDays}
+              hours={t.countdownHours}
+              soon={t.countdownSoon}
+            />
+          </p>
+        </Card>
       )}
 
       <ul className="grid gap-4 lg:grid-cols-2">

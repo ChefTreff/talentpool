@@ -64,6 +64,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         { href: "/admin/dubletten", label: nav.duplicates },
         { href: "/admin/mail", label: nav.mail },
         { href: "/admin/wiki", label: nav.wiki },
+        { href: "/admin/videos", label: nav.videos },
         { href: "/admin/ui", label: nav.ui },
       ],
     },

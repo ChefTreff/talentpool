@@ -23,7 +23,11 @@
     "active": "aktiv",
     "inactive": "inaktiv",
     "language": "Sprache",
-    "overview": "Übersicht"
+    "overview": "Übersicht",
+    "loadVideo": "Video laden",
+    "embedNotice": "Beim Laden werden Daten an {provider} übertragen — unter anderem eure IP-Adresse. Vorher passiert nichts.",
+    "openAtProvider": "Bei Loom öffnen",
+    "delete": "Löschen"
   },
   "messages": {
     "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",
@@ -1038,7 +1042,12 @@
     "fieldText": "Wofür?",
     "fieldTextHint": "Ein, zwei Sätze helfen uns bei der Entscheidung.",
     "requestSend": "Anfrage senden",
-    "requested": "Anfrage ist beim Team"
+    "requested": "Anfrage ist beim Team",
+    "countdownDays": "noch {n} Tage",
+    "countdownHours": "noch {n} Stunden",
+    "countdownSoon": "läuft gleich ab",
+    "videoTitle": "So löst ihr eure Codes ein",
+    "wikiHint": "Alles Weitere zu Tickets und Akkreditierung steht im"
   },
   "partnerApplicants": {
     "title": "Bewerber",
@@ -1697,7 +1706,8 @@
       },
       "partnerCare": "Betreuung & Messeshop",
       "volunteersWork": "Bewerbungen & Schichten",
-      "wiki": "Wiki"
+      "wiki": "Wiki",
+      "videos": "Videos"
     },
     "overview": {
       "title": "Übersicht",
@@ -2310,5 +2320,24 @@
     "status_error": "Hat nicht geklappt",
     "sinceLabel": "Erster Scan um {time} Uhr",
     "leave": "Zurück ins Portal"
+  },
+  "videos": {
+    "title": "Videos",
+    "lead": "Alle eingebetteten Videos an einer Stelle. Wer hier den Link tauscht, tauscht das Video überall, wo dieser Schlüssel eingebunden ist.",
+    "add": "Video anlegen",
+    "edit": "Bearbeiten",
+    "empty": "Noch kein Video hinterlegt",
+    "emptyBody": "Lege eines an und binde es über seinen Schlüssel auf einer Seite ein.",
+    "allEditions": "Alle Editionen",
+    "fieldKey": "Schlüssel",
+    "fieldKeyHint": "Darüber bindet die Seite ein, zum Beispiel partner_tickets. Ändern nimmt das Video von der Seite.",
+    "fieldUrl": "Loom-Link",
+    "fieldUrlHint": "Nur Loom. Der normale Freigabelink genügt — die Einbettungsadresse rechnen wir aus.",
+    "fieldTitleDe": "Titel (DE)",
+    "fieldTitleEn": "Titel (EN)",
+    "fieldAudience": "Zielgruppen",
+    "fieldAudienceHint": "Kommagetrennt: partner, speaker, talent, volunteer, hackathon.",
+    "fieldEdition": "Edition",
+    "fieldEditionHint": "Leer lassen, wenn das Video für jede Edition gilt. Eine Editionsfassung sticht die allgemeine."
   }
 }

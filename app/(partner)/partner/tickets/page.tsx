@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
@@ -5,6 +6,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { EmbedGate } from "@/components/ui/EmbedGate";
+import { loadVideo, loomEmbedUrl } from "@/components/video/load";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type PartnerOverview, type TicketAllocationRow } from "../types";
 import { TicketView } from "./TicketView";
@@ -36,6 +39,9 @@ export default async function PartnerTicketsPage() {
     }),
     loadVocabMap(supabase, locale),
   ]);
+  // Die Anleitung hängt an einem Schlüssel; der Link dahinter ist
+  // Redaktionssache (F9.4).
+  const video = await loadVideo("partner_tickets", "partner", current.edition_id);
   const allocations = (rows ?? []) as TicketAllocationRow[];
   const overview = (overviewJson ?? null) as PartnerOverview | null;
 
@@ -61,6 +67,26 @@ export default async function PartnerTicketsPage() {
           rpcMessages={t.rpc}
         />
       )}
+
+      {video && (
+        <div className="mt-8 max-w-[640px]">
+          <EmbedGate
+            src={loomEmbedUrl(video.url)}
+            title={(locale === "en" ? video.title_en : video.title_de) ?? t.partnerTickets.videoTitle}
+            provider="Loom"
+            loadLabel={t.common.loadVideo}
+            notice={t.common.embedNotice}
+            openLabel={t.common.openAtProvider}
+          />
+        </div>
+      )}
+
+      <p className="ct-help mt-6">
+        {t.partnerTickets.wikiHint}{" "}
+        <Link className="ct-link" href="/partner/wiki">
+          {t.partner.navWiki}
+        </Link>
+      </p>
     </>
   );
 }

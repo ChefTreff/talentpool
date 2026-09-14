@@ -18,3 +18,4 @@ export { Stepper } from "./Stepper";
 export type { Step } from "./Stepper";
 export { cn } from "./cn";
 export { FileButton } from "./FileButton";
+export { EmbedGate } from "./EmbedGate";

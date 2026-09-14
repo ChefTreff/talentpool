@@ -23,7 +23,11 @@
     "active": "active",
     "inactive": "inactive",
     "language": "Language",
-    "overview": "Overview"
+    "overview": "Overview",
+    "loadVideo": "Load video",
+    "embedNotice": "Loading sends data to {provider} — including your IP address. Nothing happens before that.",
+    "openAtProvider": "Open on Loom",
+    "delete": "Delete"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",
@@ -1038,7 +1042,12 @@
     "fieldText": "What for?",
     "fieldTextHint": "A sentence or two helps us decide.",
     "requestSend": "Send request",
-    "requested": "Your request is with the team"
+    "requested": "Your request is with the team",
+    "countdownDays": "{n} days left",
+    "countdownHours": "{n} hours left",
+    "countdownSoon": "due any moment",
+    "videoTitle": "How to redeem your codes",
+    "wikiHint": "Everything else about tickets and accreditation is in the"
   },
   "partnerApplicants": {
     "title": "Applicants",
@@ -1697,7 +1706,8 @@
       },
       "partnerCare": "Support & trade-show shop",
       "volunteersWork": "Applications & shifts",
-      "wiki": "Wiki"
+      "wiki": "Wiki",
+      "videos": "Videos"
     },
     "overview": {
       "title": "Overview",
@@ -2310,5 +2320,24 @@
     "status_error": "That did not work",
     "sinceLabel": "First scan at {time}",
     "leave": "Back to the portal"
+  },
+  "videos": {
+    "title": "Videos",
+    "lead": "Every embedded video in one place. Swapping a link here swaps the video everywhere that key is used.",
+    "add": "Add video",
+    "edit": "Edit",
+    "empty": "No video added yet",
+    "emptyBody": "Add one and embed it on a page through its key.",
+    "allEditions": "All editions",
+    "fieldKey": "Key",
+    "fieldKeyHint": "The page embeds through this, for example partner_tickets. Changing it removes the video from the page.",
+    "fieldUrl": "Loom link",
+    "fieldUrlHint": "Loom only. The normal share link is enough — we work out the embed address.",
+    "fieldTitleDe": "Title (DE)",
+    "fieldTitleEn": "Title (EN)",
+    "fieldAudience": "Audiences",
+    "fieldAudienceHint": "Comma separated: partner, speaker, talent, volunteer, hackathon.",
+    "fieldEdition": "Edition",
+    "fieldEditionHint": "Leave empty if the video applies to every edition. An edition version beats the general one."
   }
 }
