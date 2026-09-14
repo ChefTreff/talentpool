@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
+import { FileButton } from "@/components/ui/FileButton";
 import { Input, Textarea } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { Stepper } from "@/components/ui/Stepper";
 import { useToast } from "@/components/ui/Toast";
 import {
@@ -23,12 +23,9 @@ import {
   saveOnboarding,
   submitDeliverable,
 } from "../actions";
-import { ContactList } from "../kontakte/ContactList";
 import { BUCKET, safeFileName } from "../upload";
 import {
-  PASS_TYPES,
   type Deliverable,
-  type PartnerContact,
   type PartnerOverview,
 } from "../types";
 
@@ -75,12 +72,9 @@ export function OnboardingWizard({
   editionId,
   overview,
   logos,
-  contacts,
-  canManage,
   locale,
   dateLocale,
   t,
-  contactStrings,
   common,
   rpcMessages,
 }: {
@@ -89,12 +83,9 @@ export function OnboardingWizard({
   overview: PartnerOverview;
   /** Die Logo-Pflichten aus `my_deliverables` — seit 0057 SVG **und** PNG. */
   logos: Deliverable[];
-  contacts: PartnerContact[];
-  canManage: boolean;
   locale: Locale;
   dateLocale: string;
   t: Strings;
-  contactStrings: Strings;
   common: { save: string; cancel: string; none: string; back: string; next: string };
   rpcMessages: Record<string, string>;
 }) {
@@ -112,8 +103,6 @@ export function OnboardingWizard({
   });
   const set = (part: Partial<Draft>) => setDraft((d) => ({ ...d, ...part }));
 
-  // Pass-Typ nur, wenn Ticket-Produkte gebucht sind (Arbeitsauftrag B2).
-  const hasTickets = overview.products.some((p) => p.category === "tickets");
   /** Aktuelle Fassung einer Logo-Pflicht, falls es eine gibt. */
   const currentOf = (d: Deliverable) =>
     d.assets.find((a) => a.status !== "rejected") ?? d.assets[0] ?? null;
@@ -125,7 +114,6 @@ export function OnboardingWizard({
       { label: t.stepDescription },
       { label: t.stepLogo },
       { label: t.stepInvoice },
-      { label: t.stepContacts },
     ],
     [t],
   );
@@ -218,7 +206,7 @@ export function OnboardingWizard({
   return (
     <div className="max-w-[800px]">
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        <Stepper steps={steps} current={step} srLabel={t.stepperLabel} />
+        <Stepper steps={steps} current={step} srLabel={t.stepperLabel} onSelect={setStep} />
         <Badge tone={done ? "success" : "warning"}>
           {t[`status_${overview.edition.onboarding_status}`] ??
             overview.edition.onboarding_status}
@@ -403,26 +391,15 @@ export function OnboardingWizard({
                       <p className="ct-help mb-3">{t.logoNone}</p>
                     )}
 
-                    <Field
+                    <FileButton
                       label={current ? t.logoReplace : t.logoUpload}
-                      htmlFor={`logo-${logo.key}`}
+                      accept={acceptAttribute(rules)}
+                      disabled={uploading !== null || pending}
                       hint={t.logoHint
                         .replace("{allowed}", (rules?.ext ?? []).map((e) => `.${e}`).join(", "))
                         .replace("{max}", formatBytes(rules?.max_bytes ?? 0))}
-                    >
-                      <input
-                        id={`logo-${logo.key}`}
-                        type="file"
-                        accept={acceptAttribute(rules)}
-                        disabled={uploading !== null || pending}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          e.target.value = "";
-                          if (file) void onLogo(logo, file);
-                        }}
-                        className="ct-small"
-                      />
-                    </Field>
+                      onFile={(file) => void onLogo(logo, file)}
+                    />
                     {uploading === logo.key && <p className="ct-help mt-2">{t.logoUploading}</p>}
                   </section>
                 );
@@ -482,53 +459,13 @@ export function OnboardingWizard({
                 onChange={(e) => set({ po_number: e.target.value })}
               />
             </Field>
-            {hasTickets && (
-              <Field
-                label={t.fieldPassType}
-                htmlFor="pass_type_choice"
-                hint={t.fieldPassTypeHint}
-                className="sm:col-span-2"
-              >
-                <Select
-                  id="pass_type_choice"
-                  value={draft.pass_type_choice}
-                  placeholder={common.none}
-                  options={PASS_TYPES.map((p) => ({
-                    value: p,
-                    label: t[`passType_${p}`] ?? p,
-                  }))}
-                  onChange={(e) => set({ pass_type_choice: e.target.value })}
-                />
-              </Field>
-            )}
           </div>
           <div className="mt-6 flex gap-2">
             <Button variant="secondary" disabled={pending} onClick={() => setStep(2)}>
               {common.back}
             </Button>
-            <Button disabled={pending} onClick={() => onSave(4)}>
-              {common.next}
-            </Button>
-          </div>
-        </Card>
-      )}
-
-      {step === 4 && (
-        <Card>
-          <h2 className="ct-h3 mb-1 text-ink">{t.stepContacts}</h2>
-          <p className="ct-help mb-4">{t.stepContactsHint}</p>
-          <ContactList
-            orgId={orgId}
-            contacts={contacts}
-            canManage={canManage}
-            dateLocale={dateLocale}
-            t={contactStrings}
-            common={common}
-            rpcMessages={rpcMessages}
-          />
-          <div className="mt-6 flex gap-2">
-            <Button variant="secondary" disabled={pending} onClick={() => setStep(3)}>
-              {common.back}
+            <Button disabled={pending} onClick={() => onSave()}>
+              {common.save}
             </Button>
           </div>
         </Card>
