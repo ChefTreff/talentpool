@@ -21,6 +21,7 @@
 --
 -- Was gleich bleibt: Rechteprüfung (28000 ohne Login, 42501 für fremde
 -- Zielgruppen), Overlay-Logik, Signatur, Rückgabespalten. Test unten.
+set search_path = public, extensions;
 
 create or replace function kb_articles(
   p_audience text,
