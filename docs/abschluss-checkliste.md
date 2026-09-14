@@ -32,6 +32,7 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ Architektur-/Datenmodell-/Rechte-Doku aktuell; Drive-Spiegel aktuell.
 
 ## Design & Abnahme
+- ☐ **Check-in-Kiosk auf einem echten iPad (Safari) prüfen:** Kamerafreigabe, `getUserMedia`/jsQR-Scan, abgelehnte Kamera → Eingabefeld; zwei Geräte scannen denselben Code. Bisher nur Chromium am Mac (Kamera nicht freigegeben) und die Handeingabe belegt (14.09.2026).
 - ☐ **UI-Arbeit lädt `/portal-design`** (Skill `.claude/skills/portal-design/`, verbindlich seit 12.09.2026): Design-Durchgang F7 und jede UI-Änderung mit geladenem Skill; Kontrastmessung `node .claude/skills/portal-design/referenzen/kontrast.mjs` — jedes neue Farbpaar über der Schwelle (die Standardliste zeigt bewusst drei Negativbeispiele); keine rohen Hex-Werte in `app/` und `components/` außer `globals.css`.
 - ☐ Designer-Loop (Token-Übergabe, Review aller Portale) nach Funktionsstand.
 - ☐ Konrad-Abnahme je Portal (80 %-Runden dokumentiert).
