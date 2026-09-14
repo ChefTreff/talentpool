@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -8,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card, StatCard } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { OnboardingNudge } from "./OnboardingNudge";
 import { getPartnerScope } from "./org";
 import { canEditOnboarding, orgLabel, type PartnerOverview } from "./types";
 import { Countdown } from "./Countdown";
@@ -59,15 +59,6 @@ export default async function PartnerDashboard() {
     );
   }
 
-  // Beim ersten Einloggen führt der Weg direkt ins Formular (F12.2). Nur von
-  // der Startseite aus und nur, wer es auch ausfüllen darf — sonst landete
-  // jemand ohne Recht auf einer Seite, die ihm sagt, dass er nichts darf.
-  // Alle anderen Seiten bleiben erreichbar: eine Sperre, aus der man nicht
-  // herauskommt, ist keine Führung, sondern eine Falle.
-  if (o.edition.onboarding_status === "invited" && canEditOnboarding(o.roles, o.team)) {
-    redirect("/partner/onboarding");
-  }
-
   const categories = vgroup(vocab, "product_category");
   const dateTime = new Intl.DateTimeFormat(t.meta.dateLocale, {
     dateStyle: "medium",
@@ -96,6 +87,18 @@ export default async function PartnerDashboard() {
 
   return (
     <>
+      {/* Einmal, nicht bei jedem Besuch (F12.2, korrigiert nach Konrads
+          Einwand): eine Weiterleitung auf der Uebersicht ist eine Sperre. */}
+      {o.edition.onboarding_status === "invited" && canEditOnboarding(o.roles, o.team) && (
+        <OnboardingNudge
+          orgEditionId={current.edition_id ?? current.org_id}
+          title={t.partner.nudgeTitle}
+          body={t.partner.nudgeBody}
+          action={t.partner.nudgeAction}
+          later={t.partner.nudgeLater}
+          href="/partner/onboarding"
+        />
+      )}
       <PageHeader
         title={orgLabel(o.org)}
         description={`${t.partner.lead} · ${current.edition_name ?? ""}`}

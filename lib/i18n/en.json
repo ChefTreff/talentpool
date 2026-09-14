@@ -918,7 +918,11 @@
     "downloadFailed": "That file cannot be opened right now.",
     "stillMissing": "Still missing",
     "saved": "Saved",
-    "navWiki": "Wiki"
+    "navWiki": "Wiki",
+    "nudgeTitle": "Welcome — your details first",
+    "nudgeBody": "Before we start we need your company details, description, logo and invoicing details. It takes a few minutes and you can change everything later.",
+    "nudgeAction": "Fill in now",
+    "nudgeLater": "Later"
   },
   "partnerContacts": {
     "title": "Contacts",
@@ -998,7 +1002,10 @@
     "choose": "Please choose",
     "yes": "yes",
     "no": "no",
-    "fulfilledByShop": "Taken care of by your order in the trade fair shop."
+    "fulfilledByShop": "Taken care of by your order in the trade fair shop.",
+    "groupDone": "{done} of {total}",
+    "doneLabel": "done",
+    "openLabel": "open"
   },
   "partnerFiles": {
     "title": "Files",

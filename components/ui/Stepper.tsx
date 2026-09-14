@@ -1,6 +1,17 @@
 import { cn } from "./cn";
 
-export type Step = { label: string };
+export type Step = {
+  label: string;
+  /**
+   * Ist dieser Schritt **fachlich** erledigt?
+   *
+   * Ohne die Angabe gilt die Position: alles vor dem aktuellen Schritt ist
+   * erledigt. Das stimmt in einem Ablauf, den man nur vorwärts durchläuft —
+   * sobald die Schritte anklickbar sind, stimmt es nicht mehr: wer nach vorn
+   * springt, bekäme Haken für Schritte, die er nie ausgefüllt hat.
+   */
+  done?: boolean;
+};
 
 /**
  * Fortschritt im Onboarding-Wizard. Zustand in Form UND Farbe: erledigte
@@ -27,7 +38,7 @@ export function Stepper({
   return (
     <ol className="flex flex-wrap items-center gap-2" aria-label={srLabel}>
       {steps.map((s, i) => {
-        const done = i < current;
+        const done = s.done ?? i < current;
         const active = i === current;
         const klassen = cn(
           "inline-flex min-h-11 items-center gap-2 rounded-ct-md border px-3 py-1.5 ct-label leading-5",

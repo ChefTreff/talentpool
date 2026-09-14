@@ -918,7 +918,11 @@
     "downloadFailed": "Die Datei lässt sich gerade nicht öffnen.",
     "stillMissing": "Zum Abschluss fehlt noch",
     "saved": "Gespeichert",
-    "navWiki": "Wiki"
+    "navWiki": "Wiki",
+    "nudgeTitle": "Willkommen — einmal kurz eure Daten",
+    "nudgeBody": "Bevor es losgeht, brauchen wir Stammdaten, Beschreibung, Logo und Rechnungsdaten. Das dauert ein paar Minuten und ihr könnt jederzeit ändern.",
+    "nudgeAction": "Jetzt ausfüllen",
+    "nudgeLater": "Später"
   },
   "partnerContacts": {
     "title": "Kontakte",
@@ -998,7 +1002,10 @@
     "choose": "Bitte wählen",
     "yes": "ja",
     "no": "nein",
-    "fulfilledByShop": "Wird mit der Bestellung im Messeshop erledigt."
+    "fulfilledByShop": "Wird mit der Bestellung im Messeshop erledigt.",
+    "groupDone": "{done} von {total}",
+    "doneLabel": "erledigt",
+    "openLabel": "offen"
   },
   "partnerFiles": {
     "title": "Dateien",

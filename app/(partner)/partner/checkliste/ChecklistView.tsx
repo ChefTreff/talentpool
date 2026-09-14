@@ -14,6 +14,7 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
+import { FileButton } from "@/components/ui/FileButton";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
@@ -66,6 +67,8 @@ export function ChecklistView({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState<string | null>(null);
+  /** Welche Zeile ist aufgeklappt. Genau eine — sonst ist es wieder eine Wand. */
+  const [offen, setOffen] = useState<string | null>(null);
   // Antworten je Pflicht: der Schlüssel ist das Feld aus `answers_schema`,
   // ohne Schema steht alles unter `note`.
   const [answers, setAnswers] = useState<Record<string, Record<string, string>>>({});
@@ -75,6 +78,9 @@ export function ChecklistView({
     dateStyle: "medium",
     timeStyle: "short",
   });
+  // In der Zeile nur das Datum: die Uhrzeit interessiert erst im Detail, und
+  // eine Spalte, die umbricht, ist keine Spalte mehr.
+  const dateOnly = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
   const label = (d: Deliverable) =>
     (locale === "en" ? d.label_en : d.label_de) ?? d.label_de ?? d.key;
   const description = (d: Deliverable) =>
@@ -232,231 +238,268 @@ export function ChecklistView({
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       {groups.map((group) => (
         <section key={group.sku ?? "global"} aria-labelledby={`g-${group.sku ?? "global"}`}>
-          <h2 id={`g-${group.sku ?? "global"}`} className="ct-h3 mb-1 text-ink">
-            {group.label}
-          </h2>
-          {group.sku && <p className="ct-help mb-3">{group.sku}</p>}
-          <ul className="flex flex-col gap-3">
-            {group.items.map((d) => {
-              const overdue = isOverdue(d);
-              const editable = canEdit && EDITABLE.has(d.status);
-              const rules: FileRules = d.file_rules;
-              return (
-                <Card as="li" key={d.id}>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-[260px] flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="ct-label text-ink">{label(d)}</span>
-                        <Badge tone={TONE[badgeStatus(d)] ?? "neutral"}>
-                          {t[`status_${badgeStatus(d)}`] ?? badgeStatus(d)}
-                        </Badge>
+          <div className="mb-2 flex flex-wrap items-baseline gap-2">
+            <h2 id={`g-${group.sku ?? "global"}`} className="ct-h3 text-ink">
+              {group.label}
+            </h2>
+            {group.sku && <span className="ct-help">{group.sku}</span>}
+            <span className="ct-help ml-auto tabular-nums">
+              {t.groupDone
+                .replace("{done}", String(group.items.filter((d) => badgeStatus(d) === "accepted").length))
+                .replace("{total}", String(group.items.length))}
+            </span>
+          </div>
+
+          {/* Eine Liste, keine Kartenwand: Haken links, Aufgabe in der Mitte,
+              Frist rechts. Details stehen erst beim Aufklappen da — vorher
+              erschlug die Seite mit allem auf einmal und man erkannte nicht,
+              dass es eine Checkliste ist (Konrads Befund). */}
+          <Card className="p-0">
+            <ul className="flex flex-col">
+              {group.items.map((d) => {
+                const overdue = isOverdue(d);
+                const editable = canEdit && EDITABLE.has(d.status);
+                const rules: FileRules = d.file_rules;
+                const status = badgeStatus(d);
+                const erledigt = status === "accepted";
+                const auf = offen === d.id;
+                return (
+                  <li key={d.id} className="border-b last:border-b-0">
+                    <div className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-surface-hover">
+                      <Haken done={erledigt} label={erledigt ? t.doneLabel : t.openLabel} />
+
+                      <button
+                        type="button"
+                        aria-expanded={auf}
+                        aria-controls={`d-${d.id}`}
+                        onClick={() => setOffen(auf ? null : d.id)}
+                        className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left"
+                      >
+                        <span className={erledigt ? "ct-label text-muted" : "ct-label text-ink"}>
+                          {label(d)}
+                        </span>
                         {!d.required && <span className="ct-help">{t.optional}</span>}
-                      </div>
-                      {description(d) && <p className="ct-help mt-1">{description(d)}</p>}
-                      {d.due_at && (
-                        <p className={overdue ? "mt-1 ct-help leading-5 text-error-ink" : "ct-help mt-1"}>
-                          {t.dueOn} {dateTime.format(new Date(d.due_at))}
-                          {overdue && ` · ${t.stillPossible}`}
-                        </p>
-                      )}
-                      {d.submitted_at && (
-                        <p className="ct-help mt-1">
-                          {t.submittedOn} {dateTime.format(new Date(d.submitted_at))}
-                        </p>
-                      )}
-                      {d.review_note && (
-                        <p className="mt-1 ct-help leading-5 text-error-ink">
-                          {t.reviewNote}: {d.review_note}
-                        </p>
-                      )}
+                        <svg
+                          viewBox="0 0 12 12"
+                          className={`ml-1 h-3 w-3 shrink-0 text-muted transition-transform ${auf ? "rotate-90" : ""}`}
+                          aria-hidden
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                        >
+                          <path d="M4.5 3 7.5 6 4.5 9" />
+                        </svg>
+                      </button>
 
-                      {/* Rückwand: die Maße gehören neben den Upload. */}
-                      {d.key === "backdrop_print" && (
-                        <p className="ct-help mt-2">
-                          {booth?.backdrop_w_mm && booth?.backdrop_h_mm
-                            ? t.backdropSize
-                                .replace("{w}", String(booth.backdrop_w_mm))
-                                .replace("{h}", String(booth.backdrop_h_mm))
-                            : t.backdropSizeSoon}
-                        </p>
-                      )}
-
-                      {d.assets.length > 0 && (
-                        <ul className="ct-help mt-2 flex flex-col gap-1">
-                          {d.assets.map((a) => (
-                            <li key={a.id} className="flex flex-wrap items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => onDownload(a)}
-                                className="ct-link text-left"
-                              >
-                                {a.filename ?? a.storage_path.split("/").pop()}
-                              </button>
-                              <span className="tabular-nums">v{a.version}</span>
-                              {a.size_bytes != null && (
-                                <span>{formatBytes(a.size_bytes)}</span>
-                              )}
-                              <span>{dateTime.format(new Date(a.created_at))}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      {d.type === "form" &&
-                        d.status !== "open" &&
-                        Object.keys(d.answers ?? {}).length > 0 && (
-                          <dl className="ct-help mt-2 flex flex-col gap-0.5">
-                            {Object.entries(d.answers).map(([key, value]) => {
-                              const field = d.answers_schema?.find((f) => f.key === key);
-                              return (
-                                <div key={key} className="flex flex-wrap gap-1">
-                                  <dt className="font-semibold">
-                                    {field ? fieldLabel(field) : key}:
-                                  </dt>
-                                  <dd className="whitespace-pre-line">
-                                    {typeof value === "boolean"
-                                      ? value
-                                        ? t.yes
-                                        : t.no
-                                      : String(value)}
-                                  </dd>
-                                </div>
-                              );
-                            })}
-                          </dl>
+                      {/* Eigene Spalte, wie Konrad es wollte: die Frist ist das
+                          zweite, wonach man in einer Checkliste schaut. */}
+                      <span className="hidden w-[160px] shrink-0 text-right sm:block">
+                        {d.due_at ? (
+                          <span className={overdue ? "ct-help tabular-nums text-error-ink" : "ct-help tabular-nums"}>
+                            {dateOnly.format(new Date(d.due_at))}
+                          </span>
+                        ) : (
+                          <span className="ct-help">—</span>
                         )}
+                      </span>
+
+                      <Badge tone={TONE[status] ?? "neutral"}>{t[`status_${status}`] ?? status}</Badge>
                     </div>
 
-                    <div className="flex w-full max-w-[320px] flex-col gap-2">
-                      {!editable ? (
-                        <p className="ct-help">
-                          {d.status === "submitted"
-                            ? t.waitingForReview
-                            : d.status === "accepted"
-                              ? t.nothingToDo
-                              : t.noRights}
-                        </p>
-                      ) : d.type === "upload" ? (
-                        <>
-                          <Field
-                            label={d.assets.length > 0 ? t.uploadNew : t.upload}
-                            htmlFor={`f-${d.id}`}
-                            hint={t.uploadHint
-                              .replace("{allowed}", (rules?.ext ?? []).map((e) => `.${e}`).join(", "))
-                              .replace("{max}", formatBytes(rules?.max_bytes ?? 0))}
-                          >
-                            <input
-                              id={`f-${d.id}`}
-                              type="file"
-                              accept={acceptAttribute(rules)}
-                              disabled={uploading !== null || pending}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                e.target.value = "";
-                                if (file) void onUpload(d, file);
-                              }}
-                              className="ct-small"
-                            />
-                          </Field>
-                          {uploading === d.id && <p className="ct-help">{t.uploading}</p>}
-                        </>
-                      ) : d.type === "form" ? (
-                        <>
-                          {(d.answers_schema ?? []).length > 0 ? (
-                            d.answers_schema!.map((f) => (
-                              <Field
-                                key={f.key}
-                                label={fieldLabel(f)}
-                                htmlFor={`a-${d.id}-${f.key}`}
-                                required={f.required}
-                                requiredLabel={t.requiredLabel}
-                              >
-                                {f.type === "textarea" ? (
-                                  <Textarea
-                                    id={`a-${d.id}-${f.key}`}
-                                    rows={4}
-                                    value={answerOf(d, f.key)}
-                                    onChange={(e) => setAnswer(d, f.key, e.target.value)}
-                                  />
-                                ) : f.type === "select" ? (
-                                  <Select
-                                    id={`a-${d.id}-${f.key}`}
-                                    value={answerOf(d, f.key)}
-                                    placeholder={t.choose}
-                                    options={(f.options ?? []).map((o) => ({ value: o, label: o }))}
-                                    onChange={(e) => setAnswer(d, f.key, e.target.value)}
-                                  />
-                                ) : f.type === "boolean" ? (
-                                  // Die Beschriftung steht schon im `Field`
-                                  // darüber und zeigt per `htmlFor` hierher.
-                                  <input
-                                    id={`a-${d.id}-${f.key}`}
-                                    type="checkbox"
-                                    className="h-5 w-5"
-                                    checked={answerOf(d, f.key) === "true"}
-                                    onChange={(e) =>
-                                      setAnswer(d, f.key, e.target.checked ? "true" : "false")
-                                    }
-                                  />
-                                ) : (
-                                  <Input
-                                    id={`a-${d.id}-${f.key}`}
-                                    type={f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}
-                                    value={answerOf(d, f.key)}
-                                    onChange={(e) => setAnswer(d, f.key, e.target.value)}
-                                  />
-                                )}
-                              </Field>
-                            ))
-                          ) : (
-                            // Ohne Schema bleibt es bei einem Freitextfeld.
-                            <Field label={t.answer} htmlFor={`a-${d.id}-note`} hint={t.answerHint}>
-                              <Textarea
-                                id={`a-${d.id}-note`}
-                                rows={4}
-                                value={answerOf(d, "note")}
-                                onChange={(e) => setAnswer(d, "note", e.target.value)}
-                              />
-                            </Field>
+                    {auf && (
+                      <div id={`d-${d.id}`} className="flex flex-col gap-4 border-t bg-canvas px-4 py-4 sm:flex-row sm:px-14">
+                        <div className="min-w-0 flex-1">
+                          {description(d) && <p className="ct-small leading-6">{description(d)}</p>}
+                          {d.due_at && (
+                            <p className={overdue ? "mt-2 ct-help text-error-ink" : "mt-2 ct-help"}>
+                              {t.dueOn} {dateTime.format(new Date(d.due_at))}
+                              {overdue && ` · ${t.stillPossible}`}
+                            </p>
                           )}
-                          <Button
-                            size="sm"
-                            disabled={pending || !formComplete(d)}
-                            onClick={() => onSubmitForm(d)}
-                          >
-                            {t.submit}
-                          </Button>
-                        </>
-                      ) : d.fulfilled_by_sku ? (
-                        // Diese Pflicht erledigt die Bestellung im Messeshop
-                        // (Migration 0054). Ein Knopf hier liefe in
-                        // `fulfilled_by_order` — also gar nicht erst anbieten.
-                        <p className="ct-help">{t.fulfilledByShop}</p>
-                      ) : (
-                        <>
-                          <p className="ct-help">
-                            {d.type === "booking" ? t.bookingHint : t.infoHint}
-                          </p>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            disabled={pending}
-                            onClick={() => onSubmitSimple(d)}
-                          >
-                            {t.markDone}
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </ul>
+                          {d.submitted_at && (
+                            <p className="ct-help mt-1">
+                              {t.submittedOn} {dateTime.format(new Date(d.submitted_at))}
+                            </p>
+                          )}
+                          {d.review_note && (
+                            <p className="mt-1 ct-help leading-5 text-error-ink">
+                              {t.reviewNote}: {d.review_note}
+                            </p>
+                          )}
+
+                          {/* Rückwand: die Maße gehören neben den Upload. */}
+                          {d.key === "backdrop_print" && (
+                            <p className="ct-help mt-2">
+                              {booth?.backdrop_w_mm && booth?.backdrop_h_mm
+                                ? t.backdropSize
+                                    .replace("{w}", String(booth.backdrop_w_mm))
+                                    .replace("{h}", String(booth.backdrop_h_mm))
+                                : t.backdropSizeSoon}
+                            </p>
+                          )}
+
+                          {d.assets.length > 0 && (
+                            <ul className="ct-help mt-3 flex flex-col gap-1">
+                              {d.assets.map((a) => (
+                                <li key={a.id} className="flex flex-wrap items-center gap-2">
+                                  <button type="button" onClick={() => onDownload(a)} className="ct-link text-left">
+                                    {a.filename ?? a.storage_path.split("/").pop()}
+                                  </button>
+                                  <span className="tabular-nums">v{a.version}</span>
+                                  {a.size_bytes != null && <span>{formatBytes(a.size_bytes)}</span>}
+                                  <span>{dateTime.format(new Date(a.created_at))}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+
+                          {d.type === "form" &&
+                            d.status !== "open" &&
+                            Object.keys(d.answers ?? {}).length > 0 && (
+                              <dl className="ct-help mt-3 flex flex-col gap-0.5">
+                                {Object.entries(d.answers).map(([key, value]) => {
+                                  const field = d.answers_schema?.find((f) => f.key === key);
+                                  return (
+                                    <div key={key} className="flex flex-wrap gap-1">
+                                      <dt className="font-semibold">{field ? fieldLabel(field) : key}:</dt>
+                                      <dd className="whitespace-pre-line">
+                                        {typeof value === "boolean" ? (value ? t.yes : t.no) : String(value)}
+                                      </dd>
+                                    </div>
+                                  );
+                                })}
+                              </dl>
+                            )}
+                        </div>
+
+                        <div className="flex w-full flex-col gap-2 sm:max-w-[320px]">
+                          {!editable ? (
+                            <p className="ct-help">
+                              {d.status === "submitted"
+                                ? t.waitingForReview
+                                : d.status === "accepted"
+                                  ? t.nothingToDo
+                                  : t.noRights}
+                            </p>
+                          ) : d.type === "upload" ? (
+                            <>
+                              <FileButton
+                                label={d.assets.length > 0 ? t.uploadNew : t.upload}
+                                accept={acceptAttribute(rules)}
+                                disabled={uploading !== null || pending}
+                                hint={t.uploadHint
+                                  .replace("{allowed}", (rules?.ext ?? []).map((e) => `.${e}`).join(", "))
+                                  .replace("{max}", formatBytes(rules?.max_bytes ?? 0))}
+                                onFile={(file) => void onUpload(d, file)}
+                              />
+                              {uploading === d.id && <p className="ct-help">{t.uploading}</p>}
+                            </>
+                          ) : d.type === "form" ? (
+                            <>
+                              {(d.answers_schema ?? []).length > 0 ? (
+                                d.answers_schema!.map((f) => (
+                                  <Field
+                                    key={f.key}
+                                    label={fieldLabel(f)}
+                                    htmlFor={`a-${d.id}-${f.key}`}
+                                    required={f.required}
+                                    requiredLabel={t.requiredLabel}
+                                  >
+                                    {f.type === "textarea" ? (
+                                      <Textarea
+                                        id={`a-${d.id}-${f.key}`}
+                                        rows={4}
+                                        value={answerOf(d, f.key)}
+                                        onChange={(e) => setAnswer(d, f.key, e.target.value)}
+                                      />
+                                    ) : f.type === "select" ? (
+                                      <Select
+                                        id={`a-${d.id}-${f.key}`}
+                                        value={answerOf(d, f.key)}
+                                        placeholder={t.choose}
+                                        options={(f.options ?? []).map((o) => ({ value: o, label: o }))}
+                                        onChange={(e) => setAnswer(d, f.key, e.target.value)}
+                                      />
+                                    ) : f.type === "boolean" ? (
+                                      <input
+                                        id={`a-${d.id}-${f.key}`}
+                                        type="checkbox"
+                                        className="h-5 w-5"
+                                        checked={answerOf(d, f.key) === "true"}
+                                        onChange={(e) => setAnswer(d, f.key, e.target.checked ? "true" : "false")}
+                                      />
+                                    ) : (
+                                      <Input
+                                        id={`a-${d.id}-${f.key}`}
+                                        type={f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}
+                                        value={answerOf(d, f.key)}
+                                        onChange={(e) => setAnswer(d, f.key, e.target.value)}
+                                      />
+                                    )}
+                                  </Field>
+                                ))
+                              ) : (
+                                <Field label={t.answer} htmlFor={`a-${d.id}-note`} hint={t.answerHint}>
+                                  <Textarea
+                                    id={`a-${d.id}-note`}
+                                    rows={4}
+                                    value={answerOf(d, "note")}
+                                    onChange={(e) => setAnswer(d, "note", e.target.value)}
+                                  />
+                                </Field>
+                              )}
+                              <Button size="sm" disabled={pending || !formComplete(d)} onClick={() => onSubmitForm(d)}>
+                                {t.submit}
+                              </Button>
+                            </>
+                          ) : d.fulfilled_by_sku ? (
+                            <p className="ct-help">{t.fulfilledByShop}</p>
+                          ) : (
+                            <>
+                              <p className="ct-help">{d.type === "booking" ? t.bookingHint : t.infoHint}</p>
+                              <Button size="sm" variant="secondary" disabled={pending} onClick={() => onSubmitSimple(d)}>
+                                {t.markDone}
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
         </section>
       ))}
     </div>
+  );
+}
+
+/**
+ * Der Haken links in der Zeile. Zustand in Form **und** Farbe: ein erledigter
+ * Punkt trägt das Häkchen, ein offener einen leeren Ring — wer Farben nicht
+ * unterscheidet, sieht den Unterschied trotzdem.
+ */
+function Haken({ done, label }: { done: boolean; label: string }) {
+  return (
+    <span
+      title={label}
+      className={
+        done
+          ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success-ink text-surface"
+          : "h-5 w-5 shrink-0 rounded-full border-2 border-border-strong"
+      }
+    >
+      {done && (
+        <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M2.5 6.5 5 9l4.5-5.5" />
+        </svg>
+      )}
+      <span className="sr-only">{label}</span>
+    </span>
   );
 }

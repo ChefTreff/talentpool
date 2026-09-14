@@ -108,14 +108,25 @@ export function OnboardingWizard({
     d.assets.find((a) => a.status !== "rejected") ?? d.assets[0] ?? null;
   const allLogosThere = logos.length > 0 && logos.every((d) => currentOf(d) !== null);
 
+  // Der Haken kommt aus dem Inhalt, nicht aus der Position — dieselben Regeln
+  // wie in `MissingHint`, damit Anzeige und Hinweis nicht auseinanderlaufen.
   const steps = useMemo(
     () => [
-      { label: t.stepCompany },
-      { label: t.stepDescription },
-      { label: t.stepLogo },
-      { label: t.stepInvoice },
+      {
+        label: t.stepCompany,
+        done: Boolean(
+          draft.legal_name.trim() &&
+            draft.communication_name.trim() &&
+            draft.address_street.trim() &&
+            draft.address_zip.trim() &&
+            draft.address_city.trim(),
+        ),
+      },
+      { label: t.stepDescription, done: Boolean(draft.description_de.trim()) },
+      { label: t.stepLogo, done: allLogosThere },
+      { label: t.stepInvoice, done: Boolean(draft.invoice_email.trim()) },
     ],
-    [t],
+    [t, draft, allLogosThere],
   );
 
   const done = overview.edition.onboarding_status !== "invited";
