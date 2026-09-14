@@ -1,11 +1,11 @@
--- Smoke-Test 0088 (Hackathon · Sprache). Belegt:
+-- Smoke-Test 0089 (Hackathon · Sprache). Belegt:
 --   01 mit deutscher Fassung im Feld bekommt `p_language => 'de'` auch Deutsch;
 --   02 ohne deutsche Fassung bleibt es Englisch — kein Loch;
 --   03 Englisch bleibt die Voreinstellung: ohne `p_language` kommt EN;
 --   04 eine leere deutsche Fassung ('' oder Leerzeichen) zählt nicht als Fassung;
 --   05 `my_hack` reicht dieselbe Regel an die eigene Challenge durch;
 --   06 die Rechteprüfung bleibt: ohne Login 28000, Jury-Sicht ohne Rolle 42501.
--- Vor 0088 waren 01, 04 und 05 rot: `coalesce(title_en, title_de)` mit
+-- Vor 0089 waren 01, 04 und 05 rot: `coalesce(title_en, title_de)` mit
 -- `title_en not null` liess Deutsch nie durch (Walkthrough 14.09.2026).
 begin;
 create temp table t_res (step text, result text) on commit drop;
@@ -79,6 +79,6 @@ begin
 end $$;
 select * from t_res order by step;
 rollback;
--- Lauf am 14.09. gegen Frankfurt: ohne 0088 gab es keinen Weg zur deutschen
--- Fassung (01, 04, 05 lieferten durchweg Englisch); mit 0088 im selben
+-- Lauf am 14.09. gegen Frankfurt: ohne 0089 gab es keinen Weg zur deutschen
+-- Fassung (01, 04, 05 lieferten durchweg Englisch); mit 0089 im selben
 -- Transaktionsblock alle sieben gruen.

@@ -1,4 +1,4 @@
--- 0088 · Welle 4 · Hackathon: die deutschen Spalten werden auch gelesen
+-- 0089 · Welle 4 · Hackathon: die deutschen Spalten werden auch gelesen
 --
 -- Befund aus dem Walkthrough am 14.09.2026: deutsche Navigation, englische
 -- Inhalte — und zwar auch dort, wo eine deutsche Fassung im Feld steht.
@@ -11,7 +11,7 @@
 -- Der Hackathon läuft auf Englisch (E7), das bleibt: `p_language` ist
 -- standardmässig `'en'`, und ohne deutsche Fassung kommt weiterhin die
 -- englische. Neu ist nur, dass eine vorhandene deutsche Fassung eine deutsche
--- Leserin auch erreicht — dieselbe Regel wie in der Wissensbasis (0087):
+-- Leserin auch erreicht — dieselbe Regel wie in der Wissensbasis (0088):
 -- gefragte Sprache zuerst, die andere als Rückfall, nie Leere.
 --
 -- Signaturänderung: die vier Funktionen bekommen `p_language text` **hinter**
