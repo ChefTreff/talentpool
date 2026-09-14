@@ -6,7 +6,9 @@
 --   05 ein storniertes Ticket löst nichts ein;
 --   06 Zusage zurückgenommen ⇒ Coupon `revoked`;
 --   07 Erinnerung erst nach sieben Tagen und nur einmal;
---   08 `volunteer_tickets_admin` für Fremde 42501, offene Fälle zuerst.
+--   08 `volunteer_tickets_admin` für Fremde 42501, offene Fälle zuerst;
+--   09 (Review 14.09.) Widerruf landet in der Deaktivierungsliste, erneute Zusage beginnt bei `none`,
+--      Quittung räumt die Liste, Mail-Link über {{portal_url}}, keine Grants auf Tabelle und Trigger.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -86,6 +88,25 @@ begin
   select coupon_status || '/' || coalesce(coupon_code, '(leer)') into v_txt
     from volunteer_profile where id = v_prof2;
   insert into t_res values ('06_zurueckgenommen', v_txt);
+
+  -- 09 Widerruf bei vivenu (Review 14.09.)
+  insert into t_res values ('09a_widerruf_offen',
+    (select count(*)::text from volunteer_coupon_revocations_pending() where profile_id = v_prof2));
+  update volunteer_profile set status = 'accepted' where id = v_prof2;
+  select coupon_status || ' coupon_id=' || coalesce(vivenu_coupon_id, '(leer)') into v_txt
+    from volunteer_profile where id = v_prof2;
+  insert into t_res values ('09b_erneute_zusage', v_txt);
+  perform mark_volunteer_coupon_revoked((select r.id from volunteer_coupon_revocations_pending() r where r.profile_id = v_prof2 limit 1));
+  insert into t_res values ('09c_quittiert',
+    'offen=' || (select count(*) from volunteer_coupon_revocations_pending() where profile_id = v_prof2));
+  insert into t_res values ('09d_mail_link',
+    (select count(*)::text from mail_template where key = 'volunteer_ticket_reminder' and body_md like '%{{portal_url}}/volunteers%')
+    || ' von 2, link-platzhalter=' || (select count(*) from mail_template where body_md like '%{{link}}%'));
+  insert into t_res values ('09e_grants',
+    'tabelle=' || (select count(*) from information_schema.role_table_grants
+                    where table_name = 'volunteer_coupon_revocation' and grantee in ('anon', 'authenticated'))
+    || ' mark=' || has_function_privilege('authenticated', 'mark_volunteer_coupon_revoked(bigint, text)', 'execute')::text
+    || ' trigger=' || has_function_privilege('authenticated', 'trg_ticket_volunteer_redeem()', 'execute')::text);
 
   -- 07 Erinnerung: erst nach sieben Tagen, dann einmal
   update volunteer_profile

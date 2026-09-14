@@ -19,6 +19,13 @@
 -- Fehlerschlüssel: 42501, P0002 `profile_not_found`, P0001 `not_accepted`.
 --
 -- Abweichungen: keine.
+-- Review Architektur-Session 14.09.2026: ein zurückgenommener Coupon muss auch
+-- bei vivenu erlöschen — `volunteer_coupon_revocation` merkt sich jeden Widerruf,
+-- der Sync deaktiviert den Coupon (`updateCoupon … active:false`) und quittiert
+-- mit `mark_volunteer_coupon_revoked`. Eine erneuerte Zusage beginnt bei `none`.
+-- Mail-Link über `{{portal_url}}` (ein `{{link}}` kennt der Versand nicht und
+-- hätte leer gerendert). Team-Liste nennt den Ticketstatus. Trigger-Funktionen
+-- ohne EXECUTE für authenticated.
 set search_path = public, extensions;
 
 alter table volunteer_profile
@@ -46,6 +53,24 @@ comment on column volunteer_profile.coupon_status is
 alter table event add column if not exists vivenu_volunteer_undershop_id text;
 comment on column event.vivenu_volunteer_undershop_id is
   'Undershop „Volunteers" dieser Edition. Ein Shop, viele persönliche Coupons.';
+
+-- Widerrufe, die bei vivenu noch deaktiviert werden müssen. Keine Grants — nur RPCs.
+create table if not exists volunteer_coupon_revocation (
+  id                bigint generated always as identity primary key,
+  profile_id        uuid not null references volunteer_profile(id) on delete cascade,
+  vivenu_coupon_id  text not null,
+  coupon_code       text,
+  revoked_at        timestamptz not null default now(),
+  deactivated_at    timestamptz,
+  error             text
+);
+create index if not exists volunteer_coupon_revocation_open_idx
+  on volunteer_coupon_revocation (revoked_at) where deactivated_at is null;
+alter table volunteer_coupon_revocation enable row level security;
+revoke all on volunteer_coupon_revocation from anon, authenticated;
+grant all on volunteer_coupon_revocation to service_role;
+comment on table volunteer_coupon_revocation is
+  'Widerrufene Volunteer-Coupons, die bei vivenu noch zu deaktivieren sind (`deactivated_at` leer).';
 
 -- ---------------------------------------------------------------- Ausgabe
 
@@ -115,6 +140,34 @@ begin
   if not found then raise exception 'edition_not_found' using errcode = 'P0002'; end if;
 end $$;
 
+/** Widerrufe, die bei vivenu noch offen sind. service_role oder Volunteer-Team. */
+create or replace function volunteer_coupon_revocations_pending()
+returns table(id bigint, profile_id uuid, vivenu_coupon_id text, coupon_code text, revoked_at timestamptz, error text)
+language plpgsql stable security definer set search_path = public, extensions as $$
+begin
+  if auth.uid() is not null and not is_volunteer_team() then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  return query
+    select r.id, r.profile_id, r.vivenu_coupon_id, r.coupon_code, r.revoked_at, r.error
+      from volunteer_coupon_revocation r
+     where r.deactivated_at is null
+     order by r.revoked_at;
+end $$;
+
+/** Deaktivierung quittieren — oder den Fehler festhalten, dann bleibt der Widerruf offen. Nur service_role. */
+create or replace function mark_volunteer_coupon_revoked(p_id bigint, p_error text default null) returns void
+language plpgsql volatile security definer set search_path = public, extensions as $$
+begin
+  if auth.uid() is not null then raise exception 'not allowed' using errcode = '42501'; end if;
+  update volunteer_coupon_revocation
+     set deactivated_at = case when p_error is null then now() else deactivated_at end,
+         error = left(p_error, 500)
+   where id = p_id;
+  if not found then raise exception 'revocation_not_found' using errcode = 'P0002'; end if;
+end $$;
+revoke execute on function mark_volunteer_coupon_revoked(bigint, text) from public, anon, authenticated;
+
 -- ---------------------------------------------------------------- Einlösung
 
 /**
@@ -155,6 +208,7 @@ begin
    where id = v_profile and coupon_status <> 'redeemed';
   return new;
 end $$;
+revoke execute on function trg_ticket_volunteer_redeem() from public, anon, authenticated;
 
 drop trigger if exists ticket_volunteer_redeem on ticket;
 create trigger ticket_volunteer_redeem after insert or update of status, person_id, vivenu_undershop_id, vivenu_discount_id
@@ -166,7 +220,7 @@ create or replace function volunteer_tickets_admin(p_edition_id uuid default nul
 returns table(profile_id uuid, person_id uuid, display_name text, email text, status text,
               coupon_status text, coupon_code text, coupon_issued_at timestamptz,
               redeemed_at timestamptz, reminded_at timestamptz, coupon_error text,
-              shifts integer)
+              shifts integer, ticket_status text)
 language plpgsql stable security definer set search_path = public, extensions as $$
 declare v_ed uuid;
 begin
@@ -178,7 +232,9 @@ begin
            pe.email::text, v.status, v.coupon_status, v.coupon_code, v.coupon_issued_at,
            v.redeemed_at, v.reminded_at, v.coupon_error,
            (select count(*)::integer from shift_assignment a
-             where a.person_id = v.person_id and a.status in ('assigned', 'confirmed'))
+             where a.person_id = v.person_id and a.status in ('assigned', 'confirmed')),
+           -- Ein eingelöstes, danach storniertes Ticket soll der Liste nicht entgehen.
+           (select t.status from ticket t where t.id = v.ticket_id)
       from volunteer_profile v
       join person p on p.id = v.person_id
       left join person_email pe on pe.person_id = p.id and pe.is_primary
@@ -217,15 +273,29 @@ begin
 end $$;
 
 -- Zusage zurückgenommen ⇒ Coupon zu. Der Code bleibt stehen, damit im Support
--- nachvollziehbar ist, was jemand in der Hand hatte.
+-- nachvollziehbar ist, was jemand in der Hand hatte. Bei vivenu erlischt der
+-- Coupon erst, wenn der Sync ihn deaktiviert hat — dafür der Eintrag in
+-- `volunteer_coupon_revocation`. Eine erneuerte Zusage beginnt bei `none`.
 create or replace function trg_volunteer_status_coupon() returns trigger
 language plpgsql security definer set search_path = public, extensions as $$
 begin
   if new.status in ('declined', 'withdrawn') and old.coupon_status in ('pending', 'issued') then
     new.coupon_status := 'revoked';
+    if new.vivenu_coupon_id is not null then
+      insert into volunteer_coupon_revocation (profile_id, vivenu_coupon_id, coupon_code)
+      values (new.id, new.vivenu_coupon_id, new.coupon_code);
+    end if;
+  elsif new.status = 'accepted' and old.status <> 'accepted' and old.coupon_status = 'revoked' then
+    new.coupon_status := 'none';
+    new.coupon_code := null;
+    new.vivenu_coupon_id := null;
+    new.coupon_issued_at := null;
+    new.coupon_error := null;
+    new.reminded_at := null;
   end if;
   return new;
 end $$;
+revoke execute on function trg_volunteer_status_coupon() from public, anon, authenticated;
 
 drop trigger if exists volunteer_status_coupon on volunteer_profile;
 create trigger volunteer_status_coupon before update of status on volunteer_profile
@@ -261,11 +331,11 @@ end $$;
 insert into mail_template (key, locale, subject, body_md, active) values
   ('volunteer_ticket_reminder', 'de',
    'Dein Volunteer-Ticket wartet noch',
-   E'Hallo {{first_name}},\n\ndein Ticket für {{edition}} ist reserviert, aber noch nicht abgeholt. Einlösen dauert eine Minute — und erst danach steht dein Platz fest.\n\n**Dein Code:** {{code}}\n\n[Ticket einlösen]({{link}})\n\nWenn du doch nicht dabei sein kannst, sag uns kurz Bescheid — dann rückt jemand von der Warteliste nach.\n\nDanke dir!\nDein ChefTreff-Team',
+   E'Hallo {{first_name}},\n\ndein Ticket für {{edition}} ist reserviert, aber noch nicht abgeholt. Einlösen dauert eine Minute — und erst danach steht dein Platz fest.\n\n**Dein Code:** {{code}}\n\n[Ticket einlösen]({{portal_url}}/volunteers)\n\nWenn du doch nicht dabei sein kannst, sag uns kurz Bescheid — dann rückt jemand von der Warteliste nach.\n\nDanke dir!\nDein ChefTreff-Team',
    true),
   ('volunteer_ticket_reminder', 'en',
    'Your volunteer ticket is still waiting',
-   E'Hi {{first_name}},\n\nyour ticket for {{edition}} is reserved but not collected yet. Redeeming takes a minute — and only then is your spot confirmed.\n\n**Your code:** {{code}}\n\n[Redeem ticket]({{link}})\n\nIf you cannot make it after all, just tell us — then someone from the waiting list moves up.\n\nThank you!\nYour ChefTreff team',
+   E'Hi {{first_name}},\n\nyour ticket for {{edition}} is reserved but not collected yet. Redeeming takes a minute — and only then is your spot confirmed.\n\n**Your code:** {{code}}\n\n[Redeem ticket]({{portal_url}}/volunteers)\n\nIf you cannot make it after all, just tell us — then someone from the waiting list moves up.\n\nThank you!\nYour ChefTreff team',
    true)
 on conflict (key, locale) do nothing;
 
