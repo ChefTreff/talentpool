@@ -33,6 +33,8 @@ const email = (args.find((a) => a.startsWith("--email="))?.split("=")[1] ?? "kon
 const MARK = "testdaten:konrad";
 const PREFIX = "TEST — ";
 const AREA_KEY = "zz_test_bereich";
+/** Kürzel im Coupon-Code, damit Testkontingente in vivenu-Listen auffallen. */
+const PREFIX_CODE = "ZZTEST";
 const admin = createClient(url, secretKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
 const log = [];
@@ -325,6 +327,161 @@ async function apply(me, ed) {
   // --- Hackathon und Produktion ------------------------------------------
   await role(me.id, "hackathon_participant", "edition", null, ed.id, validTo);
   await role(me.id, "production_team", "edition", null, ed.id, validTo);
+
+  // --- Nachtrag: die Wege, die der F4-Abgleich nicht auslösen konnte -------
+  // Ticket-Kontingent, eigene Session, Standbühne und eine Bewerbung. Ohne sie
+  // zeigen `/partner/tickets`, `/speaker/session`, `/partner/buehne` und
+  // `/partner/bewerber` nur ihren Leerzustand — richtig gebaut, aber nicht
+  // beurteilbar.
+  if (orgId) await ticketAllocation(me, ed, orgId);
+  await ownSession(me, ed);
+  if (orgId) await partnerStage(me, ed, orgId, validTo);
+  if (orgId) await formatApplication(me, ed, orgId);
+}
+
+/**
+ * Ein Kontingent je Pass-Typ, damit `/partner/tickets` Codes, Einlöse-Stand
+ * **und** den Weg „mehr anfragen" zeigt.
+ *
+ * Wichtig: `synced_at` wird gesetzt. `ticket_allocations_pending()` nimmt alles
+ * mit, was `status in ('pending_vivenu','error')` **oder** `synced_at is null`
+ * hat — ohne den Zeitstempel würde der nächste Cron-Lauf für diese Testzeile
+ * einen echten Coupon in vivenu anlegen. Der Code hier existiert nur in der
+ * Datenbank und ist am Präfix ZZTEST erkennbar; einlösbar ist er nicht.
+ */
+async function ticketAllocation(me, ed, orgId) {
+  const { data: oe } = await admin
+    .from("org_edition").select("id").eq("org_id", orgId).eq("edition_id", ed.id).maybeSingle();
+  const paesse = [
+    { pass_type: "partner", quantity: 5 },
+    { pass_type: "talent", quantity: 5 },
+  ];
+  for (const p of paesse) {
+    await write(`Ticket-Kontingent ${p.pass_type}`, async () => {
+      const { data: da } = await admin.from("org_ticket_allocation").select("id")
+        .eq("org_id", orgId).eq("event_id", ed.id).eq("pass_type", p.pass_type).maybeSingle();
+      if (da) return { data: da, error: null };
+      return admin.from("org_ticket_allocation").insert({
+        event_id: ed.id, org_id: orgId, org_edition_id: oe?.id ?? null,
+        pass_type: p.pass_type, quantity: p.quantity,
+        coupon_code: `FLS27-${PREFIX_CODE}-${p.pass_type.toUpperCase()}`,
+        used_count: 0, status: "active", synced_at: new Date().toISOString(), notes: MARK,
+      }).select("id").single();
+    });
+  }
+}
+
+/**
+ * Eine Session mit Konrad als Speaker. Erst damit zeigt `/speaker/session`
+ * Inhalte, Frist und Upload statt „Noch keine Session".
+ */
+async function ownSession(me, ed) {
+  const { data: ev } = await admin
+    .from("event").select("id").eq("edition_id", ed.id).order("start_date").limit(1).maybeSingle();
+  const eventId = ev?.id ?? ed.id;
+  await write("Session mit Konrad als Speaker", async () => {
+    const { data: da } = await admin.from("session").select("id")
+      .eq("event_id", eventId).eq("title_de", `${PREFIX}Keynote`).maybeSingle();
+    let sessionId = da?.id ?? null;
+    if (!sessionId) {
+      const { data, error } = await admin.from("session").insert({
+        event_id: eventId, format: "keynote",
+        title_de: `${PREFIX}Keynote`, title_en: `${PREFIX}Keynote`,
+        description_de: "Testsession für die Feedback-Runden.",
+        description_en: "Test session for the feedback rounds.",
+        language: "de", access_mode: "open", publish_status: "draft",
+      }).select("id").single();
+      if (error) return { data: null, error };
+      sessionId = data.id;
+    }
+    // Der Primärschlüssel ist (session_id, person_id, role) — die Rolle gehört dazu.
+    return admin.from("session_speaker")
+      .upsert({ session_id: sessionId, person_id: me.id, role: "speaker", confirmed: true },
+              { onConflict: "session_id,person_id,role" });
+  });
+}
+
+/**
+ * Eine Standbühne der Test-Organisation. `my_partner_stages()` verlangt
+ * zusätzlich die Rolle `standbuehne_editor` **im Scope der Organisation** —
+ * eine globale Rolle genügt der Funktion nicht.
+ */
+async function partnerStage(me, ed, orgId, validTo) {
+  const { data: ev } = await admin
+    .from("event").select("id").eq("edition_id", ed.id).order("start_date").limit(1).maybeSingle();
+  const eventId = ev?.id ?? ed.id;
+  await write("Standbühne der Test-Organisation", async () => {
+    const { data: da } = await admin.from("stage").select("id")
+      .eq("event_id", eventId).eq("slug", "zz-test-standbuehne").maybeSingle();
+    if (da) return { data: da, error: null };
+    return admin.from("stage").insert({
+      event_id: eventId, name: `${PREFIX}Standbühne`, slug: "zz-test-standbuehne",
+      // `stage_type_check` kennt main/side/partner_booth/room — nicht „partner".
+      type: "partner_booth", partner_org_id: orgId, capacity: 30,
+      default_duration_min: 20, partner_slot_quota: 4, active: true,
+    }).select("id").single();
+  });
+  await role(me.id, "standbuehne_editor", "org", orgId, ed.id, validTo);
+}
+
+/**
+ * Eine Masterclass mit Bewerbung — Konrad bewirbt sich bei sich selbst, damit
+ * `/partner/bewerber` eine Zeile zeigt. Erfundene Dritte kommen nicht vor
+ * (siehe Kopf).
+ */
+async function formatApplication(me, ed, orgId) {
+  const { data: ev } = await admin
+    .from("event").select("id").eq("edition_id", ed.id).order("start_date").limit(1).maybeSingle();
+  const eventId = ev?.id ?? ed.id;
+
+  // Veröffentlichen verlangt einen Slot (Trigger „publish requires a slot") —
+  // zu Recht: ein Format ohne Bühne und Zeit hat im Programm nichts verloren.
+  // Der Slot liegt auf der Teststandbühne und wird mit ihr entfernt.
+  const { data: st } = await admin.from("stage").select("id")
+    .eq("event_id", eventId).eq("slug", "zz-test-standbuehne").maybeSingle();
+  const { data: tag } = await admin.from("event_day").select("id, day_date")
+    .eq("event_id", eventId).order("day_date").limit(1).maybeSingle();
+
+  await write("Masterclass mit einer Bewerbung", async () => {
+    const { data: da } = await admin.from("session").select("id")
+      .eq("event_id", eventId).eq("title_de", `${PREFIX}Masterclass`).maybeSingle();
+    let sessionId = da?.id ?? null;
+    if (!sessionId) {
+      let slotId = null;
+      if (st && tag) {
+        const start = new Date(`${tag.day_date}T14:00:00Z`).toISOString();
+        const ende = new Date(`${tag.day_date}T15:00:00Z`).toISOString();
+        const { data: vorhanden } = await admin.from("slot").select("id")
+          .eq("stage_id", st.id).eq("event_day_id", tag.id).eq("start_at", start).maybeSingle();
+        if (vorhanden) slotId = vorhanden.id;
+        else {
+          const { data: sl, error: se } = await admin.from("slot").insert({
+            stage_id: st.id, event_day_id: tag.id, start_at: start, end_at: ende,
+            slot_type: "partner_block", status: "confirmed", internal_title: `${PREFIX}Masterclass`,
+          }).select("id").single();
+          if (se) return { data: null, error: se };
+          slotId = sl.id;
+        }
+      }
+      const { data, error } = await admin.from("session").insert({
+        event_id: eventId, format: "masterclass", host_org_id: orgId, slot_id: slotId,
+        title_de: `${PREFIX}Masterclass`, title_en: `${PREFIX}Masterclass`,
+        description_de: "Testformat für die Feedback-Runden.",
+        description_en: "Test format for the feedback rounds.",
+        language: "de", access_mode: "application",
+        publish_status: slotId ? "published" : "draft",
+        capacity: 12,
+        application_deadline: new Date(Date.now() + 30 * 86400000).toISOString(),
+      }).select("id").single();
+      if (error) return { data: null, error };
+      sessionId = data.id;
+    }
+    return admin.from("application")
+      .upsert({ session_id: sessionId, person_id: me.id, status: "applied",
+                answers: { motivation: "Testbewerbung für die Feedback-Runden." },
+                consent_share: true },
+              { onConflict: "session_id,person_id" });
+  });
 }
 
 async function remove(me) {
@@ -351,10 +508,27 @@ async function remove(me) {
       await admin.from("booth").delete().eq("org_edition_id", oe.id);
       await admin.from("org_product").delete().eq("org_edition_id", oe.id);
     }
-    await admin.from("org_ticket_allocation").delete().eq("org_id", org.id);
-    await admin.from("org_membership").delete().eq("org_id", org.id);
-    await admin.from("org_edition").delete().eq("org_id", org.id);
-    await write("Partner-Organisation entfernt", () => admin.from("organization").delete().eq("id", org.id));
+    // Kontingente: **nur die eigenen**. An der Test-Organisation hängen auch
+    // Zeilen aus dem vivenu-Sandbox-Lauf, die auf echte Coupons und einen
+    // echten Undershop zeigen — die wegzuräumen würde diese Objekte in vivenu
+    // verwaisen lassen, ohne dass hier jemand davon erfährt.
+    await write("Ticket-Kontingente (nur eigene) entfernt", () =>
+      admin.from("org_ticket_allocation").delete().eq("org_id", org.id).eq("notes", MARK),
+    );
+    const { data: fremd } = await admin
+      .from("org_ticket_allocation")
+      .select("pass_type, coupon_code")
+      .eq("org_id", org.id);
+    if ((fremd ?? []).length > 0) {
+      log.push(
+        `  !!  Partner-Organisation bleibt stehen — ${fremd.length} Kontingent(e) stammen nicht aus diesem Skript ` +
+          `(${fremd.map((f) => f.pass_type).join(", ")}). Sie zeigen auf vivenu-Objekte; bitte dort zuerst entscheiden.`,
+      );
+    } else {
+      await admin.from("org_membership").delete().eq("org_id", org.id);
+      await admin.from("org_edition").delete().eq("org_id", org.id);
+      await write("Partner-Organisation entfernt", () => admin.from("organization").delete().eq("id", org.id));
+    }
   } else {
     note("Partner-Organisation entfernt");
   }
@@ -369,6 +543,22 @@ async function remove(me) {
   await write("Vokabular-Bereich entfernt", () =>
     admin.from("vocab_term").delete().eq("vocabulary", "volunteer_area").eq("key", AREA_KEY),
   );
+  // Reihenfolge ist hier nicht beliebig: `slot` löscht per ON DELETE SET NULL
+  // die `session.slot_id`, und der Veröffentlichungs-Trigger weist das für eine
+  // veröffentlichte Session mit 23514 ab. Erst die Sessions, dann die Slots.
+  await write("Testsessions und Bewerbungen entfernt", async () => {
+    const { data: sessions } = await admin.from("session").select("id").like("title_de", `${PREFIX}%`);
+    for (const se of sessions ?? []) {
+      await admin.from("application").delete().eq("session_id", se.id);
+      await admin.from("session_speaker").delete().eq("session_id", se.id);
+    }
+    return admin.from("session").delete().like("title_de", `${PREFIX}%`);
+  });
+  await write("Teststandbühne und ihre Slots entfernt", async () => {
+    const { data: stages } = await admin.from("stage").select("id").eq("slug", "zz-test-standbuehne");
+    for (const st of stages ?? []) await admin.from("slot").delete().eq("stage_id", st.id);
+    return admin.from("stage").delete().eq("slug", "zz-test-standbuehne");
+  });
   await write("Speaker-Profil entfernt", () =>
     admin.from("speaker_profile").delete().eq("person_id", me.id).eq("internal_notes", MARK),
   );
