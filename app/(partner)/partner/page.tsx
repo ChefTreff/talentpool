@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/Badge";
 import { Card, StatCard } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { InfoList, type InfoEintrag } from "@/components/ui/InfoList";
+import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
+import { loadEditionInfos, loadMyContacts } from "@/components/kontakt/load";
+import { Anfahrt } from "@/components/kontakt/Anfahrt";
 import { getPartnerScope } from "./org";
 import { orgLabel, type PartnerOverview } from "./types";
 import { Countdown } from "./Countdown";
@@ -40,12 +44,14 @@ export default async function PartnerDashboard() {
   }
 
   const supabase = await createSupabaseServerClient();
-  const [{ data: overviewJson }, vocab] = await Promise.all([
+  const [{ data: overviewJson }, vocab, kontakte, infos] = await Promise.all([
     supabase.rpc("partner_overview", {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
     }),
     loadVocabMap(supabase, locale),
+    loadMyContacts(current.edition_id),
+    loadEditionInfos("partner", current.edition_id),
   ]);
   const o = (overviewJson ?? null) as PartnerOverview | null;
 
@@ -67,6 +73,14 @@ export default async function PartnerDashboard() {
     (locale === "en" ? p.name_en : p.name_de) ?? p.name_de ?? p.name_en ?? "—";
   const deadlineLabel = (d: { label_de: string | null; label_en: string | null; key: string }) =>
     (locale === "en" ? d.label_en : d.label_de) ?? d.label_de ?? d.key;
+
+  const zeiten: InfoEintrag[] = infos
+    .map((i) => ({
+      key: i.key,
+      label: (locale === "en" ? i.label_en : i.label_de) ?? i.label_de ?? i.label_en ?? i.key,
+      value: (locale === "en" ? i.value_en : i.value_de) ?? i.value_de ?? i.value_en ?? "",
+    }))
+    .filter((i) => i.value !== "");
 
   const tickets = o.ticket_allocations.reduce(
     (acc, a) => ({ used: acc.used + a.used_count, total: acc.total + a.quantity }),
@@ -218,6 +232,43 @@ export default async function PartnerDashboard() {
             {PARTNER_MAILBOX}
           </a>
         </Card>
+      </div>
+
+      {/* Was Konrad „serviceorientiert" nennt: wer zuständig ist, wann was
+          los ist, wo es stattfindet. Jeder Block fällt weg, wenn nichts
+          gepflegt ist — eine leere Überschrift ist schlechter als nichts. */}
+      <div className="mt-8 flex flex-col gap-8">
+        <Ansprechpartner
+          kontakte={kontakte.filter((k) => k.via === "partner")}
+          locale={locale}
+          title={t.partner.contactsTitle}
+          lead={t.partner.contactLead}
+          buddy={t.partner.contactBuddy}
+        />
+
+        {zeiten.length > 0 && (
+          <section className="flex flex-col gap-3">
+            <h2 className="ct-h3">{t.partner.timesTitle}</h2>
+            <Card>
+              <InfoList items={zeiten} />
+              <p className="ct-help mt-4">
+                {t.partner.timesWikiHint}{" "}
+                <Link className="ct-link" href="/partner/wiki">
+                  {t.partner.navWiki}
+                </Link>
+              </p>
+            </Card>
+          </section>
+        )}
+
+        <Anfahrt
+          title={t.partner.locationTitle}
+          venue={t.common.venueName}
+          address={t.common.venueAddress}
+          mapsLabel={t.common.openInMaps}
+          wikiHref="/partner/wiki"
+          wikiLabel={t.partner.locationWikiHint}
+        />
       </div>
     </>
   );

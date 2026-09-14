@@ -23,7 +23,11 @@
     "active": "aktiv",
     "inactive": "inaktiv",
     "language": "Sprache",
-    "overview": "Übersicht"
+    "overview": "Übersicht",
+    "venueName": "CCH — Congress Center Hamburg",
+    "venueAddress": "Congressplatz 1, 20355 Hamburg",
+    "openInMaps": "In Google Maps öffnen",
+    "delete": "Löschen"
   },
   "messages": {
     "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",
@@ -163,7 +167,9 @@
     "shift_not_found": "Diese Schicht gibt es nicht.",
     "day_not_found": "Diesen Tag gibt es in dieser Edition nicht.",
     "invalid_barcode": "Dieser Code ist leer oder unlesbar. Noch einmal scannen oder von Hand eingeben.",
-    "merch_incomplete": "Für diese Zeile fehlt noch eine Angabe in der Konfiguration."
+    "merch_incomplete": "Für diese Zeile fehlt noch eine Angabe in der Konfiguration.",
+    "file_too_large": "Die Datei ist zu groß. Höchstens 5 MB.",
+    "upload_failed": "Das Hochladen hat nicht geklappt. Versuch es noch einmal."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -914,7 +920,14 @@
     "downloadFailed": "Die Datei lässt sich gerade nicht öffnen.",
     "stillMissing": "Zum Abschluss fehlt noch",
     "saved": "Gespeichert",
-    "navWiki": "Wiki"
+    "navWiki": "Wiki",
+    "contactsTitle": "Eure Ansprechpartner",
+    "contactLead": "Ansprechpartner",
+    "contactBuddy": "Partner-Buddy",
+    "timesTitle": "Zeiten und Ablauf",
+    "timesWikiHint": "Den ausführlichen Ablauf findet ihr im",
+    "locationTitle": "Anfahrt",
+    "locationWikiHint": "Anfahrt und Parken im Wiki"
   },
   "partnerContacts": {
     "title": "Kontakte",
@@ -1697,7 +1710,8 @@
       },
       "partnerCare": "Betreuung & Messeshop",
       "volunteersWork": "Bewerbungen & Schichten",
-      "wiki": "Wiki"
+      "wiki": "Wiki",
+      "contacts": "Ansprechpartner & Zeiten"
     },
     "overview": {
       "title": "Übersicht",
@@ -2310,5 +2324,44 @@
     "status_error": "Hat nicht geklappt",
     "sinceLabel": "Erster Scan um {time} Uhr",
     "leave": "Zurück ins Portal"
+  },
+  "contacts": {
+    "adminTitle": "Ansprechpartner & Zeiten",
+    "adminLead": "Wer für Partner und Speaker zuständig ist, und was allgemein gilt.",
+    "contactsTitle": "Ansprechpartner",
+    "addContact": "Ansprechpartner anlegen",
+    "editContact": "Ansprechpartner bearbeiten",
+    "emptyContacts": "Noch niemand hinterlegt",
+    "emptyContactsBody": "Lege je Typ eine Person an. Wer keine eigene Zuordnung hat, sieht den Standard.",
+    "isDefault": "Standard",
+    "assigned": "{orgs} Partner · {speakers} Speaker",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "confirmDelete": "„{name}“ wirklich löschen? Wer diese Person zugeordnet hat, fällt auf den Standard zurück.",
+    "fieldType": "Typ",
+    "fieldName": "Name",
+    "fieldRole": "Rollenbezeichnung",
+    "fieldRoleHint": "Erscheint unter dem Namen, zum Beispiel „Eure Ansprechpartnerin für den Stand“.",
+    "fieldEmail": "Dienstliche Mailadresse",
+    "fieldEmailHint": "Muss auf @chef-treff.de enden. Private Adressen nimmt das System nicht an.",
+    "fieldPhone": "Diensthandy",
+    "fieldPhoneHint": "Bitte die dienstliche Nummer — sie ist für alle zugeordneten Partner und Speaker sichtbar.",
+    "fieldPhoto": "Foto",
+    "fieldPhotoHint": "PNG, JPG oder WebP, höchstens 5 MB.",
+    "fieldDefault": "Standard für diesen Typ",
+    "defaultHint": "Den Standard sieht, wer keine eigene Zuordnung hat. Es gibt je Typ genau einen.",
+    "infosTitle": "Allgemeine Zeiten und Auskünfte",
+    "addInfo": "Auskunft anlegen",
+    "editInfo": "Auskunft bearbeiten",
+    "emptyInfos": "Noch nichts hinterlegt",
+    "emptyInfosBody": "Öffnungszeiten, Einlass und Aufbau stehen danach im Partner- und Speaker-Portal.",
+    "fieldKey": "Schlüssel",
+    "fieldKeyHint": "Technischer Name, einmalig je Edition — zum Beispiel „einlass“.",
+    "fieldLabelDe": "Beschriftung (DE)",
+    "fieldValueDe": "Auskunft (DE)",
+    "fieldLabelEn": "Beschriftung (EN)",
+    "fieldValueEn": "Auskunft (EN)",
+    "fieldAudience": "Zielgruppen",
+    "fieldAudienceHint": "Kommagetrennt: partner, speaker, talent, volunteer, hackathon."
   }
 }
