@@ -2248,7 +2248,22 @@
     "statusPublished": "Published",
     "statusArchived": "Archived",
     "emptyAdmin": "No articles yet",
-    "emptyAdminBody": "Create the first article — slug, audience, title."
+    "emptyAdminBody": "Create the first article — slug, audience, title.",
+    "tool_h2": "Heading",
+    "tool_h3": "Subheading",
+    "tool_bold": "Bold",
+    "tool_italic": "Italic",
+    "tool_code": "Code",
+    "tool_ul": "List",
+    "tool_ol": "Numbered",
+    "tool_quote": "Callout",
+    "tool_link": "Link",
+    "tool_table": "Table",
+    "tool_rule": "Divider",
+    "preview": "Preview",
+    "previewEmpty": "Nothing written yet.",
+    "sampleText": "Text",
+    "editorHint": "Format with the toolbar or write Markdown directly. The preview shows how the article looks in the portal."
   },
   "hackathon": {
     "title": "Hackathon",

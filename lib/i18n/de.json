@@ -2248,7 +2248,22 @@
     "statusPublished": "Veröffentlicht",
     "statusArchived": "Archiviert",
     "emptyAdmin": "Noch keine Artikel",
-    "emptyAdminBody": "Lege den ersten Artikel an — Slug, Zielgruppe, Titel."
+    "emptyAdminBody": "Lege den ersten Artikel an — Slug, Zielgruppe, Titel.",
+    "tool_h2": "Überschrift",
+    "tool_h3": "Zwischentitel",
+    "tool_bold": "Fett",
+    "tool_italic": "Kursiv",
+    "tool_code": "Code",
+    "tool_ul": "Liste",
+    "tool_ol": "Nummeriert",
+    "tool_quote": "Hinweis",
+    "tool_link": "Link",
+    "tool_table": "Tabelle",
+    "tool_rule": "Trennlinie",
+    "preview": "Vorschau",
+    "previewEmpty": "Noch nichts geschrieben.",
+    "sampleText": "Text",
+    "editorHint": "Formatierung über die Leiste oder direkt als Markdown. Die Vorschau zeigt, wie der Artikel im Portal aussieht."
   },
   "hackathon": {
     "title": "Hackathon",
