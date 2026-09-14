@@ -130,7 +130,13 @@ Konrads Urteil: „grundsätzlich schon gut". Leitlinie für alle Punkte: **so n
 4. **F11.2 — PO-Nummer und Rechnungsadresse im Bestellweg.** Neues Feld an `shop_order`; die Adresse kommt aus den Stammdaten und wird bestätigt, nicht neu erfasst.
 5. **F11.1 — Bestand anzeigen.** `product.stock_total` und `track_stock` gibt es; zu klären ist, ob der freie Bestand (abzüglich bestätigter Bestellungen) über die Shop-RPC mitkommt.
 
+## Konrads Antworten auf die Rückfragen (14.09., nachgereicht)
+
+- **F10.3, die zwei Daten:** Nur der **02.04.2027** gilt. Der 13.03. war der alte Stand von 2026 und muss aus dem Text heraus — sonst nennt die Seite eine Frist, die es nicht gibt. Damit **entfällt** der zweite Deadline-Eintrag; es bleibt `booth_backdrop_upload_until`. Der Satz „ab dem 13.03. per Mail an Konrad" wird zum Anfrage-Weg im Portal ohne Datum, bis die Produktion eines nennt.
+- **F10.4, Standliste und Hallenplan:** Kommen erst in einigen Wochen als Teil der Produktionsarbeit. Für den Anfang liegt der **Hallenplan FLS26** vor, damit einer hinterlegt werden kann. ⚠️ Die Datei liegt bisher nur als Bild im Chat — sie muss in den Drive-Ordner oder über die Upload-Strecke aus F10.4 ins Repo bzw. in den Bucket.
+- **F11.4, Bestellübersicht:** Screenshot liegt vor. Aufbau des Vorjahres (WooCommerce „My Account"): schmale Randspalte mit „Bestellungen" und „Abmelden", daneben eine Tabelle mit **Bestellung · Datum · Status · Gesamtsumme · Aktionen**, je Zeile ein „Anzeigen". Das ist die Vorlage für die eigene Unterseite — ohne den Hinweisbalken zur Mailbestätigung, den es bei uns nicht braucht.
+
 ## Was fehlt
 
-- **Screenshot der Bestellübersicht** aus dem Vorjahr (F11.4).
-- Der **Hallenplan** als Datei (F10.4) und die **Standliste** der Edition.
+- Der **Hallenplan als Datei** (F10.4) — als Bild im Chat vorhanden, noch nicht im Repo.
+- Die **Standliste** der Edition (F10.4) — laut Konrad erst in einigen Wochen aus der Produktion.
