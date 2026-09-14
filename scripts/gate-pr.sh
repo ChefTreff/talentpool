@@ -12,6 +12,13 @@ cd "$R"; git fetch -q origin "$BR"
 git worktree add -q "$T" "origin/$BR"
 [ -f "$R/.env.local" ] && cp "$R/.env.local" "$T/.env.local"
 cd "$T"
+# Repo-Hygiene vor allem anderen: Finder-/Sync-Duplikate („name 2.sql“) und Migrationsdateien ohne Server-Version
+# dürfen nie auf main landen — beides bricht die Reproduktion aus dem Repo (14.09.2026).
+dups="$(git ls-files | grep -E ' [0-9]+\.[A-Za-z0-9]+$' || true)"
+[ -z "$dups" ] || { echo "dateien: FEHLER (Duplikate im Repo)"; echo "$dups"; exit 1; }
+badmig="$(git ls-files supabase/migrations | grep -vE '^supabase/migrations/[0-9]{14}_[a-z0-9_]+\.sql$' | grep -vE '/vorschlag/' || true)"
+[ -z "$badmig" ] || { echo "dateien: FEHLER (Migration ohne Server-Version)"; echo "$badmig"; exit 1; }
+echo "dateien: ok"
 npm ci --no-audit --no-fund >/dev/null 2>&1 || { echo "npm ci: FEHLER"; exit 1; }
 npm run lint >/dev/null 2>&1 && echo "lint: ok" || { echo "lint: FEHLER"; npm run lint 2>&1 | tail -20; exit 1; }
 # Typprüfung über alles inkl. tests/ — `npm test` entfernt Typen nur (strip-types), `next build` prüft tests/ nicht.

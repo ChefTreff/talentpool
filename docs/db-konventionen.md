@@ -6,6 +6,7 @@ Gilt für jede Session, die Migrationen schreibt — ab Welle 4 auch die Build-S
 - Eine Migration = ein Thema. Dateiname vorläufig `supabase/migrations/2026MMDD2359NN_<thema>.sql`; die Architektur-Session ersetzt den Zeitstempel durch die Server-Version.
 - Kopf: `-- 00NN · <Titel>: Zweck, Anlass (PR/Fund/Entscheidung), Abweichungen`. Erste Zeile Code: `set search_path = public, extensions;`. Letzte Zeile: `select harden_definer_functions();` (entzieht anon das EXECUTE auf SECURITY-DEFINER-Funktionen, pinnt `search_path`).
 - Angewendete Migrationen sind unveränderlich: Korrektur = neue Migration. Nie „mal eben“ im Dashboard ändern.
+- Vor jedem Commit `git status` lesen: Finder-/Sync-Duplikate („`name 2.sql`“) und Platzhalter-Namen ohne Server-Version dürfen nie ins Repo — `scripts/gate-pr.sh` bricht seit 14.09.2026 mit „dateien: FEHLER“ ab, wenn so etwas getrackt ist (fünf Duplikate waren am 14.09. über ein `git add -A` hereingerutscht und sind entfernt).
 - Rückgabetyp einer Funktion ändern ⇒ `drop function if exists f(args);` + `create function` (und alle Aufrufer prüfen). Signatur erweitern mit Default ⇒ alte Signatur droppen, sonst entsteht ein Overload.
 
 ## 2 · Funktionen
