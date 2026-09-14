@@ -120,3 +120,43 @@ describe("Bereiche zählen (F1: Umschalter erst ab zwei)", () => {
     assert.equal(canEnterArea(talent, [], false), true);
   });
 });
+
+describe("Kiosk am Einlass (B4/E8)", () => {
+  const kiosk = ["checkin_operator"];
+
+  it("öffnet dem Gerätekonto genau einen Bereich", () => {
+    const areas = areasFor(kiosk, false);
+    assert.deepEqual(
+      areas.map((a) => a.key),
+      ["checkin"],
+    );
+    assert.equal(landingPathFor(areas), "/checkin");
+  });
+
+  it("lässt das Gerätekonto nicht ins Teilnehmer-Portal", () => {
+    // Der Teilnehmer-Bereich trägt `roles: []` — „jede angemeldete Person".
+    // Ohne die Kiosk-Ausnahme stünde das ganze Profil auf einem Tablet offen,
+    // das am Eingang herumsteht.
+    assert.equal(opensAny(["talent"], kiosk), false);
+    assert.equal(opensAny(["admin"], kiosk), false);
+    assert.equal(opensAny(["produktion"], kiosk), false);
+    assert.equal(opensAny(["speaker"], kiosk), false);
+  });
+
+  it("nimmt niemandem etwas weg, der die Rolle zusätzlich hat", () => {
+    // Team, das am Eingang aushilft: Kiosk **und** die eigenen Bereiche.
+    const dazu = ["checkin_operator", "production_team"];
+    assert.equal(opensAny(["checkin"], dazu), true);
+    assert.equal(opensAny(["produktion"], dazu), true);
+    assert.equal(opensAny(["talent"], dazu), true);
+  });
+
+  it("hält Konten ohne die Rolle vom Kiosk fern", () => {
+    assert.equal(opensAny(["checkin"], []), false);
+    assert.equal(opensAny(["checkin"], ["volunteer"]), false);
+    // Team ist nicht automatisch Einlass: die Rolle wird je Gerät vergeben.
+    assert.equal(opensAny(["checkin"], ["production_team"], true), false);
+    // Admin global öffnet weiterhin alles.
+    assert.equal(opensAny(["checkin"], ["admin"]), true);
+  });
+});

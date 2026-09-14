@@ -162,6 +162,7 @@
     "profile_not_found": "Für diese Edition gibt es keine Bewerbung.",
     "shift_not_found": "Diese Schicht gibt es nicht.",
     "day_not_found": "Diesen Tag gibt es in dieser Edition nicht.",
+    "invalid_barcode": "Dieser Code ist leer oder unlesbar. Noch einmal scannen oder von Hand eingeben.",
     "merch_incomplete": "Für diese Zeile fehlt noch eine Angabe in der Konfiguration."
   },
   "nav": {
@@ -213,6 +214,11 @@
       "name": "Admin",
       "description": "Personen, Rollen, Vokabular, Dubletten.",
       "portal": "Admin-Portal"
+    },
+    "checkin": {
+      "name": "Einlass",
+      "description": "Tickets scannen am Eingang.",
+      "portal": "Einlass-Kiosk"
     }
   },
   "placeholder": {
@@ -2288,5 +2294,21 @@
     "scheduleEmpty": "No schedule yet",
     "scheduleEmptyBody": "The programme team is still putting it together. Check back soon.",
     "mentors": "Mentorinnen und Mentoren"
+  },
+  "checkin": {
+    "title": "Einlass",
+    "counted": "eingecheckt",
+    "cameraLabel": "Kamerabild zum Scannen",
+    "cameraDenied": "Die Kamera ist nicht freigegeben. Gib sie in den Einstellungen des Geräts frei oder tippe den Code unten ein.",
+    "manualLabel": "Code eintippen",
+    "manualHint": "Wenn die Kamera nicht scharf wird — der Code steht auch als Text auf dem Ticket.",
+    "manualSubmit": "Prüfen",
+    "status_ok": "Willkommen",
+    "status_already": "Schon eingecheckt",
+    "status_invalid": "Ticket nicht gültig",
+    "status_unknown": "Kein Ticket zu diesem Code",
+    "status_error": "Hat nicht geklappt",
+    "sinceLabel": "Erster Scan um {time} Uhr",
+    "leave": "Zurück ins Portal"
   }
 }

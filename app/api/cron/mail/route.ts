@@ -23,6 +23,7 @@ function authorized(request: Request): boolean {
  * 1. `run_application_housekeeping()` — abgelaufene Zusagen verfallen, frei gewordene
  *    Plätze gehen an die Warteliste (die Datenbank legt dabei die Mails an).
  * 2. Mail-Warteschlange verschicken (`lib/mail/queue.ts`).
+ * 3. `purge_checkins()` — Einlass-Scans 30 Tage nach Editionsende löschen (Welle 4 A2).
  * Kein Nutzerkontext: service_role nach Prüfung des Secrets, die Route ist im Proxy
  * als öffentlich eingetragen und schützt sich selbst.
  */
@@ -38,10 +39,14 @@ export async function GET(request: Request) {
   const queue = await processMailQueue();
   if (queue.skipped) console.warn("[cron/mail]", queue.skipped);
 
+  const { data: purged, error: purgeError } = await admin.rpc("purge_checkins");
+  if (purgeError) console.error("[cron/mail] purge_checkins fehlgeschlagen:", purgeError.message);
+
   return NextResponse.json({
     ok: !error,
     housekeeping: housekeeping ?? null,
     housekeepingError: error?.message ?? null,
     queue,
+    checkinsPurged: purged ?? null,
   });
 }

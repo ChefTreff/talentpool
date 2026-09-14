@@ -148,6 +148,7 @@ const BUSINESS_KEYS = new Set([
   "profile_not_found",
   "shift_not_found",
   "day_not_found",
+  "invalid_barcode",
 ]);
 
 const BY_CODE: Record<string, string> = {
