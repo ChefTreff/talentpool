@@ -75,3 +75,62 @@ Recherche vom 14.09.2026. **Keiner davon ist installiert** — das ist Konrads E
 **Wichtig in jedem Fall:** Der Projekt-Skill `/portal-design` bleibt die Autorität für Aussehen, Tokens und Formensprache. Ein externer Skill liefert die **Checkliste** für den Durchgang, nicht den Geschmack. Bei Widerspruch gewinnt das Brandbook.
 
 Quellen: [Snyk — Top Claude Skills for UI/UX Engineers](https://snyk.io/articles/top-claude-skills-ui-ux-engineers/) · [Superdesign — Design Skills Reviewed](https://superdesign.dev/blog/design-skills-reviewed) · [Claude Code Marketplaces — Design & UI/UX](https://claudemarketplaces.com/skills/category/design-ui)
+
+---
+
+# Teil 2 (Konrad, 14.09.2026) — Event-App, Messestand, Messeshop
+
+Aufgenommen, **noch nicht gebaut**: Konrads Vorgabe war, erst F9.1 fertigzustellen. Entscheidungen sind unten markiert und an die Architektur-Session weitergeleitet.
+
+## F9.8 · Event-App — die fehlenden Checklistenpunkte
+
+Ergänzt die drei Punkte aus Teil 1 um vier weitere. Wortlaut von Konrad, gekürzt nur, wo er sich wiederholt:
+
+4. **Kontakte teilen einstellen (WICHTIG):** In den einzelnen Profilen muss eingestellt werden, dass die Kontakte mit dem Team geteilt werden — sonst ist der Zugriff auf die Leads hinterher nicht möglich (Verweis ins Wiki).
+5. **Offene Stellen anlegen:** Höchstens drei Stellen, ansprechend und repräsentativ. Lieber ein Traineeship oder eine Projektmanager-Rolle, die eine breite Zielgruppe anspricht — zu spezielle Rollen schrecken ab.
+6. **Passende Profile suchen:** Ab Mitte März ist die App live; unter „Teilnehmer" lassen sich Profile nach Studienhintergrund, Berufserfahrung und weiteren Merkmalen filtern. Passende Talente identifizieren und mit Verweis auf die eigene Präsenz anschreiben (mehr im Wiki unter Event-App).
+7. **Loom-Video** `67013b2c5a1a42cfbd2ee1a045a9bc5c` einbetten und in der Admin-Linkliste hinterlegen.
+
+## F10 · Neue Seite `/partner/messestand` (unter „Formate")
+
+| Nr. | Abschnitt | Inhalt |
+|---|---|---|
+| **F10.1** | Einleitung | „Auf dieser Seite findet ihr alle Informationen rund um euren Messestand: Die genauen Maße, die Standnummer und vor allem alles rund um die Rückwand. Solltet ihr einen Eigenbau-Stand mitbringen, beachtet bitte unbedingt die entsprechenden Anmeldungen der Anlieferung und des Standes selbst." |
+| **F10.2** | Standardausstattung | Tabelle je Kategorie (Start Up/Initiativen 1,5 qm · Basic 4 qm · All In 9 qm · Premium 18 qm) mit Größe und Ausstattung. **Global im Wiki pflegbar** — nicht im Seitencode. |
+| **F10.3** | Eure Rückwand | Erklärtext (siehe unten), Knopf „Wiki" für die Druckanforderungen, Knopf „Jetzt hochladen". **Frist 02.04.2027 als Countdown mit Tagen.** |
+| **F10.4** | Hallenplan & Standnummer | Visueller Hallenplan **plus** Liste aller Aussteller mit Ständen. Der Plan ist eine im Produktionsbereich hinterlegte Datei (PDF oder Bild); die Standliste wird dort zugeordnet. Vorlage: Airtable `appbhdF78LhXRbCtL/shrrQp2mBCAsqyHQW`. |
+
+**Text F10.3 (wörtlich):** „Hier findet ihr alle Informationen zu eurer Standrückwand und habt die Möglichkeit, diese einzusenden. Bitte entnehmt die Maße eures Standes der obigen Tabelle. Unter dem Button ‚Wiki' findet ihr unser Wiki mit den exakten Druckanforderungen, dieses könnt ihr gern mit eurer Grafikabteilung oder einer externen Agentur teilen. Dort sind noch einmal alle relevanten Informationen enthalten. Unter ‚Jetzt hochladen' könnt ihr die finale Datei hochladen oder nochmal updaten. Wichtig: Ab dem 13.03. müssen alle Updates bitte per Mail an Konrad erfolgen, da wir dann beginnen, die Dateien in den Druck zu geben."
+
+**Standardausstattung (Stand Vorjahr), Vorspann:** „Unsere All-Inclusive-Stände sind mit einer Basisausstattung versehen. Zusätzliche Elemente und Upgrades kannst du bequem über unseren Messeshop buchen. Und keine Sorge: Solltet ihr etwas vergessen haben, könnt ihr fast alles kurzfristig am Ausstellerkiosk während des FLS noch leihen."
+
+| Kategorie | Standgröße | Ausstattung |
+|---|---|---|
+| Start Up / Initiativen | 1,5 qm (1 × 1,5 m) | 1 Tresen, 2 Barhocker |
+| Basic | 4 qm (2 × 2 m) | 2 m Rückwand inkl. Druck, 1 Stehtisch + 2 Barhocker, 4 qm Teppich, Strom (230 V), Standbeleuchtung, Standreinigung |
+| All In | 9 qm (3 × 3 m) | 4 m Rückwand inkl. Druck, 2 Stehtische + 4 Barhocker, 9 qm Teppich, Standbeleuchtung, Strom (230 V), Standreinigung |
+| Premium | 18 qm (6 × 3 m) | 6 m Rückwand inkl. Druck, 2 Stehtische + 4 Barhocker + 1 Tresen, 18 qm Teppich, Strom (230 V), Standbeleuchtung, Standreinigung |
+
+## F11 · Messeshop
+
+Konrads Urteil: „grundsätzlich schon gut". Leitlinie für alle Punkte: **so nah an bekannten Shops wie möglich**, damit Bestellen keine Übung verlangt.
+
+| Nr. | Ist | Soll |
+|---|---|---|
+| **F11.1** | Kein Bestand sichtbar; keine Warenkorb-Anzeige an gewohnter Stelle | „Noch 10 verfügbar" bei begrenztem Bestand; **Warenkorb oben rechts**, wie man es von E-Commerce kennt |
+| **F11.2** | Bestellung ohne Prüfschritt | Vor dem Absenden **Rechnungsadresse prüfen** und **PO-Nummer** erfassen können |
+| **F11.3** | Produkte nur als Kachelliste | **Suche** und je Produkt eine **kleine Produktseite**, klickbar, mit Weg zurück |
+| **F11.4** | Bestellungen nicht gesondert einsehbar | Eigene, aufgeräumte **Unterseite „Bestellungen"** (Konrad verweist auf einen Screenshot aus dem Vorjahr — ⚠️ liegt mir nicht vor) |
+
+## Entscheidungen für die Architektur-Session (Teil 2)
+
+1. **F10.2 — Standardausstattung global im Wiki pflegen.** Die Tabelle soll nicht im Seitencode stehen. Frage: eigener Wiki-Artikel mit fester Kennung, den die Seite einbindet, oder `edition_info`? Der Inhalt ist eine Tabelle, keine Zeile — spricht für den Wiki-Artikel.
+2. **F10.4 — Standliste und Hallenplan.** `booth` gibt es schon (`booth_number`). Gebraucht werden: die Zuordnung im Produktionsbereich, eine öffentliche Ausstellerliste je Edition und der Hallenplan als hinterlegte Datei (Bucket + Admin/Produktion). Die Airtable-Vorlage nennt die Spalten.
+3. **F10.3 — Zwei Fristen im selben Abschnitt.** Konrad nennt Countdown auf **02.04.2027**, im Text steht die Druckübergabe ab **13.03.** Beides ist richtig, meint aber Verschiedenes (letzte Änderung per Portal vs. ab dann nur noch per Mail). Braucht zwei Felder, sonst widerspricht sich die Seite selbst.
+4. **F11.2 — PO-Nummer und Rechnungsadresse im Bestellweg.** Neues Feld an `shop_order`; die Adresse kommt aus den Stammdaten und wird bestätigt, nicht neu erfasst.
+5. **F11.1 — Bestand anzeigen.** `product.stock_total` und `track_stock` gibt es; zu klären ist, ob der freie Bestand (abzüglich bestätigter Bestellungen) über die Shop-RPC mitkommt.
+
+## Was fehlt
+
+- **Screenshot der Bestellübersicht** aus dem Vorjahr (F11.4).
+- Der **Hallenplan** als Datei (F10.4) und die **Standliste** der Edition.

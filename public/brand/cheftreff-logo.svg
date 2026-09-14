@@ -1,0 +1,10 @@
+<!-- ChefTreff-Bildmarke. Original aus dem Design-Ordner (Team Portal), dort in
+     #5454C5. Fuer das Portal auf currentColor gezogen, wie die uebrigen
+     Markendateien: die Farbe kommt aus der Tailwind-Klasse, damit dieselbe
+     Datei auf Navy (Off-White) und auf Hell (Navy) traegt — Konrad wollte sie
+     in der Seitenleiste ausdruecklich monochrom (F8.2). -->
+<svg width="199" height="114" viewBox="0 0 199 114" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M44.1275 25.2653L68.6257 11.1229L49.3969 0L0 28.5005V85.5015L49.3969 114.002L68.6257 102.91L44.1275 88.7675V25.2653Z" fill="currentColor"/>
+<path d="M129.64 11.1229L154.138 25.2653V88.7675L151.519 90.2773L129.64 102.91L148.9 114.002L198.266 85.5015V28.5005L148.9 0L129.64 11.1229Z" fill="currentColor"/>
+<path d="M49.7667 28.5005V85.5015L99.1327 114.002L148.499 85.5015V28.5005L99.1327 0L49.7667 28.5005Z" fill="currentColor"/>
+</svg>
