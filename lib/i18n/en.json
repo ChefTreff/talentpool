@@ -162,6 +162,7 @@
     "profile_not_found": "There is no application for this edition.",
     "shift_not_found": "That shift does not exist.",
     "day_not_found": "That day does not exist in this edition.",
+    "invalid_barcode": "This code is empty or unreadable. Scan again or type it in.",
     "merch_incomplete": "This line is still missing a detail in its configuration."
   },
   "nav": {
@@ -213,6 +214,11 @@
       "name": "Admin",
       "description": "People, roles, vocabulary, duplicates.",
       "portal": "Admin Portal"
+    },
+    "checkin": {
+      "name": "Entrance",
+      "description": "Scan tickets at the door.",
+      "portal": "Entrance kiosk"
     }
   },
   "placeholder": {
@@ -2288,5 +2294,21 @@
     "scheduleEmpty": "No schedule yet",
     "scheduleEmptyBody": "The programme team is still putting it together. Check back soon.",
     "mentors": "Mentors"
+  },
+  "checkin": {
+    "title": "Entrance",
+    "counted": "checked in",
+    "cameraLabel": "Camera view for scanning",
+    "cameraDenied": "The camera is not allowed. Grant access in the device settings, or type the code below.",
+    "manualLabel": "Type the code",
+    "manualHint": "If the camera will not focus — the code is printed on the ticket as text.",
+    "manualSubmit": "Check",
+    "status_ok": "Welcome",
+    "status_already": "Already checked in",
+    "status_invalid": "Ticket not valid",
+    "status_unknown": "No ticket for this code",
+    "status_error": "That did not work",
+    "sinceLabel": "First scan at {time}",
+    "leave": "Back to the portal"
   }
 }

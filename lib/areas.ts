@@ -14,6 +14,7 @@ export const AREA_KEYS = [
   "hackathon",
   "produktion",
   "admin",
+  "checkin",
 ] as const;
 
 export type AreaKey = (typeof AREA_KEYS)[number];
@@ -74,6 +75,9 @@ export const AREAS: readonly Area[] = [
   },
   // Wer zum Team gehört, entscheidet ausschließlich `is_staff()` in SQL.
   { key: "admin", path: "/admin", roles: [], staff: true },
+  // Das Kiosk am Einlass. Eigener Bereich ohne Menü und ohne Umschalter — ein
+  // Gerät im Vollbild am Eingang, sonst nichts (Arbeitsauftrag B4, E8).
+  { key: "checkin", path: "/checkin", roles: ["checkin_operator"] },
 ] as const;
 
 /** Zu welchem Bereich gehört dieser Pfad? `null` = kein Bereich (öffentlich). */
@@ -84,6 +88,19 @@ export function areaForPath(pathname: string): Area | null {
   );
 }
 
+/**
+ * Ein Konto, das **nur** scannen darf.
+ *
+ * Das Kiosk-Konto ist ein Gerätekonto (E8), kein Mensch mit Profil. Ohne diese
+ * Abfrage bekäme es über den Teilnehmer-Zweig von `canEnterArea` (Rollen leer =
+ * jede angemeldete Person) das ganze Teilnehmer-Portal — auf einem Tablet, das
+ * am Eingang offen herumsteht. Wer die Rolle **zusätzlich** hat (Team, das
+ * aushilft), behält seine Bereiche.
+ */
+export function isKioskOnly(roles: readonly string[]): boolean {
+  return roles.includes("checkin_operator") && roles.every((r) => r === "checkin_operator");
+}
+
 /** Öffnet dieses Rollenset den Bereich? `admin` global öffnet alles. */
 export function canEnterArea(
   area: Area,
@@ -91,6 +108,8 @@ export function canEnterArea(
   isStaff: boolean,
 ): boolean {
   if (roles.includes("admin")) return true;
+  // Gerätekonto: genau ein Bereich, und der Teilnehmer-Zweig unten greift nicht.
+  if (isKioskOnly(roles)) return area.key === "checkin";
   if (area.staff) return isStaff;
   if (area.leadRole && roles.includes(area.leadRole)) return true;
   if (area.roles.length === 0) return true; // Talent: jede eingeloggte Person
