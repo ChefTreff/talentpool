@@ -44,7 +44,8 @@ export type HackChallenge = {
   description: string | null;
   prizes: string | null;
   resources: string | null;
-  mentors: unknown;
+  /** Eine Zeile je Person, aus dem Formularfeld `mentor_names` der Partner-Pflicht. */
+  mentors: string[] | null;
   criteria: HackCriterion[];
   org_name: string | null;
   teams: number;

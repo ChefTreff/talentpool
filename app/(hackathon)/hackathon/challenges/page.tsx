@@ -44,6 +44,12 @@ export default async function ChallengesPage() {
                     <span className="text-muted">{c.resources}</span>
                   </p>
                 )}
+                {(c.mentors ?? []).length > 0 && (
+                  <p>
+                    <span className="ct-label">{t.hackathon.mentors}: </span>
+                    <span className="text-muted">{(c.mentors ?? []).join(" · ")}</span>
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-2">
                   <Badge>{t.hackathon.teamsOn.replace("{n}", String(c.teams))}</Badge>
                   {(c.criteria ?? []).map((k) => (

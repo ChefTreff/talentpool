@@ -2156,6 +2156,7 @@
     "scheduleTitle": "Schedule",
     "scheduleLead": "What happens when, and where.",
     "scheduleEmpty": "No schedule yet",
-    "scheduleEmptyBody": "The programme team is still putting it together. Check back soon."
+    "scheduleEmptyBody": "The programme team is still putting it together. Check back soon.",
+    "mentors": "Mentors"
   }
 }
