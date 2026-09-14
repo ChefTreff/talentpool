@@ -16,6 +16,11 @@
 -- P0001 `slug_taken`.
 --
 -- Abweichungen: keine. `kb_chunk`/pgvector und der Chatbot bleiben Welle 5.
+-- Review Architektur-Session 14.09.2026: Schreiben verlangt die Bereichsleitung
+-- **aller** Zielgruppen des Artikels (`can_edit_kb_all`), beim Ändern auch der
+-- bisherigen — sonst könnte die Volunteer-Leitung einen Partner-Artikel über
+-- eine neue Zielgruppenliste übernehmen oder eigene Texte ins Partner-Wiki
+-- schieben. Der Editor listet nach derselben Regel.
 set search_path = public, extensions;
 
 insert into vocab_term (vocabulary, key, label_de, label_en, sort_order, active) values
@@ -110,6 +115,24 @@ $$;
 comment on function can_edit_kb(text[]) is
   'Admin oder die Bereichsleitung mindestens einer der Zielgruppen des Artikels.';
 
+/** Schreiben: Admin oder die Bereichsleitung **jeder** Zielgruppe des Artikels. */
+create or replace function can_edit_kb_all(p_audience text[]) returns boolean
+language sql stable security definer set search_path = public, extensions as $$
+  select has_role('admin')
+      or (cardinality(p_audience) > 0 and not exists (
+            select 1 from unnest(p_audience) as a(key)
+             where not case a.key
+               when 'partner'   then has_role('area_lead_partner')
+               when 'speaker'   then has_role('area_lead_speaker')
+               when 'talent'    then has_role('area_lead_talent')
+               when 'volunteer' then has_role('area_lead_volunteers')
+               when 'hackathon' then has_role('area_lead_hackathon')
+               else false end))
+$$;
+
+comment on function can_edit_kb_all(text[]) is
+  'Admin oder die Bereichsleitung aller Zielgruppen des Artikels — die Regel fürs Schreiben und für den Editor.';
+
 -- ---------------------------------------------------------------- Lesen
 
 /**
@@ -182,8 +205,8 @@ begin
       left join event e on e.id = a.edition_id
       left join person p on p.id = a.owner_person_id
      where (p_audience is null or a.audience && array[p_audience])
-       -- Nur Zielgruppen, die diese Person auch betreut.
-       and can_edit_kb(a.audience)
+       -- Nur Artikel, deren Zielgruppen diese Person alle betreut.
+       and can_edit_kb_all(a.audience)
      order by a.slug, a.language, a.edition_id nulls first;
 end $$;
 
@@ -191,15 +214,20 @@ end $$;
 
 create or replace function upsert_kb_article(p_data jsonb) returns uuid
 language plpgsql volatile security definer set search_path = public, extensions as $$
-declare v_id uuid; v_audience text[]; v_slug text; v_a text; v_phase text;
+declare v_id uuid; v_audience text[]; v_old text[]; v_slug text; v_a text; v_phase text;
 begin
   v_id := nullif(p_data->>'id', '')::uuid;
   v_audience := coalesce(
     (select array_agg(value::text) from jsonb_array_elements_text(p_data->'audience') as t(value)),
     '{}');
 
-  if v_id is not null and cardinality(v_audience) = 0 then
-    select a.audience into v_audience from kb_article a where a.id = v_id;
+  if v_id is not null then
+    select a.audience into v_old from kb_article a where a.id = v_id;
+    if v_old is null then raise exception 'article_not_found' using errcode = 'P0002'; end if;
+    -- Wer ändert, muss den Artikel schon jetzt betreuen dürfen — sonst liesse
+    -- sich ein fremder Artikel über eine neue Zielgruppenliste übernehmen.
+    if not can_edit_kb_all(v_old) then raise exception 'not allowed' using errcode = '42501'; end if;
+    if cardinality(v_audience) = 0 then v_audience := v_old; end if;
   end if;
   if cardinality(v_audience) = 0 then
     raise exception 'invalid_audience' using errcode = '22023', detail = 'mindestens eine Zielgruppe';
@@ -209,7 +237,7 @@ begin
       raise exception 'invalid_audience' using errcode = '22023', detail = v_a;
     end if;
   end loop;
-  if not can_edit_kb(v_audience) then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not can_edit_kb_all(v_audience) then raise exception 'not allowed' using errcode = '42501'; end if;
 
   v_phase := coalesce(nullif(p_data->>'phase', ''), 'evergreen');
   if not is_vocab_key('kb_phase', v_phase) then
@@ -268,7 +296,7 @@ declare v_audience text[];
 begin
   select a.audience into v_audience from kb_article a where a.id = p_id;
   if v_audience is null then raise exception 'article_not_found' using errcode = 'P0002'; end if;
-  if not can_edit_kb(v_audience) then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not can_edit_kb_all(v_audience) then raise exception 'not allowed' using errcode = '42501'; end if;
   update kb_article
      set status = case when p_published then 'published' else 'draft' end,
          published_at = case when p_published then now() else null end,
@@ -284,7 +312,7 @@ declare v_audience text[];
 begin
   select a.audience into v_audience from kb_article a where a.id = p_id;
   if v_audience is null then raise exception 'article_not_found' using errcode = 'P0002'; end if;
-  if not can_edit_kb(v_audience) then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not can_edit_kb_all(v_audience) then raise exception 'not allowed' using errcode = '42501'; end if;
   -- Nicht löschen, archivieren: ein Wiki-Artikel ist Wissen, kein Wegwerfartikel.
   update kb_article set status = 'archived', updated_by = current_person_id(), updated_at = now()
    where id = p_id;

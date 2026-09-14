@@ -7,12 +7,14 @@
 --   06 unbekannte Zielgruppe/Phase ⇒ 22023;
 --   07 zweiter Artikel mit gleichem Slug, Sprache und Edition ⇒ P0001 slug_taken;
 --   08 Löschen archiviert, statt zu löschen;
---   09 Tabelle ohne Grants für authenticated.
+--   09 Tabelle ohne Grants für authenticated;
+--   10 (Review 14.09.) fremder Artikel lässt sich nicht über eine neue Zielgruppenliste übernehmen,
+--      eine fremde Zielgruppe nicht dazunehmen, nicht zurücknehmen; der Editor zeigt ihn nicht.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
 declare v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_n integer; v_txt text;
-        v_ever uuid; v_over uuid; v_draft uuid; v_role uuid;
+        v_ever uuid; v_over uuid; v_draft uuid; v_role uuid; v_fremd uuid;
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary
@@ -110,6 +112,25 @@ begin
   select status into v_txt from kb_article where id = v_role;
   insert into t_res values ('08_archiviert', v_txt || ', sichtbar=' ||
     (select count(*) from kb_articles('volunteer', 'de', v_ed) where slug = 'zztest-rolle'));
+
+  -- 10 Fremden Artikel nicht übernehmen (Review 14.09.): ein Partner-Artikel, ohne Umweg angelegt
+  insert into kb_article (slug, audience, title, status)
+  values ('zztest-partner', array['partner'], 'Nur Partner', 'published') returning id into v_fremd;
+  begin
+    perform upsert_kb_article(jsonb_build_object('id', v_fremd, 'audience', jsonb_build_array('volunteer'), 'title', 'gekapert'));
+    insert into t_res values ('10a_fremder_artikel', 'ALLOWED (BUG)');
+  exception when others then insert into t_res values ('10a_fremder_artikel', 'abgewiesen ' || sqlstate); end;
+  begin
+    perform upsert_kb_article(jsonb_build_object('slug', 'zztest-mix', 'audience', jsonb_build_array('volunteer', 'partner'), 'title', 'Mix'));
+    insert into t_res values ('10b_fremde_zielgruppe_dazu', 'ALLOWED (BUG)');
+  exception when others then insert into t_res values ('10b_fremde_zielgruppe_dazu', 'abgewiesen ' || sqlstate); end;
+  begin
+    perform publish_kb_article(v_fremd, false);
+    insert into t_res values ('10c_fremd_zuruecknehmen', 'ALLOWED (BUG)');
+  exception when others then insert into t_res values ('10c_fremd_zuruecknehmen', 'abgewiesen ' || sqlstate); end;
+  insert into t_res values ('10d_editor_liste', 'fremd_sichtbar=' ||
+    (select count(*) from kb_articles_admin(null) where slug = 'zztest-partner') ||
+    ' eigene_sichtbar=' || (select count(*) from kb_articles_admin(null) where slug = 'zztest-einlass'));
 
   -- 09 Grants
   select count(*) into v_n from information_schema.role_table_grants
