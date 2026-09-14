@@ -23,7 +23,7 @@ export function OrgSwitcher({
 
   if (orgs.length < 2) {
     return (
-      <p className="px-2.5 text-[14px] font-semibold leading-5 text-on-navy">
+      <p className="px-2.5 ct-label leading-5 text-on-navy">
         {current?.label ?? ""}
       </p>
     );
@@ -45,7 +45,7 @@ export function OrgSwitcher({
             router.refresh();
           });
         }}
-        className="h-10 w-full rounded-ct-md border border-on-navy/30 bg-navy px-2.5 text-[14px] font-semibold text-on-navy"
+        className="h-10 w-full rounded-ct-md border border-on-navy/30 bg-navy px-2.5 ct-label text-on-navy"
       >
         {orgs.map((o) => (
           <option key={o.id} value={o.id} className="text-ink">

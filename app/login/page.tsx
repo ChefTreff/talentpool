@@ -1,6 +1,7 @@
 import { getI18n } from "@/lib/i18n";
 import { safeNextPath } from "@/lib/areas";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { BrandBackdrop } from "@/components/layout/BrandBackdrop";
 import { LoginForm } from "./LoginForm";
 
 export const dynamic = "force-dynamic";
@@ -26,10 +27,12 @@ export default async function LoginPage({
   return (
     <>
       <AppHeader />
+      {/* Die Marke erscheint, wo nicht gearbeitet wird (Brandbook, Events). */}
       <main
         id="content"
-        className="mx-auto flex w-full max-w-[640px] flex-1 flex-col justify-center px-6 py-16"
+        className="relative isolate mx-auto flex w-full max-w-[640px] flex-1 flex-col justify-center px-6 py-16"
       >
+        <BrandBackdrop />
         <LoginForm
           next={safeNext}
           authError={authError}

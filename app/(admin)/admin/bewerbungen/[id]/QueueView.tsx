@@ -319,7 +319,7 @@ function Answers({
         {entries.map(([key, value]) => (
           <div key={key}>
             <dt className="ct-label">{labels[key] ?? key}</dt>
-            <dd className="whitespace-pre-line text-[14px]">{value}</dd>
+            <dd className="whitespace-pre-line ct-small">{value}</dd>
           </div>
         ))}
       </dl>

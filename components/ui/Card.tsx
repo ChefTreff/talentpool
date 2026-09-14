@@ -53,7 +53,8 @@ export function StatCard({
 }) {
   return (
     <div className="rounded-ct-lg border bg-surface p-6">
-      <div className="font-display text-[28px] font-extrabold leading-8 tabular-nums text-ink">
+      {/* Dieselbe Grösse wie `.ct-h1` (28/32) — die Zahl ist die Überschrift der Kachel. */}
+      <div className="ct-h1 tabular-nums text-ink">
         {value}
       </div>
       <div className="ct-eyebrow mt-2 text-muted">{label}</div>

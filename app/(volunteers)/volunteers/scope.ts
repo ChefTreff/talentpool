@@ -19,7 +19,7 @@ export const getVolunteerScope = cache(
     /** Wie viele Schichten diese Person leitet — steuert den Menüpunkt. */
     leadShifts: number;
     days: EventDay[];
-    edition: { id: string; name: string | null; start_date: string | null; timezone: string | null } | null;
+    edition: { id: string; name: string | null; start_date: string | null; timezone: string | null; vivenu_event_id: string | null } | null;
   }> => {
     await requireUser("/volunteers");
     const supabase = await createSupabaseServerClient();
@@ -37,7 +37,7 @@ export const getVolunteerScope = cache(
     const today = new Date().toISOString().slice(0, 10);
     const { data: editions } = await supabase
       .from("event")
-      .select("id,name,start_date,timezone,end_date")
+      .select("id,name,start_date,timezone,end_date,vivenu_event_id")
       .eq("is_edition", true)
       .or(`end_date.gte.${today},end_date.is.null`)
       .order("start_date", { ascending: true, nullsFirst: false })

@@ -47,7 +47,7 @@ export function Drawer({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-ct-sm px-2 py-1 text-[14px] font-semibold text-muted hover:bg-surface-hover hover:text-ink"
+          className="rounded-ct-sm px-2 py-1 ct-label text-muted hover:bg-surface-hover hover:text-ink"
         >
           {closeLabel}
         </button>

@@ -154,7 +154,7 @@ export function NewSpeakerDrawer({
                         setQuery("");
                         if (h.email) setEmail(h.email);
                       }}
-                      className="w-full rounded-ct-sm px-2 py-1 text-left text-[14px] hover:bg-surface-hover"
+                      className="w-full rounded-ct-sm px-2 py-1 text-left ct-small hover:bg-surface-hover"
                     >
                       <span className="font-semibold">{h.display_name ?? "—"}</span>
                       {h.email && <span className="ct-help"> · {h.email}</span>}

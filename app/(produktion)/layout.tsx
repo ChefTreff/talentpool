@@ -7,7 +7,9 @@ export const dynamic = "force-dynamic";
 
 /**
  * Produktions-Portal. Bereichs-Gate: ohne Login → /login?next=…, ohne Rolle → 404.
- * Die Seitenleiste trägt bis zu PR 25 nur den Einstieg.
+ * Regie, Stände und Bestellungen (PR 25). Die Reiter in der Seite
+ * wiederholen dieselben drei Punkte — die Leiste führt hinein, die Reiter
+ * halten den Zusammenhang, wenn jemand über einen Link direkt landet.
  */
 export default async function ProduktionLayout({ children }: { children: ReactNode }) {
   await requireArea("produktion");
@@ -19,7 +21,16 @@ export default async function ProduktionLayout({ children }: { children: ReactNo
       label={t.areas.produktion.portal}
       rootHref="/produktion"
       locale="de"
-      groups={[{ label: "", items: [{ href: "/produktion", label: t.common.overview }] }]}
+      groups={[
+        {
+          label: "",
+          items: [
+            { href: "/produktion", label: t.production.tabRegie },
+            { href: "/produktion/staende", label: t.production.tabBooths },
+            { href: "/produktion/bestellungen", label: t.production.tabSuppliers },
+          ],
+        },
+      ]}
     >
       {children}
     </SidebarShell>

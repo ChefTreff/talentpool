@@ -203,7 +203,7 @@ export function RolesView({
                 <button
                   type="button"
                   onClick={() => load(h)}
-                  className="w-full rounded-ct-sm px-2 py-1 text-left text-[14px] hover:bg-surface-hover"
+                  className="w-full rounded-ct-sm px-2 py-1 text-left ct-small hover:bg-surface-hover"
                 >
                   <span className="font-semibold">{h.display_name ?? t.noName}</span>
                   {h.email && <span className="ct-help"> · {h.email}</span>}
@@ -308,7 +308,7 @@ export function RolesView({
                 <Field label={t.orgSearch} htmlFor="org-search" hint={t.orgSearchHint}>
                   {org ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-[15px] font-semibold">{org.name ?? org.slug}</span>
+                      <span className="font-semibold">{org.name ?? org.slug}</span>
                       <Button size="sm" variant="ghost" onClick={() => setOrg(null)}>
                         {t.orgChange}
                       </Button>
@@ -332,7 +332,7 @@ export function RolesView({
                                   setOrgHits([]);
                                   setOrgQuery("");
                                 }}
-                                className="w-full rounded-ct-sm px-2 py-1 text-left text-[14px] hover:bg-surface-hover"
+                                className="w-full rounded-ct-sm px-2 py-1 text-left ct-small hover:bg-surface-hover"
                               >
                                 <span className="font-semibold">{o.name ?? o.slug}</span>
                                 {o.city && <span className="ct-help"> · {o.city}</span>}

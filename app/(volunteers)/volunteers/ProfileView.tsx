@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { TicketCard } from "./TicketCard";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
@@ -30,6 +31,7 @@ export function ProfileView({
   areas,
   locale,
   dateLocale,
+  shopUrl,
   t,
   common,
   rpcMessages,
@@ -40,6 +42,8 @@ export function ProfileView({
   areas: Record<string, string>;
   locale: string;
   dateLocale: string;
+  /** Link auf den Volunteer-Shop; null, solange VIVENU_SHOP_BASE fehlt. */
+  shopUrl: string | null;
   t: Strings;
   common: { cancel: string; save: string };
   rpcMessages: Record<string, string>;
@@ -105,6 +109,16 @@ export function ProfileView({
           </p>
         )}
       </Card>
+
+      {/* Ticket erst mit der Zusage — vorher gibt es nichts einzulösen. */}
+      {profile.status === "accepted" && (
+        <TicketCard
+          couponStatus={profile.coupon_status}
+          code={profile.coupon_code}
+          shopUrl={shopUrl}
+          t={t}
+        />
+      )}
 
       <Card>
         <CardHeader title={t.prefsTitle} description={t.prefsLead} />

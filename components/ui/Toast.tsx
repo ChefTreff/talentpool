@@ -60,7 +60,7 @@ export function ToastItem({ tone, text }: { tone: ToastTone; text: string }) {
   return (
     <div
       className={cn(
-        "pointer-events-auto rounded-ct-md border px-4 py-2 text-[14px] font-semibold shadow-sm",
+        "pointer-events-auto rounded-ct-md border px-4 py-2 ct-label shadow-sm",
         tones[tone],
       )}
     >

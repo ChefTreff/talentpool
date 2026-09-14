@@ -99,7 +99,7 @@ export default async function MailPage() {
                 <Td>
                   <Badge tone={TONES[r.status] ?? "neutral"}>{r.status}</Badge>
                 </Td>
-                <Td className="font-mono text-[13px] text-muted">
+                <Td className="font-mono ct-help text-muted">
                   {r.provider_id ?? t.common.none}
                 </Td>
               </Tr>

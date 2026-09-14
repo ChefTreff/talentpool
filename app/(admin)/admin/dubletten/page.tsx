@@ -53,10 +53,10 @@ export default async function DublettenPage() {
               className="flex flex-wrap items-center justify-between gap-4 p-4"
             >
               <div>
-                <div className="font-mono text-[13px] text-muted">
+                <div className="font-mono ct-help text-muted">
                   {d.person_id_a.slice(0, 8)}… ↔ {d.person_id_b.slice(0, 8)}…
                 </div>
-                <div className="mt-1 text-[15px]">
+                <div className="mt-1">
                   {t.admin.duplicates.score}{" "}
                   <span className="tabular-nums">{d.score}</span>
                   {d.signals && (
