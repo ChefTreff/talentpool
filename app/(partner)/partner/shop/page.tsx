@@ -1,117 +1,138 @@
-import { notFound } from "next/navigation";
-import { requireArea } from "@/lib/auth";
+import Link from "next/link";
 import { getI18n } from "@/lib/i18n";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { getPartnerScope } from "../org";
-import {
-  canEditOnboarding,
-  type PartnerOverview,
-  type ShopOrder,
-  type ShopPhase,
-  type ShopProduct,
-} from "../types";
-import type { MerchAsset } from "./MerchDialog";
-import { ShopView } from "./ShopView";
+import { cn } from "@/components/ui/cn";
+import { AddToCart } from "./AddToCart";
+import { Produktkarte } from "./Produktkarte";
+import { loadShop } from "./load";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Messeshop: Katalog direkt, ohne Startseite (S1).
+ * Der Katalog. Suche und Kategorie stehen in der Adresse, gefiltert wird
+ * **serverseitig** — so zeigt ein geteilter Link dasselbe, und der Zurück-Knopf
+ * führt aus einer Produktseite in die Trefferliste zurück.
  *
- * Was bestellbar ist, entscheidet die Datenbank — `shop_catalogue` rechnet
- * Phase, Bestand und Verfügbarkeit schon ein und liefert `orderable`. Die
- * Seite zeigt das nur; jede Schreib-RPC prüft es ohnehin noch einmal.
+ * Das war vorher anders und hat mich im F4-Abgleich eine falsche Meldung
+ * gekostet: die Kategorie lag im Zustand der Komponente, ein serverseitiger
+ * Abruf sah nur die erste.
  */
-export default async function PartnerShopPage() {
-  await requireArea("partner", "/partner/shop");
+export default async function ShopCataloguePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; kat?: string }>;
+}) {
   const { locale, t } = await getI18n("de");
-  const { current } = await getPartnerScope();
-  if (!current) notFound();
+  const { q, kat } = await searchParams;
+  const { orgId, products, cart, categories, merchAssets, canOrder } = await loadShop();
+  const s = t.partnerShop;
 
-  const supabase = await createSupabaseServerClient();
-  const args = { p_org_id: current.org_id, p_edition_id: current.edition_id };
-  const [
-    { data: phaseJson },
-    { data: productRows },
-    { data: orderRows },
-    { data: overviewJson },
-    { data: assetRows },
-    vocab,
-  ] = await Promise.all([
-    supabase.rpc("shop_phase_info", args),
-    supabase.rpc("shop_catalogue", args),
-    supabase.rpc("shop_my_orders", args),
-    supabase.rpc("partner_overview", args),
-    supabase.rpc("my_partner_assets", args),
-    loadVocabMap(supabase, locale),
-  ]);
+  const inCart = new Map((cart?.lines ?? []).map((l) => [l.sku, l.qty]));
 
-  const phase = (phaseJson ?? null) as ShopPhase | null;
-  const products = (productRows ?? []) as ShopProduct[];
-  const orders = (orderRows ?? []) as ShopOrder[];
-  const overview = (overviewJson ?? null) as PartnerOverview | null;
+  const begriff = (q ?? "").trim().toLocaleLowerCase(locale);
+  const passt = (text: string | null | undefined) =>
+    (text ?? "").toLocaleLowerCase(locale).includes(begriff);
 
-  /**
-   * Auswahl für ein Logo-Feld der Merch-Konfiguration (S4): nur die aktuelle
-   * Fassung je Datei, und nichts, was die Prüfung zurückgewiesen hat.
-   */
-  const merchAssets: MerchAsset[] = (
-    (assetRows ?? []) as {
-      id: string;
-      filename: string | null;
-      storage_path: string;
-      label_de: string | null;
-      label_en: string | null;
-      is_current: boolean;
-      status: string;
-    }[]
-  )
-    .filter((a) => a.is_current && a.status !== "rejected")
-    .map((a) => ({
-      id: a.id,
-      label: [
-        (locale === "en" ? a.label_en : a.label_de) ?? null,
-        a.filename ?? a.storage_path.split("/").pop() ?? a.id,
-      ]
-        .filter(Boolean)
-        .join(" · "),
-    }));
+  // Gesucht wird über Name, Beschreibung, Hinweis und SKU — wer die Artikelnummer
+  // aus einem Angebot abtippt, soll sie auch finden.
+  const gefunden = begriff
+    ? products.filter(
+        (p) =>
+          passt(p.name_de) ||
+          passt(p.name_en) ||
+          passt(p.description_de) ||
+          passt(p.description_en) ||
+          passt(p.shop_hint_de) ||
+          passt(p.shop_hint_en) ||
+          p.sku.toLocaleLowerCase(locale).includes(begriff),
+      )
+    : products;
 
-  if (!phase) {
-    return (
-      <>
-        <PageHeader title={t.partnerShop.title} description={t.partnerShop.lead} />
-        <EmptyState title={t.partnerShop.emptyTitle} description={t.partnerShop.emptyBody} />
-      </>
-    );
+  const tabs = [...new Set(gefunden.map((p) => p.category ?? "").filter(Boolean))].sort((a, b) =>
+    (categories[a] ?? a).localeCompare(categories[b] ?? b, locale),
+  );
+  // Bei einer Suche zeigen wir alle Treffer über die Kategorien hinweg — wer
+  // sucht, will finden und nicht erst den richtigen Reiter raten.
+  const aktiv = begriff ? null : (kat && tabs.includes(kat) ? kat : (tabs[0] ?? null));
+  const gezeigt = aktiv === null ? gefunden : gefunden.filter((p) => (p.category ?? "") === aktiv);
+
+  const linkTo = (key: string | null) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (key) params.set("kat", key);
+    const query = params.toString();
+    return `/partner/shop${query ? `?${query}` : ""}`;
+  };
+
+  if (products.length === 0) {
+    return <EmptyState title={s.emptyTitle} description={s.emptyBody} />;
   }
 
   return (
-    <>
-      <PageHeader title={t.partnerShop.title} description={t.partnerShop.lead} />
-      {products.length === 0 && orders.length === 0 ? (
-        <EmptyState title={t.partnerShop.emptyTitle} description={t.partnerShop.emptyBody} />
-      ) : (
-        <ShopView
-          orgId={current.org_id}
-          phase={phase}
-          products={products}
-          orders={orders}
-          categories={vgroup(vocab, "product_category")}
-          merchAssets={merchAssets}
-          // Bestellen dürfen dieselben Rollen wie sonst auch; `event_app_member`
-          // liest nur (Entscheidung 1, es gibt keine Rolle `shop`).
-          canOrder={canEditOnboarding(overview?.roles ?? [], overview?.team ?? false)}
-          locale={locale}
-          dateLocale={t.meta.dateLocale}
-          t={t.partnerShop}
-          common={{ cancel: t.common.cancel, none: t.common.none, save: t.common.save }}
-          rpcMessages={t.rpc}
-        />
+    <section aria-labelledby="h-catalogue">
+      <div className="mb-3 flex flex-wrap items-baseline gap-2 border-b pb-2">
+        <h2 id="h-catalogue" className="ct-h3 text-ink">
+          {begriff ? s.searchResults : s.catalogue}
+        </h2>
+        <span className="ct-help ml-auto tabular-nums">{gezeigt.length}</span>
+      </div>
+
+      {!begriff && tabs.length > 1 && (
+        <div className="mb-4 flex flex-wrap gap-1" aria-label={s.categories}>
+          {tabs.map((key) => (
+            <Link
+              key={key}
+              href={linkTo(key)}
+              aria-current={key === aktiv ? "page" : undefined}
+              className={cn(
+                "rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors",
+                key === aktiv
+                  ? "bg-accent-soft text-accent-deep"
+                  : "text-muted hover:bg-surface-hover hover:text-ink",
+              )}
+            >
+              {categories[key] ?? key}
+            </Link>
+          ))}
+        </div>
       )}
-    </>
+
+      {gezeigt.length === 0 ? (
+        <EmptyState
+          title={s.noHitsTitle}
+          description={s.noHitsBody.replace("{q}", q ?? "")}
+          action={
+            <Link className="ct-link" href="/partner/shop">
+              {s.clearSearch}
+            </Link>
+          }
+        />
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {gezeigt.map((p) => (
+            <Produktkarte
+              key={p.sku}
+              product={p}
+              locale={locale}
+              dateLocale={t.meta.dateLocale}
+              t={s}
+              action={
+                <AddToCart
+                  orgId={orgId}
+                  product={p}
+                  inCart={inCart.get(p.sku) ?? null}
+                  canOrder={canOrder}
+                  merchAssets={merchAssets}
+                  locale={locale}
+                  t={s}
+                  common={{ cancel: t.common.cancel, none: t.common.none, save: t.common.save }}
+                  rpcMessages={t.rpc}
+                />
+              }
+            />
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

@@ -172,6 +172,7 @@ describe("Was der Warenkorb ist", () => {
       phase: 1,
       status,
       note: null,
+      po_number: null,
       confirmed_at: null,
       completed_at: null,
       cancelled_at: null,

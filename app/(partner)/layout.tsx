@@ -66,6 +66,7 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     applicants: { href: "/partner/bewerber", label: t.partner.navApplicants },
     stage: { href: "/partner/buehne", label: t.partner.navStage },
     shop: { href: "/partner/shop", label: t.partner.navShop },
+    orders: { href: "/partner/shop/bestellungen", label: t.partnerShop.navOrders },
     wiki: { href: "/partner/wiki", label: t.partner.navWiki },
   };
 
@@ -75,7 +76,7 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
   const groups: SidebarGroup[] = [
     { label: t.partner.groupOverview, items: pick(["dashboard", "wiki"]) },
     { label: t.partner.groupCompany, items: pick(["onboarding", "contacts"]) },
-    { label: t.partner.groupSummit, items: pick(["checklist", "files", "tickets", "eventapp", "shop"]) },
+    { label: t.partner.groupSummit, items: pick(["checklist", "files", "tickets", "eventapp", "shop", "orders"]) },
     { label: t.partner.groupFormats, items: pick(["booth", "applicants", "stage"]) },
   ];
 
