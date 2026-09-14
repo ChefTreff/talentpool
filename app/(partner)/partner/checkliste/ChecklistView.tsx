@@ -13,6 +13,7 @@ import {
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CheckMark } from "@/components/ui/CheckMark";
 import { Field } from "@/components/ui/Field";
 import { FileButton } from "@/components/ui/FileButton";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -274,7 +275,7 @@ export function ChecklistView({
                         (overdue ? "border-l-error-ink bg-error-soft/40" : "border-l-transparent")
                       }
                     >
-                      <Haken done={erledigt} label={erledigt ? t.doneLabel : t.openLabel} />
+                      <CheckMark done={erledigt} label={erledigt ? t.doneLabel : t.openLabel} />
 
                       <button
                         type="button"
@@ -487,30 +488,5 @@ export function ChecklistView({
         </section>
       ))}
     </div>
-  );
-}
-
-/**
- * Der Haken links in der Zeile. Zustand in Form **und** Farbe: ein erledigter
- * Punkt trägt das Häkchen, ein offener einen leeren Ring — wer Farben nicht
- * unterscheidet, sieht den Unterschied trotzdem.
- */
-function Haken({ done, label }: { done: boolean; label: string }) {
-  return (
-    <span
-      title={label}
-      className={
-        done
-          ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success-ink text-surface"
-          : "h-5 w-5 shrink-0 rounded-full border-2 border-border-strong"
-      }
-    >
-      {done && (
-        <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M2.5 6.5 5 9l4.5-5.5" />
-        </svg>
-      )}
-      <span className="sr-only">{label}</span>
-    </span>
   );
 }

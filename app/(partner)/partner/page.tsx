@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { OnboardingNudge } from "./OnboardingNudge";
 import { getPartnerScope } from "./org";
 import { canEditOnboarding, orgLabel, type PartnerOverview } from "./types";
-import { Countdown } from "./Countdown";
+import { Countdown } from "@/components/ui/Countdown";
 
 export const dynamic = "force-dynamic";
 

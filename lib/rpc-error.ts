@@ -149,6 +149,8 @@ const BUSINESS_KEYS = new Set([
   "shift_not_found",
   "day_not_found",
   "invalid_barcode",
+  // Messestand und Editionsdateien (Migration 0094)
+  "edition_file_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {

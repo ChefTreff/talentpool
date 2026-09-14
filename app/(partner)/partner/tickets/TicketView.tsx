@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Countdown } from "../Countdown";
+import { DeadlineCard } from "@/components/ui/DeadlineCard";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -99,18 +99,14 @@ export function TicketView({
           steht sie gross und mit Restzeit. Wer Codes einlöst, entscheidet
           danach, ob er es heute tut. */}
       {due && (
-        <Card className="border-accent-soft bg-accent-soft">
-          <p className="ct-eyebrow text-accent-deep">{t.dueOn}</p>
-          <p className="ct-h2 mt-1 text-ink">{dateTime.format(new Date(due))}</p>
-          <p className="ct-label mt-1 text-accent-deep">
-            <Countdown
-              dueAt={due}
-              days={t.countdownDays}
-              hours={t.countdownHours}
-              soon={t.countdownSoon}
-            />
-          </p>
-        </Card>
+        <DeadlineCard
+          dueAt={due}
+          label={t.dueOn}
+          dateText={dateTime.format(new Date(due))}
+          days={t.countdownDays}
+          hours={t.countdownHours}
+          soon={t.countdownSoon}
+        />
       )}
 
       <ul className="grid gap-4 lg:grid-cols-2">

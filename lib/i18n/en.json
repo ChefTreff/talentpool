@@ -167,7 +167,8 @@
     "shift_not_found": "That shift does not exist.",
     "day_not_found": "That day does not exist in this edition.",
     "invalid_barcode": "This code is empty or unreadable. Scan again or type it in.",
-    "merch_incomplete": "This line is still missing a detail in its configuration."
+    "merch_incomplete": "This line is still missing a detail in its configuration.",
+    "edition_file_not_found": "This file does not exist (any more)."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -923,7 +924,8 @@
     "nudgeBody": "Before we start we need your company details, description, logo and invoicing details. It takes a few minutes and you can change everything later.",
     "nudgeAction": "Fill in now",
     "nudgeLater": "Later",
-    "navEventApp": "Event app"
+    "navEventApp": "Event app",
+    "navBooth": "Booth"
   },
   "partnerContacts": {
     "title": "Contacts",
@@ -1587,7 +1589,8 @@
     "firstName": "First name",
     "lastName": "Last name",
     "contactPosition": "Position",
-    "contactRole_event_app_member": "Event app"
+    "contactRole_event_app_member": "Event app",
+    "colEventApp": "Event app"
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -2174,7 +2177,8 @@
     "allSuppliers": "All suppliers",
     "csv": "As CSV",
     "emptySuppliers": "No orders",
-    "emptySuppliersBody": "Nobody has ordered in the trade-show shop yet."
+    "emptySuppliersBody": "Nobody has ordered in the trade-show shop yet.",
+    "tabFiles": "Files"
   },
   "wiki": {
     "title": "Wiki",
@@ -2356,34 +2360,123 @@
     "appAction": "Go to the event app",
     "wikiHint": "More in the wiki under Event app",
     "stepsTitle": "What to do in the app",
-    "stepsLead": "6 steps",
+    "stepsLead": "{done} of {total} done",
     "videoTitle": "How to set up your presence",
     "steps": [
       {
+        "key": "profil",
         "title": "Complete your profile",
         "body": "Go to the exhibitor area of the app and fill in your profile completely. Add links to your careers page and social channels, a header image and further information."
       },
       {
+        "key": "team",
         "title": "Add your team",
         "body": "Best through the partner portal under “Contacts”. You can also add team members directly in the app — but only once they have personalised a ticket to their email address."
       },
       {
+        "key": "mitarbeitende",
         "title": "Complete your colleagues’ profiles",
         "body": "Ideally every team member’s profile is filled in properly, so participants can see straight away who they are talking to."
       },
       {
+        "key": "leads_teilen",
         "title": "Turn on contact sharing",
         "body": "Important: in each profile, make sure contacts are shared with the team. Otherwise you will not be able to access your leads afterwards. The wiki explains how.",
         "important": true
       },
       {
+        "key": "stellen",
         "title": "Post open roles",
         "body": "Under “Open roles” you can add positions. We recommend at most three, and ones that are appealing and representative. A traineeship or a project manager role speaks to a broad audience — very specific roles put people off at first."
       },
       {
+        "key": "profile_suchen",
         "title": "Find matching profiles",
         "body": "The app goes live in mid-March. Under “Participants” you can then filter profiles by various criteria, among them field of study and work experience. Use it to identify suitable talent and reach out with a pointer to your presence. More tips are in the wiki under Event app."
       }
-    ]
+    ],
+    "stepsHint": "You tick these off yourselves — we cannot see what happens inside Swapcard.",
+    "stepDone": "Done on {date}",
+    "stepMark": "Mark as done",
+    "stepUnmark": "Remove the tick",
+    "stepSaved": "Saved",
+    "stepDoneShort": "Done",
+    "stepOpenShort": "Open"
+  },
+  "partnerBooth": {
+    "title": "Booth",
+    "lead": "Everything about your booth: dimensions, booth number and above all the backdrop.",
+    "introTitle": "What this page is for",
+    "introBody": "This page holds everything about your booth: the exact dimensions, the booth number and above all the backdrop. If you bring your own booth construction, please make sure to register both the delivery and the booth itself.",
+    "equipTitle": "What comes with each booth",
+    "equipBody": "Our all-inclusive booths come with a basic set-up. Extra items and upgrades are available in the exhibitor shop. And don't worry: if you forget something, almost everything can still be rented at the exhibitor kiosk during the FLS.",
+    "equipToShop": "To the exhibitor shop",
+    "colPackage": "Package",
+    "colSize": "Booth size",
+    "colEquip": "Included",
+    "yours": "Your package",
+    "yoursHint": "This is what your package includes.",
+    "noEquip": "No items recorded",
+    "sqm": "sqm",
+    "equipEmptyTitle": "No packages recorded yet",
+    "equipEmptyBody": "As soon as the booth packages are in the product catalogue, the overview appears here.",
+    "backTitle": "Your backdrop",
+    "backBody": "Here you find everything about your booth backdrop and you can submit it. Take the dimensions of your booth from the table above. The wiki holds the exact print specifications — feel free to share them with your design team or an agency, everything relevant is in there. Use “Upload now” to upload the final file or replace it.",
+    "backAfterDeadline": "After this date the file goes to print. Later changes go through a change request here in the portal — we will get back to you.",
+    "backToWiki": "Wiki: print specifications",
+    "backUpload": "Upload now",
+    "backUploadNew": "Upload a new version",
+    "backSize": "Your backdrop: {w} × {h} mm",
+    "backSizeSoon": "We will add the exact dimensions of your backdrop as soon as your booth is planned.",
+    "backNone": "Your package does not include a backdrop.",
+    "backCurrent": "Uploaded",
+    "dueOn": "Deadline",
+    "countdownDays": "{n} days left",
+    "countdownHours": "{n} hours left",
+    "countdownSoon": "ends today",
+    "changeRequest": "Send a change request",
+    "changeRequestHint": "Describe briefly what should change. The partner team will get back to you.",
+    "changeRequestSent": "Change request sent. We will get back to you.",
+    "changeRequestLabel": "What should change?",
+    "planTitle": "Floor plan & booth number",
+    "planBody": "Once the booth spaces are assigned you will find your booth number, the floor plan and the list of all exhibitors here.",
+    "yourBooth": "Your booth number",
+    "boothSoon": "Not assigned yet",
+    "planNone": "The floor plan is not available yet. It comes from production once the spaces are set.",
+    "planOpen": "Open floor plan",
+    "exhibitors": "All exhibitors",
+    "colBooth": "Booth",
+    "colExhibitor": "Exhibitor",
+    "colType": "Package",
+    "exhibitorsSoon": "The booth list is not ready yet. It is produced once the spaces are assigned.",
+    "uploadTooBig": "The file is larger than {max}.",
+    "uploadWrongType": "Only {allowed} are allowed — this file is {got}.",
+    "uploadFailed": "The upload did not work",
+    "uploadHint": "Allowed: {allowed}, at most {max}. The file extension decides.",
+    "uploading": "Uploading …",
+    "uploaded": "Uploaded (version {v})",
+    "inChecklist": "The backdrop is also in your checklist"
+  },
+  "productionFiles": {
+    "title": "Edition files",
+    "lead": "Floor plan, directions and set-up plan — visible in the portals.",
+    "emptyTitle": "No edition found",
+    "emptyBody": "Once an edition exists you can add files here.",
+    "addTitle": "Add a file",
+    "addBody": "PDF or image, at most 25 MB. The file appears in the portals right away — the floor plan, for example, on the partners' booth page.",
+    "kind": "Type",
+    "label": "Caption",
+    "labelHint": "Optional. Shown above the file in the portals.",
+    "upload": "Choose a file",
+    "uploadHint": "Allowed: PDF, PNG, JPG, WebP, SVG — at most 25 MB.",
+    "uploading": "Uploading …",
+    "uploaded": "Uploaded",
+    "uploadFailed": "The upload did not work",
+    "emptyListTitle": "No files yet",
+    "emptyListBody": "Upload the floor plan once the booth spaces are set.",
+    "deleteTitle": "Remove file?",
+    "deleteBody": "“{name}” disappears from all portals and is deleted from storage.",
+    "deleted": "Removed",
+    "deleteFailed": "Removing did not work"
   }
 }

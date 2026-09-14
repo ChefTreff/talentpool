@@ -24,6 +24,7 @@ export type PartnerNavKey =
   | "files"
   | "tickets"
   | "eventapp"
+  | "booth"
   | "applicants"
   | "stage"
   | "shop"
@@ -35,6 +36,8 @@ export type NavInput = {
   sessions_count: number;
   /** Bühne mit `partner_org_id` = Org. */
   has_stage: boolean;
+  /** Stand mit Nummer, Maßen oder Rückwand — aus `partner_overview.booth`. */
+  has_booth: boolean;
   /**
    * Kontingente aus `partner_overview.ticket_allocations`. Das Team kann eins
    * auch ohne passendes Produkt eintragen — dann gehört der Menüpunkt trotzdem
@@ -68,6 +71,12 @@ export function visibleNavKeys(input: NavInput): PartnerNavKey[] {
   ];
   if (input.has_allocations || input.products.some((p) => p.category === "tickets")) {
     keys.push("tickets");
+  }
+  // Messestand: wer Standfläche gebucht hat — oder wem das Team schon einen
+  // Stand zugeordnet hat, auch ohne passendes Produkt (dieselbe Ausnahme wie
+  // bei den Kontingenten).
+  if (input.has_booth || input.products.some((p) => p.category === "standflaeche")) {
+    keys.push("booth");
   }
   if (input.sessions_count > 0) keys.push("applicants");
   if (input.has_stage || input.products.some((p) => p.sku === STAGE_SKU)) keys.push("stage");

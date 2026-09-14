@@ -167,7 +167,8 @@
     "shift_not_found": "Diese Schicht gibt es nicht.",
     "day_not_found": "Diesen Tag gibt es in dieser Edition nicht.",
     "invalid_barcode": "Dieser Code ist leer oder unlesbar. Noch einmal scannen oder von Hand eingeben.",
-    "merch_incomplete": "Für diese Zeile fehlt noch eine Angabe in der Konfiguration."
+    "merch_incomplete": "Für diese Zeile fehlt noch eine Angabe in der Konfiguration.",
+    "edition_file_not_found": "Diese Datei gibt es nicht (mehr)."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -923,7 +924,8 @@
     "nudgeBody": "Bevor es losgeht, brauchen wir Stammdaten, Beschreibung, Logo und Rechnungsdaten. Das dauert ein paar Minuten und ihr könnt jederzeit ändern.",
     "nudgeAction": "Jetzt ausfüllen",
     "nudgeLater": "Später",
-    "navEventApp": "Event-App"
+    "navEventApp": "Event-App",
+    "navBooth": "Messestand"
   },
   "partnerContacts": {
     "title": "Kontakte",
@@ -1587,7 +1589,8 @@
     "firstName": "Vorname",
     "lastName": "Nachname",
     "contactPosition": "Position",
-    "contactRole_event_app_member": "Event-App"
+    "contactRole_event_app_member": "Event-App",
+    "colEventApp": "Event-App"
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -2174,7 +2177,8 @@
     "allSuppliers": "Alle Dienstleister",
     "csv": "Als CSV",
     "emptySuppliers": "Keine Bestellungen",
-    "emptySuppliersBody": "Noch hat niemand etwas im Messeshop bestellt."
+    "emptySuppliersBody": "Noch hat niemand etwas im Messeshop bestellt.",
+    "tabFiles": "Dateien"
   },
   "wiki": {
     "title": "Wiki",
@@ -2356,34 +2360,123 @@
     "appAction": "Zur Event-App",
     "wikiHint": "Mehr im Wiki unter Event-App",
     "stepsTitle": "Was ihr in der App erledigen solltet",
-    "stepsLead": "6 Schritte",
+    "stepsLead": "{done} von {total} erledigt",
     "videoTitle": "So richtet ihr euren Auftritt ein",
     "steps": [
       {
+        "key": "profil",
         "title": "Füllt euer Profil aus",
         "body": "Geht in den Exhibitor-Bereich der App und füllt euer Profil vollständig aus. Ergänzt Links zu eurer Karriere-Seite und zu euren Social-Kanälen, ein Header-Bild und weitere Informationen."
       },
       {
+        "key": "team",
         "title": "Fügt euer Team hinzu",
         "body": "Am besten über das Partner-Portal unter „Kontakte“. Alternativ könnt ihr Team-Mitglieder auch direkt in der App hinzufügen — das geht allerdings erst, wenn sie bereits ein Ticket auf ihre Mailadresse personalisiert haben."
       },
       {
+        "key": "mitarbeitende",
         "title": "Füllt die Profile der Mitarbeitenden aus",
         "body": "Am besten sind auch die Profile aller Teammitglieder richtig ausgefüllt, sodass Teilnehmende direkt sehen, mit wem sie sprechen."
       },
       {
+        "key": "leads_teilen",
         "title": "Stellt das Teilen der Kontakte ein",
         "body": "Wichtig: Stellt in den einzelnen Profilen unbedingt ein, dass die Kontakte mit dem Team geteilt werden. Sonst könnt ihr im Anschluss nicht auf die Leads zugreifen. Wie das geht, steht im Wiki.",
         "important": true
       },
       {
+        "key": "stellen",
         "title": "Legt offene Stellen an",
         "body": "Unter „Offene Stellen“ könnt ihr verschiedene Positionen ergänzen. Wir empfehlen höchstens drei Stellen, die ansprechend und repräsentativ sind. Nehmt lieber ein Traineeship oder eine Projektmanager-Rolle, die eine breite Zielgruppe anspricht — zu spezielle Rollen schrecken erst einmal ab."
       },
       {
+        "key": "profile_suchen",
         "title": "Sucht passende Profile",
         "body": "Ab Mitte März geht die App live. Dann könnt ihr unter „Teilnehmer“ die Profile nach verschiedenen Merkmalen filtern, unter anderem nach Studienhintergrund und Berufserfahrung. Nutzt das, um passende Talente zu finden, und schreibt sie mit einem Verweis auf eure Präsenz an. Mehr Tipps stehen im Wiki unter Event-App."
       }
-    ]
+    ],
+    "stepsHint": "Ihr hakt selbst ab — wir sehen nicht, was in Swapcard passiert.",
+    "stepDone": "Erledigt am {date}",
+    "stepMark": "Als erledigt markieren",
+    "stepUnmark": "Haken wieder wegnehmen",
+    "stepSaved": "Gespeichert",
+    "stepDoneShort": "Erledigt",
+    "stepOpenShort": "Offen"
+  },
+  "partnerBooth": {
+    "title": "Messestand",
+    "lead": "Alles zu eurem Stand: Maße, Standnummer und vor allem die Rückwand.",
+    "introTitle": "Worum es hier geht",
+    "introBody": "Auf dieser Seite findet ihr alle Informationen rund um euren Messestand: die genauen Maße, die Standnummer und vor allem alles rund um die Rückwand. Solltet ihr einen Eigenbau-Stand mitbringen, beachtet bitte unbedingt die entsprechenden Anmeldungen der Anlieferung und des Standes selbst.",
+    "equipTitle": "Standardausstattung der Stände",
+    "equipBody": "Unsere All-Inclusive-Stände sind mit einer Basisausstattung versehen. Zusätzliche Elemente und Upgrades bucht ihr bequem über den Messeshop. Und keine Sorge: Solltet ihr etwas vergessen haben, könnt ihr fast alles kurzfristig am Ausstellerkiosk während des FLS noch leihen.",
+    "equipToShop": "Zum Messeshop",
+    "colPackage": "Paket",
+    "colSize": "Standgröße",
+    "colEquip": "Ausstattung",
+    "yours": "Euer Paket",
+    "yoursHint": "Das ist in eurem Paket enthalten.",
+    "noEquip": "Keine Ausstattung hinterlegt",
+    "sqm": "qm",
+    "equipEmptyTitle": "Noch keine Pakete hinterlegt",
+    "equipEmptyBody": "Sobald die Standpakete im Produktkatalog stehen, erscheint hier die Übersicht.",
+    "backTitle": "Eure Rückwand",
+    "backBody": "Hier findet ihr alle Informationen zu eurer Standrückwand und könnt sie einsenden. Die Maße eures Standes entnehmt ihr der Tabelle oben. Im Wiki stehen die exakten Druckanforderungen — die könnt ihr gern mit eurer Grafikabteilung oder einer Agentur teilen, dort ist alles Relevante enthalten. Über „Jetzt hochladen“ ladet ihr die finale Datei hoch oder tauscht sie noch einmal aus.",
+    "backAfterDeadline": "Nach diesem Tag geht die Datei in den Druck. Änderungen laufen dann über einen Änderungswunsch hier im Portal — wir melden uns dann bei euch.",
+    "backToWiki": "Wiki: Druckanforderungen",
+    "backUpload": "Jetzt hochladen",
+    "backUploadNew": "Neue Fassung hochladen",
+    "backSize": "Eure Rückwand: {w} × {h} mm",
+    "backSizeSoon": "Die genauen Maße eurer Rückwand tragen wir ein, sobald euer Stand geplant ist.",
+    "backNone": "Für euer Paket ist keine Rückwand vorgesehen.",
+    "backCurrent": "Hochgeladen",
+    "dueOn": "Frist",
+    "countdownDays": "noch {n} Tage",
+    "countdownHours": "noch {n} Stunden",
+    "countdownSoon": "läuft heute ab",
+    "changeRequest": "Änderungswunsch senden",
+    "changeRequestHint": "Beschreibt kurz, was sich ändern soll. Das Partner-Team meldet sich bei euch.",
+    "changeRequestSent": "Änderungswunsch ist raus. Wir melden uns.",
+    "changeRequestLabel": "Was soll sich ändern?",
+    "planTitle": "Hallenplan & Standnummer",
+    "planBody": "Sobald die Standflächen vergeben sind, findet ihr hier eure Standnummer, den Hallenplan und die Liste aller Aussteller.",
+    "yourBooth": "Eure Standnummer",
+    "boothSoon": "Wird noch vergeben",
+    "planNone": "Der Hallenplan ist noch nicht hinterlegt. Er kommt aus der Produktion, sobald die Flächen stehen.",
+    "planOpen": "Hallenplan öffnen",
+    "exhibitors": "Alle Aussteller",
+    "colBooth": "Stand",
+    "colExhibitor": "Aussteller",
+    "colType": "Paket",
+    "exhibitorsSoon": "Die Standliste steht noch nicht. Sie entsteht in der Produktion, sobald die Flächen vergeben sind.",
+    "uploadTooBig": "Die Datei ist größer als {max}.",
+    "uploadWrongType": "Erlaubt sind nur {allowed} — die Datei ist {got}.",
+    "uploadFailed": "Der Upload hat nicht geklappt",
+    "uploadHint": "Erlaubt: {allowed}, höchstens {max}. Die Endung entscheidet.",
+    "uploading": "Wird hochgeladen …",
+    "uploaded": "Hochgeladen (Fassung {v})",
+    "inChecklist": "Die Rückwand steht auch in eurer Checkliste"
+  },
+  "productionFiles": {
+    "title": "Dateien der Edition",
+    "lead": "Hallenplan, Anfahrt und Aufbauplan — sichtbar in den Portalen.",
+    "emptyTitle": "Keine Edition gefunden",
+    "emptyBody": "Sobald eine Edition angelegt ist, könnt ihr hier Dateien hinterlegen.",
+    "addTitle": "Datei hinzufügen",
+    "addBody": "PDF oder Bild, höchstens 25 MB. Die Datei erscheint sofort in den Portalen — der Hallenplan zum Beispiel auf der Messestand-Seite der Partner.",
+    "kind": "Art",
+    "label": "Beschriftung",
+    "labelHint": "Optional. Steht in den Portalen über der Datei.",
+    "upload": "Datei wählen",
+    "uploadHint": "Erlaubt: PDF, PNG, JPG, WebP, SVG — höchstens 25 MB.",
+    "uploading": "Wird hochgeladen …",
+    "uploaded": "Hochgeladen",
+    "uploadFailed": "Der Upload hat nicht geklappt",
+    "emptyListTitle": "Noch keine Dateien",
+    "emptyListBody": "Ladet den Hallenplan hoch, sobald die Standflächen stehen.",
+    "deleteTitle": "Datei entfernen?",
+    "deleteBody": "„{name}“ verschwindet aus allen Portalen und wird aus dem Speicher gelöscht.",
+    "deleted": "Entfernt",
+    "deleteFailed": "Das Entfernen hat nicht geklappt"
   }
 }

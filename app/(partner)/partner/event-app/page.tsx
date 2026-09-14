@@ -2,13 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmbedGate } from "@/components/ui/EmbedGate";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { loadVideo, loomEmbedUrl } from "@/components/video/load";
 import { getPartnerScope } from "../org";
-import { Schritte } from "./Schritte";
+import { canEditOnboarding, type PartnerOverview } from "../types";
+import { Schritte, type SchrittStand } from "./Schritte";
 
 export const dynamic = "force-dynamic";
 
@@ -23,9 +25,9 @@ const APP_URL = "https://app.swapcard.com";
  * ist Absicht: was in Swapcard passiert, gehört dorthin, und eine halbe Kopie
  * hier wäre eine zweite Wahrheit, die niemand pflegt.
  *
- * Die sechs Schritte sind Konrads Wortlaut aus dem alten Portal. Sie sind
- * **nicht** abhakbar — wir können nicht sehen, was jemand in Swapcard getan
- * hat, und ein Haken, der nichts prüft, behauptet mehr, als wir wissen.
+ * Die sechs Schritte sind Konrads Wortlaut aus dem alten Portal. Sie sind seit
+ * dem 14.09. abhakbar (Migration 0093) — als Selbstauskunft, nicht als
+ * Nachweis, und in der Datenbank, damit die Produktion den Stand sieht.
  */
 export default async function EventAppPage() {
   await requireArea("partner", "/partner/event-app");
@@ -33,8 +35,25 @@ export default async function EventAppPage() {
   const { current } = await getPartnerScope();
   if (!current) notFound();
 
-  const video = await loadVideo("partner_event_app", "partner", current.edition_id);
+  const supabase = await createSupabaseServerClient();
+  const [{ data: standRows }, { data: overviewJson }, video] = await Promise.all([
+    supabase.rpc("my_org_steps", {
+      p_org_id: current.org_id,
+      p_topic: "event_app",
+      p_edition_id: current.edition_id,
+    }),
+    supabase.rpc("partner_overview", {
+      p_org_id: current.org_id,
+      p_edition_id: current.edition_id,
+    }),
+    loadVideo("partner_event_app", "partner", current.edition_id),
+  ]);
+  const stand = (standRows ?? []) as SchrittStand[];
+  const overview = (overviewJson ?? null) as PartnerOverview | null;
   const s = t.partnerEventApp;
+  // `steps` ist eine Liste, alles andere sind Texte — die Komponente bekommt
+  // beides getrennt, sonst passt der Wörterbuchtyp nicht.
+  const { steps, ...texte } = s;
 
   return (
     <>
@@ -53,7 +72,16 @@ export default async function EventAppPage() {
         </div>
       </Card>
 
-      <Schritte title={s.stepsTitle} lead={s.stepsLead} steps={s.steps} />
+      <Schritte
+        orgId={current.org_id}
+        editionId={current.edition_id}
+        steps={steps}
+        stand={stand}
+        canEdit={overview ? canEditOnboarding(overview.roles, overview.team) : false}
+        dateLocale={t.meta.dateLocale}
+        t={texte}
+        rpcMessages={t.rpc}
+      />
 
       {video && (
         <div className="mt-8 max-w-[640px]">

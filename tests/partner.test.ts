@@ -87,6 +87,7 @@ const nav = (input: Partial<NavInput>) =>
     products: [],
     sessions_count: 0,
     has_stage: false,
+    has_booth: false,
     has_allocations: false,
     ...input,
   });
@@ -244,5 +245,19 @@ describe("Wer im Board veröffentlichen darf", () => {
     ]) {
       assert.equal(canPublishSessions(roles), false, `darf nicht: ${roles.join(",") || "ohne Rolle"}`);
     }
+  });
+});
+
+describe("Messestand im Menü (F10)", () => {
+  it("erscheint bei gebuchter Standfläche", () => {
+    assert.ok(nav({ products: [product({ category: "standflaeche" })] }).includes("booth"));
+  });
+
+  it("erscheint auch ohne Produkt, wenn das Team einen Stand zugeordnet hat", () => {
+    assert.ok(nav({ has_booth: true }).includes("booth"));
+  });
+
+  it("fehlt, wenn es weder Standfläche noch Stand gibt", () => {
+    assert.ok(!nav({ products: [product({ category: "tickets" })] }).includes("booth"));
   });
 });
