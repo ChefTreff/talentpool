@@ -75,9 +75,8 @@ export async function SidebarShell({
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <aside className="bg-navy text-on-navy lg:sticky lg:top-0 lg:h-dvh lg:w-[264px] lg:shrink-0 lg:overflow-y-auto">
         <div className="flex h-full flex-col gap-5 px-4 py-5">
-          <Link href={rootHref} className="block rounded-ct-sm px-2 text-on-navy">
+          <Link href={rootHref} className="block rounded-ct-sm px-2 py-1 text-on-navy">
             <Logo />
-            <span className="sr-only">{t.nav.brand}</span>
           </Link>
 
           <PortalSwitcher areas={portale} current={area} label={t.nav.myAreas} />
