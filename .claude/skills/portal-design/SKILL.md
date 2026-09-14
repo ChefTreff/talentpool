@@ -31,7 +31,7 @@ Der Styleguide beschreibt Marketing (Navy-Vollfläche, zentriert, 82-px-Versalie
 | Alles zentriert | Linksbündig; zentriert nur Login/Welcome/Leerzustand |
 | H1 82 px Versalien | `.ct-h1` = 28/32 (mobil 24/28), einmal pro Seite |
 | Pfeil-Button + Laica | nur Marketing-CTA; Arbeits-Buttons = `<Button>` |
-| Highlight-Wort kursiv im Akzent | nur Login/Welcome/Begrüßung, **ein** Wort |
+| Highlight-Wort kursiv im Highlight-Pink (`text-highlight`) auf Navy | nur Login/Welcome/Begrüßung, **ein** Wort; nie auf hellem Grund |
 | Dreiecke, Scribbles, Raport-Typo | dezent auf Login/Welcome/Empty-State; nie hinter Text oder Tabellen |
 
 ## Die Regeln
@@ -40,7 +40,7 @@ Der Styleguide beschreibt Marketing (Navy-Vollfläche, zentriert, 82-px-Versalie
 2. **Nie rohe Hex-Werte, nie rohe px-Abstände.** Nur Token-Klassen (`bg-surface`, `text-muted`, `border-border-strong`, `rounded-ct-md`) und das 8-pt-Raster. Kein neuer Radius, keine neue Schriftgröße, keine neue Graustufe — siehe `referenzen/tokens.md`.
 3. **Nichts nachbauen, was es gibt.** Erst `components/ui/index.ts` lesen. Button, Input, Textarea, Select, Field, Card, CardHeader, StatCard, Badge, Table, Drawer, Modal, ConfirmDialog, Toast, EmptyState, PageHeader, Stepper sind da. Fehlt etwas, kommt es **dorthin** — nicht in die Seite.
 4. **Zustand in Form *und* Farbe.** `<Badge>` trägt immer Text; Farbe allein ist nie die Information.
-5. **Typo nur über die Rollen** `.ct-h1 .ct-h2 .ct-h3 .ct-eyebrow .ct-label .ct-help .ct-laica .ct-highlight .ct-link`. Versalien nur H1/H2/Eyebrow. `.ct-laica` und `.ct-highlight` höchstens **einmal pro Screen** und nie für UI-Text.
+5. **Typo nur über die Rollen** `.ct-display .ct-h1 .ct-h2 .ct-h3 .ct-eyebrow .ct-label .ct-small .ct-help .ct-wordmark .ct-laica .ct-highlight .ct-link` (keine rohen `text-[…px]`; fehlt eine Größe, kommt sie als Rolle nach `globals.css`). Versalien nur H1/H2/Eyebrow. `.ct-laica` und `.ct-highlight` höchstens **einmal pro Screen** und nie für UI-Text.
 6. **Bewegung nur als Feedback, ≤ 200 ms**, ausschließlich `transition-colors`/`opacity`. Keine dekorative Animation, kein Parallax, kein Auto-Karussell. `prefers-reduced-motion` gilt global.
 7. **Tastatur und Fokus.** Sichtbarer Fokus bleibt (nie `outline-none` ohne Ersatz), Touch-Ziele ≥ 44 px, Dialoge über `<Modal>`/`<Drawer>` (natives `<dialog showModal>` — Fokusfalle vom Browser).
 8. **Text sagt, was passiert.** „Speichern" → „Gespeichert". Fehler sagen, was zu tun ist. Du/ihr-Ansprache. Alle Begriffe aus `vocab_term`, DE **und** EN, nie hartcodiert.

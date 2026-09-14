@@ -30,6 +30,7 @@ Kontrastwerte unten sind gemessen, nicht geschätzt: `node .claude/skills/portal
 | `accent-strong` | `#5B5BD9` | Text und Links auf Hell, Button-Füllung, Hover | 4,85:1 auf Grund |
 | `accent-deep` | `#4A4AC5` | gedrückt/aktiv, Text auf `accent-soft` | 6,2:1 auf Grund |
 | `accent-soft` | `#E8E8FC` | ausgewählte Zeile, Hover-Fläche, Badge-Grund | Navy darauf 14,4:1 |
+| `highlight` | `#FF88CF` | **nur** das Highlight-Wort (`.ct-highlight`) auf Navy: Login, Welcome, Begrüßung — Entscheidung 14.09.2026 | 8,0:1 auf Navy; auf Weiß nur 2,2:1, dort verboten |
 
 Drei Regeln dazu:
 
@@ -83,5 +84,5 @@ Karten-Innenabstand 24, Karte ↔ Karte 16–24, Sektion ↔ Sektion 32–48.
 - **Akzent entschieden (12.09.2026):** `--ct-accent` steht im Code auf `#6262DC` (Brandbook Final), Ramp `#5B5BD9 / #4A4AC5 / #E8E8FC` unverändert; Eintrag im Entscheidungslog und Briefing v0.5. Website und ältere CI-Vorgaben zeigen noch `#6D6DEF` — nicht kopieren.
 - **`text-muted-soft` (`#8A94A6`) erreicht auf Weiß nur 3,06:1** und trägt damit keinen lesbaren Text. Für Text `text-muted` nehmen; `muted-soft` bleibt für deaktivierte Zustände und rein dekorative Zeichen (so verwendet in `components/ui/Stepper.tsx`). Die zwei Stellen mit echtem Inhalt (`admin/vokabular`, `admin/personen/[id]`) sind am 12.09.2026 auf `text-muted` korrigiert. Platzhalter in Feldern sind in Ordnung — `Input`/`Textarea` setzen `placeholder:text-muted`.
 - Das Design-Briefing kennt noch die Themes FLC/Education/Media. Für dieses Repo gilt Events allein (Entscheidung 08.09.2026).
-- **Akzent trägt auf Navy keinen Text** (3,56:1). Das Highlight-Wort der Welcome-Headline stand so und ist am 14.09.2026 auf `accent-soft` (14,4:1) gezogen; die kursive Auszeichnung trägt die Hervorhebung. Offen für Konrad: ob stattdessen eine Akzentfläche mit weißem Text oder das Highlight-Pink des Brandbooks gewünscht ist.
+- **Akzent trägt auf Navy keinen Text** (3,56:1). Das Highlight-Wort der Welcome-Headline stand so; seit 14.09.2026 trägt es das Highlight-Pink des Brandbooks (`text-highlight`, 8,0:1 auf Navy). Das Pink bleibt sonst tabu: kein UI-Text, keine Statusfarbe, nichts auf hellem Grund.
 - **Das Hexagon im Leerzustand ist weg** (14.09.2026). Es gehört im Brandbook Final zu Education; Events ist das Dreieck. `components/ui/EmptyState.tsx` zeigt jetzt ein Dreieck, `components/layout/BrandBackdrop.tsx` die großflächige Komposition für Login und Welcome.

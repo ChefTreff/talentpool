@@ -32,6 +32,10 @@
   --ct-accent-strong: #5b5bd9;
   --ct-accent-deep: #4a4ac5;
   --ct-accent-soft: #e8e8fc;
+  /* Highlight-Pink des Brandbooks (Entscheidung 14.09.2026): einzig für das
+     Highlight-Wort auf Navy (Login/Welcome/Begrüßung) — 8.0:1 auf #081A35.
+     Nie auf hellem Grund (auf Weiß nur 2.2:1), nie UI- oder Statusfarbe. */
+  --ct-highlight: #ff88cf;
 
   /* --- Semantik (Soft-Fläche + abgedunkelter Text, nie Farbe allein) -------- */
   --ct-success: #34d399;
@@ -90,6 +94,7 @@
   --color-accent-strong: var(--ct-accent-strong);
   --color-accent-deep: var(--ct-accent-deep);
   --color-accent-soft: var(--ct-accent-soft);
+  --color-highlight: var(--ct-highlight);
 
   --color-success: var(--ct-success);
   --color-success-soft: var(--ct-success-soft);

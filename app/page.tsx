@@ -23,10 +23,10 @@ export default async function Home() {
             <p className="ct-eyebrow text-on-navy-muted">{t.home.eyebrow}</p>
             <h1 className="ct-display mt-3">
               {t.home.titleLead}{" "}
-              {/* Der Akzent trägt auf Navy keinen Text: #6262DC erreicht dort
-                  3,56:1. Das Hervorheben übernimmt die kursive Auszeichnung,
-                  die Farbe bleibt in der Ramp (accent-soft, 14,4:1). */}
-              <em className="ct-highlight text-accent-soft">
+              {/* Der Akzent trägt auf Navy keinen Text (#6262DC dort 3,56:1).
+                  Das Highlight-Wort steht im Highlight-Pink des Brandbooks
+                  (Token `highlight`, 8,0:1 auf Navy) — Entscheidung 14.09.2026. */}
+              <em className="ct-highlight text-highlight">
                 {t.home.titleHighlight}
               </em>
             </h1>
