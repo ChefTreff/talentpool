@@ -79,3 +79,13 @@ Im Portal: **eine** Variante, oben links in der Sidebar, dazu der Bereichsname (
 ## Haltung (Look & Feel)
 
 Community, Augenhöhe, nahbar, „nicht distanziert". Für die Portale heißt das: Klartext statt Behördendeutsch, konkrete nächste Schritte, keine Ironie, keine Ausrufezeichen-Ketten — und keine Marketing-Sprache in Arbeitsansichten.
+
+## Markendateien im Repo (14.09.2026)
+
+| Datei | Inhalt | Verwendung |
+|---|---|---|
+| `public/brand/fls-wortmarke.svg` | Wortmarke „Future Leader Summit“ (aus dem Design-Ordner, `fill="currentColor"`) | Login/Welcome auf Navy in `text-on-navy`; Topbar-Logoplatz, sobald das ChefTreff-Logo als SVG vorliegt |
+| `public/brand/events/dreieck.svg` | Dreieck (Umriss) | Leerzustände, Login/Welcome |
+| `public/brand/events/zickzack.svg`, `linienzug.svg`, `schleife.svg`, `welle.svg` | Events-Linienzüge (Umriss, `stroke="currentColor"`) | Hintergrundkomposition auf Navy, nie hinter Text |
+
+Alle Dateien tragen `currentColor` statt Hex — die Farbe kommt aus der Tailwind-Klasse (`text-accent-soft`, `text-on-navy`). Das ChefTreff-Logo liegt nur als PDF vor (`Cheftreff Logo.pdf`, `Events – Logo.pdf` im Design-Ordner); bis das SVG kommt, bleibt die Marke in der Topbar Text. Das türkise Hexagon aus dem Ordner ist Education und wurde bewusst nicht übernommen.
