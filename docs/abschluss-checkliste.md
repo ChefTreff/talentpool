@@ -18,6 +18,7 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ Monitoring: Fehler-Tracking, Uptime-Check, Webhook-Reconciliation-Sweeps (Vivenu, HubSpot) laufen.
 
 ## Integrationen
+- ☐ **Katalogpreise vor dem Freischalten nachtragen:** 57 Artikel stehen mit `net_price_cents = 0` und gelten damit als „auf Anfrage“; 50 davon in unsichtbaren Kategorien (branding, infrastruktur, nebenkosten, standbau, company_tours, hackathon). Wird eine davon ohne Preise freigeschaltet, entsteht ein Stapel Anfragen (Fund 14.09.2026).
 - ☐ Vivenu: Support-Antworten (E-Mail im Personalize-Body, Server-Key ohne Secret, Webhook-Retry) eingeholt; Sandbox → Prod umgeschaltet; Add-ons (Unterkunft, Bahn) im Shop angelegt.
 - ☐ Swapcard: Sync Teilnehmer/Speaker/Sessions/Exhibitors getestet (27er-Event), Tracks als Custom Field.
 - ☐ HubSpot: Webhook „FLS27-Pipeline → Onboarding Automation" + Line-Items getestet; Rücksync Stammdaten.

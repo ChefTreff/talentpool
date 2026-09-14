@@ -49,6 +49,7 @@ Jeder neue Schlüssel gehört im selben PR in `lib/rpc-error.ts` (`BUSINESS_KEYS
 - Angewendete Migrationen liegen am selben Tag in einem gemergten PR — kein offener oder verworfener Branch mit angewendeten Migrationen (Drift).
 - Rechteprüfung beim **Ändern**: erst gegen den bestehenden Datensatz (bisherige Zielgruppe, bisheriger Owner), dann gegen den neuen Zustand — sonst lässt sich ein fremder Datensatz über eine neue Zuordnung übernehmen (Review 0083). Wo eine Liste von Zielgruppen/Scopes geschrieben wird, gilt „alle“, nicht „mindestens eine“.
 - Was bei uns widerrufen wird (Coupon, Zugang, Rolle) und in einem Fremdsystem weiterlebt, braucht den Weg dorthin: Widerrufsliste + Quittung durch den Sync, sonst gilt es dort weiter (Review 0084).
+- Zeilen, die ein Sync ins Fremdsystem trägt (`org_ticket_allocation`, künftig Coupons/Exhibitors), von Hand oder per Skript nur mit gesetztem `synced_at` anlegen — `ticket_allocations_pending()` nimmt alles mit `synced_at is null` mit, der Status allein schützt nicht (Fund Testdaten-Skript 14.09.). Wegwerf-/Testskripte löschen nur ihre eigenen, markierten Zeilen (`notes = 'testdaten:…'`), nie ganze Organisationen mit Fremdsystem-Objekten.
 - Mail-Vorlagen kennen nur die Variablen aus `queue_mail`/`lib/mail/queue.ts` (`first_name`, `portal_url` + vorlagenspezifische); Links immer als `{{portal_url}}/pfad` — ein unbekannter Platzhalter rendert leer.
 
 ## 5 · Tabellen, Grants, Storage
