@@ -84,7 +84,7 @@ describe("Einstieg nach dem Login (F1)", () => {
   });
 });
 
-describe("Bereiche zählen (F1: Umschalter erst ab zwei)", () => {
+describe("Bereiche zählen (F8.3: Auswahl im Menü)", () => {
   it("gibt einer reinen Teilnehmerin genau ihr Portal", () => {
     assert.deepEqual(
       areasFor([], false).map((a) => a.key),
@@ -92,23 +92,31 @@ describe("Bereiche zählen (F1: Umschalter erst ab zwei)", () => {
     );
   });
 
-  it("verdrängt das Teilnehmer-Portal, sobald es einen Fachbereich gibt", () => {
-    // Sonst stünde über jedem Speaker-Portal „Talent | Speaker" — genau die
-    // Aufzählung, die weg soll (Konrads Entscheidung 13.09.).
+  it("führt das Teilnehmer-Portal neben dem Fachbereich (F8.7)", () => {
+    // Runde 1 hatte es verdrängt, damit über dem Speaker-Portal nicht
+    // „Talent | Speaker" stand. Konrad hat das am 14.09. zurückgenommen: das
+    // Teilnehmer-Portal ist das Front-End des Talent-CRM und gilt übergreifend.
     assert.deepEqual(
       areasFor(["speaker"], false).map((a) => a.key),
-      ["speaker"],
+      ["talent", "speaker"],
     );
     assert.deepEqual(
       areasFor(["volunteer"], false).map((a) => a.key),
-      ["volunteers"],
+      ["talent", "volunteers"],
     );
+  });
+
+  it("lässt den Einstieg trotzdem im Fachbereich (F8.7)", () => {
+    // Sichtbarkeit hat sich geändert, der Einstieg nicht: wer einen
+    // Fachbereich hat, landet dort und nicht im Teilnehmer-Portal.
+    assert.equal(landingPathFor(areasFor(["speaker"], false)), "/speaker");
+    assert.equal(landingPathFor(areasFor(["volunteer"], false)), "/volunteers");
   });
 
   it("zeigt dem Team weiterhin alle seine Bereiche", () => {
     assert.deepEqual(
       areasFor(["speaker_manager"], true).map((a) => a.key),
-      ["speaker-leads", "admin"],
+      ["talent", "speaker-leads", "admin"],
     );
   });
 

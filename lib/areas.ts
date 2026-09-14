@@ -117,21 +117,21 @@ export function canEnterArea(
 }
 
 /**
- * Die Bereiche, die dieser Person **gehören** — die Grundlage für Umschalter
- * und Einstieg.
+ * Die Bereiche, die dieser Person **gehören** — die Grundlage für Auswahl und
+ * Einstieg.
  *
- * Das Teilnehmer-Portal steht jeder angemeldeten Person offen und wäre damit in
- * jeder Aufzählung dabei: eine Speakerin läse oben „Talent | Speaker", genau die
- * Spur anderer Bereiche, die weg soll (Feedback-Runde 1, Punkt 2; Konrads
- * Entscheidung 13.09.). Deshalb zählt es nur, wenn es der **einzige** Bereich
- * ist. Der **Zugang** bleibt davon unberührt: `canEnterArea` lässt weiter jede
- * angemeldete Person an `/profil` und `/programm`, und das Teilnehmer-Gerüst
- * trägt dort den Namen des eigenen Portals.
+ * Das Teilnehmer-Portal zählt wieder mit (Feedback-Runde 2, F8.7). In Runde 1
+ * stand es nur da, wenn es der einzige Bereich war — damit eine Speakerin oben
+ * nicht „Talent | Speaker" las. Konrad hat das am 14.09. zurückgenommen und
+ * begründet: das Teilnehmer-Portal ist das Front-End des Talent-CRM und gilt
+ * übergreifend für Teilnehmende des Summits und anderer Formate. Es ist also
+ * ein eigenes Portal neben den anderen, keine Notlösung für Leute ohne Rolle.
+ *
+ * Die Ausnahme bleibt das Gerätekonto am Einlass: `isKioskOnly` öffnet weiter
+ * nur `/checkin` (E8, Architektur-Session 14.09.).
  */
 export function areasFor(roles: readonly string[], isStaff: boolean): Area[] {
-  const alle = AREAS.filter((a) => canEnterArea(a, roles, isStaff));
-  const fach = alle.filter((a) => a.key !== "talent");
-  return fach.length > 0 ? fach : alle;
+  return AREAS.filter((a) => canEnterArea(a, roles, isStaff));
 }
 
 /** Ziel nach dem Login, wenn `next` fehlt oder verworfen wurde. */
@@ -150,7 +150,11 @@ export const DEFAULT_AFTER_LOGIN = "/profil";
  */
 export function landingPathFor(areas: readonly Area[]): string {
   const admin = areas.find((a) => a.key === "admin");
-  return (admin ?? areas[0])?.path ?? DEFAULT_AFTER_LOGIN;
+  // Das Teilnehmer-Portal ist seit F8.7 immer dabei und steht in `AREAS` vorn.
+  // Ohne diese Zeile landete jede Speakerin dort statt in ihrem Fachbereich —
+  // die Sichtbarkeit hat sich geändert, der Einstieg nicht (Runde 1, Punkt 2).
+  const fach = areas.find((a) => a.key !== "talent" && a.key !== "admin");
+  return (admin ?? fach ?? areas[0])?.path ?? DEFAULT_AFTER_LOGIN;
 }
 
 /** Steuerzeichen fallen in Browsern beim URL-Parsen heraus — vorher verwerfen. */
