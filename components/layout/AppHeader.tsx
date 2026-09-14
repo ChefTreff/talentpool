@@ -29,7 +29,7 @@ export async function AppHeader({ current }: { current?: AreaKey }) {
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
         <Link
           href={area?.path ?? "/"}
-          className="font-display text-[16px] font-extrabold uppercase tracking-[0.03em] text-on-navy"
+          className="ct-wordmark text-on-navy"
         >
           {t.nav.brand} <span className="font-semibold text-on-navy-muted">{wordmark}</span>
         </Link>
@@ -44,7 +44,7 @@ export async function AppHeader({ current }: { current?: AreaKey }) {
                   href={a.path}
                   aria-current={active ? "page" : undefined}
                   className={
-                    "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold transition-colors " +
+                    "rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors " +
                     (active
                       ? "bg-on-navy/15 text-on-navy"
                       : "text-on-navy-muted hover:bg-on-navy/10 hover:text-on-navy")
@@ -63,7 +63,7 @@ export async function AppHeader({ current }: { current?: AreaKey }) {
             <form action={signOut}>
               <button
                 type="submit"
-                className="rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy"
+                className="rounded-ct-sm px-2.5 py-1.5 ct-label text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy"
               >
                 {t.nav.logout}
               </button>
@@ -71,7 +71,7 @@ export async function AppHeader({ current }: { current?: AreaKey }) {
           ) : (
             <Link
               href="/login"
-              className="rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy"
+              className="rounded-ct-sm px-2.5 py-1.5 ct-label text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy"
             >
               {t.nav.login}
             </Link>

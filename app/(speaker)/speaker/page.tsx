@@ -90,7 +90,7 @@ export default async function SpeakerPage() {
       <PageHeader title={t.speaker.title} description={t.speaker.lead} />
 
       {profile.is_assistant && (
-        <p className="mb-6 rounded-ct-md border border-accent-soft bg-accent-soft px-4 py-3 text-[14px] text-accent-deep">
+        <p className="mb-6 rounded-ct-md border border-accent-soft bg-accent-soft px-4 py-3 ct-small text-accent-deep">
           {t.speaker.assistantBanner.replace("{name}", speakerName)}{" "}
           {t.speaker.assistantConsentNote}
         </p>

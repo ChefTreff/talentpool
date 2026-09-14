@@ -257,7 +257,7 @@ export function ChecklistView({
                       </div>
                       {description(d) && <p className="ct-help mt-1">{description(d)}</p>}
                       {d.due_at && (
-                        <p className={overdue ? "mt-1 text-[13px] leading-5 text-error-ink" : "ct-help mt-1"}>
+                        <p className={overdue ? "mt-1 ct-help leading-5 text-error-ink" : "ct-help mt-1"}>
                           {t.dueOn} {dateTime.format(new Date(d.due_at))}
                           {overdue && ` · ${t.stillPossible}`}
                         </p>
@@ -268,7 +268,7 @@ export function ChecklistView({
                         </p>
                       )}
                       {d.review_note && (
-                        <p className="mt-1 text-[13px] leading-5 text-error-ink">
+                        <p className="mt-1 ct-help leading-5 text-error-ink">
                           {t.reviewNote}: {d.review_note}
                         </p>
                       )}
@@ -357,7 +357,7 @@ export function ChecklistView({
                                 e.target.value = "";
                                 if (file) void onUpload(d, file);
                               }}
-                              className="text-[14px]"
+                              className="ct-small"
                             />
                           </Field>
                           {uploading === d.id && <p className="ct-help">{t.uploading}</p>}

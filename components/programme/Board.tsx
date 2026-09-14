@@ -395,7 +395,7 @@ export function Board({
                 href={`${basePath}?event=${e.slug}`}
                 aria-current={e.id === currentEventId ? "page" : undefined}
                 className={cn(
-                  "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold",
+                  "rounded-ct-sm px-2.5 py-1.5 ct-label",
                   e.id === currentEventId
                     ? "bg-accent-soft text-accent-deep"
                     : "text-muted hover:bg-surface-hover hover:text-ink",
@@ -413,7 +413,7 @@ export function Board({
               href={`${basePath}?event=${currentEventSlug}&tag=${d.day_date}`}
               aria-current={d.id === currentDayId ? "page" : undefined}
               className={cn(
-                "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold",
+                "rounded-ct-sm px-2.5 py-1.5 ct-label",
                 d.id === currentDayId
                   ? "bg-accent-soft text-accent-deep"
                   : "text-muted hover:bg-surface-hover hover:text-ink",
@@ -508,7 +508,7 @@ export function Board({
                 {hourMarks.map((m) => (
                   <div
                     key={m}
-                    className="absolute right-2 -translate-y-1/2 text-[12px] tabular-nums text-muted"
+                    className="absolute right-2 -translate-y-1/2 ct-help tabular-nums"
                     style={{ top: (m - windowStart) * PX_PER_MIN }}
                   >
                     {formatMinutes(m)}
@@ -547,12 +547,12 @@ export function Board({
 
         <DragOverlay dropAnimation={null}>
           {dragging?.kind === "slot" && (
-            <div className="rounded-ct-md border border-accent bg-accent-soft px-2 py-1 text-[13px] font-semibold text-accent-deep shadow">
+            <div className="rounded-ct-md border border-accent bg-accent-soft px-2 py-1 ct-label ct-help text-accent-deep shadow">
               {dragging.slot.title_de ?? t.untitled}
             </div>
           )}
           {dragging?.kind === "backlog" && (
-            <div className="rounded-ct-md border border-accent bg-accent-soft px-2 py-1 text-[13px] font-semibold text-accent-deep shadow">
+            <div className="rounded-ct-md border border-accent bg-accent-soft px-2 py-1 ct-label ct-help text-accent-deep shadow">
               {dragging.session.title_de ?? t.untitled}
             </div>
           )}
@@ -563,7 +563,7 @@ export function Board({
       <div className="flex flex-wrap items-center gap-3">
         <span className="ct-eyebrow text-muted">{t.legend}</span>
         {SLOT_STATUS_ORDER.map((s) => (
-          <span key={s} className="flex items-center gap-1.5 text-[13px]">
+          <span key={s} className="flex items-center gap-1.5 ct-help">
             <span
               className={cn("inline-block size-3 rounded-sm border", SLOT_STATUS_STYLE[s])}
             />
@@ -698,7 +698,7 @@ function SlotCard({
       data-slot-card
       style={slotBox(startMin, endMin, windowStart)}
       className={cn(
-        "absolute inset-x-1 overflow-hidden rounded-ct-sm border text-[13px]",
+        "absolute inset-x-1 overflow-hidden rounded-ct-sm border ct-help",
         SLOT_STATUS_STYLE[slot.slot_status] ?? SLOT_STATUS_STYLE.open,
         isDragging && "opacity-40",
         resizing && "ring-2 ring-accent",
@@ -782,7 +782,7 @@ function BacklogChip({
           if (e.key === "Enter") onOpen();
         }}
         className={cn(
-          "inline-flex items-center gap-2 rounded-ct-md border px-2.5 py-1.5 text-[13px]",
+          "inline-flex items-center gap-2 rounded-ct-md border px-2.5 py-1.5 ct-help",
           session.can_edit ? "cursor-grab bg-surface hover:bg-surface-hover" : "bg-surface-hover",
         )}
       >

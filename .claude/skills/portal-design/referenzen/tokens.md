@@ -47,6 +47,25 @@ Drei Regeln dazu:
 
 Chips immer als Soft-Fläche + `*-ink`-Text + Wortlaut. Die Vollfarben `success`/`warning`/`error` sind Flächen- und Linienfarben, keine Textfarben.
 
+## Typografie-Rollen
+
+Definiert in `app/globals.css`, seit dem Design-Durchgang (F7, 14.09.2026) in **`@layer components`** — dadurch gewinnt jede Tailwind-Utility, und eine Rolle lässt sich mit einer Farbklasse kombinieren (`ct-help text-on-navy-muted`). Ohne Layer standen die Regeln ausserhalb jeder Cascade-Layer und schlugen jede Utility; Hilfstext auf der Navy-Leiste wäre dunkel und unlesbar geblieben.
+
+| Klasse | Größe/Zeile | Verwendung |
+|---|---|---|
+| `.ct-display` | 40/44, ab 768 px 52/56 | **nur** die Welcome-Headline — die einzige Marketing-Überschrift im Portal |
+| `.ct-h1` | 28/32 (mobil 24/28) | Seitentitel, einmal je Seite; auch die Zahl in `StatCard` |
+| `.ct-h2` | 18/24 | Abschnitt |
+| `.ct-h3` | 16/24 | Karte, Untergruppe |
+| `.ct-eyebrow` | 12/16, Versalien | Gruppenüberschrift, Sidebar-Abschnitt |
+| `.ct-label` | 14/20, 600 | Feldbeschriftung, Listenpunkt, alles Hervorgehobene in Tabellen |
+| `.ct-small` | 14/20 | gewöhnlicher Kleintext ohne Fettung — Optionen, Definitionen, Hinweiszeilen |
+| `.ct-help` | 13/20, `muted` | Hilfstext. Farbe überschreibbar (siehe Layer oben) |
+| `.ct-wordmark` | 16/24, Display, Versalien | Logo-Lockup in der Topbar, sonst nirgends |
+| `.ct-laica` · `.ct-highlight` · `.ct-link` | — | kursiver Akzent, Highlight-Wort, Inline-Link |
+
+**Keine rohen `text-[…px]` mehr im Code** (Stand 14.09.2026: null Treffer). Wer eine Größe braucht, die es nicht gibt, ergänzt die Rolle — `.ct-small` und `.ct-display` sind so entstanden, weil 23 bzw. 2 Stellen sie von Hand nachgebaut hatten.
+
 ## Maß
 
 | | Werte |
@@ -64,3 +83,5 @@ Karten-Innenabstand 24, Karte ↔ Karte 16–24, Sektion ↔ Sektion 32–48.
 - **Akzent entschieden (12.09.2026):** `--ct-accent` steht im Code auf `#6262DC` (Brandbook Final), Ramp `#5B5BD9 / #4A4AC5 / #E8E8FC` unverändert; Eintrag im Entscheidungslog und Briefing v0.5. Website und ältere CI-Vorgaben zeigen noch `#6D6DEF` — nicht kopieren.
 - **`text-muted-soft` (`#8A94A6`) erreicht auf Weiß nur 3,06:1** und trägt damit keinen lesbaren Text. Für Text `text-muted` nehmen; `muted-soft` bleibt für deaktivierte Zustände und rein dekorative Zeichen (so verwendet in `components/ui/Stepper.tsx`). Die zwei Stellen mit echtem Inhalt (`admin/vokabular`, `admin/personen/[id]`) sind am 12.09.2026 auf `text-muted` korrigiert. Platzhalter in Feldern sind in Ordnung — `Input`/`Textarea` setzen `placeholder:text-muted`.
 - Das Design-Briefing kennt noch die Themes FLC/Education/Media. Für dieses Repo gilt Events allein (Entscheidung 08.09.2026).
+- **Akzent trägt auf Navy keinen Text** (3,56:1). Das Highlight-Wort der Welcome-Headline stand so und ist am 14.09.2026 auf `accent-soft` (14,4:1) gezogen; die kursive Auszeichnung trägt die Hervorhebung. Offen für Konrad: ob stattdessen eine Akzentfläche mit weißem Text oder das Highlight-Pink des Brandbooks gewünscht ist.
+- **Das Hexagon im Leerzustand ist weg** (14.09.2026). Es gehört im Brandbook Final zu Education; Events ist das Dreieck. `components/ui/EmptyState.tsx` zeigt jetzt ein Dreieck, `components/layout/BrandBackdrop.tsx` die großflächige Komposition für Login und Welcome.

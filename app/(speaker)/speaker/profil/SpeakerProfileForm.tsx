@@ -333,7 +333,7 @@ export function SpeakerProfileForm({
               onChange={(e) => setTech((v) => ({ ...v, mic: e.target.value }))}
             />
           </Field>
-          <label className="flex items-center gap-2 text-[14px] font-semibold">
+          <label className="flex items-center gap-2 ct-label">
             <input
               type="checkbox"
               className="size-4"
@@ -342,7 +342,7 @@ export function SpeakerProfileForm({
             />
             {t.techOwnLaptop}
           </label>
-          <label className="flex items-center gap-2 text-[14px] font-semibold">
+          <label className="flex items-center gap-2 ct-label">
             <input
               type="checkbox"
               className="size-4"
@@ -372,7 +372,7 @@ export function SpeakerProfileForm({
         {readOnlyConsent && <p className="ct-help mb-3">{t.consentReadOnly}</p>}
         <div className="mt-3 flex flex-col gap-3">
           {SPEAKER_CONSENTS.map((key) => (
-            <label key={key} className="flex items-start gap-2 text-[14px]">
+            <label key={key} className="flex items-start gap-2 ct-small">
               <input
                 type="checkbox"
                 className="mt-1 size-4"

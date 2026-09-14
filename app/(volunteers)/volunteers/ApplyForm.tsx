@@ -206,7 +206,7 @@ export function ApplyForm({
           <>
             <p className="ct-help">{t.consentLead}</p>
             {(["terms", "privacy", "photo_video"] as const).map((key) => (
-              <label key={key} className="flex items-start gap-2 text-[15px] text-ink">
+              <label key={key} className="flex items-start gap-2 text-ink">
                 <input
                   type="checkbox"
                   className="mt-0.5 h-5 w-5 shrink-0"

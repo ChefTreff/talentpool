@@ -168,7 +168,7 @@ export function OrgDetail({
         </div>
         <p className="ct-help mt-2">{t.statusHint}</p>
 
-        <dl className="mt-4 grid gap-2 text-[15px] md:grid-cols-3">
+        <dl className="mt-4 grid gap-2 md:grid-cols-3">
           <div>
             <dt className="ct-eyebrow text-muted">{t.colChecklist}</dt>
             <dd className="text-ink">

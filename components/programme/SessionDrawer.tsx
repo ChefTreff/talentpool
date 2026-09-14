@@ -451,7 +451,7 @@ export function SessionDrawer({
           )}
         </div>
 
-        <label className="flex items-center gap-2 text-[14px] font-semibold">
+        <label className="flex items-center gap-2 ct-label">
           <input
             type="checkbox"
             checked={draft.ticket_required}
@@ -470,7 +470,7 @@ export function SessionDrawer({
             <ul className="mb-3 flex flex-wrap gap-2">
               {speakers.map((s) => (
                 <li key={s.person_id}>
-                  <span className="inline-flex items-center gap-2 rounded-ct-md border bg-surface px-2.5 py-1.5 text-[14px]">
+                  <span className="inline-flex items-center gap-2 rounded-ct-md border bg-surface px-2.5 py-1.5 ct-small">
                     {speakerName(s)}
                     <button
                       type="button"
@@ -500,7 +500,7 @@ export function SessionDrawer({
                   <button
                     type="button"
                     onClick={() => addSpeaker(h)}
-                    className="w-full rounded-ct-sm px-2 py-1 text-left text-[14px] hover:bg-surface-hover"
+                    className="w-full rounded-ct-sm px-2 py-1 text-left ct-small hover:bg-surface-hover"
                   >
                     {h.name}
                   </button>
@@ -546,7 +546,7 @@ export function SessionDrawer({
                         </span>
                       </label>
                       {active && (
-                        <label className="mt-2 flex items-center gap-2 pl-7 text-[13px]">
+                        <label className="mt-2 flex items-center gap-2 pl-7 ct-help">
                           <input
                             type="checkbox"
                             className="size-4"

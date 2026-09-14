@@ -12,7 +12,7 @@ export type ButtonSize = "md" | "sm";
  * `accent-strong` erreicht 4.85:1 (AA). Regeln: Skill /portal-design, referenzen/tokens.md.
  */
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-ct-md font-sans text-[14px] font-semibold leading-5 " +
+  "inline-flex items-center justify-center gap-2 rounded-ct-md font-sans ct-label leading-5 " +
   "transition-colors duration-150 disabled:cursor-not-allowed";
 
 const variants: Record<ButtonVariant, string> = {

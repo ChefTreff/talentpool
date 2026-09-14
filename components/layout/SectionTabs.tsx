@@ -37,7 +37,7 @@ export function SectionTabs({ items, label }: { items: SectionTab[]; label: stri
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold transition-colors",
+              "rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors",
               active
                 ? "bg-accent-soft text-accent-deep"
                 : "text-muted hover:bg-surface-hover hover:text-ink",

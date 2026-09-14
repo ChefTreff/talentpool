@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { cn } from "./cn";
 
 const control =
-  "w-full rounded-ct-md border border-border-strong bg-surface px-3 text-[15px] leading-6 text-ink " +
+  "w-full rounded-ct-md border border-border-strong bg-surface px-3 leading-6 text-ink " +
   "placeholder:text-muted focus:border-accent disabled:bg-surface-hover disabled:text-muted";
 
 export function Input({

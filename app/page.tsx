@@ -21,9 +21,12 @@ export default async function Home() {
         <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col justify-center gap-8 px-6 py-24">
           <div>
             <p className="ct-eyebrow text-on-navy-muted">{t.home.eyebrow}</p>
-            <h1 className="ct-h1 mt-3 text-[40px] leading-[44px] md:text-[52px] md:leading-[56px]">
+            <h1 className="ct-display mt-3">
               {t.home.titleLead}{" "}
-              <em className="ct-highlight text-accent">
+              {/* Der Akzent trägt auf Navy keinen Text: #6262DC erreicht dort
+                  3,56:1. Das Hervorheben übernimmt die kursive Auszeichnung,
+                  die Farbe bleibt in der Ramp (accent-soft, 14,4:1). */}
+              <em className="ct-highlight text-accent-soft">
                 {t.home.titleHighlight}
               </em>
             </h1>
@@ -38,7 +41,7 @@ export default async function Home() {
               <ButtonLink href="/login">{t.home.loginCta}</ButtonLink>
             )}
             {ctx.user && (
-              <span className="self-center text-[14px] text-on-navy-muted">
+              <span className="self-center ct-small text-on-navy-muted">
                 {t.home.loggedInAs} {ctx.user.email}
               </span>
             )}

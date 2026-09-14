@@ -308,7 +308,7 @@ export function OrdersView({
                   {r.product_name && <span className="ct-help">{r.product_name}</span>}
                   <span className="ct-help">{dateTime.format(new Date(r.created_at))}</span>
                 </div>
-                <p className="mt-1 whitespace-pre-line text-[15px] text-ink">{r.text}</p>
+                <p className="mt-1 whitespace-pre-line text-ink">{r.text}</p>
                 {r.answer && (
                   <p className="ct-help mt-1">
                     {t.lastAnswer}: {r.answer}
