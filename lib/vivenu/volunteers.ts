@@ -81,7 +81,6 @@ export async function provisionVolunteerCoupons(
   let rows = (data ?? []) as PendingVolunteer[];
   if (only) rows = rows.filter((r) => r.profile_id === only);
   summary.pending = rows.length;
-  if (rows.length === 0) return summary;
   if (!hasVivenuKey()) {
     return { ...summary, skipped: "VIVENU_API_KEY fehlt – Coupons bleiben offen" };
   }
@@ -90,8 +89,48 @@ export async function provisionVolunteerCoupons(
   const byEdition = new Map<string, PendingVolunteer[]>();
   for (const r of rows) byEdition.set(r.edition_id, [...(byEdition.get(r.edition_id) ?? []), r]);
 
+  /**
+   * Auch Editionen **ohne** offene Coupons kommen mit.
+   *
+   * Sonst prüft niemand mehr den Shop, sobald alle Codes ausgegeben sind — ein
+   * Shop, der zu viele Tickettypen führt, bliebe für immer offen. Denselben
+   * Fehler hatte der Partner-Sync (0079): aus dem Ausschnitt geformt statt aus
+   * dem ganzen Bild.
+   */
+  const { data: mitShop } = await admin
+    .from("event")
+    .select("id, slug, vivenu_event_id, vivenu_volunteer_undershop_id")
+    .eq("is_edition", true)
+    .not("vivenu_volunteer_undershop_id", "is", null);
+  for (const e of (mitShop ?? []) as {
+    id: string;
+    slug: string;
+    vivenu_event_id: string | null;
+    vivenu_volunteer_undershop_id: string | null;
+  }[]) {
+    if (byEdition.has(e.id) || !e.vivenu_event_id) continue;
+    byEdition.set(e.id, [
+      {
+        profile_id: "",
+        person_id: "",
+        display_name: null,
+        email: null,
+        edition_id: e.id,
+        edition_slug: e.slug,
+        vivenu_event_id: e.vivenu_event_id,
+        undershop_id: e.vivenu_volunteer_undershop_id,
+        coupon_code: null,
+        vivenu_coupon_id: null,
+        coupon_status: "none",
+      },
+    ]);
+  }
+  if (byEdition.size === 0) return summary;
+
   for (const [editionId, group] of byEdition) {
     const first = group[0];
+    // Platzhalterzeile: die Edition kommt nur wegen ihres Shops mit.
+    const nurShop = first.profile_id === "";
     let shopId = first.undershop_id;
     let shopUrl: string | null = null;
 
@@ -134,7 +173,7 @@ export async function provisionVolunteerCoupons(
           name: wantedName,
           active: true,
           unlockMode: "couponCode",
-          maxAmount: group.length + 50,
+          maxAmount: (nurShop ? 0 : group.length) + 50,
           maxAmountPerOrder: 1,
           ...(typeof event.sellStart === "string" ? { sellStart: event.sellStart } : {}),
           ...(typeof event.sellEnd === "string" ? { sellEnd: event.sellEnd } : {}),
@@ -185,6 +224,7 @@ export async function provisionVolunteerCoupons(
     }
 
     for (const r of group) {
+      if (r.profile_id === "") continue;
       try {
         const code = r.coupon_code ?? volunteerCode(r.edition_slug);
         const coupon = await createCoupon({
