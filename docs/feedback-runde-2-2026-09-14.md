@@ -113,7 +113,7 @@ Entscheidungen der Architektur-Session dazu: Entscheidungslog, Eintrag vom 14.09
 | **F11.1** | `/partner/shop` | Bestand als nackte Zahl, Warenkorb unter dem Katalog. | „Noch N verfügbar" ab zehn Stück, „Ausverkauft" bei null; **Warenkorb oben rechts** als eigene Seite. | gebaut |
 | **F11.2** | Kasse | Keine Rechnungsdaten, keine PO. | Rechnungsdaten **anzeigen und bestätigen** (Änderung führt nach „Eure Daten"), PO-Nummer je Bestellung. | gebaut (0095) |
 | **F11.3** | `/partner/shop` | Kacheln nicht klickbar, keine Suche. | Suche über Name, Beschreibung, Hinweis und Artikelnummer; Produktseite je Artikel mit Zurück-Weg. | gebaut |
-| **F11.4** | `/partner/shop` | Historie unter dem Katalog. | Eigene Unterseite „Bestellungen" als Liste nach dem Muster der Checkliste. | gebaut |
+| **F11.4** | `/partner/shop` | Historie unter dem Katalog. | Eigene Unterseite „Bestellungen" als Liste nach dem Muster der Checkliste — als **Reiter im Shop**, nicht als Punkt im Portalmenü (Korrektur Konrad, 14.09.). | gebaut |
 | **F9.6** | `/partner/wiki` | Leer. | Zehn Artikel aus dem Notion-Wiki angelegt — **als Entwurf**, siehe unten. | gebaut (0096) |
 | **F9.7** | Admin | Artikel nur als Rohtext im Feld. | Redaktionsoberfläche mit Formatierungsleiste und Vorschau; Renderer kann jetzt Tabellen, nummerierte Listen, Hinweiskästen, Trennlinien. | gebaut |
 

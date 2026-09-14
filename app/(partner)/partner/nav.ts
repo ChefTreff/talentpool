@@ -28,7 +28,6 @@ export type PartnerNavKey =
   | "applicants"
   | "stage"
   | "shop"
-  | "orders"
   | "wiki";
 
 export type NavInput = {
@@ -61,10 +60,9 @@ export function visibleNavKeys(input: NavInput): PartnerNavKey[] {
     "checklist",
     "files",
     // Der Shop steht jedem Partner offen, sobald es die Edition gibt.
+    // Die Bestellungen sind ein Reiter **im** Shop, kein eigener Menüpunkt:
+    // sie gehören dorthin, wo bestellt wird (Konrad, 14.09.).
     "shop",
-    // Bestellungen sind seit F11 eine eigene Seite — vorher standen sie unter
-    // dem Katalog und niemand hat sie gefunden.
-    "orders",
     // Die Event-App gilt für jeden Partner: jede Organisation steht in
     // Swapcard, und wer die Lead-Einstellung verpasst, kommt hinterher nicht
     // mehr an seine Kontakte. Den Punkt zu verstecken wäre teurer als ihn

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/Input";
 
@@ -29,6 +29,7 @@ export function ShopBar({
 }) {
   const router = useRouter();
   const params = useSearchParams();
+  const pathname = usePathname();
   const initial = params.get("q") ?? "";
   const [q, setQ] = useState(initial);
   const [gesehen, setGesehen] = useState(initial);
@@ -56,6 +57,8 @@ export function ShopBar({
     return () => clearTimeout(timer);
   }, [q, initial, params, router]);
 
+  const imKorb = pathname === "/partner/shop/warenkorb";
+
   return (
     <div className="mb-6 flex flex-wrap items-end gap-3">
       <div className="min-w-0 flex-1">
@@ -72,9 +75,17 @@ export function ShopBar({
         />
       </div>
 
+      {/* Der Korb ist der einzige Weg zum Warenkorb; deshalb zeigt er auch,
+          wenn man schon darin ist — sonst stünde man dort ohne Markierung. */}
       <Link
         href="/partner/shop/warenkorb"
-        className="flex min-h-11 items-center gap-2 rounded-ct-sm border border-border-strong px-3 ct-label text-ink transition-colors hover:bg-surface-hover"
+        aria-current={imKorb ? "page" : undefined}
+        className={
+          "flex min-h-11 items-center gap-2 rounded-ct-sm border px-3 ct-label transition-colors " +
+          (imKorb
+            ? "border-accent-soft bg-accent-soft text-accent-deep"
+            : "border-border-strong text-ink hover:bg-surface-hover")
+        }
       >
         <svg viewBox="0 0 20 20" className="h-5 w-5" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.5">
           <path d="M2.5 3h2l2 9.5h9l2-7H6" />
