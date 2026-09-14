@@ -12,7 +12,8 @@
 --   08 `checkin_stats` zählt richtig; Kiosk darf, Fremde nicht (42501);
 --   09 das Kiosk-Konto sieht sonst nichts: fremde Tickets bleiben unsichtbar;
 --   10 `purge_checkins` löscht nur, was 30 Tage nach Editionsende liegt,
---      und ist für Nicht-Team dicht (42501).
+--      und ist für Nicht-Team dicht (42501); 11 (Review 14.09.) service_role darf den Löschlauf,
+--      ein von vivenu gestempeltes Ticket (`checked_in`) gilt am Einlass als gültig.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -159,6 +160,21 @@ begin
   insert into t_res values ('10_purge',
     case when v_n = 1 and v_von = v_bis then 'alte Zeile weg, laufende Edition unberuehrt (richtig)'
          else 'unerwartet: geloescht=' || v_n || ' laufend ' || v_von || '→' || v_bis end);
+
+  -- 11 (Review 14.09.) service_role darf den Löschlauf; `checked_in` gilt als gültig
+  perform set_config('request.jwt.claims', null, true);
+  begin
+    v_n := purge_checkins();
+    insert into t_res values ('11_purge_service_role', 'erlaubt, geloescht=' || v_n || ' (richtig)');
+  exception when others then
+    insert into t_res values ('11_purge_service_role', 'ABGEWIESEN (BUG) ' || sqlstate);
+  end;
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', v_uid, 'role', 'authenticated', 'email', v_email)::text, true);
+  update ticket set status = 'checked_in' where id = v_tk_storno;
+  select * into v_r from checkin_scan('ZZTESTNO01');
+  insert into t_res values ('11_checked_in_gilt',
+    case when v_r.status = 'ok' then 'ok (richtig)' else 'unerwartet ' || coalesce(v_r.status, 'null') end);
 end $$;
 -- 09 braucht einen echten Rollenwechsel: der Test läuft sonst als Superuser
 -- und RLS greift nicht. Die Kiosk-Rolle gibt kein SELECT auf `ticket` — nur

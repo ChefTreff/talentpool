@@ -39,6 +39,14 @@
 --
 -- Fehlerschlüssel: 28000 ohne Login · 42501 ohne Kiosk-Rolle ·
 -- 22023 `invalid_barcode` (leerer Code) · P0002 `edition_not_found`.
+--
+-- Review Architektur-Session 14.09.2026: Scan-Tag in der Zeitzone der Edition
+-- (`event.timezone`, Rückfall Europe/Berlin) statt fest verdrahtet; ein Ticket
+-- im Status `checked_in` (von vivenu gestempelt) gilt am Einlass als gültig;
+-- der gelungene Scan schreibt `on conflict … do nothing` gegen den eindeutigen
+-- Index, damit zwei Kioske, die denselben Code im selben Augenblick lesen,
+-- kein 23505 in die Oberfläche werfen; `purge_checkins()` darf auch die
+-- service_role (Housekeeping-Cron), nicht nur das Team.
 
 set search_path = public, extensions;
 
@@ -47,7 +55,9 @@ set search_path = public, extensions;
 alter table checkin add column if not exists edition_id uuid references event(id) on delete cascade;
 alter table checkin add column if not exists scan_day date;
 
-update checkin set scan_day = (scanned_at at time zone 'Europe/Berlin')::date where scan_day is null;
+update checkin c set scan_day = (c.scanned_at at time zone coalesce(e.timezone, 'Europe/Berlin'))::date
+  from ticket t join event e on e.id = t.event_id
+ where t.id = c.ticket_id and c.scan_day is null;
 update checkin c set edition_id = coalesce(e.edition_id, e.id)
   from ticket t join event e on e.id = t.event_id
  where t.id = c.ticket_id and c.edition_id is null;
@@ -116,7 +126,7 @@ $$;
 create or replace function checkin_scan(p_barcode text, p_device text default null)
 returns table(status text, holder_name text, pass_type text, checked_in_at timestamptz)
 language plpgsql volatile security definer set search_path = public, extensions as $$
-declare v_ed uuid; v_code text; v_dev text; v_tag date; v_t record; v_erster timestamptz;
+declare v_ed uuid; v_code text; v_dev text; v_tag date; v_t record; v_erster timestamptz; v_tz text;
 begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
 
@@ -130,7 +140,8 @@ begin
     raise exception 'invalid_barcode' using errcode = '22023', detail = 'leerer Code';
   end if;
   v_dev := left(nullif(btrim(coalesce(p_device, '')), ''), 64);
-  v_tag := (now() at time zone 'Europe/Berlin')::date;
+  select coalesce(e.timezone, 'Europe/Berlin') into v_tz from event e where e.id = v_ed;
+  v_tag := (now() at time zone coalesce(v_tz, 'Europe/Berlin'))::date;
 
   -- Nur in der eigenen Edition suchen: ein fremder Treffer darf sich nicht
   -- dadurch verraten, dass die Antwort anders ausfällt.
@@ -147,7 +158,8 @@ begin
     return;
   end if;
 
-  if v_t.status <> 'valid' then
+  -- `checked_in` ist vivenus eigener Stempel — am Einlass zählt das Ticket als gültig.
+  if v_t.status not in ('valid', 'checked_in') then
     insert into checkin (ticket_id, edition_id, scan_day, device_id, operator_person_id, result)
     values (v_t.id, v_ed, v_tag, v_dev, current_person_id(),
             case when v_t.status = 'blocked' then 'blocked' else 'invalid' end);
@@ -166,9 +178,20 @@ begin
     return;
   end if;
 
+  -- Zwei Kioske, ein Code, derselbe Augenblick: der eindeutige Index entscheidet,
+  -- und der Verlierer meldet `already` statt eines 23505.
   insert into checkin (ticket_id, edition_id, scan_day, device_id, operator_person_id, result)
   values (v_t.id, v_ed, v_tag, v_dev, current_person_id(), 'ok')
+  on conflict (ticket_id, scan_day) where result = 'ok' do nothing
   returning scanned_at into v_erster;
+  if v_erster is null then
+    select c.scanned_at into v_erster from checkin c
+     where c.ticket_id = v_t.id and c.result = 'ok' and c.scan_day = v_tag;
+    insert into checkin (ticket_id, edition_id, scan_day, device_id, operator_person_id, result)
+    values (v_t.id, v_ed, v_tag, v_dev, current_person_id(), 'duplicate');
+    return query select 'already'::text, v_t.name, v_t.pass_type, v_erster;
+    return;
+  end if;
 
   -- `checked_in_at` am Ticket bleibt der **erste** Einlass über alle Tage.
   -- Tabellenalias, weil `checked_in_at` auch OUT-Parameter dieser Funktion ist
@@ -187,13 +210,14 @@ end $$;
 create or replace function checkin_stats(p_edition_id uuid default null, p_day date default null)
 returns table(pass_type text, checked_in integer, tickets integer)
 language plpgsql stable security definer set search_path = public, extensions as $$
-declare v_ed uuid; v_day date;
+declare v_ed uuid; v_day date; v_tz text;
 begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   v_ed := coalesce(p_edition_id, checkin_edition());
   if v_ed is null then raise exception 'edition_not_found' using errcode = 'P0002'; end if;
   if not can_read_checkin_stats(v_ed) then raise exception 'not allowed' using errcode = '42501'; end if;
-  v_day := coalesce(p_day, (now() at time zone 'Europe/Berlin')::date);
+  select coalesce(e.timezone, 'Europe/Berlin') into v_tz from event e where e.id = v_ed;
+  v_day := coalesce(p_day, (now() at time zone coalesce(v_tz, 'Europe/Berlin'))::date);
 
   return query
     select coalesce(t.pass_type, 'ohne'),
@@ -203,7 +227,7 @@ begin
       join event e on e.id = t.event_id
       left join checkin c on c.ticket_id = t.id and c.result = 'ok' and c.scan_day = v_day
      where coalesce(e.edition_id, e.id) = v_ed
-       and t.status = 'valid'
+       and t.status in ('valid', 'checked_in')
      group by coalesce(t.pass_type, 'ohne')
      order by coalesce(t.pass_type, 'ohne');
 end $$;
@@ -221,7 +245,8 @@ create or replace function purge_checkins() returns integer
 language plpgsql volatile security definer set search_path = public, extensions as $$
 declare v_n integer;
 begin
-  if not is_staff() then raise exception 'not allowed' using errcode = '42501'; end if;
+  -- service_role (Housekeeping-Cron) oder Team.
+  if auth.uid() is not null and not is_staff() then raise exception 'not allowed' using errcode = '42501'; end if;
   with weg as (
     delete from checkin c
      using event e
