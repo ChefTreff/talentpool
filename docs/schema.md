@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-14 10:52 UTC · 71 Tabellen · 6 Views · 306 Funktionen
+> Stand: 2026-09-14 11:25 UTC · 71 Tabellen · 6 Views · 311 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -85,8 +85,10 @@ Scan-Ereignisse (Kiosk-Rolle). Setup Einlass offen (vivenu-Support Frage 11).
 | `device_id` | text |  |  |  |  |
 | `operator_person_id` | uuid |  |  | `person.id` |  |
 | `location` | text |  |  |  |  |
-| `result` | text | ja | `ok` |  |  |
+| `result` | text | ja | `ok` |  | ok = eingelassen · duplicate = zweiter Scan am selben Tag · invalid = Ticket nicht gültig · blocked = gesperrt. Unbekannte Barcodes stehen hier nicht — sie werden nicht gespeichert. |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `scan_day` | date | ja |  |  | Tag des Scans in der Zeitzone der Edition. Eigene Spalte, weil `at time zone` STABLE ist und ein Ausdrucksindex darüber unzulässig wäre. |
 
 ### `consent_record`
 Jede Einwilligung/Widerruf als eigene Zeile (Nachweis). Aktueller Stand: View consent_current.
@@ -1472,9 +1474,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_edit_stage` | p_stage_id: uuid |
 | `can_judge_hack_team` | p_team_id: uuid |
 | `can_manage_speaker` | p_profile_id: uuid |
+| `can_read_checkin_stats` | p_edition_id: uuid |
 | `cancel_companion_ticket` | p_ticket_id: uuid |
 | `cancel_hospitality` | p_booking_id: uuid |
 | `cancel_registration` | p_session_id: uuid |
+| `checkin_edition` | args: ? |
+| `checkin_scan` | p_barcode: text, p_device: text |
+| `checkin_stats` | p_day: date, p_edition_id: uuid |
 | `claim_or_create_person` | args: ? |
 | `confirm_application` | p_application_id: uuid, p_replace_conflicting: boolean |
 | `confirm_companion_ticket` | p_note: text, p_ticket_id: uuid |
@@ -1610,6 +1616,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `publish_hack_challenge` | p_deliverable_id: uuid |
 | `publish_kb_article` | p_id: uuid, p_published: boolean |
 | `publish_session` | p_session_id: uuid |
+| `purge_checkins` | args: ? |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `record_shop_invoice` | p_meta: jsonb, p_order_ids: uuid[], p_org_id: uuid, p_sevdesk_contact_id: text, p_sevdesk_invoice_id: text |
 | `record_sync_error` | p_job_id: bigint, p_message: text, p_object_id: text, p_object_type: text, p_payload: jsonb |
