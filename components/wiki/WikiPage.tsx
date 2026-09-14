@@ -30,7 +30,7 @@ export async function WikiPage({
   return (
     <>
       <PageHeader title={t.wiki.title} description={t.wiki.lead} />
-      <WikiView articles={articles} phases={phases} t={t.wiki} />
+      <WikiView articles={articles} phases={phases} locale={locale} t={t.wiki} />
     </>
   );
 }

@@ -21,11 +21,14 @@ type Strings = Record<string, string>;
 export function WikiView({
   articles,
   phases,
+  locale,
   t,
 }: {
   articles: KbArticle[];
   /** Beschriftungen der Phasen aus dem Vokabular. */
   phases: Record<string, string>;
+  /** Sprache der Seite — Artikel, die davon abweichen, werden gekennzeichnet. */
+  locale: string;
   t: Strings;
 }) {
   const [query, setQuery] = useState("");
@@ -97,6 +100,10 @@ export function WikiView({
               {open.phase !== "evergreen" && <Badge>{phases[open.phase] ?? open.phase}</Badge>}
               {/* „Für diese Edition" sagt: das hier ist die diesjährige Fassung. */}
               {open.is_overlay && <Badge tone="accent">{t.thisEdition}</Badge>}
+              {/* Die Redaktion pflegt DE und EN nicht im Gleichschritt. Gibt es
+                  den Artikel nur in der anderen Sprache, liefert die RPC ihn
+                  trotzdem (0087) — dann sagen wir es, statt ihn wegzulassen. */}
+              {open.language !== locale && <Badge>{t.otherLanguage}</Badge>}
             </div>
             <Markdown source={open.body_md} />
           </>
