@@ -241,7 +241,7 @@ export function ChecklistView({
     <div className="flex flex-col gap-6">
       {groups.map((group) => (
         <section key={group.sku ?? "global"} aria-labelledby={`g-${group.sku ?? "global"}`}>
-          <div className="mb-2 flex flex-wrap items-baseline gap-2">
+          <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
             <h2 id={`g-${group.sku ?? "global"}`} className="ct-h3 text-ink">
               {group.label}
             </h2>
@@ -268,7 +268,12 @@ export function ChecklistView({
                 const auf = offen === d.id;
                 return (
                   <li key={d.id} className="border-b last:border-b-0">
-                    <div className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-surface-hover">
+                    <div
+                      className={
+                        "flex items-center gap-3 border-l-2 py-2.5 pr-4 pl-4 transition-colors hover:bg-surface-hover " +
+                        (overdue ? "border-l-error-ink bg-error-soft/40" : "border-l-transparent")
+                      }
+                    >
                       <Haken done={erledigt} label={erledigt ? t.doneLabel : t.openLabel} />
 
                       <button
@@ -278,7 +283,7 @@ export function ChecklistView({
                         onClick={() => setOffen(auf ? null : d.id)}
                         className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left"
                       >
-                        <span className={erledigt ? "ct-label text-muted" : "ct-label text-ink"}>
+                        <span className={erledigt ? "ct-small text-muted" : "ct-label text-ink"}>
                           {label(d)}
                         </span>
                         {!d.required && <span className="ct-help">{t.optional}</span>}
@@ -298,7 +303,13 @@ export function ChecklistView({
                           zweite, wonach man in einer Checkliste schaut. */}
                       <span className="hidden w-[160px] shrink-0 text-right sm:block">
                         {d.due_at ? (
-                          <span className={overdue ? "ct-help tabular-nums text-error-ink" : "ct-help tabular-nums"}>
+                          <span
+                            className={
+                              overdue
+                                ? "ct-label tabular-nums text-error-ink"
+                                : "ct-small tabular-nums text-muted"
+                            }
+                          >
                             {dateOnly.format(new Date(d.due_at))}
                           </span>
                         ) : (
