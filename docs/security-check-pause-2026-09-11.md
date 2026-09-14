@@ -1,5 +1,7 @@
 # Security-Check: was die Build-Session in der Pause angewendet hat
 
+> **Geprüft am 14.09.2026** — Ergebnis, Korrekturen und offene Punkte in `docs/security-review-2026-09-14.md`. Punkt 4.2 (`event_day`) hat sich erledigt: die Policy `event_day_read` existiert seit v2.
+
 **Stand 11.09.2026, abends.** Zusammenfassung für die Architektur-/Security-Session (Fable) nach der Pausenregel aus `docs/arbeitsauftrag-welle-4.md`, Abschnitt E. Alles hier ist **bereits auf `jqmqvgaiyjudkvtncijw` angewendet** und in `main` gemergt. Bitte rückwirkend prüfen.
 
 Kurzfassung für den Einstieg: sieben Migrationen (0067–0073), davon **drei Korrekturen an eigenen Fehlern**, zwei davon sicherheitsrelevant. Die beiden wichtigsten Punkte stehen unter „Wo ich mich selbst korrigiert habe" — ein Ticket-Secret wäre für angemeldete Personen lesbar gewesen, und eine Rollenzuweisung endete nicht, wenn sie enden sollte.

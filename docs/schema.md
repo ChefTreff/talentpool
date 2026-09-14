@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-11 13:18 UTC · 57 Tabellen · 6 Views · 229 Funktionen
+> Stand: 2026-09-14 10:05 UTC · 71 Tabellen · 6 Views · 305 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -60,6 +60,19 @@ Stand je Partner × Edition (Nummer, Fläche, Rückwand-Maße); Team pflegt, Par
 | `notes` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `booth_service_check`
+Abgehakte Position der Stand-Checkliste. Eine Zeile je Stand und Artikel; fehlt sie, ist die Position offen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_edition_id` | uuid | ja |  | `org_edition.id` |  |
+| `product_sku` | text | ja |  | `product.sku` |  |
+| `checked_by` | uuid |  |  | `person.id` |  |
+| `checked_at` | timestamp with time zone | ja | `now()` |  |  |
+| `note` | text |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `checkin`
 Scan-Ereignisse (Kiosk-Rolle). Setup Einlass offen (vivenu-Support Frage 11).
@@ -194,6 +207,7 @@ Format/Termin (Summit, Hackathon, Side-Event, Community). is_edition = Klammer w
 | `vivenu_event_id` | text |  |  |  | vivenu-Event der Edition (Shop mit Undershops); Team setzt es über set_edition_vivenu. |
 | `swapcard_event_id` | text |  |  |  | Swapcard-Event der Edition (Content-API); gesetzt über set_edition_swapcard. Ohne Wert überträgt der Adapter nichts. |
 | `hubspot_done_stage_id` | text |  |  |  | HubSpot-Phase, in die ein Deal nach gelungenem Ingest geschoben wird (z. B. „Onboarding Operations (Automation Complete)“); leer = kein Weiterschieben. |
+| `vivenu_volunteer_undershop_id` | text |  |  |  | Undershop „Volunteers" dieser Edition. Ein Shop, viele persönliche Coupons. |
 
 ### `event_day`
 Veranstaltungstag eines Events (Einlass, Programmbeginn/-ende).
@@ -256,6 +270,99 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `hack_application`
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `person_id` | uuid | ja |  | `person.id` |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `skills` | text[] | ja |  |  |  |
+| `motivation` | text |  |  |  |  |
+| `team_pref` | text |  |  |  |  |
+| `team_id` | uuid |  |  | `hack_team.id` |  |
+| `status` | text | ja | `applied` |  |  |
+| `applied_at` | timestamp with time zone | ja | `now()` |  |  |
+| `decided_at` | timestamp with time zone |  |  |  |  |
+| `decided_by` | uuid |  |  | `person.id` |  |
+| `note` | text |  |  |  |  |
+
+### `hack_challenge`
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `org_id` | uuid |  |  | `organization.id` |  |
+| `deliverable_id` | uuid |  |  | `deliverable.id` |  |
+| `title_de` | text |  |  |  |  |
+| `title_en` | text | ja |  |  |  |
+| `description_de` | text |  |  |  |  |
+| `description_en` | text |  |  |  |  |
+| `prizes` | text |  |  |  |  |
+| `resources` | text |  |  |  |  |
+| `mentors` | jsonb | ja |  |  |  |
+| `criteria` | jsonb | ja |  |  | Judging-Kriterien mit Gewichten (E4): [{key, label, weight}]. Die Gesamtnote rechnet `set_hack_score` daraus. |
+| `status` | text | ja | `draft` |  |  |
+| `sort_order` | integer | ja | `0` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `hack_judging_score`
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `team_id` | uuid | ja |  | `hack_team.id` |  |
+| `judge_id` | uuid | ja |  | `person.id` |  |
+| `criteria` | jsonb | ja |  |  |  |
+| `total` | numeric |  |  |  |  |
+| `note` | text |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `hack_submission`
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `team_id` | uuid | ja |  | `hack_team.id` |  |
+| `url` | text |  |  |  |  |
+| `repo_url` | text |  |  |  |  |
+| `notes` | text |  |  |  |  |
+| `files` | jsonb | ja |  |  |  |
+| `submitted_at` | timestamp with time zone |  |  |  |  |
+| `submitted_by` | uuid |  |  | `person.id` |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `hack_team`
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `name` | text | ja |  |  |  |
+| `challenge_id` | uuid |  |  | `hack_challenge.id` |  |
+| `join_code` | text | ja |  |  |  |
+| `status` | text | ja | `forming` |  |  |
+| `discord_url` | text |  |  |  |  |
+| `note_internal` | text |  |  |  |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `hack_team_member`
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `team_id` | uuid | ja |  | `hack_team.id` |  |
+| `person_id` | uuid | ja |  | `person.id` |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `role` | text |  |  |  |  |
+| `is_captain` | boolean | ja | `false` |  |  |
+| `joined_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `hospitality_booking`
 Hotel-/Shuttle-Buchungen der Speaker; requested → confirmed durch das Team, waitlisted bei Überbuchung.
 
@@ -298,6 +405,29 @@ Hospitality-Kontingente je Edition: Hotels nach Tier, Shuttles. Kapazität hotel
 | `sort_order` | integer | ja | `100` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `kb_article`
+Wissensbasis. `edition_id` NULL = jahresunabhängig; ein Artikel mit Edition überlagert ihn für diese Edition.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `slug` | text | ja |  |  |  |
+| `edition_id` | uuid |  |  | `event.id` |  |
+| `language` | text | ja | `de` |  |  |
+| `audience` | text[] | ja |  |  |  |
+| `roles` | text[] | ja |  |  | Nur für Volunteers: Rollen-Seiten aus dem Notion-Wiki. Leer heisst „für alle der Zielgruppe". |
+| `phase` | text | ja | `evergreen` |  |  |
+| `title` | text | ja |  |  |  |
+| `body_md` | text | ja | `` |  |  |
+| `status` | text | ja | `draft` |  |  |
+| `valid_until` | timestamp with time zone |  |  |  |  |
+| `owner_person_id` | uuid |  |  | `person.id` |  |
+| `sort_order` | integer | ja | `0` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_by` | uuid |  |  | `person.id` |  |
+| `published_at` | timestamp with time zone |  |  |  |  |
 
 ### `mail_log`
 Jede versendete oder unterdrückte Mail mit Zustellstatus (Resend-Webhooks aktualisieren status).
@@ -666,6 +796,32 @@ Zentraler Fragenkatalog für Bewerbungen (Antwort C: Katalog + max. 2 eigene Fra
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `regie_cue`
+Ablaufplan je Bühne und Tag (Vorlage regie-2026). `slot_id` optional — Doors open und Puffer haben keine Session.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `stage_id` | uuid | ja |  | `stage.id` |  |
+| `event_day_id` | uuid | ja |  | `event_day.id` |  |
+| `slot_id` | uuid |  |  | `slot.id` |  |
+| `cue_start` | timestamp with time zone | ja |  |  |  |
+| `cue_end` | timestamp with time zone | ja |  |  |  |
+| `sort_order` | integer | ja | `0` |  |  |
+| `action` | text | ja |  |  |  |
+| `umbau_min` | integer |  |  |  |  |
+| `moderation` | text |  |  |  |  |
+| `regie` | text |  |  |  |  |
+| `backstage` | text |  |  |  |  |
+| `mobiliar` | text |  |  |  |  |
+| `notes` | text |  |  |  |  |
+| `mic_assignments` | jsonb | ja |  |  |  |
+| `media` | jsonb | ja |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `updated_by` | uuid |  |  | `person.id` |  |
+
 ### `registration`
 
 | Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
@@ -782,6 +938,42 @@ Vom Speaker eingereichte Session-Inhalte; final steht in session (Freigabe kopie
 | `reviewed_by` | uuid |  |  | `person.id` |  |
 | `reviewed_at` | timestamp with time zone |  |  |  |  |
 | `review_note` | text |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `shift`
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `event_day_id` | uuid |  |  | `event_day.id` |  |
+| `area` | text | ja |  |  |  |
+| `position` | text | ja |  |  |  |
+| `start_at` | timestamp with time zone | ja |  |  |  |
+| `end_at` | timestamp with time zone | ja |  |  |  |
+| `capacity` | integer | ja | `1` |  |  |
+| `overbook` | integer | ja | `0` |  |  |
+| `location` | text |  |  |  |  |
+| `lead_person_id` | uuid |  |  | `person.id` |  |
+| `briefing_md` | text |  |  |  |  |
+| `active` | boolean | ja | `true` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `shift_assignment`
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `shift_id` | uuid | ja |  | `shift.id` |  |
+| `person_id` | uuid | ja |  | `person.id` |  |
+| `status` | text | ja | `assigned` |  |  |
+| `confirmed_at` | timestamp with time zone |  |  |  |  |
+| `declined_at` | timestamp with time zone |  |  |  |  |
+| `decline_reason` | text |  |  |  |  |
+| `reminded_at` | timestamp with time zone |  |  |  |  |
+| `assigned_by` | uuid |  |  | `person.id` |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
@@ -1042,6 +1234,21 @@ Ticket aus vivenu (Barcode = QR) oder Freiticket (Crew/Speaker). Badge-Felder we
 | `requested_by` | uuid |  |  | `person.id` |  |
 | `approved_by` | uuid |  |  | `person.id` |  |
 | `approved_at` | timestamp with time zone |  |  |  |  |
+| `meta` | jsonb |  |  |  |  |
+| `extra_fields` | jsonb |  |  |  |  |
+| `vivenu_discount_id` | text |  |  |  | Eingelöster Coupon (appliedDiscountInfo[].discountId), Grundlage für org_ticket_allocation.used_count. |
+| `vivenu_updated_at` | timestamp with time zone |  |  |  | Stand des Tickets bei vivenu (updatedAt). Ältere Webhooks werden dagegen verworfen. |
+| `vivenu_ticket_type_id` | text |  |  |  | Tickettyp bei vivenu. Grundlage für den Nachtrag des Pass-Typs, wenn ticket_type_map später gefüllt wird. |
+| `vivenu_undershop_id` | text |  |  |  | Undershop, aus dem das Ticket kam (vivenu `underShopId`) — Schlüssel auf das Partner-Kontingent. |
+
+### `ticket_secret`
+vivenu-Ticket-Secrets für die Personalisierung. Keine Grants, keine Policy — nur service_role.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `ticket_id` | uuid | PK |  | `ticket.id` |  |
+| `secret` | text | ja |  |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `ticket_type_map`
 vivenu-Tickettyp ↔ Pass-Typ ↔ Swapcard-Gruppe/Rechte (Antwort 53: eine Gruppe je Pass-Typ).
@@ -1086,6 +1293,49 @@ Thematischer Track (Swapcard-Track).
 | `parent_key` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `volunteer_coupon_revocation`
+Widerrufene Volunteer-Coupons, die bei vivenu noch zu deaktivieren sind (`deactivated_at` leer).
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | bigint | PK |  |  |  |
+| `profile_id` | uuid | ja |  | `volunteer_profile.id` |  |
+| `vivenu_coupon_id` | text | ja |  |  |  |
+| `coupon_code` | text |  |  |  |  |
+| `revoked_at` | timestamp with time zone | ja | `now()` |  |  |
+| `deactivated_at` | timestamp with time zone |  |  |  |  |
+| `error` | text |  |  |  |  |
+
+### `volunteer_profile`
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `person_id` | uuid | ja |  | `person.id` |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `status` | text | ja | `applied` |  |  |
+| `shirt_size` | text |  |  |  |  |
+| `areas` | text[] | ja |  |  |  |
+| `day_prefs` | uuid[] | ja |  |  |  |
+| `availability` | jsonb |  |  |  |  |
+| `buddy_person_id` | uuid |  |  | `person.id` |  |
+| `buddy_note` | text |  |  |  |  |
+| `notes_internal` | text |  |  |  |  |
+| `applied_at` | timestamp with time zone | ja | `now()` |  |  |
+| `decided_at` | timestamp with time zone |  |  |  |  |
+| `decided_by` | uuid |  |  | `person.id` |  |
+| `decision_note` | text |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `coupon_code` | text |  |  |  |  |
+| `vivenu_coupon_id` | text |  |  |  |  |
+| `coupon_status` | text | ja | `none` |  | none → pending (wartet auf vivenu) → issued (Code da) → redeemed (Ticket gezogen). `revoked`, wenn die Zusage zurückgenommen wurde. |
+| `coupon_issued_at` | timestamp with time zone |  |  |  |  |
+| `redeemed_at` | timestamp with time zone |  |  |  |  |
+| `ticket_id` | uuid |  |  | `ticket.id` |  |
+| `coupon_error` | text |  |  |  |  |
+| `reminded_at` | timestamp with time zone |  |  |  |  |
 
 ## Views
 
@@ -1200,18 +1450,27 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `admin_products` | p_only_active: boolean |
 | `applications_for_session` | p_session_id: uuid |
 | `applications_overview` | p_event_id: uuid |
+| `apply_hackathon` | p_data: jsonb |
 | `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
+| `apply_volunteer` | p_data: jsonb |
 | `approve_expense` | p_claim_id: uuid, p_note: text |
 | `approve_session_content` | p_overrides: jsonb, p_submission_id: uuid |
 | `approve_session_questions` | p_session_id: uuid |
 | `approve_travel_costs` | p_approved: boolean, p_profile_id: uuid |
+| `assign_challenges` | p_edition_id: uuid |
 | `assign_role` | p_edition_id: uuid, p_note: text, p_person_id: uuid, p_portal: text, p_role: text, p_scope_id: uuid, p_scope_type: text, p_valid_from: timestamp with time zone, p_valid_to: timestamp with time zone |
+| `assign_shift` | p_person_id: uuid, p_shift_id: uuid, p_status: text |
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
+| `backfill_ticket_pass_types` | args: ? |
 | `book_hospitality` | p_details: jsonb, p_guests: integer, p_quota_id: uuid |
+| `booth_checklist` | p_edition_id: uuid, p_org_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
+| `can_edit_kb` | p_audience: text[] |
+| `can_edit_kb_all` | p_audience: text[] |
 | `can_edit_session` | p_session_id: uuid |
 | `can_edit_slot` | p_slot_id: uuid |
 | `can_edit_stage` | p_stage_id: uuid |
+| `can_judge_hack_team` | p_team_id: uuid |
 | `can_manage_speaker` | p_profile_id: uuid |
 | `cancel_companion_ticket` | p_ticket_id: uuid |
 | `cancel_hospitality` | p_booking_id: uuid |
@@ -1220,14 +1479,20 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `confirm_application` | p_application_id: uuid, p_replace_conflicting: boolean |
 | `confirm_companion_ticket` | p_note: text, p_ticket_id: uuid |
 | `confirm_hospitality` | p_booking_id: uuid, p_note: text |
+| `confirm_shift` | p_assignment_id: uuid |
+| `create_hack_team` | p_edition_id: uuid, p_name: text |
 | `create_slot` | p_end: timestamp with time zone, p_session_id: uuid, p_slot_type: text, p_source_ref: text, p_stage_id: uuid, p_start: timestamp with time zone |
 | `current_org_edition` | p_edition_id: uuid, p_org_id: uuid |
 | `current_person_id` | args: ? |
+| `day_of_edition` | p_day_id: uuid, p_edition_id: uuid |
 | `decide_application` | p_application_id: uuid, p_rank: integer, p_status: text |
 | `decisions_released` | p_session_id: uuid |
 | `decline_companion_ticket` | p_note: text, p_ticket_id: uuid |
 | `decline_hospitality` | p_booking_id: uuid, p_note: text |
+| `decline_shift` | p_assignment_id: uuid, p_reason: text |
+| `delete_kb_article` | p_id: uuid |
 | `delete_my_profile` | args: ? |
+| `delete_regie_cue` | p_id: uuid |
 | `deliverable_due` | p_oe: public.org_edition, p_template: public.deliverable_template |
 | `detach_session` | p_session_id: uuid |
 | `edition_valid_to` | p_edition_id: uuid |
@@ -1242,6 +1507,11 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `finish_sync_job` | p_error: text, p_id: bigint, p_stats: jsonb, p_status: text |
 | `finish_webhook_event` | p_error: text, p_id: bigint, p_related_id: uuid, p_related_type: text, p_status: text |
 | `fmt_cents` | p_cents: integer, p_locale: text |
+| `hack_admin_overview` | p_edition_id: uuid |
+| `hack_challenges` | p_edition_id: uuid |
+| `hack_edition` | p_edition_id: uuid |
+| `hack_join_code` | args: ? |
+| `hack_judging` | p_edition_id: uuid |
 | `harden_definer_functions` | args: ? |
 | `has_role` | p_edition_id: uuid, p_role: text, p_scope_id: uuid, p_scope_type: text |
 | `hospitality_admin_overview` | p_edition_id: uuid |
@@ -1254,14 +1524,18 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `iban_valid` | p_iban: text |
 | `immutable_unaccent` | : text |
 | `ingest_partner_deal` | p: jsonb |
+| `ingest_vivenu_ticket` | p_data: jsonb |
 | `invite_assistant` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
 | `invite_speaker` | p_profile_id: uuid |
 | `is_admin` | args: ? |
 | `is_application_team` | p_session_id: uuid |
 | `is_expense_approver` | args: ? |
+| `is_hack_judge` | args: ? |
+| `is_hack_team` | args: ? |
 | `is_member_of_org` | p_org_id: uuid |
 | `is_partner_of` | p_org_id: uuid |
 | `is_partner_team` | args: ? |
+| `is_production_team` | args: ? |
 | `is_programme_editor` | p_event_id: uuid |
 | `is_programme_reader` | args: ? |
 | `is_session_visible` | p_session_id: uuid |
@@ -1272,28 +1546,43 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_suppressed` | p_email: text |
 | `is_u35` | p_birthdate: date, p_ref: date |
 | `is_vocab_key` | p_key: text, p_vocabulary: text |
+| `is_volunteer_team` | args: ? |
+| `join_hack_team` | p_code: text, p_edition_id: uuid |
+| `kb_article_by_slug` | p_audience: text, p_edition_id: uuid, p_language: text, p_slug: text |
+| `kb_articles` | p_audience: text, p_edition_id: uuid, p_language: text, p_role: text |
+| `kb_articles_admin` | p_audience: text |
+| `leave_hack_team` | p_edition_id: uuid |
 | `list_external_refs` | p_object_type: text, p_system: text |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
 | `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
 | `manager_speakers` | p_edition_id: uuid |
 | `mark_expense_paid` | p_claim_id: uuid, p_payment_ref: text |
 | `mark_overdue_deliverables` | args: ? |
+| `mark_volunteer_coupon_revoked` | p_error: text, p_id: bigint |
+| `merch_fields` | p_config: jsonb |
+| `merch_problem` | p_qty: numeric, p_schema: jsonb, p_values: jsonb |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_applications` | args: ? |
 | `my_deliverables` | p_edition_id: uuid, p_org_id: uuid |
 | `my_expense_claims` | args: ? |
+| `my_hack` | p_edition_id: uuid |
+| `my_hack_team_id` | p_edition_id: uuid |
 | `my_hospitality` | p_edition_id: uuid |
+| `my_kb_audiences` | args: ? |
+| `my_lead_shifts` | p_edition_id: uuid |
 | `my_manager_scope` | args: ? |
 | `my_partner_assets` | p_edition_id: uuid, p_org_id: uuid |
 | `my_partner_orgs` | args: ? |
 | `my_partner_stages` | args: ? |
 | `my_roles` | args: ? |
 | `my_sessions` | args: ? |
+| `my_shifts` | p_edition_id: uuid |
 | `my_speaker_assets` | p_profile_id: uuid |
 | `my_speaker_profile` | p_edition_id: uuid |
 | `my_speaker_profile_id` | p_edition_id: uuid |
 | `my_speaker_tickets` | p_edition_id: uuid |
 | `my_ticket_allocations` | p_edition_id: uuid, p_org_id: uuid |
+| `my_volunteer_profile` | p_edition_id: uuid |
 | `notify_partner_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `partner_admin_overview` | p_edition_id: uuid |
@@ -1315,19 +1604,26 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `pending_submissions` | p_event_id: uuid |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
 | `presentation_window` | p_session_id: uuid |
+| `promote_shift_waitlist` | p_shift_id: uuid |
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |
+| `publish_hack_challenge` | p_deliverable_id: uuid |
+| `publish_kb_article` | p_id: uuid, p_published: boolean |
 | `publish_session` | p_session_id: uuid |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `record_shop_invoice` | p_meta: jsonb, p_order_ids: uuid[], p_org_id: uuid, p_sevdesk_contact_id: text, p_sevdesk_invoice_id: text |
 | `record_sync_error` | p_job_id: bigint, p_message: text, p_object_id: text, p_object_type: text, p_payload: jsonb |
 | `record_webhook_event` | p_event_type: text, p_external_id: text, p_headers: jsonb, p_payload: jsonb, p_signature_valid: boolean, p_source: text |
+| `recount_allocation_usage` | p_allocation_id: uuid |
 | `refresh_deliverable_due` | args: ? |
+| `regie_open_slots` | p_event_day_id: uuid, p_stage_id: uuid |
+| `regie_view` | p_event_day_id: uuid, p_stage_id: uuid |
 | `register_for_session` | p_session_id: uuid |
 | `register_partner_asset` | p_deliverable_id: uuid, p_edition_id: uuid, p_filename: text, p_kind: text, p_mime: text, p_org_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `register_speaker_asset` | p_filename: text, p_kind: text, p_mime: text, p_profile_id: uuid, p_session_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `reject_expense` | p_claim_id: uuid, p_note: text |
 | `reject_session_content` | p_note: text, p_submission_id: uuid |
 | `release_decisions` | p_note: text, p_session_id: uuid |
+| `remind_volunteer_tickets` | args: ? |
 | `remove_assistant` | p_profile_id: uuid |
 | `remove_partner_contact` | p_org_id: uuid, p_person_id: uuid |
 | `request_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
@@ -1340,21 +1636,27 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `run_application_housekeeping` | args: ? |
 | `run_partner_housekeeping` | args: ? |
 | `run_shop_finalization` | args: ? |
+| `run_volunteer_housekeeping` | args: ? |
 | `search_organizations` | p_limit: integer, p_query: text |
 | `search_people` | p_limit: integer, p_query: text |
 | `send_partner_reminders` | args: ? |
 | `send_presentation_reminders` | args: ? |
+| `send_shift_reminders` | args: ? |
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
 | `session_speakers_public` | p_session_id: uuid |
+| `set_booth_service_check` | p_checked: boolean, p_note: text, p_org_edition_id: uuid, p_product_sku: text |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
 | `set_edition_hubspot` | p_done_stage_id: text, p_edition_id: uuid, p_pipeline_id: text, p_stage_id: text |
 | `set_edition_swapcard` | p_edition_id: uuid, p_swapcard_event_id: text |
 | `set_edition_vivenu` | p_edition_id: uuid, p_vivenu_event_id: text |
+| `set_edition_volunteer_undershop` | p_edition_id: uuid, p_undershop_id: text |
 | `set_event_app_ref` | p_external_id: text, p_meta: jsonb, p_org_edition_id: uuid, p_system: text |
 | `set_expense_bank_details` | p_bic: text, p_claim_id: uuid, p_holder: text, p_iban: text |
 | `set_expense_integration` | p_claim_id: uuid, p_invoice_asset_id: uuid, p_qonto_sent: boolean, p_sevdesk_ref: text |
 | `set_external_ref` | p_external_id: text, p_meta: jsonb, p_object_id: uuid, p_object_type: text, p_system: text |
+| `set_hack_application_status` | p_id: uuid, p_note: text, p_status: text |
+| `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
 | `set_org_sevdesk_contact` | p_contact_id: text, p_org_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
@@ -1362,10 +1664,16 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_slides_release` | p_asset_id: uuid, p_release: boolean |
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
 | `set_speaker_pipeline` | p_profile_id: uuid, p_status: text |
+| `set_team_challenge` | p_challenge_id: uuid, p_team_id: uuid |
 | `set_tech_check` | p_asset_id: uuid, p_note: text, p_status: text |
 | `set_ticket_allocation` | p_coupon_code: text, p_id: uuid, p_notes: text, p_quantity: integer, p_status: text, p_undershop_url: text |
 | `set_ticket_allocation_vivenu` | p_coupon_code: text, p_error: text, p_id: uuid, p_status: text, p_undershop_url: text, p_vivenu_coupon_id: text, p_vivenu_undershop_id: text |
 | `set_ticket_issued` | p_barcode: text, p_ticket_id: uuid, p_ticket_type_map_id: uuid, p_vivenu_ticket_id: text, p_vivenu_transaction_id: text |
+| `set_ticket_secret` | p_secret: text, p_ticket_id: uuid |
+| `set_volunteer_coupon` | p_coupon_code: text, p_error: text, p_profile_id: uuid, p_status: text, p_vivenu_coupon_id: text |
+| `set_volunteer_status` | p_note: text, p_profile_id: uuid, p_status: text |
+| `shift_plan` | p_day: uuid, p_edition_id: uuid |
+| `shift_taken` | p_shift_id: uuid |
 | `shop_admin_set_line` | p_merch_config: jsonb, p_order_id: uuid, p_qty: numeric, p_sku: text |
 | `shop_admin_set_status` | p_note: text, p_order_id: uuid, p_status: text |
 | `shop_cancel` | p_order_id: uuid |
@@ -1401,16 +1709,21 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `start_sync_job` | p_direction: text, p_job_type: text, p_system: text, p_triggered_by: text |
 | `submit_deliverable` | p_answers: jsonb, p_asset_ids: uuid[], p_deliverable_id: uuid |
 | `submit_expense` | p_claim_id: uuid |
+| `submit_hack` | p_data: jsonb |
 | `submit_session_content` | p_data: jsonb, p_session_id: uuid |
+| `supplier_order_list` | p_edition_id: uuid, p_supplier: text |
 | `sync_deliverables` | p_org_edition_id: uuid |
 | `sync_granted_roles` | p_org_id: uuid |
 | `sync_ticket_allocations` | p_org_edition_id: uuid |
 | `template_applies` | p_org_edition_id: uuid, p_template: public.deliverable_template |
 | `ticket_allocations_admin` | p_edition_id: uuid |
+| `ticket_allocations_of_orgs` | p_event_id: uuid, p_org_ids: uuid[] |
 | `ticket_allocations_pending` | args: ? |
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
+| `unassign_shift` | p_assignment_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
 | `update_my_speaker_profile` | p_data: jsonb |
+| `update_my_volunteer_profile` | p_data: jsonb, p_edition_id: uuid |
 | `update_partner_onboarding` | p_data: jsonb, p_edition_id: uuid, p_org_id: uuid |
 | `update_speaker` | p_data: jsonb, p_profile_id: uuid |
 | `upsert_booth` | p_data: jsonb, p_edition_id: uuid, p_org_id: uuid |
@@ -1418,10 +1731,23 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_deliverable_template` | p_data: jsonb |
 | `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |
+| `upsert_kb_article` | p_data: jsonb |
 | `upsert_partner_contact` | p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_position: text, p_roles: text[] |
 | `upsert_product` | p_data: jsonb |
 | `upsert_product_component` | p_bundle_sku: text, p_component_sku: text, p_qty: numeric |
+| `upsert_regie_cue` | p_data: jsonb |
 | `upsert_session` | p_data: jsonb |
+| `upsert_shift` | p_data: jsonb |
 | `upsert_speaker` | p_data: jsonb |
 | `validate_expense_positions` | p_positions: jsonb, p_profile_id: uuid |
+| `vivenu_editions` | args: ? |
+| `vivenu_personalization_status` | p_status: text |
+| `vivenu_ticket_status` | p_status: text |
+| `volunteer_admin_overview` | p_edition_id: uuid |
+| `volunteer_coupon_revocations_pending` | args: ? |
+| `volunteer_coupons_pending` | args: ? |
+| `volunteer_day_prefs` | p_data: jsonb, p_edition_id: uuid |
+| `volunteer_days` | p_edition_id: uuid |
+| `volunteer_edition` | p_edition_id: uuid |
+| `volunteer_tickets_admin` | p_edition_id: uuid |
 | `withdraw_application` | p_application_id: uuid |

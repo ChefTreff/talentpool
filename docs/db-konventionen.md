@@ -46,6 +46,9 @@ Jeder neue Schlüssel gehört im selben PR in `lib/rpc-error.ts` (`BUSINESS_KEYS
 - Trigger: `after insert or update of <spalten> or delete … for each row`, Funktion `return coalesce(new, old)`, security definer + revoke.
 - Inserts aus fremden Payloads (Webhooks, Importe): ein ausdrückliches NULL sticht den Spalten-Default aus — jede NOT-NULL-Spalte mit `coalesce(wert, default)` absichern (0078). Nachträge/Backfills brauchen einen Test, der die Wirkung belegt, nicht nur den fehlerfreien Durchlauf (0076).
 - Angewendete Migrationen liegen am selben Tag in einem gemergten PR — kein offener oder verworfener Branch mit angewendeten Migrationen (Drift).
+- Rechteprüfung beim **Ändern**: erst gegen den bestehenden Datensatz (bisherige Zielgruppe, bisheriger Owner), dann gegen den neuen Zustand — sonst lässt sich ein fremder Datensatz über eine neue Zuordnung übernehmen (Review 0083). Wo eine Liste von Zielgruppen/Scopes geschrieben wird, gilt „alle“, nicht „mindestens eine“.
+- Was bei uns widerrufen wird (Coupon, Zugang, Rolle) und in einem Fremdsystem weiterlebt, braucht den Weg dorthin: Widerrufsliste + Quittung durch den Sync, sonst gilt es dort weiter (Review 0084).
+- Mail-Vorlagen kennen nur die Variablen aus `queue_mail`/`lib/mail/queue.ts` (`first_name`, `portal_url` + vorlagenspezifische); Links immer als `{{portal_url}}/pfad` — ein unbekannter Platzhalter rendert leer.
 
 ## 5 · Tabellen, Grants, Storage
 - RLS auf jeder Tabelle, Spalten-Grants statt Tabellen-Grants für sensible Spalten (`revoke select (spalte)` wirkt nicht gegen einen Tabellen-Grant — 0032). **Keine Grants für `anon`** (seit 0063 hat anon nur `select` auf `vocab_term`); für `authenticated` nur die Grants, die eine Policy trägt — Schreiben läuft über RPCs.
@@ -84,3 +87,5 @@ rollback;
 1. Migration + Test + Code + Doku im Feature-Branch, PR-Titel mit „Migration enthalten“, Kontrakt in der Beschreibung.
 2. Architektur-Session prüft nach dieser Liste, wendet an, benennt um, führt den Test aus, schreibt das Entscheidungslog und kommentiert am PR („Migration 00NN live“).
 3. Erst danach Walkthrough gegen die Datenbank (fünf Regeln für Wegwerf-Konten), dann Gate und Merge.
+4. Kleine Korrekturen an einer noch nicht angewendeten Migration macht die Architektur-Session direkt im PR-Branch (Datei + Test, Kopfzeile „Review …“), wendet an, benennt um, kommentiert „Migration live“; die Build-Session zieht den Branch danach neu (`git pull`).
+5. Gestapelte PRs (Branch auf Branch): zuerst die Basis mergen, **dann** die abhängigen PRs auf `main` umhängen (`gh pr edit N --base main`) und erst danach den Basis-Branch löschen — löscht man ihn vorher, schließt GitHub alle abhängigen PRs (14.09.2026: Basis-Branch kurz neu angelegt, PRs wieder geöffnet und umgehängt).
