@@ -7,8 +7,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Hackathon-Portal. Bereichs-Gate: ohne Login → /login?next=…, ohne Rolle → 404.
- * Englisch ist die Ausgangssprache (Arbeitsauftrag B7). Die Seitenleiste trägt
- * bis zu PR 28 nur den Einstieg; die weiteren Punkte kommen mit den Seiten.
+ * Englisch ist die Ausgangssprache (Arbeitsauftrag B7, Entscheidung E7).
  */
 export default async function HackathonLayout({ children }: { children: ReactNode }) {
   await requireArea("hackathon");
@@ -20,7 +19,21 @@ export default async function HackathonLayout({ children }: { children: ReactNod
       label={t.areas.hackathon.portal}
       rootHref="/hackathon"
       locale="en"
-      groups={[{ label: "", items: [{ href: "/hackathon", label: t.common.overview }] }]}
+      groups={[
+        {
+          label: "",
+          items: [
+            { href: "/hackathon", label: t.hackathon.navOverview },
+            { href: "/hackathon/challenges", label: t.hackathon.navChallenges },
+            // Bewertung und Teams beantworten die RPCs für Unbefugte mit 42501;
+            // die Seiten werden dann zu 404. Die Punkte hier zu verstecken
+            // hiesse, die Rollen zweimal zu pflegen — einmal in SQL, einmal im
+            // Menü. Eine davon wäre irgendwann falsch.
+            { href: "/hackathon/judging", label: t.hackathon.navJudging },
+            { href: "/hackathon/teams", label: t.hackathon.navTeams },
+          ],
+        },
+      ]}
     >
       {children}
     </SidebarShell>
