@@ -61,10 +61,10 @@ export default async function VokabularPage() {
               <Tbody>
                 {groups[v].map((term) => (
                   <Tr key={term.key}>
-                    <Td className="font-mono text-[13px] text-muted">{term.key}</Td>
+                    <Td className="font-mono ct-help text-muted">{term.key}</Td>
                     <Td>{term.label_de}</Td>
                     <Td className="text-muted">{term.label_en ?? t.common.none}</Td>
-                    <Td className="font-mono text-[13px] text-muted">
+                    <Td className="font-mono ct-help text-muted">
                       {term.parent_key ?? ""}
                     </Td>
                     <Td>

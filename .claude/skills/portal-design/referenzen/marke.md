@@ -38,7 +38,7 @@ Maßgeblich ist **`#6262DC`**. Das ist auch der bessere Wert: `#6262DC` erreicht
 
 Die CI-Vorgaben nennen zusätzlich die Ramp `Accent Hover #5B5BD9` und `Accent Soft #E8E8FC`; beide bleiben gültig, sie sind dunklere bzw. hellere Stufen und vom Brandbook nicht widerlegt.
 
-Das Pink ist im Portal **keine** UI-Farbe. Wenn eine Marketing-Fläche im Portal (Landing, Welcome, Bewerbungs-Highlight) es braucht: Navy-Text darauf (8,0:1), nie weißer Text, nie als Statusfarbe.
+Das Pink ist im Portal **keine** UI-Farbe. Genau eine Verwendung ist erlaubt (Entscheidung 14.09.2026): das Highlight-Wort auf Navy (Token `highlight`, `.ct-highlight text-highlight`, 8,0:1) auf Login, Welcome und Begrüßung. Als Fläche nur mit Navy-Text darauf (8,0:1), nie weißer Text, nie als Statusfarbe, nie auf hellem Grund (auf Weiß 2,2:1).
 
 ## Typografie
 

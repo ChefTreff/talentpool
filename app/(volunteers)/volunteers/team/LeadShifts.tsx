@@ -77,7 +77,7 @@ export function LeadShifts({
                   <Badge tone={TONE[p.status] ?? "neutral"}>
                     {t[`lead_${p.status}`] ?? p.status}
                   </Badge>
-                  <span className="text-[15px] text-ink">{p.name || common.none}</span>
+                  <span className="text-ink">{p.name || common.none}</span>
                 </li>
               ))}
               {s.people.length === 0 && <li className="ct-help">{t.leadNobody}</li>}

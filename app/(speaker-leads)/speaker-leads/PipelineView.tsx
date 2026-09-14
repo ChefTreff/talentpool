@@ -101,7 +101,7 @@ export function PipelineView({
           aria-pressed={status === ""}
           onClick={() => setStatus("")}
           className={cn(
-            "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold",
+            "rounded-ct-sm px-2.5 py-1.5 ct-label",
             status === ""
               ? "bg-accent-soft text-accent-deep"
               : "text-muted hover:bg-surface-hover hover:text-ink",
@@ -116,7 +116,7 @@ export function PipelineView({
             aria-pressed={status === s}
             onClick={() => setStatus(s)}
             className={cn(
-              "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold",
+              "rounded-ct-sm px-2.5 py-1.5 ct-label",
               status === s
                 ? "bg-accent-soft text-accent-deep"
                 : "text-muted hover:bg-surface-hover hover:text-ink",

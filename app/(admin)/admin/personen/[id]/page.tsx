@@ -13,8 +13,8 @@ export const dynamic = "force-dynamic";
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex justify-between gap-4 border-b py-2 last:border-0">
-      <dt className="text-[14px] text-muted">{label}</dt>
-      <dd className="text-right text-[14px]">{value || "—"}</dd>
+      <dt className="ct-small text-muted">{label}</dt>
+      <dd className="text-right ct-small">{value || "—"}</dd>
     </div>
   );
 }
@@ -63,7 +63,7 @@ export default async function PersonDetail({
 
   return (
     <div className="max-w-[1000px]">
-      <Link href="/admin/personen" className="ct-link text-[14px]">
+      <Link href="/admin/personen" className="ct-link ct-small">
         ← {d.back}
       </Link>
       <div className="mt-2">
@@ -140,7 +140,7 @@ export default async function PersonDetail({
 
         <Card>
           <h2 className="ct-h2 mb-3 text-ink">{d.emails}</h2>
-          <ul className="text-[14px]">
+          <ul className="ct-small">
             {(emails ?? []).map((e) => (
               <li key={e.email} className="flex flex-wrap items-center gap-2 py-1">
                 <span>{e.email}</span>
@@ -164,7 +164,7 @@ export default async function PersonDetail({
               </Badge>
             ))}
             {(interests ?? []).length === 0 && (
-              <span className="text-[14px] text-muted">{t.common.none}</span>
+              <span className="ct-small text-muted">{t.common.none}</span>
             )}
           </div>
 
@@ -176,7 +176,7 @@ export default async function PersonDetail({
               </Badge>
             ))}
             {(channels ?? []).length === 0 && (
-              <span className="text-[14px] text-muted">{t.common.none}</span>
+              <span className="ct-small text-muted">{t.common.none}</span>
             )}
           </div>
         </Card>
@@ -184,7 +184,7 @@ export default async function PersonDetail({
 
       <Card className="mt-4">
         <h2 className="ct-h2 mb-3 text-ink">{d.registrations}</h2>
-        <ul className="text-[14px]">
+        <ul className="ct-small">
           {(regs ?? []).map((r, idx) => {
             const evRaw = r.event as unknown;
             const ev = (Array.isArray(evRaw) ? evRaw[0] : evRaw) as

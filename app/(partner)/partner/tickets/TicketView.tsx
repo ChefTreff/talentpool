@@ -120,7 +120,7 @@ export function TicketView({
                   <div>
                     <p className="ct-label text-ink">{t.code}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <code className="rounded-ct-sm border bg-surface-hover px-2 py-1 text-[14px]">
+                      <code className="rounded-ct-sm border bg-surface-hover px-2 py-1 ct-small">
                         {a.coupon_code}
                       </code>
                       <Button size="sm" variant="secondary" onClick={() => onCopy(a.coupon_code!)}>

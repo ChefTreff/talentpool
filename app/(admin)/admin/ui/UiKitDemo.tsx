@@ -248,7 +248,7 @@ export function UiKitDemo({ t }: { t: Labels }) {
                 className="h-12 rounded-ct-sm border"
                 style={{ background: `var(${s.varName})` }}
               />
-              <p className="mt-2 font-mono text-[12px] text-muted">{s.name}</p>
+              <p className="ct-help mt-2 font-mono">{s.name}</p>
             </li>
           ))}
         </ul>

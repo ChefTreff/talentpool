@@ -319,7 +319,7 @@ function SessionCard({
                   {dateTime.format(new Date(submission.created_at))}
                 </span>
               </div>
-              <p className="text-[15px] font-semibold">{submission.title}</p>
+              <p className="font-semibold">{submission.title}</p>
               {submission.description && (
                 <p className="ct-help mt-1 whitespace-pre-line">{submission.description}</p>
               )}
@@ -340,7 +340,7 @@ function SessionCard({
           <h3 className="ct-label mb-1 text-ink">{t.finalVersion}</h3>
           {finalTitle ? (
             <>
-              <p className="text-[15px] font-semibold">{finalTitle}</p>
+              <p className="font-semibold">{finalTitle}</p>
               {finalDescription && (
                 <p className="ct-help mt-1 whitespace-pre-line">{finalDescription}</p>
               )}
@@ -435,7 +435,7 @@ function SessionCard({
             type="file"
             accept=".pdf,.ppt,.pptx,.key"
             disabled={uploading}
-            className="text-[14px]"
+            className="ct-small"
             onChange={(e) => {
               const file = e.target.files?.[0];
               // Zurücksetzen, damit dieselbe Datei erneut gewählt werden kann.
@@ -454,7 +454,7 @@ function SessionCard({
                 className="flex flex-wrap items-center justify-between gap-3 rounded-ct-md border p-3"
               >
                 <div className="min-w-0">
-                  <p className="text-[14px] font-semibold">
+                  <p className="ct-label">
                     {a.filename ?? a.storage_path.split("/").pop()}{" "}
                     <span className="ct-help">v{a.version}</span>
                   </p>
@@ -471,7 +471,7 @@ function SessionCard({
                 <div className="flex flex-wrap items-center gap-2">
                   {/* Slid@Home entscheidet nur der Speaker, nicht die Assistenz. */}
                   {!isAssistant && a.is_current && (
-                    <label className="flex items-center gap-2 text-[13px]">
+                    <label className="flex items-center gap-2 ct-help">
                       <input
                         type="checkbox"
                         className="size-4"

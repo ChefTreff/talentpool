@@ -224,7 +224,7 @@ export function ProgrammeView({
             aria-pressed={day === d}
             onClick={() => setDay(d)}
             className={cn(
-              "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold",
+              "rounded-ct-sm px-2.5 py-1.5 ct-label",
               day === d
                 ? "bg-accent-soft text-accent-deep"
                 : "text-muted hover:bg-surface-hover hover:text-ink",
@@ -238,7 +238,7 @@ export function ProgrammeView({
           aria-pressed={day === "all"}
           onClick={() => setDay("all")}
           className={cn(
-            "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold",
+            "rounded-ct-sm px-2.5 py-1.5 ct-label",
             day === "all"
               ? "bg-accent-soft text-accent-deep"
               : "text-muted hover:bg-surface-hover hover:text-ink",
@@ -637,7 +637,7 @@ function ApplyDialog({
           );
         })}
 
-        <label className="flex items-start gap-2 text-[14px]">
+        <label className="flex items-start gap-2 ct-small">
           <input
             type="checkbox"
             checked={consentShare}

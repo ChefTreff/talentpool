@@ -21,9 +21,12 @@ export default async function Home() {
         <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col justify-center gap-8 px-6 py-24">
           <div>
             <p className="ct-eyebrow text-on-navy-muted">{t.home.eyebrow}</p>
-            <h1 className="ct-h1 mt-3 text-[40px] leading-[44px] md:text-[52px] md:leading-[56px]">
+            <h1 className="ct-display mt-3">
               {t.home.titleLead}{" "}
-              <em className="ct-highlight text-accent">
+              {/* Der Akzent trägt auf Navy keinen Text (#6262DC dort 3,56:1).
+                  Das Highlight-Wort steht im Highlight-Pink des Brandbooks
+                  (Token `highlight`, 8,0:1 auf Navy) — Entscheidung 14.09.2026. */}
+              <em className="ct-highlight text-highlight">
                 {t.home.titleHighlight}
               </em>
             </h1>
@@ -38,7 +41,7 @@ export default async function Home() {
               <ButtonLink href="/login">{t.home.loginCta}</ButtonLink>
             )}
             {ctx.user && (
-              <span className="self-center text-[14px] text-on-navy-muted">
+              <span className="self-center ct-small text-on-navy-muted">
                 {t.home.loggedInAs} {ctx.user.email}
               </span>
             )}

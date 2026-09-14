@@ -48,7 +48,7 @@ export function SidebarNav({
                       href={item.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "block rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold transition-colors",
+                        "block rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors",
                         active
                           ? "bg-on-navy/15 text-on-navy"
                           : "text-on-navy-muted hover:bg-on-navy/10 hover:text-on-navy",

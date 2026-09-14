@@ -280,7 +280,7 @@ export function IntegrationsView({
                     {row.resolved && <Badge tone="success">{t.resolved}</Badge>}
                   </div>
                   {row.message && (
-                    <p className="mt-1 text-[15px] text-ink">{row.message}</p>
+                    <p className="mt-1 text-ink">{row.message}</p>
                   )}
                   <div className="mt-2 flex flex-wrap gap-2">
                     {row.payload && (

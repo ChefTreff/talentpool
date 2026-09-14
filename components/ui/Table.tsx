@@ -15,7 +15,7 @@ export function Table({
 }) {
   return (
     <div className="overflow-x-auto rounded-ct-lg border bg-surface">
-      <table className={cn("w-full border-collapse text-left text-[15px]", className)}>
+      <table className={cn("w-full border-collapse text-left", className)}>
         {children}
       </table>
     </div>

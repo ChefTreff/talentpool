@@ -35,7 +35,7 @@ export function Field({
             <span aria-hidden className="ml-0.5 text-error-ink">
               *
             </span>
-            <span className="ml-1 text-[12px] font-semibold text-muted">
+            <span className="ml-1 ct-help font-semibold">
               ({requiredLabel})
             </span>
           </>
@@ -48,7 +48,7 @@ export function Field({
         </p>
       )}
       {error && (
-        <p id={errorId} className="text-[13px] leading-5 text-error-ink">
+        <p id={errorId} className="ct-help leading-5 text-error-ink">
           {error}
         </p>
       )}

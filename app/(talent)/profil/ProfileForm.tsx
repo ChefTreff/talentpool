@@ -60,7 +60,7 @@ function CheckGroup({
             aria-pressed={active}
             onClick={() => onToggle(o.key)}
             className={cn(
-              "min-h-11 rounded-ct-md border px-3 py-1.5 text-[14px] font-semibold transition-colors",
+              "min-h-11 rounded-ct-md border px-3 py-1.5 ct-label transition-colors",
               active
                 ? "border-accent bg-accent-soft text-accent-deep"
                 : "border-border bg-surface text-ink hover:bg-surface-hover",
@@ -345,7 +345,7 @@ export function ProfileForm({
           {pending ? t.saving : t.save}
         </Button>
         {error && (
-          <p role="alert" className="text-[14px] text-error-ink">
+          <p role="alert" className="ct-small text-error-ink">
             {error}
           </p>
         )}

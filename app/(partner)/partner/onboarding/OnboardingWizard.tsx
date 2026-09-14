@@ -420,7 +420,7 @@ export function OnboardingWizard({
                           e.target.value = "";
                           if (file) void onLogo(logo, file);
                         }}
-                        className="text-[14px]"
+                        className="ct-small"
                       />
                     </Field>
                     {uploading === logo.key && <p className="ct-help mt-2">{t.logoUploading}</p>}
