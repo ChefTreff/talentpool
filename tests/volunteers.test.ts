@@ -58,6 +58,10 @@ describe("Wer Schichten sieht", () => {
       decided_at: null,
       decision_note: null,
       shifts: 0,
+      coupon_status: "none",
+      coupon_code: null,
+      redeemed_at: null,
+      undershop_id: null,
     }) satisfies VolunteerProfile;
 
   it("nur mit angenommener Bewerbung", () => {

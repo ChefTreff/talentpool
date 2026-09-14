@@ -33,6 +33,7 @@ export async function volunteerAdminShell(pathname: string): Promise<
   const items = [
     { href: "/admin/volunteers", label: t.adminVolunteers.tabApplications, exact: true },
     { href: "/admin/volunteers/schichten", label: t.adminVolunteers.tabShifts },
+    { href: "/admin/volunteers/tickets", label: t.adminVolunteers.tabTickets },
   ];
 
   const frame = (title: string, description: string, children: ReactNode) => (
