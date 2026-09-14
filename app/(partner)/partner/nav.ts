@@ -25,7 +25,8 @@ export type PartnerNavKey =
   | "tickets"
   | "applicants"
   | "stage"
-  | "shop";
+  | "shop"
+  | "wiki";
 
 export type NavInput = {
   products: readonly PartnerProduct[];
@@ -56,6 +57,8 @@ export function visibleNavKeys(input: NavInput): PartnerNavKey[] {
     "files",
     // Der Shop steht jedem Partner offen, sobald es die Edition gibt.
     "shop",
+    // Das Wiki beantwortet, was ohnehin jeder fragt — keine Produktbindung.
+    "wiki",
   ];
   if (input.has_allocations || input.products.some((p) => p.category === "tickets")) {
     keys.push("tickets");
