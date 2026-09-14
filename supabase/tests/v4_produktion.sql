@@ -8,8 +8,10 @@
 --   07 Haken auf eine nicht gebuchte Position ⇒ P0002 booth_item_not_found;
 --   08 Shop-Artikel ohne Dienstleister ⇒ P0001 supplier_required, unbekannter ⇒ supplier_unknown;
 --   09 Tabellen ohne Grants für authenticated;
---   10 Bestellliste je Dienstleister summiert über alle Stände.
--- Lauf am 13.09. gegen Frankfurt: alle zehn grün.
+--   10 Bestellliste je Dienstleister summiert über alle Stände;
+--   11 Programm-Team ist nicht Produktion (Review 14.09.): Regie auch lesend dicht;
+--   12 ein Slot einer anderen Bühne oder eines anderen Tags ⇒ 22023 invalid_cue.
+-- Lauf am 13.09. gegen Frankfurt: alle zehn grün; 14.09. mit 11–12 nach dem Review.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -137,6 +139,35 @@ begin
   -- 10 Bestellliste je Dienstleister
   select count(*) into v_n from supplier_order_list(v_ed, null);
   insert into t_res values ('10_bestellliste', v_n || ' Positionen');
+
+  -- 11 Programm-Team ist nicht Produktion (Review 14.09.): auch lesend dicht
+  delete from role_assignment where person_id = v_pid;
+  insert into role_assignment (person_id, role, scope_type, scope_id, edition_id, valid_from)
+  values (v_pid, 'programme_team', 'edition', null, v_ed, now() - interval '1 day');
+  begin
+    perform regie_view(v_stage, v_day);
+    insert into t_res values ('11_programme_team', 'ALLOWED (BUG)');
+  exception when others then
+    insert into t_res values ('11_programme_team', 'abgewiesen ' || sqlstate);
+  end;
+  delete from role_assignment where person_id = v_pid;
+  insert into role_assignment (person_id, role, scope_type, scope_id, edition_id, valid_from)
+  values (v_pid, 'production_team', 'edition', null, v_ed, now() - interval '1 day');
+
+  -- 12 Slot einer anderen Bühne oder eines anderen Tags ⇒ 22023 invalid_cue
+  select sl.id into v_slot from slot sl
+   where not (sl.stage_id = v_stage and sl.event_day_id = v_day) limit 1;
+  if v_slot is null then
+    insert into t_res values ('12_fremder_slot', 'uebersprungen (kein fremder Slot)');
+  else
+    begin
+      perform upsert_regie_cue(jsonb_build_object('id', v_cue, 'slot_id', v_slot));
+      insert into t_res values ('12_fremder_slot', 'ALLOWED (BUG)');
+    exception when others then
+      get stacked diagnostics v_detail = pg_exception_detail;
+      insert into t_res values ('12_fremder_slot', 'abgewiesen ' || sqlstate || ' ' || coalesce(v_detail, ''));
+    end;
+  end if;
 end $$;
 
 select * from t_res order by step;

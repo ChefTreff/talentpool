@@ -19,9 +19,14 @@
 -- „PartyRent" vs. „Party Rent" scheitert.
 --
 -- Fehlerschlüssel: 42501 (fremder Bereich), P0002 `<x>_not_found`,
--- 22023 `invalid_<x>`, P0001 `cue_overlap` / `supplier_unknown`.
+-- 22023 `invalid_<x>`, P0001 `supplier_unknown` / `supplier_required`.
 --
 -- Abweichungen: `regie_cue` an Bühne × Tag statt je Slot (oben begründet).
+-- Review Architektur-Session 14.09.2026: `is_production_team()` ohne
+-- `programme_team` — der Bereich `/produktion` kennt nur `production_team` und
+-- seine Leitung, und die Einkaufspreise in `supplier_order_list` gehen das
+-- Programm-Team nichts an. `slot_id` muss zu Bühne und Tag des Cues gehören.
+-- Trigger-Funktion ohne EXECUTE für authenticated (db-konventionen §4).
 set search_path = public, extensions;
 
 -- ---------------------------------------------------------------- Dienstleister
@@ -62,6 +67,7 @@ begin
   end if;
   return new;
 end $$;
+revoke execute on function trg_product_supplier() from public, anon, authenticated;
 
 drop trigger if exists product_supplier_chk on product;
 create trigger product_supplier_chk before insert or update of supplier, shop_visible
@@ -128,20 +134,22 @@ grant all on booth_service_check to service_role;
 -- ---------------------------------------------------------------- Rechte
 
 /**
- * Produktion: das Produktionsteam und das Programm-Team.
+ * Produktion: das Produktionsteam, seine Bereichsleitung, Admin.
  *
  * Bewusst **nicht** `is_staff()`: „Team" ist im Datenmodell weit (jede Person
- * mit einer Teamrolle). Regie-Notizen enthalten Namen, Handynummern im
- * Klartext und Hinweise wie „Speaker kommt zu spät" — das geht nicht jeden an.
+ * mit einer Teamrolle). Regie-Notizen enthalten Namen und Hinweise wie
+ * „Speaker kommt zu spät" — das geht nicht jeden an. Und bewusst ohne
+ * `programme_team`: der Bereich `/produktion` steht nur der Produktion offen,
+ * die Bestellliste nennt Einkaufspreise (Review 14.09.2026).
  */
 create or replace function is_production_team() returns boolean
 language sql stable security definer set search_path = public, extensions as $$
   select has_role('admin') or has_role('production_team')
-      or has_role('area_lead_production') or has_role('programme_team')
+      or has_role('area_lead_production')
 $$;
 
 comment on function is_production_team() is
-  'Produktion, deren Bereichsleitung, Programm-Team oder Admin — die einzigen Augen auf Regie und Stand-Checkliste.';
+  'Produktion, deren Bereichsleitung oder Admin — die einzigen Augen auf Regie, Stand-Checkliste und Bestellliste.';
 
 -- ---------------------------------------------------------------- Regie lesen
 
@@ -211,6 +219,12 @@ begin
       raise exception 'invalid_cue' using errcode = '22023',
         detail = 'Bühne und Tag gehören zu verschiedenen Veranstaltungen';
     end if;
+    if nullif(p_data->>'slot_id', '') is not null and not exists (
+         select 1 from slot sl where sl.id = (p_data->>'slot_id')::uuid
+            and sl.stage_id = v_stage and sl.event_day_id = v_day) then
+      raise exception 'invalid_cue' using errcode = '22023',
+        detail = 'slot_id gehört nicht zu Bühne und Tag des Cues';
+    end if;
     insert into regie_cue (stage_id, event_day_id, slot_id, cue_start, cue_end, sort_order,
                            action, umbau_min, moderation, regie, backstage, mobiliar, notes,
                            mic_assignments, media, created_by, updated_by)
@@ -226,6 +240,15 @@ begin
             current_person_id(), current_person_id())
     returning id into v_id;
   else
+    if p_data ? 'slot_id' and nullif(p_data->>'slot_id', '') is not null then
+      select c.stage_id, c.event_day_id into v_stage, v_day from regie_cue c where c.id = v_id;
+      if v_stage is null then raise exception 'cue_not_found' using errcode = 'P0002'; end if;
+      if not exists (select 1 from slot sl where sl.id = (p_data->>'slot_id')::uuid
+                        and sl.stage_id = v_stage and sl.event_day_id = v_day) then
+        raise exception 'invalid_cue' using errcode = '22023',
+          detail = 'slot_id gehört nicht zu Bühne und Tag des Cues';
+      end if;
+    end if;
     -- Teilupdate über die mitgeschickten Schlüssel: was fehlt, bleibt stehen.
     update regie_cue set
       slot_id = case when p_data ? 'slot_id' then nullif(p_data->>'slot_id', '')::uuid else slot_id end,
