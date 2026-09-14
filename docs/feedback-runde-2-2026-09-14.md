@@ -95,3 +95,40 @@ Umgesetzt in **F12**. Konrads Leitsatz dazu, er gilt über diese Seite hinaus: *
 
 1. **Pass-Typ je Partner festlegen (F12.5).** Er ist aus der Partneransicht entfernt, aber noch **nirgends** im Admin pflegbar — das Feld `org_edition.pass_type_choice` existiert weiter und wird jetzt von niemandem mehr gesetzt. Konrads Vorschlag: „bestenfalls sogar schon in HubSpot". Braucht eine Entscheidung: Feld im Partner-Admin, Zuordnung über HubSpot beim Abgleich, oder beides. **Bis dahin ist die Funktion tot.**
 2. **„Verpflichtend" (F12.2), Umfang.** Umgesetzt ist: wer die Startseite des Partner-Portals öffnet und noch im Status `invited` steht, landet im Formular. Die übrigen Seiten bleiben erreichbar — eine Sperre, aus der man nicht herauskommt, wäre keine Führung, sondern eine Falle. Falls Konrad wirklich alles sperren will, ist das eine eigene Entscheidung.
+
+---
+
+# Teil 4 (Konrad, 14.09.2026) — Messestand, Messeshop, Wiki
+
+Quelle: Konrads Nachricht vom 14.09. („Unter Formate fehlt noch die Seite Messestand …", „Nächster Bereich: Messeshop …") und die Nachfrage vom selben Abend („Mach mal mit abhaken … Außerdem hatte ich dir doch das Wiki gesendet").
+Entscheidungen der Architektur-Session dazu: Entscheidungslog, Eintrag vom 14.09. (Punkte 1–5).
+
+| Nr. | Seite | Ist | Soll | Stand |
+|---|---|---|---|---|
+| **F9.8b** | `/partner/event-app` | Schritte ohne Haken — wir sehen nicht, was in Swapcard passiert. | **Abhakbar**, als Selbstauskunft, in der Datenbank, damit die Produktion den Stand sieht. | gebaut (0093) |
+| **F10.1** | `/partner/messestand` | Seite fehlt. | Einleitung im Wortlaut von Konrad. | gebaut |
+| **F10.2** | `/partner/messestand` | — | Standardausstattung je Paket, **aus dem Produktmodell** (`product_component`), eigenes Paket hervorgehoben. | gebaut (0094) |
+| **F10.3** | `/partner/messestand` | — | „Eure Rückwand" mit Upload, Wiki-Verweis und **einer** Frist (02.04.2027) als Countdown; danach Änderungswunsch über das Portal. | gebaut (0094) |
+| **F10.4** | `/partner/messestand` | — | Hallenplan (Datei aus der Produktion) und Ausstellerliste mit Standnummern. | gebaut (0094) |
+| **F11.1** | `/partner/shop` | Bestand als nackte Zahl, Warenkorb unter dem Katalog. | „Noch N verfügbar" ab zehn Stück, „Ausverkauft" bei null; **Warenkorb oben rechts** als eigene Seite. | gebaut |
+| **F11.2** | Kasse | Keine Rechnungsdaten, keine PO. | Rechnungsdaten **anzeigen und bestätigen** (Änderung führt nach „Eure Daten"), PO-Nummer je Bestellung. | gebaut (0095) |
+| **F11.3** | `/partner/shop` | Kacheln nicht klickbar, keine Suche. | Suche über Name, Beschreibung, Hinweis und Artikelnummer; Produktseite je Artikel mit Zurück-Weg. | gebaut |
+| **F11.4** | `/partner/shop` | Historie unter dem Katalog. | Eigene Unterseite „Bestellungen" als Liste nach dem Muster der Checkliste. | gebaut |
+| **F9.6** | `/partner/wiki` | Leer. | Zehn Artikel aus dem Notion-Wiki angelegt — **als Entwurf**, siehe unten. | gebaut (0096) |
+| **F9.7** | Admin | Artikel nur als Rohtext im Feld. | Redaktionsoberfläche mit Formatierungsleiste und Vorschau; Renderer kann jetzt Tabellen, nummerierte Listen, Hinweiskästen, Trennlinien. | gebaut |
+
+## Bewusste Abweichungen (für das Review)
+
+1. **`product.area_sqm` und `product.size_note` als neue Spalten** (0094). Konrads Tabelle hat eine Spalte „Standgröße"; im Produktmodell stand sie nur im Namen und im Fliesstext. Beides liesse sich nur durch Zerlegen von Namen in eine Tabellenspalte bringen. Beide Werte sind sprachneutral (Zahl bzw. „6 m × 3 m"), die Einheit setzt die Oberfläche. Weicht ab von Entscheid 1 („Freitext über `description_de/en`").
+2. **Ausstellerliste ohne Logo** (0094). Entscheid 2 nennt das Logo; die Logos liegen im Bucket `partner-assets`, dessen Policy je Organisation greift. Sie quer lesbar zu machen, wäre ein Loch im Bucket für eine Verzierung.
+3. **Für F11.1 war keine Migration nötig.** `shop_catalogue` gibt schon heute `shop_stock_available(sku)` heraus, also Gesamtbestand abzüglich bestätigter und offener Bestellungen. Entwürfe reservieren bewusst nicht — sonst blockiert ein vergessener Warenkorb den Bestand. Entscheid 5 ist damit erfüllt; geändert hat sich nur die Anzeige.
+4. **Der Änderungswunsch nach der Frist läuft über `shop_request_product`** mit `p_sku = null`. Kein neuer Tabelle für einen Fall: das Partner-Team hat damit **eine** Anfrageliste statt zweier. Der Betreff steht im Text.
+5. **Alle Wiki-Artikel als Entwurf** (0096). Die Texte sind aus dem FLS26 und tragen dessen Daten. Veröffentlicht wären sie für 2027 falsche Auskünfte.
+6. **Drei Auslassungen beim Wiki-Import:** Konrads Mobilnummer aus dem Speaker-FAQ (private Kontaktdaten gehören nicht ins Portal), die Ausstattungstabelle aus „Hallenplan" (steht seit 0094 auf der Messestand-Seite aus dem Produktmodell) und die Notion-Anhänge (deren URLs laufen nach Minuten ab). Der DB-Schenker-Kontakt ist **drin** — Geschäftskontakt eines Dienstleisters, kein privater; bitte im Review bestätigen.
+
+## Offen für Konrad
+
+- **Wiki durchgehen und freischalten.** Zehn Entwürfe stehen unter `/admin/wiki`. Was 2027 gleich bleibt, kann direkt veröffentlicht werden; Daten und Fristen aus 2026 müssen vorher raus.
+- **Hallenplan hochladen** unter `/produktion/dateien`, sobald er da ist. Der aus 2026 liegt noch nicht im Repo — die Datei aus dem Chat war nicht mehr abrufbar.
+- **Standliste**: kommt laut Konrad in einigen Wochen aus der Produktion. Bis dahin zeigt die Seite den Leerzustand mit Erklärung.
+- **Zweites Loom für die Event-App** (`67013b2c5a1a42cfbd2ee1a045a9bc5c`) unter `/admin/videos` am Schlüssel `partner_event_app` eintragen, sobald 0092 live ist.
