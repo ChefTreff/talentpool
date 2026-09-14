@@ -1,8 +1,7 @@
 -- 0090 · Welle 4 · Check-in am Einlass (A2)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet und auf
--- die Server-Version umbenennt — `scripts/gate-pr.sh` nimmt genau dieses
--- Verzeichnis aus (Repo-Hygiene 14.09.2026).
+-- Angewendet am 14.09.2026 (Server-Version 20260914112220); bis dahin lag die
+-- Datei unter `vorschlag/`, damit das Gate grün blieb.
 --
 -- Die Tabelle `checkin` gibt es schon; sie ist leer und hatte bisher keinen
 -- Schreibweg. Hier kommen die zwei RPCs dazu, die das Kiosk braucht, und drei
