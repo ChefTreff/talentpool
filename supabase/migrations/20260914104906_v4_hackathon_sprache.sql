@@ -19,6 +19,7 @@
 -- Überladung an, und ein Aufruf mit einem Argument wäre mehrdeutig geworden
 -- (42725) — deshalb vorher `drop function`. Rechte, Fehlerschlüssel und
 -- Rückgabespalten bleiben, wie sie waren. Test unten.
+set search_path = public, extensions;
 
 drop function if exists hack_challenges(uuid);
 drop function if exists my_hack(uuid);
