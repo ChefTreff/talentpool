@@ -48,8 +48,6 @@ export default async function TalentLayout({ children }: { children: ReactNode }
       area={home.key}
       label={t.areas[home.key].portal}
       rootHref={home.path}
-      // Das Profil steht schon in „Mein Konto" unten — nicht doppelt anhängen.
-      accountLink={false}
       groups={[
         { label: "", items: [{ href: home.path, label: t.areas[home.key].portal }] },
         mine,
