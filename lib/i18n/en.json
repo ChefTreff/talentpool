@@ -22,7 +22,8 @@
     "shown": "shown",
     "active": "active",
     "inactive": "inactive",
-    "language": "Language"
+    "language": "Language",
+    "overview": "Overview"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",
@@ -169,40 +170,49 @@
     "login": "Sign in",
     "logout": "Sign out",
     "myAreas": "My areas",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "account": "My account"
   },
   "areas": {
     "talent": {
       "name": "Talent",
-      "description": "Profile, programme, applications and tickets."
+      "description": "Profile, programme, applications and tickets.",
+      "portal": "Participant Portal"
     },
     "speaker": {
       "name": "Speaker",
-      "description": "Onboarding, talk, tech rider, hospitality."
+      "description": "Onboarding, talk, tech rider, hospitality.",
+      "portal": "Speaker Portal"
     },
     "speaker-leads": {
       "name": "Speaker leads",
-      "description": "Acquisition pipeline and speakers in your scope."
+      "description": "Acquisition pipeline and speakers in your scope.",
+      "portal": "Speaker Leads Portal"
     },
     "partner": {
       "name": "Partner",
-      "description": "Checklist, uploads, contacts, expo shop."
+      "description": "Checklist, uploads, contacts, expo shop.",
+      "portal": "Partner Portal"
     },
     "volunteers": {
       "name": "Volunteers",
-      "description": "Preferences, shifts, shirt, ticket."
+      "description": "Preferences, shifts, shirt, ticket.",
+      "portal": "Volunteer Portal"
     },
     "hackathon": {
       "name": "Hackathon",
-      "description": "Application, teams, challenges, submission."
+      "description": "Application, teams, challenges, submission.",
+      "portal": "Hackathon Portal"
     },
     "produktion": {
       "name": "Production",
-      "description": "Show caller view, booths, checklists."
+      "description": "Show caller view, booths, checklists.",
+      "portal": "Production Portal"
     },
     "admin": {
       "name": "Admin",
-      "description": "People, roles, vocabulary, duplicates."
+      "description": "People, roles, vocabulary, duplicates.",
+      "portal": "Admin Portal"
     }
   },
   "placeholder": {
@@ -1638,7 +1648,16 @@
       "speakerTickets": "Speaker tickets",
       "hospitality": "Hotels",
       "deadlines": "Deadlines",
-      "tech": "Tech"
+      "tech": "Tech",
+      "sections": {
+        "participants": "Participants",
+        "speaker": "Speakers",
+        "partner": "Partners",
+        "volunteers": "Volunteers",
+        "system": "System"
+      },
+      "partnerCare": "Support & trade-show shop",
+      "volunteersWork": "Applications & shifts"
     },
     "overview": {
       "title": "Overview",
@@ -2017,6 +2036,33 @@
       "markIssue": "Report an issue",
       "saved": "Saved",
       "openFailed": "The file could not be opened."
+    },
+    "programmeTable": {
+      "tabBoard": "Calendar",
+      "tabTable": "Table",
+      "filterSearch": "Search (title, stage, speaker)",
+      "filterAllStages": "All stages",
+      "filterAllDays": "All days",
+      "filterAllStatus": "All statuses",
+      "rowCount": "{n} of {total} rows",
+      "emptyTitle": "Nothing found",
+      "emptyBody": "No slot matches these filters. Reset the filters or pick another day.",
+      "colStage": "Stage",
+      "colDay": "Day",
+      "colTime": "Time",
+      "colTitle": "Title",
+      "colFormat": "Format",
+      "colSpeakers": "Speakers",
+      "colStatus": "Status",
+      "colPublish": "Website",
+      "noSession": "No session yet",
+      "noSpeakers": "none",
+      "addSpeaker": "+ Speaker",
+      "removeSpeaker": "Remove {name}",
+      "searchPerson": "Find a person",
+      "searching": "searching …",
+      "close": "Close",
+      "saved": "Saved"
     }
   },
   "errors": {

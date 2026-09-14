@@ -1,36 +1,61 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { requireArea } from "@/lib/auth";
+import { getMyAreas, requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
-import { AreaShell } from "@/components/layout/AreaShell";
+import { SidebarShell, type SidebarGroup } from "@/components/layout/SidebarShell";
 
 export const dynamic = "force-dynamic";
 
-/** Talent-Bereich: jede eingeloggte Person, Top-Nav, mobile-first. */
+/**
+ * Teilnehmer-Portal: Programm, Anmeldungen, Profil. Offen für **jede**
+ * angemeldete Person — die Tür entscheidet `requireArea`, nicht die Rolle.
+ *
+ * Wer einen Fachbereich hat, sieht diese Seiten als Teil **seines** Portals:
+ * oben steht weiter „CHEFTREFF SPEAKER-PORTAL", und der erste Punkt führt
+ * dorthin zurück. So gibt es auf dem Weg zum Profil keine Spur eines fremden
+ * Bereichs (Feedback-Runde 1, Punkt 2; Konrads Entscheidung 13.09.).
+ */
 export default async function TalentLayout({ children }: { children: ReactNode }) {
   await requireArea("talent");
   const { t } = await getI18n();
+  const areas = await getMyAreas();
+  // `areasFor` liefert das Teilnehmer-Portal nur, wenn es das einzige ist.
+  const home = areas.find((a) => a.key !== "talent") ?? null;
 
-  const items = [
-    { href: "/programm", label: t.programme.title },
-    { href: "/meine", label: t.participation.title },
-    { href: "/profil", label: t.profile.title },
-  ];
+  const mine: SidebarGroup = {
+    label: home ? t.nav.account : "",
+    items: [
+      { href: "/programm", label: t.programme.title },
+      { href: "/meine", label: t.participation.title },
+      { href: "/profil", label: t.profile.title },
+    ],
+  };
+
+  if (!home) {
+    return (
+      <SidebarShell
+        area="talent"
+        label={t.areas.talent.portal}
+        rootHref="/profil"
+        groups={[mine]}
+      >
+        {children}
+      </SidebarShell>
+    );
+  }
 
   return (
-    <AreaShell area="talent" width="content">
-      <nav aria-label={t.areas.talent.name} className="mb-8 flex flex-wrap gap-1 border-b pb-3">
-        {items.map((i) => (
-          <Link
-            key={i.href}
-            href={i.href}
-            className="rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold text-muted transition-colors hover:bg-surface-hover hover:text-ink"
-          >
-            {i.label}
-          </Link>
-        ))}
-      </nav>
+    <SidebarShell
+      area={home.key}
+      label={t.areas[home.key].portal}
+      rootHref={home.path}
+      // Das Profil steht schon in „Mein Konto" unten — nicht doppelt anhängen.
+      accountLink={false}
+      groups={[
+        { label: "", items: [{ href: home.path, label: t.areas[home.key].portal }] },
+        mine,
+      ]}
+    >
       {children}
-    </AreaShell>
+    </SidebarShell>
   );
 }

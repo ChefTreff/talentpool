@@ -33,8 +33,8 @@ export default async function VolunteersLayout({ children }: { children: ReactNo
   return (
     <SidebarShell
       area="volunteers"
-      label={t.areas.volunteers.name}
-      groups={[{ label: t.volunteers.title, items }]}
+      label={t.areas.volunteers.portal}
+      groups={[{ label: "", items }]}
       rootHref="/volunteers"
     >
       {children}

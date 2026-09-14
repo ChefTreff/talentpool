@@ -30,7 +30,7 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
   // Ohne Organisation gibt es nichts zu navigieren; die Seite erklärt es.
   if (!current) {
     return (
-      <SidebarShell area="partner" label={t.areas.partner.name} groups={[]} rootHref="/partner">
+      <SidebarShell area="partner" label={t.areas.partner.portal} groups={[]} rootHref="/partner" locale="de">
         {children}
       </SidebarShell>
     );
@@ -78,9 +78,10 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
   return (
     <SidebarShell
       area="partner"
-      label={t.areas.partner.name}
+      label={t.areas.partner.portal}
       groups={groups}
       rootHref="/partner"
+      locale="de"
       header={
         <OrgSwitcher
           orgs={orgs.map((o) => ({ id: o.org_id, label: orgLabel(o) }))}

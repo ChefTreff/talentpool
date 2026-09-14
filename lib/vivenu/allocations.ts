@@ -113,6 +113,11 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
       // Pass und könnte ihn zum vollen Preis kaufen (12.09. in der Sandbox
       // nachgestellt). `availabilityMode: "contingentsOnly"` ändert daran
       // nichts — nur eine ausdrücklich **inaktive** Zeile blendet den Typ aus.
+      //
+      // Geschlossen wird deshalb nur, was **noch keine Zeile hat**. Eine Zeile,
+      // die jemand im Dashboard aktiviert hat, bleibt aktiv (Konrads
+      // Entscheidung 13.09.): der Sync macht die Tür zu, die niemand bedacht
+      // hat, und nicht die, die jemand absichtlich geöffnet hat.
       const closed = (t: VivenuTicketType): UnderShopTicket => ({
         baseTicket: String(t._id),
         name: String(t.name ?? "Ticket"),
@@ -165,15 +170,9 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
         }
       }
       for (const t of foreign) {
-        const existing = tickets.find((x) => x.baseTicket === String(t._id));
-        if (!existing) {
-          tickets.push(closed(t));
-          touched = true;
-        } else if (existing.active !== false) {
-          existing.active = false;
-          existing.amount = 0;
-          touched = true;
-        }
+        if (tickets.some((x) => x.baseTicket === String(t._id))) continue;
+        tickets.push(closed(t));
+        touched = true;
       }
       if (shop.maxAmount !== total) {
         shop.maxAmount = total;

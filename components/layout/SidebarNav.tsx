@@ -27,9 +27,15 @@ export function SidebarNav({
     <nav aria-label={label} className="flex flex-col gap-5">
       {groups
         .filter((g) => g.items.length > 0)
-        .map((group) => (
-          <div key={group.label}>
-            <h2 className="ct-eyebrow mb-2 px-2.5 text-on-navy-muted">{group.label}</h2>
+        .map((group, i) => (
+          // Der Index als Schlüssel: zwei Gruppen dürfen dieselbe (auch leere)
+          // Überschrift tragen, die Reihenfolge steht fest.
+          <div key={`${group.label}-${i}`}>
+            {/* Ein Bereich mit nur einer Liste braucht keine Überschrift über
+                der Liste — der Bereichsname steht schon oben links. */}
+            {group.label !== "" && (
+              <h2 className="ct-eyebrow mb-2 px-2.5 text-on-navy-muted">{group.label}</h2>
+            )}
             <ul className="flex flex-col gap-0.5">
               {group.items.map((item) => {
                 const active =

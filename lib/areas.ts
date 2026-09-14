@@ -97,12 +97,42 @@ export function canEnterArea(
   return area.roles.some((r) => roles.includes(r));
 }
 
+/**
+ * Die Bereiche, die dieser Person **gehören** — die Grundlage für Umschalter
+ * und Einstieg.
+ *
+ * Das Teilnehmer-Portal steht jeder angemeldeten Person offen und wäre damit in
+ * jeder Aufzählung dabei: eine Speakerin läse oben „Talent | Speaker", genau die
+ * Spur anderer Bereiche, die weg soll (Feedback-Runde 1, Punkt 2; Konrads
+ * Entscheidung 13.09.). Deshalb zählt es nur, wenn es der **einzige** Bereich
+ * ist. Der **Zugang** bleibt davon unberührt: `canEnterArea` lässt weiter jede
+ * angemeldete Person an `/profil` und `/programm`, und das Teilnehmer-Gerüst
+ * trägt dort den Namen des eigenen Portals.
+ */
 export function areasFor(roles: readonly string[], isStaff: boolean): Area[] {
-  return AREAS.filter((a) => canEnterArea(a, roles, isStaff));
+  const alle = AREAS.filter((a) => canEnterArea(a, roles, isStaff));
+  const fach = alle.filter((a) => a.key !== "talent");
+  return fach.length > 0 ? fach : alle;
 }
 
 /** Ziel nach dem Login, wenn `next` fehlt oder verworfen wurde. */
 export const DEFAULT_AFTER_LOGIN = "/profil";
+
+/**
+ * Wohin nach dem Login, wenn kein Ziel mitkam (Feedback-Runde 1, Punkt 2:
+ * „Login führt direkt in den einzigen Bereich"). Welche Bereiche zählen,
+ * entscheidet `areasFor` — das Teilnehmer-Portal ist nur dabei, wenn es das
+ * einzige ist.
+ *
+ * Wer Admin hat, landet dort: für das Team ist das der Arbeitsplatz, und die
+ * Reihenfolge in `AREAS` würde sonst nach Zufall entscheiden — Konrad hat
+ * Speaker- und Partner-Testrollen und wäre im Speaker-Portal gelandet
+ * (Entscheidung 13.09.). Sonst gilt der erste eigene Bereich.
+ */
+export function landingPathFor(areas: readonly Area[]): string {
+  const admin = areas.find((a) => a.key === "admin");
+  return (admin ?? areas[0])?.path ?? DEFAULT_AFTER_LOGIN;
+}
 
 /** Steuerzeichen fallen in Browsern beim URL-Parsen heraus — vorher verwerfen. */
 function hasControlChars(value: string): boolean {
