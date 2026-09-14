@@ -922,7 +922,8 @@
     "nudgeTitle": "Welcome — your details first",
     "nudgeBody": "Before we start we need your company details, description, logo and invoicing details. It takes a few minutes and you can change everything later.",
     "nudgeAction": "Fill in now",
-    "nudgeLater": "Later"
+    "nudgeLater": "Later",
+    "navEventApp": "Event app"
   },
   "partnerContacts": {
     "title": "Contacts",
@@ -2346,5 +2347,43 @@
     "fieldAudienceHint": "Comma separated: partner, speaker, talent, volunteer, hackathon.",
     "fieldEdition": "Edition",
     "fieldEditionHint": "Leave empty if the video applies to every edition. An edition version beats the general one."
+  },
+  "partnerEventApp": {
+    "title": "Event app",
+    "lead": "Your presence in the app, and how you get to your leads.",
+    "appTitle": "The app is Swapcard",
+    "appBody": "Everything on site runs there: your exhibitor profile, your team, the participant list and lead scanning. You sign in with the email address your ticket is personalised to. The app opens to participants in mid-March — your profile should be ready by then.",
+    "appAction": "Go to the event app",
+    "wikiHint": "More in the wiki under Event app",
+    "stepsTitle": "What to do in the app",
+    "stepsLead": "6 steps",
+    "videoTitle": "How to set up your presence",
+    "steps": [
+      {
+        "title": "Complete your profile",
+        "body": "Go to the exhibitor area of the app and fill in your profile completely. Add links to your careers page and social channels, a header image and further information."
+      },
+      {
+        "title": "Add your team",
+        "body": "Best through the partner portal under “Contacts”. You can also add team members directly in the app — but only once they have personalised a ticket to their email address."
+      },
+      {
+        "title": "Complete your colleagues’ profiles",
+        "body": "Ideally every team member’s profile is filled in properly, so participants can see straight away who they are talking to."
+      },
+      {
+        "title": "Turn on contact sharing",
+        "body": "Important: in each profile, make sure contacts are shared with the team. Otherwise you will not be able to access your leads afterwards. The wiki explains how.",
+        "important": true
+      },
+      {
+        "title": "Post open roles",
+        "body": "Under “Open roles” you can add positions. We recommend at most three, and ones that are appealing and representative. A traineeship or a project manager role speaks to a broad audience — very specific roles put people off at first."
+      },
+      {
+        "title": "Find matching profiles",
+        "body": "The app goes live in mid-March. Under “Participants” you can then filter profiles by various criteria, among them field of study and work experience. Use it to identify suitable talent and reach out with a pointer to your presence. More tips are in the wiki under Event app."
+      }
+    ]
   }
 }

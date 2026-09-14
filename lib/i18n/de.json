@@ -922,7 +922,8 @@
     "nudgeTitle": "Willkommen — einmal kurz eure Daten",
     "nudgeBody": "Bevor es losgeht, brauchen wir Stammdaten, Beschreibung, Logo und Rechnungsdaten. Das dauert ein paar Minuten und ihr könnt jederzeit ändern.",
     "nudgeAction": "Jetzt ausfüllen",
-    "nudgeLater": "Später"
+    "nudgeLater": "Später",
+    "navEventApp": "Event-App"
   },
   "partnerContacts": {
     "title": "Kontakte",
@@ -2346,5 +2347,43 @@
     "fieldAudienceHint": "Kommagetrennt: partner, speaker, talent, volunteer, hackathon.",
     "fieldEdition": "Edition",
     "fieldEditionHint": "Leer lassen, wenn das Video für jede Edition gilt. Eine Editionsfassung sticht die allgemeine."
+  },
+  "partnerEventApp": {
+    "title": "Event-App",
+    "lead": "Euer Auftritt in der App und wie ihr an eure Leads kommt.",
+    "appTitle": "Die App ist Swapcard",
+    "appBody": "Dort läuft vor Ort alles: euer Ausstellerprofil, euer Team, die Teilnehmerliste und das Scannen der Leads. Ihr meldet euch mit der Mailadresse an, auf die euer Ticket personalisiert ist. Ab Mitte März ist die App für Teilnehmende offen — euer Profil solltet ihr bis dahin fertig haben.",
+    "appAction": "Zur Event-App",
+    "wikiHint": "Mehr im Wiki unter Event-App",
+    "stepsTitle": "Was ihr in der App erledigen solltet",
+    "stepsLead": "6 Schritte",
+    "videoTitle": "So richtet ihr euren Auftritt ein",
+    "steps": [
+      {
+        "title": "Füllt euer Profil aus",
+        "body": "Geht in den Exhibitor-Bereich der App und füllt euer Profil vollständig aus. Ergänzt Links zu eurer Karriere-Seite und zu euren Social-Kanälen, ein Header-Bild und weitere Informationen."
+      },
+      {
+        "title": "Fügt euer Team hinzu",
+        "body": "Am besten über das Partner-Portal unter „Kontakte“. Alternativ könnt ihr Team-Mitglieder auch direkt in der App hinzufügen — das geht allerdings erst, wenn sie bereits ein Ticket auf ihre Mailadresse personalisiert haben."
+      },
+      {
+        "title": "Füllt die Profile der Mitarbeitenden aus",
+        "body": "Am besten sind auch die Profile aller Teammitglieder richtig ausgefüllt, sodass Teilnehmende direkt sehen, mit wem sie sprechen."
+      },
+      {
+        "title": "Stellt das Teilen der Kontakte ein",
+        "body": "Wichtig: Stellt in den einzelnen Profilen unbedingt ein, dass die Kontakte mit dem Team geteilt werden. Sonst könnt ihr im Anschluss nicht auf die Leads zugreifen. Wie das geht, steht im Wiki.",
+        "important": true
+      },
+      {
+        "title": "Legt offene Stellen an",
+        "body": "Unter „Offene Stellen“ könnt ihr verschiedene Positionen ergänzen. Wir empfehlen höchstens drei Stellen, die ansprechend und repräsentativ sind. Nehmt lieber ein Traineeship oder eine Projektmanager-Rolle, die eine breite Zielgruppe anspricht — zu spezielle Rollen schrecken erst einmal ab."
+      },
+      {
+        "title": "Sucht passende Profile",
+        "body": "Ab Mitte März geht die App live. Dann könnt ihr unter „Teilnehmer“ die Profile nach verschiedenen Merkmalen filtern, unter anderem nach Studienhintergrund und Berufserfahrung. Nutzt das, um passende Talente zu finden, und schreibt sie mit einem Verweis auf eure Präsenz an. Mehr Tipps stehen im Wiki unter Event-App."
+      }
+    ]
   }
 }

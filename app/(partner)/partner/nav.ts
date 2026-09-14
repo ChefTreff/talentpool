@@ -23,6 +23,7 @@ export type PartnerNavKey =
   | "checklist"
   | "files"
   | "tickets"
+  | "eventapp"
   | "applicants"
   | "stage"
   | "shop"
@@ -57,6 +58,11 @@ export function visibleNavKeys(input: NavInput): PartnerNavKey[] {
     "files",
     // Der Shop steht jedem Partner offen, sobald es die Edition gibt.
     "shop",
+    // Die Event-App gilt für jeden Partner: jede Organisation steht in
+    // Swapcard, und wer die Lead-Einstellung verpasst, kommt hinterher nicht
+    // mehr an seine Kontakte. Den Punkt zu verstecken wäre teurer als ihn
+    // jemandem zu zeigen, der ihn nicht braucht.
+    "eventapp",
     // Das Wiki beantwortet, was ohnehin jeder fragt — keine Produktbindung.
     "wiki",
   ];
