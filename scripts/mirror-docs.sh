@@ -14,6 +14,10 @@ docs/makecom-webhooks-2026-09-08.md|04_Tool-Landscape & Integrationen/make.com �
 docs/vivenu-support-anfrage.md|04_Tool-Landscape & Integrationen/Vivenu-Support-Anfrage (Entwurf, 2026-09-08).md
 docs/zugangs-liste.md|04_Tool-Landscape & Integrationen/Zugangs- und Token-Liste (ohne Werte, Claude, laufend).md
 docs/feedback-fls26.md|05_Requirements (Team-Input)/Feedback FLS26 — Register mit Konsequenzen (Claude, 2026-09-08).md
+docs/feedback-runde-1-2026-09-11.md|05_Requirements (Team-Input)/Feedback-Runde 1 — Konrad (2026-09-11).md
+docs/feedback-runde-1-abgleich.md|05_Requirements (Team-Input)/Abgleich Alt-Portale gegen neues Portal (Claude, 2026-09-14).md
+docs/feedback-runde-2-2026-09-14.md|05_Requirements (Team-Input)/Feedback-Runde 2 — Konrad (2026-09-14).md
+docs/speaker-felder-abgleich-2026-09-15.md|05_Requirements (Team-Input)/Speaker-Felder — Paulinas Master-Liste gegen unser Datenmodell (Claude, 2026-09-15).md
 docs/design-briefing.md|07_Mockups & Design/Design-Briefing v0.3 (Claude, 2026-09-08).md
 docs/entscheidungen.md|08_Projektplan & MVP/Entscheidungslog (Claude, laufend).md
 docs/abschluss-checkliste.md|08_Projektplan & MVP/Abschluss-Checkliste (Claude, laufend).md
