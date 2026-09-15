@@ -1,5 +1,7 @@
 /** Antwort aus `my_manager_scope()`. */
 export type ManagerScope = {
+  /** Die eigene Person (seit Migration 0104) — entscheidet, ob die Übergabe angeboten wird. */
+  person_id: string;
   /** Team im Sinne der Speaker-Betreuung — sieht und darf alles. */
   team: boolean;
   /** Kein Scope-Filter nötig (Team oder globaler Manager). */
@@ -27,6 +29,9 @@ export type ManagerScope = {
   }[];
   owned_profiles: number;
 };
+
+/** Eine Lead-Person aus `speaker_managers()`. */
+export type ManagerOption = { person_id: string; display_name: string | null };
 
 /** Eine Session, an der der Speaker hängt (aus `manager_speakers`). */
 export type SpeakerSession = {

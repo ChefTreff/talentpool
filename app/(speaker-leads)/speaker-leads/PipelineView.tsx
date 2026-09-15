@@ -11,7 +11,7 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { cn } from "@/components/ui/cn";
 import { NewSpeakerDrawer } from "./NewSpeakerDrawer";
 import { SpeakerDrawer } from "./SpeakerDrawer";
-import { PIPELINE_ORDER, type ManagedSpeaker, type ManagerScope } from "./types";
+import { PIPELINE_ORDER, type ManagedSpeaker, type ManagerOption, type ManagerScope } from "./types";
 
 type Strings = Record<string, string>;
 
@@ -29,6 +29,7 @@ const PIPELINE_TONE: Record<string, BadgeTone> = {
 export function PipelineView({
   scope,
   speakers,
+  managers,
   labels,
   locale,
   dateLocale,
@@ -38,6 +39,7 @@ export function PipelineView({
 }: {
   scope: ManagerScope;
   speakers: ManagedSpeaker[];
+  managers: ManagerOption[];
   labels: Record<string, Record<string, string>>;
   locale: Locale;
   dateLocale: string;
@@ -217,6 +219,8 @@ export function PipelineView({
           key={selected.id}
           speaker={selected}
           isTeam={scope.team}
+          managers={managers}
+          meId={scope.person_id}
           labels={labels}
           locale={locale}
           dateLocale={dateLocale}
