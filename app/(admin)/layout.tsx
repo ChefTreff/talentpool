@@ -67,6 +67,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         { href: "/admin/personen", label: nav.persons },
         { href: "/admin/rollen", label: nav.roles },
         { href: "/admin/fristen", label: nav.deadlines },
+        { href: "/admin/ansprechpartner", label: nav.contacts },
         { href: "/admin/vokabular", label: nav.vocab },
         { href: "/admin/dubletten", label: nav.duplicates },
         { href: "/admin/mail", label: nav.mail },

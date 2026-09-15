@@ -130,6 +130,12 @@ const BUSINESS_KEYS = new Set([
   "invalid_quantity",
   "invalid_sku",
   "fields_required",
+  // Ansprechpartner und Auskünfte (0091)
+  "invalid_contact_type",
+  "invalid_contact",
+  "contact_not_found",
+  "invalid_audience",
+  "info_not_found",
   "note_required",
   "allocation_not_found",
   "request_not_found",
@@ -149,7 +155,10 @@ const BUSINESS_KEYS = new Set([
   "shift_not_found",
   "day_not_found",
   "invalid_barcode",
-  // Messestand und Editionsdateien (Migration 0094)
+  // Ansprechpartner und Fotos (Migration 0091)
+  "file_too_large",
+  "upload_failed",
+  // Messestand und Editionsdateien (Migration 20260915115415)
   "edition_file_not_found",
   "invalid_path",
 ]);
