@@ -1,6 +1,6 @@
 -- 0101 · Welle 5 · Regie auch für die Speaker-Leads (Konrad, 15.09.)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 15.09.2026 nach Review.
 --
 -- Konrad zur Struktur der Speaker-Portale: „Wichtig ist, dass sie auch eine
 -- Regieübersicht haben, wo sie Regieanweisungen für die Slots hinzufügen, die

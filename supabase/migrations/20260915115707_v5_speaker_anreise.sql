@@ -1,6 +1,6 @@
 -- 0098 · Welle 5 · An- und Abreise der Speaker (Abgleich 15.09., Punkt 1)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 15.09.2026 nach Review.
 --
 -- Bisher landeten Ankunftszeit und Zugnummer bestenfalls als Freitext im
 -- `details`-JSON einer Shuttle-Buchung. Daraus lässt sich keine Ankunftsliste

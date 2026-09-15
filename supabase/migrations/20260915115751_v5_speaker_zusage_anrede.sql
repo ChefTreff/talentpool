@@ -1,6 +1,6 @@
 -- 0099 · Welle 5 · Zusage, Absage und Briefanrede (Abgleich 15.09., Punkte 3+4)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 15.09.2026 nach Review.
 --
 -- **Zusage und Absage mit Zeitpunkt.** `pipeline_status` kannte `confirmed`
 -- und `declined`, aber keinen Zeitstempel. Wir wussten also, *dass* jemand

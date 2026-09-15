@@ -1,6 +1,6 @@
 -- 0100 · Welle 5 · Ernährung und Catering (Abgleich 15.09., Punkt 2)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 15.09.2026 nach Review.
 --
 -- Zwei Angaben, aus zwei Gründen getrennt:
 --

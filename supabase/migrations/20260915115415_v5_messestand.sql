@@ -1,6 +1,6 @@
 -- 0094 · Welle 5 · Messestand: Standgrößen, Editionsdateien, Ausstellerliste (F10)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 15.09.2026 nach Review.
 --
 -- Vier Dinge, die die Seite `/partner/messestand` braucht:
 --

@@ -89,6 +89,13 @@ begin
     case when v_n = 300 then 'auf 300 Zeichen gekuerzt (richtig)' else 'unerwartet ' || v_n end);
 
   -- --- Löschfrist -----------------------------------------------------------
+  -- `purge_diet_data` ist Housekeeping, keine Produktionsaufgabe: sie erlaubt
+  -- den Cron (ohne JWT), `admin` und `programme_team`. Nach Schritt 07 hat die
+  -- Testperson nur `production_team` — ohne diese Zeile bräche der Abschnitt
+  -- mit 42501 ab (Fund der Architektur-Session beim Lauf gegen die
+  -- angewendete Fassung).
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
+
   -- Die Testperson hängt an FLS27, damit Schritt 11 auch etwas prüft: ohne
   -- Edition wäre sie nach der Regel fällig, und das wäre richtig so.
   insert into speaker_profile (person_id, edition_id, speaker_type, pipeline_status)
