@@ -808,7 +808,14 @@
     "declinedOn": "Absage am",
     "declineReason": "Grund der Absage",
     "declineReasonHint": "Hilft bei der Planung der nächsten Edition.",
-    "declineConfirm": "Absage eintragen"
+    "declineConfirm": "Absage eintragen",
+    "regieLead": "Der Ablaufplan eurer Bühne — Techniker und Stage Hands bekommen ihn ausgedruckt.",
+    "regieEmptyTitle": "Keine Bühne zugeordnet",
+    "regieEmptyBody": "Hier erscheint der Ablaufplan, sobald euch eine Bühne zugeordnet ist und der Tag Slots hat.",
+    "regiePrint": "Druckansicht öffnen",
+    "regieCsv": "Als CSV herunterladen",
+    "regiePrintedAt": "Stand: {date}",
+    "navRegie": "Regie"
   },
   "leadSubmissions": {
     "submitted": "Eingereicht",

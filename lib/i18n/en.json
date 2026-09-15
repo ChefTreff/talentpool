@@ -808,7 +808,14 @@
     "declinedOn": "Declined on",
     "declineReason": "Reason for declining",
     "declineReasonHint": "Helps when planning the next edition.",
-    "declineConfirm": "Record the decline"
+    "declineConfirm": "Record the decline",
+    "regieLead": "The running order for your stage — technicians and stage hands get it on paper.",
+    "regieEmptyTitle": "No stage assigned",
+    "regieEmptyBody": "The running order appears here once a stage is assigned to you and the day has slots.",
+    "regiePrint": "Open print view",
+    "regieCsv": "Download as CSV",
+    "regiePrintedAt": "As of {date}",
+    "navRegie": "Running order"
   },
   "leadSubmissions": {
     "submitted": "Submitted",

@@ -1,34 +1,7 @@
 /** Zeilen der Produktions-RPCs (Migration 0082). */
 
-export type RegieCue = {
-  cue_id: string;
-  cue_start: string;
-  cue_end: string;
-  sort_order: number;
-  action: string;
-  umbau_min: number | null;
-  moderation: string | null;
-  regie: string | null;
-  backstage: string | null;
-  mobiliar: string | null;
-  notes: string | null;
-  mic_assignments: Record<string, unknown>;
-  media: Record<string, unknown>;
-  slot_id: string | null;
-  slot_status: string | null;
-  session_id: string | null;
-  title: string | null;
-  format: string | null;
-  speakers: { person_id: string; first_name: string | null; last_name: string | null }[] | null;
-};
-
-export type OpenSlot = {
-  slot_id: string;
-  start_at: string;
-  end_at: string;
-  title: string | null;
-  format: string | null;
-};
+// Regie-Typen liegen seit 0101 geteilt in `components/regie/types.ts`.
+export type { RegieCue, OpenSlot } from "@/components/regie/types";
 
 export type BoothItem = {
   org_edition_id: string;
