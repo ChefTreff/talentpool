@@ -6,10 +6,10 @@ import { AREAS, areasFor, canEnterArea, landingPathFor, safeNextPath, type AreaK
  * `requireAnyArea` selbst braucht eine Session; die Entscheidung dahinter ist
  * aber rein: „öffnet dieses Rollenset einen der genannten Bereiche?"
  */
-function opensAny(keys: AreaKey[], roles: string[], isStaff = false): boolean {
+function opensAny(keys: AreaKey[], roles: string[]): boolean {
   return keys.some((key) => {
     const area = AREAS.find((a) => a.key === key);
-    return area ? canEnterArea(area, roles, isStaff) : false;
+    return area ? canEnterArea(area, roles) : false;
   });
 }
 
@@ -20,8 +20,11 @@ describe("Bereichs-Gate", () => {
     assert.equal(opensAny(BOARD, ["speaker_manager"]), true);
     assert.equal(opensAny(BOARD, ["area_lead_speaker"]), true);
     assert.equal(opensAny(BOARD, ["admin"]), true);
-    // Team im Sinne von `is_staff()` — die Rolle steht in SQL, nicht hier.
-    assert.equal(opensAny(BOARD, ["programme_team"], true), true);
+    // Das Programm-Team kommt seit 15.09. über den eigenen Bereich ans Board:
+    // die RPCs dahinter (`manager_speakers`, `speaker_travel_list`,
+    // `speaker_managers`) lassen es ohnehin durch — Gate und Funktion gehören
+    // zusammen.
+    assert.equal(opensAny(BOARD, ["programme_team"]), true);
   });
 
   it("hält alle anderen draußen", () => {
@@ -64,30 +67,31 @@ describe("Einstieg nach dem Login (F1)", () => {
   it("führt in den eigenen Fachbereich, nicht ins Teilnehmer-Portal", () => {
     // Jede angemeldete Person hat zusätzlich das Teilnehmer-Portal — es darf
     // den Fachbereich nicht verdrängen.
-    assert.equal(landingPathFor(areasFor(["speaker"], false)), "/speaker");
-    assert.equal(landingPathFor(areasFor(["partner_contact"], false)), "/partner");
-    assert.equal(landingPathFor(areasFor(["volunteer"], false)), "/volunteers");
-    assert.equal(landingPathFor(areasFor(["production_team"], false)), "/produktion");
+    assert.equal(landingPathFor(areasFor(["speaker"])), "/speaker");
+    assert.equal(landingPathFor(areasFor(["partner_contact"])), "/partner");
+    assert.equal(landingPathFor(areasFor(["volunteer"])), "/volunteers");
+    assert.equal(landingPathFor(areasFor(["production_team"])), "/produktion");
   });
 
   it("bleibt beim Teilnehmer-Portal, wenn es der einzige Bereich ist", () => {
-    assert.equal(landingPathFor(areasFor([], false)), "/profil");
+    assert.equal(landingPathFor(areasFor([])), "/profil");
   });
 
   it("führt das Team nach Admin, auch mit Testrollen in anderen Bereichen", () => {
     // Ohne diese Regel entschiede die Reihenfolge in AREAS: Speaker steht vor
     // Admin, also wäre Konrad mit seinen Testrollen im Speaker-Portal gelandet.
-    assert.equal(landingPathFor(areasFor([], true)), "/admin");
-    assert.equal(landingPathFor(areasFor(["speaker", "partner_contact"], true)), "/admin");
+    // „Team" heisst seit 0107 die Rolle `admin` und nicht mehr `is_staff()`.
+    assert.equal(landingPathFor(areasFor(["admin"])), "/admin");
+    assert.equal(landingPathFor(areasFor(["admin", "speaker", "partner_contact"])), "/admin");
     // Ohne Admin gilt weiter der erste eigene Bereich.
-    assert.equal(landingPathFor(areasFor(["speaker", "partner_contact"], false)), "/speaker");
+    assert.equal(landingPathFor(areasFor(["speaker", "partner_contact"])), "/speaker");
   });
 });
 
 describe("Bereiche zählen (F8.3: Auswahl im Menü)", () => {
   it("gibt einer reinen Teilnehmerin genau ihr Portal", () => {
     assert.deepEqual(
-      areasFor([], false).map((a) => a.key),
+      areasFor([]).map((a) => a.key),
       ["talent"],
     );
   });
@@ -97,11 +101,11 @@ describe("Bereiche zählen (F8.3: Auswahl im Menü)", () => {
     // „Talent | Speaker" stand. Konrad hat das am 14.09. zurückgenommen: das
     // Teilnehmer-Portal ist das Front-End des Talent-CRM und gilt übergreifend.
     assert.deepEqual(
-      areasFor(["speaker"], false).map((a) => a.key),
+      areasFor(["speaker"]).map((a) => a.key),
       ["talent", "speaker"],
     );
     assert.deepEqual(
-      areasFor(["volunteer"], false).map((a) => a.key),
+      areasFor(["volunteer"]).map((a) => a.key),
       ["talent", "volunteers"],
     );
   });
@@ -109,14 +113,15 @@ describe("Bereiche zählen (F8.3: Auswahl im Menü)", () => {
   it("lässt den Einstieg trotzdem im Fachbereich (F8.7)", () => {
     // Sichtbarkeit hat sich geändert, der Einstieg nicht: wer einen
     // Fachbereich hat, landet dort und nicht im Teilnehmer-Portal.
-    assert.equal(landingPathFor(areasFor(["speaker"], false)), "/speaker");
-    assert.equal(landingPathFor(areasFor(["volunteer"], false)), "/volunteers");
+    assert.equal(landingPathFor(areasFor(["speaker"])), "/speaker");
+    assert.equal(landingPathFor(areasFor(["volunteer"])), "/volunteers");
   });
 
   it("zeigt dem Team weiterhin alle seine Bereiche", () => {
+    // Seit 0107 macht die Rolle `admin` das Team aus, nicht mehr `is_staff()`.
     assert.deepEqual(
-      areasFor(["speaker_manager"], true).map((a) => a.key),
-      ["talent", "speaker-leads", "admin"],
+      areasFor(["speaker_manager", "admin"]).map((a) => a.key),
+      ["talent", "speaker", "speaker-leads", "partner", "volunteers", "hackathon", "produktion", "admin", "checkin"],
     );
   });
 
@@ -124,8 +129,8 @@ describe("Bereiche zählen (F8.3: Auswahl im Menü)", () => {
     // `areasFor` steuert nur Umschalter und Einstieg — die Tür zu /profil
     // öffnet weiterhin `canEnterArea`.
     const talent = AREAS.find((a) => a.key === "talent")!;
-    assert.equal(canEnterArea(talent, ["speaker"], false), true);
-    assert.equal(canEnterArea(talent, [], false), true);
+    assert.equal(canEnterArea(talent, ["speaker"]), true);
+    assert.equal(canEnterArea(talent, []), true);
   });
 });
 
@@ -133,7 +138,7 @@ describe("Kiosk am Einlass (B4/E8)", () => {
   const kiosk = ["checkin_operator"];
 
   it("öffnet dem Gerätekonto genau einen Bereich", () => {
-    const areas = areasFor(kiosk, false);
+    const areas = areasFor(kiosk);
     assert.deepEqual(
       areas.map((a) => a.key),
       ["checkin"],
@@ -163,7 +168,7 @@ describe("Kiosk am Einlass (B4/E8)", () => {
     assert.equal(opensAny(["checkin"], []), false);
     assert.equal(opensAny(["checkin"], ["volunteer"]), false);
     // Team ist nicht automatisch Einlass: die Rolle wird je Gerät vergeben.
-    assert.equal(opensAny(["checkin"], ["production_team"], true), false);
+    assert.equal(opensAny(["checkin"], ["production_team"]), false);
     // Admin global öffnet weiterhin alles.
     assert.equal(opensAny(["checkin"], ["admin"]), true);
   });
@@ -171,8 +176,8 @@ describe("Kiosk am Einlass (B4/E8)", () => {
 
 describe("Portalauswahl in der Seitenleiste (F8.6)", () => {
   /** Was `SidebarShell` als Portalliste anbietet. */
-  const portale = (roles: string[], isStaff = false) =>
-    areasFor(roles, isStaff)
+  const portale = (roles: string[]) =>
+    areasFor(roles)
       .filter((a) => a.key !== "admin" && a.key !== "checkin")
       .map((a) => a.key);
 
@@ -180,12 +185,12 @@ describe("Portalauswahl in der Seitenleiste (F8.6)", () => {
     // Admin ist die Verwaltung hinter den Portalen und steht unten in der
     // Leiste; der Einlass ist eine Geräte-App, das Kiosk-Konto landet direkt
     // dort und das Team erreicht ihn über den Admin-Bereich.
-    const alle = portale([], true);
+    const alle = portale(["admin"]);
     assert.equal(alle.includes("admin"), false);
     assert.equal(alle.includes("checkin"), false);
     // Mit globalem Admin öffnet `canEnterArea` jeden Bereich — gerade dann
     // dürfen die beiden nicht in der Liste stehen.
-    const konrad = portale(["admin"], true);
+    const konrad = portale(["admin", "speaker"]);
     assert.equal(konrad.includes("admin"), false);
     assert.equal(konrad.includes("checkin"), false);
     assert.equal(konrad.includes("speaker"), true);

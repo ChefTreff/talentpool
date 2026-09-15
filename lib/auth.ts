@@ -132,7 +132,7 @@ export async function requireArea(
 
   const ctx = await getSessionContext();
   if (!ctx.user) redirect(loginUrl(pathname ?? area.path));
-  if (!canEnterArea(area, ctx.roleNames, ctx.isStaff)) notFound();
+  if (!canEnterArea(area, ctx.roleNames)) notFound();
   return ctx;
 }
 
@@ -158,18 +158,18 @@ export async function requireAnyArea(
 
   const ctx = await getSessionContext();
   if (!ctx.user) redirect(loginUrl(pathname ?? areas[0].path));
-  if (!areas.some((area) => canEnterArea(area, ctx.roleNames, ctx.isStaff))) notFound();
+  if (!areas.some((area) => canEnterArea(area, ctx.roleNames))) notFound();
   return ctx;
 }
 
-/** Team-Zugriff = Admin-Bereich. Die Team-Definition lebt in SQL `is_staff()`. */
+/** Team-Zugriff = Admin-Bereich. Team heisst seit 0107: aktive Rolle `admin`. */
 export async function requireStaff(pathname?: string): Promise<SessionContext> {
   return requireArea("admin", pathname);
 }
 
 /** Für den Bereichs-Umschalter: nur Bereiche, für die eine Rolle vorliegt. */
 export async function getMyAreas(): Promise<Area[]> {
-  const { user, roleNames, isStaff } = await getSessionContext();
+  const { user, roleNames } = await getSessionContext();
   if (!user) return [];
-  return areasFor(roleNames, isStaff);
+  return areasFor(roleNames);
 }
