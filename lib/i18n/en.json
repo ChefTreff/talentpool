@@ -180,7 +180,8 @@
     "info_not_found": "That entry does not exist.",
     "file_too_large": "The file is too large. 5 MB at most.",
     "invalid_owner": "This person does not look after speakers. Please choose a lead.",
-    "upload_failed": "The upload did not work. Please try again."
+    "upload_failed": "The upload did not work. Please try again.",
+    "invalid_pass_type_choice": "No such pass type. Talent or startup only."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1661,7 +1662,13 @@
     "lastName": "Last name",
     "contactPosition": "Position",
     "contactRole_event_app_member": "Event app",
-    "colEventApp": "Event app"
+    "colEventApp": "Event app",
+    "ticketPassLabel": "Pass type for talent tickets",
+    "ticketPassHint": "Decides which pass the talent tickets are created as in vivenu.",
+    "ticketPassFallback": "From the partner category",
+    "ticketPassTalent": "Talent pass",
+    "ticketPassStartup": "Startup pass",
+    "ticketPassAllocations": "allocations follow."
   },
   "adminVolunteers": {
     "title": "Volunteers",

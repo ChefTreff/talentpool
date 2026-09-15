@@ -16,6 +16,7 @@ import {
   revokeStageEditor,
   saveBooth,
   setOnboardingStatus,
+  setPassTypeChoice,
 } from "../actions";
 import { ONBOARDING_STATUS } from "../types";
 import type {
@@ -77,6 +78,7 @@ export function OrgDetail({
   const editionId = overview.edition?.edition_id ?? null;
 
   const [status, setStatus] = useState(overview.edition?.onboarding_status ?? "none");
+  const [passType, setPassType] = useState(overview.edition?.pass_type_choice ?? "");
   const [contact, setContact] = useState({ email: "", first: "", last: "", position: "", role: "additional" });
   const [booth, setBooth] = useState({
     booth_number: overview.booth?.booth_number ?? "",
@@ -167,6 +169,60 @@ export function OrgDetail({
           </Button>
         </div>
         <p className="ct-help mt-2">{t.statusHint}</p>
+
+        {/* Pass-Typ der Talente-Tickets.
+
+            Steht hier und nicht bei den Kontingenten, weil er zur Edition des
+            Partners gehört und nicht zum einzelnen Kontingent — und weil er
+            beim Anlegen aus der Partnerkategorie vorbelegt wird (Migration
+            0105). „Aus der Partnerkategorie" ist ein eigener Eintrag und nicht
+            dasselbe wie „Talent": er folgt dem Org-Typ, auch wenn der sich
+            später ändert. */}
+        <div className="mt-4 flex flex-wrap items-end gap-2 border-t pt-4">
+          <Field label={t.ticketPassLabel} htmlFor="pass-type" hint={t.ticketPassHint}>
+            <Select
+              id="pass-type"
+              className="w-56"
+              value={passType}
+              placeholder={t.ticketPassFallback}
+              options={[
+                { value: "talent", label: t.ticketPassTalent },
+                { value: "startup", label: t.ticketPassStartup },
+              ]}
+              onChange={(e) => setPassType(e.target.value)}
+            />
+          </Field>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={
+              pending ||
+              !overview.edition ||
+              passType === (overview.edition?.pass_type_choice ?? "")
+            }
+            onClick={() =>
+              startTransition(async () => {
+                const res = await setPassTypeChoice(orgId, passType, editionId);
+                if (!res.ok) {
+                  toast("error", message(res.key ?? "unknown") + (res.detail ? ` (${res.detail})` : ""));
+                  return;
+                }
+                // Die Kontingente ziehen über den Trigger nach. Das sagen wir,
+                // statt es still geschehen zu lassen — an einem aktiven
+                // Kontingent hängt ein Coupon in vivenu.
+                toast(
+                  "success",
+                  res.data.allocations > 0
+                    ? `${t.saved} ${res.data.allocations} ${t.ticketPassAllocations}`
+                    : t.saved,
+                );
+                router.refresh();
+              })
+            }
+          >
+            {common.save}
+          </Button>
+        </div>
 
         <dl className="mt-4 grid gap-2 md:grid-cols-3">
           <div>

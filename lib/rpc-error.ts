@@ -160,6 +160,8 @@ const BUSINESS_KEYS = new Set([
   "upload_failed",
   // Speaker-Uebergabe (Migration 0103)
   "invalid_owner",
+  // Pass-Typ je Partner (Migration 0105)
+  "invalid_pass_type_choice",
   // Messestand und Editionsdateien (Migration 20260915115415)
   "edition_file_not_found",
   "invalid_path",

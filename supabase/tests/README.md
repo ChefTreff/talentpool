@@ -58,6 +58,8 @@ Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Edito
 
 | `v5_admin_speaker.sql` | 0103 (20260915123741) | Lead-Person kann `owner_person_id` nicht mehr ueber `update_speaker` setzen (`team_only_fields`), das Team schon; weiterreichen darf nur, wer heute selbst betreut; Empfaenger ohne Lead-Rolle 22023 `invalid_owner`, unbekannte Person P0002; freigeben (`null`) nur das Team; jede Uebergabe steht mit Vorher/Nachher im Protokoll; Detailblatt gibt dem Team die interne Notiz, der Lead-Person nicht (`internal_notes_visible`), ohne Verwaltungsrecht 42501; `speaker_managers` nennt nur aktive Lead-Personen und ist ohne Rolle zu; `manager_speakers` gibt die interne Notiz wieder heraus (Nachtrag zu 0099). |
 
+| `v5_pass_type_choice.sql` | 0105 (Vorschlag) | Neue Org-Edition einer Startup-Organisation bekommt `startup`, jede andere Kategorie `talent`, ein ausdruecklich gesetzter Wert bleibt stehen; ein Update auf NULL bleibt NULL (die Vorbelegung greift nur beim Anlegen, sonst liesse sich der Rueckfall nie wieder einstellen); Setzen ohne Partner-Team 42501, erfundener Wert 22023 `invalid_pass_type_choice`, `null` stellt den Rueckfall wieder her; das Kontingent zieht nach (startup -> talent) — der Schritt hat aufgedeckt, dass ein gleichnamiger Trigger den Sync-Trigger aus 0049 entfernt haette; jede Aenderung mit Vorher/Nachher im Protokoll. |
+
 Simulation eines eingeloggten Nutzers innerhalb der Transaktion:
 `perform set_config('request.jwt.claims', json_build_object('sub', <auth_uid>, 'role', 'authenticated', 'email', <email>)::text, true);`
 
