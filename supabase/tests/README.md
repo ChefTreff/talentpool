@@ -60,6 +60,8 @@ Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Edito
 
 | `v5_team_verwaltung.sql` | 0106 (Vorschlag) | Teamliste ohne Admin-Rolle 42501 (sie nennt Namen und Mailadressen); wer eine Teamrolle hat steht drin, mit aufgeloestem Scope statt UUID; Teilnehmerrollen (`talent` und Co.) zaehlen nicht; abgelaufene Rollen auch nicht; mehrere Rollen einer Person ergeben eine Zeile; `has_account` zeigt, wer sich ueberhaupt einloggen kann; die Zahl der globalen Admins steht in jeder Zeile; `team_role_keys` enthaelt keine Teilnehmerrollen. |
 
+| `v5_admin_ueber_rolle.sql` | 0107 (Vorschlag) | Mit aktiver Admin-Rolle ist `is_staff()` wahr, auch ohne `staff_user`-Zeile; eine `staff_user`-Zeile allein reicht **nicht** mehr (der Schnitt) und eine RPC dahinter weist mit 42501 ab; ohne beides sowieso nichts; `session_context()` meldet dasselbe (daran haengt die Oberflaeche); eine abgelaufene Admin-Rolle zaehlt nicht; die Schutzpruefung `staff_users_without_admin()` findet ein Konto, das beim Schnitt draussen stuende, und schweigt, sobald die Rolle vergeben ist. |
+
 Simulation eines eingeloggten Nutzers innerhalb der Transaktion:
 `perform set_config('request.jwt.claims', json_build_object('sub', <auth_uid>, 'role', 'authenticated', 'email', <email>)::text, true);`
 

@@ -31,8 +31,6 @@ export type Area = {
    * Speaker-Leads teilen sich `area_lead_speaker`).
    */
   leadRole?: string;
-  /** Bereich steht dem Team offen — wer dazugehört, sagt SQL `is_staff()`. */
-  staff?: boolean;
 };
 
 export const AREAS: readonly Area[] = [
@@ -73,8 +71,11 @@ export const AREAS: readonly Area[] = [
     roles: ["production_team"],
     leadRole: "area_lead_production",
   },
-  // Wer zum Team gehört, entscheidet ausschließlich `is_staff()` in SQL.
-  { key: "admin", path: "/admin", roles: [], staff: true },
+  // Der Admin-Bereich hängt an der Rolle, nicht mehr an der Liste `staff_user`
+  // (Migration 0107, Konrad 15.09.: „soll am Ende begrenzt werden über eine
+  // Rolle. Ggf. wird es noch weitere Personen geben"). Vergeben wird sie in
+  // `/admin/team`; in SQL bedeutet `is_staff()` seither dasselbe.
+  { key: "admin", path: "/admin", roles: ["admin"] },
   // Das Kiosk am Einlass. Eigener Bereich ohne Menü und ohne Umschalter — ein
   // Gerät im Vollbild am Eingang, sonst nichts (Arbeitsauftrag B4, E8).
   { key: "checkin", path: "/checkin", roles: ["checkin_operator"] },
@@ -101,16 +102,18 @@ export function isKioskOnly(roles: readonly string[]): boolean {
   return roles.includes("checkin_operator") && roles.every((r) => r === "checkin_operator");
 }
 
-/** Öffnet dieses Rollenset den Bereich? `admin` global öffnet alles. */
-export function canEnterArea(
-  area: Area,
-  roles: readonly string[],
-  isStaff: boolean,
-): boolean {
+/**
+ * Öffnet dieses Rollenset den Bereich? `admin` öffnet alles.
+ *
+ * Seit 0107 entscheiden ausschließlich Rollen. Vorher gab es daneben den Zweig
+ * `area.staff` → `is_staff()`, also die Tabelle `staff_user` — zwei Begriffe
+ * für dieselbe Frage, die auseinanderlaufen konnten. Der Parameter `isStaff`
+ * ist damit weggefallen.
+ */
+export function canEnterArea(area: Area, roles: readonly string[]): boolean {
   if (roles.includes("admin")) return true;
   // Gerätekonto: genau ein Bereich, und der Teilnehmer-Zweig unten greift nicht.
   if (isKioskOnly(roles)) return area.key === "checkin";
-  if (area.staff) return isStaff;
   if (area.leadRole && roles.includes(area.leadRole)) return true;
   if (area.roles.length === 0) return true; // Talent: jede eingeloggte Person
   return area.roles.some((r) => roles.includes(r));
@@ -130,8 +133,8 @@ export function canEnterArea(
  * Die Ausnahme bleibt das Gerätekonto am Einlass: `isKioskOnly` öffnet weiter
  * nur `/checkin` (E8, Architektur-Session 14.09.).
  */
-export function areasFor(roles: readonly string[], isStaff: boolean): Area[] {
-  return AREAS.filter((a) => canEnterArea(a, roles, isStaff));
+export function areasFor(roles: readonly string[]): Area[] {
+  return AREAS.filter((a) => canEnterArea(a, roles));
 }
 
 /** Ziel nach dem Login, wenn `next` fehlt oder verworfen wurde. */

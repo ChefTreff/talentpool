@@ -61,10 +61,10 @@ async function landingPath(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
 ): Promise<string> {
   const { data } = await supabase.rpc("session_context");
-  const ctx = (data ?? null) as { is_staff?: boolean; roles?: { role: string }[] } | null;
+  const ctx = (data ?? null) as { roles?: { role: string }[] } | null;
   if (!ctx) return DEFAULT_AFTER_LOGIN;
   const roles = (ctx.roles ?? []).map((r) => r.role);
-  return landingPathFor(areasFor(roles, Boolean(ctx.is_staff)));
+  return landingPathFor(areasFor(roles));
 }
 
 export async function GET(request: NextRequest) {
