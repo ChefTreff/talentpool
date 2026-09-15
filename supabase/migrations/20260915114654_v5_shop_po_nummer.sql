@@ -1,6 +1,6 @@
 -- 0095 · Welle 5 · PO-Nummer je Bestellung im Messeshop (F11.2)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 15.09.2026 nach Review.
 --
 -- Konrad: „Bei der Bestellung wäre es super, wenn man nochmal kurz die
 -- Rechnungsadresse überprüfen kann plus erweiterte Infos wie ein PO eingeben

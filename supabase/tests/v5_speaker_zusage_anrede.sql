@@ -7,7 +7,9 @@
 --   05 zurück aus der Absage löscht Datum und Grund;
 --   06 die Briefanrede pflegt nur das Team ⇒ 42501;
 --   07 der Vorschlag baut den Normalfall und schweigt ohne Geschlechtsangabe;
---   08 das Lead-Board gibt die neuen Spalten heraus.
+--   08 das Lead-Board gibt die neuen Spalten heraus;
+--   09 der Anrede-Vorschlag ist **nur fürs Team** ⇒ ohne Rolle 42501. Sonst
+--      wäre er eine Auskunft über jede Person, deren UUID man kennt.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -83,6 +85,13 @@ begin
   select count(*)::text into v_txt from manager_speakers(v_ed) m where m.id = v_sp and m.confirmed_at is not null;
   insert into t_res values ('08_board',
     case when v_txt = '1' then 'Zusagedatum im Board (richtig)' else 'unerwartet ' || v_txt end);
+
+  delete from role_assignment where person_id = v_pid;
+  begin
+    perform suggest_salutation(v_pid, 'de');
+    insert into t_res values ('09_vorschlag_ohne_recht', 'ERLAUBT (BUG)');
+  exception when others then
+    insert into t_res values ('09_vorschlag_ohne_recht', 'abgewiesen ' || sqlstate); end;
 end $$;
 select * from t_res order by step;
 rollback;

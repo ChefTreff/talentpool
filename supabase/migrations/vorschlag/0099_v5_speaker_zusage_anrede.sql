@@ -131,17 +131,25 @@ end $$;
  * Deckt den Normalfall ab und lässt die Redaktion den Rest machen. Ohne
  * Geschlechtsangabe gibt es keinen Vorschlag: „Sehr geehrte/r" ist keine
  * Anrede, sondern ein Formular.
+ *
+ * **Nur fürs Team.** Ohne die Prüfung wäre das eine Auskunft über jede
+ * Person, deren UUID man kennt — Titel, Nachname und das aus dem Geschlecht
+ * abgeleitete „Frau"/„Herr". Personen-UUIDs stehen für Partner zum Beispiel
+ * in Bewerberlisten (Review 15.09.).
  */
 create or replace function suggest_salutation(p_person_id uuid, p_locale text default 'de') returns text
-language sql stable security definer set search_path = public, extensions as $$
-  select case
-    when p.last_name is null or btrim(p.last_name) = '' then null
-    when p_locale = 'en' then 'Dear ' || coalesce(nullif(btrim(p.title), '') || ' ', '') || p.last_name
-    when p.gender = 'weiblich' then 'Sehr geehrte Frau ' || coalesce(nullif(btrim(p.title), '') || ' ', '') || p.last_name
-    when p.gender = 'maennlich' then 'Sehr geehrter Herr ' || coalesce(nullif(btrim(p.title), '') || ' ', '') || p.last_name
-    else null end
-  from person p where p.id = p_person_id
-$$;
+language plpgsql stable security definer set search_path = public, extensions as $$
+declare v_p person%rowtype;
+begin
+  if not is_staff() then raise exception 'not allowed' using errcode = '42501'; end if;
+  select * into v_p from person where id = p_person_id;
+  if not found or v_p.last_name is null or btrim(v_p.last_name) = '' then return null; end if;
+  return case
+    when p_locale = 'en' then 'Dear ' || coalesce(nullif(btrim(v_p.title), '') || ' ', '') || v_p.last_name
+    when v_p.gender = 'weiblich' then 'Sehr geehrte Frau ' || coalesce(nullif(btrim(v_p.title), '') || ' ', '') || v_p.last_name
+    when v_p.gender = 'maennlich' then 'Sehr geehrter Herr ' || coalesce(nullif(btrim(v_p.title), '') || ' ', '') || v_p.last_name
+    else null end;
+end $$;
 
 -- ------------------------------------------------- Lead-Board sieht es
 

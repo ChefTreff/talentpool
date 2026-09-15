@@ -70,9 +70,16 @@ alter table speaker_travel enable row level security;
 revoke all on speaker_travel from anon, authenticated;
 grant all on speaker_travel to service_role;
 
-/** Prüft einen Verkehrsmittel-Schlüssel; NULL bleibt erlaubt („weiß ich noch nicht"). */
+/**
+ * Prüft einen Verkehrsmittel-Schlüssel; NULL bleibt erlaubt („weiß ich noch
+ * nicht").
+ *
+ * `stable`, nicht `immutable`: die Funktion liest `vocab_term`. Als
+ * `immutable` dürfte Postgres den Aufruf vorab auswerten — dann griffe eine
+ * Änderung am Vokabular nicht mehr (Review 15.09.).
+ */
 create or replace function check_travel_mode(p_mode text) returns text
-language plpgsql immutable set search_path = public, extensions as $$
+language plpgsql stable set search_path = public, extensions as $$
 begin
   if p_mode is null or btrim(p_mode) = '' then return null; end if;
   if not is_vocab_key('travel_mode', p_mode) then
@@ -80,6 +87,9 @@ begin
   end if;
   return p_mode;
 end $$;
+
+-- Interner Helfer: die Definer-Funktionen rufen ihn als Eigentümer.
+revoke execute on function check_travel_mode(text) from public, anon, authenticated;
 
 /** Die eigene Reise — Speaker oder Assistenz. */
 create or replace function my_speaker_travel(p_edition_id uuid default null) returns jsonb

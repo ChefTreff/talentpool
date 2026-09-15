@@ -1,6 +1,6 @@
 -- 0096 · Welle 5 · Die Wiki-Artikel aus Notion (F9.6)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 15.09.2026 nach Review.
 --
 -- Konrad: „Lege erstmal alle Inhalte aus diesem Wiki an" — gemeint ist
 -- `cheftreff.notion.site/…12717aa69eee81589e2cddf668eb3eab`, das Partner- und
