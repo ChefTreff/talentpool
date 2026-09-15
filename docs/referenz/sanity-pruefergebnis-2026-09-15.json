@@ -1,0 +1,43 @@
+{
+  "at": "2026-09-15T13:13:03.637Z",
+  "projectId": "pv72so4s",
+  "dataset": "production",
+  "read": {
+    "ok": true,
+    "ourDocuments": 0,
+    "ourDrafts": 0
+  },
+  "sample": {
+    "ok": false,
+    "status": 403,
+    "document": {
+      "_id": "portalPartnerLogo-00000000-0000-4000-8000-000000000001",
+      "_type": "portalPartnerLogo",
+      "orgId": "00000000-0000-4000-8000-000000000001",
+      "editionSlug": "fls27",
+      "name": "Beispiel Partner GmbH",
+      "sponsoringRank": 40,
+      "logoSvgPath": "fls27/beispiel/logo_vector/beispiel.svg",
+      "logoTransparent": true,
+      "publishedAt": "2026-09-15T13:13:03.873Z",
+      "website": "https://example.org",
+      "sponsoringLevel": "premium",
+      "partnerCategory": "talent"
+    },
+    "error": "sanity 403 mutate(dryRun): {\"error\":{\"description\":\"transaction failed: Insufficient permissions; permission \\\"create\\\" required\",\"items\":[{\"error\":{\"description\":\"Insufficient permissions; permission \\\"create\\\" required\",\"permission\":\"create\",\"type\":\"insufficientPermissionsError\"},\"index\":0}],\"type"
+  },
+  "publish": {
+    "job": 626,
+    "dryRun": true,
+    "rows": 3,
+    "withLogo": 0,
+    "create": 0,
+    "update": 0,
+    "unchanged": 0,
+    "opaque": 0,
+    "validated": 0,
+    "published": 0,
+    "errors": 0,
+    "runs": []
+  }
+}
