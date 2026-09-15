@@ -71,6 +71,9 @@ GROQ für die Logo-Wand:
 - `lib/sanity/mapping.ts` (rein, getestet) baut das Dokument; `lib/sanity/svg.ts` (rein, getestet) prüft die Transparenz — dafür wird die SVG-Datei auch im Trockenlauf aus dem privaten Bucket gelesen; `lib/sanity/client.ts` spricht die HTTP-API (`v2025-02-19`, `data/query`, `data/mutate`, `assets/images` mit Rückfall auf `assets/files`, Bearer-Token nur serverseitig); `lib/sanity/publish.ts` orchestriert.
 - Fehler je Org landen in `integration.sync_error` (nur im Echtlauf); der nächste Lauf versucht es erneut.
 
+## Trockenlauf 15.09.2026
+Lesen ok (0 eigene Dokumente), Musterdokument mit Viewer-Token ⇒ 403 (erwartet), 3 Org-Editionen ohne freigegebenes Logo ⇒ nichts zu validieren; Job 626. Ergebnis für das Web-Team: `docs/sanity-trockenlauf-2026-09-15.md`. Stolperstein: doppelt eingefügter Token ⇒ 401 „Session not found“ (Länge prüfen, 2× `sk`).
+
 ## Offen
 - Editor-Token vom Web-Team, wenn der Relaunch es zulässt; erster Echtlauf gemeinsam mit einem Partner-Logo.
 - Konrads Bestätigung der Rangfolge im Vokabular `sponsoring_level` (Vorschlag nach Paketgröße).

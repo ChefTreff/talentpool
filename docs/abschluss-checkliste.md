@@ -58,7 +58,7 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 ## Ergänzungen aus dem Feedback FLS26 (08.09.)
 - ☐ **Vivenu**: Anleitung „Bestätigungsseite nachbauen" einholen; Deposit für Free Tickets klären (Support Q9); Add-ons Hotel/DB-Ticket/Locker/Bundles im Shop anlegen (Kontingente extern beschaffen; DB-Veranstaltungsticket beantragen).
 - ☐ **Swapcard**: Processing-Fehler der Teilnehmer-Importe FLS26 analysieren; Exhibitor-Kategorien + Rechte definieren; QR = Vivenu-Barcode verifizieren.
-- ☐ **Website/Sanity**: Zugang ✅ (Viewer, 15.09.) — Trockenlauf-Prüfergebnis ans Web-Team, Editor-Token, erster Echtlauf mit einem Logo; Konrad bestätigt die Rangfolge im Vokabular `sponsoring_level` (Runbook `sanity-partner-logos.md`).
+- ☐ **Website/Sanity — Konrad:** Werte gesetzt ✅, Trockenlauf 15.09. ✅ (`docs/sanity-trockenlauf-2026-09-15.md`). Offen: (1) Prüfergebnis ans Website-Team schicken; (2) Rangfolge im Vokabular `sponsoring_level` bestätigen; (3) Editor-Token vom Web-Team, dann erster Echtlauf mit einem Logo (gemeinsam).
 - ☐ **Mail-Plan je Journey** (Teilnehmer, Partner, Speaker, Volunteer) — Minimierung, Templates DE/EN, Reminder-Regeln.
 - ☐ **Strategy-Call-Slots** 6 Wochen vor Summit (ab Premium) einplanen (≈ Anfang März 2027).
 - ☐ **Domain-Umzug** Team-Portal → `team.chef-treff.de` (Konrad), Plattform → `portal.chef-treff.de`.

@@ -13,6 +13,8 @@ docs/legacy-inventar.md|04_Tool-Landscape & Integrationen/Legacy-Inventar — Ai
 docs/makecom-webhooks-2026-09-08.md|04_Tool-Landscape & Integrationen/make.com — verwaiste Webhooks, Abschaltliste (2026-09-08).md
 docs/vivenu-support-anfrage.md|04_Tool-Landscape & Integrationen/Vivenu-Support-Anfrage (Entwurf, 2026-09-08).md
 docs/zugangs-liste.md|04_Tool-Landscape & Integrationen/Zugangs- und Token-Liste (ohne Werte, Claude, laufend).md
+docs/sanity-trockenlauf-2026-09-15.md|04_Tool-Landscape & Integrationen/Sanity-Trockenlauf — Prüfergebnis für das Website-Team (2026-09-15).md
+docs/website-team-sanity-briefing.md|04_Tool-Landscape & Integrationen/Sanity — Info an das Website-Team (Kontrakt v2, 2026-09-15).md
 docs/feedback-fls26.md|05_Requirements (Team-Input)/Feedback FLS26 — Register mit Konsequenzen (Claude, 2026-09-08).md
 docs/feedback-runde-1-2026-09-11.md|05_Requirements (Team-Input)/Feedback-Runde 1 — Konrad (2026-09-11).md
 docs/feedback-runde-1-abgleich.md|05_Requirements (Team-Input)/Abgleich Alt-Portale gegen neues Portal (Claude, 2026-09-14).md
