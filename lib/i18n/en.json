@@ -23,7 +23,11 @@
     "active": "active",
     "inactive": "inactive",
     "language": "Language",
-    "overview": "Overview"
+    "overview": "Overview",
+    "venueName": "CCH — Congress Center Hamburg",
+    "venueAddress": "Congressplatz 1, 20355 Hamburg",
+    "openInMaps": "Open in Google Maps",
+    "delete": "Delete"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",
@@ -144,6 +148,11 @@
     "invalid_quantity": "That quantity does not work.",
     "invalid_sku": "The article number must follow the pattern I-00000.",
     "fields_required": "A required field is missing.",
+    "invalid_contact_type": "That contact type does not exist.",
+    "invalid_contact": "That contact does not match the edition or role.",
+    "contact_not_found": "That contact does not exist.",
+    "invalid_audience": "Please choose at least one audience.",
+    "info_not_found": "That entry does not exist.",
     "note_required": "That needs a reason.",
     "allocation_not_found": "That allocation does not exist.",
     "request_not_found": "That request does not exist.",
@@ -163,7 +172,9 @@
     "shift_not_found": "That shift does not exist.",
     "day_not_found": "That day does not exist in this edition.",
     "invalid_barcode": "This code is empty or unreadable. Scan again or type it in.",
-    "merch_incomplete": "This line is still missing a detail in its configuration."
+    "merch_incomplete": "This line is still missing a detail in its configuration.",
+    "file_too_large": "The file is too large. 5 MB at most.",
+    "upload_failed": "The upload did not work. Please try again."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -914,7 +925,14 @@
     "downloadFailed": "That file cannot be opened right now.",
     "stillMissing": "Still missing",
     "saved": "Saved",
-    "navWiki": "Wiki"
+    "navWiki": "Wiki",
+    "contactsTitle": "Your contacts",
+    "contactLead": "Contact",
+    "contactBuddy": "Partner buddy",
+    "timesTitle": "Times and schedule",
+    "timesWikiHint": "The full schedule is in the",
+    "locationTitle": "Getting there",
+    "locationWikiHint": "Directions and parking in the wiki"
   },
   "partnerContacts": {
     "title": "Contacts",
@@ -1697,7 +1715,8 @@
       },
       "partnerCare": "Support & trade-show shop",
       "volunteersWork": "Applications & shifts",
-      "wiki": "Wiki"
+      "wiki": "Wiki",
+      "contacts": "Contacts & times"
     },
     "overview": {
       "title": "Overview",
@@ -2310,5 +2329,44 @@
     "status_error": "That did not work",
     "sinceLabel": "First scan at {time}",
     "leave": "Back to the portal"
+  },
+  "contacts": {
+    "adminTitle": "Contacts & times",
+    "adminLead": "Who looks after partners and speakers, and what applies generally.",
+    "contactsTitle": "Contacts",
+    "addContact": "Add contact",
+    "editContact": "Edit contact",
+    "emptyContacts": "Nobody added yet",
+    "emptyContactsBody": "Add one person per type. Anyone without their own assignment sees the default.",
+    "isDefault": "Default",
+    "assigned": "{orgs} partners · {speakers} speakers",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Really delete “{name}”? Anyone assigned to them falls back to the default.",
+    "fieldType": "Type",
+    "fieldName": "Name",
+    "fieldRole": "Role label",
+    "fieldRoleHint": "Shown under the name, for example “Your contact for the booth”.",
+    "fieldEmail": "Work email address",
+    "fieldEmailHint": "Must end in @chef-treff.de. Private addresses are rejected.",
+    "fieldPhone": "Work mobile",
+    "fieldPhoneHint": "Please use the work number — it is visible to every assigned partner and speaker.",
+    "fieldPhoto": "Photo",
+    "fieldPhotoHint": "PNG, JPG or WebP, 5 MB at most.",
+    "fieldDefault": "Default for this type",
+    "defaultHint": "The default is shown to anyone without their own assignment. There is exactly one per type.",
+    "infosTitle": "General times and information",
+    "addInfo": "Add entry",
+    "editInfo": "Edit entry",
+    "emptyInfos": "Nothing added yet",
+    "emptyInfosBody": "Opening times, entry and set-up then appear in the partner and speaker portals.",
+    "fieldKey": "Key",
+    "fieldKeyHint": "Technical name, unique per edition — for example “entry”.",
+    "fieldLabelDe": "Label (DE)",
+    "fieldValueDe": "Information (DE)",
+    "fieldLabelEn": "Label (EN)",
+    "fieldValueEn": "Information (EN)",
+    "fieldAudience": "Audiences",
+    "fieldAudienceHint": "Comma separated: partner, speaker, talent, volunteer, hackathon."
   }
 }
