@@ -6,15 +6,18 @@
 #   Standard    sensibel in Vercel (Wert dort nicht mehr lesbar) + lokal in .env.local
 #   --config    nicht sensibel (Wert in Vercel lesbar, `env-pull.sh` holt ihn künftig automatisch) – für IDs, URLs, Schalter
 #   --no-local  nur Vercel; für Werte, die kein lokales Skript braucht (RESEND_API_KEY, SEVDESK_API_TOKEN, …)
+#   --local-only nur .env.local (+ Worktrees), Vercel bleibt unangetastet – wenn der Vercel-Schritt gerade nicht geht
+#               (nicht eingeloggt, kein `vercel` im PATH) und ein lokales Skript den Wert sofort braucht; Vercel später nachziehen.
 # Ohne Terminal (z. B. `printf '%s' "$WERT" | sh scripts/env-set.sh NAME`) wird der Wert von stdin gelesen.
 # ENV_FILE überschreibt den Zielpfad der lokalen Datei (nur für Tests).
 set -eu
 cd "$(dirname "$0")/.."
-NAME=""; SENS="--sensitive"; LOCAL=1
+NAME=""; SENS="--sensitive"; LOCAL=1; VERCEL=1
 for a in "$@"; do
   case "$a" in
     --config) SENS="--no-sensitive" ;;
     --no-local) LOCAL=0 ;;
+    --local-only) VERCEL=0 ;;
     -*) echo "Unbekanntes Argument: $a" >&2; exit 2 ;;
     *) NAME="$a" ;;
   esac
@@ -38,7 +41,9 @@ VALUE="$(printf '%s' "$VALUE" | tr -d '\r')"
 case "$VALUE" in "[SENSITIVE]"|"<"*">") echo "Das sieht nach einem Platzhalter aus – abgebrochen." >&2; exit 1 ;; esac
 
 # Vercel: alle drei Umgebungen, vorhandene Werte werden überschrieben
-if printf '%s' "$VALUE" | vercel env add "$NAME" production,preview,development $SENS --force --scope chef-treff --yes >/dev/null 2>&1; then
+if [ "$VERCEL" = 0 ]; then
+  echo "Vercel: übersprungen (--local-only) – später ohne den Schalter nachziehen."
+elif printf '%s' "$VALUE" | vercel env add "$NAME" production,preview,development $SENS --force --scope chef-treff --yes >/dev/null 2>&1; then
   ENVS="production, preview, development"
 elif printf '%s' "$VALUE" | vercel env add "$NAME" production,preview $SENS --force --scope chef-treff --yes >/dev/null 2>&1; then
   ENVS="production, preview (development lässt Vercel für diesen Typ nicht zu)"
