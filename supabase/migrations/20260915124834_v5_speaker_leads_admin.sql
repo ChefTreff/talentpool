@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0104 · Welle 5 · Speaker-Leads als Personen verwalten
+--     angewendet am 15.09.2026 als 20260915124834
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 -- Setzt 0103 voraus (`is_speaker_manager`, `handover_speaker`).
 --
 -- Konrad: im Admin-Bereich werden „Slots, Speaker, Hospitality und Speaker
