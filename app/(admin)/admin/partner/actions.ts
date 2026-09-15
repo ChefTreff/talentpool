@@ -56,6 +56,36 @@ export async function setOnboardingStatus(
   return { ok: true, data: undefined };
 }
 
+/**
+ * Pass-Typ der Talente-Tickets.
+ *
+ * `""` bedeutet **zurück auf den Rückfall** (Org-Typ) und nicht „leer lassen" —
+ * deshalb geht der leere Wert bewusst als `null` an die RPC. Die Antwort nennt
+ * die Zahl der betroffenen Kontingente, damit die Oberfläche benennen kann,
+ * was die Änderung nach sich zieht.
+ */
+export async function setPassTypeChoice(
+  orgId: string,
+  choice: string,
+  editionId?: string | null,
+): Promise<AdminResult<{ pass_type_choice: string | null; allocations: number }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("set_pass_type_choice", {
+    p_org_id: orgId,
+    p_choice: choice === "" ? null : choice,
+    p_edition_id: editionId ?? null,
+  });
+  if (error) return fail(error);
+  refresh(orgId);
+  return {
+    ok: true,
+    data: (data ?? { pass_type_choice: null, allocations: 0 }) as {
+      pass_type_choice: string | null;
+      allocations: number;
+    },
+  };
+}
+
 export async function saveBooth(
   orgId: string,
   data: Record<string, unknown>,

@@ -180,7 +180,8 @@
     "info_not_found": "Diese Auskunft gibt es nicht.",
     "file_too_large": "Die Datei ist zu groß. Höchstens 5 MB.",
     "invalid_owner": "Diese Person betreut keine Speaker. Bitte eine Lead-Person wählen.",
-    "upload_failed": "Das Hochladen hat nicht geklappt. Versuch es noch einmal."
+    "upload_failed": "Das Hochladen hat nicht geklappt. Versuch es noch einmal.",
+    "invalid_pass_type_choice": "Diesen Pass-Typ gibt es nicht. Nur Talent oder Startup."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1667,7 +1668,13 @@
     "lastName": "Nachname",
     "contactPosition": "Position",
     "contactRole_event_app_member": "Event-App",
-    "colEventApp": "Event-App"
+    "colEventApp": "Event-App",
+    "ticketPassLabel": "Pass-Typ der Talente-Tickets",
+    "ticketPassHint": "Bestimmt, als welcher Pass die Talente-Tickets in vivenu angelegt werden.",
+    "ticketPassFallback": "Aus der Partnerkategorie",
+    "ticketPassTalent": "Talent Pass",
+    "ticketPassStartup": "Startup Pass",
+    "ticketPassAllocations": "Kontingente ziehen nach."
   },
   "adminVolunteers": {
     "title": "Volunteers",
