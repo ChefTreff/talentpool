@@ -158,6 +158,8 @@ const BUSINESS_KEYS = new Set([
   // Ansprechpartner und Fotos (Migration 0091)
   "file_too_large",
   "upload_failed",
+  // Speaker-Uebergabe (Migration 0103)
+  "invalid_owner",
   // Messestand und Editionsdateien (Migration 20260915115415)
   "edition_file_not_found",
   "invalid_path",
