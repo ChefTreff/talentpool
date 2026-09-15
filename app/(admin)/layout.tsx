@@ -68,6 +68,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       label: nav.sections.system,
       items: [
         { href: "/admin/personen", label: nav.persons },
+        // Das Team zuerst: „wer gehoert dazu" ist die Frage, mit der man
+        // herkommt; die Rollenverwaltung darunter ist das Werkzeug fuer
+        // jede einzelne Zuweisung, auch ausserhalb des Teams.
+        { href: "/admin/team", label: nav.team },
         { href: "/admin/rollen", label: nav.roles },
         { href: "/admin/fristen", label: nav.deadlines },
         { href: "/admin/ansprechpartner", label: nav.contacts },

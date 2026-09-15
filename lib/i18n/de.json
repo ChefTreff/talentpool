@@ -1794,7 +1794,8 @@
       "travel": "An- & Abreise",
       "catering": "Catering",
       "contacts": "Ansprechpartner & Zeiten",
-      "speakers": "Speaker"
+      "speakers": "Speaker",
+      "team": "Team"
     },
     "overview": {
       "title": "Übersicht",
@@ -2321,6 +2322,37 @@
     "created": "Angelegt",
     "updated": "Geändert",
     "saved": "Gespeichert."
+  },
+  "adminTeam": {
+    "title": "Team",
+    "lead": "Wer gehört zum Team und mit welcher Rolle.",
+    "emptyTitle": "Noch niemand im Team",
+    "emptyBody": "Nimm unten eine Person mit einer Rolle auf.",
+    "colPerson": "Person",
+    "colRoles": "Rollen",
+    "colAccount": "Portalzugang",
+    "colSince": "Im Team seit",
+    "colAdd": "Rolle ergänzen",
+    "accountYes": "Ja",
+    "accountNo": "Kein Konto",
+    "noAccountWarning": "Personen haben eine Rolle, aber noch kein Portalkonto — sie kommen damit nicht hinein.",
+    "add": "Hinzufügen",
+    "granted": "Rolle vergeben.",
+    "revoke": "Rolle entziehen",
+    "revokeTitle": "Rolle entziehen",
+    "revokeBody": "Die Rolle bekommt ein Ablaufdatum, die Historie bleibt stehen.",
+    "revoked": "Rolle entzogen.",
+    "lastAdmin": "Das ist der letzte Admin. Die Datenbank lässt das nicht zu — vergib die Rolle vorher an jemand anderen.",
+    "addTitle": "Person ins Team aufnehmen",
+    "addHint": "Die Person muss schon im Talentpool stehen. Die Admin-Rolle gilt immer für alle Editionen.",
+    "searchPerson": "Person suchen",
+    "searchHint": "Name oder E-Mail",
+    "search": "Suchen",
+    "role": "Rolle",
+    "scope": "Gültig für",
+    "scopeGlobal": "Alle Editionen",
+    "scopeEdition": "Diese Edition",
+    "noMatch": "Keine Person gefunden. Sie muss zuerst im Talentpool stehen."
   },
   "errors": {
     "forbiddenTitle": "Kein Zugriff",
