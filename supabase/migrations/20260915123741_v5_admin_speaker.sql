@@ -1,7 +1,6 @@
 -- =============================================================================
 -- 0103 · Welle 5 · Admin-Speaker: Detailblatt, Weiterreichen statt Ansichziehen
---
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+--     angewendet am 15.09.2026 als 20260915123741
 --
 -- Konrad zur Struktur der Speaker-Domäne: der Admin-Bereich verwaltet **alle**
 -- Daten, das Lead-Portal ist der eingeschränkte Blick. An zwei Stellen fehlte
