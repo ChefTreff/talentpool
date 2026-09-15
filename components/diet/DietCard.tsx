@@ -22,7 +22,7 @@ type Strings = Record<string, string>;
  *
  * Beides ist **freiwillig**, und das steht auch da. Der Freitext kann eine
  * Gesundheitsangabe sein; er verlässt die Datenbank nie zusammen mit einem
- * Namen (Migration 0099). Deshalb steht hier auch der Hinweis, dass eine
+ * Namen (Migration 0100). Deshalb steht hier auch der Hinweis, dass eine
  * kurze Angabe reicht — Datensparsamkeit ist an dieser Stelle kein Formalismus.
  *
  * Nur die Person selbst trägt hier ein. Eine Assistenz sähe ein leeres

@@ -192,7 +192,7 @@ export default async function PersonDetail({
         </Card>
       </div>
 
-      {/* Briefanrede: redaktionell gepflegt, nicht abgeleitet (Migration 0098). */}
+      {/* Briefanrede: redaktionell gepflegt, nicht abgeleitet (Migration 0099). */}
       <Anrede
         personId={id}
         de={person.salutation_de}

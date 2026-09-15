@@ -12,7 +12,7 @@ export type CateringCoverage = { audience: string; gesamt: number; mit_angabe: n
  *
  * Das ist keine Nachlässigkeit, sondern der Kern: der Freitext kann eine
  * Gesundheitsangabe sein (Art. 9 DSGVO). Es gibt in der Datenbank keine RPC,
- * die Angabe und Person zusammen herausgibt (Migration 0099) — diese Seite
+ * die Angabe und Person zusammen herausgibt (Migration 0100) — diese Seite
  * könnte den Namen also gar nicht anzeigen, selbst wenn jemand ihn wollte.
  *
  * Gezeigt wird, was zum Bestellen nötig ist: Zahlen je Gruppe und

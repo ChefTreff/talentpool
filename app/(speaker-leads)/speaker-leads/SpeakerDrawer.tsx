@@ -166,7 +166,7 @@ export function SpeakerDrawer({
           </div>
           <p className="ct-help mt-2">{t.pipelineHint}</p>
 
-          {/* Zeitstempel aus Migration 0098: sie sagen, wie lange eine Zusage
+          {/* Zeitstempel aus Migration 0099: sie sagen, wie lange eine Zusage
               gedauert hat und warum jemand abgesagt hat. */}
           <dl className="ct-help mt-3 flex flex-col gap-0.5">
             {speaker.confirmed_at && (

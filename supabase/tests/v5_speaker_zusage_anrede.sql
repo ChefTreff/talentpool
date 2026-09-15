@@ -1,4 +1,4 @@
--- Smoke-Test 0098 (Zusage, Absage, Briefanrede). Belegt:
+-- Smoke-Test 0099 (Zusage, Absage, Briefanrede). Belegt:
 --   01 die Zusage setzt `confirmed_at`;
 --   02 ein weiterer Wechsel **innerhalb** der Zusage verschiebt es nicht —
 --      sonst wäre das Zusagedatum immer das letzte Klickdatum;

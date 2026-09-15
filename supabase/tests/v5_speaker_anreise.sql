@@ -1,4 +1,4 @@
--- Smoke-Test 0097 (An- und Abreise, Abgleich 15.09.). Belegt:
+-- Smoke-Test 0098 (An- und Abreise, Abgleich 15.09.). Belegt:
 --   01 ohne Speaker-Profil gibt es nichts einzutragen ⇒ P0002;
 --   02 Speaker trägt die Reise ein und liest sie zurück;
 --   03 ein unbekanntes Verkehrsmittel wird mit `invalid_travel_mode`

@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 /**
  * Die Bestellgrundlage fürs Catering — Zahlen und Hinweise, **ohne Namen**.
  *
- * Die Datenbank gibt gar nichts anderes her (Migration 0099): der Freitext
+ * Die Datenbank gibt gar nichts anderes her (Migration 0100): der Freitext
  * kann eine Gesundheitsangabe sein, und es gibt keine RPC, die ihn mit einer
  * Person zusammenbringt.
  */

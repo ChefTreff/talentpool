@@ -1,4 +1,4 @@
--- 0097 · Welle 5 · An- und Abreise der Speaker (Abgleich 15.09., Punkt 1)
+-- 0098 · Welle 5 · An- und Abreise der Speaker (Abgleich 15.09., Punkt 1)
 --
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --

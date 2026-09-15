@@ -1,4 +1,4 @@
--- 0099 · Welle 5 · Ernährung und Catering (Abgleich 15.09., Punkt 2)
+-- 0100 · Welle 5 · Ernährung und Catering (Abgleich 15.09., Punkt 2)
 --
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --
@@ -186,6 +186,95 @@ begin
       from catering_people(v_ed) c join person p on p.id = c.person_id
      group by c.audience
      order by c.audience;
+end $$;
+
+-- ------------------------------------------------- Löschen nach der Edition
+
+/**
+ * Ernährungsangaben verfallen **30 Tage nach dem Ende der Edition**
+ * (Entscheidung Architektur-Session, 15.09.).
+ *
+ * Gelöscht wird, wer **keine** Edition mehr hat, die noch läuft oder deren
+ * Ende weniger als 30 Tage her ist. Wer für FLS27 zugesagt hat, behält die
+ * Angabe also auch dann, wenn er bei FLS26 dabei war — es zählt die jüngste
+ * Zugehörigkeit, nicht die älteste.
+ *
+ * Wer eine Angabe hat, aber zu gar keiner Edition gehört, wird beim nächsten
+ * Lauf geräumt. Das kann nur passieren, wenn die Angabe an der Oberfläche
+ * vorbei entstanden ist — dort taucht das Feld erst nach Zusage bzw. Annahme
+ * auf.
+ *
+ * Idempotent: ein zweiter Lauf findet nichts mehr und meldet 0.
+ */
+create or replace function purge_diet_data(p_days integer default 30) returns integer
+language plpgsql volatile security definer set search_path = public, extensions as $$
+declare v_n integer;
+begin
+  -- Wie das übrige Housekeeping: aus dem Cron (ohne JWT) oder von Hand durch
+  -- Admin/Programm-Team.
+  if not (auth.uid() is null or has_role('admin') or has_role('programme_team')) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+
+  update person p
+     set diet = null, diet_note = null
+   where (p.diet is not null or p.diet_note is not null)
+     and not exists (
+       select 1
+         from (select sp.person_id, sp.edition_id from speaker_profile sp
+               union all
+               select vp.person_id, vp.edition_id from volunteer_profile vp) x
+         join event e on e.id = x.edition_id
+        where x.person_id = p.id
+          and (e.end_date is null or e.end_date > current_date - p_days));
+  get diagnostics v_n = row_count;
+
+  -- Ohne Werte, wie überall bei dieser Angabe: die Zahl reicht als Nachweis,
+  -- dass gelöscht wurde.
+  if v_n > 0 then
+    perform log_audit('person.diet_purged', 'system', 'housekeeping', null,
+                      jsonb_build_object('count', v_n, 'days', p_days));
+  end if;
+  return v_n;
+end $$;
+
+/**
+ * Housekeeping mit dem neuen Schritt. Der Rumpf ist unverändert aus 0075 —
+ * dazugekommen ist `purge_diet_data()` und der Zähler in der Rückgabe.
+ */
+create or replace function run_application_housekeeping() returns jsonb
+language plpgsql volatile security definer set search_path = public, extensions as $$
+declare v_expired integer; v_promoted integer := 0; v_reminders integer; v_free integer; v_n integer;
+        r record; v_partner jsonb; v_volunteers jsonb; v_diet integer;
+begin
+  if not (auth.uid() is null or has_role('admin') or has_role('programme_team')) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  v_expired := expire_overdue_applications();
+  for r in
+    select s.id, s.capacity
+    from session s
+    where s.access_mode = 'application' and s.capacity is not null
+      and exists (select 1 from decision_release d where d.session_id = s.id)
+      and exists (select 1 from application a where a.session_id = s.id and a.status = 'waitlisted')
+  loop
+    select r.capacity - count(*) into v_free
+      from application a where a.session_id = r.id and a.status in ('accepted', 'promoted', 'confirmed');
+    if v_free > 0 then
+      v_n := promote_waitlist(r.id, v_free);
+      v_promoted := v_promoted + coalesce(v_n, 0);
+    end if;
+  end loop;
+  v_reminders := send_presentation_reminders();
+  v_partner := run_partner_housekeeping();
+  v_volunteers := run_volunteer_housekeeping();
+  v_diet := purge_diet_data();
+  if v_expired > 0 or v_promoted > 0 then
+    insert into audit_log (action, object_type, object_id, after)
+    values ('application.housekeeping', 'system', 'cron', jsonb_build_object('expired', v_expired, 'promoted', v_promoted));
+  end if;
+  return jsonb_build_object('expired', v_expired, 'promoted', v_promoted, 'reminders', v_reminders,
+                            'partner', v_partner, 'volunteers', v_volunteers, 'diet_purged', v_diet);
 end $$;
 
 select harden_definer_functions();

@@ -56,7 +56,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       items: [{ href: "/admin/volunteers", label: nav.volunteersWork }],
     },
     // Catering steht für sich: es betrifft Speaker **und** Volunteers, und die
-    // Zahlen sind bewusst ohne Personenbezug (Migration 0099).
+    // Zahlen sind bewusst ohne Personenbezug (Migration 0100).
     {
       label: nav.sections.crossCutting,
       items: [{ href: "/admin/catering", label: nav.catering }],

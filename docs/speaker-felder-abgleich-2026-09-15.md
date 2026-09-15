@@ -164,7 +164,7 @@ Jeder neue Datenpunkt ist eine Entscheidung, keine Oberflächenfrage. Sobald Kon
 ## E · Entschieden und gebaut (Konrad, 15.09.)
 
 Konrad hat vier Punkte ausgewählt; die übrigen bleiben liegen. Gebaut als
-Migrationen `0097`–`0099` unter `vorschlag/`, jede mit Test.
+Migrationen `0098`–`0100` unter `vorschlag/`, jede mit Test.
 
 | Punkt | Wo eingetragen | Wo ausgewertet |
 |---|---|---|

@@ -1,4 +1,4 @@
--- 0098 · Welle 5 · Zusage, Absage und Briefanrede (Abgleich 15.09., Punkte 3+4)
+-- 0099 · Welle 5 · Zusage, Absage und Briefanrede (Abgleich 15.09., Punkte 3+4)
 --
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --

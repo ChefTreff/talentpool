@@ -1,4 +1,4 @@
--- Smoke-Test 0099 (Ernährung und Catering). Belegt:
+-- Smoke-Test 0100 (Ernährung und Catering). Belegt:
 --   01 die eigene Angabe lässt sich setzen und lesen;
 --   02 eine unbekannte Ernährungsform wird mit `invalid_diet` abgewiesen;
 --   03 es gibt **keinen** Weg, die Angabe einer anderen Person zu setzen —
@@ -10,7 +10,12 @@
 --   07 die Auswertung ist nicht für Speaker ⇒ 42501;
 --   08 die Bestellgrundlage zählt nur, wer wirklich kommt (bestätigte Speaker,
 --      angenommene Volunteers) — sonst bestellt man für Absagen mit;
---   09 ein sehr langer Hinweis wird gekürzt (Datensparsamkeit).
+--   09 ein sehr langer Hinweis wird gekürzt (Datensparsamkeit);
+--   10 die Angabe verfällt **30 Tage nach dem Ende der Edition**: 29 Tage
+--      danach steht sie noch, 31 Tage danach ist sie weg;
+--   11 wer noch eine laufende Edition hat, behält sie trotzdem;
+--   12 ein zweiter Lauf löscht nichts mehr (idempotent);
+--   13 auch das Löschprotokoll trägt nur Zahlen, keine Werte.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -82,6 +87,50 @@ begin
   select length(diet_note) into v_n from person where id = v_pid;
   insert into t_res values ('09_kuerzung',
     case when v_n = 300 then 'auf 300 Zeichen gekuerzt (richtig)' else 'unerwartet ' || v_n end);
+
+  -- --- Löschfrist -----------------------------------------------------------
+  -- Die Testperson hängt an FLS27, damit Schritt 11 auch etwas prüft: ohne
+  -- Edition wäre sie nach der Regel fällig, und das wäre richtig so.
+  insert into speaker_profile (person_id, edition_id, speaker_type, pipeline_status)
+    values (v_pid, v_ed, 'keynote', 'confirmed');
+
+  -- Eine abgelaufene Edition, an der nur eine zweite Person hängt.
+  declare v_alt uuid; v_alt_person uuid;
+  begin
+    insert into event (name, slug, format_tag, is_edition, start_date, end_date)
+      values ('ZZ Alte Edition', 'zz-alt', 'summit', true, current_date - 32, current_date - 29)
+      returning id into v_alt;
+    insert into person (first_name, last_name, diet, diet_note)
+      values ('ZZ', 'Nachzuegler', 'vegan', 'Nussallergie') returning id into v_alt_person;
+    insert into speaker_profile (person_id, edition_id, speaker_type, pipeline_status)
+      values (v_alt_person, v_alt, 'panelist', 'attended');
+
+    -- 29 Tage nach dem Ende: noch nicht fällig.
+    perform purge_diet_data();
+    select count(*)::integer into v_n from person where id = v_alt_person and diet is not null;
+    insert into t_res values ('10a_29_tage',
+      case when v_n = 1 then 'steht noch (richtig)' else 'ZU FRUEH GELOESCHT (BUG)' end);
+
+    update event set end_date = current_date - 31 where id = v_alt;
+    perform purge_diet_data();
+    select count(*)::integer into v_n from person where id = v_alt_person and (diet is not null or diet_note is not null);
+    insert into t_res values ('10b_31_tage',
+      case when v_n = 0 then 'geloescht (richtig)' else 'NOCH DA (BUG)' end);
+
+    -- Die Testperson hängt an FLS27 — die läuft noch, also bleibt ihre Angabe.
+    select count(*)::integer into v_n from person where id = v_pid and diet is not null;
+    insert into t_res values ('11_laufende_edition',
+      case when v_n = 1 then 'bleibt (richtig)' else 'MITGELOESCHT (BUG)' end);
+
+    select purge_diet_data() into v_n;
+    insert into t_res values ('12_idempotent',
+      case when v_n = 0 then 'zweiter Lauf loescht nichts (richtig)' else 'unerwartet ' || v_n end);
+
+    insert into t_res values ('13_kein_wert_im_audit',
+      case when not exists (select 1 from audit_log
+                             where action = 'person.diet_purged' and after::text ilike '%Nussallergie%')
+           then 'nur Zahlen protokolliert (richtig)' else 'WERT IM AUDIT (BUG)' end);
+  end;
 end $$;
 select * from t_res order by step;
 rollback;
