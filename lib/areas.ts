@@ -42,9 +42,14 @@ export const AREAS: readonly Area[] = [
     leadRole: "area_lead_speaker",
   },
   {
+    // `programme_team` steht hier, weil es in den RPCs dahinter längst steht:
+    // `manager_speakers`, `speaker_travel_list` und `speaker_managers` lassen
+    // das Programm-Team durch, nur die Tür war zu. Ein Bereichsgate, das enger
+    // ist als die Funktionen darin, ist kein Schutz — es ist ein Fehler, den
+    // man erst merkt, wenn jemand vor der Tür steht (Konrad, 15.09.).
     key: "speaker-leads",
     path: "/speaker-leads",
-    roles: ["speaker_manager"],
+    roles: ["speaker_manager", "programme_team"],
     leadRole: "area_lead_speaker",
   },
   {

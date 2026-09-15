@@ -20,14 +20,15 @@ describe("Bereichs-Gate", () => {
     assert.equal(opensAny(BOARD, ["speaker_manager"]), true);
     assert.equal(opensAny(BOARD, ["area_lead_speaker"]), true);
     assert.equal(opensAny(BOARD, ["admin"]), true);
+    // Das Programm-Team kommt seit 15.09. über den eigenen Bereich ans Board:
+    // die RPCs dahinter (`manager_speakers`, `speaker_travel_list`,
+    // `speaker_managers`) lassen es ohnehin durch — Gate und Funktion gehören
+    // zusammen.
+    assert.equal(opensAny(BOARD, ["programme_team"]), true);
   });
 
   it("hält alle anderen draußen", () => {
     assert.equal(opensAny(BOARD, []), false);
-    // Seit 0107 öffnet nur noch eine Rolle. Vorher kam das Programm-Team über
-    // `is_staff()` (Zeile in `staff_user`) ans Board — diesen zweiten Weg gibt
-    // es nicht mehr; wer hin soll, bekommt `speaker_manager` oder `admin`.
-    assert.equal(opensAny(BOARD, ["programme_team"]), false);
     assert.equal(opensAny(BOARD, ["speaker"]), false);
     assert.equal(opensAny(BOARD, ["speaker_assistant"]), false);
     assert.equal(opensAny(BOARD, ["volunteer", "partner_contact"]), false);
