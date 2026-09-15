@@ -1,6 +1,6 @@
 -- 0093 · Welle 5 · Selbst gemeldete Schritte je Partner-Edition (F9.8)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 15.09.2026 nach Review.
 --
 -- Die Event-App-Seite führt sechs Schritte auf, die in **Swapcard** passieren.
 -- Wir sehen von aussen nicht, ob sie erledigt sind — es gibt keine Schnittstelle,

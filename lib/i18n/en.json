@@ -168,7 +168,8 @@
     "day_not_found": "That day does not exist in this edition.",
     "invalid_barcode": "This code is empty or unreadable. Scan again or type it in.",
     "merch_incomplete": "This line is still missing a detail in its configuration.",
-    "edition_file_not_found": "This file does not exist (any more)."
+    "edition_file_not_found": "This file does not exist (any more).",
+    "invalid_path": "This file path does not belong to this edition."
   },
   "nav": {
     "brand": "ChefTreff",

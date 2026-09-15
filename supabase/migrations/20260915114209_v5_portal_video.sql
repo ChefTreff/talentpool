@@ -1,6 +1,6 @@
 -- 0092 · Welle 5 · Eingebettete Videos zentral verwaltet (F9.4)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 15.09.2026 nach Review.
 --
 -- Konrad will Anleitungsvideos in den Portalseiten — und im Admin **eine**
 -- Liste, in der die Links austauschbar sind. Der Grund ist praktisch: ein Loom

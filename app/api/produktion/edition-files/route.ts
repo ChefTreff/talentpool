@@ -42,7 +42,11 @@ export async function POST(request: Request) {
   const labelDe = String(form.get("label_de") ?? "").trim();
   const labelEn = String(form.get("label_en") ?? "").trim();
 
-  if (!(file instanceof File) || editionId === "" || kind === "") {
+  // Form prüfen, **bevor** die Datei im Bucket landet: die RPC fängt beides
+  // zwar ab, aber dann liegt sie schon dort und muss wieder weggeräumt werden
+  // (Review 15.09.).
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!(file instanceof File) || !UUID.test(editionId) || !/^[a-z_]+$/.test(kind)) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
   if (file.size > MAX_BYTES) return NextResponse.json({ error: "too_large" }, { status: 413 });

@@ -9,7 +9,11 @@
 --   06 Editionsdateien pflegen ohne Team-/Produktionsrolle ⇒ 42501;
 --   07 eine unbekannte Art wird mit `invalid_kind` abgewiesen;
 --   08 die Produktion darf Standnummern vergeben (`upsert_booth`);
---   09 keine Grants für `authenticated` auf `edition_file`.
+--   09 keine Grants für `authenticated` auf `edition_file`;
+--   10 die Paketliste ist nicht für jeden — sie trägt Preise: mit reiner
+--      Volunteer-Rolle ⇒ 42501 (Review 15.09.);
+--   11 ein Dateipfad, der nicht unter der Edition liegt ⇒ 22023 `invalid_path`;
+--   12 eine erfundene Zielgruppe ⇒ 22023 `invalid_audience`.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -106,6 +110,33 @@ begin
   insert into t_res values ('09_grants',
     case when has_table_privilege('authenticated', 'edition_file', 'select')
          then 'LESBAR (BUG)' else 'kein SELECT (richtig)' end);
+
+  -- --- Review-Nachträge vom 15.09. -----------------------------------------
+  begin
+    perform set_edition_file(jsonb_build_object(
+      'edition_id', v_ed::text, 'kind', 'hallenplan',
+      'storage_path', 'fremde-edition/hallenplan/zz.pdf', 'filename', 'zz.pdf'));
+    insert into t_res values ('11_fremder_pfad', 'ANGENOMMEN (BUG)');
+  exception when others then
+    insert into t_res values ('11_fremder_pfad', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
+
+  begin
+    perform set_edition_file(jsonb_build_object(
+      'edition_id', v_ed::text, 'kind', 'hallenplan',
+      'storage_path', v_ed || '/hallenplan/zz2.pdf', 'filename', 'zz2.pdf',
+      'audience', jsonb_build_array('geheim')));
+    insert into t_res values ('12_erfundene_zielgruppe', 'ANGENOMMEN (BUG)');
+  exception when others then
+    insert into t_res values ('12_erfundene_zielgruppe', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
+
+  -- Reine Volunteer-Rolle: kein Partner, also keine Paketpreise.
+  delete from role_assignment where person_id = v_pid;
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'volunteer', 'global');
+  begin
+    perform count(*) from booth_packages();
+    insert into t_res values ('10_pakete_ohne_partner', 'ERLAUBT (BUG)');
+  exception when others then
+    insert into t_res values ('10_pakete_ohne_partner', 'abgewiesen ' || sqlstate); end;
 end $$;
 select * from t_res order by step;
 rollback;

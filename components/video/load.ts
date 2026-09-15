@@ -1,6 +1,9 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+// Der reine Helfer liegt daneben, damit er sich ohne `server-only` prüfen lässt.
+export { loomEmbedUrl } from "./loom";
+
 export type PortalVideo = {
   key: string;
   title_de: string | null;
@@ -27,15 +30,4 @@ export async function loadVideo(key: string, audience: string, editionId?: strin
   }
   const row = (Array.isArray(data) ? data[0] : null) as PortalVideo | null;
   return row ?? null;
-}
-
-/**
- * Loom-Freigabelink → Einbettungsadresse.
- *
- * `loom.com/share/<id>` wird zu `loom.com/embed/<id>`. Der Freigabelink
- * selbst lässt sich nicht einbetten; in der Redaktion kopiert aber jeder den
- * Freigabelink, also rechnen wir hier um, statt es zu verlangen.
- */
-export function loomEmbedUrl(url: string): string {
-  return url.replace("/share/", "/embed/").split("?")[0];
 }

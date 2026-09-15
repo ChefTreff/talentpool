@@ -168,7 +168,8 @@
     "day_not_found": "Diesen Tag gibt es in dieser Edition nicht.",
     "invalid_barcode": "Dieser Code ist leer oder unlesbar. Noch einmal scannen oder von Hand eingeben.",
     "merch_incomplete": "Für diese Zeile fehlt noch eine Angabe in der Konfiguration.",
-    "edition_file_not_found": "Diese Datei gibt es nicht (mehr)."
+    "edition_file_not_found": "Diese Datei gibt es nicht (mehr).",
+    "invalid_path": "Der Dateipfad gehört nicht zu dieser Edition."
   },
   "nav": {
     "brand": "ChefTreff",

@@ -151,6 +151,7 @@ const BUSINESS_KEYS = new Set([
   "invalid_barcode",
   // Messestand und Editionsdateien (Migration 0094)
   "edition_file_not_found",
+  "invalid_path",
 ]);
 
 const BY_CODE: Record<string, string> = {

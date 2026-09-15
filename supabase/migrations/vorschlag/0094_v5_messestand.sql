@@ -210,11 +210,25 @@ begin
   v_aud := coalesce(
     (select array_agg(value::text) from jsonb_array_elements_text(p_data->'audience') as t(value)),
     '{}');
+  -- Zielgruppen sind Rechte, keine Etiketten: eine erfundene sperrt die Datei
+  -- für alle aus oder öffnet sie für niemanden — beides still.
+  if exists (select 1 from unnest(v_aud) a where not is_vocab_key('kb_audience', a)) then
+    raise exception 'invalid_audience' using errcode = '22023',
+      detail = array_to_string(v_aud, ',');
+  end if;
 
   if v_id is null then
     v_ed := nullif(p_data->>'edition_id', '')::uuid;
     if v_ed is null then
       raise exception 'edition_not_found' using errcode = 'P0002', detail = 'edition_id fehlt';
+    end if;
+    -- Der Pfad muss unter der Edition liegen, zu der der Eintrag gehört.
+    -- Sonst könnte ein Team-Konto einen Eintrag auf eine fremde Datei zeigen
+    -- lassen — der Bucket prüft das nicht, er kennt nur Bytes.
+    if p_data->>'storage_path' is null
+       or p_data->>'storage_path' not like v_ed::text || '/%' then
+      raise exception 'invalid_path' using errcode = '22023',
+        detail = coalesce(p_data->>'storage_path', 'leer');
     end if;
     insert into edition_file (edition_id, kind, storage_path, filename, mime, size_bytes,
                               label_de, label_en, audience, sort_order, uploaded_by)
@@ -271,6 +285,11 @@ returns table (sku text, name_de text, name_en text, description_de text, descri
 language plpgsql stable security definer set search_path = public, extensions as $$
 begin
   if auth.uid() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
+  -- Die Liste trägt Paketpreise. Talente und Volunteers brauchen sie nicht,
+  -- und die Messestand-Seite liegt im Partner-Portal (Review 15.09.).
+  if not (my_kb_audiences() && array['partner']) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
   return query
     select p.sku, p.name_de, p.name_en, p.description_de, p.description_en,
            p.area_sqm, p.size_note, p.net_price_cents,
