@@ -53,6 +53,8 @@ export function SpeakerDrawer({
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
+  /** Offener Absage-Dialog: `null` = zu, sonst der gewählte Grund. */
+  const [absage, setAbsage] = useState<string | null>(null);
 
   const [draft, setDraft] = useState({
     speaker_type: speaker.speaker_type,
@@ -145,17 +147,80 @@ export function SpeakerDrawer({
                 size="sm"
                 variant={s === speaker.pipeline_status ? "primary" : "secondary"}
                 disabled={pending || s === speaker.pipeline_status}
-                onClick={() =>
+                onClick={() => {
+                  // Bei einer Absage fragen wir nach dem Grund, bevor wir
+                  // umschalten — hinterher trägt ihn niemand mehr nach, und
+                  // für die nächste Edition ist er mehr wert als die Absage.
+                  if (s === "declined") {
+                    setAbsage(speaker.decline_reason ?? "");
+                    return;
+                  }
                   startTransition(async () =>
                     void report(await setPipeline(speaker.id, s), t.pipelineSaved),
-                  )
-                }
+                  );
+                }}
               >
                 {labels.pipeline[s] ?? s}
               </Button>
             ))}
           </div>
           <p className="ct-help mt-2">{t.pipelineHint}</p>
+
+          {/* Zeitstempel aus Migration 0098: sie sagen, wie lange eine Zusage
+              gedauert hat und warum jemand abgesagt hat. */}
+          <dl className="ct-help mt-3 flex flex-col gap-0.5">
+            {speaker.confirmed_at && (
+              <div className="flex gap-1">
+                <dt className="font-semibold">{t.confirmedOn}:</dt>
+                <dd>{dateTime.format(new Date(speaker.confirmed_at))}</dd>
+              </div>
+            )}
+            {speaker.declined_at && (
+              <div className="flex gap-1">
+                <dt className="font-semibold">{t.declinedOn}:</dt>
+                <dd>
+                  {dateTime.format(new Date(speaker.declined_at))}
+                  {speaker.decline_reason &&
+                    ` · ${labels.declineReason[speaker.decline_reason] ?? speaker.decline_reason}`}
+                </dd>
+              </div>
+            )}
+          </dl>
+
+          {absage !== null && (
+            <div className="mt-3 flex flex-col gap-2 rounded-ct-sm border bg-canvas p-3">
+              <Field label={t.declineReason} htmlFor="absage-grund" hint={t.declineReasonHint}>
+                <Select
+                  id="absage-grund"
+                  value={absage}
+                  placeholder={common.choose}
+                  options={opt(labels.declineReason)}
+                  onChange={(e) => setAbsage(e.target.value)}
+                />
+              </Field>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  disabled={pending || absage === ""}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const grund = absage;
+                      setAbsage(null);
+                      void report(
+                        await setPipeline(speaker.id, "declined", grund),
+                        t.pipelineSaved,
+                      );
+                    })
+                  }
+                >
+                  {t.declineConfirm}
+                </Button>
+                <Button size="sm" variant="ghost" disabled={pending} onClick={() => setAbsage(null)}>
+                  {common.cancel}
+                </Button>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Stammdaten */}

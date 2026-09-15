@@ -43,6 +43,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         { href: "/admin/speaker-tickets", label: nav.speakerTickets },
         { href: "/admin/reisekosten", label: nav.expenses },
         { href: "/admin/hospitality", label: nav.hospitality },
+        { href: "/admin/anreise", label: nav.travel },
         { href: "/admin/technik", label: nav.tech },
       ],
     },
@@ -53,6 +54,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     {
       label: nav.sections.volunteers,
       items: [{ href: "/admin/volunteers", label: nav.volunteersWork }],
+    },
+    // Catering steht für sich: es betrifft Speaker **und** Volunteers, und die
+    // Zahlen sind bewusst ohne Personenbezug (Migration 0099).
+    {
+      label: nav.sections.crossCutting,
+      items: [{ href: "/admin/catering", label: nav.catering }],
     },
     {
       label: nav.sections.system,

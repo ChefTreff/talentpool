@@ -11,6 +11,7 @@ export async function ProductionTabs() {
         { href: "/produktion", label: t.production.tabRegie, exact: true },
         { href: "/produktion/staende", label: t.production.tabBooths },
         { href: "/produktion/bestellungen", label: t.production.tabSuppliers },
+        { href: "/produktion/catering", label: t.production.tabCatering },
         { href: "/produktion/dateien", label: t.production.tabFiles },
       ]}
     />

@@ -161,13 +161,51 @@ Jeder neue Datenpunkt ist eine Entscheidung, keine Oberflächenfrage. Sobald Kon
 4. **Zusage-/Absagedatum** — Zeitstempel beim Statuswechsel, dazu ein Vokabular für Absagegründe.
 5. **Kontakt ohne Login** — bewusst **kein** `person`-Datensatz, sondern Felder am Profil; sonst wächst die Personentabelle um Karteileichen.
 
-## E · Vorschlag zur Reihenfolge
+## E · Entschieden und gebaut (Konrad, 15.09.)
+
+Konrad hat vier Punkte ausgewählt; die übrigen bleiben liegen. Gebaut als
+Migrationen `0097`–`0099` unter `vorschlag/`, jede mit Test.
+
+| Punkt | Wo eingetragen | Wo ausgewertet |
+|---|---|---|
+| **An- und Abreise** | Speaker-Portal → „Anreise & Unterkunft" (Speaker **und** Assistenz) | Lead-Portal → „An- & Abreise" (nur die eigenen Speaker), Admin → „An- & Abreise" (alle, mit Filtern nach Tag, Verkehrsmittel, Abholung, Suche) |
+| **Ernährung** | Speaker-Portal → „Anreise & Unterkunft"; Volunteer-Profil, sobald angenommen | Produktion → „Catering" (Bestellgrundlage), Admin → „Catering" (dazu der Stand der Rückmeldungen) |
+| **Briefanrede** | Admin → Personen → Detail, mit Vorschlag für den Normalfall | Serienmails |
+| **Zusage- und Absagedatum** | wird beim Statuswechsel gesetzt; der Absagegrund wird abgefragt, bevor umgeschaltet wird | Lead-Board |
+
+### Drei Entscheidungen, die im Bauen entstanden sind
+
+1. **Die Ernährung trägt nur die Person selbst ein — die Assistenz nicht.**
+   Ursprünglich war die Assistenz zugelassen (sie pflegt Hotel und Anreise
+   ohnehin). Beim Bauen wurde der Fehler sichtbar: sie darf die Angabe **nicht
+   lesen** — es gibt keine RPC, die sie zu einer fremden Person herausgibt —,
+   sähe also ein leeres Formular und würde beim Speichern eine hinterlegte
+   Allergie löschen. Am Ende steht jemand mit der falschen Mahlzeit da. Der
+   Parameter für eine fremde Person ist deshalb ganz entfallen; der Test prüft,
+   dass es ihn nicht gibt.
+2. **Keine RPC gibt Ernährung und Name zusammen heraus.** `catering_summary`
+   zählt, `catering_notes` gibt Sätze ohne Person. Die Oberfläche könnte den
+   Namen also gar nicht anzeigen, selbst wenn jemand ihn wollte. Restrisiko,
+   das bleibt: ein sehr spezieller Hinweis in einer kleinen Gruppe ist
+   mittelbar zuordenbar — dagegen hilft nur Sparsamkeit, deshalb steht im
+   Formular, dass eine kurze Angabe reicht.
+3. **Der Freitext steht nicht im Audit-Log.** Ein Protokoll, das die Allergie
+   mitschreibt, hebt genau den Schutz auf, den die RPCs darüber aufbauen. Der
+   Eintrag hält fest, *dass* jemand etwas gespeichert hat, nicht *was*.
+
+### Zur Abholung
+
+`needs_pickup` ist ein **Wunsch**, keine Buchung. Die Buchung läuft weiter über
+das Shuttle-Kontingent; sonst gäbe es zwei Stellen, an denen eine Abholung
+entsteht, und keine wäre die Wahrheit.
+
+## F · Vorschlag zur Reihenfolge
 
 1. **Jetzt:** An-/Abreise und Ernährung. Beides fehlt vollständig, beides wird ab dem Moment gebraucht, in dem die ersten Speaker zusagen.
 2. **Mit dem nächsten Speaker-Baustein:** Zusage-/Absagedatum, Einladungsrunde, Kurzbezeichnung, Jobtitel EN — alles im Speaker-Lead-Board, eine Migration.
 3. **Wenn der Betrieb es verlangt:** individuelle Frist, Hotelwunsch, Gruppierung.
 4. **Briefanrede:** sobald die erste Serienmail an Speaker ansteht.
 
-## F · Offene Frage an Paulina
+## G · Offene Frage an Paulina
 
 Zwei Spalten habe ich nicht sicher zuordnen können: **CO `Gruppe`** und **CQ `Portal Category`**. Beide klingen nach einer Sortierung fürs Teilnehmerportal, könnten aber auch MSC-spezifisch sein. Bevor wir etwas bauen, lohnt eine Rückfrage, wofür sie die beiden benutzt hat — falls dahinter „welche Speaker gehören inhaltlich zusammen" steckt, ist das bei uns eher ein **Track** oder ein **Tag an der Session** als ein Feld an der Person.

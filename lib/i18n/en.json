@@ -702,7 +702,23 @@
     "companionHistory": "Earlier requests",
     "companionAssistantNote": "The assistant may request; your own ticket belongs to you.",
     "qrSpeakerOnly": "The ticket has been issued. Only the speaker sees the QR code.",
-    "navWiki": "Wiki"
+    "navWiki": "Wiki",
+    "travelTitle2": "Your arrival and departure",
+    "travelBody2": "So we know when you get here — and can pick you up at the station or airport if you like.",
+    "travelAssistantHint": "You are filling this in for the person you support.",
+    "arrival": "Arrival",
+    "departure": "Departure",
+    "date": "Date",
+    "time": "Time",
+    "timeHint": "Local time in Hamburg.",
+    "mode": "Mode of travel",
+    "ref": "Train or flight number",
+    "refHint": "Optional. Helps us if something is delayed.",
+    "pickup": "We would like to be picked up.",
+    "travelNote": "Note about your journey",
+    "travelNoteHint": "Optional, for example “travelling with a companion”.",
+    "travelSaved": "Travel details saved",
+    "savedAt": "Last saved: {date}"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -786,7 +802,13 @@
     "submissionsLead": "Titles and descriptions from the speaker portal",
     "openCount": "open",
     "submissionsEmptyTitle": "Nothing to decide",
-    "submissionsEmptyBody": "As soon as a speaker submits a title and description, it shows up here."
+    "submissionsEmptyBody": "As soon as a speaker submits a title and description, it shows up here.",
+    "navTravel": "Arrival & departure",
+    "confirmedOn": "Confirmed on",
+    "declinedOn": "Declined on",
+    "declineReason": "Reason for declining",
+    "declineReasonHint": "Helps when planning the next edition.",
+    "declineConfirm": "Record the decline"
   },
   "leadSubmissions": {
     "submitted": "Submitted",
@@ -1736,12 +1758,15 @@
         "speaker": "Speakers",
         "partner": "Partners",
         "volunteers": "Volunteers",
-        "system": "System"
+        "system": "System",
+        "crossCutting": "Across the event"
       },
       "partnerCare": "Support & trade-show shop",
       "volunteersWork": "Applications & shifts",
       "wiki": "Wiki",
-      "videos": "Videos"
+      "videos": "Videos",
+      "travel": "Arrival & departure",
+      "catering": "Catering"
     },
     "overview": {
       "title": "Overview",
@@ -1957,7 +1982,13 @@
       "primary": "primary",
       "verified": "verified",
       "linkedinProfile": "Profile",
-      "noRegistrations": "No registrations."
+      "noRegistrations": "No registrations.",
+      "salutation": "Letter salutation",
+      "salutationBody": "Used in bulk mail. It cannot be assembled reliably from title and name — which is why it lives here.",
+      "salutationDe": "German",
+      "salutationEn": "English",
+      "salutationSaved": "Salutation saved",
+      "useSuggestion": "Use suggestion: {v}"
     },
     "vocab": {
       "title": "Vocabulary",
@@ -2201,7 +2232,8 @@
     "csv": "As CSV",
     "emptySuppliers": "No orders",
     "emptySuppliersBody": "Nobody has ordered in the trade-show shop yet.",
-    "tabFiles": "Files"
+    "tabFiles": "Files",
+    "tabCatering": "Catering"
   },
   "wiki": {
     "title": "Wiki",
@@ -2516,5 +2548,56 @@
     "deleteBody": "“{name}” disappears from all portals and is deleted from storage.",
     "deleted": "Removed",
     "deleteFailed": "Removing did not work"
+  },
+  "diet": {
+    "title": "Dietary requirements",
+    "body": "Both are voluntary. We only need them to order the right catering.",
+    "choice": "Diet",
+    "choiceHint": "We order the quantities from this.",
+    "note": "Intolerances or allergies",
+    "noteHint": "A short note is enough, for example “nut allergy”.",
+    "privacy": "These details go to catering only as a number and a note — without your name. They never appear in any attendee list.",
+    "saved": "Saved"
+  },
+  "travelList": {
+    "title": "Arrival and departure",
+    "leadLead": "When your speakers arrive and leave again.",
+    "adminLead": "All speakers of the edition, sorted by arrival.",
+    "filterDay": "Day",
+    "allDays": "All days",
+    "filterMode": "Mode of travel",
+    "allModes": "All",
+    "filterSearch": "Search",
+    "filterSearchHint": "Name, organisation, train or flight number",
+    "onlyPickup": "Pick-up requested only",
+    "onlyOpen": "Without an arrival day only",
+    "shown": "{n} of {total}",
+    "openCount": "{n} without an arrival day",
+    "colPerson": "Person",
+    "colArrival": "Arrival",
+    "colDeparture": "Departure",
+    "colHotel": "Hotel",
+    "colOwner": "Buddy",
+    "pickup": "Pick-up",
+    "notYet": "Not entered yet",
+    "emptyTitle": "No matches",
+    "emptyBody": "Nobody matches these filters. Clear one of them.",
+    "nav": "Arrival & departure"
+  },
+  "catering": {
+    "title": "Catering",
+    "productionLead": "What needs ordering — numbers and notes, without names.",
+    "adminLead": "Diets by group, plus how many have replied.",
+    "groupSpeaker": "Speakers",
+    "groupVolunteer": "Volunteers",
+    "noAnswer": "No answer",
+    "total": "{n} people",
+    "coverageTitle": "Replies",
+    "coverageBody": "How many have stated their diet. The rest are missing when ordering.",
+    "notesTitle": "Intolerances and allergies",
+    "notesBody": "Free text from the people concerned, without names — that is all the database returns. If you need to match one to a person, ask them.",
+    "notesEmpty": "Nobody has left a note yet.",
+    "emptyTitle": "Nobody in catering yet",
+    "emptyBody": "Once speakers have confirmed and volunteers are accepted, the numbers appear here."
   }
 }

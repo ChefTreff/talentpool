@@ -702,7 +702,23 @@
     "companionHistory": "Frühere Anfragen",
     "companionAssistantNote": "Anfragen darf die Assistenz; das eigene Ticket gehört dem Speaker.",
     "qrSpeakerOnly": "Das Ticket ist ausgestellt. Den QR-Code sieht nur der Speaker selbst.",
-    "navWiki": "Wiki"
+    "navWiki": "Wiki",
+    "travelTitle2": "Eure An- und Abreise",
+    "travelBody2": "Damit wir wissen, wann ihr da seid — und euch am Bahnhof oder Flughafen abholen können, wenn ihr möchtet.",
+    "travelAssistantHint": "Ihr tragt das für die Person ein, die ihr betreut.",
+    "arrival": "Anreise",
+    "departure": "Abreise",
+    "date": "Datum",
+    "time": "Uhrzeit",
+    "timeHint": "Ortszeit in Hamburg.",
+    "mode": "Verkehrsmittel",
+    "ref": "Zug- oder Flugnummer",
+    "refHint": "Optional. Hilft uns, wenn sich etwas verspätet.",
+    "pickup": "Wir würden gern abgeholt werden.",
+    "travelNote": "Hinweis zur Reise",
+    "travelNoteHint": "Optional, zum Beispiel „komme mit Begleitung“.",
+    "travelSaved": "Reisedaten gespeichert",
+    "savedAt": "Zuletzt gespeichert: {date}"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -786,7 +802,13 @@
     "submissionsLead": "Titel und Beschreibung aus dem Speaker-Portal",
     "openCount": "offen",
     "submissionsEmptyTitle": "Nichts zu entscheiden",
-    "submissionsEmptyBody": "Sobald ein Speaker Titel und Beschreibung einreicht, steht die Einreichung hier."
+    "submissionsEmptyBody": "Sobald ein Speaker Titel und Beschreibung einreicht, steht die Einreichung hier.",
+    "navTravel": "An- & Abreise",
+    "confirmedOn": "Zusage am",
+    "declinedOn": "Absage am",
+    "declineReason": "Grund der Absage",
+    "declineReasonHint": "Hilft bei der Planung der nächsten Edition.",
+    "declineConfirm": "Absage eintragen"
   },
   "leadSubmissions": {
     "submitted": "Eingereicht",
@@ -1736,12 +1758,15 @@
         "speaker": "Speaker",
         "partner": "Partner",
         "volunteers": "Volunteers",
-        "system": "System"
+        "system": "System",
+        "crossCutting": "Übergreifend"
       },
       "partnerCare": "Betreuung & Messeshop",
       "volunteersWork": "Bewerbungen & Schichten",
       "wiki": "Wiki",
-      "videos": "Videos"
+      "videos": "Videos",
+      "travel": "An- & Abreise",
+      "catering": "Catering"
     },
     "overview": {
       "title": "Übersicht",
@@ -1957,7 +1982,13 @@
       "primary": "primär",
       "verified": "verifiziert",
       "linkedinProfile": "Profil",
-      "noRegistrations": "Keine Registrierungen."
+      "noRegistrations": "Keine Registrierungen.",
+      "salutation": "Briefanrede",
+      "salutationBody": "Wird in Serienmails verwendet. Aus Titel und Namen lässt sie sich nicht zuverlässig zusammensetzen — deshalb steht sie hier.",
+      "salutationDe": "Deutsch",
+      "salutationEn": "Englisch",
+      "salutationSaved": "Anrede gespeichert",
+      "useSuggestion": "Vorschlag übernehmen: {v}"
     },
     "vocab": {
       "title": "Vokabular",
@@ -2201,7 +2232,8 @@
     "csv": "Als CSV",
     "emptySuppliers": "Keine Bestellungen",
     "emptySuppliersBody": "Noch hat niemand etwas im Messeshop bestellt.",
-    "tabFiles": "Dateien"
+    "tabFiles": "Dateien",
+    "tabCatering": "Catering"
   },
   "wiki": {
     "title": "Wiki",
@@ -2516,5 +2548,56 @@
     "deleteBody": "„{name}“ verschwindet aus allen Portalen und wird aus dem Speicher gelöscht.",
     "deleted": "Entfernt",
     "deleteFailed": "Das Entfernen hat nicht geklappt"
+  },
+  "diet": {
+    "title": "Ernährung",
+    "body": "Beides ist freiwillig. Wir brauchen es nur, um das Catering richtig zu bestellen.",
+    "choice": "Ernährungsform",
+    "choiceHint": "Danach bestellen wir die Mengen.",
+    "note": "Unverträglichkeiten oder Allergien",
+    "noteHint": "Kurz genügt, zum Beispiel „Nussallergie“.",
+    "privacy": "Diese Angaben gehen ausschließlich als Zahl und als Hinweis an das Catering — ohne euren Namen. Sie erscheinen in keiner Teilnehmerliste.",
+    "saved": "Angabe gespeichert"
+  },
+  "travelList": {
+    "title": "An- und Abreise",
+    "leadLead": "Wann eure Speaker ankommen und wieder fahren.",
+    "adminLead": "Alle Speaker der Edition, nach Ankunft sortiert.",
+    "filterDay": "Tag",
+    "allDays": "Alle Tage",
+    "filterMode": "Verkehrsmittel",
+    "allModes": "Alle",
+    "filterSearch": "Suche",
+    "filterSearchHint": "Name, Organisation, Zug- oder Flugnummer",
+    "onlyPickup": "Nur mit Abholwunsch",
+    "onlyOpen": "Nur ohne Ankunftstag",
+    "shown": "{n} von {total}",
+    "openCount": "{n} ohne Ankunftstag",
+    "colPerson": "Person",
+    "colArrival": "Anreise",
+    "colDeparture": "Abreise",
+    "colHotel": "Hotel",
+    "colOwner": "Buddy",
+    "pickup": "Abholung",
+    "notYet": "Noch nicht eingetragen",
+    "emptyTitle": "Keine Treffer",
+    "emptyBody": "Mit diesen Filtern gibt es niemanden. Setzt einen Filter zurück.",
+    "nav": "An- & Abreise"
+  },
+  "catering": {
+    "title": "Catering",
+    "productionLead": "Was bestellt werden muss — Zahlen und Hinweise, ohne Namen.",
+    "adminLead": "Ernährung nach Gruppe, dazu der Stand der Rückmeldungen.",
+    "groupSpeaker": "Speaker",
+    "groupVolunteer": "Volunteers",
+    "noAnswer": "Keine Angabe",
+    "total": "{n} Personen",
+    "coverageTitle": "Rückmeldungen",
+    "coverageBody": "Wie viele haben ihre Ernährung angegeben. Der Rest fehlt beim Bestellen.",
+    "notesTitle": "Unverträglichkeiten und Allergien",
+    "notesBody": "Freitext der Betroffenen, ohne Namen — so gibt es die Datenbank heraus. Wer etwas zuordnen muss, fragt die Person selbst.",
+    "notesEmpty": "Bisher hat niemand einen Hinweis hinterlassen.",
+    "emptyTitle": "Noch niemand im Catering",
+    "emptyBody": "Sobald Speaker zugesagt haben und Volunteers angenommen sind, entstehen hier die Zahlen."
   }
 }

@@ -61,6 +61,10 @@ export type ManagedSpeaker = {
   pass_type: string;
   lounge_access: boolean;
   invited_at: string | null;
+  /** Seit Migration 0098: Zeitpunkt und Grund statt nur Status. */
+  confirmed_at: string | null;
+  declined_at: string | null;
+  decline_reason: string | null;
   assistant_name: string | null;
   sessions: SpeakerSession[] | null;
   /** Offene Schritte, dieselbe Liste wie im Speaker-Portal. */
