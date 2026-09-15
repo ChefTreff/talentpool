@@ -1,19 +1,20 @@
 import "server-only";
 
 /**
- * Sanity HTTP-API (Welle 3 A11). Kein SDK. Werte nur aus der Server-Umgebung (`SANITY_PROJECT_ID`, `SANITY_DATASET`, `SANITY_API_TOKEN`).
+ * Sanity HTTP-API (Welle 3 A11; Kontrakt v2 15.09.2026 in docs/runbooks/sanity-partner-logos.md). Kein SDK. Werte nur aus der Server-Umgebung (`SANITY_PROJECT_ID`, `SANITY_DATASET`, `SANITY_API_TOKEN`).
  * Regeln (Entscheidungslog 11.09.): bis zur Freigabe durch das Web-Team nur ein Viewer-Token (Lesen); geschrieben wird ausschließlich
  * unser Dokumenttyp `portalPartnerLogo`, nie Schema oder fremde Dokumente; `dryRun=true` der API validiert, ohne zu schreiben.
  */
 const API_VERSION = "v2025-02-19";
 
 export class SanityError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly operation: string,
-    detail: string,
-  ) {
+  readonly status: number;
+  readonly operation: string;
+  // Keine Parameter-Eigenschaften: `scripts/sanity-dryrun.mjs` lädt diese Datei direkt in Node (Typen werden nur entfernt, nicht übersetzt).
+  constructor(status: number, operation: string, detail: string) {
     super(`sanity ${status} ${operation}: ${detail}`);
+    this.status = status;
+    this.operation = operation;
   }
 }
 

@@ -18,6 +18,9 @@ export type ExhibitorRow = {
   description_en: string | null;
   website: string | null;
   sponsoring_level: string | null;
+  /** Schlüssel und Rang aus dem Vokabular `sponsoring_level` (0097): z. B. `premium`/40; unbekanntes Level ⇒ Schlüssel normalisiert, Rang null. */
+  sponsoring_key: string | null;
+  sponsoring_rank: number | null;
   partner_category: string | null;
   org_type: string | null;
   booth_number: string | null;
