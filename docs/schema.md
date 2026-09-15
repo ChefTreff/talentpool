@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-14 11:25 UTC · 71 Tabellen · 6 Views · 311 Funktionen
+> Stand: 2026-09-15 12:09 UTC · 78 Tabellen · 6 Views · 353 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -183,6 +183,62 @@ Checklisten-Vorlagen je Produkt/Kategorie/alle; daraus entstehen die Pflichten (
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `answers_schema` | jsonb |  |  |  | Formular-Pflichten: [{key, label_de, label_en, type text\|textarea\|select\|number\|boolean\|date, required, options[]}]; submit_deliverable prüft required. |
 | `fulfilled_by_sku` | text |  |  | `product.sku` | Buchungs-Pflicht gilt als eingereicht, sobald eine bestätigte Shop-Bestellung dieses Produkt enthält; Storno setzt sie zurück. |
+
+### `edition_contact`
+Ansprechpartner je Edition (F9.1). Dienstliche Mailadresse per CHECK erzwungen; die Nummer ist Pflicht, aber nicht prüfbar — gemeint ist die dienstliche.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `type` | text | ja |  |  |  |
+| `display_name` | text | ja |  |  |  |
+| `role_label_de` | text |  |  |  |  |
+| `role_label_en` | text |  |  |  |  |
+| `email` | extensions.citext | ja |  |  |  |
+| `phone` | text | ja |  |  |  |
+| `photo_path` | text |  |  |  |  |
+| `is_default` | boolean | ja | `false` |  | Rückfall innerhalb einer bestehenden Zuordnungsbeziehung: ein Partner ohne gesetzten Lead sieht diesen. Nie eine Liste für alle Angemeldeten. |
+| `sort_order` | integer | ja | `0` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `edition_file`
+Dateien, die einer Edition gehören und nicht einer Organisation: Hallenplan, Anfahrt, Aufbauplan. Privater Bucket `edition-files`, Pfad <edition_id>/<kind>/<datei>.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `kind` | text | ja |  |  |  |
+| `storage_path` | text | ja |  |  |  |
+| `filename` | text | ja |  |  |  |
+| `mime` | text |  |  |  |  |
+| `size_bytes` | bigint |  |  |  |  |
+| `label_de` | text |  |  |  |  |
+| `label_en` | text |  |  |  |  |
+| `audience` | text[] | ja |  |  |  |
+| `sort_order` | integer | ja | `0` |  |  |
+| `uploaded_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `edition_info`
+Allgemeine Auskünfte je Edition (F9.1): Öffnungszeiten, Einlass, Aufbau, Adresse. Text, kein Zeitstempel — eine Auskunft, kein Termin.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `key` | text | ja |  |  |  |
+| `audience` | text[] | ja |  |  |  |
+| `label_de` | text |  |  |  |  |
+| `label_en` | text |  |  |  |  |
+| `value_de` | text |  |  |  |  |
+| `value_en` | text |  |  |  |  |
+| `sort_order` | integer | ja | `0` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `event`
 Format/Termin (Summit, Hackathon, Side-Event, Community). is_edition = Klammer wie FLS27-Woche; Kinder verweisen über edition_id.
@@ -491,6 +547,8 @@ Partner-Organisation je Edition: Onboarding-Stand, Rechnungsdaten, Pass-Typ-Wahl
 | `notes_internal` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `lead_contact_id` | uuid |  |  | `edition_contact.id` |  |
+| `buddy_contact_id` | uuid |  |  | `edition_contact.id` |  |
 
 ### `org_membership`
 
@@ -520,6 +578,27 @@ Gebuchte Leistungen je Partner × Edition (aus HubSpot-Line-Items); steuert Chec
 | `notes` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `org_step`
+Katalog der selbst zu meldenden Schritte je Thema (F9.8). Der Wortlaut steht in der Oberfläche, hier stehen nur Schlüssel und Reihenfolge — so ist „x von y" eine Zahl aus der Datenbank.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `topic` | text | PK |  |  |  |
+| `key` | text | PK |  |  |  |
+| `sort_order` | integer | ja | `0` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `org_step_check`
+Selbstauskunft: dieser Schritt ist erledigt. Kein Nachweis — was in Swapcard passiert, sehen wir nicht. Zeile da = erledigt, Zeile weg = offen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `org_edition_id` | uuid | PK |  | `org_edition.id` |  |
+| `topic` | text | PK |  |  |  |
+| `key` | text | PK |  |  |  |
+| `done_at` | timestamp with time zone | ja | `now()` |  |  |
+| `done_by` | uuid |  |  | `person.id` |  |
 
 ### `org_ticket_allocation`
 Ticket-Kontingent je Partner × Edition × Pass-Typ, abgeleitet aus Ticket-Produkten; Coupon/Undershop kommen aus vivenu (Route), Status pending_vivenu bis dahin.
@@ -645,6 +724,10 @@ Eine natürliche Person = ein Datensatz. Login-Verknüpfung über auth_user_id.
 | `photo_url` | text |  |  |  |  |
 | `tier` | text | ja | `lead` |  | lead = bekannt ohne Login · talent = hat sich eingeloggt (Claim). Wird per Trigger gesetzt. |
 | `deleted_at` | timestamp with time zone |  |  |  | Gesetzt durch delete_my_profile(): Datensatz anonymisiert, Historie bleibt. |
+| `diet` | text |  |  |  | Ernährungsform aus dem Vokabular `diet`. Grundlage der Catering-Bestellung. NULL = keine Angabe. |
+| `diet_note` | text |  |  |  | Unverträglichkeiten und Allergien, Freitext, freiwillig. Kann eine Gesundheitsangabe nach Art. 9 DSGVO sein — wird nie zusammen mit dem Namen herausgegeben. |
+| `salutation_de` | text |  |  |  | Fertige Briefanrede, z. B. „Sehr geehrte Frau Prof. Dr. Zehle". Redaktionell gepflegt — aus Titel und Namen lässt sie sich nicht zuverlässig bauen. |
+| `salutation_en` | text |  |  |  |  |
 
 ### `person_acquisition_channel`
 
@@ -694,6 +777,22 @@ Eine natürliche Person = ein Datensatz. Login-Verknüpfung über auth_user_id.
 | `merged_at` | timestamp with time zone | ja | `now()` |  |  |
 | `actor` | text |  |  |  |  |
 | `payload` | jsonb |  |  |  |  |
+
+### `portal_video`
+Eingebettete Videos je Schlüssel (F9.4). Seiten binden über `key` ein, der Link ist Redaktionssache. Nur Loom — der CHECK und die CSP gehören zusammen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `key` | text | ja |  |  |  |
+| `title_de` | text |  |  |  |  |
+| `title_en` | text |  |  |  |  |
+| `url` | text | ja |  |  |  |
+| `audience` | text[] | ja |  |  |  |
+| `edition_id` | uuid |  |  | `event.id` |  |
+| `sort_order` | integer | ja | `0` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `potential_duplicate`
 
@@ -751,6 +850,8 @@ Produktstamm (Pakete, Zusatzleistungen, Shop-Artikel). SKU = Item-ID der Item-Li
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `pass_type` | text |  |  |  |  |
 | `grants_role` | text |  |  |  |  |
+| `area_sqm` | numeric |  |  |  | Standfläche eines Pakets in Quadratmetern. Zahl, nicht Text — die Einheit setzt die Oberfläche (qm/sqm). |
+| `size_note` | text |  |  |  | Maß als sprachneutrale Notiz, z. B. „6 m × 3 m". Ergänzt `area_sqm` in der Übersichtstabelle. |
 
 ### `product_component`
 Stückliste: was in einem Paket steckt (Messebau/Regie).
@@ -998,6 +1099,7 @@ Messeshop-Bestellung je Partner × Edition × Phase; MS-JJJJ-NNNN; eine aktive j
 | `cancelled_at` | timestamp with time zone |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `po_number` | text |  |  |  | Bestellnummer des Partners für diese Bestellung (F11.2). Vorgabe aus org_edition.po_number; je Auftrag überschreibbar. Wandert in den SevDesk-Entwurf. |
 
 ### `shop_order_line`
 Bestellzeile mit Snapshot der Produktdaten zum Zeitpunkt der Bestätigung.
@@ -1128,6 +1230,31 @@ Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality,
 | `internal_notes` | text |  |  |  |  |
 | `invited_at` | timestamp with time zone |  |  |  |  |
 | `created_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `lead_contact_id` | uuid |  |  | `edition_contact.id` |  |
+| `buddy_contact_id` | uuid |  |  | `edition_contact.id` |  |
+| `confirmed_at` | timestamp with time zone |  |  |  | Wann der Status zum ersten Mal auf „zugesagt" ging. Wird im Statuswechsel gesetzt, nicht von Hand. |
+| `declined_at` | timestamp with time zone |  |  |  |  |
+| `decline_reason` | text |  |  |  | Schlüssel aus dem Vokabular `speaker_decline_reason`. Für die Planung der nächsten Edition. |
+
+### `speaker_travel`
+An- und Abreise je Speaker-Profil (Abgleich 15.09.). Datum und Uhrzeit getrennt: die Eingabe meint Ortszeit in Hamburg, kein `timestamptz`.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `profile_id` | uuid | PK |  | `speaker_profile.id` |  |
+| `arrival_date` | date |  |  |  |  |
+| `arrival_time` | time without time zone |  |  |  |  |
+| `arrival_mode` | text |  |  |  |  |
+| `arrival_ref` | text |  |  |  |  |
+| `departure_date` | date |  |  |  |  |
+| `departure_time` | time without time zone |  |  |  |  |
+| `departure_mode` | text |  |  |  |  |
+| `departure_ref` | text |  |  |  |  |
+| `needs_pickup` | boolean | ja | `false` |  | Wunsch nach Abholung. Die Buchung selbst läuft weiter über das Shuttle-Kontingent in `hospitality_booking`. |
+| `note` | text |  |  |  |  |
+| `updated_by` | uuid |  |  | `person.id` |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
@@ -1466,9 +1593,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `backfill_ticket_pass_types` | args: ? |
 | `book_hospitality` | p_details: jsonb, p_guests: integer, p_quota_id: uuid |
 | `booth_checklist` | p_edition_id: uuid, p_org_id: uuid |
+| `booth_packages` | args: ? |
 | `can_decide_session` | p_session_id: uuid |
+| `can_edit_edition_contacts` | args: ? |
+| `can_edit_edition_info` | args: ? |
 | `can_edit_kb` | p_audience: text[] |
 | `can_edit_kb_all` | p_audience: text[] |
+| `can_edit_regie` | p_stage_id: uuid |
 | `can_edit_session` | p_session_id: uuid |
 | `can_edit_slot` | p_slot_id: uuid |
 | `can_edit_stage` | p_stage_id: uuid |
@@ -1478,6 +1609,12 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `cancel_companion_ticket` | p_ticket_id: uuid |
 | `cancel_hospitality` | p_booking_id: uuid |
 | `cancel_registration` | p_session_id: uuid |
+| `catering_coverage` | p_edition_id: uuid |
+| `catering_notes` | p_edition_id: uuid |
+| `catering_people` | p_edition_id: uuid |
+| `catering_summary` | p_edition_id: uuid |
+| `check_edition_contact` | p_contact: uuid, p_edition: uuid, p_type: text |
+| `check_travel_mode` | p_mode: text |
 | `checkin_edition` | args: ? |
 | `checkin_scan` | p_barcode: text, p_device: text |
 | `checkin_stats` | p_day: date, p_edition_id: uuid |
@@ -1496,16 +1633,26 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `decline_companion_ticket` | p_note: text, p_ticket_id: uuid |
 | `decline_hospitality` | p_booking_id: uuid, p_note: text |
 | `decline_shift` | p_assignment_id: uuid, p_reason: text |
+| `delete_edition_contact` | p_id: uuid |
+| `delete_edition_file` | p_id: uuid |
+| `delete_edition_info` | p_id: uuid |
 | `delete_kb_article` | p_id: uuid |
 | `delete_my_profile` | args: ? |
+| `delete_portal_video` | p_id: uuid |
 | `delete_regie_cue` | p_id: uuid |
 | `deliverable_due` | p_oe: public.org_edition, p_template: public.deliverable_template |
 | `detach_session` | p_session_id: uuid |
+| `edition_contacts_admin` | p_edition_id: uuid |
+| `edition_files` | p_audience: text, p_edition_id: uuid |
+| `edition_files_admin` | p_edition_id: uuid |
+| `edition_infos` | p_audience: text, p_edition_id: uuid |
+| `edition_infos_admin` | p_edition_id: uuid |
 | `edition_valid_to` | p_edition_id: uuid |
 | `effective_pass_type` | p_org_edition_id: uuid, p_product_pass_type: text |
 | `email_hash` | p_email: text |
 | `ensure_speaker_ticket` | p_profile_id: uuid |
 | `event_app_exhibitors` | p_edition_id: uuid |
+| `exhibitor_list` | p_edition_id: uuid |
 | `expense_bank_details` | p_claim_id: uuid |
 | `expense_eligibility` | p_profile_id: uuid |
 | `expense_queue` | p_edition_id: uuid |
@@ -1570,7 +1717,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `merch_problem` | p_qty: numeric, p_schema: jsonb, p_values: jsonb |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_applications` | args: ? |
+| `my_contacts` | p_edition_id: uuid |
 | `my_deliverables` | p_edition_id: uuid, p_org_id: uuid |
+| `my_diet` | args: ? |
 | `my_expense_claims` | args: ? |
 | `my_hack` | p_edition_id: uuid, p_language: text |
 | `my_hack_team_id` | p_edition_id: uuid |
@@ -1578,9 +1727,11 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_kb_audiences` | args: ? |
 | `my_lead_shifts` | p_edition_id: uuid |
 | `my_manager_scope` | args: ? |
+| `my_org_steps` | p_edition_id: uuid, p_org_id: uuid, p_topic: text |
 | `my_partner_assets` | p_edition_id: uuid, p_org_id: uuid |
 | `my_partner_orgs` | args: ? |
 | `my_partner_stages` | args: ? |
+| `my_regie_stages` | p_edition_id: uuid |
 | `my_roles` | args: ? |
 | `my_sessions` | args: ? |
 | `my_shifts` | p_edition_id: uuid |
@@ -1588,10 +1739,12 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_speaker_profile` | p_edition_id: uuid |
 | `my_speaker_profile_id` | p_edition_id: uuid |
 | `my_speaker_tickets` | p_edition_id: uuid |
+| `my_speaker_travel` | p_edition_id: uuid |
 | `my_ticket_allocations` | p_edition_id: uuid, p_org_id: uuid |
 | `my_volunteer_profile` | p_edition_id: uuid |
 | `notify_partner_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
+| `org_steps_progress` | p_edition_id: uuid, p_topic: text |
 | `partner_admin_overview` | p_edition_id: uuid |
 | `partner_applications` | p_session_id: uuid |
 | `partner_asset_path_allowed` | p_name: text, p_write: boolean |
@@ -1610,6 +1763,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_set_onboarding_status` | p_edition_id: uuid, p_org_id: uuid, p_status: text |
 | `pending_submissions` | p_event_id: uuid |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
+| `portal_video_for` | p_audience: text, p_edition_id: uuid, p_key: text |
+| `portal_videos_admin` | args: ? |
 | `presentation_window` | p_session_id: uuid |
 | `promote_shift_waitlist` | p_shift_id: uuid |
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |
@@ -1617,6 +1772,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `publish_kb_article` | p_id: uuid, p_published: boolean |
 | `publish_session` | p_session_id: uuid |
 | `purge_checkins` | args: ? |
+| `purge_diet_data` | p_days: integer |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `record_shop_invoice` | p_meta: jsonb, p_order_ids: uuid[], p_org_id: uuid, p_sevdesk_contact_id: text, p_sevdesk_invoice_id: text |
 | `record_sync_error` | p_job_id: bigint, p_message: text, p_object_id: text, p_object_type: text, p_payload: jsonb |
@@ -1655,6 +1811,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_speakers_public` | p_session_id: uuid |
 | `set_booth_service_check` | p_checked: boolean, p_note: text, p_org_edition_id: uuid, p_product_sku: text |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
+| `set_diet` | p_diet: text, p_note: text |
+| `set_edition_file` | p_data: jsonb |
 | `set_edition_hubspot` | p_done_stage_id: text, p_edition_id: uuid, p_pipeline_id: text, p_stage_id: text |
 | `set_edition_swapcard` | p_edition_id: uuid, p_swapcard_event_id: text |
 | `set_edition_vivenu` | p_edition_id: uuid, p_vivenu_event_id: text |
@@ -1665,13 +1823,18 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_external_ref` | p_external_id: text, p_meta: jsonb, p_object_id: uuid, p_object_type: text, p_system: text |
 | `set_hack_application_status` | p_id: uuid, p_note: text, p_status: text |
 | `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
+| `set_my_speaker_travel` | p_data: jsonb, p_edition_id: uuid |
+| `set_org_contacts` | p_buddy: uuid, p_lead: uuid, p_org_edition_id: uuid |
 | `set_org_sevdesk_contact` | p_contact_id: text, p_org_id: uuid |
+| `set_org_step` | p_done: boolean, p_edition_id: uuid, p_key: text, p_org_id: uuid, p_topic: text |
+| `set_person_salutation` | p_de: text, p_en: text, p_person_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
 | `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
 | `set_slides_release` | p_asset_id: uuid, p_release: boolean |
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
-| `set_speaker_pipeline` | p_profile_id: uuid, p_status: text |
+| `set_speaker_contacts` | p_buddy: uuid, p_lead: uuid, p_profile_id: uuid |
+| `set_speaker_pipeline` | p_profile_id: uuid, p_reason: text, p_status: text |
 | `set_team_challenge` | p_challenge_id: uuid, p_team_id: uuid |
 | `set_tech_check` | p_asset_id: uuid, p_note: text, p_status: text |
 | `set_ticket_allocation` | p_coupon_code: text, p_id: uuid, p_notes: text, p_quantity: integer, p_status: text, p_undershop_url: text |
@@ -1686,7 +1849,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_admin_set_status` | p_note: text, p_order_id: uuid, p_status: text |
 | `shop_cancel` | p_order_id: uuid |
 | `shop_catalogue` | p_edition_id: uuid, p_org_id: uuid |
-| `shop_confirm` | p_note: text, p_order_id: uuid |
+| `shop_confirm` | p_note: text, p_order_id: uuid, p_po_number: text |
 | `shop_edit` | p_order_id: uuid |
 | `shop_invoice_candidates` | p_edition_id: uuid |
 | `shop_invoice_refs` | p_edition_id: uuid |
@@ -1713,12 +1876,15 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_next_steps` | p_profile_id: uuid |
 | `speaker_ticket_create` | p_profile_id: uuid |
 | `speaker_tickets_admin` | p_edition_id: uuid |
+| `speaker_travel_list` | p_edition_id: uuid |
+| `sponsoring_level_key` | p_level: text |
 | `stage_editor_orgs` | p_person_id: uuid |
 | `start_sync_job` | p_direction: text, p_job_type: text, p_system: text, p_triggered_by: text |
 | `submit_deliverable` | p_answers: jsonb, p_asset_ids: uuid[], p_deliverable_id: uuid |
 | `submit_expense` | p_claim_id: uuid |
 | `submit_hack` | p_data: jsonb |
 | `submit_session_content` | p_data: jsonb, p_session_id: uuid |
+| `suggest_salutation` | p_locale: text, p_person_id: uuid |
 | `supplier_order_list` | p_edition_id: uuid, p_supplier: text |
 | `sync_deliverables` | p_org_edition_id: uuid |
 | `sync_granted_roles` | p_org_id: uuid |
@@ -1737,10 +1903,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_booth` | p_data: jsonb, p_edition_id: uuid, p_org_id: uuid |
 | `upsert_deadline` | p_data: jsonb |
 | `upsert_deliverable_template` | p_data: jsonb |
+| `upsert_edition_contact` | p_data: jsonb |
+| `upsert_edition_info` | p_data: jsonb |
 | `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |
 | `upsert_kb_article` | p_data: jsonb |
 | `upsert_partner_contact` | p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_position: text, p_roles: text[] |
+| `upsert_portal_video` | p_data: jsonb |
 | `upsert_product` | p_data: jsonb |
 | `upsert_product_component` | p_bundle_sku: text, p_component_sku: text, p_qty: numeric |
 | `upsert_regie_cue` | p_data: jsonb |
