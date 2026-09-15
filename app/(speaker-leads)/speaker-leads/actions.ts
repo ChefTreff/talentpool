@@ -100,6 +100,39 @@ export async function setPipeline(
   return { ok: true, data: undefined };
 }
 
+/**
+ * Betreuung weitergeben.
+ *
+ * Die Regel steht in der RPC (Migration 0103): wer nicht zum Team gehört, darf
+ * nur abgeben, was sie heute selbst betreut — und der Empfänger muss
+ * Speaker-Lead sein. Die Oberfläche bietet das deshalb nur dort an, wo es
+ * erlaubt ist; verlassen muss sie sich darauf nicht.
+ */
+export async function handoverSpeaker(
+  profileId: string,
+  toPersonId: string,
+): Promise<LeadResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("handover_speaker", {
+    p_profile_id: profileId,
+    p_to_person_id: toPersonId,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
+
+/** Die Lead-Personen zur Auswahl. */
+export async function listManagers(): Promise<{ person_id: string; display_name: string | null }[]> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("speaker_managers");
+  if (error) {
+    console.error("[speaker-leads] speaker_managers:", error.message);
+    return [];
+  }
+  return (data ?? []) as { person_id: string; display_name: string | null }[];
+}
+
 /** Einladung verschicken. Geht erst ab `confirmed` (P0001 `not_confirmed`). */
 export async function inviteSpeaker(profileId: string): Promise<LeadResult> {
   const supabase = await client();

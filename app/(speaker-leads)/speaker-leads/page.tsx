@@ -6,7 +6,7 @@ import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PipelineView } from "./PipelineView";
-import type { ManagedSpeaker, ManagerScope } from "./types";
+import type { ManagedSpeaker, ManagerOption, ManagerScope } from "./types";
 
 export const dynamic = "force-dynamic";
 
@@ -24,12 +24,15 @@ export default async function SpeakerLeadsPage() {
   // Wer keiner ist, soll den Bereich auch nicht als leere Seite sehen.
   if (!scope?.is_manager) notFound();
 
-  const [{ data: speakerRows }, vocab] = await Promise.all([
+  const [{ data: speakerRows }, { data: managerRows }, vocab] = await Promise.all([
     supabase.rpc("manager_speakers"),
+    // Für die Übergabe: nur wer den Bereich auch öffnen kann, taugt als Empfänger.
+    supabase.rpc("speaker_managers"),
     loadVocabMap(supabase, locale),
   ]);
 
   const speakers = (speakerRows ?? []) as ManagedSpeaker[];
+  const managers = (managerRows ?? []) as ManagerOption[];
 
   return (
     <>
@@ -43,6 +46,7 @@ export default async function SpeakerLeadsPage() {
         <PipelineView
           scope={scope}
           speakers={speakers}
+          managers={managers}
           labels={{
             pipeline: vgroup(vocab, "speaker_pipeline"),
             speakerType: vgroup(vocab, "speaker_type"),

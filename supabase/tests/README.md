@@ -58,6 +58,8 @@ Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Edito
 
 | `v5_admin_speaker.sql` | 0103 (20260915123741) | Lead-Person kann `owner_person_id` nicht mehr ueber `update_speaker` setzen (`team_only_fields`), das Team schon; weiterreichen darf nur, wer heute selbst betreut; Empfaenger ohne Lead-Rolle 22023 `invalid_owner`, unbekannte Person P0002; freigeben (`null`) nur das Team; jede Uebergabe steht mit Vorher/Nachher im Protokoll; Detailblatt gibt dem Team die interne Notiz, der Lead-Person nicht (`internal_notes_visible`), ohne Verwaltungsrecht 42501; `speaker_managers` nennt nur aktive Lead-Personen und ist ohne Rolle zu; `manager_speakers` gibt die interne Notiz wieder heraus (Nachtrag zu 0099). |
 
+| `v5_speaker_leads_admin.sql` | 0104 (Vorschlag) | Lead-Verwaltung und die Liste der unbetreuten Speaker ohne Team-Rolle 42501; eine Lead-Person erscheint mit ihren aktiven Rollen inklusive Zuweisungs-ID (Griff zum Entziehen); Zahlen betreut/zugesagt/abgesagt stimmen, offene Schritte werden ueber alle betreuten Speaker summiert; eine abgelaufene Rolle macht niemanden zum Lead; unbetreute Speaker erscheinen, Absagen nicht; nach der Zuordnung verschwindet der Speaker aus der Gegenliste und zaehlt bei der Lead-Person; `my_manager_scope` nennt die eigene Personen-ID und laesst den Rest unveraendert. |
+
 Simulation eines eingeloggten Nutzers innerhalb der Transaktion:
 `perform set_config('request.jwt.claims', json_build_object('sub', <auth_uid>, 'role', 'authenticated', 'email', <email>)::text, true);`
 
