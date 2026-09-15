@@ -18,6 +18,7 @@ docs/feedback-runde-1-2026-09-11.md|05_Requirements (Team-Input)/Feedback-Runde 
 docs/feedback-runde-1-abgleich.md|05_Requirements (Team-Input)/Abgleich Alt-Portale gegen neues Portal (Claude, 2026-09-14).md
 docs/feedback-runde-2-2026-09-14.md|05_Requirements (Team-Input)/Feedback-Runde 2 — Konrad (2026-09-14).md
 docs/speaker-felder-abgleich-2026-09-15.md|05_Requirements (Team-Input)/Speaker-Felder — Paulinas Master-Liste gegen unser Datenmodell (Claude, 2026-09-15).md
+docs/speaker-portale-abgleich-2026-09-15.md|05_Requirements (Team-Input)/Speaker-Domaene — die drei Portale gegen Konrads Zielbild (Claude, 2026-09-15).md
 docs/design-briefing.md|07_Mockups & Design/Design-Briefing v0.3 (Claude, 2026-09-08).md
 docs/entscheidungen.md|08_Projektplan & MVP/Entscheidungslog (Claude, laufend).md
 docs/abschluss-checkliste.md|08_Projektplan & MVP/Abschluss-Checkliste (Claude, laufend).md
