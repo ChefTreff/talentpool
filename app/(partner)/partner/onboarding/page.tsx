@@ -5,7 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
-import { canEditOnboarding, type Deliverable, type PartnerContact, type PartnerOverview } from "../types";
+import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
 import { OnboardingWizard } from "./OnboardingWizard";
 
 export const dynamic = "force-dynamic";
@@ -24,18 +24,18 @@ export default async function PartnerOnboardingPage() {
   if (!current) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const [{ data: overviewJson }, { data: deliverableRows }, { data: contactRows }] =
-    await Promise.all([
-      supabase.rpc("partner_overview", {
-        p_org_id: current.org_id,
-        p_edition_id: current.edition_id,
-      }),
-      supabase.rpc("my_deliverables", {
-        p_org_id: current.org_id,
-        p_edition_id: current.edition_id,
-      }),
-      supabase.rpc("partner_contacts", { p_org_id: current.org_id }),
-    ]);
+  // Kontakte werden hier nicht mehr geladen: sie stehen unter „Kontakte" und
+  // standen vorher doppelt (F12.6).
+  const [{ data: overviewJson }, { data: deliverableRows }] = await Promise.all([
+    supabase.rpc("partner_overview", {
+      p_org_id: current.org_id,
+      p_edition_id: current.edition_id,
+    }),
+    supabase.rpc("my_deliverables", {
+      p_org_id: current.org_id,
+      p_edition_id: current.edition_id,
+    }),
+  ]);
 
   const overview = (overviewJson ?? null) as PartnerOverview | null;
   if (!overview) notFound();
@@ -46,7 +46,6 @@ export default async function PartnerOnboardingPage() {
   const logos = ((deliverableRows ?? []) as Deliverable[])
     .filter((d) => d.key.startsWith("logo_"))
     .sort((a, b) => a.sort - b.sort);
-  const contacts = (contactRows ?? []) as PartnerContact[];
   const editable = canEditOnboarding(overview.roles, overview.team);
 
   if (!editable) {
@@ -69,12 +68,9 @@ export default async function PartnerOnboardingPage() {
         editionId={current.edition_id}
         overview={overview}
         logos={logos}
-        contacts={contacts}
-        canManage={overview.team || overview.roles.includes("primary_ops")}
         locale={locale}
         dateLocale={t.meta.dateLocale}
         t={t.partner}
-        contactStrings={t.partnerContacts}
         common={{
           save: t.common.save,
           cancel: t.common.cancel,

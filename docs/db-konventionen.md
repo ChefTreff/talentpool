@@ -17,6 +17,7 @@ Gilt für jede Session, die Migrationen schreibt — ab Welle 4 auch die Build-S
   - nicht eingeloggt: `if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;`
   - nicht berechtigt: `raise exception 'not allowed' using errcode = '42501'` (optional `detail` mit dem Grund-Schlüssel, z. B. `host_org_required`).
   - service_role oder Team: `if auth.uid() is not null and not is_partner_team() then … 42501`. Nur service_role: `if auth.uid() is not null then … 42501`.
+- **`person` nie als Ganzes herausgeben:** in SECURITY-DEFINER-Funktionen kein `select *`, kein `to_jsonb(p)` auf `person` — nur benannte Spalten. Seit 0100 stehen dort Ernährungs-/Gesundheitsangaben (`diet_note`, Art. 9 DSGVO), die außer der Person selbst niemand mit Namen sehen darf; ein generischer Export hebt diesen Schutz still auf.
 - Parameter mit Präfix `p_`, lokale Variablen `v_`, Records `r`/`c`. Eingaben trimmen (`nullif(btrim(...), '')`), Vokabular über `is_vocab_key(vokabular, wert)` prüfen.
 - Konfiguration in Tabellen, nicht in Env (`event.hubspot_*`, `event.swapcard_event_id`, `product.grants_role`); Team-RPC `set_edition_*` mit Audit.
 - Audit für Team-/Admin-Aktionen: `perform log_audit('<bereich>.<aktion>', '<object_type>', <id>::text, <before jsonb|null>, <after jsonb>);`

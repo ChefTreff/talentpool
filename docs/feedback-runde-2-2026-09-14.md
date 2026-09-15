@@ -140,3 +140,23 @@ Konrads Urteil: „grundsätzlich schon gut". Leitlinie für alle Punkte: **so n
 
 - Der **Hallenplan als Datei** (F10.4) — als Bild im Chat vorhanden, noch nicht im Repo.
 - Die **Standliste** der Edition (F10.4) — laut Konrad erst in einigen Wochen aus der Produktion.
+
+---
+
+# Teil 3 (Konrad, 14.09.2026) — Seite „Eure Daten" (vormals Stammdaten)
+
+Umgesetzt in **F12**. Konrads Leitsatz dazu, er gilt über diese Seite hinaus: *„Denke bitte immer so, wie ein Kunde, der draufschaut."*
+
+| Nr. | Ist | Soll | Stand |
+|---|---|---|---|
+| **F12.1** | „Stammdaten" | „Eure Daten" | gebaut |
+| **F12.2** | Schritte nur über „Weiter" erreichbar; Beschreibung und Logo nicht anklickbar | Schritte **anklickbar**; Formular erscheint beim ersten Einloggen | gebaut |
+| **F12.3** | „Aus HubSpot vorbelegt" — ein internes System im Kundentext | „Das haben wir für euch eingetragen. Stimmt etwas nicht, ändert es einfach hier." | gebaut |
+| **F12.4** | Logo-Upload als nacktes Dateifeld, man erkennt nicht, wo hochgeladen wird | Upload als klar gekennzeichneter Knopf | gebaut |
+| **F12.5** | Schritt „Rechnung"; darin die Wahl des Pass-Typs | „Rechnungsdaten"; Pass-Typ raus — das ist ein **interner** Status je Partner | gebaut |
+| **F12.6** | Kontakte stehen doppelt: unter „Eure Daten" und als eigener Menüpunkt | nur unter „Kontakte" | gebaut |
+
+## Offene Punkte aus Teil 3
+
+1. **Pass-Typ je Partner festlegen (F12.5).** Er ist aus der Partneransicht entfernt, aber noch **nirgends** im Admin pflegbar — das Feld `org_edition.pass_type_choice` existiert weiter und wird jetzt von niemandem mehr gesetzt. Konrads Vorschlag: „bestenfalls sogar schon in HubSpot". Braucht eine Entscheidung: Feld im Partner-Admin, Zuordnung über HubSpot beim Abgleich, oder beides. **Bis dahin ist die Funktion tot.**
+2. **„Verpflichtend" (F12.2), Umfang.** Umgesetzt ist: wer die Startseite des Partner-Portals öffnet und noch im Status `invited` steht, landet im Formular. Die übrigen Seiten bleiben erreichbar — eine Sperre, aus der man nicht herauskommt, wäre keine Führung, sondern eine Falle. Falls Konrad wirklich alles sperren will, ist das eine eigene Entscheidung.

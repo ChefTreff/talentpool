@@ -21,3 +21,4 @@ export { Menu, MenuItem, MenuSeparator } from "./Menu";
 export { ContactCard } from "./ContactCard";
 export { InfoList } from "./InfoList";
 export type { InfoEintrag } from "./InfoList";
+export { FileButton } from "./FileButton";
