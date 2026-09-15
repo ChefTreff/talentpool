@@ -1,7 +1,6 @@
 -- =============================================================================
 -- 0105 · Welle 5 · Pass-Typ je Partner: vorbelegen und übersteuern
---
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+--     angewendet am 15.09.2026 als 20260915130339
 --
 -- Offener Punkt aus #42 (Entscheidungslog, 14.09.): `org_edition.pass_type_choice`
 -- entscheidet, ob die Talente-Tickets eines Partners als `talent` oder als
