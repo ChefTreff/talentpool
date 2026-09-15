@@ -1,7 +1,7 @@
 -- 0091 · Welle 5 · Ansprechpartner und allgemeine Zeiten je Edition (F9.1)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet und auf
--- die Server-Version umbenennt.
+-- Angewendet von der Architektur-Session am 15.09.2026 nach Review (Dateiname
+-- trägt die Server-Version).
 --
 -- Konrads Anforderung aus Feedback-Runde 2: „extrem serviceorientiert denken
 -- und Fragen antizipieren, damit sie gar nicht erst gestellt werden." Auf der
@@ -38,7 +38,15 @@
 -- daraus einen Kalender zu bauen, den niemand bestellt hat.
 --
 -- Fehlerschlüssel: 28000 ohne Login · 42501 ohne Recht ·
--- 22023 `invalid_contact_type` / `invalid_audience` · P0002 `contact_not_found`.
+-- 22023 `invalid_contact_type` / `invalid_audience` / `fields_required` / `invalid_contact` ·
+-- P0002 `contact_not_found`.
+--
+-- Review Architektur-Session 14.09.2026: Domain-CHECK unabhängig von der
+-- Schreibung (`lower`); Pflichtfelder beim Anlegen als 22023 statt 23502;
+-- Zuordnungen prüfen Edition und Typ des Kontakts (kein Speaker-Lead am
+-- Partner, kein Kontakt einer anderen Edition); Auskünfte (`edition_info`)
+-- pflegt jede Bereichsleitung (`can_edit_edition_info`), Ansprechpartner
+-- weiterhin Admin und die Leitungen Partner/Speaker.
 
 set search_path = public, extensions;
 
@@ -71,7 +79,7 @@ create table if not exists edition_contact (
   updated_at      timestamptz not null default now(),
   constraint edition_contact_type_chk
     check (type in ('partner_lead', 'partner_buddy', 'speaker_lead', 'speaker_buddy')),
-  constraint edition_contact_email_chk check (email::text like '%@chef-treff.de'),
+  constraint edition_contact_email_chk check (lower(email::text) like '%@chef-treff.de'),
   constraint edition_contact_phone_chk check (btrim(phone) <> ''),
   constraint edition_contact_name_chk check (btrim(display_name) <> '')
 );
@@ -262,6 +270,11 @@ begin
   end if;
 
   if v_id is null then
+    if v_typ is null or nullif(btrim(p_data->>'display_name'), '') is null
+       or nullif(btrim(p_data->>'email'), '') is null or nullif(btrim(p_data->>'phone'), '') is null then
+      raise exception 'fields_required' using errcode = '22023',
+        detail = 'type, display_name, email und phone sind Pflicht';
+    end if;
     insert into edition_contact (edition_id, type, display_name, role_label_de, role_label_en,
                                  email, phone, photo_path, is_default, sort_order)
     values (v_ed, v_typ, btrim(p_data->>'display_name'),
@@ -300,14 +313,33 @@ begin
   perform log_audit('edition_contact.delete', 'edition_contact', p_id::text, null, null);
 end $$;
 
+/**
+ * Passt der Kontakt zu Edition und Rolle? Kein Speaker-Lead am Partner, kein
+ * Kontakt einer anderen Edition — sonst zeigt das Portal die falsche Person.
+ */
+create or replace function check_edition_contact(p_contact uuid, p_edition uuid, p_type text) returns void
+language plpgsql stable security definer set search_path = public, extensions as $$
+begin
+  if p_contact is null then return; end if;
+  if not exists (select 1 from edition_contact c where c.id = p_contact and c.edition_id = p_edition and c.type = p_type) then
+    raise exception 'invalid_contact' using errcode = '22023',
+      detail = format('%s ist kein %s dieser Edition', p_contact, p_type);
+  end if;
+end $$;
+revoke execute on function check_edition_contact(uuid, uuid, text) from public, anon, authenticated;
+
 /** Zuordnung je Partner. NULL setzt zurück auf den Standard. */
 create or replace function set_org_contacts(p_org_edition_id uuid, p_lead uuid, p_buddy uuid) returns void
 language plpgsql volatile security definer set search_path = public, extensions as $$
+declare v_ed uuid;
 begin
   if not can_edit_edition_contacts() then raise exception 'not allowed' using errcode = '42501'; end if;
+  select oe.edition_id into v_ed from org_edition oe where oe.id = p_org_edition_id;
+  if v_ed is null then raise exception 'org_edition_not_found' using errcode = 'P0002', detail = p_org_edition_id::text; end if;
+  perform check_edition_contact(p_lead, v_ed, 'partner_lead');
+  perform check_edition_contact(p_buddy, v_ed, 'partner_buddy');
   update org_edition set lead_contact_id = p_lead, buddy_contact_id = p_buddy, updated_at = now()
    where id = p_org_edition_id;
-  if not found then raise exception 'org_edition_not_found' using errcode = 'P0002', detail = p_org_edition_id::text; end if;
   perform log_audit('edition_contact.assign_org', 'org_edition', p_org_edition_id::text, null,
                     jsonb_build_object('lead', p_lead, 'buddy', p_buddy));
 end $$;
@@ -315,20 +347,33 @@ end $$;
 /** Zuordnung je Speaker. NULL setzt zurück auf den Standard. */
 create or replace function set_speaker_contacts(p_profile_id uuid, p_lead uuid, p_buddy uuid) returns void
 language plpgsql volatile security definer set search_path = public, extensions as $$
+declare v_ed uuid;
 begin
   if not can_edit_edition_contacts() then raise exception 'not allowed' using errcode = '42501'; end if;
+  select sp.edition_id into v_ed from speaker_profile sp where sp.id = p_profile_id;
+  if v_ed is null then raise exception 'profile_not_found' using errcode = 'P0002', detail = p_profile_id::text; end if;
+  perform check_edition_contact(p_lead, v_ed, 'speaker_lead');
+  perform check_edition_contact(p_buddy, v_ed, 'speaker_buddy');
   update speaker_profile set lead_contact_id = p_lead, buddy_contact_id = p_buddy, updated_at = now()
    where id = p_profile_id;
-  if not found then raise exception 'profile_not_found' using errcode = 'P0002', detail = p_profile_id::text; end if;
   perform log_audit('edition_contact.assign_speaker', 'speaker_profile', p_profile_id::text, null,
                     jsonb_build_object('lead', p_lead, 'buddy', p_buddy));
 end $$;
+
+/** Auskünfte pflegt jede Bereichsleitung — Zeiten betreffen alle Zielgruppen. */
+create or replace function can_edit_edition_info() returns boolean
+language sql stable security definer set search_path = public, extensions as $$
+  select has_role('admin') or exists (
+    select 1 from role_assignment ra
+     where ra.person_id = current_person_id() and ra.role like 'area\_lead\_%'
+       and ra.valid_from <= now() and (ra.valid_to is null or ra.valid_to > now()))
+$$;
 
 create or replace function upsert_edition_info(p_data jsonb) returns uuid
 language plpgsql volatile security definer set search_path = public, extensions as $$
 declare v_id uuid; v_ed uuid; v_aud text[];
 begin
-  if not can_edit_edition_contacts() then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not can_edit_edition_info() then raise exception 'not allowed' using errcode = '42501'; end if;
   select coalesce(nullif(p_data->>'edition_id','')::uuid,
                   (select e.id from event e where e.is_edition order by e.start_date desc limit 1))
     into v_ed;
@@ -355,7 +400,7 @@ end $$;
 create or replace function delete_edition_info(p_id uuid) returns void
 language plpgsql volatile security definer set search_path = public, extensions as $$
 begin
-  if not can_edit_edition_contacts() then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not can_edit_edition_info() then raise exception 'not allowed' using errcode = '42501'; end if;
   delete from edition_info where id = p_id;
   if not found then raise exception 'info_not_found' using errcode = 'P0002', detail = p_id::text; end if;
   perform log_audit('edition_info.delete', 'edition_info', p_id::text, null, null);
@@ -391,7 +436,7 @@ returns table (id uuid, key text, audience text[], label_de text, label_en text,
 language plpgsql stable security definer set search_path = public, extensions as $$
 declare v_ed uuid;
 begin
-  if not can_edit_edition_contacts() then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not can_edit_edition_info() then raise exception 'not allowed' using errcode = '42501'; end if;
   select coalesce(p_edition_id, (select e.id from event e where e.is_edition order by e.start_date desc limit 1))
     into v_ed;
   return query

@@ -14,7 +14,12 @@
 --   11 die Tabellen haben keine Grants für `authenticated` — gelesen wird
 --      ausschliesslich über die RPCs;
 --   12 Teilupdate: was nicht mitkommt, bleibt stehen; `photo_path: ''` leert
---      ausdrücklich.
+--      ausdrücklich;
+--   13 (Review 14.09.) Zuordnung prüft Typ und Edition des Kontakts ⇒ 22023 `invalid_contact`,
+--      passende Zuordnung geht durch;
+--   14 Anlegen ohne Pflichtfeld ⇒ 22023 `fields_required` statt 23502;
+--   15 Domain-CHECK ist schreibungsunabhängig (Grossbuchstaben angenommen);
+--   16 Auskünfte pflegt jede Bereichsleitung, Ansprechpartner nur Admin/Partner/Speaker (42501).
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -177,6 +182,69 @@ begin
     case when v_txt = '-' then 'geleert (richtig)' else 'unerwartet ' || v_txt end);
 end $$;
 
+-- 13–16 (Review 14.09.): Zuordnungsprüfung, Pflichtfelder, Domain-Schreibung, Rechte je Rolle
+do $$
+declare v_pid uuid; v_ed uuid; v_ed2 uuid; v_oe uuid; v_sl uuid; v_fremd uuid; v_std uuid; v_n integer;
+begin
+  select p.id into v_pid from person p where p.auth_user_id is not null order by p.created_at limit 1;
+  select e.id into v_ed from event e where e.is_edition and e.slug = 'fls27';
+  select oe.id into v_oe from org_edition oe join organization o on o.id = oe.org_id
+   where o.legal_name = 'ZZTEST Kontakt GmbH' and oe.edition_id = v_ed;
+  select id into v_std from edition_contact where display_name = 'ZZTEST Lead Standard';
+  v_sl := upsert_edition_contact(jsonb_build_object('edition_id', v_ed, 'type', 'speaker_lead',
+    'display_name', 'ZZTEST SL', 'email', 'zztest-sl@chef-treff.de', 'phone', '+49 40 2'));
+
+  -- 13a falscher Typ (Speaker-Lead als Partner-Lead)
+  begin
+    perform set_org_contacts(v_oe, v_sl, null);
+    insert into t_res values ('13a_falscher_typ', 'ALLOWED (BUG)');
+  exception when others then insert into t_res values ('13a_falscher_typ', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
+
+  -- 13b Kontakt einer anderen Edition
+  insert into event (name, slug, format_tag, is_edition, start_date, end_date, status)
+  values ('ZZTEST Edition K', 'zztest-edition-k', 'edition', true, current_date - 800, current_date - 790, 'archived')
+  returning id into v_ed2;
+  insert into edition_contact (edition_id, type, display_name, email, phone)
+  values (v_ed2, 'partner_lead', 'ZZTEST Fremdedition', 'zztest-fe@chef-treff.de', '+49 40 3') returning id into v_fremd;
+  begin
+    perform set_org_contacts(v_oe, v_fremd, null);
+    insert into t_res values ('13b_fremde_edition', 'ALLOWED (BUG)');
+  exception when others then insert into t_res values ('13b_fremde_edition', 'abgewiesen ' || sqlstate); end;
+
+  -- 13c passende Zuordnung
+  perform set_org_contacts(v_oe, v_std, null);
+  select count(*) into v_n from org_edition where id = v_oe and lead_contact_id = v_std and buddy_contact_id is null;
+  insert into t_res values ('13c_passend', case when v_n = 1 then 'gesetzt (richtig)' else 'NICHT GESETZT (BUG)' end);
+
+  -- 14 Pflichtfeld fehlt
+  begin
+    perform upsert_edition_contact(jsonb_build_object('edition_id', v_ed, 'type', 'partner_lead',
+      'display_name', 'ZZTEST Ohne Nummer 2', 'email', 'zztest-on@chef-treff.de'));
+    insert into t_res values ('14_pflichtfeld', 'ALLOWED (BUG)');
+  exception when others then insert into t_res values ('14_pflichtfeld', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
+
+  -- 15 Grossbuchstaben in der Domain
+  begin
+    perform upsert_edition_contact(jsonb_build_object('edition_id', v_ed, 'type', 'partner_buddy',
+      'display_name', 'ZZTEST Gross', 'email', 'ZZTEST-UP@CHEF-TREFF.DE', 'phone', '+49 40 4'));
+    insert into t_res values ('15_domain_gross', 'angenommen (richtig)');
+  exception when others then insert into t_res values ('15_domain_gross', 'ABGEWIESEN (BUG) ' || sqlstate); end;
+
+  -- 16 Bereichsleitung Volunteers: Auskünfte ja, Ansprechpartner nein
+  delete from role_assignment where person_id = v_pid and role = 'admin';
+  insert into role_assignment (person_id, role, scope_type, scope_id, edition_id, valid_from)
+  values (v_pid, 'area_lead_volunteers', 'edition', null, v_ed, now() - interval '1 hour');
+  begin
+    perform upsert_edition_info(jsonb_build_object('edition_id', v_ed, 'key', 'zztest_treffpunkt',
+      'audience', jsonb_build_array('volunteer'), 'label_de', 'Treffpunkt', 'value_de', 'Halle B'));
+    insert into t_res values ('16a_info_bereichsleitung', 'erlaubt (richtig)');
+  exception when others then insert into t_res values ('16a_info_bereichsleitung', 'ABGEWIESEN (BUG) ' || sqlstate); end;
+  begin
+    perform upsert_edition_contact(jsonb_build_object('id', v_sl::text, 'phone', '+49 40 5'));
+    insert into t_res values ('16b_kontakt_bereichsleitung', 'ALLOWED (BUG)');
+  exception when others then insert into t_res values ('16b_kontakt_bereichsleitung', 'abgewiesen ' || sqlstate); end;
+end $$;
+
 select * from t_res order by step;
 rollback;
 
@@ -188,3 +256,7 @@ rollback;
 -- F5-Testdaten ein Speaker-Profil mit (Schritt 02 war also gar nicht „ohne
 -- Beziehung"), und die fremde Zielgruppe in Schritt 10 wurde urspruenglich
 -- **nach** der Admin-Rolle geprueft, wo `my_kb_audiences()` alles oeffnet.
+-- Lauf am 15.09. nach dem Anwenden (Version 20260915113046): 24 Pruefungen gruen,
+-- darunter 13a/13b (22023 invalid_contact), 14 (22023 fields_required),
+-- 15 (Domain in Grossbuchstaben angenommen), 16a/16b (Bereichsleitung Volunteers:
+-- Auskuenfte ja, Ansprechpartner 42501).

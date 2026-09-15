@@ -45,14 +45,21 @@ export async function uploadPhoto(form: FormData): Promise<Ergebnis & { path?: s
   const kontakt = String(form.get("contactId") ?? "");
   if (!(datei instanceof File) || datei.size === 0) return { ok: false, key: "invalid_argument" };
   if (datei.size > 5 * 1024 * 1024) return { ok: false, key: "file_too_large" };
+  // Nur die drei Bildtypen des Buckets — alles andere wird hier abgewiesen und
+  // nicht als „jpg“ umetikettiert (Review 14.09.).
+  const ENDUNG: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+  const endung = ENDUNG[datei.type];
+  if (!endung) return { ok: false, key: "invalid_argument" };
+  // Die Kontakt-Id kommt aus dem Formular: nur eine echte UUID wird Dateiname,
+  // sonst könnte der Pfad aus dem Bucket-Ordner hinausführen.
+  const istUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(kontakt);
 
   // Rechteprüfung über die Datenbank, nicht über eine Annahme im Code.
   const supabase = await createSupabaseServerClient();
   const { data: darf, error } = await supabase.rpc("can_edit_edition_contacts");
   if (error || darf !== true) return { ok: false, key: "not_allowed" };
 
-  const endung = datei.type === "image/png" ? "png" : datei.type === "image/webp" ? "webp" : "jpg";
-  const pfad = `${kontakt || crypto.randomUUID()}.${endung}`;
+  const pfad = `${istUuid ? kontakt : crypto.randomUUID()}.${endung}`;
   const admin = createSupabaseAdminClient();
   const { error: up } = await admin.storage
     .from(BUCKET)
