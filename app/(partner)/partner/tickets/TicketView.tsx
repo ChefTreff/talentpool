@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { DeadlineCard } from "@/components/ui/DeadlineCard";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -94,10 +95,18 @@ export function TicketView({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* F9.2: Die Frist war eine Hilfstextzeile zwischen anderen — jetzt
+          steht sie gross und mit Restzeit. Wer Codes einlöst, entscheidet
+          danach, ob er es heute tut. */}
       {due && (
-        <p className="ct-help">
-          {t.dueOn} {dateTime.format(new Date(due))}
-        </p>
+        <DeadlineCard
+          dueAt={due}
+          label={t.dueOn}
+          dateText={dateTime.format(new Date(due))}
+          days={t.countdownDays}
+          hours={t.countdownHours}
+          soon={t.countdownSoon}
+        />
       )}
 
       <ul className="grid gap-4 lg:grid-cols-2">

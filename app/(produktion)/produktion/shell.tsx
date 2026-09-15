@@ -1,7 +1,7 @@
 import { SectionTabs } from "@/components/layout/SectionTabs";
 import { getI18n } from "@/lib/i18n";
 
-/** Reiter der Produktion: Regie, Stände, Bestellungen. */
+/** Reiter der Produktion: Regie, Stände, Bestellungen, Dateien. */
 export async function ProductionTabs() {
   const { t } = await getI18n("de");
   return (
@@ -11,6 +11,8 @@ export async function ProductionTabs() {
         { href: "/produktion", label: t.production.tabRegie, exact: true },
         { href: "/produktion/staende", label: t.production.tabBooths },
         { href: "/produktion/bestellungen", label: t.production.tabSuppliers },
+        { href: "/produktion/catering", label: t.production.tabCatering },
+        { href: "/produktion/dateien", label: t.production.tabFiles },
       ]}
     />
   );

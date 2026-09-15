@@ -1,98 +1,130 @@
 /**
  * Markdown, so viel wie ein Wiki-Artikel braucht: Überschriften, Absätze,
- * Listen, Links, fett und kursiv, Code.
+ * Listen (auch nummeriert), Hinweiskästen, Trennlinien, **Tabellen**, Links,
+ * fett und kursiv, Code.
  *
  * Bewusst **ohne** Bibliothek und ohne `dangerouslySetInnerHTML`: der Text
  * kommt aus dem Editor und damit von Menschen, aber er landet in Portalen
- * fremder Zielgruppen. Ein eigener, kleiner Parser, der nur React-Knoten
- * erzeugt, kann kein Skript einschleusen — es gibt keinen Weg von Text zu HTML.
- * Was er nicht kennt, bleibt Text. Tabellen und Bilder kommen, wenn sie
- * gebraucht werden.
+ * fremder Zielgruppen. Zerlegt wird in `markdown-parse.ts` zu Objekten, hier
+ * werden daraus React-Knoten — es gibt keinen Weg von Text zu HTML.
+ *
+ * Tabellen kamen mit den Notion-Inhalten dazu (F9.6): Öffnungszeiten,
+ * Druckformate und Standausstattung sind ohne sie nicht lesbar. Bilder gibt es
+ * weiterhin nicht — die Dateien einer Edition liegen in `edition_file`, und
+ * eine freie Bild-URL im Artikel wäre ein Weg, fremde Server anzufragen.
  */
 import type { ReactNode } from "react";
+import { parseMarkdown, type Inline } from "./markdown-parse";
 
-function inline(text: string, keyPrefix: string): ReactNode[] {
-  const out: ReactNode[] = [];
-  // Reihenfolge: Link, Code, fett, kursiv. `**` vor `*`, sonst frisst kursiv beides.
-  const pattern = /(\[([^\]]+)\]\((https?:\/\/[^\s)]+)\))|(`([^`]+)`)|(\*\*([^*]+)\*\*)|(\*([^*]+)\*)/g;
-  let last = 0;
-  let m: RegExpExecArray | null;
-  let i = 0;
-  while ((m = pattern.exec(text)) !== null) {
-    if (m.index > last) out.push(text.slice(last, m.index));
-    const key = `${keyPrefix}-${i++}`;
-    if (m[1]) {
-      out.push(
-        <a key={key} className="ct-link" href={m[3]} target="_blank" rel="noopener noreferrer">
-          {m[2]}
-        </a>,
-      );
-    } else if (m[4]) {
-      out.push(
-        <code key={key} className="rounded-ct-sm bg-surface-hover px-1">
-          {m[5]}
-        </code>,
-      );
-    } else if (m[6]) {
-      out.push(<strong key={key}>{m[7]}</strong>);
-    } else {
-      out.push(<em key={key}>{m[9]}</em>);
+function render(parts: Inline[], keyPrefix: string): ReactNode[] {
+  return parts.map((p, i) => {
+    const key = `${keyPrefix}-${i}`;
+    switch (p.kind) {
+      case "link":
+        return (
+          <a key={key} className="ct-link" href={p.href} target="_blank" rel="noopener noreferrer">
+            {p.text}
+          </a>
+        );
+      case "code":
+        return (
+          <code key={key} className="rounded-ct-sm bg-surface-hover px-1">
+            {p.text}
+          </code>
+        );
+      case "bold":
+        return <strong key={key}>{p.text}</strong>;
+      case "italic":
+        return <em key={key}>{p.text}</em>;
+      default:
+        return p.text;
     }
-    last = pattern.lastIndex;
-  }
-  if (last < text.length) out.push(text.slice(last));
-  return out;
+  });
 }
 
 export function Markdown({ source }: { source: string }) {
-  const blocks: ReactNode[] = [];
-  const lines = source.replace(/\r\n/g, "\n").split("\n");
-  let list: string[] = [];
+  const blocks = parseMarkdown(source);
 
-  const flushList = (key: string) => {
-    if (list.length === 0) return;
-    blocks.push(
-      <ul key={key} className="ml-5 flex list-disc flex-col gap-1">
-        {list.map((item, i) => (
-          <li key={i}>{inline(item, `${key}-${i}`)}</li>
-        ))}
-      </ul>,
-    );
-    list = [];
-  };
-
-  lines.forEach((raw, i) => {
-    const line = raw.trimEnd();
-    const key = `b-${i}`;
-    const bullet = /^\s*[-*]\s+(.*)$/.exec(line);
-    if (bullet) {
-      list.push(bullet[1]);
-      return;
-    }
-    flushList(`l-${i}`);
-    if (line.trim() === "") return;
-    const heading = /^(#{1,3})\s+(.*)$/.exec(line);
-    if (heading) {
-      const level = heading[1].length;
-      const text = inline(heading[2], key);
-      blocks.push(
-        level === 1 ? (
-          <h2 key={key} className="ct-h2 mt-6">{text}</h2>
-        ) : level === 2 ? (
-          <h3 key={key} className="ct-h3 mt-5">{text}</h3>
-        ) : (
-          <h4 key={key} className="ct-label mt-4">{text}</h4>
-        ),
-      );
-      return;
-    }
-    blocks.push(
-      <p key={key} className="leading-6">
-        {inline(line, key)}
-      </p>,
-    );
-  });
-  flushList("l-end");
-
-  return <div className="flex flex-col gap-3">{blocks}</div>;
+  return (
+    <div className="flex flex-col gap-3">
+      {blocks.map((b, i) => {
+        const key = `b-${i}`;
+        switch (b.kind) {
+          case "heading":
+            return b.level === 1 ? (
+              <h2 key={key} className="ct-h2 mt-6">{render(b.content, key)}</h2>
+            ) : b.level === 2 ? (
+              <h3 key={key} className="ct-h3 mt-5">{render(b.content, key)}</h3>
+            ) : (
+              <h4 key={key} className="ct-label mt-4">{render(b.content, key)}</h4>
+            );
+          case "list":
+            return b.ordered ? (
+              <ol key={key} className="ml-5 flex list-decimal flex-col gap-1">
+                {b.items.map((item, n) => (
+                  <li key={n}>{render(item, `${key}-${n}`)}</li>
+                ))}
+              </ol>
+            ) : (
+              <ul key={key} className="ml-5 flex list-disc flex-col gap-1">
+                {b.items.map((item, n) => (
+                  <li key={n}>{render(item, `${key}-${n}`)}</li>
+                ))}
+              </ul>
+            );
+          case "quote":
+            // Ein Zitat ist im Wiki fast immer ein Hinweiskasten („Worum geht
+            // es hier?"). Deshalb Akzentbalken statt grauer Linie.
+            return (
+              <blockquote
+                key={key}
+                className="border-l-2 border-l-accent bg-accent-soft/40 py-2 pl-4"
+              >
+                {b.rows.map((row, n) => (
+                  <p key={n} className="leading-6">
+                    {render(row, `${key}-${n}`)}
+                  </p>
+                ))}
+              </blockquote>
+            );
+          case "rule":
+            return <hr key={key} className="border-t" />;
+          case "table":
+            return (
+              // Breite Tabellen scrollen in ihrem eigenen Kasten; die Seite nie.
+              <div key={key} className="overflow-x-auto">
+                <table className="w-full border-collapse text-left">
+                  <thead>
+                    <tr className="border-b">
+                      {b.head.map((c, n) => (
+                        <th key={n} scope="col" className="ct-label px-3 py-2 text-muted">
+                          {render(c, `${key}-h-${n}`)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {b.rows.map((row, r) => (
+                      <tr key={r} className="border-b align-top last:border-b-0">
+                        {row.map((c, n) => (
+                          <td key={n} className="px-3 py-2">
+                            {render(c, `${key}-${r}-${n}`)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          default:
+            return (
+              <p key={key} className="leading-6">
+                {render(b.content, key)}
+              </p>
+            );
+        }
+      })}
+    </div>
+  );
 }

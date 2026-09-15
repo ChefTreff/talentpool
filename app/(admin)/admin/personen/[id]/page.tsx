@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Anrede } from "./Anrede";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +58,14 @@ export default async function PersonDetail({
   ]);
 
   if (!person) notFound();
+
+  // Vorschläge über die Sitzung, nicht über den Admin-Client: `suggest_salutation`
+  // ist eine Definer-Funktion und prüft die Rechte selbst.
+  const session = await createSupabaseServerClient();
+  const [{ data: vorschlagDe }, { data: vorschlagEn }] = await Promise.all([
+    session.rpc("suggest_salutation", { p_person_id: id, p_locale: "de" }),
+    session.rpc("suggest_salutation", { p_person_id: id, p_locale: "en" }),
+  ]);
 
   const name =
     [person.first_name, person.last_name].filter(Boolean).join(" ") ||
@@ -181,6 +191,18 @@ export default async function PersonDetail({
           </div>
         </Card>
       </div>
+
+      {/* Briefanrede: redaktionell gepflegt, nicht abgeleitet (Migration 0099). */}
+      <Anrede
+        personId={id}
+        de={person.salutation_de}
+        en={person.salutation_en}
+        suggestDe={vorschlagDe}
+        suggestEn={vorschlagEn}
+        t={d}
+        common={{ save: t.common.save }}
+        rpcMessages={t.rpc}
+      />
 
       <Card className="mt-4">
         <h2 className="ct-h2 mb-3 text-ink">{d.registrations}</h2>

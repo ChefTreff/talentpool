@@ -46,6 +46,12 @@ function buildCsp(nonce: string): string {
     "font-src 'self' data:",
     `connect-src 'self' ${sbHttps} ${sbWss}${dev ? " ws://localhost:* http://localhost:*" : ""}`.replace(/\s+/g, " ").trim(),
     "media-src 'self' blob:",
+    // Nur Loom, und nur für die Zwei-Klick-Einbettung (`EmbedGate`, F9.4).
+    // Diese Zeile und der CHECK auf `portal_video.url` gehören zusammen:
+    // erlaubt die Datenbank einen Anbieter, den die CSP nicht kennt, bleibt
+    // der Rahmen leer und niemand versteht, warum. Kommt einer dazu, werden
+    // **beide** erweitert.
+    "frame-src 'self' https://www.loom.com",
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",

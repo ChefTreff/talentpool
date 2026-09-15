@@ -4,13 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Input, Textarea } from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Field } from "@/components/ui/Field";
 import { Drawer } from "@/components/ui/Drawer";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
+import { Editor } from "@/components/wiki/Editor";
 import { archiveArticle, publishArticle, saveArticle } from "@/components/wiki/actions";
 import { KB_AUDIENCES, KB_PHASES, type KbAdminArticle } from "@/components/wiki/types";
 
@@ -262,14 +263,17 @@ function ArticleForm({
         </Field>
       )}
 
-      <Field label={t.fieldBody} htmlFor="body">
-        <Textarea
-          id="body"
-          rows={16}
+      {/* F9.7: „Redaktionsoberfläche … vergleichbar mit dem Notion-Editor".
+          Dahinter bleibt Markdown — der Renderer erzeugt nur React-Knoten, und
+          gespeichertes HTML wäre genau der Weg, den wir nicht bauen wollen. */}
+      <fieldset className="flex flex-col gap-1">
+        <legend className="ct-label text-ink">{t.fieldBody}</legend>
+        <Editor
           value={form.body_md}
-          onChange={(e) => setForm((f) => ({ ...f, body_md: e.target.value }))}
+          onChange={(next) => setForm((f) => ({ ...f, body_md: next }))}
+          t={t}
         />
-      </Field>
+      </fieldset>
 
       <div className="flex flex-wrap gap-2">
         <Button

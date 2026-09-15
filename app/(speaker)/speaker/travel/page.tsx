@@ -4,6 +4,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Anreise, type SpeakerTravel } from "./Anreise";
+import { DietCard } from "@/components/diet/DietCard";
 import { TravelView } from "./TravelView";
 import type { SpeakerProfile } from "../types";
 import type { HospitalityBooking, HospitalityOption } from "./types";
@@ -15,15 +17,25 @@ export default async function SpeakerTravelPage() {
   const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: profileJson }, { data: optionRows }, { data: bookingRows }, vocab] =
-    await Promise.all([
-      supabase.rpc("my_speaker_profile"),
-      supabase.rpc("hospitality_options"),
-      supabase.rpc("my_hospitality"),
-      loadVocabMap(supabase, locale),
-    ]);
+  const [
+    { data: profileJson },
+    { data: optionRows },
+    { data: bookingRows },
+    { data: travelJson },
+    { data: dietJson },
+    vocab,
+  ] = await Promise.all([
+    supabase.rpc("my_speaker_profile"),
+    supabase.rpc("hospitality_options"),
+    supabase.rpc("my_hospitality"),
+    supabase.rpc("my_speaker_travel"),
+    supabase.rpc("my_diet"),
+    loadVocabMap(supabase, locale),
+  ]);
 
   const profile = (profileJson ?? null) as SpeakerProfile | null;
+  const travel = (travelJson ?? null) as SpeakerTravel | null;
+  const diet = (dietJson ?? null) as { diet: string | null; diet_note: string | null } | null;
 
   if (!profile) {
     return (
@@ -37,6 +49,37 @@ export default async function SpeakerTravelPage() {
   return (
     <div className="max-w-[900px]">
       <PageHeader title={t.speaker.travelTitle} description={t.speaker.travelLead} />
+
+      <div className="mb-6 flex flex-col gap-6">
+        {/* An-/Abreise zuerst: sie steht am Anfang der Reise und entscheidet,
+            ob ein Hotel überhaupt gebraucht wird. */}
+        <Anreise
+          travel={travel}
+          isAssistant={profile.is_assistant}
+          modes={vgroup(vocab, "travel_mode")}
+          dateLocale={t.meta.dateLocale}
+          t={t.speaker}
+          common={{ save: t.common.save, choose: t.common.choose }}
+          rpcMessages={t.rpc}
+        />
+        {/* Die Ernährung gehört hierher und nicht ins Profil: sie wird fürs
+            Catering gebraucht, also dort, wo auch Hotel und Anreise stehen.
+            **Nicht für die Assistenz**: sie darf die Angabe nicht lesen, sähe
+            ein leeres Formular und würde beim Speichern eine hinterlegte
+            Allergie löschen. */}
+        {!profile.is_assistant && (
+          <DietCard
+            diet={diet?.diet ?? null}
+            note={diet?.diet_note ?? null}
+            path="/speaker/travel"
+            options={vgroup(vocab, "diet")}
+            t={t.diet}
+            common={{ save: t.common.save, choose: t.common.choose }}
+            rpcMessages={t.rpc}
+          />
+        )}
+      </div>
+
       <TravelView
         isAssistant={profile.is_assistant}
         options={(optionRows ?? []) as HospitalityOption[]}

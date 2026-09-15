@@ -124,3 +124,39 @@ Nicht übernehmen: Navy als Arbeitsfläche, zentrierte Fließtexte, Fotobänder,
 ## Sprache
 
 Du/ihr. Buttons benennen das Ergebnis. Fehler nennen den nächsten Schritt („Frist abgelaufen — melde dich bei …" statt „Ungültige Eingabe"). Jeder Begriff, den Nutzer sehen, kommt aus `vocab_term` bzw. `getI18n`, DE und EN gleichwertig.
+
+---
+
+## Bildschirm-Archetypen (ab 14.09.2026)
+
+Der Komponentenkatalog sagt, **womit** gebaut wird. Diese Archetypen sagen, **wie eine Seite aussieht**. Sie sind der Grund, warum die Portale bis dahin uneinheitlich wirkten: jede Seite wurde einzeln erfunden, statt eine Ausprägung zu sein.
+
+Konrads Maßstab (Feedback-Runde 2): *„immer nah am täglichen Arbeiten der Nutzer"* — Vorbild sind Werkzeuge wie Asana, nicht Marketingseiten.
+
+### A · Liste (Leitmuster, umgesetzt in `/partner/checkliste`)
+
+Für alles Zählbare: Aufgaben, Bestellungen, Einreichungen, Teilnehmende.
+
+**Zeilen, keine Kartenwand.** Eine Karte je Eintrag sieht großzügig aus und wird ab dem fünften Eintrag unlesbar — man sieht nicht mehr, dass es eine Liste ist.
+
+```
+┌ Gruppenkopf ── Titel · Kennung ─────────────── „3 von 8" ┐  ← Trennlinie darunter
+│ ○  Aufgabe                              02.04.2027  [Offen]│
+│ ●  Erledigte Aufgabe                    12.03.2027  [Fertig]│  ← Titel ruhiger
+│┃○ Überfällige Aufgabe                   01.03.2027  [Offen]│  ← Balken links
+└──────────────────────────────────────────────────────────┘
+```
+
+- **Spalte 1: Zustand als Kreis.** Gefüllt mit Häkchen = erledigt, leerer Ring = offen. Form **und** Farbe, nie Farbe allein.
+- **Spalte 2: die Sache selbst**, als Knopf mit `aria-expanded`. Anklicken klappt die Details auf — höchstens eine Zeile gleichzeitig.
+- **Spalte 3: die Frist**, rechtsbündig, `tabular-nums`, ab 640 px sichtbar. Überfällig in `text-error-ink` und halbfett.
+- **Spalte 4: Status als `<Badge>`** mit Wortlaut.
+- **Überfällige Zeile** trägt links einen 2-px-Balken in `border-l-error-ink` und `bg-error-soft/40`.
+- **Details beim Aufklappen** auf `bg-canvas`, eingerückt unter die Sache: links Beschreibung und Verlauf, rechts die Aktion.
+- Die ganze Liste sitzt in **einer** `<Card className="p-0">`, die Zeilen trennt `border-b`.
+
+**Warum Aufklappen:** Alles gleichzeitig zu zeigen war der Fehler davor. Eine Checkliste beantwortet zuerst „was ist offen und bis wann" — der Rest ist Nachschlagen.
+
+### B · Detail · C · Formular · D · Übersicht
+
+Noch nicht entworfen. Konrad zieht dafür einen Designer hinzu, der die Blöcke entwirft; hier wird nachgezogen, sobald sie vorliegen. **Bis dahin nicht improvisieren** — lieber Archetyp A ausleihen, als einen fünften Stil zu erfinden.

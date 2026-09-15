@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,7 +23,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "include": [
@@ -30,5 +36,11 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "**/* *.ts",
+    "**/* *.tsx",
+    "**/* *.mts"
+  ],
+  "_hinweisExclude": "Die drei Muster mit Leerzeichen fangen Finder-/Sync-Duplikate ab (routes.d 2.ts). Auf diesem Mac laufen Google Drive und iCloud gleichzeitig; im Projekt unter ~/Documents entstehen Kopien auch waehrend eines Laufs, und in .next/types brechen sie tsc mit 'Duplicate identifier'. Loeschen hilft nur bis zum naechsten Build: sh scripts/clean-dupes.sh. Die Ursache liegt in der Ordner-Synchronisierung, nicht im Repo."
 }

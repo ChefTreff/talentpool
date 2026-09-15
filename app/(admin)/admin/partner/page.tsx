@@ -20,8 +20,20 @@ export default async function AdminPartnerListPage() {
   if (!shell.ok) return shell.view;
   const { supabase, t, frame } = shell;
 
-  const { data: rows } = await supabase.rpc("partner_admin_overview");
+  const [{ data: rows }, { data: stepRows }] = await Promise.all([
+    supabase.rpc("partner_admin_overview"),
+    // Die Event-App-Schritte sind Selbstauskunft der Partner (Migration 0093).
+    // Sie stehen hier, weil die Frage im Alltag „wer hängt?" lautet — und die
+    // beantwortet man nicht, indem man zwanzig Partnerseiten einzeln öffnet.
+    supabase.rpc("org_steps_progress", { p_topic: "event_app" }),
+  ]);
   const partners = (rows ?? []) as AdminPartnerRow[];
+  const steps = new Map(
+    ((stepRows ?? []) as { org_id: string; done: number; total: number }[]).map((r) => [
+      r.org_id,
+      r,
+    ]),
+  );
   const dateOnly = new Intl.DateTimeFormat(t.meta.dateLocale, { dateStyle: "medium" });
 
   const open = partners.reduce((n, p) => n + p.deliverables_submitted, 0);
@@ -40,6 +52,7 @@ export default async function AdminPartnerListPage() {
           <Th>{t.adminPartner.colOrg}</Th>
           <Th>{t.adminPartner.colStatus}</Th>
           <Th>{t.adminPartner.colChecklist}</Th>
+          <Th>{t.adminPartner.colEventApp}</Th>
           <Th>{t.adminPartner.colContacts}</Th>
           <Th>{t.adminPartner.colBooth}</Th>
           <Th>{t.adminPartner.colUpdated}</Th>
@@ -76,6 +89,12 @@ export default async function AdminPartnerListPage() {
                 <span className="ct-help">
                   {p.deliverables_open} {t.adminPartner.shortOpen}
                 </span>
+              </Td>
+              <Td className="tabular-nums text-muted">
+                {(() => {
+                  const st = steps.get(p.org_id);
+                  return st ? `${st.done} / ${st.total}` : "—";
+                })()}
               </Td>
               <Td className="tabular-nums text-muted">{p.contacts}</Td>
               <Td className="text-muted">{p.booth_number ?? "—"}</Td>

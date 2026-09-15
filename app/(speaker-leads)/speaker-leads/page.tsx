@@ -49,6 +49,7 @@ export default async function SpeakerLeadsPage() {
             hospitality: vgroup(vocab, "hospitality_status"),
             hotelTier: vgroup(vocab, "hotel_tier"),
             passType: vgroup(vocab, "ticket_type"),
+            declineReason: vgroup(vocab, "speaker_decline_reason"),
           }}
           locale={locale}
           dateLocale={t.meta.dateLocale}

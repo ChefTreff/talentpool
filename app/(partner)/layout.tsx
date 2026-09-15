@@ -47,6 +47,7 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
       products: overview?.products ?? [],
       sessions_count: overview?.sessions_count ?? 0,
       has_stage: overview?.has_stage ?? false,
+      has_booth: overview?.booth != null,
       has_allocations: (overview?.ticket_allocations.length ?? 0) > 0,
     }),
   );
@@ -60,6 +61,8 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     checklist: { href: "/partner/checkliste", label: t.partner.navChecklist },
     files: { href: "/partner/dateien", label: t.partner.navFiles },
     tickets: { href: "/partner/tickets", label: t.partner.navTickets },
+    eventapp: { href: "/partner/event-app", label: t.partner.navEventApp },
+    booth: { href: "/partner/messestand", label: t.partner.navBooth },
     applicants: { href: "/partner/bewerber", label: t.partner.navApplicants },
     stage: { href: "/partner/buehne", label: t.partner.navStage },
     shop: { href: "/partner/shop", label: t.partner.navShop },
@@ -72,8 +75,8 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
   const groups: SidebarGroup[] = [
     { label: t.partner.groupOverview, items: pick(["dashboard", "wiki"]) },
     { label: t.partner.groupCompany, items: pick(["onboarding", "contacts"]) },
-    { label: t.partner.groupSummit, items: pick(["checklist", "files", "tickets", "shop"]) },
-    { label: t.partner.groupFormats, items: pick(["applicants", "stage"]) },
+    { label: t.partner.groupSummit, items: pick(["checklist", "files", "tickets", "eventapp", "shop"]) },
+    { label: t.partner.groupFormats, items: pick(["booth", "applicants", "stage"]) },
   ];
 
   return (

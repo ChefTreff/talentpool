@@ -2,6 +2,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { DietCard } from "@/components/diet/DietCard";
 import { undershopUrl } from "@/lib/vivenu/naming";
 import { ApplyForm } from "./ApplyForm";
 import { ProfileView } from "./ProfileView";
@@ -18,8 +19,9 @@ export default async function VolunteersPage() {
   const { profile, days, edition } = await getVolunteerScope();
 
   const supabase = await createSupabaseServerClient();
-  const [vocab, { data: consentTerms }] = await Promise.all([
+  const [vocab, { data: dietJson }, { data: consentTerms }] = await Promise.all([
     loadVocabMap(supabase, locale),
+    supabase.rpc("my_diet"),
     supabase
       .from("vocab_term")
       .select("key,label_de,label_en")
@@ -32,6 +34,7 @@ export default async function VolunteersPage() {
     ),
   );
 
+  const diet = (dietJson ?? null) as { diet: string | null; diet_note: string | null } | null;
   const shirtSizes = vgroup(vocab, "shirt_size");
   const areas = vgroup(vocab, "volunteer_area");
 
@@ -42,6 +45,7 @@ export default async function VolunteersPage() {
         description={edition?.name ? `${t.volunteers.lead} · ${edition.name}` : t.volunteers.lead}
       />
       {profile ? (
+        <>
         <ProfileView
           profile={profile}
           days={days}
@@ -58,6 +62,23 @@ export default async function VolunteersPage() {
           common={{ cancel: t.common.cancel, save: t.common.save }}
           rpcMessages={t.rpc}
         />
+        {/* Erst nach der Zusage: vorher weiss niemand, ob die Person kommt,
+            und eine Gesundheitsangabe auf Vorrat wäre genau das Gegenteil von
+            Datensparsamkeit. */}
+        {profile.status === "accepted" && (
+          <div className="mt-6">
+            <DietCard
+              diet={diet?.diet ?? null}
+              note={diet?.diet_note ?? null}
+              path="/volunteers"
+              options={vgroup(vocab, "diet")}
+              t={t.diet}
+              common={{ save: t.common.save, choose: t.common.choose }}
+              rpcMessages={t.rpc}
+            />
+          </div>
+        )}
+        </>
       ) : (
         <ApplyForm
           days={days}

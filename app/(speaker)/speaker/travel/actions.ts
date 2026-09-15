@@ -57,3 +57,16 @@ export async function cancelHospitality(bookingId: string): Promise<TravelResult
   refresh();
   return { ok: true, data: undefined };
 }
+
+/**
+ * An- und Abreise. Speaker und Assistenz dürfen beide — dieselbe Grenze wie
+ * bei Hotel und Shuttle; `set_my_speaker_travel` prüft es noch einmal und
+ * schreibt ins Protokoll, wenn die Assistenz gespeichert hat.
+ */
+export async function saveTravel(data: Record<string, unknown>): Promise<TravelResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_my_speaker_travel", { p_data: data });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}

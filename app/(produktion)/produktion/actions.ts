@@ -9,6 +9,10 @@ import { toRpcFailure } from "@/lib/rpc-error";
  * Schreibwege der Produktion. Mit dem **Sitzungs-Client**, nicht service_role:
  * `is_production_team()` prüft in der Datenbank, und genau diese Prüfung wollen
  * wir hier — das Gate davor sortiert nur vor.
+ *
+ * Die Regie-Cues liegen seit 0101 in `components/regie/actions.ts`: sie werden
+ * auch aus dem Lead-Portal geschrieben, und die Rechteregel dafür steht in der
+ * Datenbank (`can_edit_regie`).
  */
 export type ActionResult<T = void> =
   | { ok: true; data: T }
@@ -28,39 +32,6 @@ function revalidateAll() {
 async function client() {
   await requireArea("produktion", PATHS[0]);
   return createSupabaseServerClient();
-}
-
-export type CueInput = {
-  id?: string;
-  stage_id?: string;
-  event_day_id?: string;
-  slot_id?: string | null;
-  cue_start?: string;
-  cue_end?: string;
-  sort_order?: number;
-  action?: string;
-  umbau_min?: string;
-  moderation?: string;
-  regie?: string;
-  backstage?: string;
-  mobiliar?: string;
-  notes?: string;
-};
-
-export async function saveCue(input: CueInput): Promise<ActionResult<{ id: string }>> {
-  const supabase = await client();
-  const { data, error } = await supabase.rpc("upsert_regie_cue", { p_data: input });
-  if (error) return fail(error);
-  revalidateAll();
-  return { ok: true, data: { id: data as string } };
-}
-
-export async function deleteCue(id: string): Promise<ActionResult> {
-  const supabase = await client();
-  const { error } = await supabase.rpc("delete_regie_cue", { p_id: id });
-  if (error) return fail(error);
-  revalidateAll();
-  return { ok: true, data: undefined };
 }
 
 export async function setBoothCheck(input: {

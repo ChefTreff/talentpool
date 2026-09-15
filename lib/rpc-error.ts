@@ -155,8 +155,12 @@ const BUSINESS_KEYS = new Set([
   "shift_not_found",
   "day_not_found",
   "invalid_barcode",
+  // Ansprechpartner und Fotos (Migration 0091)
   "file_too_large",
   "upload_failed",
+  // Messestand und Editionsdateien (Migration 20260915115415)
+  "edition_file_not_found",
+  "invalid_path",
 ]);
 
 const BY_CODE: Record<string, string> = {

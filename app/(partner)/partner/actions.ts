@@ -295,11 +295,15 @@ export type ShopTotals = {
 export async function shopConfirm(
   orderId: string,
   note: string,
+  /** Bestellnummer des Partners (F11.2). `null` = nichts eingegeben; dann gilt
+   *  die Vorgabe aus „Eure Daten" bzw. was schon an der Bestellung steht. */
+  poNumber: string | null = null,
 ): Promise<PartnerResult<ShopTotals>> {
   const supabase = await client();
   const { data, error } = await supabase.rpc("shop_confirm", {
     p_order_id: orderId,
     p_note: note.trim() ? note.trim() : null,
+    p_po_number: poNumber?.trim() ? poNumber.trim() : null,
   });
   if (error) return fail(error);
   refreshShop();

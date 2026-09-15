@@ -86,11 +86,14 @@ export async function updateSpeaker(
 export async function setPipeline(
   profileId: string,
   status: string,
+  /** Nur bei „abgesagt": Schlüssel aus `speaker_decline_reason` (Migration 0099). */
+  reason?: string | null,
 ): Promise<LeadResult> {
   const supabase = await client();
   const { error } = await supabase.rpc("set_speaker_pipeline", {
     p_profile_id: profileId,
     p_status: status,
+    p_reason: reason ?? null,
   });
   if (error) return fail(error);
   refresh();

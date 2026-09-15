@@ -354,6 +354,8 @@ export type ShopOrder = {
   phase: number;
   status: "draft" | "pending" | "editing" | "completed" | "cancelled";
   note: string | null;
+  /** Bestellnummer des Partners (F11.2, Migration 0095); Vorgabe aus „Eure Daten". */
+  po_number: string | null;
   confirmed_at: string | null;
   completed_at: string | null;
   cancelled_at: string | null;

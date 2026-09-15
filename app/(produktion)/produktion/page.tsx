@@ -1,10 +1,11 @@
+import Link from "next/link";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ProductionTabs } from "./shell";
-import { AxisPicker } from "./AxisPicker";
-import { RegieTable } from "./RegieTable";
+import { AxisPicker } from "@/components/regie/AxisPicker";
+import { RegieTable } from "@/components/regie/RegieTable";
 import { loadAxes, loadRegie } from "./load";
 
 export const dynamic = "force-dynamic";
@@ -52,6 +53,16 @@ export default async function ProduktionPage({
         locale={locale}
         labels={{ stage: t.production.stage, day: t.production.day }}
       />
+      {/* Derselbe Ausdruck wie im Lead-Portal — die Produktion nimmt ihn mit
+          an den Tag. */}
+      <p className="mb-4 flex flex-wrap gap-4">
+        <Link className="ct-link ct-small" href={`/regie/druck?buehne=${stage.id}&tag=${day.id}`} target="_blank">
+          {t.leads.regiePrint}
+        </Link>
+        <Link className="ct-link ct-small" href={`/regie/csv?buehne=${stage.id}&tag=${day.id}`}>
+          {t.leads.regieCsv}
+        </Link>
+      </p>
       <RegieTable
         stageId={stage.id}
         dayId={day.id}
