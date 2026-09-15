@@ -79,6 +79,7 @@ rollback;
 - Kopfkommentar: was der Test belegt. Schritte nummeriert; Negativfälle schreiben `'ALLOWED (BUG)'`, wenn etwas durchgeht, das nicht darf.
 - Grants prüfen mit `has_function_privilege('authenticated', 'f(args)', 'execute')` — der Test läuft als Superuser und übergeht Grants.
 - Mails über `mail_log` prüfen (Testperson ist EN: DE-Inhalte an einem DE-Kontakt prüfen).
+- **Rechte unmittelbar vor dem Schritt setzen, der sie braucht** — nicht auf den Stand von oben verlassen. Vier Testprämissen sind so durchgerutscht (15.09.: Testperson hatte schon ein Speaker-Profil; fremde Zielgruppe erst nach dem Admin-Grant geprüft; Person ohne Edition bei der Löschfrist; `purge_diet_data` mit `production_team` statt `admin`). Wer im Testverlauf Rollen umbaut, schreibt vor jedem Abschnitt hin, welche Rolle gerade gilt.
 - Rollback stellt alles wieder her; Wegwerf-Daten trotzdem sprechend benennen. Zeile in `supabase/tests/README.md` ergänzen (Datei, Migrationen, was geprüft wird).
 
 ## 7 · Doku je Migration
