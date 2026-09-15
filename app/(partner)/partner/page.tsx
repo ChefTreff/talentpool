@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -8,7 +9,7 @@ import { Card, StatCard } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "./org";
-import { orgLabel, type PartnerOverview } from "./types";
+import { canEditOnboarding, orgLabel, type PartnerOverview } from "./types";
 import { Countdown } from "./Countdown";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +57,15 @@ export default async function PartnerDashboard() {
         <EmptyState title={t.partner.noOrgTitle} description={t.partner.noOrgBody} />
       </>
     );
+  }
+
+  // Beim ersten Einloggen führt der Weg direkt ins Formular (F12.2). Nur von
+  // der Startseite aus und nur, wer es auch ausfüllen darf — sonst landete
+  // jemand ohne Recht auf einer Seite, die ihm sagt, dass er nichts darf.
+  // Alle anderen Seiten bleiben erreichbar: eine Sperre, aus der man nicht
+  // herauskommt, ist keine Führung, sondern eine Falle.
+  if (o.edition.onboarding_status === "invited" && canEditOnboarding(o.roles, o.team)) {
+    redirect("/partner/onboarding");
   }
 
   const categories = vgroup(vocab, "product_category");
