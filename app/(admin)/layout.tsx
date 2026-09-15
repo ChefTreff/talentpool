@@ -43,6 +43,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         // Der Einstieg in die Domäne steht oben: von hier aus geht es zu jedem
         // einzelnen Speaker, die Listen darunter beantworten Einzelfragen.
         { href: "/admin/speaker", label: nav.speakers },
+        { href: "/admin/speaker-leads", label: nav.speakerLeads },
         { href: "/admin/speaker-tickets", label: nav.speakerTickets },
         { href: "/admin/reisekosten", label: nav.expenses },
         { href: "/admin/hospitality", label: nav.hospitality },

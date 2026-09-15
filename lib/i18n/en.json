@@ -827,7 +827,13 @@
     "regiePrint": "Open print view",
     "regieCsv": "Download as CSV",
     "regiePrintedAt": "As of {date}",
-    "navRegie": "Running order"
+    "navRegie": "Running order",
+    "handover": "Hand over",
+    "currentOwner": "Looked after by",
+    "noOwner": "No owner yet.",
+    "handoverTo": "Hand over to",
+    "handoverAction": "Hand over",
+    "handedOver": "Handed over."
   },
   "leadSubmissions": {
     "submitted": "Submitted",
@@ -1795,7 +1801,8 @@
       "catering": "Catering",
       "contacts": "Contacts & times",
       "speakers": "Speakers",
-      "team": "Team"
+      "team": "Team",
+      "speakerLeads": "Speaker leads"
     },
     "overview": {
       "title": "Overview",
@@ -2812,5 +2819,45 @@
     "fieldValueEn": "Information (EN)",
     "fieldAudience": "Audiences",
     "fieldAudienceHint": "Comma separated: partner, speaker, talent, volunteer, hackathon."
+  },
+  "adminSpeakerLeads": {
+    "title": "Speaker leads",
+    "lead": "Who looks after which speakers — and who has nobody yet.",
+    "unassignedTitle": "Without an owner",
+    "unassignedHint": "These speakers have no lead yet. Assigning them works best in one go.",
+    "allAssigned": "Every speaker has an owner.",
+    "noLeadsTitle": "No speaker leads yet",
+    "noLeadsBody": "Add a person as a lead below; then you can assign speakers.",
+    "assignTo": "Assign to",
+    "assign": "Assign",
+    "assigned": "Speaker assigned.",
+    "leadsTitle": "Leads",
+    "colName": "Person",
+    "colScope": "Role",
+    "colSpeakers": "Owns",
+    "colConfirmed": "Confirmed",
+    "colDeclined": "Declined",
+    "colOpen": "Open steps",
+    "scope_global": "all editions",
+    "scope_edition": "this edition",
+    "scope_stage": "stage",
+    "scope_stage_day": "stage & day",
+    "scope_slot": "slot",
+    "scope_portal": "portal",
+    "scope_org": "organization",
+    "revoke": "Revoke role",
+    "revokeTitle": "Revoke role",
+    "revokeBody": "The role gets an end date; the history stays.",
+    "revokeStillOwns": "speakers still belong to this person — hand them over first, or they end up with an owner who can no longer open the lead portal.",
+    "revoked": "Role revoked.",
+    "addTitle": "Add a lead",
+    "addHint": "The role applies to this edition. A global one would still be there next year, and nobody remembers it then.",
+    "searchPerson": "Find a person",
+    "searchHint": "Name or email",
+    "search": "Search",
+    "noMatch": "No person found. They have to be in the talent pool first.",
+    "alreadyLead": "Already a lead",
+    "makeLead": "Add as lead",
+    "added": "Added as a speaker lead."
   }
 }

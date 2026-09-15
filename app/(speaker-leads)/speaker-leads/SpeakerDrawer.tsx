@@ -12,18 +12,21 @@ import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import {
   approveTravelCosts,
+  handoverSpeaker,
   inviteSpeaker,
   setPipeline,
   updateSpeaker,
   type LeadResult,
 } from "./actions";
-import { PIPELINE_ORDER, type ManagedSpeaker } from "./types";
+import { PIPELINE_ORDER, type ManagedSpeaker, type ManagerOption } from "./types";
 
 type Strings = Record<string, string>;
 
 export function SpeakerDrawer({
   speaker,
   isTeam,
+  managers,
+  meId,
   labels,
   locale,
   dateLocale,
@@ -35,6 +38,10 @@ export function SpeakerDrawer({
   speaker: ManagedSpeaker;
   /** Team darf zusätzlich Pass, Lounge, Hotel-Tier und Hospitality setzen. */
   isTeam: boolean;
+  /** Mögliche Empfänger einer Übergabe. */
+  managers: ManagerOption[];
+  /** Die eigene Person — nur wer heute betreut, darf weiterreichen. */
+  meId: string;
   labels: Record<string, Record<string, string>>;
   locale: Locale;
   dateLocale: string;
@@ -55,6 +62,8 @@ export function SpeakerDrawer({
   const [pending, startTransition] = useTransition();
   /** Offener Absage-Dialog: `null` = zu, sonst der gewählte Grund. */
   const [absage, setAbsage] = useState<string | null>(null);
+  /** Empfänger einer Übergabe. */
+  const [nachfolge, setNachfolge] = useState("");
 
   const [draft, setDraft] = useState({
     speaker_type: speaker.speaker_type,
@@ -359,6 +368,46 @@ export function SpeakerDrawer({
             </div>
           )}
         </section>
+
+        {/* Betreuung weitergeben.
+
+            Angeboten wird das nur, wo es auch erlaubt ist: das Team darf jeden
+            zuordnen, eine Lead-Person nur abgeben, was sie heute selbst
+            betreut (Migration 0103). Der Knopf für alle wäre bei der Hälfte
+            der Zeilen eine Einladung in den Fehler. */}
+        {(isTeam || speaker.owner_person_id === meId) && (
+          <section className="border-t pt-4">
+            <h3 className="ct-label mb-1 text-ink">{t.handover}</h3>
+            <p className="ct-help mb-3">
+              {speaker.owner_name ? `${t.currentOwner}: ${speaker.owner_name}` : t.noOwner}
+            </p>
+            <div className="flex flex-wrap items-end gap-2">
+              <Field label={t.handoverTo} htmlFor="nachfolge" className="min-w-52 grow">
+                <Select
+                  id="nachfolge"
+                  value={nachfolge}
+                  placeholder={common.choose}
+                  options={managers
+                    .filter((m) => m.person_id !== speaker.owner_person_id)
+                    .map((m) => ({ value: m.person_id, label: m.display_name ?? m.person_id }))}
+                  onChange={(e) => setNachfolge(e.target.value)}
+                />
+              </Field>
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={pending || nachfolge === ""}
+                onClick={() =>
+                  startTransition(async () =>
+                    void report(await handoverSpeaker(speaker.id, nachfolge), t.handedOver),
+                  )
+                }
+              >
+                {t.handoverAction}
+              </Button>
+            </div>
+          </section>
+        )}
 
         {/* Reisekosten */}
         <section className="border-t pt-4">
