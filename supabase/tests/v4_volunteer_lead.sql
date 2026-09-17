@@ -9,7 +9,7 @@ declare v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_day uuid; v_p2 uuid; 
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary where p.auth_user_id is not null limit 1;
-  delete from role_assignment where person_id = v_pid; delete from staff_user where auth_user_id = v_uid;
+  delete from role_assignment where person_id = v_pid;
   select e.id into v_ed from event e where e.is_edition and e.slug = 'fls27';
   select d.id into v_day from event_day d join event e on e.id = d.event_id
    where e.id = v_ed or e.edition_id = v_ed order by d.day_date limit 1;

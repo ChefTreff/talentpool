@@ -24,7 +24,12 @@ export type PartnerOverview = {
     communication_name: string | null;
     type: string | null;
     website: string | null;
-    description: string | null;
+    /**
+     * Die Beschreibung steht seit `20260917183022` an der **Organisation**,
+     * nicht mehr an der Edition — ein Text je Partner, nicht je Jahr.
+     */
+    description_de: string | null;
+    description_en: string | null;
     logo_dark: string | null;
     logo_light: string | null;
     address: {

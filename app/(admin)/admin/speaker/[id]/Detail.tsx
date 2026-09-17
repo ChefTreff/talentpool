@@ -36,7 +36,8 @@ const TONE: Record<string, BadgeTone> = {
 };
 
 /**
- * Das Detailblatt eines Speakers.
+ * Das Detailblatt eines Speakers — **Archetyp B · Detail**
+ * (`referenzen/muster.md`).
  *
  * Alles, was in `speaker_profile` steht, ist hier zu sehen — aber nicht alles
  * in einem einzigen Formular. Die Felder, die man beim Pflegen zusammen
@@ -45,6 +46,19 @@ const TONE: Record<string, BadgeTone> = {
  * Kostenfreigabe), ist eine eigene Handlung mit eigener Rückmeldung. Ein
  * gemeinsames „Speichern" über beides würde verwischen, was gerade passiert
  * ist.
+ *
+ * Drei Dinge machen den Archetyp aus, und alle drei lösen dasselbe Problem —
+ * dass dreißig Felder in acht Karten gleich wichtig aussehen:
+ *
+ * 1. Das **Handlungsband** ganz oben sammelt, was sofort wirkt. Diese Dinge
+ *    haben kein „Speichern", also dürfen sie nicht zwischen Formularfeldern
+ *    stehen.
+ * 2. **Zwei Spalten ab 1024 px:** links der Entwurf, rechts das Nur-Lesen.
+ *    Was von woanders kommt (Reise, Sessions, Zeitstempel), sieht dann auch
+ *    anders aus als das, was man hier ändert.
+ * 3. Der **Speichern-Balken klebt unten und erscheint nur bei Änderungen**.
+ *    Ein dauerhaft sichtbarer Knopf ohne Aufgabe ist eine Einladung zum
+ *    Leerklicken — und danach weiß niemand mehr, ob etwas passiert ist.
  */
 export function SpeakerDetailView({
   speaker,
@@ -69,31 +83,7 @@ export function SpeakerDetailView({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
 
-  const rider = (speaker.tech_rider ?? {}) as Record<string, unknown>;
-  const socials = speaker.socials ?? {};
-  const [draft, setDraft] = useState({
-    speaker_type: speaker.speaker_type,
-    job_title: speaker.job_title ?? "",
-    organization_name: speaker.organization_name ?? "",
-    bio_short_de: speaker.bio_short_de ?? "",
-    bio_short_en: speaker.bio_short_en ?? "",
-    bio_long_de: speaker.bio_long_de ?? "",
-    bio_long_en: speaker.bio_long_en ?? "",
-    pass_type: speaker.pass_type,
-    hotel_tier: speaker.hotel_tier,
-    hospitality_status: speaker.hospitality_status,
-    lounge_access: speaker.lounge_access,
-    reception_eligible: speaker.reception_eligible,
-    travel_costs_covered: speaker.travel_costs_covered,
-    internal_notes: speaker.internal_notes ?? "",
-    mic: typeof rider.mic === "string" ? rider.mic : "",
-    notes: typeof rider.notes === "string" ? rider.notes : "",
-    own_laptop: rider.own_laptop === true,
-    video: rider.video === true,
-    website: socials.website ?? "",
-    x: socials.x ?? "",
-    instagram: socials.instagram ?? "",
-  });
+  const [draft, setDraft] = useState(() => draftVon(speaker));
   const [status, setStatus] = useState(speaker.pipeline_status);
   const [grund, setGrund] = useState(speaker.decline_reason ?? "");
   const [owner, setOwner] = useState(speaker.owner_person_id ?? "");
@@ -164,6 +154,33 @@ export function SpeakerDetailView({
   const statusChanged = status !== speaker.pipeline_status;
   const declining = status === "declined";
 
+  // Der Speichern-Balken erscheint nur, wenn es etwas zu speichern gibt.
+  // Verglichen wird gegen denselben Ausgangszustand, aus dem `draft` gebaut
+  // wurde — nach `router.refresh()` kommt ein neuer `speaker` herein und der
+  // Balken verschwindet von allein.
+  const rider0 = (speaker.tech_rider ?? {}) as Record<string, unknown>;
+  const socials0 = speaker.socials ?? {};
+  const unveraendert =
+    draft.speaker_type === speaker.speaker_type &&
+    draft.job_title === (speaker.job_title ?? "") &&
+    draft.organization_name === (speaker.organization_name ?? "") &&
+    draft.bio_short_de === (speaker.bio_short_de ?? "") &&
+    draft.bio_short_en === (speaker.bio_short_en ?? "") &&
+    draft.bio_long_de === (speaker.bio_long_de ?? "") &&
+    draft.bio_long_en === (speaker.bio_long_en ?? "") &&
+    draft.pass_type === speaker.pass_type &&
+    draft.hotel_tier === speaker.hotel_tier &&
+    draft.hospitality_status === speaker.hospitality_status &&
+    draft.lounge_access === speaker.lounge_access &&
+    draft.reception_eligible === speaker.reception_eligible &&
+    draft.travel_costs_covered === speaker.travel_costs_covered &&
+    draft.internal_notes === (speaker.internal_notes ?? "") &&
+    draft.mic === (typeof rider0.mic === "string" ? rider0.mic : "") &&
+    draft.notes === (typeof rider0.notes === "string" ? rider0.notes : "") &&
+    draft.own_laptop === (rider0.own_laptop === true) &&
+    draft.video === (rider0.video === true) &&
+    SOCIAL_KEYS.every((k) => draft[k] === (socials0[k] ?? ""));
+
   return (
     <>
       <PageHeader
@@ -202,7 +219,13 @@ export function SpeakerDetailView({
           )}
         </div>
 
-        {/* --- Status, Betreuung, Einladung: wirkt sofort ------------------- */}
+        {/* --- Handlungsband: wirkt sofort, kein Speichern ------------------ */}
+        <section aria-labelledby="sofort">
+          <h2 id="sofort" className="ct-eyebrow mb-2 text-muted">
+            {t.sectionActions}
+          </h2>
+          <p className="ct-help mb-3">{t.sectionActionsHint}</p>
+          <div className="flex flex-col gap-4">
         <Card>
           <CardHeader title={t.pipelineTitle} description={t.pipelineHint} />
           <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
@@ -374,7 +397,20 @@ export function SpeakerDetailView({
           </div>
         </Card>
 
-        {/* --- Der Entwurf: ein Speichern für alles darunter ---------------- */}
+          </div>
+        </section>
+
+        {/* --- Zwei Spalten: links der Entwurf, rechts das Nur-Lesen --------
+            Unter 1024 px untereinander, Entwurf zuerst — wer auf dem Telefon
+            ein Detailblatt öffnet, will ändern, nicht nachschlagen. */}
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+        <section aria-labelledby="entwurf" className="flex flex-col gap-4">
+          <div>
+            <h2 id="entwurf" className="ct-eyebrow text-muted">
+              {t.sectionDraft}
+            </h2>
+            <p className="ct-help">{t.sectionDraftHint}</p>
+          </div>
         <Card>
           <CardHeader title={t.basicsTitle} />
           <div className="grid gap-4 sm:grid-cols-2">
@@ -536,13 +572,30 @@ export function SpeakerDetailView({
           </Card>
         )}
 
-        <div className="sticky bottom-0 -mx-1 flex justify-end gap-3 border-t bg-canvas px-1 py-3">
-          <Button onClick={onSave} disabled={pending}>
-            {common.save}
-          </Button>
-        </div>
+          {/* Der Balken klebt unten — aber nur, solange es etwas zu speichern
+              gibt. Ein Knopf, der nichts tut, ist eine Einladung zum
+              Leerklicken. */}
+          {!unveraendert && (
+            <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center justify-end gap-3 border-t bg-canvas px-1 py-3">
+              <span className="ct-help mr-auto">{t.unsaved}</span>
+              <Button variant="ghost" disabled={pending} onClick={() => setDraft(draftVon(speaker))}>
+                {t.discard}
+              </Button>
+              <Button onClick={onSave} disabled={pending}>
+                {common.save}
+              </Button>
+            </div>
+          )}
+        </section>
 
         {/* --- Nur lesen ---------------------------------------------------- */}
+        <section aria-labelledby="nurlesen" className="flex flex-col gap-4">
+          <div>
+            <h2 id="nurlesen" className="ct-eyebrow text-muted">
+              {t.sectionReadonly}
+            </h2>
+            <p className="ct-help">{t.sectionReadonlyHint}</p>
+          </div>
         <Card>
           <CardHeader title={t.travelTitle} description={t.travelHint} />
           {speaker.travel ? (
@@ -579,9 +632,46 @@ export function SpeakerDetailView({
           {t.created} {zeitpunkt.format(new Date(speaker.created_at))} · {t.updated}{" "}
           {zeitpunkt.format(new Date(speaker.updated_at))}
         </p>
+        </section>
+        </div>
       </div>
     </>
   );
+}
+
+/**
+ * Der Entwurf aus dem geladenen Datensatz.
+ *
+ * Als Funktion und nicht inline im `useState`, damit „Verwerfen" denselben
+ * Ausgangszustand herstellt, gegen den auch verglichen wird — sonst laufen
+ * Anzeige („Ungespeicherte Änderungen") und Wirklichkeit auseinander.
+ */
+function draftVon(speaker: SpeakerDetail) {
+  const rider = (speaker.tech_rider ?? {}) as Record<string, unknown>;
+  const socials = speaker.socials ?? {};
+  return {
+    speaker_type: speaker.speaker_type,
+    job_title: speaker.job_title ?? "",
+    organization_name: speaker.organization_name ?? "",
+    bio_short_de: speaker.bio_short_de ?? "",
+    bio_short_en: speaker.bio_short_en ?? "",
+    bio_long_de: speaker.bio_long_de ?? "",
+    bio_long_en: speaker.bio_long_en ?? "",
+    pass_type: speaker.pass_type,
+    hotel_tier: speaker.hotel_tier,
+    hospitality_status: speaker.hospitality_status,
+    lounge_access: speaker.lounge_access,
+    reception_eligible: speaker.reception_eligible,
+    travel_costs_covered: speaker.travel_costs_covered,
+    internal_notes: speaker.internal_notes ?? "",
+    mic: typeof rider.mic === "string" ? rider.mic : "",
+    notes: typeof rider.notes === "string" ? rider.notes : "",
+    own_laptop: rider.own_laptop === true,
+    video: rider.video === true,
+    website: socials.website ?? "",
+    x: socials.x ?? "",
+    instagram: socials.instagram ?? "",
+  };
 }
 
 function Zeile({ label, value }: { label: string; value: string }) {

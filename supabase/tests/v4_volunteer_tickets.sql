@@ -20,7 +20,6 @@ begin
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary
    where p.auth_user_id is not null limit 1;
   delete from role_assignment where person_id = v_pid;
-  delete from staff_user where auth_user_id = v_uid;
   select e.id, e.vivenu_event_id into v_ed, v_ev from event e where e.is_edition and e.slug = 'fls27';
 
   -- Wegwerf-Profil der Testperson; ein zweites für den Undershop-Weg
