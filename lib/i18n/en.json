@@ -1861,7 +1861,8 @@
       "speakers": "Speakers",
       "team": "Team",
       "speakerLeads": "Speaker leads",
-      "edition": "Edition & stages"
+      "edition": "Edition & stages",
+      "graphics": "Graphics & photos"
     },
     "overview": {
       "title": "Overview",
@@ -3125,5 +3126,42 @@
     "added": "Created.",
     "slotsAttached": "slots are attached",
     "sessionsAttached": "sessions are attached"
+  },
+  "adminGrafiken": {
+    "title": "Graphics & photos",
+    "lead": "Stage photos and slot graphics per session.",
+    "noAccessTitle": "No access to the image store",
+    "noAccessBody": "That needs the marketing team, programme team or admin role.",
+    "search": "Search",
+    "searchHint": "Title, stage or speaker",
+    "filter": "Show",
+    "filterAll": "All sessions",
+    "filterNoPhoto": "Without photo",
+    "filterNoGraphic": "Without graphic",
+    "emptyTitle": "No session matches",
+    "emptyBody": "Reset the filter or search for something else.",
+    "colSession": "Session",
+    "colSpeakers": "Speakers",
+    "colPhotos": "Photos",
+    "colGraphic": "Graphic",
+    "colUpload": "Upload",
+    "upload": "Choose image",
+    "uploaded": "Uploaded.",
+    "credit": "Credit",
+    "kind_stage_photo": "Stage photo",
+    "kind_slot_graphic": "Slot graphic",
+    "imagesHint": "Stage photos all stay; a new slot graphic supersedes the previous one.",
+    "noImages": "Nothing here for this session yet.",
+    "superseded": "Superseded",
+    "cutout": "Cut out",
+    "close": "Close",
+    "delete": "Delete",
+    "deleted": "Deleted.",
+    "error_file_too_large": "The image is too large. 25 MB at most.",
+    "error_wrong_type": "JPEG, PNG or WebP only.",
+    "error_invalid_request": "Those details do not fit.",
+    "error_upload_failed": "The upload did not work. Please try again.",
+    "error_invalid_path": "The file path does not belong to this session.",
+    "error_unknown": "That did not work just now."
   }
 }
