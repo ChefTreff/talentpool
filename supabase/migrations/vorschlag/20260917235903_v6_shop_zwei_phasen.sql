@@ -339,4 +339,62 @@ begin
 end $$;
 revoke execute on function run_shop_finalization() from public, anon, authenticated;
 
+-- ---------------------------------------------------------------- 5) Angebote werden nicht gemahnt
+--
+-- Konrads Bedingung: das Lunch-Paket ist ein Angebot, kein Muss. `required = false` allein
+-- reicht dafür nicht — zwei Stellen kennen den Unterschied bisher nicht (Befund aus dem
+-- Probelauf dieser Migration, Testschritt 10b war rot):
+--
+-- 1. `mark_overdue_deliverables` setzt **jede** Pflicht mit abgelaufener Frist auf `overdue`.
+-- 2. `partner_digest_items` nimmt sie in den Erinnerungs-Digest, und `send_partner_reminders`
+--    schreibt „überfällig seit …" — die Formulierung hängt am **Datum**, nicht am Status. Ein
+--    Angebot würde also auch dann gemahnt, wenn sein Status `open` bliebe.
+--
+-- Beide Fassungen stammen aus `20260910172455_v3_partner_reminders.sql` (die letzte, die sie
+-- definiert); neu ist allein die Unterscheidung zwischen Pflicht und Angebot.
+
+create or replace function mark_overdue_deliverables() returns integer
+language plpgsql security definer set search_path = public, extensions as $$
+declare v_n integer;
+begin
+  -- Überfälligkeit zurücknehmen: wenn die Frist wieder in der Zukunft liegt — oder wenn aus
+  -- einer Pflicht ein Angebot geworden ist (dann war die Mahnung von gestern falsch).
+  update deliverable d set status = 'open'
+   where d.status = 'overdue'
+     and (d.due_at is null or d.due_at >= now()
+          or exists (select 1 from deliverable_template t where t.id = d.template_id and not t.required));
+  -- Mahnen nur, was verpflichtend ist.
+  update deliverable d set status = 'overdue'
+   where d.status = 'open' and d.due_at is not null and d.due_at < now()
+     and exists (select 1 from deliverable_template t where t.id = d.template_id and t.required);
+  get diagnostics v_n = row_count;
+  return v_n;
+end $$;
+revoke execute on function mark_overdue_deliverables() from public, anon, authenticated;
+
+create or replace function partner_digest_items(p_org_edition_id uuid)
+returns table (deliverable_id uuid, label_de text, label_en text, status text, due_at timestamptz, sort integer)
+language sql stable security definer set search_path = public, extensions as $$
+  select d.id, t.label_de, t.label_en, d.status, d.due_at, t.sort
+  from deliverable d
+  join deliverable_template t on t.id = d.template_id
+  join org_edition oe on oe.id = d.org_edition_id
+  left join deadline dl on dl.edition_id = oe.edition_id and dl.key = t.due_rule->>'deadline_key'
+  where d.org_edition_id = p_org_edition_id
+    and (
+      -- Pflichten wie bisher: überfällig, zurückgewiesen, oder bald fällig.
+      (t.required
+        and (d.status in ('overdue', 'rejected')
+             or (d.status = 'open' and d.due_at is not null
+                 and d.due_at <= now() + make_interval(hours => coalesce(dl.reminder_lead_hours, 168)))))
+      -- Angebote nur als Hinweis **vor** der Frist. Danach sind sie ohnehin nicht mehr
+      -- bestellbar, und „überfällig seit …" wäre für etwas Freiwilliges schlicht falsch.
+      or (not t.required
+        and d.status = 'open' and d.due_at is not null and d.due_at > now()
+        and d.due_at <= now() + make_interval(hours => coalesce(dl.reminder_lead_hours, 168)))
+    )
+  order by d.due_at nulls last, t.sort
+$$;
+revoke execute on function partner_digest_items(uuid) from public, anon, authenticated;
+
 select harden_definer_functions();

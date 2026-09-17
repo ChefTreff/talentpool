@@ -12,6 +12,10 @@
 --   09 die Pflicht gilt danach als erledigt (Trigger aus 0054 — derselbe Weg, andere Tür);
 --   10 die Lunch-Vorlage ist ein Angebot, kein Muss: `required = false`, ohne Kategorie,
 --      und `mark_overdue_deliverables` macht sie nicht überfällig (Bedingung 3 des Reviews);
+--   10e ein Angebot mit abgelaufener Frist steht **nicht** im Erinnerungs-Digest:
+--      dessen Text formuliert „überfällig seit …" anhand des Datums, nicht des
+--      Status — ohne diese Bedingung würde ein freiwilliges Paket gemahnt;
+--   10f vor der Frist steht es sehr wohl drin (als Hinweis, nicht als Mahnung);
 --   10c ein Warenkorb mit **fremder** Zeile wird nicht mitbestätigt: die Lunch-Zeile
 --      landet darin, `confirmed = false`, der Entwurf bleibt `draft` — sonst hätte die
 --      Bestellung des Partners ungefragt das Haus verlassen (Befund aus dem Review);
@@ -147,6 +151,35 @@ begin
   insert into t_res values ('10b_keine_ueberfaelligkeit',
     case when v_txt = 'overdue' then 'ALLOWED (BUG): ein Angebot wird gemahnt'
          else 'bleibt ' || coalesce(v_txt, 'leer') || ' (richtig)' end);
+
+  -- 10e/f Der Digest: nach der Frist nicht mehr, davor als Hinweis.
+  update deliverable d set status = 'open', due_at = now() - interval '1 day'
+    from deliverable_template t where t.id = d.template_id and t.key = 'lunch_package' and d.org_edition_id = v_oe;
+  select count(*)::integer into v_n from partner_digest_items(v_oe) i
+    join deliverable dd on dd.id = i.deliverable_id
+    join deliverable_template tt on tt.id = dd.template_id
+   where tt.key = 'lunch_package';
+  insert into t_res values ('10e_digest_nach_frist',
+    case when v_n = 0 then 'nicht im Digest (richtig)' else 'ALLOWED (BUG): wird gemahnt' end);
+
+  update deliverable d set due_at = now() + interval '2 days'
+    from deliverable_template t where t.id = d.template_id and t.key = 'lunch_package' and d.org_edition_id = v_oe;
+  select count(*)::integer into v_n from partner_digest_items(v_oe) i
+    join deliverable dd on dd.id = i.deliverable_id
+    join deliverable_template tt on tt.id = dd.template_id
+   where tt.key = 'lunch_package';
+  insert into t_res values ('10f_digest_vor_frist',
+    case when v_n = 1 then 'als Hinweis drin (richtig)' else 'unerwartet ' || v_n end);
+
+  -- Eine echte Pflicht mit abgelaufener Frist wird weiterhin gemahnt — die Änderung
+  -- darf nicht die ganze Erinnerung abschalten.
+  update deliverable d set status = 'open', due_at = now() - interval '1 day'
+    from deliverable_template t where t.id = d.template_id and t.key = 'logo_vector' and d.org_edition_id = v_oe;
+  perform mark_overdue_deliverables();
+  select d.status into v_txt from deliverable d join deliverable_template t on t.id = d.template_id
+   where d.org_edition_id = v_oe and t.key = 'logo_vector';
+  insert into t_res values ('10g_pflicht_wird_weiter_gemahnt',
+    case when v_txt = 'overdue' then 'overdue (richtig)' else 'unerwartet ' || coalesce(v_txt,'leer') end);
 
   -- 10c Fremde Zeile im Warenkorb: nicht mitbestätigen.
   --     Die Org mit Standbühne darf bestellen; sie legt zuerst etwas Eigenes in den
