@@ -99,3 +99,13 @@
 - **Der gelebte Ablauf 2026** — wie viel von der Base wirklich benutzt wurde (die Freitickets-Tabelle deckte laut Inventar nur zwei Initiativen ab, die vier Uni-Tabellen sind identische Klone). Was davon FLS27 noch braucht, kann nur dein Walkthrough sagen.
 - **Die Partneransicht mit einer Initiative** als Testorganisation — im Portal gibt es heute keine Org vom Typ `initiative` zum Ausprobieren; alle Zeilen sind Codebefunde.
 - **Wie ein Initiativen-Kontingent in Vivenu aussieht** (Undershop, Coupon, Einlösung) — nur der 100-%-Fall ist im Code belegt, der Praxistest steht aus.
+
+## Antworten Konrad (Walkthrough 17.09.2026)
+17. **Eigene Strecke im Admin, wie ein CRM** (Funnel Bewerbung → Gespräch → Agreement → Onboarding); Initiativen sind nie in HubSpot → ADM-022.
+18. **Zwei Rabattstufen (100 %/50 %) je Initiative** → Datenmodell-Änderung (Rabattsatz je Kontingent, vivenu-Codes) → ADM-022, Architektur-Session.
+19. **Leistungen direkt im Portal zuweisen** (Barter ohne Deal) → ADM-022.
+20. **Eigene SKU „Initiativen-Partnerschaft“** mit eigener Checkliste → ADM-022.
+21. **Beachflag als eigene Leistung** mit Druckdaten-Upload → ADM-022.
+22. **Zwei Tage sind die Regel, die Hälfte der Plätze tageweise** → ein Produkt für zwei Tage, eins für einen Tag; Stand tagesweise teilbar → Datenmodell (`booth` je Tag), Architektur-Session.
+23. **Volunteer-Zusage als Checklistenpunkt** → ADM-022.
+24. **Öffentlicher Award: ja** → ADM-024 (P3).

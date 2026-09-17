@@ -101,3 +101,14 @@
 - **Die Bewerber-Sicht** (`/partner/bewerber`) — laut F4 „am Testkonto nicht auslösbar", weil der Testorganisation Formate fehlen.
 - **Die verbleibenden 16 Wiki-Artikel** aus dem Notion-Bestand: ob sie 2027 noch stimmen, entscheidet die Redaktion, nicht dieser Abgleich.
 - **Der alte Hub selbst** wurde nicht erneut aufgerufen. Grundlage ist der dokumentierte Walkthrough vom 08.09.; die dort als „Inhaltsblock leer/nicht geladen" vermerkten Stellen (`/filehub`, nutzerbezogene Listen) bleiben unsicher.
+
+## Antworten Konrad (Walkthrough 17.09.2026, angemeldet im Partner Hub)
+1. **Hackathon ins Partner-Portal** — die Partner-Verwaltung (Challenge, Preise, Fristen, Ansprechpartner) kommt als Sektion unter „Eure Formate“; `/hackathon` bleibt die Teilnehmer-App, Partner wechseln über den Umschalter → PART-033, HACK-005.
+2. **Speed-Dating war nur Information.** 2027 neu als Produkt **„Interview Tables“**, dazu **Side-Events** (2026 nicht abgebildet): Teilnehmer bewerben sich wie bei Masterclasses, Partner verwalten im Bereich „Eure Formate“ (Format anlegen mit Titel, Beschreibung, Bewerbungsfragen aus dem Katalog plus Neufelder auf Antrag; Bewerbungen inkl. Export) → PART-034, TAL-002, Konzept Architektur-Session.
+3. **Hackathon hat einen eigenen Backdrop** → Upload unter Hackathon (PART-033); die Messestand-Rückwand unter „Eure Formate → Messestand“ (PART-035).
+4. **Frist der Challenge: vier Wochen vor dem Event** → PART-040 (löst PART-032).
+5. **Media Kit: beides** (Marken-Material und Partnergrafik), gepflegt vom Marketing in einem Admin-Grafikbereich mit separatem Zugriff → PART-041, ADM-023.
+6. **Angebot und Rechnung sichtbar**, bevorzugt automatisch aus SevDesk über die Kundennummer, sonst händischer Upload → PART-036.
+7. **Uploads nur an Pflichten gebunden**, aber überall gespiegelt (Format-Seite, Checkliste, Dateien) → PART-035.
+8. **Chatbot durch den Assistenten (#50) erledigt.** Wikis sind vorerst frei; Überarbeitung vor dem finalen Launch steht auf Konrads Checkliste.
+Zeilenstatus „bewusst weggelassen“ für Speed-Dating und Team-Formular bleibt; „fehlt“ bei Media Kit, Partnergrafik, Backdrop, Angebot/Rechnung ist jetzt beauftragt (IDs oben).

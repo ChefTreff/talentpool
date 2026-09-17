@@ -33,6 +33,8 @@ docs/arbeitsauftrag-welle-0.md|08_Projektplan & MVP/Arbeitsauftrag Welle 0 — F
 docs/arbeitsauftrag-welle-1.md|08_Projektplan & MVP/Arbeitsauftrag Welle 1 — Talent + Programm (Claude, 2026-09-08).md
 docs/arbeitsauftrag-welle-2.md|08_Projektplan & MVP/Arbeitsauftrag Welle 2 — Speaker + Speaker-Leads (Claude, 2026-09-10).md
 docs/arbeitsauftrag-welle-3.md|08_Projektplan & MVP/Arbeitsauftrag Welle 3 — Partner + Messeshop (Claude, 2026-09-10).md
+docs/arbeitsauftrag-welle-4.md|08_Projektplan & MVP/Arbeitsauftrag Welle 4 — Volunteers, Check-in, Hackathon, Produktion, Wissensbasis (Claude, 2026-09-11).md
+docs/arbeitsauftrag-welle-6.md|08_Projektplan & MVP/Arbeitsauftrag Welle 6 — Formate, Partner-Struktur, Initiativen, Produktstamm, Belege, Rollen (Claude, 2026-09-17).md
 docs/plan-ergaenzung-2026-09-17.md|08_Projektplan & MVP/Ergaenzender Plan — Abschluss, Abgleich, Feedback-Prozess, Backend, Design (Entwurf, 2026-09-17).md
 docs/feedback-leitfaden.md|05_Requirements (Team-Input)/Feedback-Leitfaden — so gibst du Feedback (Claude, laufend).md
 docs/chat-startpakete.md|08_Projektplan & MVP/Chat-Startpakete — sechs Sessions, ein Repo (Claude, laufend).md
