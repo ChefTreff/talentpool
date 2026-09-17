@@ -76,6 +76,14 @@ Dazu die Marketing-Variante „Future Leader Club" im Sperrsatz über einem gro�
 
 Im Portal: **eine** Variante, oben links in der Sidebar, dazu der Bereichsname („CHEFTREFF SPEAKER PORTAL" / „FLC EVENTS · SPEAKER"), DE/EN. Naheliegend ist die Kurzform `FLC EVENTS`. Schreibschrift und Sperrsatz-Variante tauchen in Portalen nicht auf. Endgültige Wahl klärt Konrad, sobald die SVGs im Repo liegen.
 
+## Fotos
+
+Die **Penno-Serie der Website** ist für die Portale freigegeben — unbeschränkte Nutzungsrechte liegen bei ChefTreff (Konrad, 17.09.2026). Sie ist damit die Bildquelle für `HeroBand`, `PhotoCard` und, wo es Porträts gibt, für `PersonCard`.
+
+Wo im Portal Fotos vorkommen: Hero-Band, Detail-/Einstiegskarten, Personen-Karten. Sonst nirgends — keine Fotobänder als Sektionstrenner, keine Bilder in Listen oder Tabellen (`referenzen/website-bloecke.md`).
+
+Ohne Foto tragen `HeroBand` und `PhotoCard` eine Formfläche im Akzentverlauf. Das ist **kein Fehlerfall**, sondern die zweite gültige Fassung: eine Seite, die auf ein fehlendes Bild mit einem grauen Kasten antwortet, sieht kaputt aus.
+
 ## Haltung (Look & Feel)
 
 Community, Augenhöhe, nahbar, „nicht distanziert". Für die Portale heißt das: Klartext statt Behördendeutsch, konkrete nächste Schritte, keine Ironie, keine Ausrufezeichen-Ketten — und keine Marketing-Sprache in Arbeitsansichten.

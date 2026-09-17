@@ -27,17 +27,22 @@ export default async function LoginPage({
   return (
     <>
       <AppHeader />
-      {/* Die Marke erscheint, wo nicht gearbeitet wird (Brandbook, Events). */}
+      {/* Einer der drei Marken-Momente: Navy über die ganze Seite, Formen
+          dahinter, ein Highlight-Wort. Sobald man angemeldet ist, hört das
+          auf — Arbeitsflächen sind hell (Skill /portal-design). */}
       <main
         id="content"
-        className="relative isolate mx-auto flex w-full max-w-[640px] flex-1 flex-col justify-center px-6 py-16"
+        className="relative isolate flex flex-1 flex-col justify-center bg-navy px-6 py-16"
       >
         <BrandBackdrop />
+        <div className="mx-auto w-full max-w-[640px]">
         <LoginForm
           next={safeNext}
           authError={authError}
           labels={{
-            title: t.login.title,
+            eyebrow: t.login.eyebrow,
+            titleLead: t.login.titleLead,
+            titleHighlight: t.login.titleHighlight,
             lead: t.login.lead,
             emailLabel: t.login.emailLabel,
             emailPlaceholder: t.login.emailPlaceholder,
@@ -46,8 +51,12 @@ export default async function LoginPage({
             sentTitle: t.login.sentTitle,
             sentBody: t.login.sentBody,
             required: t.common.required,
+            helpTitle: t.login.helpTitle,
+            helpBody: t.login.helpBody,
+            helpMailbox: t.login.helpMailbox,
           }}
         />
+        </div>
       </main>
     </>
   );
