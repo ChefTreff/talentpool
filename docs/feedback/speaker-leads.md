@@ -1,0 +1,15 @@
+# Feedback-Backlog · Speaker-Leads
+
+Stand: 2026-09-17 · Pflege: die zuständige Build-Session; Konrad liest hier den Stand
+
+| ID | Datum | Seite | Ist → Soll | Prio | Status | Quelle |
+|---|---|---|---|---|---|---|
+| LEAD-001 | 15.09. | /speaker-leads/regie | Es gibt keine Regieübersicht im Lead-Portal → Regietabelle beschränkt auf die eigenen Bühnen, aus der Techniker und Stage Hands eine Liste drucken können (dazu Druckansicht ohne Seitenleiste und CSV) | P1 | gebaut (0101, /speaker-leads/regie, /regie/druck) | Speaker-Abgleich A/C |
+| LEAD-002 | 15.09. | /speaker-leads/regie | `can_edit_regie` schließt `standbuehne_editor` ein: ein Partner mit gebuchter Standbühne schreibt den Ablaufplan seiner eigenen Bühne → Konrad am 15.09.: „can edit für eigene Standbühne passt.“ | P2 | abgenommen (Entscheidungslog 15.09.) | Speaker-Abgleich D2 |
+| LEAD-003 | 15.09. | /speaker-leads | `pipeline_status` kennt `confirmed` und `declined`, aber ohne Zeitstempel — wir wissen, *dass* jemand zugesagt hat, nicht *wann* → `confirmed_at`, `declined_at` und ein Absagegrund, beim Statuswechsel gesetzt | P2 | gebaut (0099, Lead-Board) | Speaker-Felder A4 |
+| LEAD-004 | 15.09. | /speaker-leads | Nur `invited_at`, sonst nichts → Einladungsrunde („Runde 2, Januar“) und Kanal (Mail, Brief, persönlich) als Filter im Board; bei 150 Speakern über fünf Runden der Unterschied zwischen Pipeline und Liste | P3 | zurückgestellt (nicht in Konrads Auswahl vom 15.09., vorgesehen für den nächsten Speaker-Baustein) | Speaker-Felder A5 |
+| LEAD-005 | 15.09. | /speaker-leads | Das Programm setzt Jobtitel und Organisation selbst zusammen → eine redaktionelle Kurzbezeichnung („Head of Programs, ChefTreff, Hamburg“), damit `job_title` dafür nicht verfälscht wird | P3 | zurückgestellt (nicht in Konrads Auswahl vom 15.09.) | Speaker-Felder A6 |
+| LEAD-006 | 15.09. | /speaker-leads | `job_title` gibt es nur einmal, das Programm ist zweisprachig → `job_title_en` | P3 | zurückgestellt (nicht in Konrads Auswahl vom 15.09.) | Speaker-Felder A7 |
+| LEAD-007 | 15.09. | /speaker-leads | Fristen liegen nur je Edition und Zielgruppe in `deadline` → eine abweichende Frist je Speaker für Nachzügler und Spätzusagen | P3 | zurückgestellt (erst wenn der Bedarf im Betrieb auftritt, 15.09.) | Speaker-Felder A10 |
+| LEAD-008 | 15.09. | /speaker-leads | Ein einziges `internal_notes` für alles → der Kommentar wandert an das Ding, das er betrifft (Hotelkommentar an die Buchung, Transportkommentar an die Anreise), statt mehrerer Kommentarfelder | P3 | zurückgestellt (Empfehlung statt Umsetzung, 15.09.) | Speaker-Felder A11–13 |
+| LEAD-009 | 15.09. | /speaker-leads | Paulinas Spalten `Gruppe` (CO) und `Portal Category` (CQ) sind nicht zuzuordnen → Rückfrage an Paulina, wofür sie sie benutzt hat, bevor etwas gebaut wird; steckt „welche Speaker gehören inhaltlich zusammen“ dahinter, ist das eher ein Track oder ein Tag an der Session | P3 | erfasst | Speaker-Felder A11 / G · Aufgabe Konrad |
