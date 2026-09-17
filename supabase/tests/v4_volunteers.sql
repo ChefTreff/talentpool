@@ -15,7 +15,7 @@ declare v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_start date; v_day uui
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary where p.auth_user_id is not null limit 1;
-  delete from role_assignment where person_id = v_pid; delete from staff_user where auth_user_id = v_uid;
+  delete from role_assignment where person_id = v_pid;
   select e.id, e.start_date into v_ed, v_start from event e where e.is_edition and e.slug = 'fls27';
   -- Die Tage hängen an den Events der Edition (summit-27, hackathon-27), nicht
   -- an der Edition selbst — genau der Fall, den 0068 abdeckt.
