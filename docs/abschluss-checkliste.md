@@ -121,3 +121,8 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **C-Features einzeln entscheiden** (Plan §7b: Slid@Home, Talk-Generator, Hear-Me-Speak, Slot-Grafiken, Timetable-Bild, Bild-Normalisierung, Kalender-Blocker, Merch-Artikel, vivenu-Add-ons).
 - ☑ **Admin-Bereich hängt an der Rolle:** 0106/0107 live 17.09.; Merge #48/#49 nach Walkthrough.
 - ☐ **Designer-Loop** → ersetzt durch den Design-Chat mit Design-System v2 (`docs/design-system-v2-auftrag.md`): D0 bis 19.09., Referenzseiten bis 26.09., Rollout bis 05.10., Abnahme je Portal auf der Preview.
+- ☑ Supabase Redirect-URLs 3002–3005 (Konrad, 17.09.).
+- ☐ **Merch:** weiter on hold (Konrad, 17.09.) — keine Bauarbeit, Artikel 2027 offen.
+- ☐ **vivenu-Add-ons** (Hotel, DB-Ticket, Locker): Erarbeitung im **Oktober**, danach Backlog Partner/Talent (Konrad, 17.09.).
+- ☐ **Vorlagen für die Speaker-Features** (Konrad liefert): FLS26-Grafik-Template für die Hear-Me-Speak-Maske (SPK-013), alte Talk-Titel und -Beschreibungen zur Schärfung des Talk-Generators (SPK-012).
+- ☐ **`ANTHROPIC_API_KEY`** in Vercel setzen, sobald #50 gemergt ist (Admin-Chat sagt an): `sh scripts/env-set.sh ANTHROPIC_API_KEY`.

@@ -215,6 +215,8 @@ Du zeigst es dem Design-Chat im Walkthrough (Chrome, eingeloggt; die Session lie
 | **Merch** | Merch-Artikel mit Konfiguration (Logo, Menge) im Messeshop | S4 | Konfiguration existiert seit 0064 (PR #20); offen sind nur die Artikel 2027 — Katalogpflege, kein Bau |
 | **Add-ons/Bundles (vivenu)** | Hotel, DB-Ticket, Locker als vivenu-Add-ons; Portal liest sie im Ingest | T2/T4 | extern (Laura, Kontingente bis 01.11.); Anzeige im Portal Q4 |
 
+**Entschieden (Konrad, 17.09. nachmittags):** Slid@Home **bauen**, mit Dummy-Daten komplett durchklickbar, unter anderem Namen (Arbeitstitel „Folien nach dem Summit“; SPK-011, TAL-001) · Talk-Generator **direkt bauen** im Speaker-Portal, Sektion Slot, als Chat mit Schärfung, trainiert an alten Titeln (SPK-012) · Hear-Me-Speak **aufnehmen, super wichtig**: Maske mit Zoom und Positionierung auf dem FLS26-Template, Upload → Positionieren → Bearbeiten → Download (SPK-013) · Slot-Grafiken **nur Admin**: Sektion „Grafiken“ im Speaker-Admin, alle Grafiken je Speaker/Slot zentral, technisch für die Event-App (ADM-020) · Bild-Normalisierung **mit den Slot-Grafiken**: Speaker-Grafik ohne Freistellung, Slot-Grafik mit; Gesicht immer zentral, nicht zentrierte Bilder beschneiden (ADM-020) · Kalender-Blocker **aufsetzen**, Versand erst im finalen Test (SPK-014) · Merch **weiter on hold** · vivenu-Add-ons **ins Backlog**, Erarbeitung im Oktober (Checkliste).
+
 ---
 
 ## 8 · Stand der Umsetzung (17.09.2026, nach der Freigabe)
