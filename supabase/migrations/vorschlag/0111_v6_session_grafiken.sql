@@ -1,5 +1,5 @@
 -- =============================================================================
--- 0111 · Welle 6 · Bilder am Auftritt: Bühnenfotos und Slot-Grafiken (A6)
+-- 0111 · Welle 6 · Bilder am Auftritt: Bühnenfotos und Slot-Grafiken (A6, ADM-039)
 --
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --
