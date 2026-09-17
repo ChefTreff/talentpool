@@ -64,6 +64,10 @@ Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Edito
 
 | `v5_admin_ueber_rolle.sql` | 0107 (20260917093102) | Mit aktiver Admin-Rolle ist `is_staff()` wahr, auch ohne `staff_user`-Zeile; eine `staff_user`-Zeile allein reicht **nicht** mehr (der Schnitt) und eine RPC dahinter weist mit 42501 ab; ohne beides sowieso nichts; `session_context()` meldet dasselbe (daran haengt die Oberflaeche); eine abgelaufene Admin-Rolle zaehlt nicht; die Schutzpruefung `staff_users_without_admin()` findet ein Konto, das beim Schnitt draussen stuende, und schweigt, sobald die Rolle vergeben ist. |
 
+| `v5_wissensbasis_assistent.sql` | 0108 (20260917102018) | Ohne Login 28000, fremde Zielgruppe 42501, leere Frage 22023 `empty_query`, Kiosk-Geraetekonto 42501; ein Entwurf liefert keine Abschnitte, erst das Veroeffentlichen; Abschnitt = H2-Block mit H3 im Text; ein langer Abschnitt wird geteilt und jedes Teilstueck traegt die Ueberschrift; Treffer mit Rang > 0; abgelaufener Artikel und fremde Zielgruppe fallen heraus; 21. Frage in der Stunde P0001 `rate_limited`; `kb_question_log` hat keine Personenspalte; Aufraeumen loescht Fragen aelter als 90 Tage und Zaehlerzeilen aelter als 24 Stunden; eine Protokollzeile **ohne genommenen Slot** P0001 `no_slot` (sonst waere `kb_log_question` ein offenes Schreibrecht auf das Protokoll); `kb_question_report` ohne Rechte 42501, mit Admin Zeilen und die Fragen ohne Treffer zuerst. |
+
+| `v5_kb_search_rueckfall.sql` | 0109 (20260917102942) | Eine Frage, deren Woerter alle vorkommen, trifft weiterhin genau den Abschnitt; eine Frage mit einem Wort, das im Artikel nicht steht („geliefert" statt „einsenden"), findet ihn jetzt trotzdem — vor 0109 war das Ergebnis leer (Befund aus dem Walkthrough an echten Artikeln); der richtige Artikel steht oben; Unsinn findet auch als ODER nichts; die Zielgruppe gilt im Rueckfall genauso. |
+
 Simulation eines eingeloggten Nutzers innerhalb der Transaktion:
 `perform set_config('request.jwt.claims', json_build_object('sub', <auth_uid>, 'role', 'authenticated', 'email', <email>)::text, true);`
 

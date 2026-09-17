@@ -181,7 +181,10 @@
     "file_too_large": "The file is too large. 5 MB at most.",
     "invalid_owner": "This person does not look after speakers. Please choose a lead.",
     "upload_failed": "The upload did not work. Please try again.",
-    "invalid_pass_type_choice": "No such pass type. Talent or startup only."
+    "invalid_pass_type_choice": "No such pass type. Talent or startup only.",
+    "rate_limited": "Too many questions in a short time. Please try again later.",
+    "empty_query": "The question is empty.",
+    "no_slot": "That question was not asked — please use the input field."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -2484,6 +2487,22 @@
     "previewEmpty": "Nothing written yet.",
     "sampleText": "Text",
     "editorHint": "Format with the toolbar or write Markdown directly. The preview shows how the article looks in the portal."
+  },
+  "wikiAssistent": {
+    "title": "Ask the wiki",
+    "lead": "Ask your question in one sentence. The answer comes only from the articles below.",
+    "label": "Your question",
+    "placeholder": "For example: when is the backdrop due?",
+    "ask": "Ask",
+    "privacy": "Please do not enter personal data. Questions are stored without names so we can improve the wiki.",
+    "noHit": "That is not in the wiki.",
+    "askPerson": "Best ask directly:",
+    "foundOnly": "These sections match your question:",
+    "sources": "Sources",
+    "disclaimer": "Summarised from the sections named. If in doubt, the article applies.",
+    "error_rate_limited": "That was a lot of questions in a short time. Try again next hour.",
+    "error_empty_query": "The question is empty.",
+    "error_unknown": "That did not work just now. Please try again."
   },
   "hackathon": {
     "title": "Hackathon",

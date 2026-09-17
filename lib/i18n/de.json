@@ -181,7 +181,10 @@
     "file_too_large": "Die Datei ist zu groß. Höchstens 5 MB.",
     "invalid_owner": "Diese Person betreut keine Speaker. Bitte eine Lead-Person wählen.",
     "upload_failed": "Das Hochladen hat nicht geklappt. Versuch es noch einmal.",
-    "invalid_pass_type_choice": "Diesen Pass-Typ gibt es nicht. Nur Talent oder Startup."
+    "invalid_pass_type_choice": "Diesen Pass-Typ gibt es nicht. Nur Talent oder Startup.",
+    "rate_limited": "Zu viele Fragen in kurzer Zeit. Probier es später noch einmal.",
+    "empty_query": "Die Frage ist leer.",
+    "no_slot": "Diese Frage wurde nicht gestellt — bitte über das Eingabefeld fragen."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -2484,6 +2487,22 @@
     "previewEmpty": "Noch nichts geschrieben.",
     "sampleText": "Text",
     "editorHint": "Formatierung über die Leiste oder direkt als Markdown. Die Vorschau zeigt, wie der Artikel im Portal aussieht."
+  },
+  "wikiAssistent": {
+    "title": "Frag das Wiki",
+    "lead": "Stell deine Frage in einem Satz. Die Antwort kommt ausschliesslich aus den Artikeln unten.",
+    "label": "Deine Frage",
+    "placeholder": "Zum Beispiel: Wann muss die Rückwand geliefert sein?",
+    "ask": "Fragen",
+    "privacy": "Bitte keine persönlichen Daten eingeben. Fragen werden ohne Namen gespeichert, damit wir das Wiki verbessern können.",
+    "noHit": "Dazu steht nichts im Wiki.",
+    "askPerson": "Frag am besten direkt:",
+    "foundOnly": "Diese Abschnitte passen zu deiner Frage:",
+    "sources": "Quellen",
+    "disclaimer": "Zusammengefasst aus den genannten Abschnitten. Im Zweifel gilt der Artikel.",
+    "error_rate_limited": "Das waren viele Fragen in kurzer Zeit. Probier es in der nächsten Stunde noch einmal.",
+    "error_empty_query": "Die Frage ist leer.",
+    "error_unknown": "Das hat gerade nicht geklappt. Versuch es noch einmal."
   },
   "hackathon": {
     "title": "Hackathon",

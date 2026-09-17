@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -34,6 +34,36 @@ export function WikiView({
   const [query, setQuery] = useState("");
   const [phase, setPhase] = useState("");
   const [openId, setOpenId] = useState<string | null>(articles[0]?.id ?? null);
+
+  /**
+   * Der Anker in der Adresse öffnet den Artikel.
+   *
+   * Die Quellenangaben des Assistenten verweisen auf `#slug`. Ohne diese
+   * Kopplung wäre das ein Link ins Leere: rechts steht immer nur **ein**
+   * Artikel, es gibt also kein Sprungziel im Dokument. Nebenbei wird damit
+   * jeder Artikel verlinkbar — auch aus einer Mail.
+   */
+  useEffect(() => {
+    const ausAdresse = () => {
+      const roh = window.location.hash.replace(/^#/, "");
+      if (!roh) return;
+      // Ein von Hand verstümmelter Anker (`#%zz`) lässt `decodeURIComponent`
+      // werfen — im Effekt wäre das ein Fehler der ganzen Seite wegen einer
+      // kaputten Adresszeile.
+      let slug: string;
+      try {
+        slug = decodeURIComponent(roh);
+      } catch {
+        slug = roh;
+      }
+      if (!slug) return;
+      const treffer = articles.find((a) => a.slug === slug);
+      if (treffer) setOpenId(treffer.id);
+    };
+    ausAdresse();
+    window.addEventListener("hashchange", ausAdresse);
+    return () => window.removeEventListener("hashchange", ausAdresse);
+  }, [articles]);
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -82,7 +112,12 @@ export function WikiView({
                   "ct-label w-full rounded-ct-sm px-2.5 py-1.5 text-left transition-colors",
                   open?.id === a.id ? "bg-surface-hover text-ink" : "text-muted hover:bg-surface-hover hover:text-ink",
                 )}
-                onClick={() => setOpenId(a.id)}
+                onClick={() => {
+                  setOpenId(a.id);
+                  // Die Adresse zeigt, was offen ist — ohne die Historie mit
+                  // jedem Klick in der Liste zu füllen.
+                  window.history.replaceState(null, "", `#${encodeURIComponent(a.slug)}`);
+                }}
               >
                 {a.title}
               </button>
