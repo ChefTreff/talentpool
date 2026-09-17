@@ -12,6 +12,9 @@
 --   09 die Pflicht gilt danach als erledigt (Trigger aus 0054 — derselbe Weg, andere Tür);
 --   10 die Lunch-Vorlage ist ein Angebot, kein Muss: `required = false`, ohne Kategorie,
 --      und `mark_overdue_deliverables` macht sie nicht überfällig (Bedingung 3 des Reviews);
+--   10c ein Warenkorb mit **fremder** Zeile wird nicht mitbestätigt: die Lunch-Zeile
+--      landet darin, `confirmed = false`, der Entwurf bleibt `draft` — sonst hätte die
+--      Bestellung des Partners ungefragt das Haus verlassen (Befund aus dem Review);
 --   11 ein anderer unsichtbarer Artikel bleibt trotz Pflicht-Ausnahme gesperrt;
 --   12 `order_lunch_package` ohne Menge ⇒ 22023, für eine fremde Org ⇒ 42501.
 begin;
@@ -144,6 +147,26 @@ begin
   insert into t_res values ('10b_keine_ueberfaelligkeit',
     case when v_txt = 'overdue' then 'ALLOWED (BUG): ein Angebot wird gemahnt'
          else 'bleibt ' || coalesce(v_txt, 'leer') || ' (richtig)' end);
+
+  -- 10c Fremde Zeile im Warenkorb: nicht mitbestätigen.
+  --     Die Org mit Standbühne darf bestellen; sie legt zuerst etwas Eigenes in den
+  --     Warenkorb und ordert dann das Lunch-Paket.
+  begin
+    perform shop_upsert_line(v_org2, 'I-17066', 1, null, v_ed);
+    v_res := order_lunch_package(v_org2, 3, v_ed);
+    select status into v_status from shop_order where id = (v_res->>'order_id')::uuid;
+    insert into t_res values ('10c_fremde_zeile_nicht_abschicken',
+      case when (v_res->>'confirmed')::boolean = false and v_status = 'draft'
+           then 'confirmed=false, Entwurf bleibt draft (richtig)'
+           else 'ALLOWED (BUG): confirmed=' || coalesce(v_res->>'confirmed','?') || ', Status ' || coalesce(v_status,'?') end);
+    -- Die Lunch-Zeile liegt trotzdem im Warenkorb — der Partner schickt sie dort ab.
+    select count(*)::integer into v_n from shop_order_line
+     where order_id = (v_res->>'order_id')::uuid and product_sku = 'I-79520';
+    insert into t_res values ('10d_lunch_liegt_im_warenkorb',
+      case when v_n = 1 then 'Zeile liegt bereit (richtig)' else 'unerwartet ' || v_n end);
+  exception when others then
+    insert into t_res values ('10c_fremde_zeile_nicht_abschicken', 'FEHLGESCHLAGEN ' || sqlstate || ' ' || sqlerrm);
+  end;
 
   -- 11 Ein anderer unsichtbarer Artikel bleibt gesperrt
   insert into role_assignment (person_id, role, scope_type) values (v_pid, 'area_lead_partner', 'global');

@@ -335,12 +335,16 @@ export async function shopCancel(orderId: string): Promise<PartnerResult> {
  * PO-Nummer, Bestätigungsmail und die Produktionsliste je Stand mitlaufen.
  * Hier ist nur die Tür eine andere: Konrad wollte, dass alle Partner das
  * Paket sehen, ohne dafür in den Katalog zu müssen.
+ *
+ * `confirmed = false` heißt: im Warenkorb lag schon etwas anderes. Dann wird
+ * die Zeile nur eingelegt — abgeschickt wird im Warenkorb, wo der Partner
+ * sieht, was er bestätigt.
  */
 export async function orderLunchPackage(input: {
   orgId: string;
   editionId?: string | null;
   qty: number;
-}): Promise<PartnerResult<{ order_id: string; qty: number }>> {
+}): Promise<PartnerResult<{ order_id: string; qty: number; confirmed: boolean }>> {
   const supabase = await client();
   const { data, error } = await supabase.rpc("order_lunch_package", {
     p_org_id: input.orgId,
@@ -348,7 +352,7 @@ export async function orderLunchPackage(input: {
     p_edition_id: input.editionId ?? null,
   });
   if (error) return fail(error);
-  const res = (data ?? {}) as { order_id: string; qty: number };
+  const res = (data ?? {}) as { order_id: string; qty: number; confirmed: boolean };
   refreshShop();
   revalidatePath("/partner/checkliste");
   revalidatePath("/partner");

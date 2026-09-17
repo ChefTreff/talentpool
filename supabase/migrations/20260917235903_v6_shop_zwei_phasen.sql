@@ -1,8 +1,15 @@
 -- 0112 · Welle 6 B2: Messeshop — zwei Bestellphasen, Zugang nur mit Messestand,
 --         Lunch-Paket aus dem Shop herausgelöst (PART-037, PART-038, PART-049).
 --
--- **Setzt 0110 voraus** (`product.format_key`): `org_has_booth` entscheidet über den Schlüssel,
--- welches Produkt als Messestand zählt. Ohne 0110 fehlt die Spalte und die Funktion scheitert.
+-- **Setzt `20260917190103` voraus** (`product.format_key`): `org_has_booth` entscheidet über den
+-- Schlüssel, welches Produkt als Messestand zählt. Ohne diese Migration fehlt die Spalte und die
+-- Funktion scheitert.
+--
+-- **Absicht bei `shop_upsert_line`:** Die Bestandsprüfung rechnet hier mit dem Helfer
+-- `shop_order_reserved(order, sku)` statt mit der ausgeschriebenen Ledger-Unterabfrage der
+-- Live-Fassung. Beide liefern dasselbe (`-sum(delta)` je Bestellung und Artikel); der Helfer
+-- macht lesbar, was die Unterabfrage bedeutet — die eigene Reservierung dieser Bestellung zählt
+-- nicht gegen sich selbst. Das ist eine bewusste Vereinfachung, kein verlorenes Stück.
 --
 -- Anlass: Konrads Walkthrough vom 17.09. (Abgleich `docs/abgleich/messeshop.md`, Antworten 9 und
 -- 12) und seine Antwort auf die Rückfrage der Build-Session, dazu Arbeitsauftrag Welle 6 §B, B2
@@ -107,7 +114,9 @@ language sql stable security definer set search_path = public, extensions as $$
 $$;
 comment on function org_has_booth(uuid) is
   'Hat diese Organisation einen Messestand? Standfläche oder Standbühne als gebuchtes Produkt, oder ein vom Team zugewiesener Stand. Steuert den Zugang zum Messeshop (PART-037).';
-revoke execute on function org_has_booth(uuid) from public, anon;
+-- Kein Aufrufer per RPC: die Definer-Funktionen dürfen sie, ein angemeldetes Konto soll
+-- nicht abfragen können, ob eine fremde Organisation einen Stand hat.
+revoke execute on function org_has_booth(uuid) from public, anon, authenticated;
 
 -- Ausnahme vom Zugang: Artikel, die über einen Checklistenpunkt bestellt werden, darf jeder
 -- Partner kaufen — sonst wäre das Lunch-Paket für Partner ohne Stand unerreichbar, und genau
@@ -121,7 +130,7 @@ language sql stable security definer set search_path = public, extensions as $$
        and t.fulfilled_by_sku = p_sku
        and d.status <> 'not_required')
 $$;
-revoke execute on function shop_sku_via_deliverable(uuid, text) from public, anon;
+revoke execute on function shop_sku_via_deliverable(uuid, text) from public, anon, authenticated;
 
 create or replace function shop_catalogue(p_org_id uuid, p_edition_id uuid default null)
 returns table (sku text, name_de text, name_en text, description_de text, description_en text, category text, unit text, net_price_cents integer, vat_rate numeric,
@@ -237,10 +246,17 @@ update deliverable d
 -- Bestellen am Checklistenpunkt. **Derselbe Weg, andere Tür:** die Funktion schreibt nicht
 -- selbst auf `shop_order`, sondern ruft die bestehenden RPCs auf. Phasenprüfung, Lagerbuch,
 -- PO-Nummer, Bestätigungsmail und die Produktionsliste je Stand laufen damit unverändert mit.
+--
+-- **Sie bestätigt nur, was ihr gehört.** `shop_upsert_line` hängt die Zeile an die offene
+-- Bestellung der laufenden Phase — liegt dort schon ein Entwurf des Partners, würde ein
+-- `shop_confirm` diesen Entwurf mit abschicken, obwohl niemand das wollte. Deshalb: steht außer
+-- dem Lunch-Paket noch etwas im Warenkorb, bleibt die Zeile dort liegen und die Antwort sagt
+-- `confirmed = false`; abgeschickt wird dann im Warenkorb, wo der Partner sieht, was er
+-- bestätigt. (Befund aus dem Review dieser Migration.)
 create or replace function order_lunch_package(p_org_id uuid, p_qty integer, p_edition_id uuid default null)
 returns jsonb
 language plpgsql volatile security definer set search_path = public, extensions as $$
-declare v_oe org_edition; v_order uuid; v_sku text;
+declare v_oe org_edition; v_order uuid; v_sku text; v_fremde integer; v_confirm boolean;
 begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   if not partner_can_edit(p_org_id) then raise exception 'not allowed' using errcode = '42501'; end if;
@@ -253,12 +269,20 @@ begin
   if v_sku is null then raise exception 'deliverable_not_found' using errcode = 'P0002', detail = 'lunch_package'; end if;
 
   v_order := shop_upsert_line(p_org_id, v_sku, p_qty, null, p_edition_id);
-  -- Bestätigen macht die Bestellung verbindlich und setzt die Pflicht über den Trigger aus
-  -- 0054 auf `accepted`. Eine offene Bestellung derselben Phase nimmt die Zeile mit auf.
-  perform shop_confirm(v_order, null, null);
+
+  -- Alles andere im Warenkorb gehört dem Partner, nicht dieser Funktion.
+  select count(*)::integer into v_fremde
+    from shop_order_line l where l.order_id = v_order and l.product_sku <> v_sku;
+  v_confirm := (v_fremde = 0);
+
+  if v_confirm then
+    -- Bestätigen macht die Bestellung verbindlich und setzt die Pflicht über den Trigger aus
+    -- 0054 auf `accepted`.
+    perform shop_confirm(v_order, null, null);
+  end if;
   perform log_audit('shop.lunch_package', 'shop_order', v_order::text, null,
-                    jsonb_build_object('org_id', p_org_id, 'sku', v_sku, 'qty', p_qty));
-  return jsonb_build_object('order_id', v_order, 'sku', v_sku, 'qty', p_qty);
+                    jsonb_build_object('org_id', p_org_id, 'sku', v_sku, 'qty', p_qty, 'confirmed', v_confirm));
+  return jsonb_build_object('order_id', v_order, 'sku', v_sku, 'qty', p_qty, 'confirmed', v_confirm);
 end $$;
 
 -- ---------------------------------------------------------------- 4) Finalisierung auf zwei Phasen

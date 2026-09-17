@@ -92,7 +92,9 @@ export function ChecklistView({
         toast("error", rpcMessages[res.key] ?? res.key);
         return;
       }
-      toast("success", t.lunchOrdered);
+      // Lag im Warenkorb schon etwas, ist die Zeile nur eingelegt — dann führt
+      // der Weg dorthin, statt eine Bestätigung zu behaupten, die es nicht gibt.
+      toast("success", res.data.confirmed ? t.lunchOrdered : t.lunchInCart);
       setLunchQty((q) => ({ ...q, [d.id]: "" }));
       router.refresh();
     });
