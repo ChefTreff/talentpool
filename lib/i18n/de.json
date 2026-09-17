@@ -1812,7 +1812,8 @@
       "contacts": "Ansprechpartner & Zeiten",
       "speakers": "Speaker",
       "team": "Team",
-      "speakerLeads": "Speaker-Leads"
+      "speakerLeads": "Speaker-Leads",
+      "graphics": "Grafiken & Fotos"
     },
     "overview": {
       "title": "Übersicht",
@@ -2225,6 +2226,43 @@
       "close": "Schließen",
       "saved": "Gespeichert"
     }
+  },
+  "adminGrafiken": {
+    "title": "Grafiken & Fotos",
+    "lead": "Bühnenfotos und Slot-Grafiken je Auftritt.",
+    "noAccessTitle": "Kein Zugriff auf die Bildablage",
+    "noAccessBody": "Dafür braucht es die Rolle Marketing-Team, Programm-Team oder Admin.",
+    "search": "Suche",
+    "searchHint": "Titel, Bühne oder Speaker",
+    "filter": "Anzeigen",
+    "filterAll": "Alle Auftritte",
+    "filterNoPhoto": "Ohne Foto",
+    "filterNoGraphic": "Ohne Grafik",
+    "emptyTitle": "Kein Auftritt passt",
+    "emptyBody": "Setz den Filter zurück oder such nach etwas anderem.",
+    "colSession": "Auftritt",
+    "colSpeakers": "Speaker",
+    "colPhotos": "Fotos",
+    "colGraphic": "Grafik",
+    "colUpload": "Hochladen",
+    "upload": "Bild wählen",
+    "uploaded": "Hochgeladen.",
+    "credit": "Bildnachweis",
+    "kind_stage_photo": "Bühnenfoto",
+    "kind_slot_graphic": "Slot-Grafik",
+    "imagesHint": "Bühnenfotos bleiben alle; eine neue Slot-Grafik löst die vorherige ab.",
+    "noImages": "Für diesen Auftritt liegt noch nichts.",
+    "superseded": "Abgelöst",
+    "cutout": "Freigestellt",
+    "close": "Schliessen",
+    "delete": "Löschen",
+    "deleted": "Gelöscht.",
+    "error_file_too_large": "Das Bild ist zu gross. Höchstens 25 MB.",
+    "error_wrong_type": "Nur JPEG, PNG oder WebP.",
+    "error_invalid_request": "Diese Angaben passen nicht.",
+    "error_upload_failed": "Das Hochladen hat nicht geklappt. Versuch es noch einmal.",
+    "error_invalid_path": "Der Dateipfad gehört nicht zu diesem Auftritt.",
+    "error_unknown": "Das hat gerade nicht geklappt."
   },
   "adminSpeaker": {
     "title": "Speaker",

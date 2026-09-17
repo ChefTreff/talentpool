@@ -68,6 +68,8 @@ Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Edito
 
 | `v5_kb_search_rueckfall.sql` | 0109 (20260917102942) | Eine Frage, deren Woerter alle vorkommen, trifft weiterhin genau den Abschnitt; eine Frage mit einem Wort, das im Artikel nicht steht („geliefert" statt „einsenden"), findet ihn jetzt trotzdem — vor 0109 war das Ergebnis leer (Befund aus dem Walkthrough an echten Artikeln); der richtige Artikel steht oben; Unsinn findet auch als ODER nichts; die Zielgruppe gilt im Rueckfall genauso. |
 
+| `v6_session_grafiken.sql` | 0111 (Vorschlag) | Ohne Marketing-/Team-Rolle kein Eintrag (42501); erfundene Bildart 22023 `invalid_kind`; Pfad einer fremden Session 22023 `invalid_path`; mehrere Buehnenfotos bleiben **alle** gueltig, eine zweite Slot-Grafik loest die erste ab; das **erste** Buehnenfoto verschickt genau eine Mail je Speaker, das zweite keine; `my_session_photos` zeigt die eigenen Auftritte und nicht die fremden; hart loeschen nur Admin (Marketing 42501), die RPC gibt den Pfad zum Aufraeumen zurueck; Pflegelisten ohne Rolle zu; `sessions_for_assets` zaehlt Fotos und **gueltige** Grafiken. |
+
 Simulation eines eingeloggten Nutzers innerhalb der Transaktion:
 `perform set_config('request.jwt.claims', json_build_object('sub', <auth_uid>, 'role', 'authenticated', 'email', <email>)::text, true);`
 
