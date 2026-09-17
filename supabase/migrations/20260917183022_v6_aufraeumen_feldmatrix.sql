@@ -1,5 +1,6 @@
 -- =============================================================================
--- 0110 · Welle 6 · Aufräumen aus der Feld-Matrix (Konrads Vorentscheidungen, 17.09.2026)
+-- Aufräumen aus der Feld-Matrix (Konrads Vorentscheidungen, 17.09.2026)
+--     Angewendet von der Architektur-Session am 17.09.2026 als 20260917183022
 --
 -- Vier Entscheidungen aus `docs/feld-matrix-2026-09.md` (Befunde c/d), getroffen von
 -- Konrad am 17.09.2026, umgesetzt von der Architektur-Session (Arbeitsauftrag Welle 6, A8):
