@@ -2201,4 +2201,4 @@ Neu beim Matrixbau aufgefallen:
 - Jobtitel/Organisation: `person` = aktuell, `speaker_profile` = Stand der Edition (Snapshot). Bleibt so, mit Vorbelegung aus `person`.
 - Partner-Beschreibung: **je Organisation** (`organization.description_de/en`), `org_edition.description_de/en` entfällt (Bestand übernehmen).
 - Profilfotos: überall Datei-Ablage mit Rechten; `person.photo_url` wird migriert.
-- `staff_user`: entfernen (nächste Migration), ebenso `scripts/make-staff.mjs`.
+- `staff_user`: **entfernt** (Aufräum-Migration 17.09., `v6_aufraeumen_feldmatrix`), ebenso `scripts/make-staff.mjs`.

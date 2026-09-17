@@ -35,7 +35,7 @@ const DOMAINS = [
     tables: [
       "person", "person_email", "person_acquisition_channel", "person_eligibility",
       "person_interest", "person_merge_log", "potential_duplicate", "consent_record",
-      "suppression", "registration", "role_assignment", "staff_user", "audit_log",
+      "suppression", "registration", "role_assignment", "audit_log",
     ],
   },
   {
