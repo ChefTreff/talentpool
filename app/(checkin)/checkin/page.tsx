@@ -32,7 +32,7 @@ export default async function CheckinPage() {
 
   // Wer neben dem Kiosk noch Bereiche hat, kommt sonst nicht mehr weg —
   // das Kiosk hat bewusst kein Menü.
-  const andere = areasFor(ctx.roleNames, ctx.isStaff).filter((a) => a.key !== "checkin");
+  const andere = areasFor(ctx.roleNames).filter((a) => a.key !== "checkin");
 
   return (
     <>
