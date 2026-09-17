@@ -4,7 +4,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SidebarShell, type SidebarGroup } from "@/components/layout/SidebarShell";
 import { getPartnerScope } from "./partner/org";
-import { visibleNavKeys, type PartnerNavKey } from "./partner/nav";
+import { NAV_GROUPS, visibleNavKeys, type PartnerNavKey } from "./partner/nav";
 import { OrgSwitcher } from "./partner/OrgSwitcher";
 import { orgLabel, type PartnerOverview } from "./partner/types";
 
@@ -53,7 +53,9 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
   );
 
   // Was in diesem Baustein schon existiert. Der Rest steht in `visibleNavKeys`
-  // bereit und wird hier freigeschaltet, sobald die Seite dazukommt.
+  // bereit und wird hier freigeschaltet, sobald die Seite dazukommt — deshalb
+  // fehlen Masterclass, Company Tour, Side-Event, Interview Table, Hackathon,
+  // Branding, Talk und Media Kit hier noch (PART-041/043–048, Bausteine B4–B10).
   const PAGES: Partial<Record<PartnerNavKey, { href: string; label: string }>> = {
     dashboard: { href: "/partner", label: t.partner.navDashboard },
     onboarding: { href: "/partner/onboarding", label: t.partner.navCompany },
@@ -69,15 +71,18 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     wiki: { href: "/partner/wiki", label: t.partner.navWiki },
   };
 
-  const pick = (keys: PartnerNavKey[]) =>
+  const pick = (keys: readonly PartnerNavKey[]) =>
     keys.filter((k) => allowed.has(k) && PAGES[k]).map((k) => PAGES[k]!);
 
+  // Zwei Gruppen für die Arbeit am Summit und an den eigenen Formaten
+  // (PART-042, Konrad 17.09.). Eine Gruppe ohne Einträge wird nicht gezeigt:
+  // „Eure Formate" erscheint nur bei einem Partner, der welche gebucht hat.
   const groups: SidebarGroup[] = [
-    { label: t.partner.groupOverview, items: pick(["dashboard", "wiki"]) },
-    { label: t.partner.groupCompany, items: pick(["onboarding", "contacts"]) },
-    { label: t.partner.groupSummit, items: pick(["checklist", "files", "tickets", "eventapp", "shop"]) },
-    { label: t.partner.groupFormats, items: pick(["booth", "applicants", "stage"]) },
-  ];
+    { label: t.partner.groupOverview, items: pick(NAV_GROUPS.overview) },
+    { label: t.partner.groupCompany, items: pick(NAV_GROUPS.company) },
+    { label: t.partner.groupSummit, items: pick(NAV_GROUPS.summit) },
+    { label: t.partner.groupFormats, items: pick(NAV_GROUPS.formats) },
+  ].filter((g) => g.items.length > 0);
 
   return (
     <SidebarShell

@@ -157,6 +157,8 @@ export type AdminProduct = {
   description_en: string | null;
   type: string | null;
   category: string | null;
+  /** Vokabular `partner_format`: welche Partner-Seite dieses Produkt öffnet (0110). */
+  format_key: string | null;
   unit: string | null;
   net_price_cents: number | null;
   purchase_price_cents: number | null;
