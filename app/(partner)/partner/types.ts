@@ -103,6 +103,12 @@ export type PartnerProduct = {
   qty: number;
   unit_price_cents: number | null;
   status: string;
+  /**
+   * Welche Seite der Gruppe „Eure Formate" dieses Produkt öffnet
+   * (Vokabular `partner_format`, Migration 0110). `null` = keine eigene Seite;
+   * Mobiliar und Technik gehören in den Shop, nicht ins Menü.
+   */
+  format_key: string | null;
 };
 
 export type PartnerDeadline = {

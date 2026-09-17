@@ -184,7 +184,8 @@
     "invalid_pass_type_choice": "Diesen Pass-Typ gibt es nicht. Nur Talent oder Startup.",
     "rate_limited": "Zu viele Fragen in kurzer Zeit. Probier es später noch einmal.",
     "empty_query": "Die Frage ist leer.",
-    "no_slot": "Diese Frage wurde nicht gestellt — bitte über das Eingabefeld fragen."
+    "no_slot": "Diese Frage wurde nicht gestellt — bitte über das Eingabefeld fragen.",
+    "invalid_format": "Diesen Formatschlüssel gibt es nicht."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1677,7 +1678,9 @@
     "ticketPassFallback": "Aus der Partnerkategorie",
     "ticketPassTalent": "Talent Pass",
     "ticketPassStartup": "Startup Pass",
-    "ticketPassAllocations": "Kontingente ziehen nach."
+    "ticketPassAllocations": "Kontingente ziehen nach.",
+    "fieldFormatKey": "Öffnet die Seite",
+    "formatKeyHint": "Welche Seite unter „Eure Formate\" dieses Produkt im Partner-Portal freischaltet. Leer lassen für Artikel ohne eigene Seite."
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -2636,6 +2639,10 @@
     "appBody": "Dort läuft vor Ort alles: euer Ausstellerprofil, euer Team, die Teilnehmerliste und das Scannen der Leads. Ihr meldet euch mit der Mailadresse an, auf die euer Ticket personalisiert ist. Ab Mitte März ist die App für Teilnehmende offen — euer Profil solltet ihr bis dahin fertig haben.",
     "appAction": "Zur Event-App",
     "wikiHint": "Mehr im Wiki unter Event-App",
+    "membersTitle": "Wer aus eurem Team in der App ist",
+    "membersBody": "Diese Personen legen wir als euer Team beim Aussteller-Profil an. Ergänzt oder ändert ihr sie unter „Kontakte“, ziehen wir das nach.",
+    "membersEmpty": "Noch niemand eingetragen. Tragt unter „Kontakte“ ein, wer vor Ort scannen und Leads sehen soll.",
+    "membersAction": "Team unter Kontakte pflegen",
     "stepsTitle": "Was ihr in der App erledigen solltet",
     "stepsLead": "{done} von {total} erledigt",
     "videoTitle": "So richtet ihr euren Auftritt ein",

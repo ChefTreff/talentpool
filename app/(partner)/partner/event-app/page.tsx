@@ -9,7 +9,7 @@ import { EmbedGate } from "@/components/ui/EmbedGate";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { loadVideo, loomEmbedUrl } from "@/components/video/load";
 import { getPartnerScope } from "../org";
-import { canEditOnboarding, type PartnerOverview } from "../types";
+import { canEditOnboarding, type PartnerContact, type PartnerOverview } from "../types";
 import { Schritte, type SchrittStand } from "./Schritte";
 
 export const dynamic = "force-dynamic";
@@ -36,20 +36,29 @@ export default async function EventAppPage() {
   if (!current) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const [{ data: standRows }, { data: overviewJson }, video] = await Promise.all([
-    supabase.rpc("my_org_steps", {
-      p_org_id: current.org_id,
-      p_topic: "event_app",
-      p_edition_id: current.edition_id,
-    }),
-    supabase.rpc("partner_overview", {
-      p_org_id: current.org_id,
-      p_edition_id: current.edition_id,
-    }),
-    loadVideo("partner_event_app", "partner", current.edition_id),
-  ]);
+  const [{ data: standRows }, { data: overviewJson }, { data: contactRows }, video] =
+    await Promise.all([
+      supabase.rpc("my_org_steps", {
+        p_org_id: current.org_id,
+        p_topic: "event_app",
+        p_edition_id: current.edition_id,
+      }),
+      supabase.rpc("partner_overview", {
+        p_org_id: current.org_id,
+        p_edition_id: current.edition_id,
+      }),
+      supabase.rpc("partner_contacts", { p_org_id: current.org_id }),
+      loadVideo("partner_event_app", "partner", current.edition_id),
+    ]);
   const stand = (standRows ?? []) as SchrittStand[];
   const overview = (overviewJson ?? null) as PartnerOverview | null;
+  // PART-002: Wer aus dem Team in der App landet, steht unter „Kontakte" —
+  // aber wer auf dieser Seite ist, sucht es hier. Gezeigt wird derselbe
+  // Datensatz, gepflegt wird er weiter an einer Stelle; eine zweite
+  // Pflegemaske wäre eine zweite Wahrheit.
+  const appMembers = ((contactRows ?? []) as PartnerContact[]).filter((c) =>
+    c.roles.includes("event_app_member"),
+  );
   const s = t.partnerEventApp;
   // `steps` ist eine Liste, alles andere sind Texte — die Komponente bekommt
   // beides getrennt, sonst passt der Wörterbuchtyp nicht.
@@ -69,6 +78,32 @@ export default async function EventAppPage() {
           <Link className="ct-link ct-small" href="/partner/wiki">
             {s.wikiHint}
           </Link>
+        </div>
+      </Card>
+
+      {/* PART-002: Der alte Hub hatte hier ein Formular „Team-Mitglieder
+          hinzufügen". Bei uns entsteht der App-Zugang aus der Kontaktrolle —
+          die Liste zeigt, wer ihn hat, und der Weg zum Ändern führt dorthin,
+          wo Kontakte ohnehin gepflegt werden. */}
+      <Card className="mb-8">
+        <h2 className="ct-h3 text-ink">{s.membersTitle}</h2>
+        <p className="ct-small mt-1 leading-6">{s.membersBody}</p>
+        {appMembers.length === 0 ? (
+          <p className="ct-help mt-3">{s.membersEmpty}</p>
+        ) : (
+          <ul className="mt-3 space-y-1">
+            {appMembers.map((c) => (
+              <li key={c.person_id} className="ct-small text-ink">
+                {[c.first_name, c.last_name].filter(Boolean).join(" ") || c.email}
+                {c.contact_position && <span className="text-muted"> · {c.contact_position}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-4">
+          <ButtonLink href="/partner/kontakte" variant="secondary">
+            {s.membersAction}
+          </ButtonLink>
         </div>
       </Card>
 

@@ -184,7 +184,8 @@
     "invalid_pass_type_choice": "No such pass type. Talent or startup only.",
     "rate_limited": "Too many questions in a short time. Please try again later.",
     "empty_query": "The question is empty.",
-    "no_slot": "That question was not asked — please use the input field."
+    "no_slot": "That question was not asked — please use the input field.",
+    "invalid_format": "No such format key."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1677,7 +1678,9 @@
     "ticketPassFallback": "From the partner category",
     "ticketPassTalent": "Talent pass",
     "ticketPassStartup": "Startup pass",
-    "ticketPassAllocations": "allocations follow."
+    "ticketPassAllocations": "allocations follow.",
+    "fieldFormatKey": "Opens the page",
+    "formatKeyHint": "Which page under “Your formats” this product unlocks in the partner portal. Leave empty for articles without their own page."
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -2636,6 +2639,10 @@
     "appBody": "Everything on site runs there: your exhibitor profile, your team, the participant list and lead scanning. You sign in with the email address your ticket is personalised to. The app opens to participants in mid-March — your profile should be ready by then.",
     "appAction": "Go to the event app",
     "wikiHint": "More in the wiki under Event app",
+    "membersTitle": "Who from your team is in the app",
+    "membersBody": "We add these people as your team on the exhibitor profile. Add or change them under “Contacts” and we follow suit.",
+    "membersEmpty": "Nobody yet. Under “Contacts”, add the people who should scan and see leads on site.",
+    "membersAction": "Manage your team under Contacts",
     "stepsTitle": "What to do in the app",
     "stepsLead": "{done} of {total} done",
     "videoTitle": "How to set up your presence",
