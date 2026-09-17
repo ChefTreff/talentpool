@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-17 19:07 UTC · 81 Tabellen · 6 Views · 391 Funktionen
+> Stand: 2026-09-17 19:24 UTC · 81 Tabellen · 6 Views · 395 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1813,6 +1813,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_volunteer_profile` | p_edition_id: uuid |
 | `notify_partner_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
+| `order_lunch_package` | p_edition_id: uuid, p_org_id: uuid, p_qty: integer |
+| `org_has_booth` | p_org_edition_id: uuid |
 | `org_steps_progress` | p_edition_id: uuid, p_topic: text |
 | `partner_admin_overview` | p_edition_id: uuid |
 | `partner_applications` | p_session_id: uuid |
@@ -1938,6 +1940,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_order_totals` | p_order_id: uuid |
 | `shop_orders_admin` | p_edition_id: uuid |
 | `shop_phase` | p_edition_id: uuid |
+| `shop_phase_deadline_key` | p_phase: integer |
 | `shop_phase_info` | p_edition_id: uuid, p_org_id: uuid |
 | `shop_reconcile_ledger` | p_order_id: uuid, p_release: boolean |
 | `shop_remove_line` | p_order_id: uuid, p_sku: text |
@@ -1945,6 +1948,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_request_answer` | p_answer: text, p_id: uuid, p_status: text |
 | `shop_request_product` | p_edition_id: uuid, p_org_id: uuid, p_sku: text, p_text: text |
 | `shop_requests_admin` | p_edition_id: uuid |
+| `shop_sku_via_deliverable` | p_org_edition_id: uuid, p_sku: text |
 | `shop_stock_available` | p_sku: text |
 | `shop_sync_fulfilled_deliverables` | p_org_edition_id: uuid |
 | `shop_upsert_line` | p_edition_id: uuid, p_merch_config: jsonb, p_org_id: uuid, p_qty: numeric, p_sku: text |
