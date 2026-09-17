@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0109 · Welle 5 · Die Suche gibt nicht beim ersten fehlenden Wort auf
+--     Angewendet von der Architektur-Session am 17.09.2026 als 20260917102942
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 -- Korrigiert 0108 (`kb_search`).
 --
 -- **Befund aus dem Walkthrough vom 17.09.**, an echten Artikeln: die Frage
