@@ -102,14 +102,18 @@ export function Tr({
 export function Td({
   children,
   numeric,
+  /** Über mehrere Spalten, z. B. für eine Eingabezeile am Tabellenende. */
+  colSpan,
   className,
 }: {
   children?: ReactNode;
   numeric?: boolean;
+  colSpan?: number;
   className?: string;
 }) {
   return (
     <td
+      colSpan={colSpan}
       className={cn(
         "h-11 px-4 align-middle text-ink",
         numeric && "text-right tabular-nums",
