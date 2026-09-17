@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0107 · Welle 5 · Der Admin-Bereich hängt an der Rolle, nicht an einer Liste
+--     Angewendet von der Architektur-Session am 17.09.2026 als 20260917093102
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 -- Setzt 0106 voraus (Team-Sektion — dort wird die Rolle vergeben).
 --
 -- Konrad am 15.09.: „Der Admin-Bereich soll am Ende begrenzt werden über eine
