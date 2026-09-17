@@ -183,7 +183,8 @@
     "upload_failed": "Das Hochladen hat nicht geklappt. Versuch es noch einmal.",
     "invalid_pass_type_choice": "Diesen Pass-Typ gibt es nicht. Nur Talent oder Startup.",
     "rate_limited": "Zu viele Fragen in kurzer Zeit. Probier es später noch einmal.",
-    "empty_query": "Die Frage ist leer."
+    "empty_query": "Die Frage ist leer.",
+    "no_slot": "Diese Frage wurde nicht gestellt — bitte über das Eingabefeld fragen."
   },
   "nav": {
     "brand": "ChefTreff",

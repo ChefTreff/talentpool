@@ -144,7 +144,7 @@ export function Assistent({
               <ul className="mt-1 flex flex-col gap-1">
                 {antwort.quellen.map((q) => (
                   <li key={q.slug + (q.heading ?? "")}>
-                    <a className="ct-link ct-small" href={`#${q.slug}`}>
+                    <a className="ct-link ct-small" href={`#${encodeURIComponent(q.slug)}`}>
                       {q.title}
                       {q.heading ? ` — ${q.heading}` : ""}
                     </a>

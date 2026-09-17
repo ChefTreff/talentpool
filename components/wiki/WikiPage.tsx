@@ -4,6 +4,7 @@ import { loadVocabMap, vlabel } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Assistent } from "./Assistent";
 import { WikiView } from "./WikiView";
+import { loadMyContacts } from "@/components/kontakt/load";
 import { currentEditionId, loadArticles } from "./load";
 import { KB_PHASES } from "./types";
 import type { Locale } from "@/lib/i18n/shared";
@@ -30,8 +31,8 @@ export async function WikiPage({
   // Wen man fragt, wenn das Wiki nichts hergibt. Der erste Ansprechpartner der
   // eigenen Beziehung genügt — eine Liste an dieser Stelle wäre eine zweite
   // Kontaktseite, und die gibt es schon.
-  const { data: kontakte } = await supabase.rpc("my_contacts");
-  const erster = ((kontakte ?? []) as { display_name: string; email: string }[])[0] ?? null;
+  const kontakte = await loadMyContacts(editionId);
+  const erster = kontakte[0] ?? null;
   const phases = Object.fromEntries(KB_PHASES.map((p) => [p, vlabel(vocab, "kb_phase", p)]));
 
   return (

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { currentEditionId } from "@/components/wiki/load";
 import { toRpcFailure } from "@/lib/rpc-error";
 import {
   frageOk,
@@ -61,11 +62,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: f.key }, { status });
   }
 
-  // 2 · Suchen
+  // 2 · Suchen. Ohne die Edition bliebe die Fassung „für diese Edition" aus
+  // dem Kontext — die Suche fände nur den evergreen, und die Antwort wäre
+  // jedes Jahr die vom Vorjahr (Review Architektur-Session 17.09.).
   const { data: rows, error: suchFehler } = await supabase.rpc("kb_search", {
     p_query: frage,
     p_audience: audience,
     p_language: sprache,
+    p_edition_id: await currentEditionId(),
   });
   if (suchFehler) {
     const f = toRpcFailure(suchFehler);

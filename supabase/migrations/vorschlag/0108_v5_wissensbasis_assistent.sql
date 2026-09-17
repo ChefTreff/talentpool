@@ -49,7 +49,23 @@
 --    trotz Hinweis im Feld Persönliches enthalten, deshalb rollierend 90 Tage.
 --
 -- Fehlerschlüssel: 28000 ohne Login · 42501 fremde Zielgruppe oder Kiosk ·
--- 22023 `empty_query` · P0001 `rate_limited`.
+-- 22023 `empty_query` · P0001 `rate_limited` · P0001 `no_slot` (Protokollzeile
+-- ohne vorher genommenen Slot).
+--
+-- **Zwei Eigenheiten der Suche, in v1 bewusst so** (Vermerk der
+-- Architektur-Session, 17.09.):
+--
+-- * **Die Editionsfassung ersetzt den evergreen nicht.** `kb_articles` nimmt je
+--   Slug genau eine Fassung (`distinct on`); `kb_search` sucht über alle
+--   Abschnitte und sortiert die Editionsfassung nur nach vorn. Zu einem Slug
+--   können also beide Fassungen im Kontext landen. Für eine Antwort ist das
+--   eher nützlich als schädlich — und die Oberfläche zeigt weiterhin die
+--   Fassung, die `kb_articles` liefert.
+-- * **DE und EN sind Zwillinge, keine Übersetzungen.** Beide Sprachfassungen
+--   stehen als eigene Artikel in der Tabelle, und die Suche bevorzugt die
+--   Portalsprache, schliesst die andere aber nicht aus. Wer auf Deutsch fragt
+--   und nur einen englischen Abschnitt hat, bekommt ihn — mit dem Hinweis in
+--   der Antwort, dass es ihn nur dort gibt.
 --
 -- Test: supabase/tests/v5_wissensbasis_assistent.sql
 -- =============================================================================
@@ -167,8 +183,15 @@ create table if not exists kb_rate_limit (
   auth_user_id uuid not null,
   window_start timestamptz not null,
   hits         integer not null default 0,
+  -- Wie viele Protokollzeilen zu diesen Slots schon geschrieben wurden.
+  -- Ohne diese Spalte wäre `kb_log_question` ein offenes Schreibrecht auf das
+  -- Protokoll: die RPC steht jedem angemeldeten Konto zur Verfügung, und wer
+  -- sie direkt aufruft, hätte die Suche und damit den Zähler übersprungen
+  -- (Review Architektur-Session 17.09.).
+  logged       integer not null default 0,
   primary key (auth_user_id, window_start)
 );
+alter table kb_rate_limit add column if not exists logged integer not null default 0;
 comment on table kb_rate_limit is
   'Fragenzähler des Wissens-Assistenten je Konto und Stunde (0108). Bewusst getrennt von kb_question_log: der Zähler weiss, wer fragt, das Protokoll nicht — die beiden werden nie verbunden.';
 alter table kb_rate_limit enable row level security;
@@ -273,13 +296,30 @@ begin
 end $$;
 
 /** Was gefragt wurde — ohne wer. */
+/**
+ * Was gefragt wurde — ohne wer, und **nur zu einer wirklich gestellten Frage**.
+ *
+ * Die RPC steht jedem angemeldeten Konto offen; ohne Bindung an den Zähler
+ * wäre das Protokoll beliebig beschreibbar, und die Auswertung, aus der die
+ * Wiki-Pflege ihre Lücken liest, wäre wertlos. Gezählt wird deshalb gegen
+ * denselben Slot: höchstens so viele Zeilen wie genommene Slots in dieser
+ * Stunde. Die Verbindung besteht **nur** in dieser Zahl — welche Zeile zu
+ * welchem Konto gehört, weiss danach niemand mehr.
+ */
 create or replace function kb_log_question(
   p_audience text, p_language text, p_question text,
   p_article_ids uuid[] default '{}', p_hit boolean default false, p_duration_ms integer default null)
 returns void
 language plpgsql volatile security definer set search_path = public, extensions as $$
+declare v_uid uuid := auth.uid(); v_ok boolean;
 begin
-  if auth.uid() is null then raise exception 'not allowed' using errcode = '28000'; end if;
+  if v_uid is null then raise exception 'not allowed' using errcode = '28000'; end if;
+  update kb_rate_limit set logged = logged + 1
+   where auth_user_id = v_uid and window_start = date_trunc('hour', now()) and logged < hits
+  returning true into v_ok;
+  if not coalesce(v_ok, false) then
+    raise exception 'no_slot' using errcode = 'P0001';
+  end if;
   insert into kb_question_log (audience, language, question, article_ids, hit, duration_ms)
   values (p_audience, coalesce(nullif(p_language, ''), 'de'), left(btrim(p_question), 500),
           coalesce(p_article_ids, '{}'), coalesce(p_hit, false), p_duration_ms);

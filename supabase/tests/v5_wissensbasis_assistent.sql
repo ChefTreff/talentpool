@@ -14,7 +14,12 @@
 --   12 `kb_question_log` hat **keine** Personenspalte — die Zusage steckt in der
 --      Tabellenform, nicht in der Disziplin des Aufrufers;
 --   13 das Aufräumen löscht Fragen älter als 90 Tage und Zählerzeilen älter als
---      24 Stunden, jüngere bleiben stehen.
+--      24 Stunden, jüngere bleiben stehen;
+--   14 **eine Protokollzeile ohne genommenen Slot ⇒ P0001 `no_slot`** — sonst
+--      wäre `kb_log_question` ein offenes Schreibrecht auf das Protokoll, und
+--      die Auswertung, aus der die Wiki-Pflege ihre Lücken liest, wäre wertlos;
+--   15 `kb_question_report` ohne Rechte ⇒ 42501; mit Admin kommen Zeilen, und
+--      die Fragen **ohne** Treffer stehen oben — das ist die Arbeitsliste.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -135,6 +140,19 @@ begin
          then 'keine Personenspalte (richtig)' else 'unerwartet ' || v_txt end);
 
   -- 13 · Aufräumen.
+  -- 14 · Ohne genommenen Slot kein Eintrag. Der Zähler steht nach Schritt 11
+  -- auf 20 genommenen und 0 protokollierten Slots — erst danach greift die
+  -- Grenze, deshalb wird hier zunächst verbraucht.
+  update kb_rate_limit set logged = hits
+   where auth_user_id = v_uid and window_start = date_trunc('hour', now());
+  begin
+    perform kb_log_question('talent', 'de', 'Untergeschoben', array[]::uuid[], false, 10);
+    insert into t_res values ('14_ohne_slot', 'ERLAUBT (BUG)');
+  exception when others then
+    insert into t_res values ('14_ohne_slot', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
+
+  -- Jetzt der richtige Weg: Slot nehmen, dann protokollieren.
+  perform kb_take_question_slot(100);
   perform kb_log_question('talent', 'de', 'Wie komme ich hin?', array[v_art], true, 120);
   insert into kb_question_log (audience, language, question, hit, created_at)
   values ('talent', 'de', 'alte Frage', false, now() - interval '100 days');
@@ -149,6 +167,23 @@ begin
                             and window_start < now() - interval '24 hours')
          then 'alte Frage weg, junge bleibt, Zaehler geraeumt (richtig)'
          else 'unerwartet ' || v_n end);
+  -- 15 · Die Auswertung. Rechte kommen unmittelbar vor dem Schritt, der sie
+  -- braucht — die Admin-Rolle steht seit Schritt 13.
+  insert into kb_question_log (audience, language, question, hit)
+  values ('talent', 'de', 'Gibt es Parkplaetze?', false), ('talent', 'de', 'Gibt es Parkplaetze?', false);
+  select r.question into v_txt from kb_question_report(30) r limit 1;
+  select count(*)::integer into v_n from kb_question_report(30) r;
+  insert into t_res values ('15_auswertung',
+    case when v_n >= 2 and v_txt = 'gibt es parkplaetze?'
+         then 'Zeilen da, ohne Treffer zuerst (richtig)'
+         else 'unerwartet ' || v_n || '/' || coalesce(v_txt, 'null') end);
+
+  delete from role_assignment where person_id = v_pid;
+  begin
+    perform kb_question_report(30);
+    insert into t_res values ('15b_auswertung_ohne_recht', 'ERLAUBT (BUG)');
+  exception when others then
+    insert into t_res values ('15b_auswertung_ohne_recht', 'abgewiesen ' || sqlstate); end;
 end $$;
 select * from t_res order by step;
 rollback;
