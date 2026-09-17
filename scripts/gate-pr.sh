@@ -18,6 +18,9 @@ dups="$(git ls-files | grep -E ' [0-9]+\.[A-Za-z0-9]+$' || true)"
 [ -z "$dups" ] || { echo "dateien: FEHLER (Duplikate im Repo)"; echo "$dups"; exit 1; }
 badmig="$(git ls-files supabase/migrations | grep -vE '^supabase/migrations/[0-9]{14}_[a-z0-9_]+\.sql$' | grep -vE '/vorschlag/' || true)"
 [ -z "$badmig" ] || { echo "dateien: FEHLER (Migration ohne Server-Version)"; echo "$badmig"; exit 1; }
+# Konfliktmarker in verfolgten Dateien: ein mit tail gekuerztes Merge-Protokoll liess am 17.09.2026 zwei Konflikte durch, `git add -A` committete die Marker.
+marker="$(git grep -lE '^(<<<<<<< |>>>>>>> )' -- . || true)"
+[ -z "$marker" ] || { echo "dateien: FEHLER (Konfliktmarker)"; echo "$marker"; exit 1; }
 echo "dateien: ok"
 npm ci --no-audit --no-fund >/dev/null 2>&1 || { echo "npm ci: FEHLER"; exit 1; }
 npm run lint >/dev/null 2>&1 && echo "lint: ok" || { echo "lint: FEHLER"; npm run lint 2>&1 | tail -20; exit 1; }

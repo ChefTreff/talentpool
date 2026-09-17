@@ -31,7 +31,7 @@ create temp table t_res (step text, result text) on commit drop;
 do $$
 declare
   v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_org uuid; v_oe uuid;
-  v_n integer; v_txt text; v_ov jsonb; v_sku text;
+  v_n integer; v_txt text; v_txt2 text; v_ov jsonb; v_sku text;
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary
@@ -48,13 +48,26 @@ begin
   insert into t_res values ('01_vokabular',
     case when v_n = 9 then '9 Schlüssel (richtig)' else 'unerwartet ' || v_n end);
 
-  -- 02 Dieselbe Kategorie, drei Schlüssel: hier hätte eine Kategorie-Regel versagt.
+  -- 02 Dieselbe Kategorie, zwei Schlüssel: hier hätte eine Kategorie-Regel versagt.
+  --    (Die Standbühne I-79895 steht **nicht** in `stage_products`, sondern in
+  --    `standflaeche` — sie wird deshalb in 02c einzeln geprüft. Der erste
+  --    Entwurf dieses Schritts nahm sie fälschlich mit; der Probelauf hat es
+  --    gezeigt.)
   select string_agg(distinct coalesce(format_key, 'null'), ',' order by coalesce(format_key, 'null'))
     into v_txt from product where category = 'stage_products' and sku in
-    ('I-87007','I-13114','I-21110','I-75747','I-15248','I-21363','I-33783','I-79895');
+    ('I-87007','I-13114','I-21110','I-75747','I-15248','I-21363','I-33783');
   insert into t_res values ('02_stage_products_aufgeteilt',
-    case when v_txt = 'masterclass,stage,talk' then 'talk/masterclass/stage getrennt (richtig)'
+    case when v_txt = 'masterclass,talk' then 'talk und masterclass getrennt (richtig)'
          else 'unerwartet ' || coalesce(v_txt, 'leer') end);
+
+  -- 02c Die Standbühne ist ein eigenes Format, obwohl sie eine Standfläche ist —
+  --     der Partner ist dort selbst Veranstalter. Kategorie und Seite fallen
+  --     auseinander, und genau dafür gibt es den Schlüssel am Artikel.
+  select category, format_key into v_txt, v_txt2 from product where sku = 'I-79895';
+  insert into t_res values ('02c_standbuehne',
+    case when v_txt = 'standflaeche' and v_txt2 = 'stage'
+         then 'Kategorie standflaeche, Seite stage (richtig)'
+         else 'unerwartet ' || coalesce(v_txt,'leer') || '/' || coalesce(v_txt2,'leer') end);
 
   select count(*)::integer into v_n from product where format_key = 'talk';
   insert into t_res values ('02b_talk_anzahl',
