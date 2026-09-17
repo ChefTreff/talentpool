@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { url, secretKey, requireEnv } from "./supabase-env.mjs";
 requireEnv(true);
 const s = createClient(url, secretKey, { auth: { persistSession: false } });
-for (const t of ["vocab_term","person","event","registration","potential_duplicate","staff_user"]) {
+for (const t of ["vocab_term","person","event","registration","potential_duplicate"]) {
   const { data, error } = await s.from(t).select("*").limit(3);
   console.log(t.padEnd(20), error ? ("ERROR " + (error.code||"") + " :: " + error.message) : ("OK " + data.length + " row(s)"));
 }

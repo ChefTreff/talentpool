@@ -73,6 +73,49 @@
   --ct-w-table: 1400px;
   --ct-w-text: 800px;
   --ct-w-form: 640px;
+
+  /* --- Formensprache Events (Design-System v2, 17.09.2026) -----------------
+     Die Grundformen der Division als Tokens, damit keine Komponente ihre
+     eigenen Polygone erfindet. Quelle: Figma-Blöcke „Step Section" (Marker),
+     „Speaker Section" und die Marken-Referenz 3:20146 (Porträt-Maske),
+     A2 Gradients 3:20352 (Verlauf). Siehe referenzen/website-bloecke.md. */
+
+  /* Sechseck mit Spitze oben — Schritt- und Aufzählungsmarker. */
+  --ct-shape-hex: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  /* Dreieck — Porträt-Maske und Leerzustand. */
+  --ct-shape-triangle: polygon(50% 0%, 100% 100%, 0% 100%);
+  /* Die zwei Winkel der Porträt-Maske (3:20146): Maske und Umriss stehen
+     gegeneinander, daraus entsteht die Spannung. Eine einzelne gekippte
+     Fläche wirkt flach. */
+  --ct-tilt-mask: -16.6deg;
+  --ct-tilt-outline: 4.7deg;
+
+  /* Formen-Verlauf laut A2 (3:20352): 110°, Akzent blendet aus transparent
+     ein. Nur auf Navy, nie hinter Text. Die 60 % Fill-Opacity der Vorlage
+     stecken in den Stops, damit die Fläche nicht zusätzlich transparent
+     gesetzt werden muss. */
+  --ct-gradient-shape: linear-gradient(
+    110deg,
+    color-mix(in srgb, var(--ct-accent) 0%, transparent) 0%,
+    color-mix(in srgb, var(--ct-accent) 60%, transparent) 100%
+  );
+  /* Derselbe Winkel auf hellem Grund. Der Verlauf oben ist für Navy gemacht:
+     er blendet aus **transparent** ein und verschwindet auf Weiß fast ganz —
+     genau der dünne, blasse Eindruck, den das Design-System v2 abstellen soll.
+     Auf Hell läuft er deshalb von der Soft-Stufe zur vollen Akzentfarbe.
+     Verwendung: Porträt-Maske und Formflächen auf `bg-canvas`/`bg-surface`. */
+  --ct-gradient-shape-light: linear-gradient(
+    110deg,
+    var(--ct-accent-soft) 0%,
+    var(--ct-accent) 100%
+  );
+  /* Hero-Band: Navy mit einem Hauch Akzent von rechts, wie die Website-Heros.
+     Kein Vollverlauf über die Seite (Verbotsliste) — ein Band, kein Hero. */
+  --ct-gradient-hero: linear-gradient(
+    110deg,
+    var(--ct-navy) 55%,
+    color-mix(in srgb, var(--ct-accent) 22%, var(--ct-navy)) 100%
+  );
 }
 
 @theme inline {
@@ -271,6 +314,26 @@ body {
     font-family: var(--font-display-italic);
     font-style: italic;
     font-weight: 800;
+  }
+
+  /* Titel im Hero-Band: grösser als `.ct-h1`, kleiner als `.ct-display`.
+     Die Website setzt hier 82 px — im Portal ist das Band eine Begrüssung
+     über der Arbeitsfläche, kein Bildschirm, deshalb 32/36 (ab 768 px
+     40/44). Eigene Rolle, weil `.ct-h1` der Seitentitel bleibt und beide
+     auf derselben Seite vorkommen. */
+  .ct-band-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 32px;
+    line-height: 36px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  @media (min-width: 768px) {
+    .ct-band-title {
+      font-size: 40px;
+      line-height: 44px;
+    }
   }
 
   /* Inline-Link: Akzentwort mit Unterstreichung, kein Fett/Italic. */

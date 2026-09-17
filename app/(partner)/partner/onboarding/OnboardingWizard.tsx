@@ -16,7 +16,8 @@ import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { FileButton } from "@/components/ui/FileButton";
 import { Input, Textarea } from "@/components/ui/Input";
-import { Stepper } from "@/components/ui/Stepper";
+import { StepBar } from "@/components/ui/StepBar";
+import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { useToast } from "@/components/ui/Toast";
 import {
   registerPartnerAsset,
@@ -114,6 +115,7 @@ export function OnboardingWizard({
     () => [
       {
         label: t.stepCompany,
+        hint: t.onboardingStepCompanyHint,
         done: Boolean(
           draft.legal_name.trim() &&
             draft.communication_name.trim() &&
@@ -122,9 +124,17 @@ export function OnboardingWizard({
             draft.address_city.trim(),
         ),
       },
-      { label: t.stepDescription, done: Boolean(draft.description_de.trim()) },
-      { label: t.stepLogo, done: allLogosThere },
-      { label: t.stepInvoice, done: Boolean(draft.invoice_email.trim()) },
+      {
+        label: t.stepDescription,
+        hint: t.onboardingStepDescriptionHint,
+        done: Boolean(draft.description_de.trim()),
+      },
+      { label: t.stepLogo, hint: t.onboardingStepLogoHint, done: allLogosThere },
+      {
+        label: t.stepInvoice,
+        hint: t.onboardingStepInvoiceHint,
+        done: Boolean(draft.invoice_email.trim()),
+      },
     ],
     [t, draft, allLogosThere],
   );
@@ -216,12 +226,18 @@ export function OnboardingWizard({
 
   return (
     <div className="max-w-[800px]">
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <Stepper steps={steps} current={step} srLabel={t.stepperLabel} onSelect={setStep} />
-        <Badge tone={done ? "success" : "warning"}>
-          {t[`status_${overview.edition.onboarding_status}`] ??
-            overview.edition.onboarding_status}
-        </Badge>
+      {/* Archetyp C: der Fortschritt steht als Linie über dem Inhalt, nicht
+          als Knopfreihe. Waagerecht ab 640 px, darunter senkrecht — so
+          bricht die Website die Step Section mobil um. */}
+      <div className="mb-8 rounded-ct-lg border bg-surface p-6">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <p className="ct-help">{t.onboardingStepsHint}</p>
+          <Badge tone={done ? "success" : "warning"}>
+            {t[`status_${overview.edition.onboarding_status}`] ??
+              overview.edition.onboarding_status}
+          </Badge>
+        </div>
+        <StepBar steps={steps} current={step} srLabel={t.stepperLabel} onSelect={setStep} />
       </div>
 
       {step === 0 && (
@@ -482,8 +498,26 @@ export function OnboardingWizard({
         </Card>
       )}
 
-      {/* Was noch fehlt, damit der Stand auf „ausgefüllt" springt. */}
-      {!done && <MissingHint draft={draft} hasLogo={allLogosThere} t={t} />}
+      {/* Was noch fehlt, damit der Stand auf „ausgefüllt" springt — eine
+          Aufzählung, keine Fehlermeldung. Es ist kein Fehler, dass ein
+          Formular noch nicht fertig ist (Archetyp C). */}
+      {done ? (
+        <div className="mt-6 rounded-ct-md border border-success-soft bg-success-soft p-4">
+          <p className="ct-label text-success-ink">{t.onboardingDoneTitle}</p>
+          <p className="ct-small mt-1 text-success-ink">{t.onboardingDoneBody}</p>
+        </div>
+      ) : (
+        <MissingHint draft={draft} hasLogo={allLogosThere} t={t} />
+      )}
+
+      <section className="mt-10">
+        <h2 className="ct-h2 mb-3 text-ink">{t.helpTitle}</h2>
+        <Accordion>
+          <AccordionItem question={t.helpQ1}>{t.helpA1}</AccordionItem>
+          <AccordionItem question={t.helpQ2}>{t.helpA2}</AccordionItem>
+          <AccordionItem question={t.helpQ3}>{t.helpA3}</AccordionItem>
+        </Accordion>
+      </section>
     </div>
   );
 }

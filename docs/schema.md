@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-17 09:49 UTC · 78 Tabellen · 6 Views · 364 Funktionen
+> Stand: 2026-09-17 18:47 UTC · 80 Tabellen · 6 Views · 379 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -487,6 +487,44 @@ Wissensbasis. `edition_id` NULL = jahresunabhängig; ein Artikel mit Edition üb
 | `updated_by` | uuid |  |  | `person.id` |  |
 | `published_at` | timestamp with time zone |  |  |  |  |
 
+### `kb_chunk`
+Artikel der Wissensbasis in H2-Abschnitten, für die Volltextsuche des Assistenten (0108). Entsteht ausschliesslich per Trigger aus kb_article; Zielgruppe und Status stehen bewusst NICHT hier, sondern werden beim Suchen aus kb_article gelesen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `article_id` | uuid | ja |  | `kb_article.id` |  |
+| `section_index` | integer | ja |  |  |  |
+| `heading` | text |  |  |  |  |
+| `body` | text | ja |  |  |  |
+| `language` | text | ja |  |  |  |
+| `ts` | tsvector | ja |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `kb_question_log`
+Was gefragt wurde, ohne wer (0108). Zweck: Wiki-Pflege — Fragen ohne Treffer sind die Luecken. Keine person_id, keine Antworttexte. Rollierend 90 Tage (purge_kb_questions).
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | bigint | PK |  |  |  |
+| `audience` | text | ja |  |  |  |
+| `language` | text | ja |  |  |  |
+| `question` | text | ja |  |  |  |
+| `article_ids` | uuid[] | ja |  |  |  |
+| `hit` | boolean | ja |  |  |  |
+| `duration_ms` | integer |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `kb_rate_limit`
+Fragenzähler des Wissens-Assistenten je Konto und Stunde (0108). Bewusst getrennt von kb_question_log: der Zähler weiss, wer fragt, das Protokoll nicht — die beiden werden nie verbunden.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `auth_user_id` | uuid | PK |  |  |  |
+| `window_start` | timestamp with time zone | PK |  |  |  |
+| `hits` | integer | ja | `0` |  |  |
+| `logged` | integer | ja | `0` |  |  |
+
 ### `mail_log`
 Jede versendete oder unterdrückte Mail mit Zustellstatus (Resend-Webhooks aktualisieren status).
 
@@ -535,8 +573,6 @@ Partner-Organisation je Edition: Onboarding-Stand, Rechnungsdaten, Pass-Typ-Wahl
 | `onboarding_status` | text | ja | `none` |  |  |
 | `invited_at` | timestamp with time zone |  |  |  |  |
 | `onboarding_filled_at` | timestamp with time zone |  |  |  |  |
-| `description_de` | text |  |  |  |  |
-| `description_en` | text |  |  |  |  |
 | `invoice_email` | extensions.citext |  |  |  |  |
 | `invoice_name` | text |  |  |  |  |
 | `vat_id` | text |  |  |  |  |
@@ -633,7 +669,6 @@ Partner, Startups, Initiativen, Hochschulen, Agenturen. HubSpot-Company über hu
 | `communication_name` | text |  |  |  |  |
 | `logo_dark` | text |  |  |  |  |
 | `logo_light` | text |  |  |  |  |
-| `description` | text |  |  |  |  |
 | `address_street` | text |  |  |  |  |
 | `address_zip` | text |  |  |  |  |
 | `address_city` | text |  |  |  |  |
@@ -647,6 +682,8 @@ Partner, Startups, Initiativen, Hochschulen, Agenturen. HubSpot-Company über hu
 | `website` | text |  |  |  |  |
 | `active` | boolean | ja | `true` |  |  |
 | `sevdesk_contact_id` | text |  |  |  |  |
+| `description_de` | text |  |  |  | Beschreibung des Partners (DE), gilt über Editionen hinweg; Partner aktualisieren sie jährlich, starten aber nie leer (Konrad 17.09.2026). Ersetzt organization.description und org_edition.description_de. |
+| `description_en` | text |  |  |  | Beschreibung des Partners (EN), gilt über Editionen hinweg; Gegenstück zu description_de. |
 
 ### `partner_asset`
 Dateien einer Partner-Organisation im Bucket partner-assets (Pfad <edition>/<org>/<kind>/<datei>), versioniert.
@@ -721,7 +758,6 @@ Eine natürliche Person = ein Datensatz. Login-Verknüpfung über auth_user_id.
 | `title` | text |  |  |  |  |
 | `city` | text |  |  |  |  |
 | `pronouns` | text |  |  |  |  |
-| `photo_url` | text |  |  |  |  |
 | `tier` | text | ja | `lead` |  | lead = bekannt ohne Login · talent = hat sich eingeloggt (Claim). Wird per Trigger gesetzt. |
 | `deleted_at` | timestamp with time zone |  |  |  | Gesetzt durch delete_my_profile(): Datensatz anonymisiert, Historie bleibt. |
 | `diet` | text |  |  |  | Ernährungsform aus dem Vokabular `diet`. Grundlage der Catering-Bestellung. NULL = keine Angabe. |
@@ -1258,16 +1294,6 @@ An- und Abreise je Speaker-Profil (Abgleich 15.09.). Datum und Uhrzeit getrennt:
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
-### `staff_user`
-Historisch: bis 0107 die Liste des Teams. Entscheidet seit 0107 nichts mehr — Zugang gibt die Rolle admin (is_staff()).
-
-| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
-|---|---|---|---|---|---|
-| `auth_user_id` | uuid | PK |  |  |  |
-| `email` | extensions.citext |  |  |  |  |
-| `display_name` | text |  |  |  |  |
-| `created_at` | timestamp with time zone | ja | `now()` |  |  |
-
 ### `stage`
 Bühne oder Raum eines Events. Parameter (Wechselzeit, Standarddauer, Kontingent) steuern das Programm-Board.
 
@@ -1638,10 +1664,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_edition_contact` | p_id: uuid |
 | `delete_edition_file` | p_id: uuid |
 | `delete_edition_info` | p_id: uuid |
+| `delete_event_day` | p_id: uuid |
 | `delete_kb_article` | p_id: uuid |
 | `delete_my_profile` | args: ? |
 | `delete_portal_video` | p_id: uuid |
 | `delete_regie_cue` | p_id: uuid |
+| `delete_stage` | p_id: uuid |
+| `delete_track` | p_id: uuid |
 | `deliverable_due` | p_oe: public.org_edition, p_template: public.deliverable_template |
 | `detach_session` | p_session_id: uuid |
 | `edition_contacts_admin` | p_edition_id: uuid |
@@ -1689,6 +1718,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_expense_approver` | args: ? |
 | `is_hack_judge` | args: ? |
 | `is_hack_team` | args: ? |
+| `is_kiosk_only` | args: ? |
 | `is_member_of_org` | p_org_id: uuid |
 | `is_partner_of` | p_org_id: uuid |
 | `is_partner_team` | args: ? |
@@ -1709,6 +1739,12 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `kb_article_by_slug` | p_audience: text, p_edition_id: uuid, p_language: text, p_slug: text |
 | `kb_articles` | p_audience: text, p_edition_id: uuid, p_language: text, p_role: text |
 | `kb_articles_admin` | p_audience: text |
+| `kb_log_question` | p_article_ids: uuid[], p_audience: text, p_duration_ms: integer, p_hit: boolean, p_language: text, p_question: text |
+| `kb_question_report` | p_days: integer |
+| `kb_rebuild_chunks` | p_article_id: uuid |
+| `kb_search` | p_audience: text, p_edition_id: uuid, p_language: text, p_limit: integer, p_query: text |
+| `kb_take_question_slot` | p_limit: integer |
+| `kb_ts_config` | p_language: text |
 | `leave_hack_team` | p_edition_id: uuid |
 | `list_external_refs` | p_object_type: text, p_system: text |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
@@ -1770,6 +1806,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `portal_video_for` | p_audience: text, p_edition_id: uuid, p_key: text |
 | `portal_videos_admin` | args: ? |
 | `presentation_window` | p_session_id: uuid |
+| `programme_skeleton` | p_event_id: uuid |
 | `promote_shift_waitlist` | p_shift_id: uuid |
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |
 | `publish_hack_challenge` | p_deliverable_id: uuid |
@@ -1777,6 +1814,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `publish_session` | p_session_id: uuid |
 | `purge_checkins` | args: ? |
 | `purge_diet_data` | p_days: integer |
+| `purge_kb_questions` | p_days: integer |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `record_shop_invoice` | p_meta: jsonb, p_order_ids: uuid[], p_org_id: uuid, p_sevdesk_contact_id: text, p_sevdesk_invoice_id: text |
 | `record_sync_error` | p_job_id: bigint, p_message: text, p_object_id: text, p_object_type: text, p_payload: jsonb |
@@ -1886,7 +1924,6 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_tickets_admin` | p_edition_id: uuid |
 | `speaker_travel_list` | p_edition_id: uuid |
 | `sponsoring_level_key` | p_level: text |
-| `staff_users_without_admin` | args: ? |
 | `stage_editor_orgs` | p_person_id: uuid |
 | `start_sync_job` | p_direction: text, p_job_type: text, p_system: text, p_triggered_by: text |
 | `submit_deliverable` | p_answers: jsonb, p_asset_ids: uuid[], p_deliverable_id: uuid |
@@ -1917,6 +1954,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_deliverable_template` | p_data: jsonb |
 | `upsert_edition_contact` | p_data: jsonb |
 | `upsert_edition_info` | p_data: jsonb |
+| `upsert_event_day` | p_data: jsonb |
 | `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |
 | `upsert_kb_article` | p_data: jsonb |
@@ -1928,6 +1966,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_session` | p_data: jsonb |
 | `upsert_shift` | p_data: jsonb |
 | `upsert_speaker` | p_data: jsonb |
+| `upsert_stage` | p_data: jsonb |
+| `upsert_stage_day` | p_data: jsonb |
+| `upsert_track` | p_data: jsonb |
 | `validate_expense_positions` | p_positions: jsonb, p_profile_id: uuid |
 | `vivenu_editions` | args: ? |
 | `vivenu_personalization_status` | p_status: text |

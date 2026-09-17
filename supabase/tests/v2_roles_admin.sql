@@ -8,7 +8,7 @@ begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary where p.auth_user_id is not null limit 1;
   perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated', 'email', v_email)::text, true);
-  delete from role_assignment where person_id = v_pid; delete from staff_user where auth_user_id = v_uid; -- Testperson ohne Vorrechte (Rollback stellt alles wieder her)
+  delete from role_assignment where person_id = v_pid; -- Testperson ohne Vorrechte (Rollback stellt alles wieder her)
   insert into person (first_name, last_name) values ('Anna', 'Testperson') returning id into v_other;
   insert into person_email (person_id, email, is_primary) values (v_other, 'anna-' || v_other::text || '@example.com', true);
 

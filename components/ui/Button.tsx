@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "./cn";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "destructive";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "destructive" | "onAccent";
 export type ButtonSize = "md" | "sm";
 
 /**
@@ -24,6 +24,12 @@ const variants: Record<ButtonVariant, string> = {
     "bg-transparent text-accent-strong hover:underline hover:underline-offset-2 disabled:opacity-40",
   destructive:
     "bg-error-ink text-white hover:bg-error-deep disabled:opacity-40",
+  // Für Knöpfe, die **auf** einer Akzentfläche stehen (`NextStepBanner`,
+  // `TicketCard`-Kopf). Dort trägt weder `accent-strong` (verschwindet im
+  // Grund) noch Weiss mit Akzenttext (2,2:1 gegen die Fläche) — Navy-Fläche
+  // mit Off-White-Text erreicht 15,8:1 und ist zugleich der Marken-Weg.
+  onAccent:
+    "bg-navy text-on-navy hover:bg-navy/85 disabled:opacity-40",
 };
 
 const sizes: Record<ButtonSize, string> = {
