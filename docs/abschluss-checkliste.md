@@ -126,3 +126,4 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **vivenu-Add-ons** (Hotel, DB-Ticket, Locker): Erarbeitung im **Oktober**, danach Backlog Partner/Talent (Konrad, 17.09.).
 - ☐ **Vorlagen für die Speaker-Features** (Konrad liefert): FLS26-Grafik-Template für die Hear-Me-Speak-Maske (SPK-013), alte Talk-Titel und -Beschreibungen zur Schärfung des Talk-Generators (SPK-012).
 - ☐ **`ANTHROPIC_API_KEY`** in Vercel setzen, sobald #50 gemergt ist (Admin-Chat sagt an): `sh scripts/env-set.sh ANTHROPIC_API_KEY`.
+- ☐ **Segmentierungs-Übersicht ans Marketing senden** — Dokument fertig (#51, 17.09.): `docs/segmentierung-2026-09.md`, im Drive unter „05_Requirements (Team-Input)/Segmentierung — Uebersicht fuers Marketing“. Konrad schickt es; Antwort = Liste gewünschter Segmente (§6 des Dokuments), danach Views + AC-Tags durch den Admin-Chat.
