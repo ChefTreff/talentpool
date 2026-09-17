@@ -139,8 +139,8 @@ Täglicher Abruf je Organisation mit `sevdesk_contact_id`: Angebote und Rechnung
 6. **Award:** Zeitraum der Abstimmung, Jury-Anteil.
 7. **Speaker-Buddys als Freelancer:** `edition_contact.email` verlangt `@chef-treff.de`. Bekommen alle Buddys eine Hausadresse (Empfehlung: ja — löst Datenschutz und CHECK zugleich), oder soll der CHECK für Buddys weichen?
 8. **Shuttle:** Obergrenze an Fahrten je Speaker, oder frei (das Unternehmen rechnet je Fahrt ab)?
-9. **„Gebuchter Messestand“ für die Shop-Sichtbarkeit:** welche SKUs zählen — Standpakete 4/9/18 qm, Signature, Sonderstand, Start-Up-Stand, Gemeinschaftsstand; zählen Hackathon-Stand (`I-10729`) und Standbühne (`I-79895`) mit? Lunch-Paket ohne Stand?
-10. **„Vier Wochen vor dem Event“** für die Challenge-Frist: vor dem Hackathon (15.04. ⇒ 18.03.2027) oder vor dem Summit (16.04. ⇒ 19.03.2027)?
+9. ~~„Gebuchter Messestand“~~ **entschieden (Konrad im Partner-Chat, 17.09.):** Standflächen-Pakete **und** Standbühne `I-79895` zählen, Hackathon-Stand `I-10729` nicht. Das **Lunch-Paket kommt ganz aus dem Shop** und wird als Angebot am Checklistenpunkt bestellbar (PART-049, P1) — derselbe Bestellweg (`shop_order` mit Phase, PO-Nummer, Bestand), andere Tür; Karte auf `/partner`, solange die Frist läuft; zählt weiter in der Produktionsliste (PROD-004).
+10. ~~„Vier Wochen vor dem Event“~~ **entschieden:** vier Wochen vor dem **Hackathon** ⇒ **18.03.2027**.
 
 ## E · Reihenfolge
 1. **Sofort (P1):** B1, B2 (mit A4.2), B3, O1.
