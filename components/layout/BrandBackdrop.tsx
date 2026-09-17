@@ -15,7 +15,7 @@ export function BrandBackdrop() {
       className="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden md:block"
     >
       <svg
-        className="absolute -right-20 top-10 h-[420px] w-[420px] text-accent-soft"
+        className="absolute -right-24 top-1/2 h-[340px] w-[340px] -translate-y-1/2 text-accent-soft"
         viewBox="0 0 200 200"
         fill="none"
         stroke="currentColor"
@@ -28,7 +28,7 @@ export function BrandBackdrop() {
       </svg>
       {/* Zickzack als Linienzug, unten links — der zweite erlaubte Baustein. */}
       <svg
-        className="absolute -left-8 bottom-8 h-24 w-[320px] text-accent-soft"
+        className="absolute -left-10 bottom-10 h-20 w-[260px] text-accent-soft"
         viewBox="0 0 320 96"
         fill="none"
         stroke="currentColor"
