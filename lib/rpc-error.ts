@@ -168,6 +168,13 @@ const BUSINESS_KEYS = new Set([
   "rate_limited",
   "empty_query",
   "no_slot",
+  // Programm-Grundgeruest (Migration 0110)
+  "in_use",
+  "invalid_stage_type",
+  "invalid_times",
+  "day_not_found",
+  "stage_not_found",
+  "track_not_found",
   // Messestand und Editionsdateien (Migration 20260915115415)
   "edition_file_not_found",
   "invalid_path",
