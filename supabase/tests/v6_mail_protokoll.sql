@@ -13,7 +13,9 @@
 --   11 erneut senden legt eine **neue** Zeile mit `queued` und dem Verweis
 --      `resend_of` an; versendet wird sie vom Cron wie jede andere;
 --   12 die alte Zeile bleibt unverändert — sie ist die Historie;
---   13 das Protokoll trägt alte und neue ID.
+--   13 das Protokoll trägt alte und neue ID;
+--   14 ein `%` im Suchfeld ist ein Zeichen, kein Platzhalter — sonst fände die
+--      Eingabe eines einzelnen Prozentzeichens das ganze Protokoll.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -94,6 +96,13 @@ begin
    where action = 'mail.requeue' and object_id = v_neu::text and before->>'id' = v_alt::text;
   insert into t_res values ('13_protokoll',
     case when v_n = 1 then 'Audit mit alter und neuer id (richtig)' else 'unerwartet ' || v_n end);
+
+  insert into mail_log (to_email, template_key, locale, subject, status)
+  values ('test-prozent@example.test', 'test_protokoll', 'de', 'Rabatt 20 % auf alles', 'sent');
+  select count(*)::integer into v_n from mail_log_admin('%', 'test_protokoll') m;
+  insert into t_res values ('14_prozent_ist_zeichen',
+    case when v_n = 1 then 'nur die Zeile mit dem Prozentzeichen (richtig)' else 'unerwartet ' || v_n end);
 end $$;
 select * from t_res order by step;
 rollback;
+-- Lauf am 17.09. gegen die Datenbank (Migration + Test in einer Transaktion, rollback): 14/14 gruen.

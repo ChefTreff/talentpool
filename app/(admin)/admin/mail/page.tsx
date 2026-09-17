@@ -1,61 +1,128 @@
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
-import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
+import type { SelectOption } from "@/components/ui/Select";
 import { MailTabs } from "./MailTabs";
+import { ProtokollView, type LogZeile } from "./ProtokollView";
 import { TestMailForm } from "./TestMailForm";
 
 export const dynamic = "force-dynamic";
 
-type LogRow = {
-  id: number | string;
-  template_key: string;
-  locale: string;
-  to_email: string;
-  status: string;
-  provider_id: string | null;
-  queued_at: string;
-};
+const PRO_SEITE = 50;
 
-const TONES: Record<string, BadgeTone> = {
-  sent: "success",
-  delivered: "success",
-  queued: "neutral",
-  suppressed: "warning",
-  bounced: "error",
-  failed: "error",
-};
+/**
+ * Tagesgrenze in Berliner Zeit.
+ *
+ * Das Protokoll wird nach Kalendertagen durchsucht — „seit dem 17." heisst
+ * 00:00 Uhr in Hamburg, nicht in UTC. Der Unterschied sind zwei Stunden, und
+ * die liegen genau dort, wo abends die Mails rausgehen.
+ */
+function tagesgrenze(tag: string | undefined, plusTage = 0): string | null {
+  if (!tag || !/^\d{4}-\d{2}-\d{2}$/.test(tag)) return null;
+  const roh = new Date(`${tag}T00:00:00Z`);
+  roh.setUTCDate(roh.getUTCDate() + plusTage);
+  const name = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Berlin", timeZoneName: "longOffset" })
+    .formatToParts(roh)
+    .find((p) => p.type === "timeZoneName")?.value;
+  const treffer = /GMT([+-])(\d{2}):(\d{2})/.exec(name ?? "");
+  const versatz = treffer
+    ? (treffer[1] === "-" ? -1 : 1) * (Number(treffer[2]) * 60 + Number(treffer[3]))
+    : 0;
+  return new Date(roh.getTime() - versatz * 60_000).toISOString();
+}
 
-export default async function MailPage() {
-  // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
-  // nicht neu. Muss vor createSupabaseAdminClient() stehen.
+/**
+ * Das Mail-Protokoll.
+ *
+ * `mail_log_admin()` prüft `has_role('admin')` selbst — wer den Admin-Bereich
+ * über eine andere Rolle betritt, sieht den Hinweis und keinen Fehler. Gelesen
+ * wird mit dem Nutzer-Client und nicht mit `service_role`: das Protokoll nennt
+ * Empfängeradressen, und die Rechteprüfung gehört in die Datenbank.
+ */
+export default async function MailPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    q?: string; status?: string; vorlage?: string; von?: string; bis?: string; seite?: string;
+  }>;
+}) {
   const ctx = await requireArea("admin", "/admin/mail");
-  const admin = createSupabaseAdminClient();
-  const { t } = await getI18n();
+  const { t } = await getI18n("de");
+  const sp = await searchParams;
+  const seite = Math.max(1, Number(sp.seite ?? "1") || 1);
+  const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await admin
-    .from("mail_log")
-    .select("id,template_key,locale,to_email,status,provider_id,queued_at")
-    .order("queued_at", { ascending: false })
-    .limit(20);
+  const [protokoll, zahlen, vorlagen] = await Promise.all([
+    supabase.rpc("mail_log_admin", {
+      p_query: sp.q?.trim() || null,
+      p_template: sp.vorlage || null,
+      p_status: sp.status || null,
+      p_person_id: null,
+      p_from: tagesgrenze(sp.von),
+      // Der Bis-Tag gehört dazu: die RPC schneidet bei `<`, also die Grenze des Folgetags.
+      p_to: tagesgrenze(sp.bis, 1),
+      p_limit: PRO_SEITE,
+      p_offset: (seite - 1) * PRO_SEITE,
+    }),
+    supabase.rpc("mail_log_stats", { p_days: 90 }),
+    supabase.rpc("mail_templates_admin"),
+  ]);
 
-  if (error) console.error("[admin/mail] mail_log nicht lesbar:", error.message);
-  const rows = (data ?? []) as LogRow[];
-  const dateFormat = new Intl.DateTimeFormat(t.meta.dateLocale, {
-    dateStyle: "short",
-    timeStyle: "short",
-  });
+  if (protokoll.error) {
+    return (
+      <>
+        <PageHeader title={t.adminMailLog.title} description={t.adminMailLog.lead} />
+        <MailTabs
+          label={t.adminMailTemplates.title}
+          log={t.adminMailTemplates.tabLog}
+          templates={t.adminMailTemplates.tabTemplates}
+        />
+        <EmptyState title={t.adminMailLog.noAccessTitle} description={t.adminMailLog.noAccessBody} />
+      </>
+    );
+  }
+
+  const zeilen = (protokoll.data ?? []) as LogZeile[];
+  const gesamt = zeilen[0]?.total ?? 0;
+
+  // Was es im Protokoll nicht gibt, bietet der Filter nicht an.
+  const statusOptionen: SelectOption[] = ((zahlen.data ?? []) as { status: string; anzahl: number }[])
+    .map((s) => ({
+      value: s.status,
+      label: `${t.mailStatus[s.status as keyof typeof t.mailStatus] ?? s.status} (${s.anzahl})`,
+    }));
+
+  const schluessel = [...new Set(((vorlagen.data ?? []) as { key: string }[]).map((v) => v.key))].sort();
+  const vorlagenOptionen: SelectOption[] = schluessel.map((k) => ({ value: k, label: k }));
 
   return (
-    <div className="max-w-[1000px]">
-      <PageHeader title={t.admin.mail.title} description={t.admin.mail.lead} />
-      <MailTabs label={t.adminMailTemplates.title} log={t.adminMailTemplates.tabLog} templates={t.adminMailTemplates.tabTemplates} />
+    <>
+      <PageHeader title={t.adminMailLog.title} description={t.adminMailLog.lead} />
+      <MailTabs
+        label={t.adminMailTemplates.title}
+        log={t.adminMailTemplates.tabLog}
+        templates={t.adminMailTemplates.tabTemplates}
+      />
 
-      <Card className="mb-4">
+      <ProtokollView
+        zeilen={zeilen}
+        gesamt={gesamt}
+        seite={seite}
+        proSeite={PRO_SEITE}
+        vorlagen={vorlagenOptionen}
+        statusOptionen={statusOptionen}
+        dateLocale={t.meta.dateLocale}
+        t={t.adminMailLog}
+        statusLabels={t.mailStatus}
+        common={{ cancel: t.common.cancel, close: t.common.close, none: t.common.none }}
+        rpcMessages={t.rpc}
+      />
+
+      <h2 className="ct-h2 mb-3 mt-8 text-ink">{t.admin.mail.title}</h2>
+      <Card>
         <TestMailForm
           defaultTo={ctx.user?.email ?? ""}
           labels={{
@@ -71,44 +138,6 @@ export default async function MailPage() {
           }}
         />
       </Card>
-
-      <h2 className="ct-h2 mb-3 text-ink">{t.admin.mail.recent}</h2>
-      {rows.length === 0 ? (
-        <EmptyState
-          title={t.admin.mail.recent}
-          description={t.admin.mail.lead}
-        />
-      ) : (
-        <Table>
-          <Thead>
-            <Th>{t.admin.mail.colTime}</Th>
-            <Th>{t.admin.mail.colTemplate}</Th>
-            <Th>{t.admin.mail.colTo}</Th>
-            <Th>{t.admin.mail.colStatus}</Th>
-            <Th>{t.admin.mail.colProvider}</Th>
-          </Thead>
-          <Tbody>
-            {rows.map((r) => (
-              <Tr key={String(r.id)}>
-                <Td className="text-muted">
-                  {dateFormat.format(new Date(r.queued_at))}
-                </Td>
-                <Td>
-                  {r.template_key}{" "}
-                  <span className="text-muted">({r.locale})</span>
-                </Td>
-                <Td className="text-muted">{r.to_email}</Td>
-                <Td>
-                  <Badge tone={TONES[r.status] ?? "neutral"}>{r.status}</Badge>
-                </Td>
-                <Td className="font-mono ct-help text-muted">
-                  {r.provider_id ?? t.common.none}
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      )}
-    </div>
+    </>
   );
 }
