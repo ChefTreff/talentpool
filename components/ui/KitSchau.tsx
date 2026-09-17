@@ -182,7 +182,12 @@ export function KitSchau({ t }: { t: KitTexte }) {
         </Card>
       </Abschnitt>
 
-      <PortalFooter mailbox="portal@chef-treff.de" mailboxLabel={t.footerMailbox} />
+      <PortalFooter
+        mailbox="portal@chef-treff.de"
+        mailboxLabel={t.footerMailbox}
+        imprintLabel={t.footerImprint}
+        privacyLabel={t.footerPrivacy}
+      />
     </div>
   );
 }

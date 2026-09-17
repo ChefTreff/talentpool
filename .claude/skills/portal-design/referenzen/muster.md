@@ -125,6 +125,33 @@ Direkt übertragbar:
 
 Nicht übernehmen: Navy als Arbeitsfläche, zentrierte Fließtexte, Fotobänder, Logo-Wände, ganzseitige Verläufe, Bilder als Sektionstrenner.
 
+## Vorbilder aus dem Team-Portal (`team.chef-treff.de`)
+
+Gelesen am 17.09.2026 im Walkthrough mit Konrad (er eingeloggt, Design-Session nur lesend). Das Team-Portal ist die zweite Quelle für alles, was die Website nicht hat: Listen mit Aktionen, Filter, Formulare, Navigationstiefe. Es ist ein Arbeitswerkzeug, das seit Monaten benutzt wird — und darin liegt sein Wert.
+
+**Was direkt übernommen wird:**
+
+| Muster im Team-Portal | Im Portal |
+|---|---|
+| **Gruppenkopf mit Zählung**, rechts die primäre Aktion: „PASSWÖRTER · 15" ─ [Neues Passwort] | genau so. Die Zahl im Kopf beantwortet „wie viele" ohne Scrollen |
+| **Suchfeld über der Liste**, volle Breite, Platzhalter nennt die durchsuchten Felder („Suchen — Name, Benutzername, Notiz") | ab etwa 15 Einträgen. Der Platzhalter sagt, wonach gesucht wird — sonst rät man |
+| **Filter als Chip-Reihe**: „Alle · 14" gefüllt, die übrigen als Soft-Chips | Filterleiste über Tabellen und Listen, Zustand in der URL |
+| **Zeile mit mehreren Aktionen**: eine gefüllt (die häufigste), der Rest Umriss — „Kopieren · Anzeigen · Bearbeiten · Löschen" | genau so. Eine Zeile darf mehrere Aktionen tragen, aber nur **eine** sieht aus wie die Hauptsache |
+| **Erledigtes klappt zusammen**: „▸ ERLEDIGT · 3" als `<details>` unter der laufenden Liste | Checklisten, Bestellungen, Einreichungen. Was fertig ist, ist Nachschlagewerk |
+| **Auswahl-Zeilen statt Dropdown**: „Ich habe bezahlt / Mit der Firmenkarte / Rechnung an ChefTreff", je mit Erklärzeile, gruppiert unter kleinen Überschriften | Wizard-Einstiege und Formularverzweigungen. Ein Dropdown versteckt die Erklärung, die man genau dort braucht |
+| **Erklärkasten oben auf Detailseiten**: Soft-Fläche, drei Sätze — was diese Daten sind, wer sie ändert, wie man eine Änderung meldet | Detailseiten mit Feldern, die man nicht selbst ändern darf |
+| **Nur-Lesen-Feld als Label über Wert mit Grundlinie**, kein Rahmen | so sehen unveränderliche Angaben wie Angaben aus, nicht wie Fließtext |
+| **Reiter mit Unterstrich** im Inhalt **und** als eingerückte Unterpunkte in der Seitenleiste | tiefe Bereiche (Profil, Passwörter). Beides zeigt dasselbe — wer über die Leiste kommt, findet sich in den Reitern wieder |
+| **Sektions-Eyebrow plus ein erklärender Satz** vor jedem Abschnitt | überall. Der Satz ist keine Zierde: er beantwortet „was mache ich hier" |
+| **Segmented Control** für zwei Sichten desselben Inhalts: „Ich | Team" | Listen mit Perspektivwechsel |
+
+**Dichte:** Zeilen im Team-Portal sind höher als unsere 44 px (etwa 62 px bei Zeilen mit Aktionsknöpfen). Das ist kein Widerspruch — 44 gilt für Datenzeilen ohne Bedienelemente; sobald Knöpfe darin stehen, braucht die Zeile die Höhe eines Bedienelements plus Abstand.
+
+**Zwei Unterschiede, die nicht übernommen werden, bis Konrad sie entscheidet:**
+
+1. **Die Seitenleiste des Team-Portals ist hell**, nicht Navy — aktiver Punkt als Soft-Fläche mit Akzenttext. Unsere Leiste ist Navy (`QS-001`, `QS-007`, beide gebaut). Offen.
+2. **Knöpfe und Chips sind dort Pillen**, bei uns 8-px-Rechtecke (Design-Briefing §5: eine Form konsequent). Offen.
+
 ## Sprache
 
 Du/ihr. Buttons benennen das Ergebnis. Fehler nennen den nächsten Schritt („Frist abgelaufen — melde dich bei …" statt „Ungültige Eingabe"). Jeder Begriff, den Nutzer sehen, kommt aus `vocab_term` bzw. `getI18n`, DE und EN gleichwertig.

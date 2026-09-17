@@ -376,7 +376,12 @@ export default async function PartnerDashboard() {
         />
       </div>
 
-      <PortalFooter mailbox={PARTNER_MAILBOX} mailboxLabel={t.common.supportMailbox} />
+      <PortalFooter
+        mailbox={PARTNER_MAILBOX}
+        mailboxLabel={t.common.supportMailbox}
+        imprintLabel={t.common.imprint}
+        privacyLabel={t.common.privacy}
+      />
     </>
   );
 }

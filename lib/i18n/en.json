@@ -3010,6 +3010,8 @@
     "badgeDone": "Done",
     "badgeOpen": "Open",
     "badgeOverdue": "Overdue",
-    "footerMailbox": "Questions? Write to us:"
+    "footerMailbox": "Questions? Write to us:",
+    "footerImprint": "Imprint",
+    "footerPrivacy": "Privacy"
   }
 }

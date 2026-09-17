@@ -3010,6 +3010,8 @@
     "badgeDone": "Erledigt",
     "badgeOpen": "Offen",
     "badgeOverdue": "Überfällig",
-    "footerMailbox": "Fragen? Schreibt uns:"
+    "footerMailbox": "Fragen? Schreibt uns:",
+    "footerImprint": "Impressum",
+    "footerPrivacy": "Datenschutz"
   }
 }
