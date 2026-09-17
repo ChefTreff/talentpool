@@ -1,6 +1,6 @@
-# Feedback-Leitfaden — so gibst du Feedback, so wird es eingearbeitet (v1, Entwurf 17.09.2026)
+# Feedback-Leitfaden — so gibst du Feedback, so wird es eingearbeitet (v1, 17.09.2026)
 
-> Für Konrad. Gilt für alle Chats der Plattform. Grundlage: `docs/plan-ergaenzung-2026-09-17.md` §4. Chat-Zuschnitt und Ports gelten nach Konrads Entscheidung (§7 dort); die Regeln in diesem Leitfaden gelten unabhängig davon.
+> Für Konrad. Gilt für alle Chats der Plattform. Grundlage: `docs/plan-ergaenzung-2026-09-17.md` §4 (von Konrad freigegeben am 17.09.). Chat-Zuschnitt, Ports und Start-Prompts: `docs/chat-startpakete.md`.
 
 ## 1 · Wohin geht welches Feedback?
 
@@ -55,20 +55,9 @@ Was noch nicht dran ist, notierst du trotzdem — als P3 in den Portal-Chat, mit
 ## 5 · Stand abfragen
 „Stand?“ im Portal-Chat liefert die Backlog-Tabelle gefiltert auf offen. Die Dateien liegen auch im Drive-Spiegel (Ordner der Doku), also ohne Chat lesbar.
 
-## 6 · Start eines Chats (Vorlage)
+## 6 · Start eines Chats
 
-Neuen Chat im Repo öffnen, umbenennen (z. B. „FLS27 · Partner“), als erste Nachricht:
-
-```
-Du bist die Build-Session für den Bereich PARTNER der ChefTreff-Plattform.
-Arbeite nach AGENTS.md, Abschnitt „Build-Session im Worktree (Checkliste beim Start)“.
-Branch-Präfix: partner/ · Dev-Server: talentpool-dev-3001 (Port 3001) · Backlog: docs/feedback/partner.md
-Lies zuerst docs/masterplan.md, docs/entscheidungen.md, docs/plan-ergaenzung-2026-09-17.md, docs/feedback-leitfaden.md und dein Backlog.
-Regeln: Migrationen nur als Datei unter supabase/migrations/vorschlag/, UI nur mit geladenem Skill /portal-design, jedes Feedback zuerst in den Backlog (Leitfaden §3).
-Erste Aufgabe: <Backlog-IDs oder Baustein>.
-```
-
-Für die anderen Chats dieselbe Vorlage mit Bereich, Präfix, Port und Backlog-Dateien aus dem Plan §4.3. Vor dem ersten Login im jeweiligen Dev-Server muss `http://localhost:<port>/auth/callback` in den Supabase-Redirect-URLs stehen (Konrad).
+Die fertigen Start-Prompts je Chat (Design, Partner, Speaker-Domäne, Talent & Hackathon, Volunteers/Produktion/Check-in) stehen in `docs/chat-startpakete.md`; der Chat „Admin & Schnittstellen“ ist die bestehende Build-Session. Ablauf: neuen Chat im Repo öffnen, umbenennen („FLS27 · <Bereich>“), Prompt als erste Nachricht einfügen — oder den Start-Chip im Architektur-Chat anklicken. Vor dem ersten Login im jeweiligen Dev-Server muss `http://localhost:<port>/auth/callback` in den Supabase-Redirect-URLs stehen (Konrad), danach einmal `sh scripts/env-pull.sh --worktrees` im Hauptcheckout.
 
 ## 7 · Was du nicht tun musst
 - Feedback wiederholen — der Backlog ist das Gedächtnis, auch wenn der Chat seinen Kontext verdichtet oder ruht.

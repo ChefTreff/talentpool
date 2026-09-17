@@ -104,3 +104,14 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - [x] **Mail-Betrieb (A5) freigeschaltet** (Konrad, 10.09.; erster Cron-Lauf 11:00 erfolgreich): `RESEND_API_KEY`, `RESEND_FROM` (Absender auf verifizierter Domain) und `CRON_SECRET` in Vercel (Production + Preview, sensibel) setzen; Resend-Domain `chef-treff.de` verifizieren (SPF/DKIM/DMARC); danach `sh scripts/env-pull.sh --worktrees`. Bis dahin bleibt die Mail-Warteschlange stehen (`mail_log.status = 'queued'`).
 - [ ] **Resend-Webhooks** (Bounce/Complaint → `mail_log.status`, Suppression bei Hard-Bounce) — Welle 2, Route mit Signaturprüfung.
 - [x] **Rollen-Postfach `speaker@chef-treff.de`** besteht bereits (Konrad, 10.09.); wird in `speaker_invite`/`assistant_invite` als Antwortadresse genannt (Antwort 71: keine privaten Kontaktdaten). Analog später `partner@` und `volunteers@`.
+
+## Ergänzungen 17.09. (Plan-Freigabe, `docs/plan-ergaenzung-2026-09-17.md`)
+- ☐ **Supabase Redirect-URLs** `http://localhost:3002/auth/callback` bis `…3005/auth/callback` eintragen (Authentication → URL Configuration) — Konrad, vor dem ersten Login in den neuen Chats.
+- ☐ Nach dem Start jedes neuen Chats `sh scripts/env-pull.sh --worktrees` im Hauptcheckout — Konrad.
+- ☐ **Walkthrough Alt-Portale mit den Matrizen** `docs/abgleich/*.md` (17./18.09., Konrad eingeloggt in Chrome, Architektur-Session liest mit): je Zeile ✓/✗/Kommentar, Prio.
+- ☐ **Team-Portal-Walkthrough** mit dem Design-Chat (Konrad eingeloggt, Session liest nur).
+- ☐ **Backend-Walkthrough** zwei Termine à 90 Minuten (Vorschlag Di 22.09., Do 24.09.) anhand `docs/feld-matrix-2026-09.md`.
+- ☐ `ANTHROPIC_API_KEY` in Vercel setzen (`sh scripts/env-set.sh ANTHROPIC_API_KEY`), sobald der Chat Admin & Schnittstellen den Chatbot beginnt; AVV Anthropic (siehe oben).
+- ☐ **C-Features einzeln entscheiden** (Plan §7b: Slid@Home, Talk-Generator, Hear-Me-Speak, Slot-Grafiken, Timetable-Bild, Bild-Normalisierung, Kalender-Blocker, Merch-Artikel, vivenu-Add-ons).
+- ☑ **Admin-Bereich hängt an der Rolle:** 0106/0107 live 17.09.; Merge #48/#49 nach Walkthrough.
+- ☐ **Designer-Loop** → ersetzt durch den Design-Chat mit Design-System v2 (`docs/design-system-v2-auftrag.md`): D0 bis 19.09., Referenzseiten bis 26.09., Rollout bis 05.10., Abnahme je Portal auf der Preview.

@@ -12,6 +12,30 @@
       "runtimeExecutable": "/bin/zsh",
       "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3001"],
       "port": 3001
+    },
+    {
+      "name": "talentpool-dev-3002",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3002"],
+      "port": 3002
+    },
+    {
+      "name": "talentpool-dev-3003",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3003"],
+      "port": 3003
+    },
+    {
+      "name": "talentpool-dev-3004",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3004"],
+      "port": 3004
+    },
+    {
+      "name": "talentpool-dev-3005",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3005"],
+      "port": 3005
     }
   ]
 }

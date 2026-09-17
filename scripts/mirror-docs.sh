@@ -34,9 +34,21 @@ docs/arbeitsauftrag-welle-2.md|08_Projektplan & MVP/Arbeitsauftrag Welle 2 — S
 docs/arbeitsauftrag-welle-3.md|08_Projektplan & MVP/Arbeitsauftrag Welle 3 — Partner + Messeshop (Claude, 2026-09-10).md
 docs/plan-ergaenzung-2026-09-17.md|08_Projektplan & MVP/Ergaenzender Plan — Abschluss, Abgleich, Feedback-Prozess, Backend, Design (Entwurf, 2026-09-17).md
 docs/feedback-leitfaden.md|05_Requirements (Team-Input)/Feedback-Leitfaden — so gibst du Feedback (Claude, laufend).md
+docs/chat-startpakete.md|08_Projektplan & MVP/Chat-Startpakete — sechs Sessions, ein Repo (Claude, laufend).md
+docs/design-system-v2-auftrag.md|07_Mockups & Design/Design-System v2 — Auftrag an den Design-Chat (Claude, 2026-09-17).md
+docs/feld-matrix-2026-09.md|08_Projektplan & MVP/Feld-Eigentuemer-Matrix (generiert, 2026-09).md
 MAP
 # Runbooks als Ordner
 if [ -d docs/runbooks ]; then
   mkdir -p "$DRIVE/08_Projektplan & MVP/Runbooks"
   for f in docs/runbooks/*.md; do cp "$f" "$DRIVE/08_Projektplan & MVP/Runbooks/$(basename "$f")" && echo "✓ $f -> Runbooks/"; done
+fi
+# Feedback-Backlogs und Abgleich-Matrizen als Ordner
+if [ -d docs/feedback ]; then
+  mkdir -p "$DRIVE/05_Requirements (Team-Input)/Feedback-Backlog"
+  for f in docs/feedback/*.md; do cp "$f" "$DRIVE/05_Requirements (Team-Input)/Feedback-Backlog/$(basename "$f")" && echo "✓ $f -> Feedback-Backlog/"; done
+fi
+if [ -d docs/abgleich ]; then
+  mkdir -p "$DRIVE/05_Requirements (Team-Input)/Abgleich Alt-Neu"
+  for f in docs/abgleich/*.md; do cp "$f" "$DRIVE/05_Requirements (Team-Input)/Abgleich Alt-Neu/$(basename "$f")" && echo "✓ $f -> Abgleich Alt-Neu/"; done
 fi
