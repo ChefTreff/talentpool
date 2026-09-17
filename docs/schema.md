@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-15 12:09 UTC · 78 Tabellen · 6 Views · 353 Funktionen
+> Stand: 2026-09-17 09:49 UTC · 78 Tabellen · 6 Views · 364 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -541,7 +541,7 @@ Partner-Organisation je Edition: Onboarding-Stand, Rechnungsdaten, Pass-Typ-Wahl
 | `invoice_name` | text |  |  |  |  |
 | `vat_id` | text |  |  |  |  |
 | `po_number` | text |  |  |  |  |
-| `pass_type_choice` | text |  |  |  |  |
+| `pass_type_choice` | text |  |  |  | talent \| startup — Pass-Typ der Talente-Tickets. Beim Anlegen aus organization.partner_category vorbelegt (0105), vom Partner-Team über set_pass_type_choice() änderbar; NULL bedeutet Rückfall auf den Org-Typ (effective_pass_type). |
 | `sponsoring_level` | text |  |  |  |  |
 | `hubspot_deal_id` | text |  |  |  |  |
 | `notes_internal` | text |  |  |  |  |
@@ -1259,6 +1259,7 @@ An- und Abreise je Speaker-Profil (Abgleich 15.09.). Datum und Uhrzeit getrennt:
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `staff_user`
+Historisch: bis 0107 die Liste des Teams. Entscheidet seit 0107 nichts mehr — Zugang gibt die Rolle admin (is_staff()).
 
 | Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
 |---|---|---|---|---|---|
@@ -1605,6 +1606,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_edit_stage` | p_stage_id: uuid |
 | `can_judge_hack_team` | p_team_id: uuid |
 | `can_manage_speaker` | p_profile_id: uuid |
+| `can_manage_speaker_leads` | args: ? |
 | `can_read_checkin_stats` | p_edition_id: uuid |
 | `cancel_companion_ticket` | p_ticket_id: uuid |
 | `cancel_hospitality` | p_booking_id: uuid |
@@ -1666,6 +1668,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_join_code` | args: ? |
 | `hack_judging` | p_edition_id: uuid, p_language: text |
 | `hack_text` | p_de: text, p_en: text, p_language: text |
+| `handover_speaker` | p_profile_id: uuid, p_to_person_id: uuid |
 | `harden_definer_functions` | args: ? |
 | `has_role` | p_edition_id: uuid, p_role: text, p_scope_id: uuid, p_scope_type: text |
 | `hospitality_admin_overview` | p_edition_id: uuid |
@@ -1693,6 +1696,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_programme_editor` | p_event_id: uuid |
 | `is_programme_reader` | args: ? |
 | `is_session_visible` | p_session_id: uuid |
+| `is_speaker_manager` | p_person_id: uuid |
 | `is_speaker_of` | p_session_id: uuid |
 | `is_speaker_side_of` | p_session_id: uuid |
 | `is_speaker_team` | p_edition_id: uuid |
@@ -1827,6 +1831,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_org_contacts` | p_buddy: uuid, p_lead: uuid, p_org_edition_id: uuid |
 | `set_org_sevdesk_contact` | p_contact_id: text, p_org_id: uuid |
 | `set_org_step` | p_done: boolean, p_edition_id: uuid, p_key: text, p_org_id: uuid, p_topic: text |
+| `set_pass_type_choice` | p_choice: text, p_edition_id: uuid, p_org_id: uuid |
 | `set_person_salutation` | p_de: text, p_en: text, p_person_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
@@ -1872,12 +1877,16 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_upsert_line` | p_edition_id: uuid, p_merch_config: jsonb, p_org_id: uuid, p_qty: numeric, p_sku: text |
 | `slot_has_published_session` | p_slot_id: uuid |
 | `speaker_asset_path_allowed` | p_name: text |
+| `speaker_detail` | p_profile_id: uuid |
 | `speaker_is_confirmed` | p_status: text |
+| `speaker_leads_admin` | p_edition_id: uuid |
+| `speaker_managers` | args: ? |
 | `speaker_next_steps` | p_profile_id: uuid |
 | `speaker_ticket_create` | p_profile_id: uuid |
 | `speaker_tickets_admin` | p_edition_id: uuid |
 | `speaker_travel_list` | p_edition_id: uuid |
 | `sponsoring_level_key` | p_level: text |
+| `staff_users_without_admin` | args: ? |
 | `stage_editor_orgs` | p_person_id: uuid |
 | `start_sync_job` | p_direction: text, p_job_type: text, p_system: text, p_triggered_by: text |
 | `submit_deliverable` | p_answers: jsonb, p_asset_ids: uuid[], p_deliverable_id: uuid |
@@ -1889,12 +1898,15 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `sync_deliverables` | p_org_edition_id: uuid |
 | `sync_granted_roles` | p_org_id: uuid |
 | `sync_ticket_allocations` | p_org_edition_id: uuid |
+| `team_members` | args: ? |
+| `team_role_keys` | args: ? |
 | `template_applies` | p_org_edition_id: uuid, p_template: public.deliverable_template |
 | `ticket_allocations_admin` | p_edition_id: uuid |
 | `ticket_allocations_of_orgs` | p_event_id: uuid, p_org_ids: uuid[] |
 | `ticket_allocations_pending` | args: ? |
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
 | `unassign_shift` | p_assignment_id: uuid |
+| `unassigned_speakers` | p_edition_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
 | `update_my_speaker_profile` | p_data: jsonb |
 | `update_my_volunteer_profile` | p_data: jsonb, p_edition_id: uuid |
