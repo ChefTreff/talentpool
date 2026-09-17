@@ -184,7 +184,8 @@
     "invalid_pass_type_choice": "Diesen Pass-Typ gibt es nicht. Nur Talent oder Startup.",
     "rate_limited": "Zu viele Fragen in kurzer Zeit. Probier es später noch einmal.",
     "empty_query": "Die Frage ist leer.",
-    "no_slot": "Diese Frage wurde nicht gestellt — bitte über das Eingabefeld fragen."
+    "no_slot": "Diese Frage wurde nicht gestellt — bitte über das Eingabefeld fragen.",
+    "invalid_locale": "Diese Sprache gibt es nicht."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -2225,6 +2226,36 @@
       "close": "Schließen",
       "saved": "Gespeichert"
     }
+  },
+  "adminMailTemplates": {
+    "title": "Mail",
+    "lead": "Vorlagen bearbeiten und den Versand nachvollziehen.",
+    "tabLog": "Protokoll",
+    "tabTemplates": "Vorlagen",
+    "noAccessTitle": "Kein Zugriff auf die Vorlagen",
+    "noAccessBody": "Vorlagen gehen an alle Empfänger — das darf nur die Admin-Rolle ändern.",
+    "empty": "Es gibt noch keine Vorlage.",
+    "subject": "Betreff",
+    "body": "Text",
+    "bodyHint": "Markdown. Platzhalter in doppelten geschweiften Klammern werden beim Versand ersetzt.",
+    "placeholders": "Platzhalter",
+    "newPlaceholderWarning": "Ein neuer Platzhalter bleibt beim Versand leer, wenn der Code ihn nicht kennt. Bitte vorher prüfen.",
+    "queuedWarning": "Mails warten gerade auf diese Vorlage. Eine Änderung wirkt auch auf sie — das ist gewollt, damit eine Korrektur noch greift.",
+    "waiting": "wartend",
+    "inactive": "Abgeschaltet",
+    "preview": "Vorschau",
+    "previewTitle": "So sieht die Mail aus",
+    "previewHint": "Gerendert mit denselben Funktionen wie der Versand; Platzhalter stehen als Beispiel in Klammern.",
+    "history": "Frühere Fassungen",
+    "historyTitle": "Frühere Fassungen",
+    "historyHint": "Aus dem Protokoll. Der Text zeigt, was **vor** der jeweiligen Änderung dastand.",
+    "historyEmpty": "Diese Vorlage wurde im Portal noch nicht geändert.",
+    "restore": "Diese Fassung zurückholen",
+    "restored": "Zurückgeholt.",
+    "saved": "Gespeichert.",
+    "version": "Version",
+    "changed": "geändert",
+    "sent30d": "Mails in 30 Tagen"
   },
   "adminSpeaker": {
     "title": "Speaker",

@@ -68,6 +68,8 @@ Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Edito
 
 | `v5_kb_search_rueckfall.sql` | 0109 (20260917102942) | Eine Frage, deren Woerter alle vorkommen, trifft weiterhin genau den Abschnitt; eine Frage mit einem Wort, das im Artikel nicht steht („geliefert" statt „einsenden"), findet ihn jetzt trotzdem — vor 0109 war das Ergebnis leer (Befund aus dem Walkthrough an echten Artikeln); der richtige Artikel steht oben; Unsinn findet auch als ODER nichts; die Zielgruppe gilt im Rueckfall genauso. |
 
+| `v6_mail_vorlagen.sql` | 0112 (Vorschlag) | Ohne Admin weder schreiben noch lesen (42501, die Liste nennt Betreff und Text); unbekannte Sprache 22023 `invalid_locale`; leerer Betreff oder Text 22023 `fields_required` (der Versand naehme die Vorlage sonst und verschickte eine leere Mail); anlegen und aendern, Version steigt, ein weggelassenes Feld bleibt stehen; **die Zahl der wartenden Mails steht in der Zeile** — wer den Text aendert, aendert die wartenden Mails mit; die Historie liefert den vollen Text vor der Aenderung, `restore_mail_template` holt ihn als neue Fassung zurueck. |
+
 Simulation eines eingeloggten Nutzers innerhalb der Transaktion:
 `perform set_config('request.jwt.claims', json_build_object('sub', <auth_uid>, 'role', 'authenticated', 'email', <email>)::text, true);`
 

@@ -184,7 +184,8 @@
     "invalid_pass_type_choice": "No such pass type. Talent or startup only.",
     "rate_limited": "Too many questions in a short time. Please try again later.",
     "empty_query": "The question is empty.",
-    "no_slot": "That question was not asked — please use the input field."
+    "no_slot": "That question was not asked — please use the input field.",
+    "invalid_locale": "No such language."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -2225,6 +2226,36 @@
       "close": "Close",
       "saved": "Saved"
     }
+  },
+  "adminMailTemplates": {
+    "title": "Mail",
+    "lead": "Edit templates and follow the sending.",
+    "tabLog": "Log",
+    "tabTemplates": "Templates",
+    "noAccessTitle": "No access to the templates",
+    "noAccessBody": "Templates go to every recipient — only the admin role may change them.",
+    "empty": "There is no template yet.",
+    "subject": "Subject",
+    "body": "Text",
+    "bodyHint": "Markdown. Placeholders in double curly braces are filled in when sending.",
+    "placeholders": "Placeholders",
+    "newPlaceholderWarning": "A new placeholder stays empty when sending if the code does not know it. Please check first.",
+    "queuedWarning": "mails are waiting on this template. A change affects them too — on purpose, so a correction still lands.",
+    "waiting": "waiting",
+    "inactive": "Switched off",
+    "preview": "Preview",
+    "previewTitle": "This is how the mail looks",
+    "previewHint": "Rendered with the same functions as the sending; placeholders appear as examples in brackets.",
+    "history": "Earlier versions",
+    "historyTitle": "Earlier versions",
+    "historyHint": "From the log. The text shows what stood there **before** each change.",
+    "historyEmpty": "This template has not been changed in the portal yet.",
+    "restore": "Restore this version",
+    "restored": "Restored.",
+    "saved": "Saved.",
+    "version": "Version",
+    "changed": "changed",
+    "sent30d": "mails in 30 days"
   },
   "adminSpeaker": {
     "title": "Speakers",
