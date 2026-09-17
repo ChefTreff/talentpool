@@ -78,6 +78,7 @@ Die Grundformen der Division stehen als Token in `globals.css`, damit keine Komp
 | `--ct-shape-triangle` | Dreieck | Porträt-Maske (`PersonCard`), Leerzustand, Hintergrundfläche |
 | `--ct-tilt-mask` / `--ct-tilt-outline` | −16,6° / +4,7° | die zwei Winkel der Porträt-Maske (`3:20146`). Maske und Umriss stehen gegeneinander; eine einzelne gekippte Fläche wirkt flach |
 | `--ct-gradient-shape` | 110°, Akzent 0 % → 60 % | Formen-Verlauf laut A2 (`3:20352`). **Nur auf Navy, nie hinter Text** |
+| `--ct-gradient-shape-light` | 110°, `accent-soft` → `accent` | dieselbe Form auf **hellem** Grund: `PersonCard`, `PhotoCard`. Der Verlauf aus A2 blendet aus Transparenz ein und verschwindet auf Weiß fast ganz — genau der dünne Eindruck, den v2 abstellen soll |
 | `--ct-gradient-hero` | Navy → Navy + 22 % Akzent | Fläche des `HeroBand`. Hellste Stelle `#1C2A5A`: Off-White darauf 12,5:1, Hilfstext 5,9:1, Highlight-Pink 6,3:1 |
 
 Ein geclipptes Element trägt **keinen Rand**. Wo eine Form eine Kontur braucht (`PersonCard`-Umriss, offener Schritt in `StepBar`), steht sie als SVG-`polygon` mit `stroke`, nicht als `clip-path` — sonst müsste die Komponente die Hintergrundfarbe der Seite kennen, und die ist auf `bg-surface` eine andere als auf `bg-canvas`.

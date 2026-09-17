@@ -38,13 +38,15 @@ export function PersonCard({
   return (
     <div className={cn("flex flex-col items-center text-center", className)}>
       <div className="relative h-[168px] w-[168px]">
-        {/* Verlaufsfläche hinter dem Porträt: der Akzent blendet aus
-            transparent ein (A2, 110°), gekippt im Masken-Winkel. */}
+        {/* Verlaufsfläche hinter dem Porträt, gekippt im Masken-Winkel.
+            Auf hellem Grund die helle Fassung des Verlaufs (Soft → voll):
+            der Navy-Verlauf aus A2 blendet aus transparent ein und
+            verschwände hier fast ganz. */}
         <span
           aria-hidden
           className="absolute inset-0"
           style={{
-            background: "var(--ct-gradient-shape)",
+            background: "var(--ct-gradient-shape-light)",
             clipPath: "var(--ct-shape-triangle)",
             transform: "rotate(var(--ct-tilt-mask))",
           }}
@@ -60,7 +62,7 @@ export function PersonCard({
         ) : (
           <span
             aria-hidden
-            className="absolute inset-x-2 bottom-0 top-3 flex items-end justify-center bg-accent-soft pb-5 ct-band-title text-accent-deep"
+            className="absolute inset-x-2 bottom-0 top-3 flex items-end justify-center bg-accent pb-5 ct-band-title text-white"
             style={{ clipPath: "var(--ct-shape-triangle)" }}
           >
             {initiale}

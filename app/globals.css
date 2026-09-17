@@ -99,6 +99,16 @@
     color-mix(in srgb, var(--ct-accent) 0%, transparent) 0%,
     color-mix(in srgb, var(--ct-accent) 60%, transparent) 100%
   );
+  /* Derselbe Winkel auf hellem Grund. Der Verlauf oben ist für Navy gemacht:
+     er blendet aus **transparent** ein und verschwindet auf Weiß fast ganz —
+     genau der dünne, blasse Eindruck, den das Design-System v2 abstellen soll.
+     Auf Hell läuft er deshalb von der Soft-Stufe zur vollen Akzentfarbe.
+     Verwendung: Porträt-Maske und Formflächen auf `bg-canvas`/`bg-surface`. */
+  --ct-gradient-shape-light: linear-gradient(
+    110deg,
+    var(--ct-accent-soft) 0%,
+    var(--ct-accent) 100%
+  );
   /* Hero-Band: Navy mit einem Hauch Akzent von rechts, wie die Website-Heros.
      Kein Vollverlauf über die Seite (Verbotsliste) — ein Band, kein Hero. */
   --ct-gradient-hero: linear-gradient(

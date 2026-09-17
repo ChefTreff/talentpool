@@ -39,7 +39,7 @@ export function PhotoCard({
 }) {
   return (
     <div className={cn("flex flex-col", className)}>
-      <div className="relative h-[180px] overflow-hidden rounded-ct-md bg-navy">
+      <div className="relative h-[180px] overflow-hidden rounded-ct-md bg-accent-soft">
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- Bilder liegen in Supabase Storage, ohne feste Größe.
           <img src={imageUrl} alt="" className="h-full w-full object-cover" />
@@ -48,7 +48,7 @@ export function PhotoCard({
             aria-hidden
             className="absolute -right-6 -top-10 h-[200px] w-[200px]"
             style={{
-              background: "var(--ct-gradient-shape)",
+              background: "var(--ct-gradient-shape-light)",
               clipPath: "var(--ct-shape-triangle)",
               transform: "rotate(var(--ct-tilt-mask))",
             }}

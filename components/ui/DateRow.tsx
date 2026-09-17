@@ -72,7 +72,10 @@ export function DateRow({
         )}
       </div>
 
-      <div className="min-w-0 flex-1">
+      {/* `basis-48` statt nur `flex-1`: bleiben weniger als 12 rem übrig,
+          bricht der Status in die nächste Zeile, statt den Titel auf drei
+          Zeilen zu quetschen. Genau das passierte bei 375 px. */}
+      <div className="min-w-0 flex-1 basis-48">
         <p className="ct-label text-ink">{title}</p>
         {subtitle && <p className="ct-help mt-0.5">{subtitle}</p>}
       </div>

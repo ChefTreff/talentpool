@@ -32,7 +32,7 @@ export default async function LoginPage({
           auf — Arbeitsflächen sind hell (Skill /portal-design). */}
       <main
         id="content"
-        className="relative isolate flex flex-1 flex-col bg-navy px-6 py-16"
+        className="relative isolate flex flex-1 flex-col justify-center bg-navy px-6 py-16"
       >
         <BrandBackdrop />
         <div className="mx-auto w-full max-w-[640px]">
