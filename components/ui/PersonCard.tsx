@@ -1,21 +1,19 @@
 import type { ReactNode } from "react";
 import { cn } from "./cn";
+import { PortraitShape } from "./PortraitShape";
 
 /**
  * Eine Person, wie die Marke sie zeigt: Porträt in einer Dreiecks-Maske mit
  * Akzentverlauf, darunter Rollen-Chip, Name in Versalien, Organisation.
  *
- * Marken-Referenz `3:20146`. Der Aufbau dort ist genauer, als er aussieht:
- * die Maske ist ein Dreieck, das um −16,6° gekippt ist, und **darüber** liegt
- * ein zweites, nur umrissenes Dreieck mit +4,7°. Die Spannung entsteht aus
- * der Differenz der Winkel; eine einzelne gekippte Fläche wirkt flach. Beide
- * Winkel stehen als Token in `globals.css`.
+ * Die Form selbst steht in `PortraitShape` — sie ist seit dem 17.09.2026 für
+ * **alle** Personen dieselbe (Konrad), auch für Ansprechpartner und Team.
  *
  * Wann diese Karte, wann `ContactCard`? Diese hier ist die **repräsentative**
  * Fassung: Speaker-Listen, Jury, Team — überall, wo die Person das Thema ist.
- * `ContactCard` ist die **dichte** Fassung mit rundem Foto und Mail und
- * Telefon als Links: „wer ist für mich zuständig". Beides nebeneinander auf
- * einer Seite wäre ein Fehler.
+ * `ContactCard` ist die **dichte** Fassung mit Mail und Telefon als Links:
+ * „wer ist für mich zuständig". Sie unterscheiden sich in der Dichte, nicht
+ * in der Form. Beides nebeneinander auf einer Seite wäre ein Fehler.
  */
 export function PersonCard({
   name,
@@ -34,62 +32,9 @@ export function PersonCard({
   action?: ReactNode;
   className?: string;
 }) {
-  const initiale = name.trim()[0]?.toUpperCase() ?? "?";
   return (
     <div className={cn("flex flex-col items-center text-center", className)}>
-      <div className="relative h-[168px] w-[168px]">
-        {/* Verlaufsfläche hinter dem Porträt, gekippt im Masken-Winkel.
-            Auf hellem Grund die helle Fassung des Verlaufs (Soft → voll):
-            der Navy-Verlauf aus A2 blendet aus transparent ein und
-            verschwände hier fast ganz. */}
-        <span
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background: "var(--ct-gradient-shape-light)",
-            clipPath: "var(--ct-shape-triangle)",
-            transform: "rotate(var(--ct-tilt-mask))",
-          }}
-        />
-        {photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- Bilder liegen in Supabase Storage, ohne feste Größe.
-          <img
-            src={photoUrl}
-            alt=""
-            className="absolute inset-x-2 bottom-0 top-3 object-cover"
-            style={{ clipPath: "var(--ct-shape-triangle)" }}
-          />
-        ) : (
-          <span
-            aria-hidden
-            className="absolute inset-x-2 bottom-0 top-3 flex items-end justify-center bg-accent pb-5 ct-band-title text-white"
-            style={{ clipPath: "var(--ct-shape-triangle)" }}
-          >
-            {initiale}
-          </span>
-        )}
-        {/* Das Umriss-Dreieck im zweiten Winkel. Als SVG, nicht als
-            `clip-path`: ein geclipptes Element trägt keinen Rand, und zwei
-            geschachtelte Flächen müssten die Hintergrundfarbe der Seite
-            kennen — auf `bg-surface` und `bg-canvas` wäre sie verschieden. */}
-        <svg
-          aria-hidden
-          focusable="false"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="absolute inset-0 h-full w-full text-accent"
-          style={{ transform: "rotate(var(--ct-tilt-outline))" }}
-        >
-          <polygon
-            points="50,1 99,99 1,99"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1"
-            vectorEffect="non-scaling-stroke"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
+      <PortraitShape name={name} photoUrl={photoUrl} size="lg" />
 
       {role && (
         <span className="mt-4 inline-flex items-center rounded-ct-sm bg-accent px-2.5 py-1 ct-label text-white">

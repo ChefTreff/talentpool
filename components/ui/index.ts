@@ -39,3 +39,4 @@ export { PhotoCard } from "./PhotoCard";
 export { TicketCard } from "./TicketCard";
 export { Accordion, AccordionItem } from "./Accordion";
 export { DateRow, DateList } from "./DateRow";
+export { PortraitShape } from "./PortraitShape";

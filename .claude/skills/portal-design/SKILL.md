@@ -31,7 +31,7 @@ Der Styleguide beschreibt Marketing (Navy-Vollfläche, zentriert, 82-px-Versalie
 | Alles zentriert | Linksbündig; zentriert nur Login/Welcome/Leerzustand |
 | H1 82 px Versalien | `.ct-h1` = 28/32 (mobil 24/28), einmal pro Seite |
 | Pfeil-Button + Laica | nur Marketing-CTA; Arbeits-Buttons = `<Button>` |
-| Highlight-Wort kursiv im Highlight-Pink (`text-highlight`) auf Navy | nur Login/Welcome/Begrüßung, **ein** Wort; nie auf hellem Grund |
+| Highlight-Wort kursiv im Highlight-Pink (`text-highlight`) auf Navy | nur Login/Welcome/Begrüßung, **ein** Wort; nie auf hellem Grund. Als Fläche zusätzlich `<Badge tone="highlight">` für knappe Kontingente — ebenfalls nur auf dunklem Grund |
 | Dreiecke, Scribbles, Raport-Typo | dezent auf Login/Welcome/Empty-State; nie hinter Text oder Tabellen |
 
 ## Die Regeln
@@ -39,7 +39,7 @@ Der Styleguide beschreibt Marketing (Navy-Vollfläche, zentriert, 82-px-Versalie
 1. **Eine primäre Aktion pro Screen.** Alles Weitere ist `secondary` oder `ghost`. Progressive Disclosure statt Vollformular.
 2. **Nie rohe Hex-Werte, nie rohe px-Abstände.** Nur Token-Klassen (`bg-surface`, `text-muted`, `border-border-strong`, `rounded-ct-md`) und das 8-pt-Raster. Kein neuer Radius, keine neue Schriftgröße, keine neue Graustufe — siehe `referenzen/tokens.md`.
 3. **Nichts nachbauen, was es gibt.** Erst `components/ui/index.ts` lesen. Button, Input, Textarea, Select, Field, Card, CardHeader, StatCard, Badge, Table, Drawer, Modal, ConfirmDialog, Toast, EmptyState, PageHeader, Stepper sind da. Fehlt etwas, kommt es **dorthin** — nicht in die Seite.
-4. **Zustand in Form *und* Farbe.** `<Badge>` trägt immer Text; Farbe allein ist nie die Information.
+4. **Zustand in Form *und* Farbe.** `<Badge>` trägt immer Text; Farbe allein ist nie die Information. Zeilen sind 44 hoch, mit Bedienelementen 56 (`<Tr controls>`). Personen tragen überall dieselbe Dreiecks-Form (`PortraitShape`), groß oder dicht.
 5. **Typo nur über die Rollen** `.ct-display .ct-h1 .ct-h2 .ct-h3 .ct-eyebrow .ct-label .ct-small .ct-help .ct-wordmark .ct-laica .ct-highlight .ct-link` (keine rohen `text-[…px]`; fehlt eine Größe, kommt sie als Rolle nach `globals.css`). Versalien nur H1/H2/Eyebrow. `.ct-laica` und `.ct-highlight` höchstens **einmal pro Screen** und nie für UI-Text.
 6. **Bewegung nur als Feedback, ≤ 200 ms**, ausschließlich `transition-colors`/`opacity`. Keine dekorative Animation, kein Parallax, kein Auto-Karussell. `prefers-reduced-motion` gilt global.
 7. **Tastatur und Fokus.** Sichtbarer Fokus bleibt (nie `outline-none` ohne Ersatz), Touch-Ziele ≥ 44 px, Dialoge über `<Modal>`/`<Drawer>` (natives `<dialog showModal>` — Fokusfalle vom Browser).
@@ -56,6 +56,7 @@ Verlaufs-Hero über die ganze Seite · lila Farbverlauf als Fläche · Emoji als
 Seitenaufbau, Formular, Tabelle, Wizard, Leerzustand, Login/Welcome, Sidebar: `referenzen/muster.md`.
 Marke, Formensprache, Divisionsfarben, Logo-Varianten: `referenzen/marke.md`.
 Tokens mit geprüften Kontrastwerten: `referenzen/tokens.md`.
+Konrads acht Entscheidungen vom 17.09.2026 (Hero-Band überall, eine Porträt-Form, Pink-Chip, Navy-Leiste, Rechtecke, Zeilenhöhen): `docs/design-briefing.md` §v0.7.
 Die 13 Website-Blöcke (Desktop und Mobil), ihre Maße und die Übersetzung in Portal-Bausteine: `referenzen/website-bloecke.md` — **vor jeder neuen Seite und jeder neuen Komponente lesen.** Die Website ist der Entwerfer: Aufbau und Rhythmus kommen von dort, die Fläche bleibt hell.
 
 ## Vor dem PR
