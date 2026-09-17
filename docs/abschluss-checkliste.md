@@ -134,3 +134,4 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **Shuttle-Unternehmen:** Exportformat der Fahrtenliste abstimmen (ADM-028) — Konrad/Hospitality.
 - ☐ **Company-Tour-Zeiten 2027** im Admin anlegen, sobald ADM-026 steht — Programm-Team.
 - ☐ **LinkedIn-Post-Vorlagen und Bühnenfoto-Prozess** (wer fotografiert, wer lädt wann hoch) für SPK-019/ADM-027 festlegen — Marketing.
+- ☐ **Datenschutzerklärung fürs Portal prüfen (QS-018, P1):** Impressum und Datenschutz verlinken ab PR #53 auf `chef-treff.de/impressum/` und `/datenschutzerklaerung/` (Konrad, 17.09.). Offen: deckt die Website-Erklärung die Verarbeitung im Portal ab — Magic-Link-Login, Supabase (Frankfurt), Vercel (fra1), Resend, Anthropic (Assistent), Speicherfristen, Consent-Set? Wenn nicht: eigener Portal-Abschnitt, Text vom Anwalt (siehe Consent-Agent/Anwaltsprüfung oben), Seite baut der Chat Admin & Schnittstellen — Konrad + Anwalt.

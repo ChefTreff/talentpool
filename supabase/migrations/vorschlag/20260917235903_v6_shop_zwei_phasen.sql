@@ -1,6 +1,9 @@
 -- 0112 · Welle 6 B2: Messeshop — zwei Bestellphasen, Zugang nur mit Messestand,
 --         Lunch-Paket aus dem Shop herausgelöst (PART-037, PART-038, PART-049).
 --
+-- **Setzt 0110 voraus** (`product.format_key`): `org_has_booth` entscheidet über den Schlüssel,
+-- welches Produkt als Messestand zählt. Ohne 0110 fehlt die Spalte und die Funktion scheitert.
+--
 -- Anlass: Konrads Walkthrough vom 17.09. (Abgleich `docs/abgleich/messeshop.md`, Antworten 9 und
 -- 12) und seine Antwort auf die Rückfrage der Build-Session, dazu Arbeitsauftrag Welle 6 §B, B2
 -- und A4.2.

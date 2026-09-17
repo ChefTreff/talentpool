@@ -11,10 +11,16 @@
 --      Schlüssel: wer sie bucht, kann die neun Tour-Fragen nicht beantworten;
 --   06 `partner_overview` gibt `format_key` je gebuchtem Produkt heraus —
 --      ohne das müsste die Oberfläche die SKU-Liste doch wieder selbst kennen;
+--   06b dieselbe Übersicht liefert die Beschreibung aus der **Organisation**
+--      (seit `20260917183022`), nicht mehr aus der Edition — belegt, dass diese
+--      Fassung auf dem Live-Stand aufsetzt und nicht auf einer älteren;
 --   07 ein Partner **ohne** das Produkt bekommt den Schlüssel auch nicht
 --      (die Forderung aus dem Review: die Seite verschwindet);
 --   08 `upsert_product` weist einen erfundenen Schlüssel mit `invalid_format`
 --      ab statt mit einem nackten Constraint-Fehler;
+--   08b/c dieselbe Funktion prüft weiterhin `pass_type` und `grants_role` — die
+--      Fassung setzt auf dem Live-Stand auf und hat die beiden nicht verloren
+--      (Befund aus dem Review dieses PRs);
 --   09 leerer Text löscht die Zuordnung (sonst ließe sie sich über die
 --      Oberfläche nie wieder entfernen), und ein Teilupdate ohne das Feld
 --      lässt sie stehen;
@@ -31,7 +37,6 @@ begin
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary
    where p.auth_user_id is not null limit 1;
   delete from role_assignment where person_id = v_pid;
-  delete from staff_user where auth_user_id = v_uid;
   select e.id into v_ed from event e where e.is_edition and e.slug = 'fls27';
   perform set_config('request.jwt.claims',
     json_build_object('sub', v_uid, 'role', 'authenticated', 'email', v_email)::text, true);
@@ -91,6 +96,17 @@ begin
     case when v_ov #>> '{products,0,format_key}' = 'masterclass' then 'masterclass (richtig)'
          else 'unerwartet ' || coalesce(v_ov #>> '{products,0,format_key}', 'leer') end);
 
+  -- 06b Die Beschreibung kommt aus der Organisation, nicht aus der Edition.
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'area_lead_partner', 'global');
+  update organization set description_de = 'ZZ Beschreibung der Organisation' where id = v_org;
+  delete from role_assignment where person_id = v_pid and role = 'area_lead_partner';
+  v_ov := partner_overview(v_org, v_ed);
+  insert into t_res values ('06b_beschreibung_aus_org',
+    case when v_ov #>> '{org,description_de}' = 'ZZ Beschreibung der Organisation'
+          and v_ov #>> '{edition,description_de}' = 'ZZ Beschreibung der Organisation'
+         then 'Org-Beschreibung in beiden Bloecken (richtig)'
+         else 'unerwartet ' || coalesce(v_ov #>> '{org,description_de}', 'leer') end);
+
   -- 07 Was die Org nicht gebucht hat, taucht auch nicht auf — die Seite verschwindet.
   select count(*)::integer into v_n
     from jsonb_array_elements(v_ov->'products') p
@@ -105,6 +121,20 @@ begin
     insert into t_res values ('08_unbekannter_schluessel', 'ERLAUBT (BUG)');
   exception when others then
     insert into t_res values ('08_unbekannter_schluessel', 'abgewiesen ' || sqlstate || ' ' || sqlerrm);
+  end;
+
+  -- 08b Die Live-Fassung ist erhalten: pass_type und grants_role gehen nicht verloren.
+  begin
+    perform upsert_product(jsonb_build_object('sku', 'I-33783', 'pass_type', 'gibt_es_nicht'));
+    insert into t_res values ('08b_pass_type_pruefung', 'ERLAUBT (BUG): Pruefung verloren');
+  exception when others then
+    insert into t_res values ('08b_pass_type_pruefung', 'abgewiesen ' || sqlstate || ' ' || sqlerrm);
+  end;
+  begin
+    perform upsert_product(jsonb_build_object('sku', 'I-33783', 'grants_role', 'gibt_es_nicht'));
+    insert into t_res values ('08c_grants_role_pruefung', 'ERLAUBT (BUG): Pruefung verloren');
+  exception when others then
+    insert into t_res values ('08c_grants_role_pruefung', 'abgewiesen ' || sqlstate || ' ' || sqlerrm);
   end;
 
   -- 09 Leeren löscht, Teilupdate lässt stehen

@@ -4,22 +4,66 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { Badge } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card, StatCard } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { HeroBand, BandStat } from "@/components/ui/HeroBand";
+import { NextStepBanner } from "@/components/ui/NextStepBanner";
+import { DateRow, DateList } from "@/components/ui/DateRow";
 import { InfoList, type InfoEintrag } from "@/components/ui/InfoList";
+import { PortalFooter } from "@/components/layout/PortalFooter";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadEditionInfos, loadMyContacts } from "@/components/kontakt/load";
 import { Anfahrt } from "@/components/kontakt/Anfahrt";
 import { OnboardingNudge } from "./OnboardingNudge";
 import { getPartnerScope } from "./org";
 import { canEditOnboarding, orgLabel, type PartnerOverview } from "./types";
-import { Countdown } from "@/components/ui/Countdown";
 
 export const dynamic = "force-dynamic";
 
 const PARTNER_MAILBOX = "partner@chef-treff.de";
 
+/**
+ * Die nächsten vier Fristen, überfällige zuerst — sie sind der Grund, aus dem
+ * man diese Seite morgens öffnet.
+ *
+ * Ausserhalb der Komponente, weil `Date.now()` im Rumpf einer Komponente
+ * unrein ist (`react-hooks/purity`): das Ergebnis hängt vom Zeitpunkt des
+ * Renderns ab. Die Seite ist `force-dynamic`, rendert also je Aufruf neu —
+ * hier ist der Zeitbezug gewollt und steht deshalb an einer Stelle, an der
+ * man ihn sieht.
+ */
+function fristenAuswahl(deadlines: PartnerOverview["deadlines"]) {
+  const jetzt = Date.now();
+  const mitFrist = deadlines.filter((d) => d.due_at);
+  const ueberfaellig = mitFrist
+    .filter((d) => new Date(d.due_at!).getTime() <= jetzt)
+    .sort((a, b) => b.due_at!.localeCompare(a.due_at!));
+  const kommend = mitFrist
+    .filter((d) => new Date(d.due_at!).getTime() > jetzt)
+    .sort((a, b) => a.due_at!.localeCompare(b.due_at!));
+  return {
+    fristen: [...ueberfaellig, ...kommend].slice(0, 4),
+    naechste: kommend[0] ?? null,
+    jetzt,
+  };
+}
+
+/**
+ * Die Startseite des Partner-Bereichs — **Archetyp D · Übersicht**
+ * (`referenzen/muster.md`).
+ *
+ * Sie beantwortet vier Fragen in dieser Reihenfolge: wo bin ich, was ist zu
+ * tun, wie steht es, wen frage ich. Deshalb das `HeroBand` oben (wo),
+ * darunter genau ein `NextStepBanner` (was), dann die Kennzahlen (wie), dann
+ * Fristen und Ansprechpartner (wen).
+ *
+ * Der Titel im Band ist der **Name der Organisation**, kein Werbespruch. Die
+ * Highlight-Regel der Marke („ein Wort in Pink") gilt für Login und Welcome;
+ * ein Firmenname mit einem eingefärbten Wort darin wäre Unfug. Die Marke
+ * kommt hier aus Fläche, Formen und Typografie.
+ */
 export default async function PartnerDashboard() {
   await requireArea("partner", "/partner");
   const { locale, t } = await getI18n("de");
@@ -66,9 +110,9 @@ export default async function PartnerDashboard() {
   }
 
   const categories = vgroup(vocab, "product_category");
-  const dateTime = new Intl.DateTimeFormat(t.meta.dateLocale, {
-    dateStyle: "medium",
-    timeStyle: "short",
+  const kurzDatum = new Intl.DateTimeFormat(t.meta.dateLocale, {
+    day: "numeric",
+    month: "short",
   });
   const productName = (p: { name_de: string | null; name_en: string | null }) =>
     (locale === "en" ? p.name_en : p.name_de) ?? p.name_de ?? p.name_en ?? "—";
@@ -94,15 +138,14 @@ export default async function PartnerDashboard() {
     o.ticket_allocations.every((a) => a.status === "pending_vivenu");
   const ticketsBroken = o.ticket_allocations.some((a) => a.status === "error");
   const status = o.edition.onboarding_status;
-  // Fristen, die noch kommen — vergangene helfen auf dem Dashboard nicht.
-  const upcoming = o.deadlines
-    .filter((d) => d.due_at && new Date(d.due_at) > new Date())
-    .slice(0, 4);
+  const onboardingOffen = status !== "filled" && status !== "call_done";
+  const darfOnboarding = canEditOnboarding(o.roles, o.team);
+
+  const { fristen, naechste, jetzt } = fristenAuswahl(o.deadlines);
   /**
    * Das Lunch-Paket ist ein Angebot, kein Muss (PART-049). Der Hinweis steht
    * hier, solange seine Frist läuft — ist sie vorbei, hilft er niemandem mehr.
-   * Ob schon bestellt wurde, steht in der Checkliste; das noch einmal zu laden,
-   * wäre eine zweite Abfrage für einen Satz.
+   * Konrad: „super wichtig, dass alle Partner das sehen."
    */
   const lunchOffen = o.deadlines.some(
     (d) => d.key === "lunch_package" && d.due_at && new Date(d.due_at) > new Date(),
@@ -112,7 +155,7 @@ export default async function PartnerDashboard() {
     <>
       {/* Einmal, nicht bei jedem Besuch (F12.2, korrigiert nach Konrads
           Einwand): eine Weiterleitung auf der Uebersicht ist eine Sperre. */}
-      {o.edition.onboarding_status === "invited" && canEditOnboarding(o.roles, o.team) && (
+      {status === "invited" && darfOnboarding && (
         <OnboardingNudge
           orgEditionId={current.edition_id ?? current.org_id}
           title={t.partner.nudgeTitle}
@@ -122,19 +165,58 @@ export default async function PartnerDashboard() {
           href="/partner/onboarding"
         />
       )}
-      <PageHeader
+
+      <HeroBand
+        eyebrow={`${t.partner.bandEyebrow}${current.edition_name ? ` · ${current.edition_name}` : ""}`}
         title={orgLabel(o.org)}
-        description={`${t.partner.lead} · ${current.edition_name ?? ""}`}
+        lead={t.partner.bandLead}
+        aside={
+          <BandStat
+            value={naechste ? kurzDatum.format(new Date(naechste.due_at!)) : "—"}
+            label={t.partner.bandStatLabel}
+            hint={naechste ? deadlineLabel(naechste) : t.partner.bandStatNone}
+          />
+        }
       />
 
-      {status !== "filled" && status !== "call_done" && (
-        <Card className="mb-6 border-accent-soft bg-accent-soft">
-          <h2 className="ct-h3 text-accent-deep">{t.partner.onboardingOpenTitle}</h2>
-          <p className="ct-help mt-1 text-accent-deep">{t.partner.onboardingOpenBody}</p>
-          <Link href="/partner/onboarding" className="ct-link mt-3 inline-block">
-            {t.partner.onboardingStart}
-          </Link>
-        </Card>
+      {/* Genau **ein** nächster Schritt. Fehlen die Stammdaten, ist das der
+          Schritt — die Checkliste kann warten, sie hängt daran. */}
+      {onboardingOffen && darfOnboarding ? (
+        <NextStepBanner
+          label={t.partner.nextStepLabel}
+          title={t.partner.nextStepOnboarding}
+          hint={t.partner.nextStepOnboardingHint}
+          action={
+            <ButtonLink href="/partner/onboarding" variant="onAccent">
+              {t.partner.nextStepOnboardingAction}
+            </ButtonLink>
+          }
+        />
+      ) : o.checklist.open > 0 ? (
+        <NextStepBanner
+          label={t.partner.nextStepLabel}
+          title={t.partner.nextStepOpen
+            .replace("{open}", String(o.checklist.open))
+            .replace("{total}", String(o.checklist.total))}
+          hint={
+            o.checklist.overdue > 0
+              ? t.partner.nextStepOverdue.replace("{overdue}", String(o.checklist.overdue))
+              : undefined
+          }
+          action={
+            <ButtonLink href="/partner/checkliste" variant="onAccent">
+              {t.partner.nextStepAction}
+            </ButtonLink>
+          }
+        />
+      ) : (
+        o.checklist.total > 0 && (
+          <NextStepBanner
+            label={t.partner.nextStepLabel}
+            title={t.partner.nextStepDone}
+            hint={t.partner.nextStepDoneHint}
+          />
+        )
       )}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -165,6 +247,39 @@ export default async function PartnerDashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
+        {/* Fristen als Zeilen mit Datumsspalte — überfällige zuerst und mit
+            Balken. Vorher standen sie als Absatz mit Datum darin, und man
+            sah nicht, was brennt (Termin-Zeile, `319:692`). */}
+        <Card className="p-0">
+          <div className="flex items-center justify-between gap-4 border-b px-4 py-3">
+            <h2 className="ct-h3 text-ink">{t.partner.deadlinesTitle}</h2>
+            <Link href="/partner/checkliste" className="ct-link ct-small">
+              {t.partner.deadlinesAll}
+            </Link>
+          </div>
+          {fristen.length === 0 ? (
+            <p className="ct-help px-4 py-6">{t.partner.deadlinesNone}</p>
+          ) : (
+            <DateList>
+              {fristen.map((d) => {
+                const spaet = new Date(d.due_at!).getTime() <= jetzt;
+                return (
+                  <DateRow
+                    key={d.key}
+                    date={kurzDatum.format(new Date(d.due_at!))}
+                    note={spaet ? t.partner.deadlineOverdue : undefined}
+                    overdue={spaet}
+                    title={deadlineLabel(d)}
+                    subtitle={
+                      (locale === "en" ? d.description_en : d.description_de) ?? undefined
+                    }
+                  />
+                );
+              })}
+            </DateList>
+          )}
+        </Card>
+
         <Card>
           <h2 className="ct-h3 text-ink">{t.partner.checklistTitle}</h2>
           <p className="ct-help mt-1">
@@ -218,31 +333,6 @@ export default async function PartnerDashboard() {
                 {t.partner.lunchCardAction}
               </Link>
             </div>
-          )}
-        </Card>
-
-        <Card>
-          <h2 className="ct-h3 text-ink">{t.partner.deadlinesTitle}</h2>
-          {upcoming.length === 0 ? (
-            <p className="ct-help mt-1">{t.partner.deadlinesNone}</p>
-          ) : (
-            <ul className="mt-2 flex flex-col gap-2">
-              {upcoming.map((d) => (
-                <li key={d.key} className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="ct-label text-ink">{deadlineLabel(d)}</span>
-                  <span className="ct-help tabular-nums">
-                    {dateTime.format(new Date(d.due_at!))}
-                    <Countdown
-                      separator
-                      dueAt={d.due_at!}
-                      days={t.partner.countdownDays}
-                      hours={t.partner.countdownHours}
-                      soon={t.partner.countdownSoon}
-                    />
-                  </span>
-                </li>
-              ))}
-            </ul>
           )}
         </Card>
 
@@ -305,6 +395,13 @@ export default async function PartnerDashboard() {
           wikiLabel={t.partner.locationWikiHint}
         />
       </div>
+
+      <PortalFooter
+        mailbox={PARTNER_MAILBOX}
+        mailboxLabel={t.common.supportMailbox}
+        imprintLabel={t.common.imprint}
+        privacyLabel={t.common.privacy}
+      />
     </>
   );
 }

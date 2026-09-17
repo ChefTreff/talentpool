@@ -91,7 +91,9 @@ update product set format_key = 'side_event'  where sku = 'I-81745';
 -- ---------------------------------------------------------------- 4) Pflege
 
 -- `upsert_product` nimmt das Feld entgegen (Teilupdate wie alle anderen Felder).
--- Rückgabetyp und Signatur bleiben gleich ⇒ `create or replace` genügt.
+-- **Grundlage ist die Live-Fassung** aus `20260910170349_v3_hubspot_ingest.sql` — sie prueft
+-- `pass_type` und `grants_role` und schreibt beide; eine aeltere Vorlage haette sie still
+-- entfernt (Konvention §1, Review zu diesem PR).
 create or replace function upsert_product(p_data jsonb) returns text
 language plpgsql security definer set search_path = public, extensions as $$
 declare v_sku text := p_data->>'sku'; v_exists boolean;
@@ -99,18 +101,21 @@ begin
   if not is_partner_team() then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_sku is null or v_sku !~ '^I-[0-9]{5}$' then raise exception 'invalid_sku' using errcode = '22023'; end if;
   if p_data ? 'category' and not is_vocab_key('product_category', p_data->>'category') then raise exception 'invalid_category' using errcode = '22023'; end if;
-  -- Leerer Text heißt „keine Seite", nicht „ungültig" — sonst ließe sich eine Zuordnung
-  -- über die Oberfläche nie wieder entfernen.
+  -- Neu (0110): welche Partner-Seite dieses Produkt oeffnet. Leerer Text heisst
+  -- „keine Seite" — sonst liesse sich eine Zuordnung ueber die Oberflaeche nie
+  -- wieder entfernen.
   if p_data ? 'format_key' and nullif(btrim(p_data->>'format_key'), '') is not null
      and not is_vocab_key('partner_format', btrim(p_data->>'format_key')) then
     raise exception 'invalid_format' using errcode = '22023', detail = coalesce(p_data->>'format_key', 'null');
   end if;
+  if p_data ? 'pass_type' and nullif(p_data->>'pass_type', '') is not null and (p_data->>'pass_type') not in ('partner', 'talent', 'investor') then raise exception 'invalid_pass_type' using errcode = '22023'; end if;
+  if p_data ? 'grants_role' and nullif(p_data->>'grants_role', '') is not null and not is_vocab_key('role', p_data->>'grants_role') then raise exception 'invalid_role' using errcode = '22023'; end if;
   select exists (select 1 from product where sku = v_sku) into v_exists;
   if not v_exists then
     insert into product (sku, name_de, name_en, description_de, description_en, type, category, unit, net_price_cents, purchase_price_cents, margin, vat_rate,
                          supplier, supplier_sku, supplier_url, stock_total, track_stock, available_until, shop_visible, shop_sort, late_orderable,
                          shop_hint_de, shop_hint_en, purchase_note_de, purchase_note_en, merch_config, images, source_hubspot, source_shop, internal_comment, active, edition_id,
-                         format_key)
+                         pass_type, grants_role, format_key)
     values (v_sku, p_data->>'name_de', p_data->>'name_en', p_data->>'description_de', p_data->>'description_en', coalesce(p_data->>'type', 'shop_item'), p_data->>'category',
             coalesce(p_data->>'unit', 'piece'), (p_data->>'net_price_cents')::integer, (p_data->>'purchase_price_cents')::integer, (p_data->>'margin')::numeric,
             coalesce((p_data->>'vat_rate')::numeric, 7), p_data->>'supplier', p_data->>'supplier_sku', p_data->>'supplier_url', (p_data->>'stock_total')::integer,
@@ -119,7 +124,7 @@ begin
             p_data->>'purchase_note_de', p_data->>'purchase_note_en', p_data->'merch_config', coalesce(p_data->'images', '[]'::jsonb),
             coalesce((p_data->>'source_hubspot')::boolean, false), coalesce((p_data->>'source_shop')::boolean, false), p_data->>'internal_comment',
             coalesce((p_data->>'active')::boolean, true), (p_data->>'edition_id')::uuid,
-            nullif(btrim(p_data->>'format_key'), ''));
+            nullif(p_data->>'pass_type', ''), nullif(p_data->>'grants_role', ''), nullif(btrim(p_data->>'format_key'), ''));
   else
     update product set
       name_de = case when p_data ? 'name_de' then p_data->>'name_de' else name_de end,
@@ -150,6 +155,8 @@ begin
       images = case when p_data ? 'images' then p_data->'images' else images end,
       internal_comment = case when p_data ? 'internal_comment' then nullif(p_data->>'internal_comment', '') else internal_comment end,
       active = case when p_data ? 'active' then (p_data->>'active')::boolean else active end,
+      pass_type = case when p_data ? 'pass_type' then nullif(p_data->>'pass_type', '') else pass_type end,
+      grants_role = case when p_data ? 'grants_role' then nullif(p_data->>'grants_role', '') else grants_role end,
       format_key = case when p_data ? 'format_key' then nullif(btrim(p_data->>'format_key'), '') else format_key end
     where sku = v_sku;
   end if;
@@ -159,9 +166,11 @@ end $$;
 
 -- ---------------------------------------------------------------- 5) Lesen im Portal
 
--- `partner_overview` liefert `format_key` je gebuchtem Produkt mit. Ohne das müsste die
--- Oberfläche die SKU-Zuordnung doch wieder selbst kennen — genau das soll die Spalte beenden.
--- Rückgabetyp ist `jsonb`, ändert sich also nicht; nur ein Schlüssel kommt dazu.
+-- `partner_overview` liefert `format_key` je gebuchtem Produkt mit. Ohne das muesste die
+-- Oberflaeche die SKU-Zuordnung doch wieder selbst kennen — genau das soll die Spalte beenden.
+-- **Grundlage ist die Live-Fassung** aus `20260917183022_v6_aufraeumen_feldmatrix.sql`: die
+-- Beschreibung steht seitdem an der Organisation (`organization.description_de/en`), nicht
+-- mehr an `org_edition`. Rueckgabetyp bleibt `jsonb`; nur ein Schluessel kommt dazu.
 create or replace function partner_overview(p_org_id uuid, p_edition_id uuid default null) returns jsonb
 language plpgsql stable security definer set search_path = public, extensions as $$
 declare v_o organization%rowtype; v_oe org_edition; v_roles text[]; v_full boolean;
@@ -174,14 +183,15 @@ begin
   v_full := is_partner_team() or v_roles && '{primary_ops,additional,signing}'::text[];
   return jsonb_build_object(
     'org', jsonb_build_object('id', v_o.id, 'legal_name', v_o.legal_name, 'communication_name', v_o.communication_name, 'type', v_o.type,
-                              'website', v_o.website, 'description', v_o.description, 'logo_dark', v_o.logo_dark, 'logo_light', v_o.logo_light,
+                              'website', v_o.website, 'description_de', v_o.description_de, 'description_en', v_o.description_en,
+                              'logo_dark', v_o.logo_dark, 'logo_light', v_o.logo_light,
                               'address', jsonb_build_object('street', v_o.address_street, 'zip', v_o.address_zip, 'city', v_o.address_city, 'country', v_o.address_country),
                               'partner_category', v_o.partner_category),
     'roles', to_jsonb(v_roles),
     'team', is_partner_team(),
     'edition', case when v_oe.id is null then null else jsonb_build_object(
         'id', v_oe.id, 'edition_id', v_oe.edition_id, 'onboarding_status', v_oe.onboarding_status, 'invited_at', v_oe.invited_at,
-        'onboarding_filled_at', v_oe.onboarding_filled_at, 'description_de', v_oe.description_de, 'description_en', v_oe.description_en,
+        'onboarding_filled_at', v_oe.onboarding_filled_at, 'description_de', v_o.description_de, 'description_en', v_o.description_en,
         'invoice_email', case when v_full then v_oe.invoice_email::text end, 'invoice_name', case when v_full then v_oe.invoice_name end,
         'vat_id', case when v_full then v_oe.vat_id end, 'po_number', case when v_full then v_oe.po_number end,
         'pass_type_choice', v_oe.pass_type_choice, 'sponsoring_level', v_oe.sponsoring_level) end,

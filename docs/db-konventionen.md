@@ -8,6 +8,7 @@ Gilt für jede Session, die Migrationen schreibt — ab Welle 4 auch die Build-S
 - Angewendete Migrationen sind unveränderlich: Korrektur = neue Migration. Nie „mal eben“ im Dashboard ändern.
 - Vor jedem Commit `git status` lesen: Finder-/Sync-Duplikate („`name 2.sql`“) und Platzhalter-Namen ohne Server-Version dürfen nie ins Repo — `scripts/gate-pr.sh` bricht seit 14.09.2026 mit „dateien: FEHLER“ ab, wenn so etwas getrackt ist (fünf Duplikate waren am 14.09. über ein `git add -A` hereingerutscht und sind entfernt).
 - Rückgabetyp einer Funktion ändern ⇒ `drop function if exists f(args);` + `create function` (und alle Aufrufer prüfen). Signatur erweitern mit Default ⇒ alte Signatur droppen, sonst entsteht ein Overload.
+- **`create or replace` einer bestehenden Funktion geht von der Live-Fassung aus**, nie von der Migration, die sie eingeführt hat: Quelle ist `pg_get_functiondef` oder die **letzte** Migration, die sie angefasst hat (`grep -l '<funktionsname>' supabase/migrations/*.sql | tail -1`). Sonst fallen stillschweigend spätere Erweiterungen weg (17.09.2026: `upsert_product` hätte `pass_type`/`grants_role` verloren, `upsert_deliverable_template` den Resync aus 0056, `run_shop_finalization` den Lagerabgleich aus 0048 — alle drei vor dem Anwenden aufgefallen). Hängt eine Migration von einer anderen noch nicht angewendeten ab, steht das im Kopf.
 
 ## 2 · Funktionen
 - Muster: `language plpgsql [stable] security definer set search_path = public, extensions as $$ … $$;`
@@ -68,7 +69,7 @@ declare v_pid uuid; v_uid uuid; v_email text; …
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary where p.auth_user_id is not null limit 1;
-  delete from role_assignment where person_id = v_pid; delete from staff_user where auth_user_id = v_uid; -- Testperson ohne Vorrechte
+  delete from role_assignment where person_id = v_pid; -- Testperson ohne Vorrechte
   perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated', 'email', v_email)::text, true);
   insert into role_assignment (person_id, role, scope_type) values (v_pid, 'area_lead_partner', 'global'); -- Rolle je Abschnitt setzen/entziehen
   -- Aufbau, dann je Schritt: insert into t_res values ('01_…', …); Negativfälle in begin … exception when others then … end;

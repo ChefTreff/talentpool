@@ -1,6 +1,6 @@
 // Prüft, ob der lokale Secret Key (service_role) gültig ist — ohne ihn auszugeben.
 // Aufruf: node --env-file=.env.local scripts/check-secret.mjs
-// Liest eine Tabelle, die nur service_role sehen darf (staff_user). Fehler "Invalid API key" = Schlüssel falsch/Platzhalter.
+// Liest eine Tabelle, die nur service_role sehen darf (ticket_secret, 0072). Fehler "Invalid API key" = Schlüssel falsch/Platzhalter.
 import { createClient } from "@supabase/supabase-js";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -11,6 +11,6 @@ if (!url || !key) { console.error("URL oder Secret Key fehlt in der Env."); proc
 if (key.length < 30) { console.error("Zu kurz für einen echten Schlüssel (echte Secret Keys haben rund 40 Zeichen). Wert im Supabase-Dashboard unter Project Settings → API Keys → Secret keys kopieren."); }
 
 const sb = createClient(url, key, { auth: { persistSession: false } });
-const { count, error } = await sb.from("staff_user").select("*", { count: "exact", head: true });
+const { count, error } = await sb.from("ticket_secret").select("*", { count: "exact", head: true });
 if (error) { console.error(`❌ service_role-Zugriff fehlgeschlagen: ${error.message}`); process.exit(1); }
-console.log(`✅ service_role ok — staff_user: ${count} Eintrag/Einträge.`);
+console.log(`✅ service_role ok — ticket_secret: ${count} Zeile(n).`);

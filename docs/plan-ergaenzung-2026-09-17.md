@@ -140,7 +140,7 @@ Neun Domänen für den Walkthrough:
 
 | # | Domäne | Tabellen |
 |---|---|---|
-| 1 | Identität & Zugang | `person`, `person_email`, `person_acquisition_channel`, `person_eligibility`, `person_interest`, `person_merge_log`, `potential_duplicate`, `consent_record`, `suppression`, `registration`, `role_assignment`, `staff_user` (entscheidet seit 0107 nichts mehr), `audit_log` |
+| 1 | Identität & Zugang | `person`, `person_email`, `person_acquisition_channel`, `person_eligibility`, `person_interest`, `person_merge_log`, `potential_duplicate`, `consent_record`, `suppression`, `registration`, `role_assignment`, `staff_user` (entfernt mit der Aufräum-Migration vom 17.09.), `audit_log` |
 | 2 | Edition & Programm | `event`, `event_day`, `stage`, `stage_day`, `track`, `slot`, `slot_history`, `session`, `session_speaker`, `session_question`, `session_submission`, `question_catalog`, `programme_backlog`, `application`, `decision_release`, `regie_cue` |
 | 3 | Speaker | `speaker_profile`, `speaker_asset`, `speaker_travel`, `hospitality_quota`, `hospitality_booking`, `expense_claim` |
 | 4 | Partner & Leistungen | `organization`, `org_membership`, `org_edition`, `org_product`, `org_step`, `org_step_check`, `org_ticket_allocation`, `partner_asset`, `partner_deal`, `deliverable`, `deliverable_template`, `deadline`, `booth`, `booth_service_check` |

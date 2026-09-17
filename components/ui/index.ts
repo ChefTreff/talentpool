@@ -26,3 +26,17 @@ export { EmbedGate } from "./EmbedGate";
 export { CheckMark } from "./CheckMark";
 export { Countdown } from "./Countdown";
 export { DeadlineCard } from "./DeadlineCard";
+
+/* --- Design-System v2: Bausteine aus den Website-Blöcken (17.09.2026) -----
+   Herkunft und Übersetzung je Baustein:
+   .claude/skills/portal-design/referenzen/website-bloecke.md */
+export { HeroBand, BandStat } from "./HeroBand";
+export { NextStepBanner } from "./NextStepBanner";
+export { StepBar } from "./StepBar";
+export type { BarStep } from "./StepBar";
+export { PersonCard } from "./PersonCard";
+export { PhotoCard } from "./PhotoCard";
+export { TicketCard } from "./TicketCard";
+export { Accordion, AccordionItem } from "./Accordion";
+export { DateRow, DateList } from "./DateRow";
+export { PortraitShape } from "./PortraitShape";
