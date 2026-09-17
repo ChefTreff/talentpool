@@ -1,7 +1,6 @@
 -- =============================================================================
--- 0110 · Welle 6 · Das Programm-Grundgerüst wird pflegbar (M8, ADM-032)
---
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- 0110 · Welle 6 · Das Programm-Grundgerüst wird pflegbar (M8)
+--     Angewendet von der Architektur-Session am 17.09.2026 als 20260917184553
 --
 -- Befund aus `docs/abgleich/team-werkzeuge.md` (A1/A2) und der Feld-Matrix
 -- (Befunde a): Tage, Bühnen, Bühne×Tag und Tracks **existieren als Tabellen**,
