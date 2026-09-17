@@ -177,6 +177,10 @@ const BUSINESS_KEYS = new Set([
   // Messestand und Editionsdateien (Migration 20260915115415)
   "edition_file_not_found",
   "invalid_path",
+  // Freelancer als Ansprechpersonen (Migration 0114). Eigener Schluessel, weil
+  // `consent_required` schon die fehlende Einwilligung der angemeldeten Person
+  // meint — hier fehlt das Vertragsdatum einer dritten Person.
+  "contact_consent_required",
 ]);
 
 const BY_CODE: Record<string, string> = {

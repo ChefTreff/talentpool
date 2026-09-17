@@ -44,3 +44,6 @@ end $$;
 select * from t_res order by step;
 rollback;
 -- Lauf am 15.09. nach dem Anwenden (20260915115807): 5/5 gruen.
+-- Seit 0114 (Freelancer als Ansprechpersonen) melden die Schritte 01 und 03
+-- `contact_consent_required` statt `invalid_email`: eine fremde Adresse ist nicht
+-- mehr verboten, sie braucht das Datum der vertraglichen Einwilligung.

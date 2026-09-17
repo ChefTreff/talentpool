@@ -194,7 +194,8 @@
     "invalid_times": "Die Bühne schliesst vor dem Öffnen.",
     "stage_not_found": "Diese Bühne gibt es nicht.",
     "track_not_found": "Diesen Track gibt es nicht.",
-    "invalid_format": "Diesen Formatschlüssel gibt es nicht."
+    "invalid_format": "Diesen Formatschlüssel gibt es nicht.",
+    "contact_consent_required": "Für eine Adresse ausserhalb @chef-treff.de braucht es das Datum der vertraglichen Einwilligung."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -2945,7 +2946,11 @@
     "fieldLabelEn": "Beschriftung (EN)",
     "fieldValueEn": "Auskunft (EN)",
     "fieldAudience": "Zielgruppen",
-    "fieldAudienceHint": "Kommagetrennt: partner, speaker, talent, volunteer, hackathon."
+    "fieldAudienceHint": "Kommagetrennt: partner, speaker, talent, volunteer, hackathon.",
+    "fieldConsent": "Freelancer — Einwilligung im Vertrag vom",
+    "fieldConsentHint": "Nur mit ausdrücklicher Einwilligung im Vertrag. Das Datum ist der Nachweis, dass sie vorliegt; das Setzen wird protokolliert.",
+    "withdraw": "Entfernen (Einwilligung widerrufen)",
+    "confirmWithdraw": "{name} entfernen? Die Einwilligung gilt damit als widerrufen, der Kontakt und das Foto werden gelöscht. Betroffen: {orgs} Partner und {speakers} Speaker — sie fallen auf den Standardkontakt zurück."
   },
   "adminSpeakerLeads": {
     "title": "Speaker-Leads",

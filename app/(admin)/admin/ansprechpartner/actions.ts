@@ -21,8 +21,27 @@ async function ruf(name: string, args: Record<string, unknown>): Promise<Ergebni
 export async function saveContact(data: Record<string, unknown>): Promise<Ergebnis> {
   return ruf("upsert_edition_contact", { p_data: data });
 }
-export async function removeContact(id: string): Promise<Ergebnis> {
-  return ruf("delete_edition_contact", { p_id: id });
+/**
+ * Ansprechperson entfernen.
+ *
+ * `consent_withdrawn` ist kein Schmuck: die RPC schreibt damit einen eigenen
+ * Protokolleintrag, und das Foto wird mitgenommen — sonst bliebe das Gesicht
+ * einer Person im Bucket, die gerade ihre Einwilligung zurückgezogen hat.
+ */
+export async function removeContact(id: string, reason?: "consent_withdrawn"): Promise<Ergebnis> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("delete_edition_contact", {
+    p_id: id,
+    p_reason: reason ?? null,
+  });
+  if (error) return { ok: false, key: toRpcFailure(error).key };
+  if (typeof data === "string" && data !== "") {
+    const admin = createSupabaseAdminClient();
+    const { error: wegFehler } = await admin.storage.from(BUCKET).remove([data]);
+    if (wegFehler) console.error("[ansprechpartner] Foto nicht entfernt:", wegFehler.message);
+  }
+  revalidatePath(PFAD);
+  return { ok: true };
 }
 export async function saveInfo(data: Record<string, unknown>): Promise<Ergebnis> {
   return ruf("upsert_edition_info", { p_data: data });
