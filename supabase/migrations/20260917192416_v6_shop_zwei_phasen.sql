@@ -1,5 +1,6 @@
--- 0112 · Welle 6 B2: Messeshop — zwei Bestellphasen, Zugang nur mit Messestand,
+-- 20260917192416 · Welle 6 B2: Messeshop — zwei Bestellphasen, Zugang nur mit Messestand,
 --         Lunch-Paket aus dem Shop herausgelöst (PART-037, PART-038, PART-049).
+-- Angewendet von der Architektur-Session am 17.09.2026 als 20260917192416.
 --
 -- **Setzt `20260917190103` voraus** (`product.format_key`): `org_has_booth` entscheidet über den
 -- Schlüssel, welches Produkt als Messestand zählt. Ohne diese Migration fehlt die Spalte und die
