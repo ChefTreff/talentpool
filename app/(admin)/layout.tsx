@@ -35,6 +35,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       items: [
         { href: "/admin/bewerbungen", label: nav.applications },
         { href: "/admin/programm", label: nav.programme },
+        // Das Geruest steht neben dem Programm, nicht unter System: wer
+        // eine Buehne anlegt, kommt vom Board und will dorthin zurueck.
+        { href: "/admin/edition", label: nav.edition },
       ],
     },
     {

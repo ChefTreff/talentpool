@@ -68,6 +68,8 @@ Ausführung: Inhalt einer Datei per Supabase-MCP `execute_sql` oder im SQL-Edito
 
 | `v5_kb_search_rueckfall.sql` | 0109 (20260917102942) | Eine Frage, deren Woerter alle vorkommen, trifft weiterhin genau den Abschnitt; eine Frage mit einem Wort, das im Artikel nicht steht („geliefert" statt „einsenden"), findet ihn jetzt trotzdem — vor 0109 war das Ergebnis leer (Befund aus dem Walkthrough an echten Artikeln); der richtige Artikel steht oben; Unsinn findet auch als ODER nichts; die Zielgruppe gilt im Rueckfall genauso. |
 
+| `v6_programm_grundgeruest.sql` | 0110 (Vorschlag) | Ohne Programm-Recht ist jeder Schreibweg zu (42501); derselbe Tag zweimal **aendert** ihn statt an der Eindeutigkeit zu scheitern; unbekannte Buehnenart 22023 `invalid_stage_type`; Oeffnung nach Schliessung 22023 `invalid_times`; `upsert_stage_day` legt die fehlende Zeile an und aendert die bestehende, ohne die uebrigen Felder zu verlieren; Track anlegen und loeschen; Buehne mit Slot, Buehne mit Rollenzuweisung und Track mit Session jeweils P0001 `in_use`; `programme_skeleton` liefert Tage, Buehnen, Buehnen-Tage und Tracks mit den Zahlen, die am Loeschen haengen, und ist ohne Recht zu; das Protokoll traegt Vorher **und** Nachher. |
+
 Simulation eines eingeloggten Nutzers innerhalb der Transaktion:
 `perform set_config('request.jwt.claims', json_build_object('sub', <auth_uid>, 'role', 'authenticated', 'email', <email>)::text, true);`
 
