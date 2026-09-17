@@ -65,6 +65,19 @@ describe("Assistent: Quellen", () => {
     const q = quellen([treffer(1, 100, "hotel"), treffer(2, 100, "hotel"), treffer(3, 100, "anreise")]);
     assert.deepEqual(q.map((x) => x.slug), ["hotel", "anreise"]);
   });
+
+  it("lässt die Überschrift weg, wenn mehrere Abschnitte eines Artikels trafen", () => {
+    // Sonst steht als Beleg die Überschrift des bestplatzierten Abschnitts —
+    // und die beantwortet oft eine andere Frage als die gestellte.
+    const q = quellen([treffer(1, 100, "hotel"), treffer(2, 100, "hotel")]);
+    assert.equal(q[0].heading, null);
+  });
+
+  it("behält die Überschrift, wenn der Artikel nur mit einem Abschnitt traf", () => {
+    const q = quellen([treffer(1, 100, "hotel"), treffer(2, 100, "anreise")]);
+    assert.equal(q[0].heading, "Abschnitt 1");
+    assert.equal(q[1].heading, "Abschnitt 2");
+  });
 });
 
 describe("Assistent: Systemtext", () => {

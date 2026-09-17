@@ -46,16 +46,27 @@ export function kontextWaehlen(treffer: Treffer[], budget = MAX_KONTEXT_ZEICHEN)
   return raus;
 }
 
-/** Die Quellenangaben zu den verwendeten Abschnitten, je Artikel einmal. */
+/**
+ * Die Quellenangaben, **je Artikel eine Zeile**.
+ *
+ * Trafen mehrere Abschnitte desselben Artikels, entfällt die Überschrift: der
+ * Link führt ohnehin auf den Artikel, und die Überschrift des bestplatzierten
+ * Abschnitts wäre dann irreführend. „Rückwand & Druckdaten — Wer muss eine
+ * Datei einsenden?" als Beleg für eine Frage nach dem *Wann* liest sich, als
+ * hätte der Assistent daneben gegriffen, obwohl der richtige Abschnitt im
+ * Kontext steckt (Walkthrough 17.09.).
+ */
 export function quellen(treffer: Treffer[]): Quelle[] {
-  const gesehen = new Set<string>();
-  const liste: Quelle[] = [];
+  const proArtikel = new Map<string, Quelle>();
   for (const t of treffer) {
-    if (gesehen.has(t.slug)) continue;
-    gesehen.add(t.slug);
-    liste.push({ slug: t.slug, title: t.title, heading: t.heading });
+    const da = proArtikel.get(t.slug);
+    if (da) {
+      if (da.heading !== t.heading) da.heading = null;
+      continue;
+    }
+    proArtikel.set(t.slug, { slug: t.slug, title: t.title, heading: t.heading });
   }
-  return liste;
+  return [...proArtikel.values()];
 }
 
 /**
