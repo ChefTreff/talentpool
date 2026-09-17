@@ -185,7 +185,8 @@
     "rate_limited": "Too many questions in a short time. Please try again later.",
     "empty_query": "The question is empty.",
     "no_slot": "That question was not asked — please use the input field.",
-    "invalid_format": "No such format key."
+    "invalid_format": "No such format key.",
+    "invalid_due_rule": "The system does not know this deadline rule. Allowed are an edition deadline or a number of days after the invitation."
   },
   "nav": {
     "brand": "ChefTreff",

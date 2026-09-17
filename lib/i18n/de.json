@@ -185,7 +185,8 @@
     "rate_limited": "Zu viele Fragen in kurzer Zeit. Probier es später noch einmal.",
     "empty_query": "Die Frage ist leer.",
     "no_slot": "Diese Frage wurde nicht gestellt — bitte über das Eingabefeld fragen.",
-    "invalid_format": "Diesen Formatschlüssel gibt es nicht."
+    "invalid_format": "Diesen Formatschlüssel gibt es nicht.",
+    "invalid_due_rule": "Diese Fristregel kennt das System nicht. Erlaubt sind eine Frist der Edition oder eine Zahl von Tagen nach der Einladung."
   },
   "nav": {
     "brand": "ChefTreff",
