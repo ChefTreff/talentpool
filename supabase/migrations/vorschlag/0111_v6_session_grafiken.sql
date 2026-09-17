@@ -152,10 +152,10 @@ insert into mail_template (key, locale, version, subject, body_md, description, 
 select v.key, v.locale, v.version, v.subject, v.body_md, v.description, v.active
 from (values
   ('stage_photos_ready', 'de', 1, 'Deine Fotos von „{{session_title}}" sind da',
-   E'Hallo {{first_name}},\n\ndie Fotos von deinem Auftritt **{{session_title}}** stehen jetzt in deinem Portal.\n\n[Fotos ansehen]({{photos_url}})\n\nDu darfst sie für dich verwenden — ein Hinweis auf den Future Leaders Summit freut uns.\n\nViele Grüße\nChefTreff',
+   E'Hallo {{first_name}},\n\ndie Fotos von deinem Auftritt **{{session_title}}** stehen jetzt in deinem Portal.\n\n[Fotos ansehen]({{portal_url}}/speaker/session)\n\nDu darfst sie für dich verwenden — ein Hinweis auf den Future Leaders Summit freut uns.\n\nViele Grüße\nChefTreff',
    'Erstes Buehnenfoto einer Session steht bereit', true),
   ('stage_photos_ready', 'en', 1, 'Your photos from "{{session_title}}" are ready',
-   E'Hi {{first_name}},\n\nthe photos from your session **{{session_title}}** are now in your portal.\n\n[View photos]({{photos_url}})\n\nFeel free to use them — a mention of the Future Leaders Summit is appreciated.\n\nBest\nChefTreff',
+   E'Hi {{first_name}},\n\nthe photos from your session **{{session_title}}** are now in your portal.\n\n[View photos]({{portal_url}}/speaker/session)\n\nFeel free to use them — a mention of the Future Leaders Summit is appreciated.\n\nBest\nChefTreff',
    'First stage photo of a session is ready', true)
 ) as v(key, locale, version, subject, body_md, description, active)
 where not exists (select 1 from mail_template t where t.key = v.key and t.locale = v.locale);
@@ -219,9 +219,11 @@ begin
         from session_speaker ss join session se on se.id = ss.session_id
        where ss.session_id = v_session
     loop
+      -- Nur `session_title`: `portal_url` ergänzt die Warteschlange selbst
+      -- (`lib/mail/queue.ts`), eigene Variablen nicht. Ein relativer Link wäre
+      -- im Postfach tot (Review Architektur-Session 17.09.).
       perform queue_mail('stage_photos_ready', r.person_id,
-                         jsonb_build_object('session_title', coalesce(r.titel, ''),
-                                            'photos_url', '/speaker/session'),
+                         jsonb_build_object('session_title', coalesce(r.titel, '')),
                          'session', v_session);
     end loop;
   end if;
