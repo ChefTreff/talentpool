@@ -1,7 +1,6 @@
 -- =============================================================================
--- 0112 · Welle 6 · Mail-Vorlagen im Admin bearbeiten (ADM-030)
---
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- 0112 · Welle 6 · Mail-Vorlagen im Admin bearbeiten (ADM-029)
+--     Angewendet von der Architektur-Session am 17.09.2026 als 20260917185108
 --
 -- Konrad am 17.09.: „Die Mail Templates sollten am besten zentral im Admin
 -- Bereich für mich bearbeitbar sein. Wenn sie nur per Migration geändert werden
