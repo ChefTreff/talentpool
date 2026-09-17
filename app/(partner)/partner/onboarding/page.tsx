@@ -4,11 +4,14 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { PortalFooter } from "@/components/layout/PortalFooter";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
 import { OnboardingWizard } from "./OnboardingWizard";
 
 export const dynamic = "force-dynamic";
+
+const PARTNER_MAILBOX = "partner@chef-treff.de";
 
 /**
  * Onboarding als Wizard, danach dieselbe Seite als Profil.
@@ -80,6 +83,7 @@ export default async function PartnerOnboardingPage() {
         }}
         rpcMessages={t.rpc}
       />
+      <PortalFooter mailbox={PARTNER_MAILBOX} mailboxLabel={t.common.supportMailbox} />
     </>
   );
 }

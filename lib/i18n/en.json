@@ -30,7 +30,11 @@
     "delete": "Delete",
     "venueName": "CCH — Congress Center Hamburg",
     "venueAddress": "Congressplatz 1, 20355 Hamburg",
-    "openInMaps": "Open in Google Maps"
+    "openInMaps": "Open in Google Maps",
+    "imprint": "Imprint",
+    "privacy": "Privacy",
+    "supportMailbox": "Questions? Write to us:",
+    "ofTotal": "of"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",
@@ -268,7 +272,13 @@
       "invalid": "That link is no longer valid. Please request a new one.",
       "missing": "The link was incomplete — probably truncated when copying.",
       "auth": "Sign-in did not work. Please try again."
-    }
+    },
+    "eyebrow": "ChefTreff",
+    "titleLead": "Welcome",
+    "titleHighlight": "back",
+    "helpTitle": "No link arrived?",
+    "helpBody": "Check your spam folder. If nothing arrives, write to us — we'll let you in by hand.",
+    "helpMailbox": "portal@chef-treff.de"
   },
   "onboarding": {
     "eyebrow": "Welcome",
@@ -980,7 +990,39 @@
     "timesTitle": "Times and schedule",
     "timesWikiHint": "The full schedule is in the",
     "locationTitle": "Getting there",
-    "locationWikiHint": "Directions and parking in the wiki"
+    "locationWikiHint": "Directions and parking in the wiki",
+    "bandEyebrow": "Partner portal",
+    "bandLead": "Your booth, your services, your deadlines — in one place.",
+    "bandStatLabel": "Next deadline",
+    "nextStepLabel": "Next step",
+    "nextStepOpen": "{open} of {total} tasks open",
+    "nextStepOverdue": "{overdue} of them overdue",
+    "nextStepDone": "All tasks done",
+    "nextStepDoneHint": "Nothing to do — we'll be in touch when something comes up.",
+    "nextStepAction": "Go to checklist",
+    "nextStepOnboarding": "Your details are still missing",
+    "nextStepOnboardingHint": "Legal name, description, logo and billing details.",
+    "nextStepOnboardingAction": "Fill in details",
+    "deadlinesAll": "All deadlines",
+    "deadlineOverdue": "overdue",
+    "ticketsTitle": "Your allocation",
+    "ticketsPassType": "Partner pass",
+    "ticketsUsedLabel": "codes redeemed",
+    "onboardingStepsHint": "Progress is saved — you can stop at any point.",
+    "onboardingStepCompanyHint": "Legal name and address",
+    "onboardingStepDescriptionHint": "For the website and the event app",
+    "onboardingStepLogoHint": "SVG and PNG",
+    "onboardingStepInvoiceHint": "Recipient and purchase order",
+    "onboardingDoneTitle": "Your details are complete",
+    "onboardingDoneBody": "You can change anything at any time. We'll get in touch if something is missing.",
+    "helpTitle": "Common questions",
+    "helpQ1": "Who can see our data?",
+    "helpA1": "The partner team and production. Description and logo also appear on the website and in the event app.",
+    "helpQ2": "Can we replace the logo later?",
+    "helpA2": "Yes. Just upload a new version — the old one is kept as a revision.",
+    "helpQ3": "Who do we ask about deadlines?",
+    "helpA3": "Your contact or the partner mailbox. We reply the same working day.",
+    "bandStatNone": "None open"
   },
   "partnerContacts": {
     "title": "Contacts",
@@ -2335,7 +2377,15 @@
     "noSessions": "Not assigned to a session yet.",
     "created": "Created",
     "updated": "Updated",
-    "saved": "Saved."
+    "saved": "Saved.",
+    "sectionActions": "Takes effect immediately",
+    "sectionActionsHint": "These steps are logged and need no saving.",
+    "sectionDraft": "The draft",
+    "sectionDraftHint": "Everything here shares one save button.",
+    "sectionReadonly": "Read only",
+    "unsaved": "Unsaved changes",
+    "discard": "Discard",
+    "sectionReadonlyHint": "Comes from elsewhere and is not edited here."
   },
   "adminTeam": {
     "title": "Team",

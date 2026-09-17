@@ -2,6 +2,8 @@
 
 Jedes Muster hat ein Vorbild im Repo. Erst das Vorbild lesen, dann bauen.
 
+Woher die Bausteine kommen und wie ein Website-Block zu einem Portal-Baustein wird, steht in `referenzen/website-bloecke.md` — Aufbau, Maße und Übersetzung je Block.
+
 ## Seite
 
 Vorbild: `app/(partner)/partner/page.tsx`.
@@ -66,7 +68,9 @@ Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
 
 ## Wizard
 
-`<Stepper steps current srLabel>` über dem Inhalt, ein Schritt pro Seite, Fortschritt sichtbar, Rücksprung erlaubt, Zwischenstand speichern. Vorbild: Talent-Onboarding.
+`<StepBar steps current srLabel onSelect>` über dem Inhalt, ein Schritt pro Seite, Fortschritt sichtbar, Rücksprung erlaubt, Zwischenstand speichern. Vorbild: `/partner/onboarding` (Archetyp C).
+
+Die Marker sind Sechsecke auf einer durchgehenden Linie — waagerecht ab 640 px, darunter senkrecht, genau wie die Website es mobil umbricht (Step Section `54:9522`). `<Stepper>` bleibt als Knopfreihe im Kit für enge Stellen, in denen keine Linie hinpasst; für einen Ablauf ist `StepBar` das Muster.
 
 ## Dialoge
 
@@ -87,7 +91,7 @@ Die einzigen Stellen, an denen die Marke laut auftritt:
 **Highlight-Regel** (steht in den CI-Vorgaben ausdrücklich als „Regel für Claude/KI"): In der Hero-Section jeder Seite wird **ein** Schlüsselwort im Titel hervorgehoben —
 
 1. Schnitt: Sharp Sans Display No1 **Extrabold Italic**; der Rest des Titels bleibt Extrabold, nicht kursiv.
-2. Farbe des Highlight-Worts: die Events-Akzentfarbe.
+2. Farbe des Highlight-Worts auf der Website: die Events-Akzentfarbe. **Im Portal das Highlight-Pink** (`text-highlight`) — der Akzent trägt auf Navy keinen Text (3,56:1), Pink erreicht 8,0:1 (Entscheidung 14.09.2026).
 3. Restlicher Titel: `#F5F4F2`.
 4. Hintergrund: Navy.
 5. Textcase: **UPPERCASE** für die ganze Headline.
@@ -111,13 +115,13 @@ Direkt übertragbar:
 | **Personen-Karte**: rundes Foto mit Akzent-Ring, Name Extrabold Versalien, Rolle als gefüllter Akzent-Chip, Organisation darunter | Speaker-, Mentoren-, Jury- und Team-Listen. Im Portal die Rolle in Sharp Sans SB statt Laica — Laica nur auf Marketing-Seiten |
 | **Zitat-Karte**: 1 px Akzentrahmen, Zitat, darunter Hexagon-Bullet + Name (Versalien) + Rolle | Referenzen, Feedback-Zitate, Erfolgsmeldungen im Welcome |
 | **Akkordeon**: 1 px Akzentrahmen, Label SB Versalien links, Chevron rechts, geöffnet mit Fließtext | FAQ und Hilfe in jedem Bereich. Umsetzung mit `<details>/<summary>` oder Button + `aria-expanded` — nie mit reinem CSS-Trick |
-| **Merkmalsleiste** auf Akzentfläche mit Hexagon-Bullets („Exklusive Events · Job-Plattform · Updates") | Welcome und Leerzustände; Navy-Text auf Akzent, nie weiß |
+| **Merkmalsleiste** auf Akzentfläche mit Hexagon-Bullets („Exklusive Events · Job-Plattform · Updates") | `NextStepBanner` auf Startseiten, Welcome, Leerzustände. **Weisser Text auf der Akzentfläche, nicht Navy** — Navy erreicht dort nur 3,56:1 (gemessen 17.09.2026), Weiss 4,88:1 |
 | **Footer**: dünne Trennlinie, Logo + Kontakt links, Linkreihe, Copyright | Portal-Footer mit Impressum, Datenschutz, Support-Adresse |
 | **Karussell mit Punkten** | nur für gleichrangige Inhalte, nie automatisch laufend, nie für Arbeitsdaten. Im Zweifel Liste statt Karussell |
 
 **CTA-Farbe:** Die Website setzt ihre Hauptaktion in Pink `#FF88CF` mit Navy-Text (8,0:1) — „Zu den Events", „Join our community". Das ist der Aktionsmarker der Marke, im Brandbook unter HIGHLIGHTS geführt. Im Portal gilt: **Marketing-Moment ja, Arbeitsfläche nein.** Login, Welcome und der Bewerbungs-CTA dürfen Pink tragen; Formular-, Tabellen- und Dialogbuttons bleiben Akzent, sonst schreit jede Speichern-Aktion.
 
-**Hero-Highlight:** Auf der Website läuft das Highlight-Wort („OWN YOUR *FUTURE*") in einem Verlauf von Violett nach Türkis — ein Dachmarken-Moment über alle drei Divisionen. Im Portal bleibt `.ct-highlight` einfarbig im Akzent.
+**Hero-Highlight:** Auf der Website läuft das Highlight-Wort („OWN YOUR *FUTURE*") in einem Verlauf von Violett nach Türkis — ein Dachmarken-Moment über alle drei Divisionen. Im Portal bleibt `.ct-highlight` einfarbig, und zwar im **Highlight-Pink** auf Navy (8,0:1); der Akzent selbst trägt dort keinen Text.
 
 Nicht übernehmen: Navy als Arbeitsfläche, zentrierte Fließtexte, Fotobänder, Logo-Wände, ganzseitige Verläufe, Bilder als Sektionstrenner.
 
@@ -157,6 +161,72 @@ Für alles Zählbare: Aufgaben, Bestellungen, Einreichungen, Teilnehmende.
 
 **Warum Aufklappen:** Alles gleichzeitig zu zeigen war der Fehler davor. Eine Checkliste beantwortet zuerst „was ist offen und bis wann" — der Rest ist Nachschlagen.
 
-### B · Detail · C · Formular · D · Übersicht
+### B · Detail (umgesetzt in `/admin/speaker/[id]`)
 
-Noch nicht entworfen. Konrad zieht dafür einen Designer hinzu, der die Blöcke entwirft; hier wird nachgezogen, sobald sie vorliegen. **Bis dahin nicht improvisieren** — lieber Archetyp A ausleihen, als einen fünften Stil zu erfinden.
+Für einen einzelnen Datensatz mit vielen Feldern: Speaker, Person, Organisation, Bestellung, Session.
+
+Das Problem eines Detailblatts ist nie der Platz, sondern die **Gleichrangigkeit**: dreissig Felder in acht Karten sehen alle gleich wichtig aus, und die zwei Dinge, wegen derer man die Seite geöffnet hat, gehen darin unter.
+
+```
+┌ Rücklink · Name · Rolle · Organisation ──────── [Status] [Typ] ┐  ← Kopfzeile
+├────────────────────────────────────────────────────────────────┤
+│ Was sofort wirkt: Status setzen · Betreuung · Einladen          │  ← Handlungsband
+├──────────────────────────────────┬─────────────────────────────┤
+│ Der Entwurf (ein Speichern):     │ Nur lesen:                   │
+│ Grunddaten · Bio · Links ·       │ Reise · Sessions · Verlauf   │
+│ Hospitality · Notizen            │ Ansprechpartner              │
+└──────────────────────────────────┴─────────────────────────────┘
+                         [ Speichern ]  ← klebt unten, solange es Änderungen gibt
+```
+
+- **Kopfzeile** statt `HeroBand`: ein Detailblatt ist kein Bereichseinstieg. Name als `.ct-h1`, darunter die Einordnung, rechts die Statuschips.
+- **Handlungsband** direkt darunter: alles, was **sofort** wirkt und protokolliert wird (Status, Zuständigkeit, Einladung, Freigabe). Diese Dinge haben kein „Speichern" — sie passieren beim Klick, und deshalb dürfen sie nicht zwischen Formularfeldern stehen.
+- **Zwei Spalten ab 1024 px:** links der **Entwurf** (alles, was sich ein gemeinsames „Speichern" teilt), rechts das **Nur-Lesen** (was von woanders kommt). Mobil untereinander, Entwurf zuerst.
+- **Der Speichern-Balken klebt unten** und erscheint nur, wenn es Ungespeichertes gibt. Ein dauerhaft sichtbarer Knopf, der nichts zu tun hat, ist eine Einladung zum Leerklicken.
+- Leere Felder bleiben sichtbar mit „—" (`common.none`): dass etwas **nicht** gepflegt ist, ist auch eine Auskunft.
+
+### C · Formular (umgesetzt in `/partner/onboarding`)
+
+Für alles, was ausgefüllt wird: Onboarding, Anmeldung, Einreichung, Profil.
+
+```
+┌ Kopf: Titel · ein Satz ─────────────────────────────────────┐
+│ ①─────②─────③─────④     ← StepBar, waagerecht (mobil senkrecht)
+├─────────────────────────────────────────────────────────────┤
+│ Schritt 3 von 4 · Logo                                       │
+│ ┌ Feld ─────────────┐ ┌ Feld ─────────────┐                 │  max. 640 breit
+│ │ Label             │ │ Label             │                 │
+│ └───────────────────┘ └───────────────────┘                 │
+│ [ Zurück ]  [ Weiter ]              Zwischenstand gesichert  │
+└─────────────────────────────────────────────────────────────┘
+   Noch offen: Rechnungsadresse · Beschreibung        ← was fehlt, steht unten
+```
+
+- **Ein Schritt pro Bildschirm**, `StepBar` darüber. Der Fortschritt kommt aus dem **Inhalt** (`done`), nicht aus der Position — wer vorspringt, bekommt keinen Haken geschenkt.
+- **Formularspalte 640**, zweispaltig nur für Felder, die zusammengehören (PLZ und Ort). Label über dem Feld, Hilfetext darunter, Fehler **am Feld**.
+- **Zurück und Weiter unten links**, in dieser Reihenfolge. „Weiter" speichert. Ein eigener „Speichern"-Knopf steht daneben, damit man mittendrin aufhören kann.
+- **Was noch fehlt, steht am Ende der Seite** als Aufzählung, nicht als Fehlermeldung. Es ist kein Fehler, dass ein Formular noch nicht fertig ist.
+- Nach dem Abschluss wird dieselbe Seite zum **Profil**: gleiche Felder, kein Wizard, `StepBar` zeigt alles erledigt.
+
+### D · Übersicht (umgesetzt in `/partner`)
+
+Die Startseite eines Bereichs. Beantwortet in dieser Reihenfolge: **Wo bin ich · Was ist zu tun · Wie steht es · Wen frage ich.**
+
+```
+┌ HeroBand ── Bereich · Titel mit Highlight · ein Satz ── [Kennzahl] ┐  Navy
+├────────────────────────────────────────────────────────────────────┤
+│ NextStepBanner ── „3 von 8 Aufgaben offen"          [ Zur Liste ]  │  Akzent
+├──────────────┬──────────────┬──────────────┬───────────────────────┤
+│ StatCard     │ StatCard     │ StatCard     │ StatCard              │  4 Zahlen
+├──────────────┴──────────────┴──────────────┴───────────────────────┤
+│ Nächste Fristen (DateRow-Liste)   │ Ansprechpartner (PersonCard)   │
+│ Bestellte Leistungen              │ Zeiten und Anfahrt             │
+└────────────────────────────────────────────────────────────────────┘
+                                                        PortalFooter
+```
+
+- **Genau ein `HeroBand` und höchstens ein `NextStepBanner`.** Zwei Akzentflächen übertönen sich.
+- **Höchstens vier Kennzahlen.** Was nicht in vier Zahlen passt, ist keine Übersicht.
+- **Fristen als `DateRow`-Liste**, nicht als Absatz mit Datum darin. Datum links in fester Spalte, Sache in der Mitte, Zustand rechts.
+- **Keine Karte ohne Inhalt:** ein Abschnitt, zu dem nichts gepflegt ist, fällt weg. Eine leere Überschrift ist schlechter als nichts.
+- Der Fuss trägt `PortalFooter` — Support-Postfach und Rechtstexte, sonst nichts.
