@@ -18,7 +18,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 - **Keine Zugangsdaten** in Chat, Repo, Drive oder Screenshots. Werte stehen nur in Vercel-Env (lokal `vercel env pull .env.local`); Platzhalter in `.env.local.example`; Liste in `docs/zugangs-liste.md`.
 - **Doku ist Teil der Arbeit:** jede Schema-/Integrationsänderung wird in `docs/` nachgezogen; nach jedem Doku-Commit `sh scripts/mirror-docs.sh` (Drive-Lesekopie). Ziel: Reproduktion aus der Doku jederzeit möglich.
 - **Migration der Altdaten ist der letzte Schritt.** Stammdaten ohne Personenbezug (Produktkatalog, Vokabular) dürfen früher importiert werden.
-- Datenschutz: Datenminimierung, Consent versioniert, „Profil löschen" + Suppression, keine privaten Kontaktdaten von Team/Freelancern in Portalen.
+- Datenschutz: Datenminimierung, Consent versioniert, „Profil löschen" + Suppression, **Ansprechpersonen stehen mit Name, Foto, E-Mail und Telefon im Portal** (Konrad, 17.09.2026: Serviceversprechen — gilt für Team und Speaker-Buddys; dienstliche Adressen bevorzugt, Freelancer nur mit Einwilligung im Vertrag); sonst keine privaten Kontaktdaten Dritter.
 
 ## Arbeitsweise
 - 80-%-Lösung je Bereich → Feedback von Konrad → schärfen. Nichts bauen, was nicht im Masterplan oder Entscheidungslog steht.

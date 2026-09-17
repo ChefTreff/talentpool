@@ -130,3 +130,7 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **Wikis vor dem finalen Launch überarbeiten** (Konrad, 17.09.: „erstmal frei“; Inhalte 2026 raus, Fristen 2027 rein).
 - ☐ **Umsatzsteuer je Artikelkategorie final prüfen** (aktuell 7 % überall; Konrad/Buchhaltung, 17.09.).
 - ☐ **Arbeitsauftrag Welle 6 (Architektur-Session):** Konzept „Eure Formate“ (Interview Tables, Side-Events, Partner legt Format an, Fragenauswahl, Export), Initiativen-CRM (Agreement, Rabattsatz 100/50, Stand-Tage, SKU, Beachflag), Produktstamm-Abgleich HubSpot + SevDesk, SevDesk-Lesezugriff für Belege, Rolle `marketing_team` mit Grafikbereich — aus Konrads Walkthrough-Antworten vom 17.09.
+- ☐ **Freelancer-Verträge (Speaker-Buddys):** Einwilligung zur Anzeige von Name, Foto, E-Mail und Telefon im Speaker-Portal aufnehmen; wo möglich `@chef-treff.de`-Adresse und Dienstnummer statt privater Daten (Regeländerung 17.09., SPK-015) — Konrad.
+- ☐ **Shuttle-Unternehmen:** Exportformat der Fahrtenliste abstimmen (ADM-028) — Konrad/Hospitality.
+- ☐ **Company-Tour-Zeiten 2027** im Admin anlegen, sobald ADM-026 steht — Programm-Team.
+- ☐ **LinkedIn-Post-Vorlagen und Bühnenfoto-Prozess** (wer fotografiert, wer lädt wann hoch) für SPK-019/ADM-027 festlegen — Marketing.
