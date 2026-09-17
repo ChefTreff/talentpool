@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-17 18:47 UTC · 80 Tabellen · 6 Views · 379 Funktionen
+> Stand: 2026-09-17 19:24 UTC · 81 Tabellen · 6 Views · 395 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -561,6 +561,7 @@ System-Mails DE/EN. Versand über Resend (lib/mail), Rendering aus Markdown.
 | `active` | boolean | ja | `true` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_by` | uuid |  |  | `person.id` | Wer die Vorlage zuletzt geaendert hat (0112). Der volle Vorher-/Nachhertext steht im Audit-Log. |
 
 ### `org_edition`
 Partner-Organisation je Edition: Onboarding-Stand, Rechnungsdaten, Pass-Typ-Wahl, HubSpot-Deal.
@@ -888,6 +889,7 @@ Produktstamm (Pakete, Zusatzleistungen, Shop-Artikel). SKU = Item-ID der Item-Li
 | `grants_role` | text |  |  |  |  |
 | `area_sqm` | numeric |  |  |  | Standfläche eines Pakets in Quadratmetern. Zahl, nicht Text — die Einheit setzt die Oberfläche (qm/sqm). |
 | `size_note` | text |  |  |  | Maß als sprachneutrale Notiz, z. B. „6 m × 3 m". Ergänzt `area_sqm` in der Übersichtstabelle. |
+| `format_key` | text |  |  |  | Vokabular partner_format: welche Seite der Gruppe „Eure Formate" dieses Produkt im Partner-Portal öffnet. NULL = keine eigene Seite (Mobiliar, Technik, Zusatzleistungen). |
 
 ### `product_component`
 Stückliste: was in einem Paket steckt (Messebau/Regie).
@@ -1028,6 +1030,28 @@ Programmpunkt (öffentliche Felder für App/Website/Swapcard). Interne Regie-Wer
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `created_by` | uuid |  |  | `person.id` |  |
 | `updated_by` | uuid |  |  | `person.id` |  |
+
+### `session_asset`
+Bilder, die an einem Auftritt haengen: Buehnenfoto und Slot-Grafik (0111). Die Speaker-Grafik gehoert an den Menschen und bleibt in speaker_asset.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `session_id` | uuid | ja |  | `session.id` |  |
+| `kind` | text | ja |  |  |  |
+| `storage_path` | text | ja |  |  |  |
+| `filename` | text | ja |  |  |  |
+| `mime` | text |  |  |  |  |
+| `size_bytes` | bigint |  |  |  |  |
+| `width` | integer |  |  |  |  |
+| `height` | integer |  |  |  |  |
+| `cutout` | boolean | ja | `false` |  |  |
+| `credit` | text |  |  |  |  |
+| `version` | integer | ja | `1` |  |  |
+| `is_current` | boolean | ja | `true` |  |  |
+| `uploaded_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `session_question`
 Fragen einer Session: aus dem Katalog oder eigene (max. 2, Freigabe durch Programm-Team).
@@ -1669,6 +1693,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_my_profile` | args: ? |
 | `delete_portal_video` | p_id: uuid |
 | `delete_regie_cue` | p_id: uuid |
+| `delete_session_asset` | p_id: uuid |
 | `delete_stage` | p_id: uuid |
 | `delete_track` | p_id: uuid |
 | `deliverable_due` | p_oe: public.org_edition, p_template: public.deliverable_template |
@@ -1719,6 +1744,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_hack_judge` | args: ? |
 | `is_hack_team` | args: ? |
 | `is_kiosk_only` | args: ? |
+| `is_marketing_team` | args: ? |
 | `is_member_of_org` | p_org_id: uuid |
 | `is_partner_of` | p_org_id: uuid |
 | `is_partner_team` | args: ? |
@@ -1749,6 +1775,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `list_external_refs` | p_object_type: text, p_system: text |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
 | `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
+| `mail_template_history` | p_key: text, p_limit: integer, p_locale: text |
+| `mail_templates_admin` | args: ? |
 | `manager_speakers` | p_edition_id: uuid |
 | `mark_expense_paid` | p_claim_id: uuid, p_payment_ref: text |
 | `mark_overdue_deliverables` | args: ? |
@@ -1773,6 +1801,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_partner_stages` | args: ? |
 | `my_regie_stages` | p_edition_id: uuid |
 | `my_roles` | args: ? |
+| `my_session_photos` | args: ? |
 | `my_sessions` | args: ? |
 | `my_shifts` | p_edition_id: uuid |
 | `my_speaker_assets` | p_profile_id: uuid |
@@ -1784,6 +1813,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_volunteer_profile` | p_edition_id: uuid |
 | `notify_partner_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
+| `order_lunch_package` | p_edition_id: uuid, p_org_id: uuid, p_qty: integer |
+| `org_has_booth` | p_org_edition_id: uuid |
 | `org_steps_progress` | p_edition_id: uuid, p_topic: text |
 | `partner_admin_overview` | p_edition_id: uuid |
 | `partner_applications` | p_session_id: uuid |
@@ -1825,6 +1856,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `regie_view` | p_event_day_id: uuid, p_stage_id: uuid |
 | `register_for_session` | p_session_id: uuid |
 | `register_partner_asset` | p_deliverable_id: uuid, p_edition_id: uuid, p_filename: text, p_kind: text, p_mime: text, p_org_id: uuid, p_size_bytes: bigint, p_storage_path: text |
+| `register_session_asset` | p_data: jsonb |
 | `register_speaker_asset` | p_filename: text, p_kind: text, p_mime: text, p_profile_id: uuid, p_session_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `reject_expense` | p_claim_id: uuid, p_note: text |
 | `reject_session_content` | p_note: text, p_submission_id: uuid |
@@ -1835,6 +1867,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `request_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
 | `request_ticket_increase` | p_additional: integer, p_edition_id: uuid, p_org_id: uuid, p_pass_type: text, p_text: text |
 | `resolve_sync_error` | p_id: bigint |
+| `restore_mail_template` | p_body_md: text, p_key: text, p_locale: text, p_subject: text |
 | `resync_deliverables` | p_edition_id: uuid |
 | `review_deliverable` | p_accepted: boolean, p_deliverable_id: uuid, p_note: text |
 | `revoke_role` | p_assignment_id: uuid, p_note: text |
@@ -1848,9 +1881,12 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `send_partner_reminders` | args: ? |
 | `send_presentation_reminders` | args: ? |
 | `send_shift_reminders` | args: ? |
+| `session_asset_path_allowed` | p_name: text, p_write: boolean |
+| `session_assets_admin` | p_event_id: uuid |
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
 | `session_speakers_public` | p_session_id: uuid |
+| `sessions_for_assets` | p_event_id: uuid |
 | `set_booth_service_check` | p_checked: boolean, p_note: text, p_org_edition_id: uuid, p_product_sku: text |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
 | `set_diet` | p_diet: text, p_note: text |
@@ -1872,6 +1908,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_pass_type_choice` | p_choice: text, p_edition_id: uuid, p_org_id: uuid |
 | `set_person_salutation` | p_de: text, p_en: text, p_person_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
+| `set_session_asset` | p_data: jsonb, p_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
 | `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
 | `set_slides_release` | p_asset_id: uuid, p_release: boolean |
@@ -1903,6 +1940,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_order_totals` | p_order_id: uuid |
 | `shop_orders_admin` | p_edition_id: uuid |
 | `shop_phase` | p_edition_id: uuid |
+| `shop_phase_deadline_key` | p_phase: integer |
 | `shop_phase_info` | p_edition_id: uuid, p_org_id: uuid |
 | `shop_reconcile_ledger` | p_order_id: uuid, p_release: boolean |
 | `shop_remove_line` | p_order_id: uuid, p_sku: text |
@@ -1910,6 +1948,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_request_answer` | p_answer: text, p_id: uuid, p_status: text |
 | `shop_request_product` | p_edition_id: uuid, p_org_id: uuid, p_sku: text, p_text: text |
 | `shop_requests_admin` | p_edition_id: uuid |
+| `shop_sku_via_deliverable` | p_org_edition_id: uuid, p_sku: text |
 | `shop_stock_available` | p_sku: text |
 | `shop_sync_fulfilled_deliverables` | p_org_edition_id: uuid |
 | `shop_upsert_line` | p_edition_id: uuid, p_merch_config: jsonb, p_org_id: uuid, p_qty: numeric, p_sku: text |
@@ -1958,6 +1997,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |
 | `upsert_kb_article` | p_data: jsonb |
+| `upsert_mail_template` | p_data: jsonb |
 | `upsert_partner_contact` | p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_position: text, p_roles: text[] |
 | `upsert_portal_video` | p_data: jsonb |
 | `upsert_product` | p_data: jsonb |

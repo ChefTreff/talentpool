@@ -18,6 +18,9 @@ dups="$(git ls-files | grep -E ' [0-9]+\.[A-Za-z0-9]+$' || true)"
 [ -z "$dups" ] || { echo "dateien: FEHLER (Duplikate im Repo)"; echo "$dups"; exit 1; }
 badmig="$(git ls-files supabase/migrations | grep -vE '^supabase/migrations/[0-9]{14}_[a-z0-9_]+\.sql$' | grep -vE '/vorschlag/' || true)"
 [ -z "$badmig" ] || { echo "dateien: FEHLER (Migration ohne Server-Version)"; echo "$badmig"; exit 1; }
+# Platzhalter-Zeitstempel (2026MMDD2359NN) gehoeren nur unter vorschlag/ — ausserhalb sehen sie wie angewendet aus, sind es aber nicht (17.09.2026, PR #61).
+platzhalter="$(git ls-files supabase/migrations | grep -E '^supabase/migrations/[0-9]{8}2359[0-9]{2}_' || true)"
+[ -z "$platzhalter" ] || { echo "dateien: FEHLER (Platzhalter-Zeitstempel ausserhalb von vorschlag/)"; echo "$platzhalter"; exit 1; }
 # Konfliktmarker in verfolgten Dateien: ein mit tail gekuerztes Merge-Protokoll liess am 17.09.2026 zwei Konflikte durch, `git add -A` committete die Marker.
 marker="$(git grep -lE '^(<<<<<<< |>>>>>>> )' -- . || true)"
 [ -z "$marker" ] || { echo "dateien: FEHLER (Konfliktmarker)"; echo "$marker"; exit 1; }

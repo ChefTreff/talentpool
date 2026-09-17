@@ -52,6 +52,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         { href: "/admin/hospitality", label: nav.hospitality },
         { href: "/admin/anreise", label: nav.travel },
         { href: "/admin/technik", label: nav.tech },
+        { href: "/admin/grafiken", label: nav.graphics },
       ],
     },
     {

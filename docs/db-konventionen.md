@@ -3,7 +3,7 @@
 Gilt für jede Session, die Migrationen schreibt — ab Welle 4 auch die Build-Session (Entscheidung 11.09.2026). **Angewendet** wird eine Migration ausschließlich von der Architektur-/Security-Session (Supabase-MCP `apply_migration`, Datei danach auf die Server-Version umbenannt, Eintrag im Entscheidungslog). Die Prüfung vor dem Anwenden folgt genau dieser Liste.
 
 ## 1 · Migrationsdatei
-- Eine Migration = ein Thema. Dateiname vorläufig `supabase/migrations/2026MMDD2359NN_<thema>.sql`; die Architektur-Session ersetzt den Zeitstempel durch die Server-Version.
+- Eine Migration = ein Thema. Dateiname vorläufig `supabase/migrations/2026MMDD2359NN_<thema>.sql`; die Architektur-Session ersetzt den Zeitstempel durch die Server-Version. Bis dahin liegt die Datei unter `supabase/migrations/vorschlag/` — `scripts/gate-pr.sh` bricht ab, wenn ein Platzhalter-Zeitstempel (`…2359NN_`) außerhalb von `vorschlag/` getrackt ist (er sähe sonst aus wie angewendet).
 - Kopf: `-- 00NN · <Titel>: Zweck, Anlass (PR/Fund/Entscheidung), Abweichungen`. Erste Zeile Code: `set search_path = public, extensions;`. Letzte Zeile: `select harden_definer_functions();` (entzieht anon das EXECUTE auf SECURITY-DEFINER-Funktionen, pinnt `search_path`).
 - Angewendete Migrationen sind unveränderlich: Korrektur = neue Migration. Nie „mal eben“ im Dashboard ändern.
 - Vor jedem Commit `git status` lesen: Finder-/Sync-Duplikate („`name 2.sql`“) und Platzhalter-Namen ohne Server-Version dürfen nie ins Repo — `scripts/gate-pr.sh` bricht seit 14.09.2026 mit „dateien: FEHLER“ ab, wenn so etwas getrackt ist (fünf Duplikate waren am 14.09. über ein `git add -A` hereingerutscht und sind entfernt).
