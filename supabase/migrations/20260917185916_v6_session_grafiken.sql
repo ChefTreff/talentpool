@@ -1,7 +1,6 @@
 -- =============================================================================
 -- 0111 · Welle 6 · Bilder am Auftritt: Bühnenfotos und Slot-Grafiken (A6, ADM-039)
---
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+--     Angewendet von der Architektur-Session am 17.09.2026 als 20260917185916
 --
 -- Bühnenfotos und Programmgrafiken entstehen heute ausserhalb des Portals und
 -- liegen nirgends. Der Speaker sieht sein Foto nie, das Marketing sucht es in
