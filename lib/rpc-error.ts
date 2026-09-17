@@ -162,6 +162,9 @@ const BUSINESS_KEYS = new Set([
   "invalid_owner",
   // Pass-Typ je Partner (Migration 0105)
   "invalid_pass_type_choice",
+  // Assistent auf der Wissensbasis (Migration 0108)
+  "rate_limited",
+  "empty_query",
   // Messestand und Editionsdateien (Migration 20260915115415)
   "edition_file_not_found",
   "invalid_path",
