@@ -71,6 +71,8 @@ const BUSINESS_KEYS = new Set([
   "invalid_category",
   "invalid_format",
   "invalid_due_rule",
+  "invalid_qty",
+  "booth_required",
   "invalid_amount",
   "date_required",
   "description_too_long",

@@ -19,7 +19,7 @@ import { FileButton } from "@/components/ui/FileButton";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
-import { registerPartnerAsset, submitDeliverable } from "../actions";
+import { orderLunchPackage, registerPartnerAsset, submitDeliverable } from "../actions";
 import { safeFileName, BUCKET } from "../upload";
 import type { AnswerField, Deliverable, DeliverableAsset, PartnerOverview } from "../types";
 
@@ -68,6 +68,35 @@ export function ChecklistView({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState<string | null>(null);
+  /** Anzahl Personen fürs Lunch-Paket (PART-049), je Pflicht. */
+  const [lunchQty, setLunchQty] = useState<Record<string, string>>({});
+
+  /**
+   * Das Lunch-Paket direkt hier bestellen (PART-049). Konrad: „super wichtig,
+   * dass alle Partner das sehen — wenn man nur dafür in den Shop gehen muss,
+   * überlädt das vielleicht."
+   *
+   * Die Bestellung läuft trotzdem über den Messeshop: die RPC legt die Zeile an
+   * und bestätigt sie, damit Frist, Lagerbuch, Rechnung und Produktionsliste
+   * mitlaufen. Nur der Weg dorthin ist kürzer.
+   */
+  const onOrderLunch = (d: Deliverable) => {
+    const qty = Number.parseInt(lunchQty[d.id] ?? "", 10);
+    if (!Number.isFinite(qty) || qty <= 0) {
+      toast("error", rpcMessages.invalid_qty ?? "");
+      return;
+    }
+    startTransition(async () => {
+      const res = await orderLunchPackage({ orgId, editionId, qty });
+      if (!res.ok) {
+        toast("error", rpcMessages[res.key] ?? res.key);
+        return;
+      }
+      toast("success", t.lunchOrdered);
+      setLunchQty((q) => ({ ...q, [d.id]: "" }));
+      router.refresh();
+    });
+  };
   /** Welche Zeile ist aufgeklappt. Genau eine — sonst ist es wieder eine Wand. */
   const [offen, setOffen] = useState<string | null>(null);
   // Antworten je Pflicht: der Schlüssel ist das Feld aus `answers_schema`,
@@ -468,7 +497,37 @@ export function ChecklistView({
                               </Button>
                             </>
                           ) : d.fulfilled_by_sku ? (
-                            <p className="ct-help">{t.fulfilledByShop}</p>
+                            d.status === "accepted" || !canEdit ? (
+                              <p className="ct-help">{t.fulfilledByShop}</p>
+                            ) : (
+                              // PART-049: bestellen, wo die Aufgabe steht.
+                              <div className="flex flex-wrap items-end gap-3">
+                                <Field
+                                  label={t.lunchQty}
+                                  htmlFor={`lunch-${d.id}`}
+                                  hint={t.lunchQtyHint}
+                                >
+                                  <Input
+                                    id={`lunch-${d.id}`}
+                                    type="number"
+                                    min={1}
+                                    inputMode="numeric"
+                                    className="w-28"
+                                    value={lunchQty[d.id] ?? ""}
+                                    onChange={(e) =>
+                                      setLunchQty((q) => ({ ...q, [d.id]: e.target.value }))
+                                    }
+                                  />
+                                </Field>
+                                <Button
+                                  size="sm"
+                                  disabled={pending || !(lunchQty[d.id] ?? "").trim()}
+                                  onClick={() => onOrderLunch(d)}
+                                >
+                                  {t.lunchOrder}
+                                </Button>
+                              </div>
+                            )
                           ) : (
                             <>
                               <p className="ct-help">{d.type === "booking" ? t.bookingHint : t.infoHint}</p>

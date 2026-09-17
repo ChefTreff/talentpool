@@ -186,7 +186,9 @@
     "empty_query": "The question is empty.",
     "no_slot": "That question was not asked — please use the input field.",
     "invalid_format": "No such format key.",
-    "invalid_due_rule": "The system does not know this deadline rule. Allowed are an edition deadline or a number of days after the invitation."
+    "invalid_due_rule": "The system does not know this deadline rule. Allowed are an edition deadline or a number of days after the invitation.",
+    "booth_required": "The trade fair shop is open to partners with a booked booth. You can still order the lunch package from your checklist.",
+    "invalid_qty": "Please enter a number greater than zero."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -985,7 +987,10 @@
     "timesTitle": "Times and schedule",
     "timesWikiHint": "The full schedule is in the",
     "locationTitle": "Getting there",
-    "locationWikiHint": "Directions and parking in the wiki"
+    "locationWikiHint": "Directions and parking in the wiki",
+    "lunchCardTitle": "Lunch package for your team",
+    "lunchCardBody": "Catering on both days for everyone working for you on site.",
+    "lunchCardAction": "Order it in your checklist"
   },
   "partnerContacts": {
     "title": "Contacts",
@@ -1068,7 +1073,12 @@
     "fulfilledByShop": "Taken care of by your order in the trade fair shop.",
     "groupDone": "{done} of {total}",
     "doneLabel": "done",
-    "openLabel": "open"
+    "openLabel": "open",
+    "lunchQty": "For how many people?",
+    "lunchQtyHint": "Catering on both days. You can change it later via the trade fair shop.",
+    "lunchOrder": "Order the lunch package",
+    "lunchOrdered": "Ordered — the confirmation is in your inbox.",
+    "lunchOpen": "View the order"
   },
   "partnerFiles": {
     "title": "Files",
@@ -1174,10 +1184,9 @@
     "emptyBody": "As soon as the first ordering phase starts, the catalogue shows up here.",
     "phaseOpen": "Ordering phase {n} is running",
     "phase_1": "Ordering phase 1 is running",
-    "phase_2": "Ordering phase 2 is running",
-    "phase_3": "Late ordering is running",
+    "phase_2": "Late ordering is open",
     "phaseOpenBody": "Whatever you confirm becomes binding at the end of the phase. Until then you can change it.",
-    "phaseLateOnly": "Late orders only — mainly the lunch package. Everything else is closed.",
+    "phaseLateOnly": "Only items available at short notice. Everything else is closed.",
     "phaseClosed": "The shop is closed",
     "phaseClosedBody": "The ordering phases are over. Get in touch with the partner team if something is missing.",
     "phaseEnds": "Runs until",
@@ -1269,7 +1278,11 @@
     "vatId": "VAT ID",
     "poNumber": "Purchase order number (PO)",
     "poHint": "Optional. Appears on your invoice. Pre-filled from “Your data”, changeable per order.",
-    "navOrders": "Orders"
+    "navOrders": "Orders",
+    "noBoothTitle": "The trade fair shop belongs to your booth",
+    "noBoothBody": "This is where you order furniture, tech, plants and catering for your booth. You have not booked a booth — if that is wrong, please contact the partner team.",
+    "noBoothLunch": "You can order the lunch package for your team from your checklist regardless.",
+    "noBoothAction": "Go to the checklist"
   },
   "volunteers": {
     "title": "Volunteers",
