@@ -56,6 +56,7 @@ Verlaufs-Hero über die ganze Seite · lila Farbverlauf als Fläche · Emoji als
 Seitenaufbau, Formular, Tabelle, Wizard, Leerzustand, Login/Welcome, Sidebar: `referenzen/muster.md`.
 Marke, Formensprache, Divisionsfarben, Logo-Varianten: `referenzen/marke.md`.
 Tokens mit geprüften Kontrastwerten: `referenzen/tokens.md`.
+Die 13 Website-Blöcke (Desktop und Mobil), ihre Maße und die Übersetzung in Portal-Bausteine: `referenzen/website-bloecke.md` — **vor jeder neuen Seite und jeder neuen Komponente lesen.** Die Website ist der Entwerfer: Aufbau und Rhythmus kommen von dort, die Fläche bleibt hell.
 
 ## Vor dem PR
 
