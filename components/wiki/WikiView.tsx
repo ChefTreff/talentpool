@@ -45,7 +45,17 @@ export function WikiView({
    */
   useEffect(() => {
     const ausAdresse = () => {
-      const slug = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+      const roh = window.location.hash.replace(/^#/, "");
+      if (!roh) return;
+      // Ein von Hand verstümmelter Anker (`#%zz`) lässt `decodeURIComponent`
+      // werfen — im Effekt wäre das ein Fehler der ganzen Seite wegen einer
+      // kaputten Adresszeile.
+      let slug: string;
+      try {
+        slug = decodeURIComponent(roh);
+      } catch {
+        slug = roh;
+      }
       if (!slug) return;
       const treffer = articles.find((a) => a.slug === slug);
       if (treffer) setOpenId(treffer.id);

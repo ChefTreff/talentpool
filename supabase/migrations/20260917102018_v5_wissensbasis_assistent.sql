@@ -1,7 +1,6 @@
 -- =============================================================================
 -- 0108 · Welle 5 · Assistent auf der Wissensbasis: Suche, Zähler, Protokoll
---
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+--     Angewendet von der Architektur-Session am 17.09.2026 als 20260917102018
 --
 -- QS-015: Im Alt-Portal war der Chatbot auf beiden Hubs der erste Anlaufpunkt.
 -- Konrad am 17.09.: „vorher machen, der ist wichtig." Damit rückt der Punkt von
