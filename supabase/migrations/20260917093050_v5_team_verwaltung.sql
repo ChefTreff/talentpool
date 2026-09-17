@@ -1,7 +1,6 @@
 -- =============================================================================
 -- 0106 · Welle 5 · Das Team als Liste: wer gehört dazu, mit welcher Rolle
---
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+--     Angewendet von der Architektur-Session am 17.09.2026 als 20260917093050
 --
 -- Konrad: „im Admin Bereich eine Sektion, wo ich Personen und Rollen verwalten
 -- kann des Teams". Es gibt `/admin/rollen`, aber das beantwortet die andere
