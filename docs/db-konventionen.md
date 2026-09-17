@@ -81,6 +81,7 @@ rollback;
 - Mails über `mail_log` prüfen (Testperson ist EN: DE-Inhalte an einem DE-Kontakt prüfen).
 - **Bei drop + create einer Tabellenfunktion die alte Spaltenliste gegen die neue halten** (`pg_get_function_result` vorher notieren) und im Test eine Spalte prüfen, die **nicht** Gegenstand der Änderung ist — 0099 verlor so `internal_notes` aus `manager_speakers`, 0103 setzte sie wieder ein.
 - **Rechte unmittelbar vor dem Schritt setzen, der sie braucht** — nicht auf den Stand von oben verlassen. Vier Testprämissen sind so durchgerutscht (15.09.: Testperson hatte schon ein Speaker-Profil; fremde Zielgruppe erst nach dem Admin-Grant geprüft; Person ohne Edition bei der Löschfrist; `purge_diet_data` mit `production_team` statt `admin`). Wer im Testverlauf Rollen umbaut, schreibt vor jedem Abschnitt hin, welche Rolle gerade gilt.
+- **Suchen und Zuordnen gegen den Bestand testen, mit einer Frage, wie ein Mensch sie stellt** — nicht nur mit Wörtern aus dem eigenen Testartikel. Der Wiki-Assistent (0108) fand „Bis wann muss die Rückwand geliefert sein?“ nicht, weil im Artikel „einsenden“ steht und der Test seine Suchwörter aus dem selbst angelegten Artikel nahm; erst der Walkthrough gegen echte Artikel zeigte es (0109, 17.09.2026). Regel: mindestens ein Testschritt mit einem Synonym oder einer Umschreibung, die im Text nicht vorkommt.
 - Rollback stellt alles wieder her; Wegwerf-Daten trotzdem sprechend benennen. Zeile in `supabase/tests/README.md` ergänzen (Datei, Migrationen, was geprüft wird).
 
 ## 7 · Doku je Migration
