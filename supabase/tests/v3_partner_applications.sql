@@ -9,7 +9,7 @@ declare v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_org uuid; v_org2 uuid
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary where p.auth_user_id is not null limit 1;
-  delete from role_assignment where person_id = v_pid; delete from staff_user where auth_user_id = v_uid; -- Testperson ohne Vorrechte (Rollback stellt alles wieder her)
+  delete from role_assignment where person_id = v_pid; -- Testperson ohne Vorrechte (Rollback stellt alles wieder her)
   select id into v_ed from event where is_edition and slug = 'fls27';
   select e.id into v_event from event e where e.edition_id = v_ed and not e.is_edition and exists (select 1 from stage s where s.event_id = e.id) limit 1;
   -- Team legt zwei Partner-Orgs, eine Masterclass je Org und zwei Bewerbungen an

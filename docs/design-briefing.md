@@ -1,4 +1,4 @@
-# Design-Briefing — ChefTreff Portale (v0.5, Stand 12.09.2026)
+# Design-Briefing — ChefTreff Portale (v0.7, Stand 17.09.2026)
 
 > Verbindlich für alle Portale (Talent, Speaker, Speaker-Manager, Partner inkl. Messeshop, Hackathon, Volunteers, Initiativen, Admin).
 > Quellen: Figma „REBRANDING CHEFTREFF" — exportierte Frames A1 Farben (ChefTreff-Basis, Events), A2 Gradients, A3 Fonts, A4 Buttons, A6 Layout & Abstände, Hero-Highlight-Regel, Logos, Formen-SVGs; `ChefTreff_PartnerPortal_Design_v1.html`; Schriftordner.
@@ -127,3 +127,18 @@ Form: Pille (`border-radius: 999px`) oder 8-px-Rechteck — **eine** Form pro Po
 - **Typo-Rollen in `@layer components`**, damit sich jede Rolle mit einer Farbklasse kombinieren lässt (unlayered hatten sie jede Utility geschlagen — auf der Navy-Seitenleiste wäre `ct-help` dunkel geblieben). Neue Rollen `.ct-small` (14/20, ohne Fettung), `.ct-display` (40/44, ab 768 px 52/56 — die Welcome-Headline), `.ct-wordmark` (16/24, Logo-Lockup). 88 rohe Schriftgrößen in 38 Dateien entfernt; Regel präzisiert: fehlt eine Größe, kommt sie als Rolle nach `globals.css`, nie als `text-[…px]` in eine Seite.
 - **Token `highlight` `#FF88CF`** (Highlight-Pink des Brandbooks) einzig für das Highlight-Wort auf Navy (Login, Welcome, Begrüßung): 8,0:1 auf Navy; auf Weiß nur 2,2:1 und dort verboten; nie UI- oder Statusfarbe. Die Highlight-Regel aus §3 lautet damit: Schlüsselwort Sharp Sans ExtraBold Italic in `text-highlight`, Rest ExtraBold Off-White, Navy-Grund — der Akzent selbst trägt auf Navy keinen Text (3,56:1).
 - **Events-Form statt Hexagon:** `EmptyState` zeigt ein Dreieck (2 px Umriss im Akzent); `BrandBackdrop` (drei geschachtelte Dreiecke, ein Zickzack-Linienzug, `accent-soft`, nur Umriss) auf Login und Welcome, ab 768 px, nie hinter Text.
+
+## v0.7 (17.09.2026) — Design-System v2 abgenommen (PR #53)
+
+Konrads Abnahme auf der Preview und seine acht Entscheidungen. Grundlage: `docs/design-system-v2-auftrag.md`, Team-Portal-Walkthrough vom selben Tag. Was hier steht, ist im Skill `/portal-design` ausgeführt.
+
+1. **Hero-Band auf jeder Startseite**, auch Admin und Produktion — nicht nur in den Kundenportalen. Damit ist die Frage aus dem Auftrag §7 beantwortet: kein flacherer Kopf für interne Bereiche.
+2. **Eine Porträt-Form für alle Personen.** Das gekippte Dreieck mit Akzentverlauf (`PortraitShape`) gilt für Speaker, Jury, Team, Ansprechpartner und Buddys. Das runde Foto mit Akzent-Ring entfällt. `PersonCard` und `ContactCard` unterscheiden sich in der **Dichte**, nicht in der Form.
+3. **Highlight-Pink als Dringlichkeits-Chip erlaubt**, auf dunklem Grund: `<Badge tone="highlight">` mit Navy-Text (8,0:1) für knappe Kontingente und Restplätze („Noch 2 Plätze frei", Vorbild Social-Post `319:692`). Auf hellem Grund bleibt Pink verboten (2,2:1); dort trägt `warning`. Der Ton ist eine Dringlichkeit, kein Status.
+4. **Design-System v2 gilt**, die alte Gestaltung wird abgelöst (Rollout D2). Die Kit-Schau unter `/design` bleibt als Nachschlagewerk.
+5. **Die Seitenleiste bleibt Navy.** Das Team-Portal hat eine helle Leiste; übernommen wird sie nicht. `QS-001` und `QS-007` bleiben damit gültig.
+6. **Knöpfe und Chips bleiben 8-px-Rechtecke.** Die Pillen des Team-Portals werden nicht übernommen — eine Form konsequent (§5).
+7. **Zeilenhöhe 44, mit Bedienelementen 56.** 44 gilt für reine Datenzeilen; sobald ein Knopf oder Feld in der Zeile steht, braucht sie die Höhe des Bedienelements plus Abstand (`<Tr controls>`).
+8. **Fotos:** die Penno-Serie der Website ist freigegeben, unbeschränkte Nutzungsrechte bei ChefTreff. Bilder erscheinen in Hero-Band, Detail-Karten und Personen-Karten — sonst nirgends.
+
+**Rechtstexte:** Impressum und Datenschutz verweisen auf die Hauptwebsite (`chef-treff.de/impressum/`, `chef-treff.de/datenschutzerklärung/`), Ziel in neuem Tab. Offen bleibt als P1 auf Konrads Checkliste, ob die Erklärung der Website die Verarbeitung **im Portal** abdeckt (Magic-Link, Supabase, Vercel, Resend, Assistent, Speicherfristen) — `QS-018`.
