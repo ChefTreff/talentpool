@@ -13,6 +13,8 @@ docs/legacy-inventar.md|04_Tool-Landscape & Integrationen/Legacy-Inventar — Ai
 docs/makecom-webhooks-2026-09-08.md|04_Tool-Landscape & Integrationen/make.com — verwaiste Webhooks, Abschaltliste (2026-09-08).md
 docs/vivenu-support-anfrage.md|04_Tool-Landscape & Integrationen/Vivenu-Support-Anfrage (Entwurf, 2026-09-08).md
 docs/zugangs-liste.md|04_Tool-Landscape & Integrationen/Zugangs- und Token-Liste (ohne Werte, Claude, laufend).md
+docs/sanity-trockenlauf-2026-09-15.md|04_Tool-Landscape & Integrationen/Sanity-Trockenlauf — Prüfergebnis für das Website-Team (2026-09-15).md
+docs/website-team-sanity-briefing.md|04_Tool-Landscape & Integrationen/Sanity — Info an das Website-Team (Kontrakt v2, 2026-09-15).md
 docs/feedback-fls26.md|05_Requirements (Team-Input)/Feedback FLS26 — Register mit Konsequenzen (Claude, 2026-09-08).md
 docs/feedback-runde-1-2026-09-11.md|05_Requirements (Team-Input)/Feedback-Runde 1 — Konrad (2026-09-11).md
 docs/feedback-runde-1-abgleich.md|05_Requirements (Team-Input)/Abgleich Alt-Portale gegen neues Portal (Claude, 2026-09-14).md
@@ -30,6 +32,8 @@ docs/arbeitsauftrag-welle-0.md|08_Projektplan & MVP/Arbeitsauftrag Welle 0 — F
 docs/arbeitsauftrag-welle-1.md|08_Projektplan & MVP/Arbeitsauftrag Welle 1 — Talent + Programm (Claude, 2026-09-08).md
 docs/arbeitsauftrag-welle-2.md|08_Projektplan & MVP/Arbeitsauftrag Welle 2 — Speaker + Speaker-Leads (Claude, 2026-09-10).md
 docs/arbeitsauftrag-welle-3.md|08_Projektplan & MVP/Arbeitsauftrag Welle 3 — Partner + Messeshop (Claude, 2026-09-10).md
+docs/plan-ergaenzung-2026-09-17.md|08_Projektplan & MVP/Ergaenzender Plan — Abschluss, Abgleich, Feedback-Prozess, Backend, Design (Entwurf, 2026-09-17).md
+docs/feedback-leitfaden.md|05_Requirements (Team-Input)/Feedback-Leitfaden — so gibst du Feedback (Claude, laufend).md
 MAP
 # Runbooks als Ordner
 if [ -d docs/runbooks ]; then
