@@ -115,3 +115,13 @@
 - **Datenschutzhinweis und Footer** des Alt-Shops gegen die Portal-Hülle.
 - **Der Bestellweg gegen echte Daten:** Phasen, Lagerbuch und Finalisierung sind in Tests belegt, aber nicht mit Konrads Testorganisation durchgespielt.
 - **SevDesk-Echtlauf.** Nur der Probelauf ist ohne Folgen; ob der Entwurf in SevDesk richtig aussieht, zeigt erst der erste echte Lauf.
+
+## Antworten Konrad (Walkthrough 17.09.2026, angemeldet im Messeshop)
+9. **Keine Shop-Rollen 2027.** Alle Partner sehen alle Artikel; die Plausibilität (Kicker auf 4 qm) prüft die Produktion in einer **internen Checkliste je Stand** (PROD-005). Der Shop ist **nur mit gebuchtem Messestand** sichtbar (PART-037).
+10. **Messeshop-Rechnung aus SevDesk** (Nachverfolgbarkeit in der Buchhaltung), im Portal sichtbar → PART-036.
+11. **Shop-Bestellungen gehören in die Produktionsliste** — je Stand Standardausstattung plus Shop = Produktionsliste („elementar“) → PROD-004.
+12. **Zwei Phasen:** 19.03.2027 voller Shop, 09.04.2027 nur kurzfristig bestellbare Artikel (Flag je Artikel) → PART-038. **Neu:** Produktstamm im Produktionsportal pflegen und nach HubSpot und SevDesk abgleichen (ersetzt Airtable + make.com) → PROD-006.
+13. **Video als Pop-up** und Hinweis „Anleitung & Support“, keine große Startseite → PART-039.
+14. **Produktbilder pflegbar** → PROD-006.
+15. **Paket-Einzelteile zusätzlich kaufbar** — bleibt wie gebaut.
+16. **Umsatzsteuer vorerst 7 % überall**, finale Prüfung offen → Checkliste.

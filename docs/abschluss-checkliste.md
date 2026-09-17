@@ -127,3 +127,6 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **Vorlagen für die Speaker-Features** (Konrad liefert): FLS26-Grafik-Template für die Hear-Me-Speak-Maske (SPK-013), alte Talk-Titel und -Beschreibungen zur Schärfung des Talk-Generators (SPK-012).
 - ☐ **`ANTHROPIC_API_KEY`** in Vercel setzen, sobald #50 gemergt ist (Admin-Chat sagt an): `sh scripts/env-set.sh ANTHROPIC_API_KEY`.
 - ☐ **Segmentierungs-Übersicht ans Marketing senden** — Dokument fertig (#51, 17.09.): `docs/segmentierung-2026-09.md`, im Drive unter „05_Requirements (Team-Input)/Segmentierung — Uebersicht fuers Marketing“. Konrad schickt es; Antwort = Liste gewünschter Segmente (§6 des Dokuments), danach Views + AC-Tags durch den Admin-Chat.
+- ☐ **Wikis vor dem finalen Launch überarbeiten** (Konrad, 17.09.: „erstmal frei“; Inhalte 2026 raus, Fristen 2027 rein).
+- ☐ **Umsatzsteuer je Artikelkategorie final prüfen** (aktuell 7 % überall; Konrad/Buchhaltung, 17.09.).
+- ☐ **Arbeitsauftrag Welle 6 (Architektur-Session):** Konzept „Eure Formate“ (Interview Tables, Side-Events, Partner legt Format an, Fragenauswahl, Export), Initiativen-CRM (Agreement, Rabattsatz 100/50, Stand-Tage, SKU, Beachflag), Produktstamm-Abgleich HubSpot + SevDesk, SevDesk-Lesezugriff für Belege, Rolle `marketing_team` mit Grafikbereich — aus Konrads Walkthrough-Antworten vom 17.09.
