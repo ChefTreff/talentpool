@@ -193,7 +193,8 @@
     "invalid_stage_type": "No such stage type.",
     "invalid_times": "The stage closes before it opens.",
     "stage_not_found": "No such stage.",
-    "track_not_found": "No such track."
+    "track_not_found": "No such track.",
+    "invalid_format": "No such format key."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1724,7 +1725,9 @@
     "ticketPassFallback": "From the partner category",
     "ticketPassTalent": "Talent pass",
     "ticketPassStartup": "Startup pass",
-    "ticketPassAllocations": "allocations follow."
+    "ticketPassAllocations": "allocations follow.",
+    "fieldFormatKey": "Opens the page",
+    "formatKeyHint": "Which page under “Your formats” this product unlocks in the partner portal. Leave empty for articles without their own page."
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -2772,7 +2775,11 @@
     "stepUnmark": "Remove the tick",
     "stepSaved": "Saved",
     "stepDoneShort": "Done",
-    "stepOpenShort": "Open"
+    "stepOpenShort": "Open",
+    "membersTitle": "Who from your team is in the app",
+    "membersBody": "We add these people as your team on the exhibitor profile. Add or change them under “Contacts” and we follow suit.",
+    "membersEmpty": "Nobody yet. Under “Contacts”, add the people who should scan and see leads on site.",
+    "membersAction": "Manage your team under Contacts"
   },
   "partnerBooth": {
     "title": "Booth",

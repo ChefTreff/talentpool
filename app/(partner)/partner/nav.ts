@@ -5,30 +5,84 @@ import type { PartnerProduct } from "./types";
  * aus Rollen und nicht aus manuellen Freischaltungen (Arbeitsauftrag C,
  * „Produktbasiert statt Rollen").
  *
- * Zwei Punkte hängen nicht am Produkt, sondern an dem, was daraus entstanden
- * ist (Review PR #14, Migration 0051): Bewerber gibt es, wenn der Org eine
- * Session zugeordnet wurde, Bühne, wenn ihr eine Bühne gehört. Über
- * Produktkategorien ginge beides schief — `stage_products` enthält auch reine
- * Speaking-Slots ohne Bewerbungsverfahren, und eine Bühne kann das Team auch
- * ohne passendes Produkt zuweisen.
+ * **Seit Migration 0110 steht die Zuordnung am Produkt** (`product.format_key`,
+ * Vokabular `partner_format`) statt als SKU-Liste hier im Code. Der Grund ist
+ * nicht Eleganz, sondern Zuständigkeit: welcher Artikel welche Seite öffnet,
+ * weiß der Vertrieb, nicht der Code. Ein neuer Speaking-Artikel bekommt im
+ * Produktstamm `format_key = 'talk'` und ist damit sofort wirksam — vorher
+ * hätte er einen Deploy gebraucht. Die Konstante `STAGE_SKU` ist deshalb
+ * entfallen.
+ *
+ * Zwei Punkte hängen weiterhin nicht am Produkt, sondern an dem, was daraus
+ * entstanden ist (Review PR #14, Migration 0051): Bewerber gibt es, wenn der
+ * Org eine Session zugeordnet wurde, Bühne, wenn ihr eine Bühne gehört. Über
+ * Produkte allein ginge beides schief — eine Bühne kann das Team auch ohne
+ * passendes Produkt zuweisen.
  */
 
-/** Standbühne als Produkt; die Bühne selbst kommt aus `has_stage`. */
-export const STAGE_SKU = "I-79895";
-
 export type PartnerNavKey =
+  // Übersicht
   | "dashboard"
+  | "wiki"
+  // Euer Unternehmen
   | "onboarding"
   | "contacts"
+  // Euer Summit — für jeden Partner, ohne Produktbindung
   | "checklist"
   | "files"
   | "tickets"
   | "eventapp"
-  | "booth"
-  | "applicants"
-  | "stage"
   | "shop"
-  | "wiki";
+  | "media"
+  // Eure Formate — nur bei gebuchtem Produkt (PART-042)
+  | "booth"
+  | "masterclass"
+  | "company_tour"
+  | "side_event"
+  | "interview_table"
+  | "hackathon"
+  | "branding"
+  | "talk"
+  | "stage"
+  | "applicants";
+
+/**
+ * Die Menügruppen der Seitenleiste (PART-042, Konrad 17.09.).
+ *
+ * „Eure Formate" ist **nur eine Menügruppe**, keine eigene Seite: sie bündelt,
+ * was dieser Partner gebucht hat. Ein Partner ohne Formate sieht die
+ * Überschrift gar nicht — eine leere Gruppe ist schlimmer als keine.
+ */
+export const NAV_GROUPS = {
+  overview: ["dashboard", "wiki"],
+  company: ["onboarding", "contacts"],
+  summit: ["checklist", "files", "tickets", "eventapp", "shop", "media"],
+  formats: [
+    "booth",
+    "masterclass",
+    "company_tour",
+    "side_event",
+    "interview_table",
+    "talk",
+    "hackathon",
+    "branding",
+    "stage",
+    "applicants",
+  ],
+} as const satisfies Record<string, readonly PartnerNavKey[]>;
+
+/** Format-Schlüssel aus `product.format_key`, die zugleich Menüschlüssel sind. */
+const FORMAT_KEYS = [
+  "booth",
+  "masterclass",
+  "company_tour",
+  "side_event",
+  "interview_table",
+  "hackathon",
+  "branding",
+  "talk",
+  "stage",
+] as const satisfies readonly PartnerNavKey[];
 
 export type NavInput = {
   products: readonly PartnerProduct[];
@@ -68,19 +122,32 @@ export function visibleNavKeys(input: NavInput): PartnerNavKey[] {
     // mehr an seine Kontakte. Den Punkt zu verstecken wäre teurer als ihn
     // jemandem zu zeigen, der ihn nicht braucht.
     "eventapp",
+    // Marken-Material und Partnergrafik gelten für jeden Partner (PART-041).
+    "media",
     // Das Wiki beantwortet, was ohnehin jeder fragt — keine Produktbindung.
     "wiki",
   ];
   if (input.has_allocations || input.products.some((p) => p.category === "tickets")) {
     keys.push("tickets");
   }
-  // Messestand: wer Standfläche gebucht hat — oder wem das Team schon einen
-  // Stand zugeordnet hat, auch ohne passendes Produkt (dieselbe Ausnahme wie
-  // bei den Kontingenten).
-  if (input.has_booth || input.products.some((p) => p.category === "standflaeche")) {
-    keys.push("booth");
+
+  // Formate aus `product.format_key` (Migration 0110). Ein Produkt ohne
+  // Schlüssel öffnet keine Seite — Mobiliar und Technik gehören in den Shop,
+  // nicht ins Menü.
+  const booked = new Set(
+    input.products.map((p) => p.format_key).filter((k): k is string => k != null),
+  );
+  for (const key of FORMAT_KEYS) {
+    if (booked.has(key)) keys.push(key);
   }
+
+  // Zwei Ausnahmen, in denen das Team etwas zugewiesen hat, ohne dass ein
+  // passendes Produkt gebucht wäre.
+  if (input.has_booth && !keys.includes("booth")) keys.push("booth");
+  if (input.has_stage && !keys.includes("stage")) keys.push("stage");
+
+  // Bewerber folgt der Session, nicht dem Produkt: erst wenn der Org ein
+  // Format zugeordnet wurde, gibt es Bewerbungen zu entscheiden.
   if (input.sessions_count > 0) keys.push("applicants");
-  if (input.has_stage || input.products.some((p) => p.sku === STAGE_SKU)) keys.push("stage");
   return keys;
 }

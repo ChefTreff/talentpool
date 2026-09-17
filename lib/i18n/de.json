@@ -193,7 +193,8 @@
     "invalid_stage_type": "Diese Bühnenart gibt es nicht.",
     "invalid_times": "Die Bühne schliesst vor dem Öffnen.",
     "stage_not_found": "Diese Bühne gibt es nicht.",
-    "track_not_found": "Diesen Track gibt es nicht."
+    "track_not_found": "Diesen Track gibt es nicht.",
+    "invalid_format": "Diesen Formatschlüssel gibt es nicht."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1724,7 +1725,9 @@
     "ticketPassFallback": "Aus der Partnerkategorie",
     "ticketPassTalent": "Talent Pass",
     "ticketPassStartup": "Startup Pass",
-    "ticketPassAllocations": "Kontingente ziehen nach."
+    "ticketPassAllocations": "Kontingente ziehen nach.",
+    "fieldFormatKey": "Öffnet die Seite",
+    "formatKeyHint": "Welche Seite unter „Eure Formate\" dieses Produkt im Partner-Portal freischaltet. Leer lassen für Artikel ohne eigene Seite."
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -2772,7 +2775,11 @@
     "stepUnmark": "Haken wieder wegnehmen",
     "stepSaved": "Gespeichert",
     "stepDoneShort": "Erledigt",
-    "stepOpenShort": "Offen"
+    "stepOpenShort": "Offen",
+    "membersTitle": "Wer aus eurem Team in der App ist",
+    "membersBody": "Diese Personen legen wir als euer Team beim Aussteller-Profil an. Ergänzt oder ändert ihr sie unter „Kontakte“, ziehen wir das nach.",
+    "membersEmpty": "Noch niemand eingetragen. Tragt unter „Kontakte“ ein, wer vor Ort scannen und Leads sehen soll.",
+    "membersAction": "Team unter Kontakte pflegen"
   },
   "partnerBooth": {
     "title": "Messestand",

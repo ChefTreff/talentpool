@@ -32,6 +32,7 @@ const BLANK: AdminProduct = {
   description_en: null,
   type: "shop_item",
   category: null,
+  format_key: null,
   unit: "piece",
   net_price_cents: null,
   purchase_price_cents: null,
@@ -65,6 +66,7 @@ export function ProductEditor({
   products,
   components,
   categories,
+  formats,
   roles,
   passTypes,
   dateLocale,
@@ -76,6 +78,8 @@ export function ProductEditor({
   components: ProductComponent[];
   /** Vokabular `product_category`. */
   categories: Record<string, string>;
+  /** Vokabular `partner_format` — welche Partner-Seite dieses Produkt öffnet. */
+  formats: Record<string, string>;
   /** Vokabular `role` — `grants_role` prüft die RPC dagegen. */
   roles: Record<string, string>;
   /** Die drei Pass-Typen, die `upsert_product` erlaubt. */
@@ -156,6 +160,10 @@ export function ProductEditor({
     // Werte schicken wir gar nicht erst mit, sonst wird aus „nicht gesetzt"
     // ein ungültiger Schlüssel.
     if (draft.category) payload.category = draft.category;
+    // Der Formatschlüssel darf auch **geleert** werden — anders als die
+    // Kategorie wird er deshalb immer mitgeschickt: leerer Text heißt in der
+    // RPC „keine Seite", Weglassen hieße „nicht anfassen".
+    payload.format_key = draft.format_key ?? "";
     // Merch-Schema (S4): leere Liste heißt „kein Merch-Artikel", sonst stünde
     // im Shop ein Dialog ohne Felder.
     payload.merch_config = merch && merch.length > 0 ? merch : null;
@@ -310,6 +318,15 @@ export function ProductEditor({
                 placeholder={common.none}
                 options={Object.entries(categories).map(([value, label]) => ({ value, label }))}
                 onChange={(e) => patch({ category: e.target.value || null })}
+              />
+            </Field>
+            <Field label={t.fieldFormatKey} htmlFor="p-format" hint={t.formatKeyHint}>
+              <Select
+                id="p-format"
+                value={draft.format_key ?? ""}
+                placeholder={common.none}
+                options={Object.entries(formats).map(([value, label]) => ({ value, label }))}
+                onChange={(e) => patch({ format_key: e.target.value || null })}
               />
             </Field>
             <Field label={t.fieldUnit} htmlFor="p-unit">

@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { acceptAttribute, checkFileRules, extensionOf } from "@/lib/partner/file-rules";
-import { visibleNavKeys, STAGE_SKU, type NavInput } from "@/app/(partner)/partner/nav";
+import { visibleNavKeys, type NavInput } from "@/app/(partner)/partner/nav";
 import type { PartnerProduct } from "@/app/(partner)/partner/types";
 import { toRpcFailure } from "@/lib/rpc-error";
 import { canPublishSessions } from "@/components/programme/permissions";
@@ -79,6 +79,7 @@ const product = (p: Partial<PartnerProduct>): PartnerProduct => ({
   qty: 1,
   unit_price_cents: null,
   status: "booked",
+  format_key: null,
   ...p,
 });
 
@@ -134,11 +135,89 @@ describe("Menü folgt den gebuchten Leistungen", () => {
 
   it("blendet die Bühne bei eigener Bühne oder Bühnenprodukt ein", () => {
     assert.equal(nav({ has_stage: true }).includes("stage"), true);
-    assert.equal(nav({ products: [product({ sku: STAGE_SKU })] }).includes("stage"), true);
     assert.equal(
-      nav({ products: [product({ sku: "I-50131", category: "standflaeche" })] }).includes("stage"),
+      nav({ products: [product({ sku: "I-79895", format_key: "stage" })] }).includes("stage"),
+      true,
+    );
+    assert.equal(
+      nav({
+        products: [product({ sku: "I-50131", category: "standflaeche", format_key: "booth" })],
+      }).includes("stage"),
       false,
     );
+  });
+
+  /**
+   * Seit Migration 0110 entscheidet `product.format_key`, welche Format-Seite
+   * ein Produkt öffnet — nicht mehr eine SKU-Liste im Code. Der Test hält
+   * genau das fest: der Schlüssel am Produkt wirkt, und ohne ihn passiert
+   * nichts.
+   */
+  it("öffnet Format-Seiten über format_key des gebuchten Produkts", () => {
+    for (const key of [
+      "masterclass",
+      "company_tour",
+      "side_event",
+      "interview_table",
+      "hackathon",
+      "branding",
+      "talk",
+      "booth",
+    ] as const) {
+      assert.equal(
+        nav({ products: [product({ format_key: key })] }).includes(key),
+        true,
+        `format_key ${key} öffnet die Seite nicht`,
+      );
+    }
+  });
+
+  it("zeigt keine Format-Seite ohne das passende Produkt", () => {
+    // Ein Partner mit Mobiliar im Warenkorb hat kein Format gebucht.
+    const keys = nav({ products: [product({ category: "mobiliar", format_key: null })] });
+    for (const key of [
+      "masterclass",
+      "company_tour",
+      "side_event",
+      "interview_table",
+      "hackathon",
+      "branding",
+      "talk",
+      "booth",
+      "stage",
+    ] as const) {
+      assert.equal(keys.includes(key), false, `${key} darf ohne Produkt nicht auftauchen`);
+    }
+  });
+
+  /**
+   * Dieselbe Kategorie, drei Seiten: `stage_products` trägt Talk, Masterclass
+   * und Standbühne. Eine Regel über die Kategorie hätte alle drei vermischt —
+   * der Grund, warum der Schlüssel am Artikel steht und nicht an der Kategorie.
+   */
+  it("trennt Talk, Masterclass und Standbühne trotz gleicher Kategorie", () => {
+    const talk = nav({
+      products: [product({ sku: "I-87007", category: "stage_products", format_key: "talk" })],
+    });
+    assert.equal(talk.includes("talk"), true);
+    assert.equal(talk.includes("masterclass"), false);
+    assert.equal(talk.includes("stage"), false);
+  });
+
+  /**
+   * Der Interview Table hat 2027 noch keinen Artikel. Bis der Produktstamm ihn
+   * anlegt, darf die Seite bei niemandem erscheinen.
+   */
+  it("zeigt den Interview Table nur mit Produkt", () => {
+    assert.equal(nav({}).includes("interview_table"), false);
+    assert.equal(
+      nav({ products: [product({ format_key: "interview_table" })] }).includes("interview_table"),
+      true,
+    );
+  });
+
+  it("zeigt Media Kit jedem Partner, ohne Produktbindung", () => {
+    assert.equal(nav({}).includes("media"), true);
   });
 });
 
@@ -249,8 +328,23 @@ describe("Wer im Board veröffentlichen darf", () => {
 });
 
 describe("Messestand im Menü (F10)", () => {
+  /**
+   * Seit Migration 0110 entscheidet `format_key`, nicht die Kategorie. Für den
+   * Bestand ändert sich nichts — der Seed setzt `booth` auf jedes Produkt der
+   * Kategorie `standflaeche`. Neue Artikel bekommen den Schlüssel im
+   * Produktstamm; die Kategorie allein reicht bewusst nicht mehr, sonst gäbe
+   * es zwei Wahrheiten darüber, was eine Seite öffnet.
+   */
   it("erscheint bei gebuchter Standfläche", () => {
-    assert.ok(nav({ products: [product({ category: "standflaeche" })] }).includes("booth"));
+    assert.ok(
+      nav({
+        products: [product({ category: "standflaeche", format_key: "booth" })],
+      }).includes("booth"),
+    );
+  });
+
+  it("erscheint nicht bei einer Standfläche ohne gepflegten Formatschlüssel", () => {
+    assert.ok(!nav({ products: [product({ category: "standflaeche" })] }).includes("booth"));
   });
 
   it("erscheint auch ohne Produkt, wenn das Team einen Stand zugeordnet hat", () => {
