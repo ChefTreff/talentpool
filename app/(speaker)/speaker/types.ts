@@ -74,16 +74,40 @@ export const SPEAKER_CONSENTS = [
 ] as const;
 
 /**
- * Schritte aus `next_steps.open` und ihr Ziel. `null` heißt: die Seite gibt es
- * noch nicht (Foto braucht den Upload aus B2/A4, Ticket kommt mit B5) — die
- * Karte sagt das, statt ins Leere zu verlinken.
+ * Schritte aus `next_steps.open` und ihr Ziel. `null` hiesse: die Seite gibt es
+ * noch nicht — die Karte sagt das dann, statt ins Leere zu verlinken.
+ *
+ * Seit SPK-004 hat auch `photo` ein Ziel. Vorher stand der Schritt in der
+ * Aufgabenliste, ohne dass man ihn erledigen konnte: ein offener Punkt, den
+ * niemand abhaken kann, ist schlimmer als gar keiner.
  */
 export const STEP_HREF: Record<string, string | null> = {
   profile: "/speaker/profil",
   consents: "/speaker/profil#consent",
-  photo: null,
+  photo: "/speaker/profil#foto",
   session: "/speaker/session",
   session_content: "/speaker/session",
   presentation: "/speaker/session",
   ticket: "/speaker/tickets",
 };
+
+/** Der Bucket aller Speaker-Dateien: Präsentationen, Fotos, Sonstiges. */
+export const SPEAKER_BUCKET = "speaker-assets";
+
+/** Was der Foto-Upload annimmt (SPK-004). */
+export const PHOTO_MIME = ["image/jpeg", "image/png", "image/webp"];
+export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Dateinamen für den Objektschlüssel entschärfen: Storage mag keine Pfad-
+ * trenner und keine Sonderzeichen, und der Name landet 1:1 im Schlüssel.
+ * Der Originalname wird daneben in `speaker_asset.filename` gespeichert.
+ */
+export function safeFileName(name: string): string {
+  const cleaned = name
+    .normalize("NFKD")
+    .replace(/[^A-Za-z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-.]+/, "");
+  return (cleaned || "datei").slice(-80);
+}

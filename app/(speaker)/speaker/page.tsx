@@ -8,11 +8,22 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
+import { loadMyContacts } from "@/components/kontakt/load";
 import { STEP_HREF, type SpeakerProfile } from "./types";
 
 export const dynamic = "force-dynamic";
 
-/** Rollen-Postfach statt Personen — Antwort 71, keine privaten Kontaktdaten. */
+/**
+ * Rückfall, solange dieser Speakerin niemand zugeordnet ist.
+ *
+ * Bis zum 17.09. stand hier nur dieses Postfach — Antwort 71 verbot private
+ * Kontaktdaten im Portal. Konrad hat die Regel an diesem Tag aufgehoben:
+ * „Ich möchte keine Rollenpostfächer … die sind elementar für unser
+ * Serviceversprechen." Seither steht die betreuende Person mit Namen, Foto,
+ * Mail und Telefon hier (SPK-015). Das Postfach bleibt als Notausgang: eine
+ * Seite ohne jede Erreichbarkeit wäre schlechter als eine mit Sammeladresse.
+ */
 const SPEAKER_MAILBOX = "speaker@chef-treff.de";
 
 export default async function SpeakerPage() {
@@ -60,6 +71,11 @@ export default async function SpeakerPage() {
     .map((d) => d.day_date);
   // Summit und Hackathon teilen sich Tage — die Edition hat jeden Tag einmal.
   const eventDays = [...new Set(days)].sort();
+
+  // Die eigenen Ansprechpersonen (SPK-015). `my_contacts` liefert Lead und
+  // Buddy beider Bereiche; hier zählt nur die Speaker-Seite — ein Partner-Buddy
+  // hat mit dem Auftritt nichts zu tun.
+  const kontakte = (await loadMyContacts(profile.edition_id)).filter((k) => k.via === "speaker");
 
   const types = vgroup(vocab, "speaker_type");
   const pipeline = vgroup(vocab, "speaker_pipeline");
@@ -159,14 +175,30 @@ export default async function SpeakerPage() {
           )}
         </Card>
 
-        <Card className="p-4 sm:col-span-2">
-          <h2 className="ct-h3 text-ink">{t.speaker.supportTitle}</h2>
-          <p className="ct-help mt-2">{t.speaker.supportBody}</p>
-          <a className="ct-link mt-2 inline-block" href={`mailto:${SPEAKER_MAILBOX}`}>
-            {SPEAKER_MAILBOX}
-          </a>
-        </Card>
+        {kontakte.length === 0 && (
+          <Card className="p-4 sm:col-span-2">
+            <h2 className="ct-h3 text-ink">{t.speaker.supportTitle}</h2>
+            <p className="ct-help mt-2">{t.speaker.supportBody}</p>
+            <a className="ct-link mt-2 inline-block" href={`mailto:${SPEAKER_MAILBOX}`}>
+              {SPEAKER_MAILBOX}
+            </a>
+          </Card>
+        )}
       </div>
+
+      {/* Wer für dich zuständig ist — mit Gesicht, Mail und Telefon. Die Karte
+          fällt weg, wenn niemand zugeordnet ist; dann steht oben das Postfach. */}
+      {kontakte.length > 0 && (
+        <div className="mt-8">
+          <Ansprechpartner
+            kontakte={kontakte}
+            locale={locale}
+            title={t.speaker.contactsTitle}
+            lead={t.speaker.contactLead}
+            buddy={t.speaker.contactBuddy}
+          />
+        </div>
+      )}
     </div>
   );
 }

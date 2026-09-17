@@ -55,6 +55,10 @@ export function TravelView({
   const [details, setDetails] = useState<Record<string, string>>({});
   const [guests, setGuests] = useState("1");
   const [askCancel, setAskCancel] = useState<HospitalityBooking | null>(null);
+  // SPK-017: die Einwilligung wird **nach** dem Klick auf „Buchen" gefragt,
+  // nicht davor. Vorher fehlte der Knopf ganz, solange sie fehlte — man drückte
+  // ins Leere und suchte den Grund oben auf der Seite.
+  const [askConsent, setAskConsent] = useState<HospitalityOption | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   // `window_from`/`window_to` sind echte Zeitpunkte (timestamptz) — die gehören
@@ -106,12 +110,25 @@ export function TravelView({
     });
   }
 
-  function onGiveConsent() {
+  /**
+   * Einwilligung geben und **weitermachen**, wo der Klick unterbrochen wurde.
+   *
+   * `setOpenForm` steht vor dem Neuladen: danach liefert die RPC `eligible`
+   * und das Formular der angefragten Zeile steht schon offen. Sonst müsste
+   * jemand, der gerade zugestimmt hat, ein zweites Mal auf „Buchen" drücken.
+   */
+  function onGiveConsent(option: HospitalityOption | null) {
     startTransition(async () => {
       const res = await saveSpeakerConsents({ hospitality_data: true });
       if (!res.ok) {
         toast("error", message(res.key));
         return;
+      }
+      setAskConsent(null);
+      if (option) {
+        setOpenForm(option.quota_id);
+        setDetails({});
+        setGuests("1");
       }
       toast("success", t.consentSaved);
       router.refresh();
@@ -141,17 +158,15 @@ export function TravelView({
           <p className="ct-help">{t.declinedBody}</p>
         </Card>
       )}
-      {blockReason === "consent" && (
+      {/* Die Assistenz darf die Einwilligung nicht geben (Antwort 58). Für sie
+          bleibt der Hinweis oben stehen — bei ihr führt kein Klick weiter, also
+          wäre ein Pop-up nach dem Klick eine Sackgasse statt einer Erklärung.
+          Für den Speaker selbst steht der Hinweis jetzt am Knopf (SPK-017). */}
+      {blockReason === "consent" && isAssistant && (
         <Card className="p-6">
           <h2 className="ct-h3 mb-2 text-ink">{t.consentNeededTitle}</h2>
           <p className="ct-help">{t.consentHospitality}</p>
-          {isAssistant ? (
-            <p className="ct-help mt-3">{t.consentReadOnly}</p>
-          ) : (
-            <Button className="mt-4" onClick={onGiveConsent} loading={pending}>
-              {t.consentGive}
-            </Button>
-          )}
+          <p className="ct-help mt-3">{t.consentReadOnly}</p>
         </Card>
       )}
 
@@ -216,6 +231,11 @@ export function TravelView({
               const booked = o.my_booking != null;
               const full = o.free <= 0;
               const isOpen = openForm === o.quota_id;
+              // Fehlt nur die Einwilligung, bleibt der Knopf da und fragt sie
+              // ab (SPK-017). Alle anderen Gründe — Status, Absage — sind
+              // nichts, was ein Klick ändern könnte; dort gibt es keinen Knopf.
+              const needsConsent =
+                !o.eligible && o.block_reason === "consent" && !isAssistant;
               return (
                 <Card as="li" key={o.quota_id} className="p-4">
                   <div className="flex flex-wrap items-start justify-between gap-4">
@@ -251,12 +271,16 @@ export function TravelView({
                         {t[`hospitality_${o.my_booking!.status}`] ?? o.my_booking!.status}
                       </Badge>
                     ) : (
-                      o.eligible && (
+                      (o.eligible || needsConsent) && (
                         <Button
                           size="sm"
                           variant={isOpen ? "ghost" : "primary"}
                           disabled={pending}
                           onClick={() => {
+                            if (needsConsent) {
+                              setAskConsent(o);
+                              return;
+                            }
                             setOpenForm(isOpen ? null : o.quota_id);
                             setDetails({});
                             setGuests("1");
@@ -337,6 +361,22 @@ export function TravelView({
           pending={pending}
           onCancel={() => setAskCancel(null)}
           onConfirm={() => onCancel(askCancel)}
+        />
+      )}
+
+      {/* SPK-017: die Einwilligung steht dort, wo sie gebraucht wird — im Weg
+          zur Buchung, mit dem Namen der Unterkunft daneben, damit klar ist,
+          worum es geht. */}
+      {askConsent && (
+        <ConfirmDialog
+          title={t.consentNeededTitle}
+          body={t.consentHospitality}
+          detail={<p className="ct-label">{label(askConsent)}</p>}
+          confirmLabel={t.consentAskConfirm}
+          cancelLabel={common.cancel}
+          pending={pending}
+          onCancel={() => setAskConsent(null)}
+          onConfirm={() => onGiveConsent(askConsent)}
         />
       )}
     </div>
