@@ -195,7 +195,8 @@
     "invalid_times": "The stage closes before it opens.",
     "stage_not_found": "No such stage.",
     "track_not_found": "No such track.",
-    "invalid_format": "No such format key."
+    "invalid_format": "No such format key.",
+    "invalid_due_rule": "The system does not know this deadline rule. Allowed are an edition deadline or a number of days after the invitation."
   },
   "nav": {
     "brand": "ChefTreff",

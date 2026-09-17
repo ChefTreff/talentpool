@@ -195,7 +195,8 @@
     "invalid_times": "Die Bühne schliesst vor dem Öffnen.",
     "stage_not_found": "Diese Bühne gibt es nicht.",
     "track_not_found": "Diesen Track gibt es nicht.",
-    "invalid_format": "Diesen Formatschlüssel gibt es nicht."
+    "invalid_format": "Diesen Formatschlüssel gibt es nicht.",
+    "invalid_due_rule": "Diese Fristregel kennt das System nicht. Erlaubt sind eine Frist der Edition oder eine Zahl von Tagen nach der Einladung."
   },
   "nav": {
     "brand": "ChefTreff",
