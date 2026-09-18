@@ -1,5 +1,7 @@
 -- 0121 · Welle 6 · Die Technik-Ansage des Speakers im Regieplan (A7.2, SPK-018, PROD-007)
 --
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918143817.
+--
 -- Vorschlag der Build-Session Speaker-Domäne. Anwenden, Umbenennen und der
 -- Eintrag ins Entscheidungslog gehören der Architektur-/Security-Session.
 -- Nummer 0121 zugeteilt (0120 hat der Admin-Chat).
