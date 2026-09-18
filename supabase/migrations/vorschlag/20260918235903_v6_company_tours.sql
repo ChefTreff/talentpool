@@ -126,8 +126,8 @@ begin
 end $$;
 
 -- Hinweis zum Standard-Mechanismus (Admin-Chat, 18.09.): `edition_contact` kennt genau **einen**
--- Standard je Typ und Edition. Für Tour Leads gibt es keinen sinnvollen Standard — jede Tour hat
--- ihren eigenen. Die Zuordnung hängt deshalb an `company_tour.lead_contact_id`, wie bei
+-- Standard je Typ und Edition. Für Tour Leads gibt es keinen sinnvollen Standard — **jede Tour
+-- hat ihren eigenen Lead** (von Konrad am 18.09. ausdrücklich bestätigt). Die Zuordnung hängt deshalb an `company_tour.lead_contact_id`, wie bei
 -- `speaker_profile.lead_contact_id`. `my_contacts()` ist davon unberührt: es fragt die vier
 -- Partner- und Speaker-Typen ausdrücklich ab und würde einen Tour Lead nie ausliefern.
 
