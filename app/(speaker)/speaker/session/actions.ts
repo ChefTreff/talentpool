@@ -95,3 +95,25 @@ export async function setSlidesRelease(
   refresh();
   return { ok: true, data: undefined };
 }
+
+/**
+ * Technik-Ansage zum Slot (SPK-018).
+ *
+ * Die RPC kennt die fünf erlaubten Schlüssel und weist alles andere ab; hier
+ * steht deshalb keine zweite Prüfung, die davon abweichen könnte. Sie ersetzt
+ * den ganzen Satz — das Formular zeigt alle Felder zugleich, also ist das, was
+ * ankommt, der neue Stand.
+ */
+export async function saveSessionTech(
+  sessionId: string,
+  tech: Record<string, string>,
+): Promise<SessionResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("update_session_tech", {
+    p_session_id: sessionId,
+    p_tech: tech,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}

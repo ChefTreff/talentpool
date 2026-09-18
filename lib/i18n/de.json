@@ -785,7 +785,21 @@
     "planNone": "Der Hallenplan kommt, sobald die Halle steht. Wir zeigen ihn hier, du musst nicht danach fragen.",
     "stepperLabel": "Fortschritt",
     "checkDone": "erledigt",
-    "checkOpen": "offen"
+    "checkOpen": "offen",
+    "techTitle": "Technik",
+    "techLead": "Was du auf der Bühne brauchst. Die Regie plant danach; je genauer, desto weniger Rückfragen.",
+    "tech_people_on_stage": "Personen auf der Bühne",
+    "tech_people_on_stage_hint": "Zum Beispiel „zwei: ich und die Moderatorin“.",
+    "tech_microphone": "Mikrofon",
+    "tech_microphone_hint": "Headset, Handmikro, Ansteckmikro — was dir lieber ist.",
+    "tech_presentation_media": "Präsentation und Medien",
+    "tech_presentation_media_hint": "Folien, Video mit Ton, eigener Laptop, Clicker.",
+    "tech_special_requirements": "Besondere Anforderungen",
+    "tech_special_requirements_hint": "Alles, woran wir sonst nicht denken würden.",
+    "tech_furniture": "Mobiliar",
+    "tech_furniture_hint": "Stehtisch, Barhocker, Sessel.",
+    "techSaved": "Technik gespeichert.",
+    "techTooLong": "Bitte kürzer fassen, höchstens 500 Zeichen je Feld."
   },
   "leads": {
     "title": "Speaker-Pipeline",
