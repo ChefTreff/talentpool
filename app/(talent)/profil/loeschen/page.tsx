@@ -22,7 +22,7 @@ export default async function ProfilLoeschenPage() {
   const stand = (data ?? {}) as { blockers?: string[]; pending_since?: string | null };
 
   return (
-    <div className="max-w-[720px]">
+    <div className="max-w-text">
       <PageHeader title={t.deleteProfile.title} description={t.deleteProfile.lead} />
       <LoeschenView
         blockers={error ? [] : (stand.blockers ?? [])}
