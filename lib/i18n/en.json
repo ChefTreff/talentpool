@@ -204,7 +204,9 @@
     "invalid_qty": "Please enter a number greater than zero.",
     "already_requested": "Your request is already with the team.",
     "invalid_action": "No such action.",
-    "contact_consent_required": "An address outside @chef-treff.de needs the date of the contractual consent."
+    "contact_consent_required": "An address outside @chef-treff.de needs the date of the contractual consent.",
+    "invalid_stage": "No such funnel stage.",
+    "invalid_items": "The list of services does not fit."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1914,7 +1916,8 @@
       "team": "Team",
       "speakerLeads": "Speaker leads",
       "edition": "Edition & stages",
-      "graphics": "Graphics & photos"
+      "graphics": "Graphics & photos",
+      "initiatives": "Initiatives"
     },
     "overview": {
       "title": "Overview",
@@ -2384,6 +2387,31 @@
     "resolvedRejected": "Request rejected, the reply is on its way",
     "emptyTitle": "No open request",
     "emptyBody": "Only deletions that did not go through on their own land here — a role, a confirmed session or an organisation in the way."
+  },
+  "adminInitiatives": {
+    "title": "Initiatives",
+    "lead": "The funnel for initiatives — without HubSpot, because no money changes hands here.",
+    "noAccessTitle": "No access to the initiatives",
+    "noAccessBody": "The list names conversation stages and agreements. Only admin and partner leads see it.",
+    "emptyTitle": "No initiative recorded yet",
+    "emptyBody": "As soon as an organisation of type “initiative” exists for this edition, it appears here.",
+    "stage": "Stage",
+    "noStage": "No stage",
+    "sourcePortal": "created in the portal",
+    "counts": "{produkte} services · {pflichten} open obligations · {kontingente} allocations",
+    "updated": "changed {date}",
+    "editProducts": "Services",
+    "productsTitle": "Services for {name}",
+    "productsReplaceHint": "This list replaces the services agreed so far. Anything left at 0 counts as not agreed afterwards — and its obligations go with it. Shop orders and HubSpot line items are untouched.",
+    "productsSaved": "{n} services agreed"
+  },
+  "initiativeStages": {
+    "outreach": "Outreach",
+    "gespraech": "In talks",
+    "agreement": "Agreement",
+    "onboarding": "Onboarding",
+    "aktiv": "Active",
+    "abgelehnt": "Declined"
   },
   "adminMailLog": {
     "title": "Mail log",
