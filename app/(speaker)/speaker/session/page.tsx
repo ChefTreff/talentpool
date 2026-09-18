@@ -96,6 +96,7 @@ export default async function SpeakerSessionPage() {
           locale={locale}
           dateLocale={t.meta.dateLocale}
           t={t.speaker}
+          assistant={t.titleAssistant}
           common={{
             cancel: t.common.cancel,
             choose: t.common.choose,
