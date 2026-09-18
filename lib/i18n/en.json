@@ -213,7 +213,9 @@
     "invalid_vocab": "No such option.",
     "invalid_time": "The end must come after the start.",
     "too_many_questions": "More than two of your own questions per format are not supported.",
-    "invalid_type": "No such question type."
+    "invalid_type": "No such question type.",
+    "stop_not_found": "No such tour stop.",
+    "tour_not_found": "No such company tour."
   },
   "nav": {
     "brand": "ChefTreff",

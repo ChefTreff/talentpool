@@ -213,7 +213,9 @@
     "invalid_vocab": "Diese Auswahl gibt es nicht.",
     "invalid_time": "Das Ende muss nach dem Beginn liegen.",
     "too_many_questions": "Mehr als zwei eigene Fragen je Format sind nicht vorgesehen.",
-    "invalid_type": "Diese Art von Frage gibt es nicht."
+    "invalid_type": "Diese Art von Frage gibt es nicht.",
+    "stop_not_found": "Diesen Tour-Stopp gibt es nicht.",
+    "tour_not_found": "Diese Company Tour gibt es nicht."
   },
   "nav": {
     "brand": "ChefTreff",
