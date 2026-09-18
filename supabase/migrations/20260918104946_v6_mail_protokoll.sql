@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0113 · Welle 6 · Das Mail-Protokoll als Arbeitsmittel (ADM-030)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918104946.
 --
 -- `/admin/mail` zeigt heute zwanzig Zeilen, ohne Filter, ohne Detail, ohne
 -- erneuten Versand. Die häufigste Frage im Support — **„ist die Mail
