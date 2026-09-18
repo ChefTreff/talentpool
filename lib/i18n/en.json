@@ -779,7 +779,10 @@
     "planTitle": "Floor plan",
     "planBody": "Where your stage is, where the cloakroom and check-in are.",
     "planOpen": "Open floor plan",
-    "planNone": "The floor plan arrives once the hall is set. We will show it here, no need to ask."
+    "planNone": "The floor plan arrives once the hall is set. We will show it here, no need to ask.",
+    "stepperLabel": "Progress",
+    "checkDone": "done",
+    "checkOpen": "open"
   },
   "leads": {
     "title": "Speaker pipeline",

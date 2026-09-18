@@ -779,7 +779,10 @@
     "planTitle": "Hallenplan",
     "planBody": "Wo deine Bühne steht, wo Garderobe und Check-in sind.",
     "planOpen": "Hallenplan öffnen",
-    "planNone": "Der Hallenplan kommt, sobald die Halle steht. Wir zeigen ihn hier, du musst nicht danach fragen."
+    "planNone": "Der Hallenplan kommt, sobald die Halle steht. Wir zeigen ihn hier, du musst nicht danach fragen.",
+    "stepperLabel": "Fortschritt",
+    "checkDone": "erledigt",
+    "checkOpen": "offen"
   },
   "leads": {
     "title": "Speaker-Pipeline",

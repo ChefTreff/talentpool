@@ -45,7 +45,7 @@ export default async function RegieDruckPage({
   const p = t.production;
 
   return (
-    <main className="mx-auto max-w-[1100px] bg-surface p-6 text-ink">
+    <main className="mx-auto max-w-275 bg-surface p-6 text-ink">
       <header className="mb-4 border-b pb-3">
         <h1 className="ct-h1">{stage.name}</h1>
         <p className="ct-small mt-1">
@@ -69,7 +69,7 @@ export default async function RegieDruckPage({
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b">
-              <th className="ct-label w-[110px] px-2 py-1.5">{p.colStart}</th>
+              <th className="ct-label w-28 px-2 py-1.5">{p.colStart}</th>
               <th className="ct-label px-2 py-1.5">{p.colAction}</th>
               <th className="ct-label px-2 py-1.5">{p.colModeration}</th>
               <th className="ct-label px-2 py-1.5">{p.colRegie}</th>
