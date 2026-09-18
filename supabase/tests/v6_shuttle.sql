@@ -13,8 +13,8 @@
 --      Fahrt ohne Begründung (das ist der Kern von „Schwelle statt Riegel");
 --   12 my_shuttle_bookings zeigt nur die eigenen Fahrten;
 --   13 shuttle_bookings_admin ohne Team-Rolle ⇒ 42501;
---   14 Grants: Trigger-Funktion ist für authenticated gesperrt, die Tabelle
---      hat keine Grants.
+--   14 der Trigger haengt am vorhandenen set_updated_at(), und die Tabelle
+--      traegt keine Grants fuer anon/authenticated.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -168,9 +168,18 @@ begin
   exception when others then insert into t_res values ('13_adminliste_ohne_rolle', 'abgewiesen ' || sqlstate); end;
 
   -- 14 · Grants
-  insert into t_res values ('14a_trigger_gesperrt',
-    case when has_function_privilege('authenticated', 'touch_shuttle_booking()', 'execute')
-         then 'ERLAUBT (BUG)' else 'gesperrt' end);
+  -- Der Trigger haengt am vorhandenen `set_updated_at()`; eine eigene Kopie
+  -- gibt es nicht mehr (Review Architektur-Session). Geprueft wird deshalb,
+  -- dass er ueberhaupt verdrahtet ist — sonst bliebe `updated_at` stehen,
+  -- ohne dass es jemandem auffiele.
+  select count(*) into v_n
+    from pg_trigger tg
+    join pg_proc pr on pr.oid = tg.tgfoid
+   where tg.tgrelid = 'shuttle_booking'::regclass
+     and not tg.tgisinternal
+     and pr.proname = 'set_updated_at';
+  insert into t_res values ('14a_trigger_verdrahtet',
+    case when v_n = 1 then 'ok set_updated_at' else 'FEHLER ' || v_n::text end);
   select count(*) into v_n from information_schema.role_table_grants
    where table_name = 'shuttle_booking' and grantee in ('anon', 'authenticated');
   insert into t_res values ('14b_tabellen_grants', case when v_n = 0 then 'keine' else 'FEHLER ' || v_n::text end);
