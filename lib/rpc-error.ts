@@ -180,6 +180,9 @@ const BUSINESS_KEYS = new Set([
   // Messestand und Editionsdateien (Migration 20260915115415)
   "edition_file_not_found",
   "invalid_path",
+  // Mail-Protokoll (Migration 0113)
+  "mail_not_found",
+  "not_resendable",
 ]);
 
 const BY_CODE: Record<string, string> = {
