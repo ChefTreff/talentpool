@@ -285,8 +285,11 @@ begin
   -- 7 · Speaker-Profil und was daran hängt.
   update speaker_profile set
     bio_short_de = null, bio_short_en = null, bio_long_de = null, bio_long_en = null,
-    job_title = null, organization_name = null, tech_rider = null, internal_notes = null,
-    socials = '{}'::jsonb, decline_reason = null, photo_asset_id = null
+    job_title = null, organization_name = null, internal_notes = null,
+    -- `tech_rider` und `socials` sind `not null default '{}'` — hier gehoert der
+    -- leere Wert hin, nicht `null` (Probelauf der Architektur-Session, 23502).
+    tech_rider = '{}'::jsonb, socials = '{}'::jsonb,
+    decline_reason = null, photo_asset_id = null
    where person_id = p_person_id;
   -- Titel und Beschreibung sind der veröffentlichte Programmpunkt und gehören
   -- zur Veranstaltung, nicht zur Person; die interne Notiz nicht.

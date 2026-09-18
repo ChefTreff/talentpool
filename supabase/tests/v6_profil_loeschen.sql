@@ -194,9 +194,12 @@ begin
 
   -- 15 Löschen aus der Warteschlange ---------------------------------------------
   -- Spuren in den Tabellen, die die alte Routine stehen liess.
+  -- `tech_rider` und `socials` sind jsonb und `not null` — der Name steht hier
+  -- **im** Objekt, damit Schritt 17 auch die jsonb-Spalten abklopft.
   update speaker_profile set bio_short_de = 'Zzunverwechselbar spricht ueber Kaese',
                              job_title = 'Chefin', internal_notes = 'Zzunverwechselbar mag Tee',
-                             tech_rider = 'eigenes Mikro'
+                             tech_rider = jsonb_build_object('note', 'Mikro fuer Zzunverwechselbar'),
+                             socials = jsonb_build_object('linkedin', 'in/zzunverwechselbar')
    where person_id = v_geb;
   insert into mail_log (to_email, person_id, template_key, locale, status, meta)
   values (v_geb_mail, v_geb, 'test_loeschen', 'de', 'sent',
