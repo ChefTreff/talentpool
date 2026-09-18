@@ -1,6 +1,8 @@
 -- =============================================================================
 -- 0116 · Welle 6 · Initiativen: Funnel und Leistungen ohne HubSpot (A3.1, A3.2, A3.4)
 --
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918141036.
+--
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --
 -- Initiativen sind keine Partner im Vertriebssinn: es fliesst kein Geld, es gibt
