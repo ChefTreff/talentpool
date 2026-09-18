@@ -3048,7 +3048,10 @@
     "fieldConsentHint": "Only with explicit consent in the contract. The date is the record that it exists; setting it is logged.",
     "withdraw": "Remove (consent withdrawn)",
     "confirmWithdraw": "Remove {name}? Consent counts as withdrawn; the contact and the photo are deleted. Affected: {orgs} partners and {speakers} speakers — they fall back to the default contact.",
-    "photoUploading": "Uploading photo …"
+    "photoUploading": "Uploading photo …",
+    "fieldRoleEn": "Role label (EN)",
+    "fieldRoleEnHint": "The speaker portal defaults to English. Without this text it only shows the generic label there.",
+    "noDefaultWarning": "No default set for: {types}. Anyone without their own assignment then sees nobody — the portal falls back to the role mailbox. Mark one contact per type as the default."
   },
   "adminSpeakerLeads": {
     "title": "Speaker leads",

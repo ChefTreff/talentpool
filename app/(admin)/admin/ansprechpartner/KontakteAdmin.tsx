@@ -10,6 +10,7 @@ import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { contactPhotoUrl } from "@/components/kontakt/photo";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { createPhotoUploadUrl, removeContact, removeInfo, saveContact, saveInfo } from "./actions";
 import { CONTACT_TYPES, type AdminInfo, type AdminKontakt } from "./types";
@@ -73,6 +74,17 @@ export function KontakteAdmin({
     </p>
   ) : null;
 
+  /**
+   * Typen, von denen es Kontakte gibt, aber keinen Standard.
+   *
+   * `my_contacts()` nimmt je Typ die eigene Zuordnung, sonst den Standard. Ohne
+   * beides kommt nichts zurueck — der Kontakt ist gepflegt und trotzdem
+   * unsichtbar.
+   */
+  const ohneStandard = [...new Set(kontakte.map((k) => k.type))].filter(
+    (typ) => !kontakte.some((k) => k.type === typ && k.is_default),
+  );
+
   function speichern(daten: typeof leer) {
     setFehler(null);
     start(async () => {
@@ -104,6 +116,19 @@ export function KontakteAdmin({
           <Button size="sm" onClick={() => setOffen({ ...leer })}>{t.addContact}</Button>
         </div>
 
+        {/* Ein gepflegter Kontakt ohne Standard wird niemandem angezeigt, der
+            keine eigene Zuordnung hat — das Portal faellt dann auf das
+            Rollenpostfach zurueck. Wer gerade vier Kontakte angelegt hat, soll
+            das erfahren, bevor er sich wundert (Befund 18.09.). */}
+        {ohneStandard.length > 0 && (
+          <p className="rounded-ct-md border border-warning-soft bg-warning-soft p-3 ct-small text-warning-ink">
+            {t.noDefaultWarning.replace(
+              "{types}",
+              ohneStandard.map((typ) => types[typ] ?? typ).join(", "),
+            )}
+          </p>
+        )}
+
         {kontakte.length === 0 ? (
           <EmptyState title={t.emptyContacts} description={t.emptyContactsBody} />
         ) : (
@@ -123,7 +148,7 @@ export function KontakteAdmin({
                     role={k.role_label_de ?? null}
                     email={k.email}
                     phone={k.phone}
-                    photoUrl={null}
+                    photoUrl={contactPhotoUrl(k.photo_path)}
                   />
                 </div>
                 <div className="mt-3 flex gap-2">
@@ -222,6 +247,14 @@ export function KontakteAdmin({
             <Field label={t.fieldRole} htmlFor="k-role" hint={t.fieldRoleHint}>
               <Input id="k-role" value={offen.role_label_de}
                 onChange={(e) => setOffen({ ...offen, role_label_de: e.target.value })} />
+            </Field>
+            {/* Das Speaker-Portal ist auf Englisch voreingestellt. Ohne diesen
+                Text sieht eine englischsprachige Speakerin nur die generische
+                Beschriftung — der sorgfaeltig geschriebene Satz verpufft
+                (Befund aus der Speaker-Domaene, 18.09.). */}
+            <Field label={t.fieldRoleEn} htmlFor="k-role-en" hint={t.fieldRoleEnHint}>
+              <Input id="k-role-en" value={offen.role_label_en}
+                onChange={(e) => setOffen({ ...offen, role_label_en: e.target.value })} />
             </Field>
             <Field label={t.fieldEmail} htmlFor="k-mail" hint={t.fieldEmailHint} required>
               <Input id="k-mail" type="email" value={offen.email} required
