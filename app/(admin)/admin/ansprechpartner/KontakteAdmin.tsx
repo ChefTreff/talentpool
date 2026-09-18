@@ -17,7 +17,13 @@ type Strings = Record<string, string>;
 const leer = {
   id: "", type: "partner_lead", display_name: "", role_label_de: "", role_label_en: "",
   email: "", phone: "", photo_path: "", is_default: false, sort_order: 0,
+  contract_consent_at: "",
 };
+
+/** Dienstlich ist, was auf der Hausdomain endet — alles andere braucht die Einwilligung. */
+function istHausadresse(mail: string): boolean {
+  return mail.trim().toLowerCase().endsWith("@chef-treff.de");
+}
 
 /**
  * Pflege der Ansprechpartner und Auskünfte.
@@ -61,6 +67,7 @@ export function KontakteAdmin({
         photo_path: daten.photo_path,
         is_default: daten.is_default,
         sort_order: Number(daten.sort_order) || 0,
+        contract_consent_at: daten.contract_consent_at,
       });
       if (res.ok) setOffen(null);
       else melden(res.key);
@@ -104,7 +111,7 @@ export function KontakteAdmin({
                   />
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <Button size="sm" variant="secondary" onClick={() => setOffen({ ...leer, ...k, role_label_de: k.role_label_de ?? "", role_label_en: k.role_label_en ?? "", photo_path: k.photo_path ?? "" })}>
+                  <Button size="sm" variant="secondary" onClick={() => setOffen({ ...leer, ...k, role_label_de: k.role_label_de ?? "", role_label_en: k.role_label_en ?? "", photo_path: k.photo_path ?? "", contract_consent_at: k.contract_consent_at ?? "" })}>
                     {t.edit}
                   </Button>
                   <Button
@@ -114,14 +121,23 @@ export function KontakteAdmin({
                     onClick={() => {
                       // Zuordnungen stehen daneben — löschen heisst hier, 40 Partner
                       // auf den Standard zurückfallen zu lassen.
-                      if (!confirm(t.confirmDelete.replace("{name}", k.display_name))) return;
+                      // Bei einer fremden Adresse ist das Entfernen der Weg, eine
+                      // zurückgezogene Einwilligung umzusetzen: das Datum lässt sich
+                      // nicht leeren, ohne die Regel zu verletzen. Die Rückfrage nennt
+                      // dann auch, wer danach auf dem Standardkontakt landet.
+                      const widerruf = !istHausadresse(k.email);
+                      const text = (widerruf ? t.confirmWithdraw : t.confirmDelete)
+                        .replace("{name}", k.display_name)
+                        .replace("{orgs}", String(k.orgs))
+                        .replace("{speakers}", String(k.speakers));
+                      if (!confirm(text)) return;
                       start(async () => {
-                        const res = await removeContact(k.id);
+                        const res = await removeContact(k.id, widerruf ? "consent_withdrawn" : undefined);
                         if (!res.ok) melden(res.key);
                       });
                     }}
                   >
-                    {common.delete ?? t.delete}
+                    {istHausadresse(k.email) ? (common.delete ?? t.delete) : t.withdraw}
                   </Button>
                 </div>
               </Card>
@@ -194,6 +210,25 @@ export function KontakteAdmin({
               <Input id="k-mail" type="email" value={offen.email} required
                 onChange={(e) => setOffen({ ...offen, email: e.target.value })} />
             </Field>
+            {/* Nur bei fremder Adresse: dort ist das Datum Pflicht, und der
+                Hilfetext sagt, dass hier jemand etwas bestätigt und nicht nur
+                ein Feld füllt. */}
+            {offen.email.trim() !== "" && !istHausadresse(offen.email) && (
+              <Field
+                label={t.fieldConsent}
+                htmlFor="k-consent"
+                hint={t.fieldConsentHint}
+                required
+              >
+                <Input
+                  id="k-consent"
+                  type="date"
+                  required
+                  value={offen.contract_consent_at}
+                  onChange={(e) => setOffen({ ...offen, contract_consent_at: e.target.value })}
+                />
+              </Field>
+            )}
             <Field label={t.fieldPhone} htmlFor="k-phone" hint={t.fieldPhoneHint} required>
               <Input id="k-phone" value={offen.phone} required
                 onChange={(e) => setOffen({ ...offen, phone: e.target.value })} />

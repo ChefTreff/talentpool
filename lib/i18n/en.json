@@ -202,7 +202,8 @@
     "booth_required": "The trade fair shop is open to partners with a booked booth. You can still order the lunch package from your checklist.",
     "invalid_qty": "Please enter a number greater than zero.",
     "already_requested": "Your request is already with the team.",
-    "invalid_action": "No such action."
+    "invalid_action": "No such action.",
+    "contact_consent_required": "An address outside @chef-treff.de needs the date of the contractual consent."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -3042,7 +3043,11 @@
     "fieldLabelEn": "Label (EN)",
     "fieldValueEn": "Information (EN)",
     "fieldAudience": "Audiences",
-    "fieldAudienceHint": "Comma separated: partner, speaker, talent, volunteer, hackathon."
+    "fieldAudienceHint": "Comma separated: partner, speaker, talent, volunteer, hackathon.",
+    "fieldConsent": "Freelancer — consent in contract dated",
+    "fieldConsentHint": "Only with explicit consent in the contract. The date is the record that it exists; setting it is logged.",
+    "withdraw": "Remove (consent withdrawn)",
+    "confirmWithdraw": "Remove {name}? Consent counts as withdrawn; the contact and the photo are deleted. Affected: {orgs} partners and {speakers} speakers — they fall back to the default contact."
   },
   "adminSpeakerLeads": {
     "title": "Speaker leads",

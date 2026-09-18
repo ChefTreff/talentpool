@@ -202,7 +202,8 @@
     "booth_required": "Der Messeshop steht Partnern mit gebuchtem Messestand offen. Das Lunch-Paket könnt ihr trotzdem über eure Checkliste bestellen.",
     "invalid_qty": "Bitte eine Anzahl größer als null angeben.",
     "already_requested": "Deine Anfrage liegt schon beim Team.",
-    "invalid_action": "Diesen Vorgang gibt es nicht."
+    "invalid_action": "Diesen Vorgang gibt es nicht.",
+    "contact_consent_required": "Für eine Adresse ausserhalb @chef-treff.de braucht es das Datum der vertraglichen Einwilligung."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -3042,7 +3043,11 @@
     "fieldLabelEn": "Beschriftung (EN)",
     "fieldValueEn": "Auskunft (EN)",
     "fieldAudience": "Zielgruppen",
-    "fieldAudienceHint": "Kommagetrennt: partner, speaker, talent, volunteer, hackathon."
+    "fieldAudienceHint": "Kommagetrennt: partner, speaker, talent, volunteer, hackathon.",
+    "fieldConsent": "Freelancer — Einwilligung im Vertrag vom",
+    "fieldConsentHint": "Nur mit ausdrücklicher Einwilligung im Vertrag. Das Datum ist der Nachweis, dass sie vorliegt; das Setzen wird protokolliert.",
+    "withdraw": "Entfernen (Einwilligung widerrufen)",
+    "confirmWithdraw": "{name} entfernen? Die Einwilligung gilt damit als widerrufen, der Kontakt und das Foto werden gelöscht. Betroffen: {orgs} Partner und {speakers} Speaker — sie fallen auf den Standardkontakt zurück."
   },
   "adminSpeakerLeads": {
     "title": "Speaker-Leads",

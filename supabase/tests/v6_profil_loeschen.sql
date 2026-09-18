@@ -309,6 +309,6 @@ rollback;
 -- Lauf am 17.09. gegen die Datenbank (Migration + Test in einer Transaktion, rollback): 16/16 gruen
 -- (Schritt 14 zaehlt als 14a/14b). Nachtrag 18.09.: Schritt 05 prueft jetzt zusaetzlich, dass der
 -- selbst geschriebene Grund beim Anonymisieren wegfaellt — einzeln nachgelaufen, gruen.
--- Nach dem Anwenden (20260918105546) am 18.09. live gelaufen: 21/22 — der rote Schritt 11 war
--- eine falsche Testerwartung (alter Nachname), nicht ein Fehler der Migration. Die Erwartung ist
--- berichtigt; der Lauf mit der Korrektur steht noch aus.
+-- Nach dem Anwenden (20260918105546) am 18.09. live gelaufen: zuerst 21/22 — der rote Schritt 11
+-- war eine falsche Testerwartung (alter Nachname), nicht ein Fehler der Migration. Mit der
+-- berichtigten Erwartung: 22/22 gruen.
