@@ -1,6 +1,8 @@
 -- =============================================================================
 -- 0122 · Welle 6 · Belege aus SevDesk im Partnerportal (A5, PART-036)
 --
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918145925.
+--
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --
 -- Partner fragen ihre Angebote und Rechnungen heute per Mail nach. Beides liegt
