@@ -1,5 +1,5 @@
--- 20260917190402 · Welle 6 B3: Frist der Hackathon-Challenge
--- Angewendet von der Architektur-Session am 17.09.2026 als 20260917190402. (PART-040, löst PART-032).
+-- 20260917190402 · Welle 6 B3: Frist der Hackathon-Challenge (PART-040, löst PART-032)
+-- Angewendet von der Architektur-Session am 17.09.2026 als 20260917190402.
 --
 -- Befund (Architektur-Session, 17.09., Abgleich partner-hub-rest.md): Die Vorlage der
 -- Challenge-Pflicht nutzt `due_rule = {"weeks_before": 8}`. `deliverable_due` kennt aber nur

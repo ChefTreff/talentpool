@@ -1,5 +1,5 @@
--- 20260917190103 · Welle 6 B1: product.format_key
--- Angewendet von der Architektur-Session am 17.09.2026 als 20260917190103. — welches gebuchte Produkt welche Partner-Seite öffnet.
+-- 20260917190103 · Welle 6 B1: product.format_key — welches gebuchte Produkt welche Partner-Seite öffnet.
+-- Angewendet von der Architektur-Session am 17.09.2026 als 20260917190103.
 --
 -- Zweck: Die Seiten der Menügruppe „Eure Formate" (PART-042) erscheinen nur bei gebuchtem
 -- Produkt. Bisher stand diese Zuordnung als SKU-Liste im Code (`app/(partner)/partner/nav.ts`,
