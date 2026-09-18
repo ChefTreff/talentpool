@@ -3305,6 +3305,7 @@
     "team_role": "Du hast eine Rolle im Team. Die muss erst jemand übernehmen.",
     "speaker": "Du hast einen Auftritt beim kommenden Summit zugesagt.",
     "volunteer": "Du bist als Volunteer für den kommenden Summit eingeteilt.",
-    "partner": "Du bist als Ansprechperson einer Organisation hinterlegt."
+    "partner": "Du bist als Ansprechperson einer Organisation hinterlegt.",
+    "open_expense": "Ein Reisekostenantrag von dir ist noch offen."
   }
 }

@@ -25,6 +25,28 @@
 -- Bildschirm. Nur beim **Antrag** geht eine Mail heraus — da ist noch nichts
 -- gelöscht.
 --
+-- **Was „anonymisieren" umfasst, steht in einer Tabelle im PR.** Die Routine
+-- aus Welle 1 räumte nur `person` und ein paar Nebentabellen; Ernährung,
+-- Geschlecht, Anrede und Selbsteinschätzung blieben stehen, ebenso die Adresse
+-- im Mail-Protokoll, sämtliche Freitexte am Speaker-Profil, die Bankdaten am
+-- Reisekostenantrag und die Inhabernamen am Ticket. Sie geht jetzt über alle
+-- 16 Tabellen mit `person_id` und die Kinder von `speaker_profile`. Grobe
+-- Merkmale (career_level, study_field, country, tier) bleiben für die
+-- Statistik — sie beschreiben eine Gruppe, keinen Menschen; Freitext und
+-- Art.-9-Felder gehen (Auflage der Architektur-Session, 18.09.).
+--
+-- **Zwei Dinge kann SQL nicht:** Dateien im Bucket löschen — dafür trägt die
+-- RPC die Pfade in `storage_purge_queue` ein und der Cron räumt sie mit
+-- `service_role` weg —, und Kopien in Fremdsystemen entfernen. Die
+-- vivenu-Tickets tragen dort weiterhin Name und Adresse; der lokale Verweis
+-- fällt weg, die Löschung drüben ist ein eigener Vorgang und gehört in die
+-- Betriebsdoku, nicht in diese Migration.
+--
+-- **Ein offener Reisekostenantrag ist eine Hürde.** Sonst müsste die Routine
+-- entscheiden, ob Bankdaten noch gebraucht werden. So ist die Antwort immer
+-- nein: bezahlt ist bezahlt, der Vault-Eintrag fällt, der Antrag bleibt als
+-- Buchung stehen (§147 AO).
+--
 -- **Kein Personenbezug überlebt die Löschung.** `resolve_deletion_request()`
 -- protokolliert Bearbeiter, Vorgang und Hürden — nicht den gelöschten
 -- Datensatz; sonst stünde die Person nach ihrer Löschung im Audit-Log. Aus
@@ -79,6 +101,33 @@ revoke all on profile_deletion_request from anon, authenticated;
 -- RPCs unten. Eine Lesepolicy für `authenticated` wäre eine Liste, wer gehen
 -- möchte — die geht niemanden ausser dem Team etwas an.
 
+-- ------------------------------------------------- Dateien zum Wegräumen
+
+/**
+ * Was im Bucket liegt, kann SQL nicht löschen.
+ *
+ * Die RPC trägt die Pfade hier ein, der Cron räumt sie mit `service_role` weg
+ * und löscht die Zeile. Ohne diese Zwischenablage bliebe das Bewerbungsfoto
+ * einer gelöschten Person im Speicher liegen — unerreichbar über die App, aber
+ * vorhanden, und das ist nicht dasselbe wie gelöscht.
+ */
+create table if not exists storage_purge_queue (
+  id           uuid primary key default gen_random_uuid(),
+  bucket       text not null,
+  path         text not null,
+  reason       text not null default 'profile_deleted',
+  requested_at timestamptz not null default now(),
+  unique (bucket, path)
+);
+comment on table storage_purge_queue is
+  'Dateipfade, die nach einer Profilloeschung aus dem Bucket muessen (0115). SQL kann Storage nicht loeschen; der Cron raeumt mit service_role und loescht die Zeile.';
+
+alter table storage_purge_queue enable row level security;
+revoke all on storage_purge_queue from anon, authenticated;
+-- Keine Policy: nur `service_role` (Cron) und die SECURITY-DEFINER-Funktionen
+-- unten fassen die Tabelle an. Eine Leseberechtigung wäre eine Liste der
+-- Dateien, die gerade verschwinden sollen.
+
 -- ---------------------------------------------------------------- Hürden
 
 /**
@@ -118,6 +167,15 @@ begin
   if exists (select 1 from org_membership om where om.person_id = v_me)
   then v_out := array_append(v_out, 'partner'); end if;
 
+  -- Offener Reisekostenantrag: eine Zahlung, die uns die Person noch schuldet
+  -- oder wir ihr. Bis die durch ist, kann niemand verschwinden — und danach
+  -- dürfen die Bankdaten weg, ohne dass eine Erstattung ins Leere läuft.
+  if exists (
+    select 1 from expense_claim ec join speaker_profile sp on sp.id = ec.profile_id
+     where sp.person_id = v_me and ec.paid_at is null
+       and ec.status not in ('rejected', 'cancelled', 'draft'))
+  then v_out := array_append(v_out, 'open_expense'); end if;
+
   return v_out;
 end $$;
 grant execute on function my_deletion_blockers() to authenticated;
@@ -135,28 +193,108 @@ grant execute on function my_deletion_blockers() to authenticated;
  */
 create or replace function anonymize_person(p_person_id uuid) returns void
 language plpgsql volatile security definer set search_path = public, extensions as $$
+declare v_hash text; v_profile uuid[];
 begin
   if p_person_id is null then raise exception 'person_not_found' using errcode = 'P0002'; end if;
   perform log_audit('profile.delete', 'person', p_person_id::text, null, null);
+
+  select array_agg(sp.id) into v_profile from speaker_profile sp where sp.person_id = p_person_id;
+  v_profile := coalesce(v_profile, '{}');
+
+  -- 1 · Sperrliste. Der Hash bleibt, die Adresse geht.
   insert into suppression (email_hash, reason)
     select email_hash(email::text), 'profile_deleted' from person_email where person_id = p_person_id
   on conflict (email_hash) do nothing;
+  select email_hash(pe.email::text) into v_hash
+    from person_email pe where pe.person_id = p_person_id and pe.is_primary;
+
+  -- 2 · Dateien zum Wegräumen anmelden, **bevor** die Zeilen fallen: danach
+  --     wüsste niemand mehr, welche Pfade gemeint waren.
+  insert into storage_purge_queue (bucket, path)
+    select 'speaker-assets', sa.storage_path from speaker_asset sa where sa.profile_id = any (v_profile)
+  on conflict (bucket, path) do nothing;
+
+  -- 3 · Zeilen, die ohne die Person keinen Sinn mehr haben.
   delete from person_interest            where person_id = p_person_id;
   delete from person_acquisition_channel where person_id = p_person_id;
   delete from role_assignment            where person_id = p_person_id;
+  -- Ansprechperson einer Organisation kann nur sein, wen es gibt.
+  delete from org_membership             where person_id = p_person_id;
+  delete from speaker_asset  where profile_id = any (v_profile);
+  -- Anreise ist reine Logistik eines vergangenen Termins: Flugnummer, Ankunft,
+  -- Notiz. Nichts davon trägt eine Zahl, die später jemand braucht.
+  delete from speaker_travel where profile_id = any (v_profile);
+
+  -- 4 · Die Person selbst. Grobe Merkmale bleiben für die Statistik
+  --     (career_level, study_field, country, tier, occupation_status) — sie
+  --     beschreiben eine Gruppe, keinen Menschen. Freitext, Kontaktdaten und
+  --     alles nach Art. 9 DSGVO (Ernährung, Geschlecht) fällt weg.
   update person set
     first_name = null, last_name = null, birthdate = null, phone = null, phone_e164 = null,
     linkedin_url = null, linkedin_normalized = null, cv_url = null,
     employer_name = null, university = null, title = null, city = null, pronouns = null,
-    nationality = null, invite_code = null, auth_user_id = null, deleted_at = now()
+    nationality = null, invite_code = null, auth_user_id = null,
+    gender = null, diet = null, diet_note = null,
+    salutation_de = null, salutation_en = null, self_assessment = null,
+    deleted_at = now()
   where id = p_person_id;
+
   delete from person_email where person_id = p_person_id and not is_primary;
   update person_email
      set email = ('deleted+' || p_person_id::text || '@anonym.invalid')::citext, verified = false
    where person_id = p_person_id and is_primary;
-  -- Der selbst geschriebene Grund ist Freitext von dieser Person und darf ihre
-  -- Löschung nicht überleben. Status, Hürden und Zeitpunkt bleiben — das ist
-  -- der Nachweis, dass gelöscht wurde, und der trägt keinen Personenbezug.
+
+  -- 5 · Mail-Protokoll: die Zeile bleibt als Zahl (wie viele Einladungen gingen
+  --     raus), die Adresse wird zum Hash und die eingesetzten Angaben — dort
+  --     steht der Name im Klartext — verschwinden.
+  update mail_log
+     set to_email = ('deleted:' || coalesce(v_hash, p_person_id::text))::citext,
+         meta = coalesce(meta, '{}'::jsonb) - 'vars'
+   where person_id = p_person_id;
+
+  -- 6 · Freitexte und Fremdschlüssel in allen übrigen Tabellen mit `person_id`.
+  --     Was bleibt, ist jeweils der zählbare Teil: Status, Typ, Zeitpunkt.
+  update application      set answers = '{}'::jsonb where person_id = p_person_id;
+  update hack_application set motivation = null, team_pref = null, note = null where person_id = p_person_id;
+  -- Der Einwilligungsnachweis bleibt — er ist der Beleg, dass wir durften, was
+  -- wir getan haben. Das Gerät, von dem sie kam, ist dafür ohne Bedeutung.
+  update consent_record   set user_agent = null where person_id = p_person_id;
+  -- Fremdsystem-Verweise zeigen auf Kopien, die dort noch den Namen tragen;
+  -- der Verweis selbst darf nicht bleiben (siehe Kopf, vivenu).
+  update registration     set external_ref = null, external_ids = '{}'::jsonb where person_id = p_person_id;
+  update shift_assignment set decline_reason = null where person_id = p_person_id;
+  update volunteer_profile set availability = null, buddy_note = null, notes_internal = null,
+                               decision_note = null, coupon_error = null, buddy_person_id = null
+   where person_id = p_person_id;
+  update ticket set holder_email = null, holder_first_name = null, holder_last_name = null,
+                    holder_company = null, holder_position = null, buyer_email = null,
+                    team_note = null, extra_fields = '{}'::jsonb
+   where person_id = p_person_id;
+
+  -- 7 · Speaker-Profil und was daran hängt.
+  update speaker_profile set
+    bio_short_de = null, bio_short_en = null, bio_long_de = null, bio_long_en = null,
+    job_title = null, organization_name = null, tech_rider = null, internal_notes = null,
+    socials = '{}'::jsonb, decline_reason = null, photo_asset_id = null
+   where person_id = p_person_id;
+  -- Titel und Beschreibung sind der veröffentlichte Programmpunkt und gehören
+  -- zur Veranstaltung, nicht zur Person; die interne Notiz nicht.
+  update session_submission  set notes = null      where speaker_profile_id = any (v_profile);
+  update hospitality_booking set details = '{}'::jsonb, team_note = null where profile_id = any (v_profile);
+
+  -- 8 · Reisekosten. Der Antrag bleibt als Buchung (§147 AO), die Bankdaten
+  --     nicht: bezahlt ist bezahlt, und ein offener Antrag ist eine Hürde, die
+  --     bis hierher gar nicht kommt.
+  delete from vault.secrets
+   where id in (select ec.bank_secret_id from expense_claim ec
+                 where ec.profile_id = any (v_profile) and ec.bank_secret_id is not null);
+  update expense_claim set bank_secret_id = null, bank_masked = null, bank_holder = null,
+                           review_note = null
+   where profile_id = any (v_profile);
+
+  -- 9 · Der selbst geschriebene Grund ist Freitext von dieser Person und darf
+  --     ihre Löschung nicht überleben. Status, Hürden und Zeitpunkt bleiben —
+  --     das ist der Nachweis, und der trägt keinen Personenbezug.
   update profile_deletion_request set reason = null where person_id = p_person_id;
 end $$;
 revoke execute on function anonymize_person(uuid) from public, anon, authenticated;

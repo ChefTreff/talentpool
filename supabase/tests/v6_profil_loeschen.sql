@@ -17,7 +17,14 @@
 --   12 Ablehnen ohne Begründung ⇒ 22023 `note_required`;
 --   13 Ablehnen mit Begründung schliesst den Antrag und reiht die Antwort ein;
 --   14 ein erfundener Vorgang ⇒ 22023 `invalid_action`, ein unbekannter ⇒ P0002;
---   15 Löschen aus der Warteschlange anonymisiert die Person.
+--   15 Löschen aus der Warteschlange anonymisiert die Person;
+--   16 ein offener Reisekostenantrag ist eine Hürde;
+--   17 **generisch**: nach dem Lauf steht der Name der Person in keiner Zeile
+--      keiner Tabelle mit `person_id` mehr — und auch nicht in den Kindern des
+--      Speaker-Profils. Diese Prüfung liest das Schema selbst aus, damit eine
+--      neue Spalte oder Tabelle nicht still durchrutscht;
+--   18 die Dateien des Speaker-Profils stehen in `storage_purge_queue`;
+--   19 die Bankdaten des Reisekostenantrags sind weg, der Antrag bleibt.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -26,6 +33,7 @@ declare
   v_frei uuid; v_frei_uid uuid; v_frei_mail text; v_hash text;
   v_geb uuid; v_geb_uid uuid; v_geb_mail text;
   v_ed uuid; v_req uuid; v_txt text; v_n integer; v_b text[]; v_leihe uuid[] := '{}';
+  v_sp uuid; v_claim uuid; v_tab text; v_spalte text; v_rest text[];
 begin
   select e.id into v_ed from event e where e.is_edition and e.end_date >= current_date
    order by e.start_date limit 1;
@@ -59,6 +67,16 @@ begin
                     last_name = case when id = v_frei then 'Frei'
                                      when id = v_geb  then 'Gebunden' else 'Admin' end
    where id = any (v_leihe);
+
+  -- Die gebundene Person bekommt einen unverwechselbaren Namen und eine eigene
+  -- Adresse: Schritt 17 sucht danach in jeder Tabelle, und ein Allerweltsname
+  -- wuerde dort zufaellig treffen.
+  update person set last_name = 'Zzunverwechselbar', diet = 'vegan',
+                    diet_note = 'Nussallergie', gender = 'f', self_assessment = 'Zzunverwechselbar kann alles'
+   where id = v_geb;
+  update person_email set email = 'zzunverwechselbar@example.test'
+   where person_id = v_geb and is_primary;
+  v_geb_mail := 'zzunverwechselbar@example.test';
 
   -- 01 ohne Login ------------------------------------------------------------
   perform set_config('request.jwt.claims', null, true);
@@ -171,8 +189,32 @@ begin
   exception when others then insert into t_res values ('14b_unbekannt', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
 
   -- 15 Löschen aus der Warteschlange ---------------------------------------------
+  -- Spuren in den Tabellen, die die alte Routine stehen liess.
+  update speaker_profile set bio_short_de = 'Zzunverwechselbar spricht ueber Kaese',
+                             job_title = 'Chefin', internal_notes = 'Zzunverwechselbar mag Tee',
+                             tech_rider = 'eigenes Mikro'
+   where person_id = v_geb;
+  insert into mail_log (to_email, person_id, template_key, locale, status, meta)
+  values (v_geb_mail, v_geb, 'test_loeschen', 'de', 'sent',
+          jsonb_build_object('vars', jsonb_build_object('first_name', 'Zzunverwechselbar')));
+  insert into ticket (event_id, person_id, status, holder_email, holder_first_name, holder_last_name)
+  values (v_ed, v_geb, 'valid', v_geb_mail, 'ZZTEST', 'Zzunverwechselbar');
+  select sp.id into v_sp from speaker_profile sp where sp.person_id = v_geb;
+  insert into speaker_asset (profile_id, kind, storage_path, filename)
+  values (v_sp, 'photo', 'zztest/zzunverwechselbar.jpg', 'zzunverwechselbar.jpg');
+  insert into expense_claim (profile_id, status, positions, amount_cents, bank_masked, bank_holder, paid_at)
+  values (v_sp, 'paid', '[]'::jsonb, 1000, 'DE****1234', 'Zzunverwechselbar', now())
+  returning id into v_claim;
+
+  -- 16 offener Antrag als Huerde --------------------------------------------
   perform set_config('request.jwt.claims',
     json_build_object('sub', v_geb_uid, 'role', 'authenticated', 'email', v_geb_mail)::text, true);
+  update expense_claim set paid_at = null, status = 'submitted' where id = v_claim;
+  v_b := my_deletion_blockers();
+  insert into t_res values ('16_huerde_reisekosten',
+    case when 'open_expense' = any (v_b) then 'erkannt (richtig)' else 'FEHLT (' || array_to_string(v_b, ',') || ')' end);
+  update expense_claim set paid_at = now(), status = 'paid' where id = v_claim;
+
   perform request_profile_deletion('zweiter Anlauf');
   perform set_config('request.jwt.claims',
     json_build_object('sub', v_admin_uid, 'role', 'authenticated', 'email', v_admin_mail)::text, true);
@@ -184,6 +226,53 @@ begin
           and exists (select 1 from profile_deletion_request r where r.id = v_req
                        and r.status = 'done' and r.handled_by = v_admin)
          then 'anonymisiert und abgehakt (richtig)' else 'FEHLT' end);
+
+  -- 17 generisch: nirgends mehr der Name ---------------------------------------
+  -- Liest das Schema selbst aus. Eine neue Spalte oder eine neue Tabelle mit
+  -- `person_id` faellt damit auf, ohne dass jemand diesen Test pflegt.
+  v_rest := '{}';
+  for v_tab in
+    select c.table_name from information_schema.columns c
+      join information_schema.tables t
+        on t.table_schema = c.table_schema and t.table_name = c.table_name and t.table_type = 'BASE TABLE'
+     where c.table_schema = 'public' and c.column_name = 'person_id'
+     order by c.table_name
+  loop
+    execute format('select count(*)::integer from public.%I x where x.person_id = $1 and x::text ilike $2', v_tab)
+      into v_n using v_geb, '%Zzunverwechselbar%';
+    if v_n > 0 then v_rest := array_append(v_rest, v_tab || '(' || v_n || ')'); end if;
+  end loop;
+  -- Kinder des Speaker-Profils haengen ueber `profile_id` bzw. `speaker_profile_id`.
+  for v_tab, v_spalte in
+    select c.table_name, c.column_name from information_schema.columns c
+      join information_schema.tables t
+        on t.table_schema = c.table_schema and t.table_name = c.table_name and t.table_type = 'BASE TABLE'
+     where c.table_schema = 'public' and c.column_name in ('profile_id', 'speaker_profile_id')
+     order by c.table_name
+  loop
+    execute format('select count(*)::integer from public.%I x where x.%I = $1 and x::text ilike $2', v_tab, v_spalte)
+      into v_n using v_sp, '%Zzunverwechselbar%';
+    if v_n > 0 then v_rest := array_append(v_rest, v_tab || '.' || v_spalte || '(' || v_n || ')'); end if;
+  end loop;
+  insert into t_res values ('17_kein_name_mehr',
+    case when cardinality(v_rest) = 0 then 'nirgends mehr (richtig)'
+         else 'RESTE in ' || array_to_string(v_rest, ', ') end);
+
+  -- 18 Dateien zum Wegraeumen angemeldet ----------------------------------------
+  select count(*)::integer into v_n from storage_purge_queue
+   where bucket = 'speaker-assets' and path = 'zztest/zzunverwechselbar.jpg';
+  insert into t_res values ('18_bucket_warteschlange',
+    case when v_n = 1 then 'Pfad eingetragen (richtig)' else 'FEHLT (' || v_n || ')' end);
+
+  -- 19 Bankdaten weg, Buchung bleibt ---------------------------------------------
+  select case when count(*) = 1 then 'Antrag bleibt' else 'Antrag weg' end into v_txt
+    from expense_claim where id = v_claim;
+  select count(*)::integer into v_n from expense_claim
+   where id = v_claim and bank_holder is null and bank_masked is null and bank_secret_id is null
+     and amount_cents = 1000;
+  insert into t_res values ('19_bankdaten_weg',
+    case when v_n = 1 and v_txt = 'Antrag bleibt' then 'Bankdaten weg, Buchung bleibt (richtig)'
+         else 'unerwartet ' || v_txt || ' / ' || v_n end);
 end $$;
 select * from t_res order by step;
 rollback;

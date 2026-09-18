@@ -3305,6 +3305,7 @@
     "team_role": "You hold a role in the team. Someone has to take it over first.",
     "speaker": "You have confirmed a session at the upcoming summit.",
     "volunteer": "You are scheduled as a volunteer for the upcoming summit.",
-    "partner": "You are listed as the contact of an organisation."
+    "partner": "You are listed as the contact of an organisation.",
+    "open_expense": "One of your expense claims is still open."
   }
 }
