@@ -10,7 +10,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
-import { STEP_HREF, type SpeakerProfile } from "./types";
+import { ReceptionCard } from "./ReceptionCard";
+import { STEP_HREF, type MyReception, type SpeakerProfile } from "./types";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +77,11 @@ export default async function SpeakerPage() {
   // Buddy beider Bereiche; hier zählt nur die Speaker-Seite — ein Partner-Buddy
   // hat mit dem Auftritt nichts zu tun.
   const kontakte = (await loadMyContacts(profile.edition_id)).filter((k) => k.via === "speaker");
+
+  // Die Reception kommt nur, wenn diese Person eingeladen ist — die RPC gibt
+  // sie sonst gar nicht heraus (SPK-003).
+  const { data: receptionRows } = await supabase.rpc("my_receptions");
+  const receptions = (receptionRows ?? []) as MyReception[];
 
   const types = vgroup(vocab, "speaker_type");
   const pipeline = vgroup(vocab, "speaker_pipeline");
@@ -185,6 +191,25 @@ export default async function SpeakerPage() {
           </Card>
         )}
       </div>
+
+      {/* Die Einladung steht vor den Ansprechpersonen: sie ist das Einzige auf
+          dieser Seite, das eine Antwort verlangt. */}
+      {receptions.length > 0 && (
+        <div className="mt-8 flex flex-col gap-3">
+          {receptions.map((r) => (
+            <ReceptionCard
+              key={r.id}
+              reception={r}
+              isAssistant={profile.is_assistant}
+              locale={locale}
+              dateLocale={t.meta.dateLocale}
+              t={t.speakerReception}
+              common={{ save: t.common.save }}
+              rpcMessages={t.rpc}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Wer für dich zuständig ist — mit Gesicht, Mail und Telefon. Die Karte
           fällt weg, wenn niemand zugeordnet ist; dann steht oben das Postfach. */}
