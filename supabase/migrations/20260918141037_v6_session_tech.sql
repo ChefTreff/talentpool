@@ -1,4 +1,6 @@
--- 00NN · Welle 6 · Technik am Slot: die Ansage des Speakers (A7.2, SPK-018, PROD-007)
+-- 2360 · Welle 6 · Technik am Slot: die Ansage des Speakers (A7.2, SPK-018, PROD-007)
+--
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918141037.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Anwenden, Umbenennen und der
 -- Eintrag ins Entscheidungslog gehören der Architektur-/Security-Session.
