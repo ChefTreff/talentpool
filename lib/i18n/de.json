@@ -203,7 +203,9 @@
     "invalid_qty": "Bitte eine Anzahl größer als null angeben.",
     "already_requested": "Deine Anfrage liegt schon beim Team.",
     "invalid_action": "Diesen Vorgang gibt es nicht.",
-    "contact_consent_required": "Für eine Adresse ausserhalb @chef-treff.de braucht es das Datum der vertraglichen Einwilligung."
+    "contact_consent_required": "Für eine Adresse ausserhalb @chef-treff.de braucht es das Datum der vertraglichen Einwilligung.",
+    "invalid_stage": "Diese Funnel-Stufe kennt das System nicht.",
+    "invalid_items": "Die Liste der Leistungen passt nicht."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1887,7 +1889,8 @@
       "team": "Team",
       "speakerLeads": "Speaker-Leads",
       "edition": "Edition & Bühnen",
-      "graphics": "Grafiken & Fotos"
+      "graphics": "Grafiken & Fotos",
+      "initiatives": "Initiativen"
     },
     "overview": {
       "title": "Übersicht",
@@ -2357,6 +2360,31 @@
     "resolvedRejected": "Antrag abgelehnt, Antwort ist unterwegs",
     "emptyTitle": "Kein offener Antrag",
     "emptyBody": "Hier steht nur, wessen Löschung nicht von allein durchging — eine Rolle, eine Zusage oder eine Organisation im Weg."
+  },
+  "adminInitiatives": {
+    "title": "Initiativen",
+    "lead": "Der Funnel für Initiativen — ohne HubSpot, weil hier kein Geld fliesst.",
+    "noAccessTitle": "Kein Zugriff auf die Initiativen",
+    "noAccessBody": "Die Liste nennt Gesprächsstände und Vereinbarungen. Nur Admin und Partner-Leitung sehen sie.",
+    "emptyTitle": "Noch keine Initiative erfasst",
+    "emptyBody": "Sobald eine Organisation vom Typ „Initiative“ für diese Edition angelegt ist, steht sie hier.",
+    "stage": "Stufe",
+    "noStage": "Keine Stufe",
+    "sourcePortal": "im Portal angelegt",
+    "counts": "{produkte} Leistungen · {pflichten} offene Pflichten · {kontingente} Kontingente",
+    "updated": "geändert {date}",
+    "editProducts": "Leistungen",
+    "productsTitle": "Leistungen für {name}",
+    "productsReplaceHint": "Diese Liste ersetzt die bisher vereinbarten Leistungen. Was hier auf 0 steht, gilt danach als nicht vereinbart — und die Pflichten dazu verschwinden mit. Bestellungen aus dem Messeshop und Positionen aus HubSpot bleiben unberührt.",
+    "productsSaved": "{n} Leistungen vereinbart"
+  },
+  "initiativeStages": {
+    "outreach": "Ansprache",
+    "gespraech": "Gespräch",
+    "agreement": "Vereinbarung",
+    "onboarding": "Onboarding",
+    "aktiv": "Aktiv",
+    "abgelehnt": "Abgelehnt"
   },
   "adminMailLog": {
     "title": "Mail-Protokoll",

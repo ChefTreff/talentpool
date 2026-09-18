@@ -57,7 +57,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     },
     {
       label: nav.sections.partner,
-      items: [{ href: "/admin/partner", label: nav.partnerCare }],
+      items: [
+        { href: "/admin/partner", label: nav.partnerCare },
+        { href: "/admin/initiativen", label: nav.initiatives },
+      ],
     },
     {
       label: nav.sections.volunteers,
