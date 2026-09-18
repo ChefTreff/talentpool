@@ -49,7 +49,7 @@ function functionNames(sql) {
 }
 
 function newBody(sql, fn) {
-  const re = new RegExp(`create\\s+or\\s+replace\\s+function\\s+${fn}\\s*\\([\\s\\S]*?\\bas\\s+\\$\\$([\\s\\S]*?)\\$\\$;`, "i");
+  const re = new RegExp(`create\\s+(?:or\\s+replace\\s+)?function\\s+${fn}\\s*\\([\\s\\S]*?\\bas\\s+\\$\\$([\\s\\S]*?)\\$\\$;`, "i");
   return (sql.match(re) ?? [])[1] ?? null;
 }
 
