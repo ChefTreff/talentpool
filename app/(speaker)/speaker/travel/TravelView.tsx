@@ -59,6 +59,15 @@ export function TravelView({
   // nicht davor. Vorher fehlte der Knopf ganz, solange sie fehlte — man drückte
   // ins Leere und suchte den Grund oben auf der Seite.
   const [askConsent, setAskConsent] = useState<HospitalityOption | null>(null);
+  /**
+   * Fehler **im** Dialog, nicht als Toast.
+   *
+   * `<dialog showModal>` rendert im Top-Layer des Browsers, über jedem
+   * z-index. Ein Toast (`z-50`) läge dahinter: der Dialog bliebe offen, die
+   * Meldung unsichtbar, und es sähe aus, als passiere nichts. Derselbe Befund
+   * wie im Ansprechpartner-Admin (ADM-041).
+   */
+  const [consentError, setConsentError] = useState<string | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   // `window_from`/`window_to` sind echte Zeitpunkte (timestamptz) — die gehören
@@ -118,10 +127,11 @@ export function TravelView({
    * jemand, der gerade zugestimmt hat, ein zweites Mal auf „Buchen" drücken.
    */
   function onGiveConsent(option: HospitalityOption | null) {
+    setConsentError(null);
     startTransition(async () => {
       const res = await saveSpeakerConsents({ hospitality_data: true });
       if (!res.ok) {
-        toast("error", message(res.key));
+        setConsentError(message(res.key));
         return;
       }
       setAskConsent(null);
@@ -371,11 +381,26 @@ export function TravelView({
         <ConfirmDialog
           title={t.consentNeededTitle}
           body={t.consentHospitality}
-          detail={<p className="ct-label">{label(askConsent)}</p>}
+          detail={
+            <>
+              <p className="ct-label">{label(askConsent)}</p>
+              {consentError && (
+                <p
+                  role="alert"
+                  className="mt-3 rounded-ct-md border border-error-soft bg-error-soft p-3 ct-small text-error-ink"
+                >
+                  {consentError}
+                </p>
+              )}
+            </>
+          }
           confirmLabel={t.consentAskConfirm}
           cancelLabel={common.cancel}
           pending={pending}
-          onCancel={() => setAskConsent(null)}
+          onCancel={() => {
+            setConsentError(null);
+            setAskConsent(null);
+          }}
           onConfirm={() => onGiveConsent(askConsent)}
         />
       )}
