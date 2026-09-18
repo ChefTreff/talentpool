@@ -25,7 +25,8 @@
 -- `external_ref` ein `object_key text` für textgeschlüsselte Objekte. Genau
 -- eines von beiden ist gesetzt, der CHECK erzwingt es.
 --
--- Fehlerschlüssel: 42501 ohne Partner-Team · 22023 `invalid_system` ·
+-- Fehlerschlüssel: 42501 ohne Partner-Team (Liste) bzw. aus einem angemeldeten
+-- Kontext (Rückschreiben) · 22023 `invalid_system` ·
 -- P0002 `unknown_sku`.
 --
 -- Test: supabase/tests/v6_produktabgleich.sql
@@ -83,12 +84,24 @@ grant execute on function products_for_sync(text) to authenticated;
  * Idempotent: derselbe Lauf zweimal ergibt dieselbe Zeile. Das ist die
  * Grundlage dafür, dass ein zweiter Abgleich ändert statt anzulegen — ohne
  * diese Zeile entstünde drüben bei jedem Lauf ein neuer Artikel.
+ *
+ * **Nur im Serverkontext, und deshalb `auth.uid() is not null` statt einer
+ * Rollenprüfung.** Gerufen wird sie vom Abgleich über den `service_role`-Client;
+ * dort ist `auth.uid()` null, `has_role(…)` wäre damit false und eine
+ * Rollenprüfung würde beim **ersten** Produkt mit 42501 abbrechen — ein Fehler,
+ * den kein Test mit Nutzer-Claims findet, weil der Testblock als Eigentümer
+ * läuft (Befund der Architektur-Session, 18.09.). Dasselbe Muster wie bei
+ * `start_sync_job`, `record_sync_error` und `finish_sync_job`.
+ *
+ * Die Rolle prüfen deshalb die beiden Stellen davor: `requireArea("admin")` in
+ * der Route und `products_for_sync` über den Nutzer-Client. Ohne die Liste gibt
+ * es nichts zu schreiben.
  */
 create or replace function set_product_external_ref(p_sku text, p_system text, p_external_id text)
 returns void
 language plpgsql volatile security definer set search_path = public, extensions as $$
 begin
-  if not is_partner_team() then raise exception 'not allowed' using errcode = '42501'; end if;
+  if auth.uid() is not null then raise exception 'not allowed' using errcode = '42501'; end if;
   if p_system not in ('hubspot', 'sevdesk') then
     raise exception 'invalid_system' using errcode = '22023', detail = coalesce(p_system, 'null');
   end if;
@@ -103,8 +116,9 @@ begin
 end $$;
 revoke execute on function set_product_external_ref(text, text, text) from public, anon, authenticated;
 
--- Nur die Serverroute ruft sie, und die prüft vorher die Rolle. Ein Recht für
--- `authenticated` wäre die Erlaubnis, Fremdschlüssel frei zu setzen — damit
--- liesse sich der nächste Abgleich auf ein fremdes Objekt umlenken.
+-- Ein Recht für `authenticated` wäre die Erlaubnis, Fremdschlüssel frei zu
+-- setzen — damit liesse sich der nächste Abgleich auf ein fremdes Objekt
+-- umlenken. Der Riegel oben hält zusätzlich jeden angemeldeten Aufruf ab, auch
+-- einen, dem jemand das Recht später wieder erteilt.
 
 select harden_definer_functions();

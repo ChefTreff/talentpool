@@ -8,7 +8,11 @@
 --   07 derselbe Schluessel zweimal ergibt **eine** Zeile mit dem neuen Wert (idempotent);
 --   08 HubSpot und SevDesk stehen je Produkt nebeneinander;
 --   09 eine unbekannte SKU ⇒ P0002 `unknown_sku`;
---   10 ein `external_ref` ohne Ziel wird abgewiesen (genau eines von object_id/object_key).
+--   10 ein `external_ref` ohne Ziel wird abgewiesen (genau eines von object_id/object_key);
+--   11 das Ruecksschreiben **aus einem angemeldeten Kontext** ⇒ 42501 — es gehoert dem
+--      Server, und eine Rollenpruefung waere dort wirkungslos (`auth.uid()` ist null);
+--   12 dasselbe im Servicekontext (Claims ohne `sub`) schreibt die Zeile.
+-- Die Schritte 06 bis 09 laufen deshalb im Servicekontext, nicht als Nutzer.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -44,8 +48,21 @@ begin
     case when v_n = 0 then 'keine reinen Shop-Artikel (richtig)' else 'FEHLER: ' || v_n end);
 
   select s.sku into v_sku from products_for_sync('hubspot') s limit 1;
+
+  -- 11 angemeldet darf niemand zurueckschreiben ------------------------------
+  begin
+    perform set_product_external_ref(v_sku, 'hubspot', 'darf-nicht');
+    insert into t_res values ('11_angemeldet_verboten', 'ERLAUBT (BUG)');
+  exception when others then
+    insert into t_res values ('11_angemeldet_verboten', 'abgewiesen ' || sqlstate); end;
+
+  -- Ab hier der Servicekontext: Claims **ohne** `sub`, damit `auth.uid()` null
+  -- ist — so ruft der Abgleich die Funktion, und nur so darf sie laufen.
+  perform set_config('request.jwt.claims', json_build_object('role', 'service_role')::text, true);
+
   perform set_product_external_ref(v_sku, 'hubspot', 'hs-111');
-  select s.external_id into v_txt from products_for_sync('hubspot') s where s.sku = v_sku;
+  select e.external_id into v_txt from external_ref e
+   where e.system = 'hubspot' and e.object_type = 'product' and e.object_key = v_sku;
   insert into t_res values ('06_fremdschluessel',
     case when v_txt = 'hs-111' then 'gemerkt und mitgeliefert (richtig)' else 'unerwartet ' || coalesce(v_txt, 'null') end);
 
@@ -71,8 +88,19 @@ begin
     insert into external_ref (system, object_type, external_id) values ('hubspot', 'product', 'weder-noch');
     insert into t_res values ('10_ohne_ziel', 'ANGENOMMEN (BUG)');
   exception when others then insert into t_res values ('10_ohne_ziel', 'abgewiesen ' || sqlstate); end;
+
+  -- 12 im Servicekontext steht die Zeile ---------------------------------------
+  select count(*)::integer into v_n from external_ref
+   where system = 'hubspot' and object_type = 'product' and object_key = v_sku
+     and external_id = 'hs-222';
+  insert into t_res values ('12_servicekontext_schreibt',
+    case when v_n = 1 then 'Zeile steht (richtig)' else 'FEHLT (' || v_n || ')' end);
 end $$;
 select * from t_res order by step;
 rollback;
--- Lauf am 18.09. gegen die Datenbank (Migration + Test in einer Transaktion, rollback): 10/10 gruen.
+-- Lauf am 18.09. gegen die Datenbank (Migration + Test in einer Transaktion, rollback): zuerst
+-- 10/10 gruen — der Befund der Architektur-Session lag genau in der Luecke, die dieser Test
+-- nicht hatte: das Ruecksschreiben lief im Test mit Nutzerrolle, im Betrieb aber unter der
+-- Service Role, wo `has_role(...)` immer false ist. Schritte 11 und 12 schliessen sie.
 -- Bestand dabei: 86 Produkte gehen hinaus, 76 reine Shop-Artikel bleiben hier.
+-- Lauf mit der Korrektur: 12/12 gruen.
