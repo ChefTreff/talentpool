@@ -38,13 +38,13 @@ export function Ausstattung({
     <Card className="p-0">
       {/* Die Tabelle scrollt in ihrem eigenen Kasten; die Seite nie. */}
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse">
+        <table className="w-full min-w-160 border-collapse">
           <thead>
             <tr className="border-b">
               <th scope="col" className="ct-label px-4 py-2.5 text-left text-muted">
                 {t.colPackage}
               </th>
-              <th scope="col" className="ct-label w-[180px] px-4 py-2.5 text-left text-muted">
+              <th scope="col" className="ct-label w-45 px-4 py-2.5 text-left text-muted">
                 {t.colSize}
               </th>
               <th scope="col" className="ct-label px-4 py-2.5 text-left text-muted">

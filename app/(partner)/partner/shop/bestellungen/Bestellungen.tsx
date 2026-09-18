@@ -108,10 +108,10 @@ export function Bestellungen({
                     </svg>
                   </button>
 
-                  <span className="ct-small hidden w-[130px] shrink-0 tabular-nums text-muted sm:block">
+                  <span className="ct-small hidden w-32 shrink-0 tabular-nums text-muted sm:block">
                     {o.confirmed_at ? datum.format(new Date(o.confirmed_at)) : "—"}
                   </span>
-                  <span className="ct-small w-[120px] shrink-0 text-right tabular-nums text-ink">
+                  <span className="ct-small w-30 shrink-0 text-right tabular-nums text-ink">
                     {money(o.gross_cents, dateLocale)}
                   </span>
                   <Badge tone={STATUS_TONE[o.status] ?? "neutral"}>
