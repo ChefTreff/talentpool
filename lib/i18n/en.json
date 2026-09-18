@@ -1455,7 +1455,9 @@
     "ticketHint": "Enter the code in the shop. One code, one ticket — please do not pass it on.",
     "copy": "Copy",
     "copied": "Copied",
-    "navWiki": "Wiki"
+    "navWiki": "Wiki",
+    "areaName": "Volunteer",
+    "ticketOpen": "To redeem"
   },
   "adminPartner": {
     "title": "Partners",
