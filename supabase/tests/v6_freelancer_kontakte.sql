@@ -7,7 +7,8 @@
 --   06 Datum ausdruecklich leeren ⇒ 22023 `contact_consent_required`;
 --   07 der Buddy erscheint bei der betreuten Speakerin in `my_contacts()`;
 --   08 Widerruf gibt den Bildpfad zurueck (die Serverroute raeumt das Foto weg);
---   09 der Grund steht mit Akteur im Protokoll (`contact.remove`, `consent_withdrawn`);
+--   09 der Grund steht mit Akteur im Protokoll (`contact.remove`, `consent_withdrawn`) —
+--      und **ohne** Adresse und Telefonnummer, die die Löschung nicht überleben;
 --   10 der Verweis am Speaker-Profil steht danach auf null (Rueckfall auf den Standard).
 begin;
 create temp table t_res (step text, result text) on commit drop;
@@ -103,9 +104,10 @@ begin
    where a.action = 'contact.remove' and a.object_id = v_id::text
      and a.after->>'reason' = 'consent_withdrawn'
      and a.before->>'display_name' = 'ZZTEST Freelancerin'
+     and not (a.before ? 'email') and not (a.before ? 'phone')
      and a.actor_person_id = v_pid;
   insert into t_res values ('09_grund_im_protokoll',
-    case when v_n = 1 then 'protokolliert (richtig)' else 'FEHLT (' || v_n || ')' end);
+    case when v_n = 1 then 'protokolliert ohne Kontaktdaten (richtig)' else 'FEHLT (' || v_n || ')' end);
 
   -- 10 Verweis am Speaker faellt auf null -------------------------------------
   select count(*)::integer into v_n from speaker_profile sp
@@ -116,3 +118,6 @@ end $$;
 select * from t_res order by step;
 rollback;
 -- Lauf am 17.09. gegen die Datenbank (Migration + Test in einer Transaktion, rollback): 10/10 gruen.
+-- Nachtrag 18.09. (Auflage Architektur-Session): Schritt 09 prueft jetzt auch, dass beim
+-- Widerruf weder `email` noch `phone` im Protokoll stehen, waehrend das normale Loeschen einer
+-- Dienstadresse unveraendert bleibt — beides einzeln nachgelaufen, gruen.

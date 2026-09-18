@@ -31,6 +31,10 @@
 -- zurück. Löschen ist also der saubere Weg, und `delete_edition_contact` gibt
 -- den Bildpfad zurück, damit die Serverroute das Foto mitnimmt.
 --
+-- Beim Widerruf stehen `email` und `phone` **nicht** im Protokoll: sie sind
+-- genau das, wofür die Einwilligung zurückgezogen wurde. `id`, `type` und
+-- `display_name` reichen als Nachweis.
+--
 -- Fehlerschlüssel: 42501 ohne Recht · 22023 `contact_consent_required` (fremde Adresse
 -- ohne Einwilligungsdatum) · 22023 `invalid_contact_type` · 22023
 -- `fields_required` · P0002 `contact_not_found`.
@@ -154,8 +158,15 @@ begin
   select to_jsonb(c), c.photo_path into v_before, v_photo from edition_contact c where c.id = p_id;
   if v_before is null then raise exception 'contact_not_found' using errcode = 'P0002', detail = p_id::text; end if;
   delete from edition_contact where id = p_id;
+  -- **Beim Widerruf keine Kontaktdaten ins Protokoll.** Sonst überlebten genau
+  -- die Angaben, für die die Einwilligung zurückgezogen wurde, ihre Löschung im
+  -- Audit-Log. `id`, `type` und `display_name` reichen als Nachweis, dass diese
+  -- Zeile entfernt wurde (Auflage der Architektur-Session, 18.09.).
   perform log_audit(case when p_reason = 'consent_withdrawn' then 'contact.remove' else 'edition_contact.delete' end,
-                    'edition_contact', p_id::text, v_before - 'photo_path',
+                    'edition_contact', p_id::text,
+                    case when p_reason = 'consent_withdrawn'
+                         then v_before - 'photo_path' - 'email' - 'phone'
+                         else v_before - 'photo_path' end,
                     jsonb_build_object('reason', coalesce(p_reason, 'deleted')));
   return v_photo;
 end $$;
