@@ -1455,7 +1455,9 @@
     "ticketHint": "Code im Shop eingeben. Ein Code, ein Ticket — bitte nicht weitergeben.",
     "copy": "Kopieren",
     "copied": "Kopiert",
-    "navWiki": "Wiki"
+    "navWiki": "Wiki",
+    "areaName": "Volunteer",
+    "ticketOpen": "Noch einzulösen"
   },
   "adminPartner": {
     "title": "Partner",
