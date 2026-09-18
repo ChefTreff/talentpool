@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireArea } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { csvCellMinimal } from "@/lib/csv";
 import type { ShiftRow, VolunteerDay, VolunteerRow } from "../types";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +16,11 @@ export const dynamic = "force-dynamic";
  * beim Bewerben stattgefunden hat (Datenminimierung, Arbeitsauftrag C).
  */
 function csv(rows: (string | number | null)[][]): string {
-  const cell = (v: string | number | null) => {
-    const s = v == null ? "" : String(v);
-    return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
+  // `csvCellMinimal` klammert weiter nur, wenn nötig — die Form der Datei
+  // bleibt also, wie der Empfänger sie kennt —, entschärft aber Formelanfänge.
+  // Bewerberdaten kommen von aussen, und die Datei wird in Excel geöffnet
+  // (Befund der Architektur-Session an #81, 18.09.2026).
+  const cell = csvCellMinimal;
   // Semikolon und BOM: so öffnet Excel die Datei ohne Import-Dialog richtig.
   return "﻿" + rows.map((r) => r.map(cell).join(";")).join("\r\n") + "\r\n";
 }

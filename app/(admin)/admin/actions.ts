@@ -320,3 +320,28 @@ export async function setTechCheck(
   revalidatePath(PATHS.tech);
   return { ok: true, data: undefined };
 }
+
+/**
+ * Eine Shuttle-Fahrt freigeben (ADM-028, SPK-016).
+ *
+ * Konrads Regel vom 17.09.: jede Fahrt aus dem Speaker- und dem Lead-Portal
+ * wird **einmal** vom Speaker-Admin gesehen, bevor sie ans Unternehmen geht.
+ * Die Prüfung steht in `confirm_shuttle` (nur Speaker-Team, mit Audit); hier
+ * ist nur der Weg dorthin.
+ */
+export async function confirmShuttle(bookingId: string): Promise<AdminOpResult> {
+  const supabase = await client(PATHS.hospitality);
+  const { error } = await supabase.rpc("confirm_shuttle", { p_booking_id: bookingId });
+  if (error) return fail(error, "shuttle");
+  revalidatePath(PATHS.hospitality);
+  return { ok: true, data: undefined };
+}
+
+/** Eine Fahrt zurücknehmen — dieselbe Reichweite wie die Freigabe. */
+export async function cancelShuttleAsAdmin(bookingId: string): Promise<AdminOpResult> {
+  const supabase = await client(PATHS.hospitality);
+  const { error } = await supabase.rpc("cancel_shuttle", { p_booking_id: bookingId });
+  if (error) return fail(error, "shuttle");
+  revalidatePath(PATHS.hospitality);
+  return { ok: true, data: undefined };
+}
