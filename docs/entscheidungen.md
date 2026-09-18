@@ -233,3 +233,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **D3:** Konrad bestätigt die Auslegung — exportiert werden nur die Bewerberdaten, die der Partner ohnehin sieht.
 - **Company Tours 2027:** Sammelpunkt CCH, Congressplatz 1, 20355 Hamburg. Je Tour ein **Tour Lead** als interne Begleitperson (oft extern oder Volunteer): `company_tour.lead_contact_id` auf `edition_contact` mit neuem Typ `tour_lead`; Kontaktdaten nach der Freelancer-Regel (`contract_consent_at`); im Partner-Portal unter Company Tour als „Euer Tour Lead“ mit Name, Foto, E-Mail, Telefon. Baustein Partner-Chat (A2), Typ-Erweiterung als Migration.
 - **D4:** Unterlagen des AI Hackathon 2026 im Notion-Wiki (Link in Welle 6 §D4); Maße des Backdrops weiterhin offen.
+
+## 2026-09-18 — #65 Profil löschen gemergt: alle drei Admin-Bausteine des Tages sind live und auf main
+- **Gemergt:** #63 Mail-Protokoll (e1ac368), #62 Freelancer-Kontakte (c84348b), #65 Profil löschen (ADM-031). Der korrigierte Test von #65 läuft live 22/22; der Testkopf dokumentiert beide Läufe (21/22 mit Begründung, dann 22/22).
+- Damit stehen aus dem Admin-Backlog ADM-029, ADM-030, ADM-031, ADM-039 und ADM-040 auf `gebaut`; Abnahme durch Konrad im Walkthrough. Offen auf main: #55 (Speaker-Portal).
