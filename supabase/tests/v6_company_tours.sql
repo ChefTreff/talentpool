@@ -1,5 +1,9 @@
 -- Smoke-Test 0115 (Company Tours mit Stopps und Tour Lead, PART-046). Belegt:
 --   01 `tour_lead` ist als Kontakttyp erlaubt, ein erfundener Typ weiterhin nicht;
+--   01c **die Pflege-RPC kennt ihn auch** — ein neuer Typ steht an drei Stellen (Vokabular,
+--      CHECK, Whitelist in `upsert_edition_contact`); ohne die dritte erlaubt die Tabelle
+--      ihn und die Oberfläche weist ihn mit 22023 ab (Befund des Admin-Chats, 18.09.);
+--   01d die Freelancer-Prüfung aus 20260918105038 ist dabei erhalten geblieben;
 --   02 die sechs Touren 2027 stehen mit dem **CCH** als Sammelpunkt (2026 war es die
 --      Handelskammer) und der gestaffelten Startzeit;
 --   03 je Tour drei Stopps à 90 Minuten, zunächst ohne Partner — das Team vergibt sie;
@@ -20,7 +24,7 @@ declare
   v_pid uuid; v_uid uuid; v_email text; v_ed uuid;
   v_org uuid; v_oe uuid; v_org2 uuid; v_oe2 uuid;
   v_tour uuid; v_stop uuid; v_stop2 uuid; v_lead uuid; v_buddy uuid;
-  v_n integer; v_txt text; v_ts timestamptz; v_r record;
+  v_n integer; v_txt text; v_ts timestamptz; v_r record; v_via_rpc uuid;
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary
@@ -41,6 +45,27 @@ begin
       values (v_ed, 'gibt_es_nicht', 'ZZ Unfug', 'zz-unfug@chef-treff.de', '+49 40 1');
     insert into t_res values ('01b_erfundener_typ', 'ERLAUBT (BUG)');
   exception when others then insert into t_res values ('01b_erfundener_typ', 'abgewiesen ' || sqlstate); end;
+
+  -- 01c Die Pflege-RPC kennt den Typ ebenfalls (sonst: Tabelle ja, Oberflaeche nein).
+  begin
+    v_via_rpc := upsert_edition_contact(jsonb_build_object(
+      'edition_id', v_ed, 'type', 'tour_lead', 'display_name', 'ZZ Lead ueber RPC',
+      'email', 'zz-rpc@chef-treff.de', 'phone', '+49 40 6'));
+    insert into t_res values ('01c_rpc_kennt_typ',
+      case when v_via_rpc is not null then 'ueber die Pflege angelegt (richtig)' else 'FEHLT' end);
+  exception when others then
+    insert into t_res values ('01c_rpc_kennt_typ', 'ABGEWIESEN (BUG) ' || sqlstate || ' ' || sqlerrm);
+  end;
+
+  -- 01d Die Freelancer-Regel aus 20260918105038 gilt weiter: fremde Domain nur mit Einwilligung.
+  begin
+    perform upsert_edition_contact(jsonb_build_object(
+      'edition_id', v_ed, 'type', 'tour_lead', 'display_name', 'ZZ Extern RPC',
+      'email', 'zz-extern-rpc@example.org', 'phone', '+49 40 7'));
+    insert into t_res values ('01d_freelancer_regel', 'ERLAUBT (BUG): Einwilligung uebergangen');
+  exception when others then
+    insert into t_res values ('01d_freelancer_regel', 'abgewiesen ' || sqlstate || ' (richtig)');
+  end;
 
   -- 02 Die sechs Touren mit dem CCH
   select count(*)::integer into v_n from company_tour where edition_id = v_ed
