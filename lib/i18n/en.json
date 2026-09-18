@@ -1792,7 +1792,14 @@
     "ticketPassStartup": "Startup pass",
     "ticketPassAllocations": "allocations follow.",
     "fieldFormatKey": "Opens the page",
-    "formatKeyHint": "Which page under “Your formats” this product unlocks in the partner portal. Leave empty for articles without their own page."
+    "formatKeyHint": "Which page under “Your formats” this product unlocks in the partner portal. Leave empty for articles without their own page.",
+    "productSyncTitle": "Sync product catalogue",
+    "productSyncLead": "Writes names, prices, tax rates and descriptions to HubSpot and SevDesk. Outbound only — the catalogue belongs to the portal. Initiative services and shop-only articles stay here.",
+    "productSyncStart": "Sync now",
+    "productSyncRunning": "Running …",
+    "productSyncResult": "{created} created · {updated} updated · {failed} failed",
+    "productSyncSkipped": "{n} skipped — {reason}",
+    "productSyncFailed": "The sync did not run. Details are in the server log."
   },
   "adminVolunteers": {
     "title": "Volunteers",

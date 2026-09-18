@@ -1792,7 +1792,14 @@
     "ticketPassStartup": "Startup Pass",
     "ticketPassAllocations": "Kontingente ziehen nach.",
     "fieldFormatKey": "Öffnet die Seite",
-    "formatKeyHint": "Welche Seite unter „Eure Formate\" dieses Produkt im Partner-Portal freischaltet. Leer lassen für Artikel ohne eigene Seite."
+    "formatKeyHint": "Welche Seite unter „Eure Formate\" dieses Produkt im Partner-Portal freischaltet. Leer lassen für Artikel ohne eigene Seite.",
+    "productSyncTitle": "Produktstamm abgleichen",
+    "productSyncLead": "Schreibt Namen, Preise, Steuersätze und Beschreibungen nach HubSpot und SevDesk. Nur hinaus, nie zurück — der Stamm gehört dem Portal. Initiativen-Leistungen und reine Messeshop-Artikel bleiben hier.",
+    "productSyncStart": "Jetzt abgleichen",
+    "productSyncRunning": "Läuft …",
+    "productSyncResult": "{created} angelegt · {updated} geändert · {failed} fehlgeschlagen",
+    "productSyncSkipped": "{n} übersprungen — {reason}",
+    "productSyncFailed": "Der Abgleich ist nicht gelaufen. Einzelheiten stehen im Server-Log."
   },
   "adminVolunteers": {
     "title": "Volunteers",
