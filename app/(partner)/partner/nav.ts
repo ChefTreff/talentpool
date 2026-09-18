@@ -113,10 +113,6 @@ export function visibleNavKeys(input: NavInput): PartnerNavKey[] {
     "contacts",
     "checklist",
     "files",
-    // Der Shop steht jedem Partner offen, sobald es die Edition gibt.
-    // Die Bestellungen sind ein Reiter **im** Shop, kein eigener Menüpunkt:
-    // sie gehören dorthin, wo bestellt wird (Konrad, 14.09.).
-    "shop",
     // Die Event-App gilt für jeden Partner: jede Organisation steht in
     // Swapcard, und wer die Lead-Einstellung verpasst, kommt hinterher nicht
     // mehr an seine Kontakte. Den Punkt zu verstecken wäre teurer als ihn
@@ -145,6 +141,18 @@ export function visibleNavKeys(input: NavInput): PartnerNavKey[] {
   // passendes Produkt gebucht wäre.
   if (input.has_booth && !keys.includes("booth")) keys.push("booth");
   if (input.has_stage && !keys.includes("stage")) keys.push("stage");
+
+  // Der Messeshop gehört zum Messestand (PART-037, Konrad 17.09.): er verkauft
+  // Mobiliar, Technik und Gastronomie für die Standfläche. Als Stand zählen die
+  // Standflächen-Pakete und die Standbühne, **nicht** der Hackathon-Stand — der
+  // trägt `format_key = 'hackathon'` und fällt hier von selbst heraus.
+  // Die Bestellungen sind ein Reiter **im** Shop, kein eigener Menüpunkt: sie
+  // gehören dorthin, wo bestellt wird (Konrad, 14.09.).
+  //
+  // Das Menü ist dabei nur die Höflichkeit; die Sperre sitzt in den RPCs
+  // (Migration 0112). Das Lunch-Paket bleibt für alle bestellbar — über die
+  // Checkliste, nicht über den Katalog (PART-049).
+  if (keys.includes("booth") || keys.includes("stage")) keys.push("shop");
 
   // Bewerber folgt der Session, nicht dem Produkt: erst wenn der Org ein
   // Format zugeordnet wurde, gibt es Bewerbungen zu entscheiden.

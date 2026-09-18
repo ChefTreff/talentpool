@@ -24,8 +24,25 @@ export default async function ShopCataloguePage({
 }) {
   const { locale, t } = await getI18n("de");
   const { q, kat } = await searchParams;
-  const { orgId, products, cart, categories, merchAssets, canOrder } = await loadShop();
+  const { orgId, products, cart, categories, merchAssets, canOrder, hasBooth } = await loadShop();
   const s = t.partnerShop;
+
+  // Ohne Stand kein Katalog (PART-037). Die Datenbank liefert dann ohnehin
+  // nichts; hier steht, warum — und wo das Lunch-Paket trotzdem zu finden ist,
+  // denn das darf jeder Partner bestellen (PART-049).
+  if (!hasBooth) {
+    return (
+      <EmptyState
+        title={s.noBoothTitle}
+        description={`${s.noBoothBody} ${s.noBoothLunch}`}
+        action={
+          <Link href="/partner/checkliste" className="ct-link">
+            {s.noBoothAction}
+          </Link>
+        }
+      />
+    );
+  }
 
   const inCart = new Map((cart?.lines ?? []).map((l) => [l.sku, l.qty]));
 
