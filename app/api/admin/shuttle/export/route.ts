@@ -1,13 +1,9 @@
 import { requireArea } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { csvCell } from "@/lib/csv";
 import { SHUTTLE_EXPORT_COLUMNS, type ShuttleAdminRow } from "@/components/shuttle/types";
 
 export const dynamic = "force-dynamic";
-
-/** Ein CSV-Feld: Anführungszeichen verdoppeln, alles in Anführungszeichen. */
-function cell(value: unknown): string {
-  return `"${String(value ?? "").replace(/"/g, '""')}"`;
-}
 
 /**
  * Die Fahrtenliste für das Shuttle-Unternehmen (ADM-028).
@@ -51,9 +47,12 @@ export async function GET(request: Request) {
   if (format === "csv") {
     // Semikolon und BOM wie bei Regieplan und Bestellliste, damit Excel auf
     // deutschen Rechnern die Spalten nicht in eine einzige quetscht.
-    const kopf = SHUTTLE_EXPORT_COLUMNS.map((c) => cell(c.label)).join(";");
+    // `csvCell` entschärft Formelanfänge: der Name der beförderten Person und
+    // die Adressen kommen als Freitext aus dem Portal, und das Unternehmen
+    // öffnet die Datei in Excel (Befund der Architektur-Session, 18.09.).
+    const kopf = SHUTTLE_EXPORT_COLUMNS.map((c) => csvCell(c.label)).join(";");
     const zeilen = rows.map((r) =>
-      SHUTTLE_EXPORT_COLUMNS.map((c) => cell(c.value(r))).join(";"),
+      SHUTTLE_EXPORT_COLUMNS.map((c) => csvCell(c.value(r))).join(";"),
     );
     return new Response(`﻿${[kopf, ...zeilen].join("\r\n")}\r\n`, {
       headers: {
