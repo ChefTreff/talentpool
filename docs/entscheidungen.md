@@ -254,3 +254,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **Design-Rollout:** Regel des Design-Chats bestätigt — Seitenbreiten als Token-Klassen, Spalten- und Elementmaße auf der Tailwind-Rasterskala statt eigener Token; gilt für Talent und Admin weiter. #73 (Speaker) wartet auf einen Merge von main (#55 hat dieselben Seiten geändert).
 
 - **#73 Design-Rollout Speaker gemergt** (Ticket-Form nur im gültigen Zweig, vier Wartezustände unverändert; Pass-Typ als Eyebrow der Karte statt drittes Badge — Konrad kann beim Durchklicken widersprechen). Damit sind Shell, Partner und Speaker ausgerollt; Talent und Admin folgen.
+
+## 2026-09-18 — 20260918122700 `v6_branding` live (PR #72, PART-043); #74 Backdrop mit Auflage
+- Vorlage `digital_branding` bekommt die Frist `booth_changes_until`, Maße 1920 × 1080 in beiden Sprachen, Dateiregel PDF/PNG/JPG bis 50 MB (kein SVG/ZIP mehr); Bestand nachgezogen. Probelauf 7/7.
+- #74 Rückwand der Challenge Area: Vorlage `hackathon_backdrop` an der Kategorie `hackathon`, PDF bis 100 MB, Frist `hackathon_challenge`, Konrads Dateiregeln vollständig. Auflage: `resync_deliverables()` prüft `is_partner_team()` und scheitert in einer Migration (kein Sitzungskontext) — stattdessen `sync_deliverables(oe.id)` je Organisation wie in B2. Gestapelt auf #72.
