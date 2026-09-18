@@ -1,4 +1,6 @@
--- 00NN · Welle 6 · Shuttle-Fahrten als eigenes Objekt (A7.1, SPK-016, LEAD-011, ADM-028)
+-- 0119 · Welle 6 · Shuttle-Fahrten als eigenes Objekt (A7.1, SPK-016, LEAD-011, ADM-028)
+--
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918142855.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Anwenden, Umbenennen und der
 -- Eintrag ins Entscheidungslog gehören der Architektur-/Security-Session.
