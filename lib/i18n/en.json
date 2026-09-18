@@ -785,7 +785,21 @@
     "planNone": "The floor plan arrives once the hall is set. We will show it here, no need to ask.",
     "stepperLabel": "Progress",
     "checkDone": "done",
-    "checkOpen": "open"
+    "checkOpen": "open",
+    "techTitle": "Technical setup",
+    "techLead": "What you need on stage. The stage crew plans from this; the more precise, the fewer questions.",
+    "tech_people_on_stage": "People on stage",
+    "tech_people_on_stage_hint": "For example “two: me and the moderator”.",
+    "tech_microphone": "Microphone",
+    "tech_microphone_hint": "Headset, handheld, lavalier — whatever you prefer.",
+    "tech_presentation_media": "Presentation and media",
+    "tech_presentation_media_hint": "Slides, video with sound, your own laptop, a clicker.",
+    "tech_special_requirements": "Special requirements",
+    "tech_special_requirements_hint": "Anything we would not think of otherwise.",
+    "tech_furniture": "Furniture",
+    "tech_furniture_hint": "Standing table, bar stool, armchair.",
+    "techSaved": "Technical setup saved.",
+    "techTooLong": "Please keep it shorter, 500 characters per field at most."
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -2674,7 +2688,13 @@
     "emptySuppliers": "No orders",
     "emptySuppliersBody": "Nobody has ordered in the trade-show shop yet.",
     "tabFiles": "Files",
-    "tabCatering": "Catering"
+    "tabCatering": "Catering",
+    "colTech": "Speaker request",
+    "tech_people_on_stage": "People",
+    "tech_microphone": "Microphone",
+    "tech_presentation_media": "Presentation",
+    "tech_special_requirements": "Special",
+    "tech_furniture": "Furniture"
   },
   "wiki": {
     "title": "Wiki",

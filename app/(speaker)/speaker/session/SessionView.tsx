@@ -12,11 +12,13 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
-import { registerAsset, setSlidesRelease, submitSessionContent } from "./actions";
+import { registerAsset, saveSessionTech, setSlidesRelease, submitSessionContent } from "./actions";
 import {
   BUCKET,
+  MAX_TECH_CHARS,
   MAX_UPLOAD_BYTES,
   PRESENTATION_MIME,
+  TECH_FIELDS,
   safeFileName,
   type MySession,
   type PresentationWindow,
@@ -494,6 +496,109 @@ function SessionCard({
           <p className="ct-help mt-2">{t.slidesConsentMissing}</p>
         )}
       </div>
+
+      {/* Technik (SPK-018). Sie steht **unter dem Slot**, nicht im Profil:
+          was auf der Bühne gebraucht wird, hängt am Auftritt, nicht am
+          Menschen. `speaker_profile.tech_rider` bleibt nur Vorbelegung. */}
+      <TechSection
+        session={session}
+        t={t}
+        common={common}
+        message={message}
+        toast={toast}
+      />
     </Card>
+  );
+}
+
+/**
+ * Die Technik-Ansage des Speakers.
+ *
+ * Fünf feste Felder, alle Freitext (Konrads Entscheidung vom 17.09.). Was hier
+ * steht, ist die **Ansage**; was die Regie daraus disponiert, steht im
+ * Regieplan und wird hier nicht angezeigt — sonst wüsste niemand mehr, welche
+ * der beiden Angaben gilt.
+ *
+ * Die Assistenz darf schreiben: sie pflegt den Auftritt mit, und eine
+ * Mikrofonwahl ist keine Angabe, die nur der Person selbst gehört.
+ */
+function TechSection({
+  session,
+  t,
+  common,
+  message,
+  toast,
+}: {
+  session: MySession;
+  t: Strings;
+  common: { cancel: string; choose: string; none: string; required: string; save: string };
+  message: (key: string) => string;
+  toast: (tone: "success" | "error", text: string) => void;
+}) {
+  const [pending, start] = useTransition();
+  const [tech, setTech] = useState<Record<string, string>>(() =>
+    Object.fromEntries(TECH_FIELDS.map((f) => [f.key, session.tech?.[f.key] ?? ""])),
+  );
+
+  const zuLang = TECH_FIELDS.some((f) => (tech[f.key] ?? "").length > MAX_TECH_CHARS);
+  const geaendert = TECH_FIELDS.some(
+    (f) => (tech[f.key] ?? "").trim() !== (session.tech?.[f.key] ?? ""),
+  );
+
+  function onSave() {
+    start(async () => {
+      const res = await saveSessionTech(
+        session.session_id,
+        Object.fromEntries(TECH_FIELDS.map((f) => [f.key, (tech[f.key] ?? "").trim()])),
+      );
+      if (!res.ok) {
+        toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+        return;
+      }
+      toast("success", t.techSaved);
+    });
+  }
+
+  return (
+    <div className="mt-6 border-t pt-4">
+      <h3 className="ct-label mb-1 text-ink">{t.techTitle}</h3>
+      <p className="ct-help">{t.techLead}</p>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {TECH_FIELDS.map((f) => {
+          const id = `${session.session_id}-${f.key}`;
+          const wert = tech[f.key] ?? "";
+          const ueber = wert.length > MAX_TECH_CHARS;
+          return (
+            <Field
+              key={f.key}
+              label={t[`tech_${f.key}`] ?? f.key}
+              htmlFor={id}
+              hint={ueber ? t.techTooLong : t[`tech_${f.key}_hint`]}
+              className={f.lines === 2 ? "sm:col-span-2" : undefined}
+            >
+              {f.lines === 2 ? (
+                <Textarea
+                  id={id}
+                  rows={2}
+                  value={wert}
+                  onChange={(e) => setTech((v) => ({ ...v, [f.key]: e.target.value }))}
+                />
+              ) : (
+                <Input
+                  id={id}
+                  value={wert}
+                  onChange={(e) => setTech((v) => ({ ...v, [f.key]: e.target.value }))}
+                />
+              )}
+            </Field>
+          );
+        })}
+      </div>
+
+      <Button className="mt-4" disabled={!geaendert || zuLang} loading={pending} onClick={onSave}>
+        {common.save}
+      </Button>
+    </div>
   );
 }
