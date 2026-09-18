@@ -24,7 +24,15 @@ function token(): string {
   return t;
 }
 
-async function hs<T>(path: string, init?: RequestInit): Promise<T> {
+/**
+ * Ein Aufruf gegen die CRM-API.
+ *
+ * Exportiert, damit weitere Objektarten (etwa der Produktstamm in
+ * `lib/hubspot/products.ts`) denselben Weg nehmen. Wer sich sein eigenes
+ * `fetch` mit eigenem Token baut, hat irgendwann zwei Fehlerbehandlungen und
+ * eine davon schluckt den Statuscode.
+ */
+export async function hs<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {
