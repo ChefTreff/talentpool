@@ -13,14 +13,17 @@
 --      (erst pruefen, dann schreiben);
 --   12 qty 0 ⇒ 22023 `invalid_items`;
 --   13 die Zahlen in der Liste stimmen (Produkte, offene Pflichten);
---   14 die vier INI-Produkte stehen im Stamm, unsichtbar im Shop und mit Preis 0.
+--   14 die vier INI-Produkte stehen im Stamm, unsichtbar im Shop und mit Preis 0;
+--   15 `upsert_product` nimmt eine INI-SKU an (vorher 22023 `invalid_sku`) und weist
+--      erfundene Muster weiter ab — sonst waeren die Produkte nur im Studio pflegbar;
+--   16 die bestehende Initiative traegt `source = 'portal'`, nicht den Default `hubspot`.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
 declare
   v_pid uuid; v_uid uuid; v_email text; v_ed uuid;
   v_org uuid; v_oe uuid; v_partner_org uuid; v_partner_oe uuid;
-  v_n integer; v_txt text;
+  v_n integer; v_bestand integer; v_txt text;
 begin
   select e.id into v_ed from event e where e.is_edition and e.slug = 'fls27';
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
@@ -158,7 +161,39 @@ begin
    where p.sku like 'INI-%' and p.active and not p.shop_visible and p.net_price_cents = 0;
   insert into t_res values ('14_produkte',
     case when v_n = 4 then 'vier Produkte, unsichtbar, Preis 0 (richtig)' else 'unerwartet ' || v_n end);
+
+  -- 15 die Pflege nimmt die neuen Schluessel an -------------------------------
+  begin
+    perform upsert_product(jsonb_build_object('sku', 'INI-BEACHFLAG', 'name_de', 'Beachflag (geaendert)'));
+    select name_de into v_txt from product where sku = 'INI-BEACHFLAG';
+    insert into t_res values ('15a_ini_sku_pflegbar',
+      case when v_txt = 'Beachflag (geaendert)' then 'angenommen (richtig)' else 'unerwartet ' || coalesce(v_txt, 'null') end);
+  exception when others then
+    insert into t_res values ('15a_ini_sku_pflegbar', 'ABGEWIESEN (BUG) ' || sqlstate || ' ' || sqlerrm); end;
+  begin
+    perform upsert_product(jsonb_build_object('sku', 'BLA-123', 'name_de', 'Unsinn'));
+    insert into t_res values ('15b_erfundenes_muster', 'ANGENOMMEN (BUG)');
+  exception when others then
+    insert into t_res values ('15b_erfundenes_muster', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
+
+  -- 16 Bestand nachgezogen ------------------------------------------------------
+  -- Zaehlt die Initiativen **ohne** die selbst angelegte: nur dann belegt der
+  -- Schritt, dass der Nachtrag den Bestand erwischt hat und nicht bloss die
+  -- eigene Zeile, die ohnehin mit `portal` entsteht.
+  select count(*) filter (where oe.source <> 'portal')::integer,
+         count(*)::integer
+    into v_n, v_bestand
+    from org_edition oe join organization o on o.id = oe.org_id
+   where o.type = 'initiative' and oe.id <> v_oe;
+  insert into t_res values ('16_bestand_portal',
+    case when v_bestand = 0 then 'kein Bestand zum Pruefen (Schritt sagt nichts)'
+         when v_n = 0 then 'Bestand auf portal (richtig, ' || v_bestand || ' Zeile(n))'
+         else 'FEHLT — ' || v_n || ' von ' || v_bestand || ' noch auf hubspot' end);
 end $$;
 select * from t_res order by step;
 rollback;
 -- Lauf am 18.09. gegen die Datenbank (Migration + Test in einer Transaktion, rollback): 16/16 gruen.
+-- Nachtrag 18.09. (Auflagen der Architektur-Session): Schritte 15 und 16 neu. Einzeln geprueft —
+-- die erweiterte SKU-Bedingung nimmt `I-39740`, `INI-PARTNERSCHAFT` und `INI-STAND-2T` an und weist
+-- `BLA-123` und `ini-klein` mit 22023 ab; der Bestandsnachtrag erwischt die eine vorhandene
+-- Initiative (danach 0 auf `hubspot`). Der Gesamtlauf mit den neuen Schritten steht aus.
