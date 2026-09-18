@@ -151,6 +151,22 @@ alter table speaker_profile add column if not exists partner_editable_until_logi
 - **Company-Tour-Zeiten:** Konrad (17.09.): die echten Zeiten kommen erst in einigen Wochen, bis dahin **Dummy-Daten**. Der Entwurf braucht dafür nichts Eigenes; die Tour-Slots legt das Team an (ADM-026), und für den Walkthrough setze ich Wegwerf-Slots mit `notes = 'testdaten:…'` nach der Konvention.
 - **Interview-Table-Produkt:** legt Konrad selbst an (17.09.). Bis dahin öffnet die Seite bei niemandem — das ist richtig und kein Fehler.
 
+## 9a · Konrads Entscheidungen vom 18.09. (Auftrag §D), eingearbeitet
+
+- **D1 Interview Tables: beides.** Der Partner legt beim Anlegen fest, ob Einzel- oder
+  Gruppengespräch (`format_details.interview_mode`); Einzelgespräch setzt Kapazität 1,
+  beim Gruppengespräch zählt seine Angabe.
+- **D2 Freigabe-Gate: ja.** Side-Events und Interview-Slots bleiben bis zur Freigabe
+  unveröffentlicht; `release_partner_session` und `partner_sessions_pending` dazu, mit Audit.
+- **D3 Export: alle Daten, die der Partner ohnehin sieht** — mit `consent_share` als Grenze,
+  Datenschutzhinweis in der Datei (`export_privacy_notice`, DE und EN) und Audit je Abruf.
+  Nie Art.-9-Felder, Geburtsdatum, Geschlecht, Telefon oder interne Notizen.
+- **D5 Company Tour: eigenes Datenmodell.** Sechs Touren mit je drei Stopps, ein Partner bucht
+  einen **Stopp**; Sammelpunkt 2027 ist das CCH, nicht mehr die Handelskammer; je Tour ein
+  **Tour Lead** aus `edition_contact` (neuer Typ `tour_lead`). Damit fällt `company_tour` aus
+  diesem Entwurf heraus — die neun Angaben gehören an den Stopp, nicht an `session`. Eigener
+  Baustein; keine Personendaten aus den 2026er Ablaufplänen übernehmen.
+
 ## 9 · Drei Fragen an dich
 
 1. **Weg A oder B** bei den Zeiten (§1) — das ist die eine, die alles andere trägt.

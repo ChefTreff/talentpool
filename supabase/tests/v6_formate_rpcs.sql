@@ -16,7 +16,11 @@
 --      höchstens zwei je Session;
 --   13 `partner_add_speaker` legt Person, Speaker-Profil (`invited`, `partner_editable…`) und
 --      die Zuordnung an; ein bestätigter Speaker blockiert (P0001 `slot_locked`);
---   14 alle Helfer sind für `authenticated` gesperrt; fremde Organisation ⇒ 42501.
+--   14 alle Helfer sind für `authenticated` gesperrt; fremde Organisation ⇒ 42501;
+--   15 Einzelgespräch setzt Kapazität 1, Gruppengespräch nimmt die Angabe (Konrad, D1);
+--   16 die Freigabe hebt Session und Slot, eine Ablehnung ohne Grund wird abgewiesen (D2);
+--   17 der Export liefert **nur** Bewerbungen mit Einwilligung und protokolliert sich (D3);
+--   18 der Datenschutzhinweis existiert in beiden Sprachen und nennt die Zweckbindung.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -24,8 +28,8 @@ declare
   v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_summit uuid; v_day uuid;
   v_org uuid; v_oe uuid; v_fremd uuid;
   v_stage_side uuid; v_stage_table uuid; v_stage_fremd uuid;
-  v_s1 uuid; v_s2 uuid; v_t1 uuid; v_q1 uuid; v_qcat uuid; v_prof uuid;
-  v_n integer; v_txt text; v_start timestamptz; v_j jsonb; v_person uuid;
+  v_s1 uuid; v_s2 uuid; v_t1 uuid; v_grp uuid; v_q1 uuid; v_qcat uuid; v_prof uuid;
+  v_n integer; v_txt text; v_txt2 text; v_start timestamptz; v_j jsonb; v_person uuid;
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary
@@ -189,6 +193,67 @@ begin
     perform partner_add_speaker(v_s2, 'zz-anderer@example.org', 'ZZ', 'Anderer');
     insert into t_res values ('13b_bestaetigter_speaker', 'ERLAUBT (BUG)');
   exception when others then insert into t_res values ('13b_bestaetigter_speaker', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
+
+  -- 15 Einzel- gegen Gruppengespraech (Konrad, D1)
+  select capacity into v_n from session where id = v_t1;
+  insert into t_res values ('15_einzelgespraech',
+    case when v_n = 1 then 'Kapazitaet 1 ohne Angabe (richtig)' else 'unerwartet ' || coalesce(v_n::text,'null') end);
+  begin
+    v_grp := partner_create_session(v_org, 'interview_table', v_stage_table, v_day,
+                                    v_start + interval '2 hours', v_start + interval '150 minutes',
+                                    'ZZ Gruppe', 6, jsonb_build_object('interview_mode', 'group'), v_ed);
+    select capacity into v_n from session where id = v_grp;
+    insert into t_res values ('15b_gruppengespraech',
+      case when v_n = 6 then 'Kapazitaet 6 uebernommen (richtig)' else 'unerwartet ' || coalesce(v_n::text,'null') end);
+  exception when others then
+    insert into t_res values ('15b_gruppengespraech', 'FEHLGESCHLAGEN ' || sqlstate || ' ' || sqlerrm);
+  end;
+  begin
+    perform partner_update_session(v_t1, jsonb_build_object('format_details',
+      jsonb_build_object('interview_mode', 'gibt_es_nicht')));
+    insert into t_res values ('15c_modus_erfunden', 'ERLAUBT (BUG)');
+  exception when others then insert into t_res values ('15c_modus_erfunden', 'abgewiesen ' || sqlstate); end;
+
+  -- 16 Freigabe (Konrad, D2)
+  begin
+    perform release_partner_session(v_t1, true, null);
+    insert into t_res values ('16_freigabe_ohne_rolle', 'ERLAUBT (BUG)');
+  exception when others then insert into t_res values ('16_freigabe_ohne_rolle', 'abgewiesen ' || sqlstate); end;
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'area_lead_partner', 'global');
+  begin
+    perform release_partner_session(v_t1, false, null);
+    insert into t_res values ('16b_ablehnung_ohne_grund', 'ERLAUBT (BUG)');
+  exception when others then insert into t_res values ('16b_ablehnung_ohne_grund', 'abgewiesen ' || sqlstate); end;
+  perform release_partner_session(v_t1, true, null);
+  select se.publish_status, sl.status into v_txt, v_txt2
+    from session se left join slot sl on sl.id = se.slot_id where se.id = v_t1;
+  insert into t_res values ('16c_freigabe',
+    case when v_txt = 'published' and v_txt2 = 'final' then 'Session published, Slot final (richtig)'
+         else 'unerwartet ' || coalesce(v_txt,'?') || '/' || coalesce(v_txt2,'?') end);
+  delete from role_assignment where person_id = v_pid and role = 'area_lead_partner';
+
+  -- 17 Export (Konrad, D3): nur mit Einwilligung
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
+  update application set consent_share = false where session_id = v_t1;
+  delete from role_assignment where person_id = v_pid and role = 'admin';
+  select count(*)::integer into v_n from export_session_applications(v_t1);
+  insert into t_res values ('17_export_ohne_einwilligung',
+    case when v_n = 0 then 'keine Zeile (richtig)' else 'ALLOWED (BUG): ' || v_n || ' Zeilen' end);
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
+  update application set consent_share = true where session_id = v_t1;
+  delete from role_assignment where person_id = v_pid and role = 'admin';
+  select count(*)::integer into v_n from export_session_applications(v_t1);
+  insert into t_res values ('17b_export_mit_einwilligung',
+    case when v_n = 1 then 'eine Zeile (richtig)' else 'unerwartet ' || v_n end);
+  select count(*)::integer into v_n from audit_log
+   where action = 'partner.application_export' and object_id = v_t1::text;
+  insert into t_res values ('17c_export_protokolliert',
+    case when v_n >= 2 then 'jeder Abruf im Protokoll (richtig)' else 'unerwartet ' || v_n end);
+
+  -- 18 Datenschutzhinweis
+  insert into t_res values ('18_hinweis_zweisprachig',
+    case when export_privacy_notice('de') like '%Zweck%' and export_privacy_notice('en') like '%controller%'
+         then 'beide Sprachen mit Zweckbindung (richtig)' else 'FEHLT' end);
 
   -- 14 Fremde Organisation
   begin

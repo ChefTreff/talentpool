@@ -7,10 +7,19 @@
 -- Funktion hier prüft die Mitgliedschaft, das Recht in der Organisation (`partner_can_edit`)
 -- und den Anspruch aus `org_product`; Felder je Format sind Whitelists, keine freien Schlüssel.
 --
--- Zwei Punkte sind nach Anweisung der Architektur-Session **Parameter, keine feste Regel**,
--- weil Konrad sie noch entscheidet (Auftrag §D1/§D2):
---   * Kapazität je Interview-Slot (`p_capacity`, Vorgabe 1),
---   * Freigabe-Gate (`session_needs_release()` liest eine Editions-Einstellung; Vorgabe: ja).
+-- **Konrads Entscheidungen vom 18.09. (Auftrag §D) sind eingearbeitet:**
+--   * D1 Interview Tables: **beides** — der Partner legt beim Anlegen fest, ob Einzelgespräch
+--     (eine Person je Slot) oder Gruppengespräch (Kapazität n): `format_details.interview_mode`.
+--   * D2 Freigabe-Gate: **erst nach Freigabe durch das Team.** `session_needs_release` bleibt
+--     als Funktion bestehen (umschaltbar), liefert aber jetzt die entschiedene Antwort; dazu
+--     `release_partner_session` für den Partner-Admin, mit Audit wie bei Bewerbungen.
+--   * D3 Export: alle Bewerbungsdaten, die der Partner ohnehin sieht, nur mit `consent_share`,
+--     mit DSGVO-Hinweis in der Datei und Audit je Export.
+--
+-- **Company Tour steht nicht mehr hier.** Konrads Entscheidung D5 gibt ihr ein eigenes
+-- Datenmodell (`company_tour` mit Stopps, Tour Lead, Sammelpunkt CCH) — ein Partner bucht
+-- einen **Stopp**, nicht die Tour. Das ist ein eigener Baustein; die neun Angaben gehören
+-- dann an den Stopp, nicht an `session.format_details`.
 
 set search_path = public, extensions;
 
@@ -44,7 +53,7 @@ language sql stable security definer set search_path = public, extensions as $$
   select true
 $$;
 comment on function session_needs_release(uuid) is
-  'Freigabe-Gate für partner-angelegte Formate (Auftrag §D2, Konrads Entscheidung offen). Heute immer wahr: ein Side-Event oder Interview-Slot steht erst nach Freigabe im Programm. Umschalten ohne Codeänderung an den Aufrufern.';
+  'Freigabe-Gate für partner-angelegte Formate. **Entschieden (Konrad, 18.09., §D2): ja** — ein Side-Event oder Interview-Slot bleibt bis zur Freigabe durch das Team unveröffentlicht. Bleibt eine Funktion statt einer Konstante, damit eine spätere Lockerung je Edition ohne Änderung an den Aufrufern geht.';
 revoke execute on function session_needs_release(uuid) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------- 2) Felder je Format
@@ -55,9 +64,11 @@ create or replace function format_detail_keys(p_format text) returns text[]
 language sql immutable set search_path = public, extensions as $$
   select case p_format
     when 'side_event' then array['location_text', 'image_asset_id']
-    when 'interview_table' then array['job_title', 'job_posting_text', 'job_posting_url', 'target_profile']
-    when 'company_tour' then array['contact_name', 'contact_email', 'contact_phone', 'address',
-                                   'time_note', 'snacks', 'notes', 'target_profile', 'photos_allowed']
+    when 'interview_table' then array['job_title', 'job_posting_text', 'job_posting_url',
+                                      'target_profile', 'interview_mode']
+    -- `company_tour` fehlt mit Absicht: seit Konrads Entscheidung D5 (18.09.) hat sie ein
+    -- eigenes Datenmodell mit Touren und Stopps; die Angaben des Partners gehören an seinen
+    -- Stopp, nicht an die Session.
     else array[]::text[] end
 $$;
 revoke execute on function format_detail_keys(text) from public, anon, authenticated;
@@ -86,35 +97,26 @@ begin
   for k, v_txt in
     select key, nullif(btrim(value #>> '{}'), '')
       from jsonb_each(p_details)
-     where key in ('location_text','job_title','job_posting_text','job_posting_url',
-                   'contact_name','contact_email','contact_phone','address','time_note','notes')
+     where key in ('location_text','job_title','job_posting_text','job_posting_url')
   loop
     if v_txt is null then continue; end if;
     if k = 'location_text' and length(v_txt) > 200 then raise exception 'too_long' using errcode = '22023', detail = k; end if;
     if k = 'job_title' and length(v_txt) > 120 then raise exception 'too_long' using errcode = '22023', detail = k; end if;
     if k = 'job_posting_text' and length(v_txt) > 2000 then raise exception 'too_long' using errcode = '22023', detail = k; end if;
-    if k = 'address' and length(v_txt) > 300 then raise exception 'too_long' using errcode = '22023', detail = k; end if;
-    if k = 'time_note' and length(v_txt) > 200 then raise exception 'too_long' using errcode = '22023', detail = k; end if;
-    if k = 'notes' and length(v_txt) > 1000 then raise exception 'too_long' using errcode = '22023', detail = k; end if;
-    if k in ('contact_name','contact_phone') and length(v_txt) > 120 then raise exception 'too_long' using errcode = '22023', detail = k; end if;
     if k = 'job_posting_url' and v_txt !~ '^https://' then
       raise exception 'invalid_url' using errcode = '22023', detail = k;
-    end if;
-    -- Die Ansprechperson der Company Tour arbeitet beim Partner, nicht bei uns: hier gilt
-    -- **kein** Domain-CHECK (anders als bei `edition_contact`), nur die Form.
-    if k = 'contact_email' and v_txt !~ '^[^@[:space:]]+@[^@[:space:]]+\.[a-z]{2,}$' then
-      raise exception 'invalid_email' using errcode = '22023', detail = k;
     end if;
     v_out := v_out || jsonb_build_object(k, v_txt);
   end loop;
 
-  -- Wahrheitswerte
-  for k in select key from jsonb_each(p_details) where key in ('snacks','photos_allowed') loop
-    if jsonb_typeof(p_details->k) <> 'boolean' then
-      raise exception 'invalid_format_details' using errcode = '22023', detail = k || ':boolean';
+  -- Einzel- oder Gruppengespräch (Konrad, D1): der Partner legt es je Tisch fest. Die
+  -- Kapazität steht an der Session, hier nur die Art — sonst stünde „Gruppe" bei Kapazität 1.
+  if p_details ? 'interview_mode' then
+    if (p_details->>'interview_mode') not in ('single', 'group') then
+      raise exception 'invalid_format_details' using errcode = '22023', detail = 'interview_mode';
     end if;
-    v_out := v_out || jsonb_build_object(k, p_details->k);
-  end loop;
+    v_out := v_out || jsonb_build_object('interview_mode', p_details->>'interview_mode');
+  end if;
 
   -- Gesuchte Profile: dieselben Vokabular-Schlüssel wie im Teilnehmerprofil, damit die
   -- Auswahl auf beiden Seiten dasselbe bedeutet. Kein Freitext.
@@ -246,7 +248,12 @@ begin
   insert into session (event_id, slot_id, format, title_de, language, access_mode, capacity,
                        partner_org_id, host_org_id, format_details, publish_status, created_by, updated_by)
   values (v_stage.event_id, v_slot, p_format, btrim(p_title_de), 'de', 'application',
-          case when p_format = 'interview_table' then coalesce(p_capacity, 1) else p_capacity end,
+          -- Einzelgespräch heißt eine Person je Slot; beim Gruppengespräch entscheidet der
+          -- Partner (Konrad, D1). Ohne Angabe gilt Einzelgespräch.
+          case when p_format = 'interview_table'
+               then case when coalesce(v_details->>'interview_mode', 'single') = 'single'
+                         then 1 else coalesce(p_capacity, 1) end
+               else p_capacity end,
           p_org_id, p_org_id, v_details,
           case when session_needs_release(v_oe.edition_id) then 'review' else 'draft' end,
           v_me, v_me)
@@ -459,5 +466,125 @@ begin
                     jsonb_build_object('org_id', v_se.partner_org_id, 'person_id', v_person, 'profile_id', v_prof));
   return v_prof;
 end $$;
+
+-- ---------------------------------------------------------------- 9) Freigabe (Konrad, D2)
+
+-- Das Team gibt ein partner-angelegtes Format frei. Erst danach steht es im Programm.
+-- Derselbe Umgang wie bei Bewerbungsentscheidungen: eine ausdrückliche Handlung mit Audit,
+-- keine automatische Veröffentlichung.
+create or replace function release_partner_session(p_session_id uuid, p_approved boolean, p_note text default null)
+returns void
+language plpgsql volatile security definer set search_path = public, extensions as $$
+declare v_se session;
+begin
+  if not (is_partner_team() or is_programme_editor(null)) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  select * into v_se from session where id = p_session_id;
+  if not found then raise exception 'session_not_found' using errcode = 'P0002'; end if;
+  if v_se.partner_org_id is null then
+    raise exception 'not_editable' using errcode = 'P0001', detail = 'not_a_partner_session';
+  end if;
+  if p_approved is false and nullif(btrim(coalesce(p_note, '')), '') is null then
+    -- Eine Ablehnung ohne Grund kann der Partner nicht beheben.
+    raise exception 'fields_required' using errcode = '22023', detail = 'note';
+  end if;
+
+  update session set
+    publish_status = case when p_approved then 'published' else 'draft' end,
+    updated_by = current_person_id()
+  where id = p_session_id;
+  -- Der Slot zieht mit: freigegeben heißt final, abgelehnt heißt wieder angefragt.
+  update slot set status = case when p_approved then 'final' else 'requested' end
+   where id = v_se.slot_id;
+
+  perform log_audit(case when p_approved then 'partner.session_released' else 'partner.session_rejected' end,
+                    'session', p_session_id::text,
+                    jsonb_build_object('publish_status', v_se.publish_status),
+                    jsonb_build_object('org_id', v_se.partner_org_id, 'note', nullif(btrim(coalesce(p_note, '')), '')));
+end $$;
+
+-- Was noch auf Freigabe wartet — für den Partner-Admin.
+create or replace function partner_sessions_pending(p_edition_id uuid default null)
+returns table (session_id uuid, org_id uuid, org_name text, format text, title_de text,
+               starts_at timestamptz, stage_name text, format_details jsonb, created_at timestamptz)
+language plpgsql stable security definer set search_path = public, extensions as $$
+begin
+  if not (is_partner_team() or is_programme_editor(null)) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  return query
+    select se.id, se.partner_org_id, coalesce(o.communication_name, o.legal_name), se.format, se.title_de,
+           sl.start_at, st.name, se.format_details, se.created_at
+      from session se
+      join organization o on o.id = se.partner_org_id
+      join event ev on ev.id = se.event_id
+      left join slot sl on sl.id = se.slot_id
+      left join stage st on st.id = sl.stage_id
+     where se.publish_status = 'review'
+       and se.format in ('side_event', 'interview_table')
+       and (p_edition_id is null or ev.id = p_edition_id or ev.edition_id = p_edition_id)
+     order by se.created_at;
+end $$;
+
+-- ---------------------------------------------------------------- 10) Export (Konrad, D3)
+
+-- Der Partner exportiert die Bewerbungen seines Formats.
+--
+-- Konrads Entscheidung und die Auslegung der Architektur-Session: „alle Daten" heißt die
+-- Bewerbung (Antworten, Datum, Status) plus die Felder, die der Partner **in der Liste ohnehin
+-- sieht**. Nicht dabei: Art.-9-Felder (Ernährung, Gesundheit), Geburtsdatum, Geschlecht,
+-- Telefon, interne Notizen — es sei denn, das Format fragt sie selbst ab, dann stehen sie in
+-- den Antworten. Nur Bewerbungen mit `consent_share`; ohne Einwilligung keine Zeile.
+--
+-- Der Hinweistext gehört in die Datei, nicht nur in die Oberfläche: Die Tabelle wird
+-- weitergereicht, die Oberfläche nicht.
+create or replace function export_session_applications(p_session_id uuid)
+returns table (bewerbung_id uuid, name text, email text, linkedin text, status text,
+               beworben_am timestamptz, entschieden_am timestamptz, bestaetigt_am timestamptz,
+               taetigkeit text, karrierestufe text, arbeitgeber text, hochschule text, studienfach text,
+               stadt text, antworten jsonb)
+language plpgsql volatile security definer set search_path = public, extensions as $$
+declare v_se session; v_n integer;
+begin
+  if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
+  select * into v_se from session where id = p_session_id;
+  if not found then raise exception 'session_not_found' using errcode = 'P0002'; end if;
+  -- Dieselbe Grenze wie in der Bewerberliste: wer entscheiden darf, darf exportieren.
+  if not can_decide_session(p_session_id) then raise exception 'not allowed' using errcode = '42501'; end if;
+
+  select count(*)::integer into v_n from application a
+   where a.session_id = p_session_id and a.consent_share;
+  -- Jeder Export steht im Protokoll: wer, wann, welches Format, wie viele Zeilen.
+  perform log_audit('partner.application_export', 'session', p_session_id::text, null,
+                    jsonb_build_object('org_id', v_se.partner_org_id, 'rows', v_n, 'format', v_se.format));
+
+  return query
+    select a.id,
+           nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), ''),
+           pe.email::text,
+           p.linkedin_url,
+           a.status, a.created_at, a.decided_at, a.confirmed_at,
+           p.occupation_status, p.career_level, p.employer_name, p.university, p.study_field, p.city,
+           a.answers
+      from application a
+      join person p on p.id = a.person_id
+      left join person_email pe on pe.person_id = p.id and pe.is_primary
+     where a.session_id = p_session_id
+       and a.consent_share          -- ohne Einwilligung keine Zeile
+     order by a.created_at;
+end $$;
+
+-- Der Hinweis, der in die Exportdatei gehört. Als Funktion, damit Oberfläche und spätere
+-- Serverroute denselben Text nehmen und er an einer Stelle gepflegt wird.
+create or replace function export_privacy_notice(p_language text default 'de') returns text
+language sql immutable set search_path = public, extensions as $$
+  select case when p_language = 'en' then
+    'Personal data of applicants. You receive it solely to select participants for your format at Future Leader Summit 2027. You are the controller for this processing. Delete the data once the selection is complete, at the latest after the summit. Do not use it for any other purpose and do not pass it on. Only applicants who consented to sharing are included.'
+  else
+    'Personenbezogene Daten von Bewerberinnen und Bewerbern. Ihr erhaltet sie ausschließlich, um die Teilnehmenden eures Formats beim Future Leader Summit 2027 auszuwählen. Für diese Verarbeitung seid ihr verantwortlich. Löscht die Daten, sobald die Auswahl abgeschlossen ist, spätestens nach dem Summit. Nutzt sie für keinen anderen Zweck und gebt sie nicht weiter. Enthalten sind nur Bewerbungen, deren Einwilligung zur Weitergabe vorliegt.'
+  end
+$$;
+
 
 select harden_definer_functions();
