@@ -34,7 +34,8 @@
     "imprint": "Imprint",
     "privacy": "Privacy",
     "supportMailbox": "Questions? Write to us:",
-    "ofTotal": "of"
+    "ofTotal": "of",
+    "until": "until"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",

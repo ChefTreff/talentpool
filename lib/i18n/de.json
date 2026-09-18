@@ -34,7 +34,8 @@
     "imprint": "Impressum",
     "privacy": "Datenschutz",
     "supportMailbox": "Fragen? Schreibt uns:",
-    "ofTotal": "von"
+    "ofTotal": "von",
+    "until": "bis"
   },
   "messages": {
     "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",
