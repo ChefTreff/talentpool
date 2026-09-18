@@ -836,7 +836,8 @@
     "shuttle_note_hint": "Gepäck, Kindersitz, Rollstuhl — alles, was der Fahrer wissen sollte.",
     "shuttle_over_limit_reason": "Warum diese zusätzliche Fahrt?",
     "shuttle_over_limit_reason_hint": "Ein Satz reicht.",
-    "required": "Pflichtfeld"
+    "required": "Pflichtfeld",
+    "navGraphic": "Deine Grafik"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -3565,5 +3566,30 @@
     "fullHint": "Die Reception ist ausgebucht. Wenn du trotzdem kommen möchtest, sag deinem Buddy Bescheid.",
     "closedHint": "Die Anmeldefrist ist abgelaufen. Melde dich bei deinem Buddy, wenn sich etwas ändert.",
     "assistantNote": "Die Zu- oder Absage trifft die Speakerin oder der Speaker selbst; du siehst hier nur den Stand."
+  },
+  "speakerGraphic": {
+    "title": "Deine Grafik",
+    "lead": "Die „Hear me speak“-Grafik für deine Kanäle. Porträt aussuchen, zurechtrücken, herunterladen.",
+    "stepUpload": "1 · Porträt aussuchen",
+    "stepUploadBody": "Ein Bild, auf dem du gut zu erkennen bist. Quer oder hochkant ist egal.",
+    "choosePhoto": "Porträt auswählen",
+    "replacePhoto": "Anderes Porträt",
+    "rules": "JPG, PNG oder WebP, bis 10 MB.",
+    "stepPlace": "2 · Zurechtrücken",
+    "stepPlaceBody": "Zieh das Bild in die Fläche und stell die Größe ein, bis dein Gesicht mittig sitzt.",
+    "zoom": "Größe",
+    "reset": "Zurücksetzen",
+    "dragHint": "Ziehen verschiebt das Bild. Mit den Pfeiltasten geht es auch, mit Umschalt in größeren Schritten.",
+    "stepDownload": "3 · Herunterladen",
+    "stepDownloadBody": "Die Datei liegt danach in deinem Download-Ordner, 1200 × 1200 Bildpunkte.",
+    "download": "Als PNG herunterladen",
+    "downloaded": "Grafik heruntergeladen.",
+    "canvasEmpty": "Vorschau der Grafik, noch ohne Porträt.",
+    "canvasWithImage": "Vorschau deiner Grafik. Ziehen verschiebt das Porträt, die Pfeiltasten ebenso.",
+    "tooBig": "Das Bild ist zu groß. Bis 10 MB geht.",
+    "wrongType": "Bitte ein Bild als JPG, PNG oder WebP.",
+    "loadFailed": "Das Bild ließ sich nicht öffnen. Versuch es mit einer anderen Datei.",
+    "exportFailed": "Die Grafik ließ sich nicht erzeugen. Lade die Seite neu und versuch es noch einmal.",
+    "privacyNote": "Dein Porträt bleibt auf deinem Rechner. Wir laden es nicht hoch und speichern es nicht — die Grafik entsteht hier im Browser."
   }
 }
