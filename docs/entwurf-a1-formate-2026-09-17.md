@@ -32,7 +32,16 @@ Kürzer zu bauen, aber es entstehen zwei Wahrheiten über Zeiten: Das Programm-B
 
 **Empfehlung: Weg A.** Der Preis ist eine Zeile mehr Struktur (`stage` je Tisch), der Gewinn ist, dass Interview Tables und Side-Events im Programm-Board, in der Regie und im Export ohne Sonderbehandlung auftauchen. Weg B spart zwei Tage und kostet sie bei jedem Werkzeug wieder, das Zeiten liest.
 
-**Das braucht deine Entscheidung, bevor ich weiterschreibe.**
+**Entschieden: Weg A** (Konrad, 18.09.2026 — „ich würde auch die saubere Variante wählen").
+
+### 1a · Zwei Nebenwirkungen, die Weg A mitbringt (Befund beim Bauen)
+
+Eine Bühne mit `partner_org_id` bedeutet im Bestand mehr, als sie hier soll:
+
+1. **`partner_overview.has_stage`** prüft nur `stage.partner_org_id`, ohne Typ. Eine Tisch-Bühne würde dem Partner den Menüpunkt **Standbühne** einblenden, den er nicht gebucht hat.
+2. **`can_edit_stage`** lässt `standbuehne_editor` (Scope org) **jede** Bühne seiner Organisation bearbeiten — und `can_edit_regie` hängt daran (Entscheidung 15.09.). Ein Partner mit Standbühne bekäme über eine Tisch-Bühne zusätzliche Regie-Rechte.
+
+Beides ist heute richtig, weil es nur `partner_booth` gibt. Mit einem zweiten Bühnentyp wird es falsch. Die Migration schränkt deshalb beide auf `type = 'partner_booth'` ein. **`can_edit_stage` ist eine Rechtefunktion** — die Änderung gehört nach `docs/db-konventionen.md` §C vor dem Anwenden geprüft.
 
 ---
 
