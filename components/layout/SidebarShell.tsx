@@ -4,6 +4,7 @@ import { AccountMenu } from "./AccountMenu";
 import { Logo } from "./Logo";
 import { PortalSwitcher } from "./PortalSwitcher";
 import { SidebarNav, type SidebarGroup } from "./SidebarNav";
+import { PortalFooter, mailboxFor } from "./PortalFooter";
 import { getMyAreas, getSessionContext } from "@/lib/auth";
 import { getI18n, type Locale } from "@/lib/i18n";
 import type { AreaKey } from "@/lib/areas";
@@ -29,6 +30,18 @@ export type { SidebarGroup, SidebarItem } from "./SidebarNav";
  *
  * Unter 1024 px steht die Leiste als Block über dem Inhalt; sie ist eine
  * Liste, keine Ausklapp-Mechanik.
+ *
+ * **Der Fuß gehört hierher, nicht in die Seiten** (Rollout D2). Vorher setzte
+ * ihn jede Seite selbst, und genau zwei von 94 taten es — Impressum und
+ * Datenschutz fehlten also auf 92 Seiten. Pflichtangaben dürfen nicht an der
+ * Disziplin einzelner Seiten hängen. Das Rollen-Postfach sucht sich die Shell
+ * über den Bereich; `mailbox` überschreibt es, wo ein Bereich eine eigene
+ * Adresse braucht.
+ *
+ * `width` steuert die Textbreite des Inhalts: `content` (1200) ist der
+ * Normalfall, `table` (1400) für dichte Admin-Listen. Beide kommen aus den
+ * Tokens — vorher standen sie als rohe Werte in der Shell und in jeder
+ * zweiten Seite noch einmal anders.
  */
 export async function SidebarShell({
   area,
@@ -38,6 +51,8 @@ export async function SidebarShell({
   locale,
   header,
   footer,
+  mailbox,
+  width = "content",
   children,
 }: {
   area: AreaKey;
@@ -51,6 +66,10 @@ export async function SidebarShell({
   header?: ReactNode;
   /** Optional darunter, z. B. das Rollen-Postfach für Rückfragen. */
   footer?: ReactNode;
+  /** Rollen-Postfach im Fuß. Ohne Angabe das des Bereichs (`mailboxFor`). */
+  mailbox?: string;
+  /** Breite des Inhalts: `content` (1200) oder `table` (1400) für Admin-Listen. */
+  width?: "content" | "table";
   children: ReactNode;
 }) {
   const { locale: aktiv, t } = await getI18n(locale);
@@ -73,7 +92,7 @@ export async function SidebarShell({
 
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
-      <aside className="bg-navy text-on-navy lg:sticky lg:top-0 lg:h-dvh lg:w-[264px] lg:shrink-0 lg:overflow-y-auto">
+      <aside className="bg-navy text-on-navy lg:sticky lg:top-0 lg:h-dvh lg:w-sidebar lg:shrink-0 lg:overflow-y-auto">
         <div className="flex h-full flex-col gap-5 px-4 py-5">
           <Link href={rootHref} className="block rounded-ct-sm px-2 py-1 text-on-navy">
             <Logo />
@@ -120,8 +139,19 @@ export async function SidebarShell({
           />
         </header>
 
-        <main id="content" className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-8 sm:px-6">
+        <main
+          id="content"
+          className={`mx-auto w-full flex-1 px-4 py-8 sm:px-6 ${
+            width === "table" ? "max-w-table" : "max-w-content"
+          }`}
+        >
           {children}
+          <PortalFooter
+            mailbox={mailbox ?? mailboxFor(area)}
+            mailboxLabel={t.common.supportMailbox}
+            imprintLabel={t.common.imprint}
+            privacyLabel={t.common.privacy}
+          />
         </main>
       </div>
     </div>

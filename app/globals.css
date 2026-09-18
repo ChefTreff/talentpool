@@ -73,6 +73,9 @@
   --ct-w-table: 1400px;
   --ct-w-text: 800px;
   --ct-w-form: 640px;
+  /* Breite der Navy-Seitenleiste. Stand als roher Wert in `SidebarShell`;
+     eine Zahl, die das Layout jeder Seite bestimmt, gehört zu den Tokens. */
+  --ct-w-sidebar: 264px;
 
   /* --- Formensprache Events (Design-System v2, 17.09.2026) -----------------
      Die Grundformen der Division als Tokens, damit keine Komponente ihre
@@ -149,6 +152,19 @@
   --color-error-soft: var(--ct-error-soft);
   --color-error-ink: var(--ct-error-ink);
   --color-error-deep: var(--ct-error-deep);
+
+  /* Breiten als Klassen. Sie standen bisher nur in `:root` und waren damit
+     aus Komponenten nicht erreichbar — deshalb erfand jede Seite ihre eigene
+     `max-w-[800px]`, und die App hatte am Ende zwei Maximalbreiten und vier
+     Textspalten. Ueber den `--container-*`-Namespace entstehen daraus
+     `max-w-content`, `max-w-table`, `max-w-text`, `max-w-form`, `w-sidebar`.
+     Dieselbe Regel wie bei den Schriftgroessen: fehlt ein Mass, kommt es als
+     Token hierher und nicht als roher Wert in eine Seite. */
+  --container-content: var(--ct-w-content);
+  --container-table: var(--ct-w-table);
+  --container-text: var(--ct-w-text);
+  --container-form: var(--ct-w-form);
+  --container-sidebar: var(--ct-w-sidebar);
 
   --radius-ct-sm: var(--ct-radius-sm);
   --radius-ct-md: var(--ct-radius-md);

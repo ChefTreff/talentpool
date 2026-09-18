@@ -20,7 +20,32 @@
  *
  * Die Adressen stehen als Vorgabe hier und nicht in jeder Seite: ändern sie
  * sich, ändert sich eine Stelle. Wer eigene braucht, überschreibt sie.
+ *
+ * **Seit dem Rollout zieht `SidebarShell` den Fuß selbst** — vorher musste
+ * jede Seite ihn setzen, und genau zwei von 94 taten das. Pflichtangaben, die
+ * an der Disziplin einzelner Seiten hängen, fehlen irgendwann. Deshalb reicht
+ * die Shell nur den Bereich herein und `mailboxFor` sucht die Rollenadresse.
  */
+
+/**
+ * Welches Rollen-Postfach zu welchem Bereich gehört.
+ *
+ * Die Adressen lagen als Konstante in vier Seiten verstreut (`partner/`,
+ * `speaker/`, zweimal als Zeichenkette). Wer eine ändert, findet die anderen
+ * nicht. Bereiche ohne eigenes Postfach landen bewusst bei `portal@` — eine
+ * erfundene Adresse wäre schlimmer als eine allgemeine, die gelesen wird.
+ */
+const MAILBOXES: Record<string, string> = {
+  partner: "partner@chef-treff.de",
+  speaker: "speaker@chef-treff.de",
+  "speaker-leads": "speaker@chef-treff.de",
+};
+
+export const DEFAULT_MAILBOX = "portal@chef-treff.de";
+
+export function mailboxFor(area: string): string {
+  return MAILBOXES[area] ?? DEFAULT_MAILBOX;
+}
 export const IMPRINT_URL = "https://chef-treff.de/impressum/";
 export const PRIVACY_URL = "https://chef-treff.de/datenschutzerklaerung/";
 
