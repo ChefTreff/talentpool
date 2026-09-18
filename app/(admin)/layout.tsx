@@ -82,6 +82,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         { href: "/admin/ansprechpartner", label: nav.contacts },
         { href: "/admin/vokabular", label: nav.vocab },
         { href: "/admin/dubletten", label: nav.duplicates },
+        { href: "/admin/loeschantraege", label: nav.deletions },
         { href: "/admin/mail", label: nav.mail },
         { href: "/admin/wiki", label: nav.wiki },
         { href: "/admin/videos", label: nav.videos },

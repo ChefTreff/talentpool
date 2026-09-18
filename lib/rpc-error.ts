@@ -183,6 +183,9 @@ const BUSINESS_KEYS = new Set([
   // Mail-Protokoll (Migration 0113)
   "mail_not_found",
   "not_resendable",
+  // Profil loeschen (Migration 0115)
+  "already_requested",
+  "invalid_action",
 ]);
 
 const BY_CODE: Record<string, string> = {

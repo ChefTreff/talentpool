@@ -200,7 +200,9 @@
     "mail_not_found": "No such mail entry.",
     "not_resendable": "This entry cannot be sent again.",
     "booth_required": "The trade fair shop is open to partners with a booked booth. You can still order the lunch package from your checklist.",
-    "invalid_qty": "Please enter a number greater than zero."
+    "invalid_qty": "Please enter a number greater than zero.",
+    "already_requested": "Your request is already with the team.",
+    "invalid_action": "No such action."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1852,6 +1854,7 @@
       "persons": "People",
       "vocab": "Vocabulary",
       "duplicates": "Duplicates",
+      "deletions": "Deletion requests",
       "ui": "UI kit",
       "mail": "Mail",
       "programme": "Programme",
@@ -2326,6 +2329,33 @@
     "version": "Version",
     "changed": "changed",
     "sent30d": "mails in 30 days"
+  },
+  "adminDeletions": {
+    "title": "Deletion requests",
+    "lead": "Art. 17 GDPR requests where something is still attached to the profile. Anyone without that deletes themselves and never appears here.",
+    "noAccessTitle": "No access to the deletion requests",
+    "noAccessBody": "The list names people who want to leave, with their addresses. Only the admin role sees it.",
+    "filterStatus": "Status",
+    "statusPending": "Open",
+    "statusDone": "Deleted",
+    "statusRejected": "Rejected",
+    "statusAll": "All",
+    "colRequested": "Received",
+    "colBlockers": "Still open",
+    "colReason": "Reason given",
+    "colHandled": "Handled",
+    "fieldNote": "Reply to the person",
+    "fieldNoteHint": "Required when rejecting — it goes out as mail. Optional when deleting, where it stays as an internal note.",
+    "actionDelete": "Delete profile",
+    "actionReject": "Reject",
+    "confirmDeleteTitle": "Delete this profile?",
+    "confirmDeleteBody": "{name} is anonymised right away: name, contact details and access are removed, the address goes onto the suppression list. This cannot be undone.",
+    "confirmRejectTitle": "Reject the request?",
+    "confirmRejectBody": "{name} receives your reply by mail. The profile stays.",
+    "resolvedDeleted": "Profile deleted",
+    "resolvedRejected": "Request rejected, the reply is on its way",
+    "emptyTitle": "No open request",
+    "emptyBody": "Only deletions that did not go through on their own land here — a role, a confirmed session or an organisation in the way."
   },
   "adminMailLog": {
     "title": "Mail log",
@@ -3243,5 +3273,38 @@
     "error_upload_failed": "The upload did not work. Please try again.",
     "error_invalid_path": "The file path does not belong to this session.",
     "error_unknown": "That did not work just now."
+  },
+  "deleteProfile": {
+    "title": "Delete profile",
+    "lead": "Your right under Art. 17 GDPR. Here is exactly what happens.",
+    "whatTitle": "What deletion does",
+    "whatAnonymised": "Your name, date of birth, contact details, CV and your answers about interests and background are deleted.",
+    "whatKept": "What remains without you: bookings, orders and registrations stay as figures — without your name and with no link to you. We need them for accounting and retention periods, and afterwards they cannot be traced to anyone.",
+    "whatSuppression": "Your e-mail address goes onto our suppression list as an irreversible checksum. We no longer store the address itself; the checksum makes sure no mail from us ever reaches you again — not even if someone enters you afresh later.",
+    "whatAccess": "Your access ends immediately. You cannot sign in afterwards, and we cannot restore your profile.",
+    "whatAudit": "We record that a deletion took place today — without your name. That is the proof that we acted on your right.",
+    "blockersTitle": "This one needs a look",
+    "blockersLead": "Something is still attached to your profile that concerns other people. So someone from the team looks at it instead of deleting right away — you will get an answer.",
+    "fieldReason": "Reason (optional)",
+    "fieldReasonHint": "Helps us do better. You don't have to give one.",
+    "submitDelete": "Delete profile permanently",
+    "submitRequest": "Request deletion",
+    "confirmDeleteTitle": "Delete your profile permanently?",
+    "confirmDeleteBody": "This cannot be undone. Your access ends immediately and we cannot restore your profile.",
+    "confirmRequestTitle": "Request deletion?",
+    "confirmRequestBody": "Your profile stays for now. Someone from the team will look at the request and get back to you.",
+    "doneTitle": "Your profile is deleted",
+    "doneBody": "Name, contact details, CV and your answers are gone, and your access has ended. What remains is bookings, orders and registrations as figures with no personal reference — for accounting and retention periods — plus a note that a deletion happened today, without your name.",
+    "doneSuppression": "Your address is on the suppression list as a checksum. That is not a remnant of your data but the mechanism that protects you from further mail — we no longer hold the address itself.",
+    "pendingTitle": "Your request is with the team",
+    "pendingBody": "Until someone has looked at it, your profile stays unchanged and your access remains. You will get an answer by mail.",
+    "pendingSince": "Received on {date}.",
+    "link": "Delete profile"
+  },
+  "deletionBlockers": {
+    "team_role": "You hold a role in the team. Someone has to take it over first.",
+    "speaker": "You have confirmed a session at the upcoming summit.",
+    "volunteer": "You are scheduled as a volunteer for the upcoming summit.",
+    "partner": "You are listed as the contact of an organisation."
   }
 }

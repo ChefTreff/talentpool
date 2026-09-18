@@ -25,6 +25,13 @@
 -- Bildschirm. Nur beim **Antrag** geht eine Mail heraus — da ist noch nichts
 -- gelöscht.
 --
+-- **Kein Personenbezug überlebt die Löschung.** `resolve_deletion_request()`
+-- protokolliert Bearbeiter, Vorgang und Hürden — nicht den gelöschten
+-- Datensatz; sonst stünde die Person nach ihrer Löschung im Audit-Log. Aus
+-- demselben Grund fällt der selbst geschriebene Grund beim Anonymisieren weg,
+-- während Status, Hürden und Zeitpunkt als Nachweis bleiben (Auflage der
+-- Architektur-Session, 18.09.).
+--
 -- **Was Löschen hier heisst:** anonymisieren, nicht physisch entfernen. Der
 -- Datensatz bleibt ohne Personenbezug bestehen, damit Zahlen, Bestellungen und
 -- Protokolle stimmig bleiben; Name, Kontaktdaten und Zugang fallen weg, die
@@ -147,6 +154,10 @@ begin
   update person_email
      set email = ('deleted+' || p_person_id::text || '@anonym.invalid')::citext, verified = false
    where person_id = p_person_id and is_primary;
+  -- Der selbst geschriebene Grund ist Freitext von dieser Person und darf ihre
+  -- Löschung nicht überleben. Status, Hürden und Zeitpunkt bleiben — das ist
+  -- der Nachweis, dass gelöscht wurde, und der trägt keinen Personenbezug.
+  update profile_deletion_request set reason = null where person_id = p_person_id;
 end $$;
 revoke execute on function anonymize_person(uuid) from public, anon, authenticated;
 

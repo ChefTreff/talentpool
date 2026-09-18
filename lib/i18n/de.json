@@ -200,7 +200,9 @@
     "mail_not_found": "Diesen Versandvorgang gibt es nicht.",
     "not_resendable": "Dieser Vorgang lässt sich nicht erneut senden.",
     "booth_required": "Der Messeshop steht Partnern mit gebuchtem Messestand offen. Das Lunch-Paket könnt ihr trotzdem über eure Checkliste bestellen.",
-    "invalid_qty": "Bitte eine Anzahl größer als null angeben."
+    "invalid_qty": "Bitte eine Anzahl größer als null angeben.",
+    "already_requested": "Deine Anfrage liegt schon beim Team.",
+    "invalid_action": "Diesen Vorgang gibt es nicht."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1852,6 +1854,7 @@
       "persons": "Personen",
       "vocab": "Vokabular",
       "duplicates": "Dubletten",
+      "deletions": "Löschanträge",
       "ui": "UI-Kit",
       "mail": "Mail",
       "programme": "Programm",
@@ -2326,6 +2329,33 @@
     "version": "Version",
     "changed": "geändert",
     "sent30d": "Mails in 30 Tagen"
+  },
+  "adminDeletions": {
+    "title": "Löschanträge",
+    "lead": "Anfragen nach Art. 17 DSGVO, bei denen noch etwas am Profil hängt. Wer nichts davon hat, löscht selbst und steht hier nie.",
+    "noAccessTitle": "Kein Zugriff auf die Löschanträge",
+    "noAccessBody": "Die Liste nennt Namen und Adressen von Menschen, die gehen möchten. Nur die Admin-Rolle sieht sie.",
+    "filterStatus": "Status",
+    "statusPending": "Offen",
+    "statusDone": "Gelöscht",
+    "statusRejected": "Abgelehnt",
+    "statusAll": "Alle",
+    "colRequested": "Eingegangen",
+    "colBlockers": "Offen",
+    "colReason": "Begründung der Person",
+    "colHandled": "Bearbeitet",
+    "fieldNote": "Antwort an die Person",
+    "fieldNoteHint": "Beim Ablehnen Pflicht — sie geht als Mail heraus. Beim Löschen optional, sie bleibt dann als interner Vermerk.",
+    "actionDelete": "Profil löschen",
+    "actionReject": "Ablehnen",
+    "confirmDeleteTitle": "Profil löschen?",
+    "confirmDeleteBody": "{name} wird sofort anonymisiert: Name, Kontaktdaten und Zugang fallen weg, die Adresse kommt auf die Sperrliste. Das lässt sich nicht rückgängig machen.",
+    "confirmRejectTitle": "Antrag ablehnen?",
+    "confirmRejectBody": "{name} bekommt deine Antwort als Mail. Das Profil bleibt bestehen.",
+    "resolvedDeleted": "Profil gelöscht",
+    "resolvedRejected": "Antrag abgelehnt, Antwort ist unterwegs",
+    "emptyTitle": "Kein offener Antrag",
+    "emptyBody": "Hier steht nur, wessen Löschung nicht von allein durchging — eine Rolle, eine Zusage oder eine Organisation im Weg."
   },
   "adminMailLog": {
     "title": "Mail-Protokoll",
@@ -3243,5 +3273,38 @@
     "error_upload_failed": "Das Hochladen hat nicht geklappt. Versuch es noch einmal.",
     "error_invalid_path": "Der Dateipfad gehört nicht zu diesem Auftritt.",
     "error_unknown": "Das hat gerade nicht geklappt."
+  },
+  "deleteProfile": {
+    "title": "Profil löschen",
+    "lead": "Dein Recht nach Art. 17 DSGVO. Hier steht, was dabei genau passiert.",
+    "whatTitle": "Was beim Löschen passiert",
+    "whatAnonymised": "Dein Name, dein Geburtsdatum, deine Kontaktdaten, dein Lebenslauf und deine Angaben zu Interessen und Werdegang werden gelöscht.",
+    "whatKept": "Was ohne dich weiterbesteht: Buchungen, Bestellungen und Anmeldungen bleiben als Zahlen erhalten — ohne deinen Namen und ohne Verbindung zu dir. Wir brauchen sie für Abrechnung und Aufbewahrungsfristen, und sie lassen sich danach niemandem mehr zuordnen.",
+    "whatSuppression": "Deine E-Mail-Adresse kommt als unumkehrbare Prüfsumme auf unsere Sperrliste. Die Adresse selbst speichern wir nicht mehr; die Prüfsumme sorgt dafür, dass dich nie wieder eine Mail von uns erreicht — auch dann nicht, wenn jemand dich später erneut einträgt.",
+    "whatAccess": "Dein Zugang erlischt sofort. Du kannst dich danach nicht mehr anmelden, und wir können dein Profil nicht wiederherstellen.",
+    "whatAudit": "Dass am heutigen Tag eine Löschung stattgefunden hat, halten wir fest — ohne deinen Namen. Das ist der Nachweis, dass wir dein Recht umgesetzt haben.",
+    "blockersTitle": "Das geht nicht von allein",
+    "blockersLead": "An deinem Profil hängt noch etwas, das andere betrifft. Deshalb schaut jemand aus dem Team darauf, statt dass sofort gelöscht wird — du bekommst eine Antwort.",
+    "fieldReason": "Grund (freiwillig)",
+    "fieldReasonHint": "Hilft uns, es besser zu machen. Du musst nichts angeben.",
+    "submitDelete": "Profil endgültig löschen",
+    "submitRequest": "Löschung beantragen",
+    "confirmDeleteTitle": "Profil endgültig löschen?",
+    "confirmDeleteBody": "Das lässt sich nicht rückgängig machen. Dein Zugang erlischt sofort, und wir können dein Profil nicht wiederherstellen.",
+    "confirmRequestTitle": "Löschung beantragen?",
+    "confirmRequestBody": "Dein Profil bleibt vorerst bestehen. Jemand aus dem Team sieht sich den Antrag an und meldet sich bei dir.",
+    "doneTitle": "Dein Profil ist gelöscht",
+    "doneBody": "Name, Kontaktdaten, Lebenslauf und deine Angaben sind weg, dein Zugang ist erloschen. Erhalten bleiben nur Buchungen, Bestellungen und Anmeldungen als Zahlen ohne Personenbezug — für Abrechnung und Aufbewahrungsfristen — sowie der Vermerk, dass heute eine Löschung stattgefunden hat, ohne deinen Namen.",
+    "doneSuppression": "Deine Adresse steht als Prüfsumme auf der Sperrliste. Das ist kein Rest deiner Daten, sondern der Mechanismus, der dich vor weiteren Mails schützt — die Adresse selbst haben wir nicht mehr.",
+    "pendingTitle": "Deine Anfrage liegt beim Team",
+    "pendingBody": "Bis jemand sie angesehen hat, bleibt dein Profil unverändert und dein Zugang bestehen. Du bekommst eine Antwort per Mail.",
+    "pendingSince": "Eingegangen am {date}.",
+    "link": "Profil löschen"
+  },
+  "deletionBlockers": {
+    "team_role": "Du hast eine Rolle im Team. Die muss erst jemand übernehmen.",
+    "speaker": "Du hast einen Auftritt beim kommenden Summit zugesagt.",
+    "volunteer": "Du bist als Volunteer für den kommenden Summit eingeteilt.",
+    "partner": "Du bist als Ansprechperson einer Organisation hinterlegt."
   }
 }

@@ -6,7 +6,8 @@
 --   02 eine Person ohne Bindung hat keine Hürde;
 --   03 sie löscht sofort: Rückgabe `done`, Name weg, Zugang weg, `deleted_at` gesetzt;
 --   04 die Adresse steht als Hash auf der Sperrliste;
---   05 der Vorgang bleibt als `done` nachweisbar, auch wenn die Person anonym ist;
+--   05 der Vorgang bleibt als `done` nachweisbar, auch wenn die Person anonym ist —
+--      **ohne** den selbst geschriebenen Grund, der die Löschung nicht überlebt;
 --   06 eine Teamrolle ist eine Hürde;
 --   07 ein zugesagter Auftritt einer kommenden Edition auch;
 --   08 mit Hürde entsteht ein **Antrag** statt einer Löschung — die Person bleibt;
@@ -85,10 +86,10 @@ begin
   insert into t_res values ('04_sperrliste',
     case when v_n = 1 then 'Hash gesperrt (richtig)' else 'FEHLT (' || v_n || ')' end);
 
-  select status || '|' || coalesce(reason, '-') into v_txt
-    from profile_deletion_request where person_id = v_frei;
+  select status || '|' || coalesce(reason, '-') || '|' || coalesce(array_to_string(blockers, ','), '-')
+    into v_txt from profile_deletion_request where person_id = v_frei;
   insert into t_res values ('05_vorgang_bleibt',
-    case when v_txt = 'done|Kein Interesse mehr' then 'nachweisbar (richtig)' else 'unerwartet ' || coalesce(v_txt, 'null') end);
+    case when v_txt = 'done|-|' then 'nachweisbar, Grund weg (richtig)' else 'unerwartet ' || coalesce(v_txt, 'null') end);
 
   -- 06 Teamrolle als Hürde ----------------------------------------------------
   perform set_config('request.jwt.claims',
@@ -187,4 +188,5 @@ end $$;
 select * from t_res order by step;
 rollback;
 -- Lauf am 17.09. gegen die Datenbank (Migration + Test in einer Transaktion, rollback): 16/16 gruen
--- (Schritt 14 zaehlt als 14a/14b).
+-- (Schritt 14 zaehlt als 14a/14b). Nachtrag 18.09.: Schritt 05 prueft jetzt zusaetzlich, dass der
+-- selbst geschriebene Grund beim Anonymisieren wegfaellt — einzeln nachgelaufen, gruen.
