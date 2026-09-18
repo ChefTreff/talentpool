@@ -89,7 +89,13 @@ create table if not exists speaker_reception_rsvp (
   status       text not null default 'yes',
   guests       integer not null default 0,
   note         text,
+  -- `responded_at` ist die **fachliche** Angabe: wann hat die Person
+  -- geantwortet. `updated_at` ist die technische daneben und gehört zum
+  -- Trigger unten; ohne sie stirbt `set_updated_at()` beim ersten Ändern mit
+  -- 42703 (Befund aus dem Probelauf der Architektur-Session).
   responded_at timestamptz not null default now(),
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now(),
   primary key (reception_id, profile_id),
   constraint reception_rsvp_status_chk check (status in ('yes', 'no')),
   constraint reception_rsvp_guests_chk check (guests between 0 and 3)

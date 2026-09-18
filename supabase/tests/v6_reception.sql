@@ -15,13 +15,15 @@
 --   10 `receptions_admin` und `reception_guests` ohne Speaker-Team ⇒ 42501;
 --   11 mit Team-Rolle stimmen Zahlen und Gaesteliste;
 --   12 Loeschen mit Zusagen ⇒ 22023 (has_guests), ohne Zusagen geht es;
+--   12c ein Aendern der Zusage geht durch — der Trigger `set_updated_at()`
+--       findet seine Spalte (Befund aus dem Probelauf: 42703);
 --   13 Grants: Helfer gesperrt, beide Tabellen ohne Grants.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
 declare
   v_pid uuid; v_uid uuid; v_email text; v_ed uuid;
-  v_profile uuid; v_rec uuid; v_entwurf uuid; v_eng uuid;
+  v_profile uuid; v_rec uuid; v_entwurf uuid;
   v_n integer; v_detail text; v_txt text; v_res jsonb;
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
@@ -102,7 +104,6 @@ begin
 
   -- 08 · Absage gibt frei und bleibt stehen
   perform set_reception_rsvp(v_rec, 'no', 0, null);
-  select reception_taken(v_rec) into v_n;
   select count(*)::integer into v_n from speaker_reception_rsvp
    where reception_id = v_rec and profile_id = v_profile;
   insert into t_res values ('08_absage',
@@ -153,6 +154,19 @@ begin
   perform delete_reception(v_entwurf);
   select count(*) into v_n from speaker_reception where id = v_entwurf;
   insert into t_res values ('12b_ohne_zusagen', case when v_n = 0 then 'ok, geloescht' else 'FEHLER' end);
+
+  -- 12c · Der Befund aus dem Probelauf: `set_updated_at()` hing an einer Spalte,
+  --       die es nicht gab, und starb beim **ersten Ändern** mit 42703. Geprüft
+  --       wird deshalb, dass ein Update ueberhaupt durchgeht — nicht, ob
+  --       `updated_at` einen Wert traegt (die Spalte ist `not null default
+  --       now()`, das waere auch ohne Trigger wahr), und auch kein
+  --       Zeitvergleich: `now()` steht in der Transaktion still.
+  begin
+    perform set_reception_rsvp(v_rec, 'no', 0, 'geaendert');
+    insert into t_res values ('12c_update_geht_durch', 'ok');
+  exception when others then
+    insert into t_res values ('12c_update_geht_durch', 'FEHLER ' || sqlstate || ' ' || sqlerrm);
+  end;
 
   -- 13 · Grants
   insert into t_res values ('13a_helfer_gesperrt',
