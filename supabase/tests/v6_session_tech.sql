@@ -8,7 +8,8 @@
 --   06 Vorbelegung aus tech_rider greift beim **ersten** Schreiben;
 --   07 und **nicht** mehr beim zweiten — danach gilt der Slot;
 --   08 die Assistenz darf schreiben;
---   09 my_sessions liefert tech mit;
+--   09 my_sessions liefert tech mit (der Schritt schreibt selbst, weil ein
+--      Schreibvorgang den ganzen Satz ersetzt);
 --   10 und hat dabei **keine** der alten Spalten verloren (Lehre aus 0099);
 --   11 der Helfer session_tech_keys ist für authenticated gesperrt.
 begin;
@@ -23,8 +24,9 @@ begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary
    where p.auth_user_id is not null limit 1;
+  -- Testperson ohne Vorrechte. `staff_user` gibt es seit 20260917183022
+  -- nicht mehr; der Zugang haengt allein an der Rolle.
   delete from role_assignment where person_id = v_pid;
-  delete from staff_user where auth_user_id = v_uid;
   select e.id into v_ed from event e where e.is_edition and e.slug = 'fls27';
   select e.id into v_event from event e where e.edition_id = v_ed or e.id = v_ed order by e.start_date limit 1;
 
@@ -121,8 +123,16 @@ begin
   end if;
 
   -- 09 · tech in my_sessions
+  --
+  -- Der Schritt schreibt **selbst**, statt sich auf den Stand aus 07 oder 08 zu
+  -- verlassen: `update_session_tech` ersetzt den ganzen Satz, also hatte der
+  -- Schreibvorgang der Assistenz aus 08 die Schluessel des Speakers entfernt
+  -- und dieser Schritt wurde rot — an der Erwartung, nicht am Code (Befund der
+  -- Architektur-Session am Probelauf).
+  perform update_session_tech(v_session, jsonb_build_object('people_on_stage', 'drei Personen'));
   select count(*) into v_n from my_sessions() m
-   where m.session_id = v_session and m.tech ? 'people_on_stage';
+   where m.session_id = v_session
+     and m.tech->>'people_on_stage' = 'drei Personen';
   insert into t_res values ('09_my_sessions_tech',
     case when v_n = 1 then 'ok' else 'FEHLER ' || v_n::text end);
 

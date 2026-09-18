@@ -94,20 +94,16 @@ create index if not exists shuttle_booking_status_idx  on shuttle_booking (statu
 
 alter table shuttle_booking enable row level security;
 
--- Keine Grants: gelesen und geschrieben wird ausschliesslich über die RPCs
--- unten. Eine Policy ohne Grant trägt nichts, ein Grant ohne Policy auch nicht.
+-- Gelesen und geschrieben wird ausschliesslich über die RPCs unten. RLS ohne
+-- Policy sperrt zwar schon, aber die Default-Privilegien des Schemas blieben
+-- sonst stehen — wir nehmen beides (db-konventionen §5).
+revoke all on shuttle_booking from anon, authenticated;
 
-create or replace function touch_shuttle_booking() returns trigger
-language plpgsql security definer set search_path = public, extensions as $$
-begin
-  new.updated_at := now();
-  return new;
-end $$;
-revoke execute on function touch_shuttle_booking() from public, anon, authenticated;
-
+-- `set_updated_at()` gibt es seit Schema v2. Eine eigene Kopie waere eine
+-- zweite Stelle, an der dasselbe passiert (Review Architektur-Session).
 drop trigger if exists trg_shuttle_booking_touch on shuttle_booking;
 create trigger trg_shuttle_booking_touch before update on shuttle_booking
-  for each row execute function touch_shuttle_booking();
+  for each row execute function set_updated_at();
 
 -- === Rechte ==================================================================
 
@@ -251,12 +247,15 @@ end $$;
  */
 create or replace function confirm_shuttle(p_booking_id uuid) returns void
 language plpgsql volatile security definer set search_path = public, extensions as $$
-declare v_b shuttle_booking%rowtype;
+declare v_b shuttle_booking%rowtype; v_ed uuid;
 begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
-  if not is_speaker_team() then raise exception 'not allowed' using errcode = '42501'; end if;
+  -- Erst die Fahrt, dann die Rechte: `is_speaker_team` ist editionsbezogen und
+  -- weiss ohne die Buchung nicht, worueber es entscheiden soll.
   select * into v_b from shuttle_booking where id = p_booking_id for update;
   if not found then raise exception 'shuttle_not_found' using errcode = 'P0002'; end if;
+  select sp.edition_id into v_ed from speaker_profile sp where sp.id = v_b.profile_id;
+  if not is_speaker_team(v_ed) then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_b.status <> 'requested' then
     raise exception 'shuttle_not_open' using errcode = 'P0001', detail = v_b.status;
   end if;
@@ -324,10 +323,10 @@ language plpgsql stable security definer set search_path = public, extensions as
 declare v_ed uuid;
 begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
-  if not is_speaker_team() then raise exception 'not allowed' using errcode = '42501'; end if;
   select coalesce(p_edition_id,
                   (select e.id from event e where e.is_edition order by e.start_date desc limit 1))
     into v_ed;
+  if not is_speaker_team(v_ed) then raise exception 'not allowed' using errcode = '42501'; end if;
   return query
     select b.id, b.profile_id, p.first_name, p.last_name,
            b.passenger_name, b.passengers, b.driver_phone, b.pickup_at,
