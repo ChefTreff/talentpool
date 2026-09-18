@@ -30,10 +30,20 @@ export function undershopName(editionSlug: string, orgName: string): string {
   return `${editionSlug.toUpperCase()} · ${orgName}`.slice(0, 80);
 }
 
-export function couponCode(editionSlug: string, orgSlug: string | null, orgName: string, passType: string): string {
+export function couponCode(
+  editionSlug: string,
+  orgSlug: string | null,
+  orgName: string,
+  passType: string,
+  discountPercent = 100,
+): string {
   const org = (orgSlug ?? orgName).toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 10) || "PARTNER";
   const rnd = randomBytes(3).toString("hex").toUpperCase();
-  return `${editionSlug.toUpperCase()}-${org}-${passType.toUpperCase().slice(0, 4)}-${rnd}`;
+  // Der Satz steht im Code, damit ein Mensch ihn erkennt — eindeutig ist der
+  // Code schon durch den Zufallsteil. Bei 100 % bleibt die bisherige Form, sonst
+  // aenderten sich die Codes aller bestehenden Kontingente.
+  const satz = discountPercent === 100 ? "" : `-${discountPercent}`;
+  return `${editionSlug.toUpperCase()}-${org}-${passType.toUpperCase().slice(0, 4)}${satz}-${rnd}`;
 }
 
 export type UnderShopLike = { _id?: string; name?: string; url?: string; shopUrl?: string };
