@@ -183,6 +183,10 @@ const BUSINESS_KEYS = new Set([
   // Mail-Protokoll (Migration 0113)
   "mail_not_found",
   "not_resendable",
+  // Freelancer als Ansprechpersonen (Migration 0114). Eigener Schluessel, weil
+  // `consent_required` schon die fehlende Einwilligung der angemeldeten Person
+  // meint — hier fehlt das Vertragsdatum einer dritten Person.
+  "contact_consent_required",
 ]);
 
 const BY_CODE: Record<string, string> = {
