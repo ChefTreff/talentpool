@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0120 · Welle 6 · Produktstamm abgleichen: HubSpot und SevDesk (A4.3, PROD-006)
--- Angewendet von der Architektur-Session am 18.09.2026 als 20260918144512.
 --
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918144512.
 --
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --
