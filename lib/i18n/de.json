@@ -1181,7 +1181,8 @@
     "countdownHours": "noch {n} Stunden",
     "countdownSoon": "läuft gleich ab",
     "videoTitle": "So löst ihr eure Codes ein",
-    "wikiHint": "Alles Weitere zu Tickets und Akkreditierung steht im"
+    "wikiHint": "Alles Weitere zu Tickets und Akkreditierung steht im",
+    "allocationEyebrow": "Kontingent"
   },
   "partnerApplicants": {
     "title": "Bewerber",

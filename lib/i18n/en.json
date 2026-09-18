@@ -1181,7 +1181,8 @@
     "countdownHours": "{n} hours left",
     "countdownSoon": "due any moment",
     "videoTitle": "How to redeem your codes",
-    "wikiHint": "Everything else about tickets and accreditation is in the"
+    "wikiHint": "Everything else about tickets and accreditation is in the",
+    "allocationEyebrow": "Allocation"
   },
   "partnerApplicants": {
     "title": "Applicants",

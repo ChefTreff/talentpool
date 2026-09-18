@@ -69,7 +69,7 @@ export default async function ShopProductPage({
             <img
               src={image.url}
               alt=""
-              className="w-full rounded-ct-sm object-cover sm:w-[280px]"
+              className="w-full rounded-ct-sm object-cover sm:w-70"
             />
           )}
           <div className="min-w-0 flex-1">
