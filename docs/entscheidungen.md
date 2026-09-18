@@ -258,3 +258,5 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 ## 2026-09-18 — 20260918122700 `v6_branding` live (PR #72, PART-043); #74 Backdrop mit Auflage
 - Vorlage `digital_branding` bekommt die Frist `booth_changes_until`, Maße 1920 × 1080 in beiden Sprachen, Dateiregel PDF/PNG/JPG bis 50 MB (kein SVG/ZIP mehr); Bestand nachgezogen. Probelauf 7/7.
 - #74 Rückwand der Challenge Area: Vorlage `hackathon_backdrop` an der Kategorie `hackathon`, PDF bis 100 MB, Frist `hackathon_challenge`, Konrads Dateiregeln vollständig. Auflage: `resync_deliverables()` prüft `is_partner_team()` und scheitert in einer Migration (kein Sitzungskontext) — stattdessen `sync_deliverables(oe.id)` je Organisation wie in B2. Gestapelt auf #72.
+
+- **#76 Design-Rollout Talent und Hackathon gemergt:** Programmliste und Hackathon-Zeitplan als Zeilen mit Zeitspalte (Archetyp A), `DateRow.onTitleClick` additiv; Zustands- und Aktionszweige der Programmliste gegen main abgeglichen, identisch. Offen im Rollout: Admin.
