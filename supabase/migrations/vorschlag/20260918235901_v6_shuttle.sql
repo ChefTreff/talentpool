@@ -32,6 +32,11 @@
 -- Fahrten laufen **nicht** gegen ein Kontingent aus `hospitality_quota` — das
 -- Shuttle-Unternehmen rechnet je Fahrt ab.
 --
+-- **Dreiwertige Logik** (Befund Probelauf, Hotfix 0118): ein Rechtepraedikat
+-- darf nie NULL zurueckgeben. `v_assistant = v_me` ist ohne Assistenz NULL,
+-- und `if not NULL` loest nicht aus. `can_request_shuttle` klammert deshalb
+-- mit `coalesce(..., false)`, die beiden Aufrufer ebenso.
+--
 -- Fehlerschlüssel: 28000 · 42501 · P0002 `shuttle_not_found`,
 -- `speaker_not_found` · 22023 `invalid_shuttle` (+ detail), `fields_required`
 -- · P0001 `shuttle_limit` (detail = Zahl der vorhandenen Fahrten),
@@ -123,7 +128,12 @@ begin
   select sp.person_id, sp.assistant_person_id into v_person, v_assistant
     from speaker_profile sp where sp.id = p_profile_id;
   if not found then return false; end if;
-  return v_person = v_me or v_assistant = v_me or can_manage_speaker(p_profile_id);
+  -- `coalesce` ist hier kein Schmuck, sondern die Rechtepruefung selbst:
+  -- ohne hinterlegte Assistenz ist `v_assistant = v_me` **NULL**, und
+  -- `false or NULL or false` ist NULL, nicht false. Ein `if not NULL` loest
+  -- nicht aus — genau im Fall, der abgewiesen gehoeren haette. Derselbe
+  -- Fehler steckte live in sieben Speaker-Funktionen (Hotfix 0118).
+  return coalesce(v_person = v_me or v_assistant = v_me or can_manage_speaker(p_profile_id), false);
 end $$;
 revoke execute on function can_request_shuttle(uuid) from public, anon;
 
@@ -154,7 +164,9 @@ begin
   if not exists (select 1 from speaker_profile sp where sp.id = p_profile_id) then
     raise exception 'speaker_not_found' using errcode = 'P0002';
   end if;
-  if not can_request_shuttle(p_profile_id) then
+  -- Zweite Linie: sollte die Funktion je wieder NULL liefern, faellt der
+  -- Aufruf auf `false` und nicht durch die Pruefung hindurch.
+  if not coalesce(can_request_shuttle(p_profile_id), false) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
 
@@ -229,7 +241,7 @@ begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_b from shuttle_booking where id = p_booking_id for update;
   if not found then raise exception 'shuttle_not_found' using errcode = 'P0002'; end if;
-  if not can_request_shuttle(v_b.profile_id) then
+  if not coalesce(can_request_shuttle(v_b.profile_id), false) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   if v_b.status = 'cancelled' then return; end if;

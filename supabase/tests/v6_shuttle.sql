@@ -9,8 +9,10 @@
 --   08 der Speaker darf seine Fahrt nicht selbst freigeben ⇒ 42501;
 --   09 das Speaker-Team gibt frei ⇒ confirmed, mit Zeitstempel;
 --   10 ein zweites Freigeben ⇒ P0001 shuttle_not_open;
---   11 Stornieren nimmt die Fahrt aus der Zählung — danach geht wieder eine
---      Fahrt ohne Begründung (das ist der Kern von „Schwelle statt Riegel");
+--   11 Stornieren nimmt die Fahrt aus der Zählung, und zwar genau eine: nach
+--      sechs offenen Fahrten greift die Schwelle nach einer Stornierung noch
+--      (11a), erst die zweite öffnet wieder (11b) — das ist der Kern von
+--      „Schwelle statt Riegel";
 --   12 my_shuttle_bookings zeigt nur die eigenen Fahrten;
 --   13 shuttle_bookings_admin ohne Team-Rolle ⇒ 42501;
 --   14 der Trigger haengt am vorhandenen set_updated_at(), und die Tabelle
@@ -142,16 +144,37 @@ begin
     insert into t_res values ('10_zweite_freigabe', 'abgewiesen ' || sqlstate || ' / detail=' || coalesce(v_detail, '-'));
   end;
 
-  -- 11 · Stornieren nimmt aus der Zählung
+  -- 11 · Stornieren nimmt aus der Zählung — in zwei Stufen, weil nach Schritt
+  --      07 **sechs** Fahrten offen sind (fünf plus die begründete). Eine
+  --      Stornierung lässt fünf übrig, die Schwelle greift also weiter; erst
+  --      die zweite bringt den Stand darunter. Die frühere Fassung erwartete
+  --      das schon nach der ersten und war damit falsch, nicht der Code
+  --      (Befund der Architektur-Session am Probelauf).
   perform cancel_shuttle(v_id);
   select count(*) into v_n from shuttle_booking where profile_id = v_profile and status <> 'cancelled';
   begin
     perform request_shuttle(v_profile, jsonb_build_object(
-      'passenger_name', 'ZZ Nach Storno', 'pickup_at', (now() + interval '10 days')::text,
+      'passenger_name', 'ZZ Nach erster Stornierung', 'pickup_at', (now() + interval '10 days')::text,
       'pickup_location', 'Hotel', 'dropoff_location', 'CCH'));
-    insert into t_res values ('11_nach_storno', 'ok, wieder ohne Grund moeglich (offen: ' || v_n::text || ')');
+    insert into t_res values ('11a_eine_storno_reicht_nicht', 'ERLAUBT (BUG), offen waren ' || v_n::text);
   exception when others then
-    insert into t_res values ('11_nach_storno', 'ABGEWIESEN (BUG) ' || sqlstate);
+    get stacked diagnostics v_detail = pg_exception_detail;
+    insert into t_res values ('11a_eine_storno_reicht_nicht',
+      'abgewiesen ' || sqlstate || ' / detail=' || coalesce(v_detail, '-') || ' (offen: ' || v_n::text || ')');
+  end;
+
+  -- Zweite Stornierung: jetzt sind vier offen, die Schwelle greift nicht mehr.
+  select b.id into v_id from shuttle_booking b
+   where b.profile_id = v_profile and b.status <> 'cancelled' order by b.created_at limit 1;
+  perform cancel_shuttle(v_id);
+  select count(*) into v_n from shuttle_booking where profile_id = v_profile and status <> 'cancelled';
+  begin
+    perform request_shuttle(v_profile, jsonb_build_object(
+      'passenger_name', 'ZZ Nach zweiter Stornierung', 'pickup_at', (now() + interval '10 days')::text,
+      'pickup_location', 'Hotel', 'dropoff_location', 'CCH'));
+    insert into t_res values ('11b_zweite_storno_oeffnet', 'ok, wieder ohne Grund moeglich (offen war ' || v_n::text || ')');
+  exception when others then
+    insert into t_res values ('11b_zweite_storno_oeffnet', 'ABGEWIESEN (BUG) ' || sqlstate);
   end;
 
   -- 12 · eigene Liste zeigt nur eigene Fahrten
