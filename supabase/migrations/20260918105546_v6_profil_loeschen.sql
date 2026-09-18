@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0115 · Welle 6 · Profil löschen (ADM-031, Art. 17 DSGVO)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918105546.
 --
 -- `delete_my_profile()` ist seit 0002 gebaut, freigegeben — und wird von
 -- **keiner** Seite aufgerufen. Es gibt heute keinen Weg, ein Profil löschen zu

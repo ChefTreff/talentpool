@@ -15,6 +15,8 @@ else
 fi
 case "$url" in postgresql://*|postgres://*) ;; *) echo "Keine postgresql://-URL, nichts gespeichert." >&2; exit 1 ;; esac
 case "$url" in *"[YOUR-PASSWORD]"*|*"[PASSWORD]"*) echo "Platzhalter statt Passwort in der URL, nichts gespeichert." >&2; exit 1 ;; esac
+# Passwort in eckigen Klammern: die Klammern des Platzhalters [YOUR-PASSWORD] wurden mitkopiert — sie gehoeren nicht zum Passwort.
+case "$url" in *:\[*\]@*) echo "Das Passwort steht in eckigen Klammern [...] — die Klammern des Platzhalters weglassen, nur das Passwort einsetzen. Nichts gespeichert." >&2; exit 1 ;; esac
 umask 077; printf 'SUPABASE_DB_URL=%s\n' "$url" > "$f"; chmod 600 "$f"
 echo "gespeichert: $f"
 echo "prüfen: sh scripts/db.sh check"

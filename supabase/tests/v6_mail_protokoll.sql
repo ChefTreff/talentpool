@@ -106,3 +106,4 @@ end $$;
 select * from t_res order by step;
 rollback;
 -- Lauf am 17.09. gegen die Datenbank (Migration + Test in einer Transaktion, rollback): 14/14 gruen.
+-- Nach dem Anwenden (20260918104946) am 18.09. live erneut gelaufen: 14/14 gruen.

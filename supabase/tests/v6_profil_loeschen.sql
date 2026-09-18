@@ -161,7 +161,10 @@ begin
     into v_req, v_txt
     from deletion_requests_admin('pending') r where r.person_id = v_geb;
   insert into t_res values ('11_liste_mit_admin',
-    case when v_txt = 'ZZTEST Gebunden|' || v_geb_mail || '|speaker'
+    -- Der Nachname stammt aus der Vorbereitung fuer Schritt 17 — die gebundene
+    -- Person heisst dort unverwechselbar, damit die Namenssuche nicht zufaellig
+    -- trifft. `deletion_requests_admin` liefert genau diesen Stand.
+    case when v_txt = 'ZZTEST Zzunverwechselbar|' || v_geb_mail || '|speaker'
          then 'Zeile mit Name, Adresse, Huerde (richtig)' else 'unerwartet ' || coalesce(v_txt, 'null') end);
 
   -- 12 Ablehnen ohne Begründung ---------------------------------------------------
@@ -306,3 +309,6 @@ rollback;
 -- Lauf am 17.09. gegen die Datenbank (Migration + Test in einer Transaktion, rollback): 16/16 gruen
 -- (Schritt 14 zaehlt als 14a/14b). Nachtrag 18.09.: Schritt 05 prueft jetzt zusaetzlich, dass der
 -- selbst geschriebene Grund beim Anonymisieren wegfaellt — einzeln nachgelaufen, gruen.
+-- Nach dem Anwenden (20260918105546) am 18.09. live gelaufen: 21/22 — der rote Schritt 11 war
+-- eine falsche Testerwartung (alter Nachname), nicht ein Fehler der Migration. Die Erwartung ist
+-- berichtigt; der Lauf mit der Korrektur steht noch aus.
