@@ -196,7 +196,9 @@
     "stage_not_found": "Diese Bühne gibt es nicht.",
     "track_not_found": "Diesen Track gibt es nicht.",
     "invalid_format": "Diesen Formatschlüssel gibt es nicht.",
-    "invalid_due_rule": "Diese Fristregel kennt das System nicht. Erlaubt sind eine Frist der Edition oder eine Zahl von Tagen nach der Einladung."
+    "invalid_due_rule": "Diese Fristregel kennt das System nicht. Erlaubt sind eine Frist der Edition oder eine Zahl von Tagen nach der Einladung.",
+    "booth_required": "Der Messeshop steht Partnern mit gebuchtem Messestand offen. Das Lunch-Paket könnt ihr trotzdem über eure Checkliste bestellen.",
+    "invalid_qty": "Bitte eine Anzahl größer als null angeben."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1033,7 +1035,10 @@
     "helpA2": "Ja. Ladet einfach eine neue Fassung hoch — die alte bleibt als Version erhalten.",
     "helpQ3": "Wen fragen wir bei Fristen?",
     "helpA3": "Euren Ansprechpartner oder das Partner-Postfach. Antwort werktags am selben Tag.",
-    "bandStatNone": "Keine offen"
+    "bandStatNone": "Keine offen",
+    "lunchCardTitle": "Lunch-Paket fürs Team",
+    "lunchCardBody": "Verpflegung an beiden Tagen für alle, die für euch vor Ort sind.",
+    "lunchCardAction": "In der Checkliste bestellen"
   },
   "partnerContacts": {
     "title": "Kontakte",
@@ -1116,7 +1121,13 @@
     "fulfilledByShop": "Wird mit der Bestellung im Messeshop erledigt.",
     "groupDone": "{done} von {total}",
     "doneLabel": "erledigt",
-    "openLabel": "offen"
+    "openLabel": "offen",
+    "lunchQty": "Für wie viele Personen?",
+    "lunchQtyHint": "Verpflegung an beiden Tagen. Ihr könnt später über den Messeshop ändern.",
+    "lunchOrder": "Lunch-Paket bestellen",
+    "lunchOrdered": "Bestellt — die Bestätigung liegt in eurem Postfach.",
+    "lunchOpen": "Bestellung ansehen",
+    "lunchInCart": "Ins Warenkorb gelegt — dort lag schon etwas. Bitte im Messeshop abschicken."
   },
   "partnerFiles": {
     "title": "Dateien",
@@ -1222,10 +1233,9 @@
     "emptyBody": "Sobald die erste Bestellphase startet, steht der Katalog hier.",
     "phaseOpen": "Bestellphase {n} läuft",
     "phase_1": "Bestellphase 1 läuft",
-    "phase_2": "Bestellphase 2 läuft",
-    "phase_3": "Nachbestellung läuft",
+    "phase_2": "Nachbestellung läuft",
     "phaseOpenBody": "Was ihr bestätigt, wird zum Ende der Phase verbindlich. Bis dahin könnt ihr ändern.",
-    "phaseLateOnly": "Nur noch Nachbestellungen — vor allem das Lunch-Paket. Alles andere ist geschlossen.",
+    "phaseLateOnly": "Nur noch kurzfristig lieferbare Artikel. Alles andere ist geschlossen.",
     "phaseClosed": "Der Shop ist geschlossen",
     "phaseClosedBody": "Die Bestellphasen sind vorbei. Wendet euch ans Partner-Team, wenn noch etwas fehlt.",
     "phaseEnds": "Läuft bis",
@@ -1317,7 +1327,11 @@
     "vatId": "USt-IdNr.",
     "poNumber": "Bestellnummer (PO)",
     "poHint": "Optional. Steht auf eurer Rechnung. Aus „Eure Daten“ vorbelegt, je Bestellung änderbar.",
-    "navOrders": "Bestellungen"
+    "navOrders": "Bestellungen",
+    "noBoothTitle": "Der Messeshop gehört zum Messestand",
+    "noBoothBody": "Hier bestellt ihr Mobiliar, Technik, Pflanzen und Gastronomie für euren Stand. Ihr habt keinen Stand gebucht — wenn das nicht stimmt, meldet euch beim Partner-Team.",
+    "noBoothLunch": "Das Lunch-Paket für euer Team könnt ihr unabhängig davon in eurer Checkliste bestellen.",
+    "noBoothAction": "Zur Checkliste"
   },
   "volunteers": {
     "title": "Volunteers",
