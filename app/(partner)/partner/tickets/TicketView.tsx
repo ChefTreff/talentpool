@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { TicketCard } from "@/components/ui/TicketCard";
 import { DeadlineCard } from "@/components/ui/DeadlineCard";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -109,56 +110,68 @@ export function TicketView({
         />
       )}
 
-      <ul className="grid gap-4 lg:grid-cols-2">
+      {/* Die Kontingente tragen jetzt die Ticket-Form aus dem Design-System
+          (Website-Block „Ticket Section"): Perforation, gestrichelte
+          Trennung, Zahl gross im Bauch. Vorher waren es schlichte Karten, auf
+          denen die Zahl kleiner stand als die Überschrift — man musste lesen,
+          um zu sehen, dass es um Tickets geht. Inhalt und Logik sind
+          unverändert. */}
+      <ul className="grid gap-6 lg:grid-cols-2">
         {allocations.map((a) => (
-          <Card as="li" key={a.id}>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="ct-h3 text-ink">{passLabel(a.pass_type)}</span>
-              <Badge tone={TONE[a.status] ?? "neutral"}>
-                {t[`status_${a.status}`] ?? a.status}
-              </Badge>
-            </div>
-            <p className="ct-label mt-2 tabular-nums text-ink">
-              {a.used_count} / {a.quantity}
-            </p>
-            <p className="ct-help">{t.used}</p>
-
-            {a.status === "active" ? (
-              <div className="mt-4 flex flex-col gap-3">
-                {a.coupon_code && (
-                  <div>
-                    <p className="ct-label text-ink">{t.code}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <code className="rounded-ct-sm border bg-surface-hover px-2 py-1 ct-small">
-                        {a.coupon_code}
-                      </code>
-                      <Button size="sm" variant="secondary" onClick={() => onCopy(a.coupon_code!)}>
-                        {copied === a.coupon_code ? t.copied : t.copy}
-                      </Button>
-                    </div>
+          <li key={a.id}>
+            <TicketCard
+              passType={t.allocationEyebrow}
+              title={passLabel(a.pass_type)}
+              count={`${a.used_count} / ${a.quantity}`}
+              countLabel={t.used}
+              status={
+                <Badge tone={TONE[a.status] ?? "neutral"}>
+                  {t[`status_${a.status}`] ?? a.status}
+                </Badge>
+              }
+              footer={
+                a.status === "active" ? (
+                  <div className="flex flex-col gap-3">
+                    {a.coupon_code && (
+                      <div>
+                        <p className="ct-label text-ink">{t.code}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <code className="rounded-ct-sm border bg-surface-hover px-2 py-1 ct-small">
+                            {a.coupon_code}
+                          </code>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => onCopy(a.coupon_code!)}
+                          >
+                            {copied === a.coupon_code ? t.copied : t.copy}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    {a.undershop_url && (
+                      <div>
+                        <p className="ct-label text-ink">{t.shopLink}</p>
+                        <a
+                          className="ct-link mt-1 inline-block break-all"
+                          href={a.undershop_url}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                        >
+                          {a.undershop_url}
+                        </a>
+                      </div>
+                    )}
+                    <p className="ct-help">{t.howTo}</p>
                   </div>
-                )}
-                {a.undershop_url && (
-                  <div>
-                    <p className="ct-label text-ink">{t.shopLink}</p>
-                    <a
-                      className="ct-link mt-1 inline-block break-all"
-                      href={a.undershop_url}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                    >
-                      {a.undershop_url}
-                    </a>
-                  </div>
-                )}
-                <p className="ct-help">{t.howTo}</p>
-              </div>
-            ) : (
-              // `pending_vivenu` und `error` sehen für den Partner gleich aus:
-              // die Menge steht, der Code kommt noch (Kontrakt B5).
-              <p className="ct-help mt-4">{t.codesPending}</p>
-            )}
-          </Card>
+                ) : (
+                  // `pending_vivenu` und `error` sehen für den Partner gleich
+                  // aus: die Menge steht, der Code kommt noch (Kontrakt B5).
+                  <p className="ct-help">{t.codesPending}</p>
+                )
+              }
+            />
+          </li>
         ))}
       </ul>
 

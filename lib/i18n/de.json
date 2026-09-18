@@ -34,7 +34,8 @@
     "imprint": "Impressum",
     "privacy": "Datenschutz",
     "supportMailbox": "Fragen? Schreibt uns:",
-    "ofTotal": "von"
+    "ofTotal": "von",
+    "until": "bis"
   },
   "messages": {
     "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",
@@ -464,7 +465,7 @@
     "stepProfileTitle": "Profil vervollständigen",
     "stepProfileBody": "Name, Job-Titel und eine kurze Bio auf Englisch — damit erscheinst du im Programm.",
     "stepPhotoTitle": "Foto",
-    "stepPhotoBody": "Der Upload wird gerade gebaut. Bis dahin schick uns dein Foto ans Speaker-Postfach.",
+    "stepPhotoBody": "Lade dein Profilfoto hoch. Es steht im Programm, auf der Website und in der Event-App.",
     "stepConsentsTitle": "Einwilligungen geben",
     "stepConsentsBody": "Foto/Video und Speaker-Freigabe brauchen wir, bevor du im Programm erscheinst.",
     "stepSessionTitle": "Deine Session",
@@ -578,9 +579,9 @@
     "tech_pending": "Technik-Check offen",
     "tech_checked": "Technik geprüft",
     "tech_issue": "Technik: Problem",
-    "slidesRelease": "Slid@Home",
-    "slidesReleased": "Für Slid@Home freigegeben",
-    "slidesConsentMissing": "Für Slid@Home fehlt noch deine Einwilligung im Profil.",
+    "slidesRelease": "Für Summit Slides freigeben",
+    "slidesReleased": "Für Summit Slides freigegeben",
+    "slidesConsentMissing": "Für Summit Slides fehlt noch deine Einwilligung im Profil.",
     "stepContentTitle": "Inhalte einreichen",
     "stepContentBody": "Titel, Beschreibung und Themen deiner Session — damit füllt das Programm-Team die Ankündigung.",
     "stepPresentationTitle": "Präsentation hochladen",
@@ -759,7 +760,30 @@
     "travelNote": "Hinweis zur Reise",
     "travelNoteHint": "Optional, zum Beispiel „komme mit Begleitung“.",
     "travelSaved": "Reisedaten gespeichert",
-    "savedAt": "Zuletzt gespeichert: {date}"
+    "savedAt": "Zuletzt gespeichert: {date}",
+    "contactsTitle": "Deine Ansprechpersonen",
+    "contactLead": "Speaker-Leitung",
+    "contactBuddy": "Dein Speaker-Buddy",
+    "photoTitle": "Dein Foto",
+    "photoLead": "Wir nutzen es im Programm, auf der Website und in der Event-App. Quer oder hochkant ist egal, das Gesicht sollte gut erkennbar sein.",
+    "photoNone": "Noch kein Foto hinterlegt.",
+    "photoUpload": "Foto auswählen",
+    "photoReplace": "Foto ersetzen",
+    "photoDone": "Foto gespeichert.",
+    "photoTooBig": "Das Foto ist zu groß. Bis 10 MB geht.",
+    "photoWrongType": "Bitte ein Bild als JPG, PNG oder WebP.",
+    "photoFailed": "Das Foto konnte nicht hochgeladen werden.",
+    "photoRules": "JPG, PNG oder WebP, bis 10 MB.",
+    "photoUploading": "Wird hochgeladen …",
+    "photoPreviewAlt": "Dein hinterlegtes Profilfoto",
+    "consentAskConfirm": "Einverstanden, weiter",
+    "planTitle": "Hallenplan",
+    "planBody": "Wo deine Bühne steht, wo Garderobe und Check-in sind.",
+    "planOpen": "Hallenplan öffnen",
+    "planNone": "Der Hallenplan kommt, sobald die Halle steht. Wir zeigen ihn hier, du musst nicht danach fragen.",
+    "stepperLabel": "Fortschritt",
+    "checkDone": "erledigt",
+    "checkOpen": "offen"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -1181,7 +1205,8 @@
     "countdownHours": "noch {n} Stunden",
     "countdownSoon": "läuft gleich ab",
     "videoTitle": "So löst ihr eure Codes ein",
-    "wikiHint": "Alles Weitere zu Tickets und Akkreditierung steht im"
+    "wikiHint": "Alles Weitere zu Tickets und Akkreditierung steht im",
+    "allocationEyebrow": "Kontingent"
   },
   "partnerApplicants": {
     "title": "Bewerber",
@@ -1430,7 +1455,9 @@
     "ticketHint": "Code im Shop eingeben. Ein Code, ein Ticket — bitte nicht weitergeben.",
     "copy": "Kopieren",
     "copied": "Kopiert",
-    "navWiki": "Wiki"
+    "navWiki": "Wiki",
+    "areaName": "Volunteer",
+    "ticketOpen": "Noch einzulösen"
   },
   "adminPartner": {
     "title": "Partner",
@@ -2264,7 +2291,7 @@
       "colNote": "Anmerkung",
       "colAction": "Aktion",
       "late": "verspätet",
-      "slidesRelease": "Slid@Home",
+      "slidesRelease": "Summit Slides",
       "check_pending": "Offen",
       "check_checked": "Geprüft",
       "check_issue": "Problem",
@@ -2684,17 +2711,17 @@
     "editorHint": "Formatierung über die Leiste oder direkt als Markdown. Die Vorschau zeigt, wie der Artikel im Portal aussieht."
   },
   "wikiAssistent": {
-    "title": "Frag das Wiki",
-    "lead": "Stell deine Frage in einem Satz. Die Antwort kommt ausschliesslich aus den Artikeln unten.",
+    "title": "Frag Chefi",
+    "lead": "Chefi ist unser Wiki-Assistent. Stell deine Frage in einem Satz — die Antwort kommt ausschliesslich aus den Artikeln unten.",
     "label": "Deine Frage",
     "placeholder": "Zum Beispiel: Wann muss die Rückwand geliefert sein?",
     "ask": "Fragen",
-    "privacy": "Bitte keine persönlichen Daten eingeben. Fragen werden ohne Namen gespeichert, damit wir das Wiki verbessern können.",
-    "noHit": "Dazu steht nichts im Wiki.",
+    "privacy": "Bitte keine persönlichen Daten eingeben. Chefi speichert Fragen ohne Namen, damit wir das Wiki verbessern können.",
+    "noHit": "Dazu findet Chefi nichts im Wiki.",
     "askPerson": "Frag am besten direkt:",
     "foundOnly": "Diese Abschnitte passen zu deiner Frage:",
     "sources": "Quellen",
-    "disclaimer": "Zusammengefasst aus den genannten Abschnitten. Im Zweifel gilt der Artikel.",
+    "disclaimer": "Chefi fasst die genannten Abschnitte zusammen. Im Zweifel gilt der Artikel.",
     "error_rate_limited": "Das waren viele Fragen in kurzer Zeit. Probier es in der nächsten Stunde noch einmal.",
     "error_empty_query": "Die Frage ist leer.",
     "error_unknown": "Das hat gerade nicht geklappt. Versuch es noch einmal."
@@ -3047,7 +3074,11 @@
     "fieldConsent": "Freelancer — Einwilligung im Vertrag vom",
     "fieldConsentHint": "Nur mit ausdrücklicher Einwilligung im Vertrag. Das Datum ist der Nachweis, dass sie vorliegt; das Setzen wird protokolliert.",
     "withdraw": "Entfernen (Einwilligung widerrufen)",
-    "confirmWithdraw": "{name} entfernen? Die Einwilligung gilt damit als widerrufen, der Kontakt und das Foto werden gelöscht. Betroffen: {orgs} Partner und {speakers} Speaker — sie fallen auf den Standardkontakt zurück."
+    "confirmWithdraw": "{name} entfernen? Die Einwilligung gilt damit als widerrufen, der Kontakt und das Foto werden gelöscht. Betroffen: {orgs} Partner und {speakers} Speaker — sie fallen auf den Standardkontakt zurück.",
+    "photoUploading": "Bild wird hochgeladen …",
+    "fieldRoleEn": "Rollenbezeichnung (EN)",
+    "fieldRoleEnHint": "Das Speaker-Portal ist auf Englisch voreingestellt. Ohne diesen Text steht dort nur die allgemeine Beschriftung.",
+    "noDefaultWarning": "Kein Standard gesetzt für: {types}. Wer keine eigene Zuordnung hat, sieht dann niemanden — im Portal erscheint stattdessen das Rollenpostfach. Setz je Typ einen Kontakt als Standard."
   },
   "adminSpeakerLeads": {
     "title": "Speaker-Leads",

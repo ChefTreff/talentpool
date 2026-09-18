@@ -57,7 +57,7 @@ Was noch nicht dran ist, notierst du trotzdem — als P3 in den Portal-Chat, mit
 
 ## 6 · Start eines Chats
 
-Die fertigen Start-Prompts je Chat (Design, Partner, Speaker-Domäne, Talent & Hackathon, Volunteers/Produktion/Check-in) stehen in `docs/chat-startpakete.md`; der Chat „Admin & Schnittstellen“ ist die bestehende Build-Session. Ablauf: neuen Chat im Repo öffnen, umbenennen („FLS27 · <Bereich>“), Prompt als erste Nachricht einfügen — oder den Start-Chip im Architektur-Chat anklicken. Vor dem ersten Login im jeweiligen Dev-Server muss `http://localhost:<port>/auth/callback` in den Supabase-Redirect-URLs stehen (Konrad), danach einmal `sh scripts/env-pull.sh --worktrees` im Hauptcheckout.
+Die fertigen Start-Prompts je Chat (Design, Partner, Speaker-Domäne, Talent & Hackathon, Volunteers/Produktion/Check-in) stehen in `docs/chat-startpakete.md`; der Chat „Admin & Schnittstellen“ ist die bestehende Build-Session. Ablauf: neuen Chat im Repo `~/Developer/talentpool` öffnen (seit 18.09.2026 nicht mehr `Documents/GitHub`, der Ordner ist iCloud-synchronisiert), umbenennen („FLS27 · <Bereich>“), Prompt als erste Nachricht einfügen — oder den Start-Chip im Architektur-Chat anklicken. Vor dem ersten Login im jeweiligen Dev-Server muss `http://localhost:<port>/auth/callback` in den Supabase-Redirect-URLs stehen (Konrad), danach einmal `sh scripts/env-pull.sh --worktrees` im Hauptcheckout.
 
 ## 7 · Was du nicht tun musst
 - Feedback wiederholen — der Backlog ist das Gedächtnis, auch wenn der Chat seinen Kontext verdichtet oder ruht.

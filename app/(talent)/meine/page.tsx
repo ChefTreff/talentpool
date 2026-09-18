@@ -83,7 +83,7 @@ export default async function MeinePage() {
     Object.fromEntries(keys.map((k) => [k, vlabel(vocab, vocabulary, k)]));
 
   return (
-    <div className="max-w-[800px]">
+    <div className="max-w-text">
       <PageHeader title={t.participation.title} description={t.participation.lead} />
       <VolunteerInvite
         status={((volunteerJson ?? null) as VolunteerProfile | null)?.status ?? null}
