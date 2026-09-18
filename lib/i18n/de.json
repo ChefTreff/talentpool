@@ -2661,17 +2661,17 @@
     "editorHint": "Formatierung über die Leiste oder direkt als Markdown. Die Vorschau zeigt, wie der Artikel im Portal aussieht."
   },
   "wikiAssistent": {
-    "title": "Frag das Wiki",
-    "lead": "Stell deine Frage in einem Satz. Die Antwort kommt ausschliesslich aus den Artikeln unten.",
+    "title": "Frag Chefi",
+    "lead": "Chefi ist unser Wiki-Assistent. Stell deine Frage in einem Satz — die Antwort kommt ausschliesslich aus den Artikeln unten.",
     "label": "Deine Frage",
     "placeholder": "Zum Beispiel: Wann muss die Rückwand geliefert sein?",
     "ask": "Fragen",
-    "privacy": "Bitte keine persönlichen Daten eingeben. Fragen werden ohne Namen gespeichert, damit wir das Wiki verbessern können.",
-    "noHit": "Dazu steht nichts im Wiki.",
+    "privacy": "Bitte keine persönlichen Daten eingeben. Chefi speichert Fragen ohne Namen, damit wir das Wiki verbessern können.",
+    "noHit": "Dazu findet Chefi nichts im Wiki.",
     "askPerson": "Frag am besten direkt:",
     "foundOnly": "Diese Abschnitte passen zu deiner Frage:",
     "sources": "Quellen",
-    "disclaimer": "Zusammengefasst aus den genannten Abschnitten. Im Zweifel gilt der Artikel.",
+    "disclaimer": "Chefi fasst die genannten Abschnitte zusammen. Im Zweifel gilt der Artikel.",
     "error_rate_limited": "Das waren viele Fragen in kurzer Zeit. Probier es in der nächsten Stunde noch einmal.",
     "error_empty_query": "Die Frage ist leer.",
     "error_unknown": "Das hat gerade nicht geklappt. Versuch es noch einmal."
