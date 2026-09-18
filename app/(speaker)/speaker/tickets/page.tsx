@@ -34,7 +34,7 @@ export default async function SpeakerTicketsPage() {
   }
 
   return (
-    <div className="max-w-[800px]">
+    <div className="max-w-text">
       <PageHeader title={t.speaker.ticketsTitle} description={t.speaker.ticketsLead} />
       <TicketsView
         profileId={profile.id}

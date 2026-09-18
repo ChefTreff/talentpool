@@ -6,6 +6,8 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CheckMark } from "@/components/ui/CheckMark";
+import { StepBar } from "@/components/ui/StepBar";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
@@ -268,8 +270,27 @@ export function ExpenseWizard({
     );
   }
 
+  // Dieselben drei Bedingungen, die unten die Pruefliste bildet — sie stehen
+  // hier einmal und werden zweimal benutzt, damit Leiste und Liste nicht
+  // auseinanderlaufen koennen.
+  const positionenFertig = rowsComplete && !missingReceipt;
+  const bankFertig = Boolean(open?.has_bank);
+  const schritte = [
+    { label: t.stepPositions, done: positionenFertig },
+    { label: t.stepBank, done: bankFertig },
+    { label: t.stepSubmit, done: false },
+  ];
+  // Der erste offene Schritt ist der aktuelle. Die Abschnitte stehen alle
+  // untereinander auf einer Seite — die Leiste navigiert also nicht, sie sagt
+  // nur, was noch fehlt. Deshalb kein `onSelect`.
+  const aktuell = schritte.findIndex((x) => !x.done);
+
   return (
     <div className="flex flex-col gap-6">
+      {/* Was noch fehlt, bevor man scrollt. Vorher musste man bis zum dritten
+          Abschnitt hinunter, um zu sehen, woran es haengt. */}
+      <StepBar steps={schritte} current={aktuell === -1 ? 2 : aktuell} srLabel={t.stepperLabel} />
+
       {open?.status === "rejected" && (
         <Card className="p-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -460,10 +481,21 @@ export function ExpenseWizard({
       <Card className="p-6">
         <h2 className="ct-h3 mb-1 text-ink">{t.stepSubmit}</h2>
         <p className="ct-help mb-4">{t.submitHint}</p>
-        <ul className="ct-help mb-4 flex flex-col gap-1">
-          <li>{rowsComplete ? `✓ ${t.checkPositions}` : `· ${t.checkPositions}`}</li>
-          <li>{!missingReceipt ? `✓ ${t.checkReceipts}` : `· ${t.checkReceipts}`}</li>
-          <li>{open?.has_bank ? `✓ ${t.checkBank}` : `· ${t.checkBank}`}</li>
+        {/* Der Zustand stand hier als Schriftzeichen: „✓" oder „·" vor dem
+            Text. Das ist kein gestalteter Zustand, und wer die Zeile vorlesen
+            laesst, hoert einen Mittelpunkt. `CheckMark` zeigt ihn in Form und
+            Farbe und traegt den Zustand als Text fuer Vorlesesoftware. */}
+        <ul className="mb-4 flex flex-col gap-2">
+          {[
+            { fertig: rowsComplete, text: t.checkPositions },
+            { fertig: !missingReceipt, text: t.checkReceipts },
+            { fertig: bankFertig, text: t.checkBank },
+          ].map((z) => (
+            <li key={z.text} className="flex items-center gap-2">
+              <CheckMark done={z.fertig} label={z.fertig ? t.checkDone : t.checkOpen} />
+              <span className="ct-help">{z.text}</span>
+            </li>
+          ))}
         </ul>
         <div className="flex flex-wrap gap-2">
           {open && (

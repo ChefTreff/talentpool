@@ -194,7 +194,7 @@ export function TicketsView({
             {/* Ausgestelltes zieht man nicht mehr selbst zurück — die RPC
                 antwortet dann `already_issued`, das sagen wir vorher. */}
             {companion.issued ? (
-              <p className="ct-help max-w-[260px]">{t.companionIssuedContact}</p>
+              <p className="ct-help max-w-65">{t.companionIssuedContact}</p>
             ) : (
               <Button
                 variant="ghost"

@@ -759,7 +759,10 @@
     "travelNote": "Hinweis zur Reise",
     "travelNoteHint": "Optional, zum Beispiel „komme mit Begleitung“.",
     "travelSaved": "Reisedaten gespeichert",
-    "savedAt": "Zuletzt gespeichert: {date}"
+    "savedAt": "Zuletzt gespeichert: {date}",
+    "stepperLabel": "Fortschritt",
+    "checkDone": "erledigt",
+    "checkOpen": "offen"
   },
   "leads": {
     "title": "Speaker-Pipeline",

@@ -759,7 +759,10 @@
     "travelNote": "Note about your journey",
     "travelNoteHint": "Optional, for example “travelling with a companion”.",
     "travelSaved": "Travel details saved",
-    "savedAt": "Last saved: {date}"
+    "savedAt": "Last saved: {date}",
+    "stepperLabel": "Progress",
+    "checkDone": "done",
+    "checkOpen": "open"
   },
   "leads": {
     "title": "Speaker pipeline",
