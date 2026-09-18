@@ -120,8 +120,16 @@ create table if not exists storage_purge_queue (
   path         text not null,
   reason       text not null default 'profile_deleted',
   requested_at timestamptz not null default now(),
+  -- Ein fehlgeschlagener Versuch bleibt stehen, mit Zähler und Fehlertext. Eine
+  -- Zeile, die nicht verschwindet, ist der einzige Hinweis darauf, dass eine
+  -- Datei im Bucket liegen geblieben ist — sie stumm zu löschen wäre schlimmer
+  -- als sie stehen zu lassen.
+  attempts     integer not null default 0,
+  error        text,
   unique (bucket, path)
 );
+create index if not exists storage_purge_queue_offen_idx
+  on storage_purge_queue (requested_at) where attempts < 5;
 comment on table storage_purge_queue is
   'Dateipfade, die nach einer Profilloeschung aus dem Bucket muessen (0115). SQL kann Storage nicht loeschen; der Cron raeumt mit service_role und loescht die Zeile.';
 

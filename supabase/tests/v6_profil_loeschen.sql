@@ -23,7 +23,9 @@
 --      keiner Tabelle mit `person_id` mehr — und auch nicht in den Kindern des
 --      Speaker-Profils. Diese Prüfung liest das Schema selbst aus, damit eine
 --      neue Spalte oder Tabelle nicht still durchrutscht;
---   18 die Dateien des Speaker-Profils stehen in `storage_purge_queue`;
+--   18 die Dateien des Speaker-Profils stehen unversucht in `storage_purge_queue`,
+--      ein zweiter Eintrag desselben Pfads scheitert nicht und die Zeile laesst
+--      sich abraeumen (den Weg geht der Cron in `lib/storage-purge.ts`);
 --   19 die Bankdaten des Reisekostenantrags sind weg, der Antrag bleibt;
 --   20 `delete_my_profile()` ist fuer `authenticated` nicht mehr freigegeben —
 --      sie pruefte die Huerden nicht und waere der Weg daran vorbei.
@@ -262,9 +264,21 @@ begin
 
   -- 18 Dateien zum Wegraeumen angemeldet ----------------------------------------
   select count(*)::integer into v_n from storage_purge_queue
-   where bucket = 'speaker-assets' and path = 'zztest/zzunverwechselbar.jpg';
+   where bucket = 'speaker-assets' and path = 'zztest/zzunverwechselbar.jpg'
+     and attempts = 0 and error is null;
   insert into t_res values ('18_bucket_warteschlange',
-    case when v_n = 1 then 'Pfad eingetragen (richtig)' else 'FEHLT (' || v_n || ')' end);
+    case when v_n = 1 then 'Pfad eingetragen, unversucht (richtig)' else 'FEHLT (' || v_n || ')' end);
+
+  -- 18b derselbe Pfad zweimal: der Cron raeumt die Zeile weg, ein zweiter
+  -- Eintrag darf die Loeschung nicht an der Eindeutigkeit scheitern lassen.
+  insert into storage_purge_queue (bucket, path)
+  values ('speaker-assets', 'zztest/zzunverwechselbar.jpg') on conflict (bucket, path) do nothing;
+  delete from storage_purge_queue
+   where bucket = 'speaker-assets' and path = 'zztest/zzunverwechselbar.jpg';
+  select count(*)::integer into v_n from storage_purge_queue
+   where bucket = 'speaker-assets' and path = 'zztest/zzunverwechselbar.jpg';
+  insert into t_res values ('18b_zeile_faellt_weg',
+    case when v_n = 0 then 'abgeraeumt (richtig)' else 'steht noch (' || v_n || ')' end);
 
   -- 19 Bankdaten weg, Buchung bleibt ---------------------------------------------
   select case when count(*) = 1 then 'Antrag bleibt' else 'Antrag weg' end into v_txt
