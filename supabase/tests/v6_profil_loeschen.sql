@@ -24,7 +24,9 @@
 --      Speaker-Profils. Diese Prüfung liest das Schema selbst aus, damit eine
 --      neue Spalte oder Tabelle nicht still durchrutscht;
 --   18 die Dateien des Speaker-Profils stehen in `storage_purge_queue`;
---   19 die Bankdaten des Reisekostenantrags sind weg, der Antrag bleibt.
+--   19 die Bankdaten des Reisekostenantrags sind weg, der Antrag bleibt;
+--   20 `delete_my_profile()` ist fuer `authenticated` nicht mehr freigegeben —
+--      sie pruefte die Huerden nicht und waere der Weg daran vorbei.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -273,6 +275,14 @@ begin
   insert into t_res values ('19_bankdaten_weg',
     case when v_n = 1 and v_txt = 'Antrag bleibt' then 'Bankdaten weg, Buchung bleibt (richtig)'
          else 'unerwartet ' || v_txt || ' / ' || v_n end);
+
+  -- 20 der Weg an den Huerden vorbei ist zu ------------------------------------
+  select count(*)::integer into v_n
+    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'delete_my_profile'
+     and has_function_privilege('authenticated', p.oid, 'execute');
+  insert into t_res values ('20_delete_my_profile_zu',
+    case when v_n = 0 then 'nicht mehr freigegeben (richtig)' else 'NOCH OFFEN (BUG)' end);
 end $$;
 select * from t_res order by step;
 rollback;

@@ -47,6 +47,9 @@
 -- nein: bezahlt ist bezahlt, der Vault-Eintrag fällt, der Antrag bleibt als
 -- Buchung stehen (§147 AO).
 --
+-- **`delete_my_profile()` ist nicht mehr freigegeben.** Sie prüft die Hürden
+-- nicht; der einzige Weg von aussen ist `request_profile_deletion()`.
+--
 -- **Kein Personenbezug überlebt die Löschung.** `resolve_deletion_request()`
 -- protokolliert Bearbeiter, Vorgang und Hürden — nicht den gelöschten
 -- Datensatz; sonst stünde die Person nach ihrer Löschung im Audit-Log. Aus
@@ -314,6 +317,13 @@ begin
   if v_pid is null then raise exception 'no person for current user' using errcode = '28000'; end if;
   perform anonymize_person(v_pid);
 end $$;
+-- **Nicht mehr freigegeben.** Sie prüft die Hürden nicht; wer sie direkt riefe,
+-- ginge an `request_profile_deletion()` vorbei — ein zugesagter Speaker könnte
+-- sich vier Wochen vor dem Summit selbst löschen. Die Oberfläche braucht sie
+-- nicht mehr. Die Signatur bleibt bestehen, weil ein ersatzloses `drop` eine
+-- seit Welle 1 dokumentierte Funktion aus der Welt nähme (Auflage der
+-- Architektur-Session, 18.09.).
+revoke execute on function delete_my_profile() from public, anon, authenticated;
 
 -- ---------------------------------------------------------------- Antrag
 
