@@ -3184,7 +3184,9 @@
     "badgeOverdue": "Overdue",
     "footerMailbox": "Questions? Write to us:",
     "footerImprint": "Imprint",
-    "footerPrivacy": "Privacy"
+    "footerPrivacy": "Privacy",
+    "personsDenseHint": "The same shape, dense: who looks after you, with email and phone to tap.",
+    "roleBuddy": "Buddy"
   },
   "adminEdition": {
     "title": "Edition & stages",

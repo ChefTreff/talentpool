@@ -12,7 +12,6 @@ import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { NextStepBanner } from "@/components/ui/NextStepBanner";
 import { DateRow, DateList } from "@/components/ui/DateRow";
 import { InfoList, type InfoEintrag } from "@/components/ui/InfoList";
-import { PortalFooter } from "@/components/layout/PortalFooter";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadEditionInfos, loadMyContacts } from "@/components/kontakt/load";
 import { Anfahrt } from "@/components/kontakt/Anfahrt";
@@ -396,12 +395,6 @@ export default async function PartnerDashboard() {
         />
       </div>
 
-      <PortalFooter
-        mailbox={PARTNER_MAILBOX}
-        mailboxLabel={t.common.supportMailbox}
-        imprintLabel={t.common.imprint}
-        privacyLabel={t.common.privacy}
-      />
     </>
   );
 }

@@ -20,7 +20,7 @@ Vorbild: `app/(partner)/partner/page.tsx`.
 </>
 ```
 
-Reihenfolge im Bereich: Shell (`AreaShell` mit `area` und `width`) → `PageHeader` → Statuszeile/Kennzahlen → Arbeitsbereich → Sekundäres. Die Seite lädt serverseitig, prüft mit `requireArea(...)` und holt alle Beschriftungen über `getI18n` und `loadVocabMap` — kein hartcodierter Text.
+Reihenfolge im Bereich: Shell (`SidebarShell` mit `area` und `width`) → `PageHeader` → Statuszeile/Kennzahlen → Arbeitsbereich → Sekundäres. Die Seite lädt serverseitig, prüft mit `requireArea(...)` und holt alle Beschriftungen über `getI18n` und `loadVocabMap` — kein hartcodierter Text.
 
 ## Kennzahlen und Fortschritt
 
@@ -76,9 +76,15 @@ Die Marker sind Sechsecke auf einer durchgehenden Linie — waagerecht ab 640 px
 
 `<Modal label onCancel>` für Entscheidungen, `<Drawer open onClose title footer>` für Detail- und Bearbeitungsansichten. Beide nutzen natives `<dialog showModal>` — Fokusfalle, Escape und Inertisierung kommen vom Browser. Nichts davon nachbauen.
 
-## Sidebar und Bereichsname
+## Sidebar, Bereichsname und Fuss
 
-`SidebarShell` / `AreaShell`: Navy-Seitenleiste, oben links Bereichsname („CHEFTREFF SPEAKER PORTAL"), Gruppen *Übersicht · Profil/Unternehmen · Summit · Formate · Support*. Wer nur einen Bereich hat, sieht keine Spur der anderen — kein Umschalter, keine Links, nichts im HTML (Feedback-Runde 1, Punkt 2).
+`SidebarShell`: Navy-Seitenleiste, oben links Bereichsname („CHEFTREFF SPEAKER PORTAL"), Gruppen *Übersicht · Profil/Unternehmen · Summit · Formate · Support*. Wer nur einen Bereich hat, sieht keine Spur der anderen — kein Umschalter, keine Links, nichts im HTML (Feedback-Runde 1, Punkt 2).
+
+**Den Fuss zieht die Shell, nicht die Seite.** `SidebarShell` rendert `PortalFooter` selbst: Rollen-Postfach des Bereichs (`mailboxFor`), Impressum und Datenschutz auf die Hauptwebsite. Keine Seite setzt ihn noch einmal — vorher taten es zwei von 94, und die Pflichtangaben fehlten auf dem Rest. Ein eigenes Postfach gibt die Seite über `mailbox` mit.
+
+**Breiten kommen aus Tokens, nie als rohe Werte.** `max-w-content` (1200) ist der Normalfall, `max-w-table` (1400) für dichte Admin-Listen — beides setzt die Shell über `width`. Für Text- und Formularspalten innerhalb einer Seite: `max-w-text` (800) und `max-w-form` (640). Fehlt ein Mass, kommt es als Token nach `globals.css`, nicht als `max-w-[900px]` in eine Seite.
+
+**Die Porträt-Form gilt für Personen, nicht für Bedienelemente.** `PortraitShape` (gekipptes Dreieck) trägt jede Personen-Darstellung ab 56 px — `PersonCard`, `ContactCard`, Listen, Jury, Team. Der Avatar im Profilmenü bleibt rund: er ist bei 24 px der Auslöser eines Menüs, kein Porträt, und ein Dreieck in dieser Grösse ist nur noch ein Fleck.
 
 ## Login, Welcome, Marketing-Moment
 
