@@ -1189,7 +1189,9 @@
     "asset_accepted": "Accepted",
     "asset_rejected": "Sent back",
     "downloadFailed": "That file cannot be opened right now.",
-    "invoicesSoon": "Quote and invoice will join them later."
+    "invoicesSoon": "Quote and invoice will join them later.",
+    "docKindOffer": "Offer",
+    "docKindInvoice": "Invoice"
   },
   "partnerTickets": {
     "title": "Tickets",
