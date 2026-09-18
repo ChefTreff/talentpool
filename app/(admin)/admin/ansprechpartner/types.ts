@@ -10,6 +10,11 @@ export type AdminKontakt = {
   photo_path: string | null;
   is_default: boolean;
   sort_order: number;
+  /**
+   * Datum der vertraglichen Einwilligung — Pflicht bei Adressen ausserhalb
+   * `@chef-treff.de`. Selbstauskunft der Redaktion, kein Nachweis.
+   */
+  contract_consent_at: string | null;
   /** Wie viele Partner bzw. Speaker diesen Kontakt zugeordnet haben. */
   orgs: number;
   speakers: number;

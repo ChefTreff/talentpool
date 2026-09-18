@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
@@ -136,6 +137,14 @@ export default async function ProfilPage() {
           ],
         }}
       />
+
+      {/* Am Fuss der Seite, ruhig und ohne Warnfarbe: der Weg soll zu finden
+          sein, aber nicht neben „Speichern" um Aufmerksamkeit ringen. */}
+      <p className="ct-help mt-8 border-t pt-6 text-muted">
+        <Link href="/profil/loeschen" className="ct-link">
+          {t.deleteProfile.link}
+        </Link>
+      </p>
     </div>
   );
 }

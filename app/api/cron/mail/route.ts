@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { processMailQueue } from "@/lib/mail/queue";
+import { processStoragePurgeQueue } from "@/lib/storage-purge";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -24,6 +25,8 @@ function authorized(request: Request): boolean {
  *    Plätze gehen an die Warteliste (die Datenbank legt dabei die Mails an).
  * 2. Mail-Warteschlange verschicken (`lib/mail/queue.ts`).
  * 3. `purge_checkins()` — Einlass-Scans 30 Tage nach Editionsende löschen (Welle 4 A2).
+ * 4. `storage_purge_queue` abräumen — Dateien, die eine Profillöschung zurückgelassen
+ *    hat (Welle 6, Migration 0115). SQL kann Storage nicht anfassen; hier passiert es.
  * Kein Nutzerkontext: service_role nach Prüfung des Secrets, die Route ist im Proxy
  * als öffentlich eingetragen und schützt sich selbst.
  */
@@ -42,11 +45,17 @@ export async function GET(request: Request) {
   const { data: purged, error: purgeError } = await admin.rpc("purge_checkins");
   if (purgeError) console.error("[cron/mail] purge_checkins fehlgeschlagen:", purgeError.message);
 
+  const storage = await processStoragePurgeQueue();
+  if (storage.giveUp > 0) {
+    console.error(`[cron/mail] ${storage.giveUp} Datei(en) bleiben liegen — bitte nachsehen`);
+  }
+
   return NextResponse.json({
     ok: !error,
     housekeeping: housekeeping ?? null,
     housekeepingError: error?.message ?? null,
     queue,
     checkinsPurged: purged ?? null,
+    storage,
   });
 }
