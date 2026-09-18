@@ -1063,7 +1063,8 @@
     "bandStatNone": "None open",
     "lunchCardTitle": "Lunch package for your team",
     "lunchCardBody": "Catering on both days for everyone working for you on site.",
-    "lunchCardAction": "Order it in your checklist"
+    "lunchCardAction": "Order it in your checklist",
+    "navBranding": "Branding"
   },
   "partnerContacts": {
     "title": "Contacts",
@@ -3339,5 +3340,28 @@
     "volunteer": "You are scheduled as a volunteer for the upcoming summit.",
     "partner": "You are listed as the contact of an organisation.",
     "open_expense": "One of your expense claims is still open."
+  },
+  "partnerBranding": {
+    "title": "Branding",
+    "lead": "Your brand at the summit — and what we need from you for it.",
+    "emptyTitle": "No branding booked yet",
+    "emptyBody": "Once you have booked branding, your spaces and the files we need for them appear here.",
+    "toChecklist": "Go to the checklist",
+    "dueLabel": "File due",
+    "pastDue": "The deadline has passed. Contact the partner team if something still needs to change.",
+    "noFileTitle": "Nothing needed from you for these",
+    "noFileBody": "We produce these from the logo in your onboarding. If we do need something, we will get in touch in good time.",
+    "wikiHint": "The print requirements in detail are in the wiki under Branding.",
+    "uploadNew": "Upload a new version",
+    "uploadFirst": "Upload a file",
+    "uploadHint": "Allowed: {allowed}, at most {max}.",
+    "uploading": "Uploading …",
+    "uploaded": "Uploaded (version {v})",
+    "uploadFailed": "The upload did not work",
+    "uploadTooBig": "The file is larger than {max}.",
+    "uploadWrongType": "Only {allowed} are allowed — this file is {got}.",
+    "uploadCurrent": "Current",
+    "uploadRejected": "Sent back",
+    "uploadNoDeliverable": "No file is required for this item."
   }
 }
