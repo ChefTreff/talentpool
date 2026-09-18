@@ -836,7 +836,8 @@
     "shuttle_note_hint": "Luggage, child seat, wheelchair — anything the driver should know.",
     "shuttle_over_limit_reason": "Why this additional ride?",
     "shuttle_over_limit_reason_hint": "One sentence is enough.",
-    "required": "required"
+    "required": "required",
+    "navGraphic": "Your graphic"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -3565,5 +3566,30 @@
     "fullHint": "The reception is fully booked. If you would still like to come, let your buddy know.",
     "closedHint": "The deadline has passed. Contact your buddy if anything changes.",
     "assistantNote": "The speaker answers this themselves; you only see the current state here."
+  },
+  "speakerGraphic": {
+    "title": "Your graphic",
+    "lead": "The “Hear me speak” graphic for your channels. Pick a portrait, position it, download.",
+    "stepUpload": "1 · Pick a portrait",
+    "stepUploadBody": "A picture where you are easy to recognise. Landscape or portrait, either is fine.",
+    "choosePhoto": "Choose portrait",
+    "replacePhoto": "Different portrait",
+    "rules": "JPG, PNG or WebP, up to 10 MB.",
+    "stepPlace": "2 · Position it",
+    "stepPlaceBody": "Drag the picture inside the shape and set the size until your face sits in the middle.",
+    "zoom": "Size",
+    "reset": "Reset",
+    "dragHint": "Drag to move the picture. Arrow keys work too, hold Shift for bigger steps.",
+    "stepDownload": "3 · Download",
+    "stepDownloadBody": "The file lands in your downloads folder, 1200 × 1200 pixels.",
+    "download": "Download as PNG",
+    "downloaded": "Graphic downloaded.",
+    "canvasEmpty": "Preview of the graphic, no portrait yet.",
+    "canvasWithImage": "Preview of your graphic. Drag to move the portrait, arrow keys work too.",
+    "tooBig": "That picture is too large. Up to 10 MB works.",
+    "wrongType": "Please use a JPG, PNG or WebP image.",
+    "loadFailed": "That picture could not be opened. Try a different file.",
+    "exportFailed": "The graphic could not be created. Reload the page and try again.",
+    "privacyNote": "Your portrait stays on your computer. We do not upload it and do not store it — the graphic is made here in your browser."
   }
 }
