@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-17 19:24 UTC · 81 Tabellen · 6 Views · 395 Funktionen
+> Stand: 2026-09-18 10:57 UTC · 83 Tabellen · 6 Views · 405 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -202,6 +202,7 @@ Ansprechpartner je Edition (F9.1). Dienstliche Mailadresse per CHECK erzwungen; 
 | `sort_order` | integer | ja | `0` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `contract_consent_at` | date |  |  |  | Datum der vertraglichen Einwilligung, die Kontaktdaten im Portal zu zeigen (0114). Pflicht bei Adressen ausserhalb @chef-treff.de. Selbstauskunft der Redaktion, kein Nachweis — das Setzen steht mit Akteur im Audit-Log. |
 
 ### `edition_file`
 Dateien, die einer Edition gehören und nicht einer Organisation: Hallenplan, Anfahrt, Aufbauplan. Privater Bucket `edition-files`, Pfad <edition_id>/<kind>/<datei>.
@@ -900,6 +901,21 @@ Stückliste: was in einem Paket steckt (Messebau/Regie).
 | `component_sku` | text | PK |  | `product.sku` |  |
 | `qty` | numeric | ja |  |  |  |
 
+### `profile_deletion_request`
+Antraege auf Profilloeschung nach Art. 17 DSGVO (0115). Entsteht nur, wenn der Loeschung etwas entgegensteht — sonst loescht die Person selbst und sofort.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `person_id` | uuid | ja |  | `person.id` |  |
+| `reason` | text |  |  |  |  |
+| `blockers` | text[] | ja |  |  |  |
+| `status` | text | ja | `pending` |  |  |
+| `requested_at` | timestamp with time zone | ja | `now()` |  |  |
+| `handled_by` | uuid |  |  | `person.id` |  |
+| `handled_at` | timestamp with time zone |  |  |  |  |
+| `handled_note` | text |  |  |  |  |
+
 ### `programme_backlog`
 Sessions ohne Slot (Backlog-Leiste des Boards).
 
@@ -1368,6 +1384,19 @@ Lagerbuch, nur anhängen: Reservierung (negativ) und Freigabe (positiv) je Beste
 | `created_by` | uuid |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `storage_purge_queue`
+Dateipfade, die nach einer Profilloeschung aus dem Bucket muessen (0115). SQL kann Storage nicht loeschen; der Cron raeumt mit service_role und loescht die Zeile.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `bucket` | text | ja |  |  |  |
+| `path` | text | ja |  |  |  |
+| `reason` | text | ja | `profile_deleted` |  |  |
+| `requested_at` | timestamp with time zone | ja | `now()` |  |  |
+| `attempts` | integer | ja | `0` |  |  |
+| `error` | text |  |  |  |  |
+
 ### `suppression`
 sha256(lower(email)) gelöschter/gesperrter Adressen. Vor jedem Import und Mailversand prüfen.
 
@@ -1628,6 +1657,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 |---|---|
 | `active_roles` | args: ? |
 | `admin_products` | p_only_active: boolean |
+| `anonymize_person` | p_person_id: uuid |
 | `applications_for_session` | p_session_id: uuid |
 | `applications_overview` | p_event_id: uuid |
 | `apply_hackathon` | p_data: jsonb |
@@ -1685,7 +1715,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `decline_companion_ticket` | p_note: text, p_ticket_id: uuid |
 | `decline_hospitality` | p_booking_id: uuid, p_note: text |
 | `decline_shift` | p_assignment_id: uuid, p_reason: text |
-| `delete_edition_contact` | p_id: uuid |
+| `delete_edition_contact` | p_id: uuid, p_reason: text |
 | `delete_edition_file` | p_id: uuid |
 | `delete_edition_info` | p_id: uuid |
 | `delete_event_day` | p_id: uuid |
@@ -1696,6 +1726,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_session_asset` | p_id: uuid |
 | `delete_stage` | p_id: uuid |
 | `delete_track` | p_id: uuid |
+| `deletion_requests_admin` | p_status: text |
 | `deliverable_due` | p_oe: public.org_edition, p_template: public.deliverable_template |
 | `detach_session` | p_session_id: uuid |
 | `edition_contacts_admin` | p_edition_id: uuid |
@@ -1775,6 +1806,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `list_external_refs` | p_object_type: text, p_system: text |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
 | `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
+| `mail_log_admin` | p_from: timestamp with time zone, p_limit: integer, p_offset: integer, p_person_id: uuid, p_query: text, p_status: text, p_template: text, p_to: timestamp with time zone |
+| `mail_log_detail` | p_id: bigint |
+| `mail_log_stats` | p_days: integer |
 | `mail_template_history` | p_key: text, p_limit: integer, p_locale: text |
 | `mail_templates_admin` | args: ? |
 | `manager_speakers` | p_edition_id: uuid |
@@ -1786,6 +1820,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_applications` | args: ? |
 | `my_contacts` | p_edition_id: uuid |
+| `my_deletion_blockers` | args: ? |
+| `my_deletion_status` | args: ? |
 | `my_deliverables` | p_edition_id: uuid, p_org_id: uuid |
 | `my_diet` | args: ? |
 | `my_expense_claims` | args: ? |
@@ -1865,7 +1901,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `remove_assistant` | p_profile_id: uuid |
 | `remove_partner_contact` | p_org_id: uuid, p_person_id: uuid |
 | `request_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
+| `request_profile_deletion` | p_reason: text |
 | `request_ticket_increase` | p_additional: integer, p_edition_id: uuid, p_org_id: uuid, p_pass_type: text, p_text: text |
+| `requeue_mail` | p_log_id: bigint |
+| `resolve_deletion_request` | p_action: text, p_id: uuid, p_note: text |
 | `resolve_sync_error` | p_id: bigint |
 | `restore_mail_template` | p_body_md: text, p_key: text, p_locale: text, p_subject: text |
 | `resync_deliverables` | p_edition_id: uuid |
