@@ -260,3 +260,5 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - #74 Rückwand der Challenge Area: Vorlage `hackathon_backdrop` an der Kategorie `hackathon`, PDF bis 100 MB, Frist `hackathon_challenge`, Konrads Dateiregeln vollständig. Auflage: `resync_deliverables()` prüft `is_partner_team()` und scheitert in einer Migration (kein Sitzungskontext) — stattdessen `sync_deliverables(oe.id)` je Organisation wie in B2. Gestapelt auf #72.
 
 - **#76 Design-Rollout Talent und Hackathon gemergt:** Programmliste und Hackathon-Zeitplan als Zeilen mit Zeitspalte (Archetyp A), `DateRow.onTitleClick` additiv; Zustands- und Aktionszweige der Programmliste gegen main abgeglichen, identisch. Offen im Rollout: Admin.
+
+- **#77 Design-Rollout Volunteers, Produktion und Check-in gemergt:** Gutschein-Karte der Volunteers in Ticket-Form (Namenskollision `TicketCard` als `KitTicketCard` aufgelöst), drei Zustände unverändert. Rollout offen: Admin, in zwei PRs (Listen/Tabellen zuerst, dann Formulare/Drawer).
