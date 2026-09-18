@@ -244,3 +244,5 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 
 ## 2026-09-18 — #67 Design-Rollout Shell gemergt
 - Fuß aus der Shell auf allen 94 Seiten inklusive Login und Startseite, Breiten als Tokens (eine Maximalbreite statt zwei), QS-021/QS-022; die zwei versehentlich wieder angelegten Alt-Dateien sind vor dem Merge entfernt worden (Design-Chat addet ab jetzt gezielt statt `git add -A`). Nächster Rollout-Schritt: Partner-Cluster (`design/rollout-partner`, nur Maße und Token) mit main als Basis.
+
+- **18.09., nachmittags:** Konrad hat das Redirect-Muster `https://talentpool-git-*-chef-treff.vercel.app/auth/callback` in Supabase eingetragen — Branch-Previews des Rollouts sind ohne Einzeleintrag anmeldbar; Preview-Links bleiben intern (Live-Datenbank).
