@@ -10,7 +10,8 @@ import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { removeContact, removeInfo, saveContact, saveInfo, uploadPhoto } from "./actions";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createPhotoUploadUrl, removeContact, removeInfo, saveContact, saveInfo } from "./actions";
 import { CONTACT_TYPES, type AdminInfo, type AdminKontakt } from "./types";
 
 type Strings = Record<string, string>;
@@ -50,8 +51,27 @@ export function KontakteAdmin({
   const [infoOffen, setInfoOffen] = useState<AdminInfo | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  // Eigener Zustand fürs Bild: sonst zeigt der Speichern-Knopf seinen Ladezustand,
+  // während in Wahrheit ein Foto hochgeht — es sieht aus, als würde das Formular
+  // beim Bildauswählen gespeichert (Konrad, 18.09.).
+  const [bildLaeuft, setBildLaeuft] = useState(false);
 
   const melden = (key: string) => setFehler(rpcMessages[key] ?? rpcMessages.unknown ?? key);
+
+  /**
+   * Fehlermeldung.
+   *
+   * Sie steht an zwei Stellen, und das ist Absicht: der Dialog ist ein
+   * `<dialog showModal>` und liegt **ueber** der Seite. Eine Meldung, die nur
+   * oben auf der Seite erscheint, ist waehrend des Formulars unsichtbar — man
+   * klickt auf Speichern, nichts passiert, und der Grund steht hinter dem
+   * Dialog (Konrad, 18.09.).
+   */
+  const meldung = fehler ? (
+    <p role="alert" className="rounded-ct-md border border-error-soft bg-error-soft p-3 ct-small text-error-ink">
+      {fehler}
+    </p>
+  ) : null;
 
   function speichern(daten: typeof leer) {
     setFehler(null);
@@ -76,11 +96,7 @@ export function KontakteAdmin({
 
   return (
     <div className="flex flex-col gap-8">
-      {fehler && (
-        <p role="alert" className="rounded-ct-md border border-error-soft bg-error-soft p-3 ct-small text-error-ink">
-          {fehler}
-        </p>
-      )}
+      {meldung}
 
       <section className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -185,11 +201,12 @@ export function KontakteAdmin({
       </section>
 
       {offen && (
-        <Drawer open onClose={() => setOffen(null)} title={offen.id ? t.editContact : t.addContact}>
+        <Drawer open onClose={() => { setFehler(null); setOffen(null); }} title={offen.id ? t.editContact : t.addContact}>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e) => { e.preventDefault(); speichern(offen); }}
           >
+            {meldung}
             <Field label={t.fieldType} htmlFor="k-type">
               <Select
                 id="k-type"
@@ -239,19 +256,32 @@ export function KontakteAdmin({
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
                 className="ct-small"
-                onChange={(e) => {
+                disabled={bildLaeuft}
+                onChange={async (e) => {
                   const datei = e.target.files?.[0];
                   if (!datei) return;
-                  const fd = new FormData();
-                  fd.set("file", datei);
-                  fd.set("contactId", offen.id || "neu");
-                  start(async () => {
-                    const res = await uploadPhoto(fd);
-                    if (res.ok && res.path) setOffen((o) => (o ? { ...o, photo_path: res.path! } : o));
-                    else if (!res.ok) melden(res.key);
-                  });
+                  setFehler(null);
+                  // Zuerst hier prüfen: der Bucket weist grössere Dateien ohnehin
+                  // ab, aber dann hätte der Upload schon begonnen.
+                  if (datei.size > 5 * 1024 * 1024) { melden("file_too_large"); return; }
+                  setBildLaeuft(true);
+                  try {
+                    const platz = await createPhotoUploadUrl(offen.id, datei.type);
+                    if (!platz.ok) { melden(platz.key); return; }
+                    // Die Bytes gehen direkt an Supabase, nicht durch unseren
+                    // Server — eine Server Action nimmt nur 1 MB entgegen.
+                    const browser = createSupabaseBrowserClient();
+                    const { error } = await browser.storage
+                      .from("contact-photos")
+                      .uploadToSignedUrl(platz.path, platz.token, datei, { contentType: datei.type });
+                    if (error) { melden("upload_failed"); return; }
+                    setOffen((o) => (o ? { ...o, photo_path: platz.path } : o));
+                  } finally {
+                    setBildLaeuft(false);
+                  }
                 }}
               />
+              {bildLaeuft && <p className="ct-help mt-1">{t.photoUploading}</p>}
             </Field>
             <label className="flex items-center gap-2 ct-label">
               <input type="checkbox" checked={offen.is_default}
@@ -260,7 +290,7 @@ export function KontakteAdmin({
             </label>
             <p className="ct-help">{t.defaultHint}</p>
             <div className="flex gap-2">
-              <Button type="submit" loading={pending}>{common.save}</Button>
+              <Button type="submit" loading={pending} disabled={bildLaeuft}>{common.save}</Button>
               <Button type="button" variant="secondary" onClick={() => setOffen(null)}>{common.cancel}</Button>
             </div>
           </form>
@@ -268,7 +298,7 @@ export function KontakteAdmin({
       )}
 
       {infoOffen && (
-        <Drawer open onClose={() => setInfoOffen(null)} title={infoOffen.id ? t.editInfo : t.addInfo}>
+        <Drawer open onClose={() => { setFehler(null); setInfoOffen(null); }} title={infoOffen.id ? t.editInfo : t.addInfo}>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e) => {
@@ -286,6 +316,7 @@ export function KontakteAdmin({
               });
             }}
           >
+            {meldung}
             <Field label={t.fieldKey} htmlFor="i-key" hint={t.fieldKeyHint} required>
               <Input id="i-key" value={infoOffen.key} required
                 onChange={(e) => setInfoOffen({ ...infoOffen, key: e.target.value })} />
@@ -311,7 +342,7 @@ export function KontakteAdmin({
                 onChange={(e) => setInfoOffen({ ...infoOffen, audience: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) })} />
             </Field>
             <div className="flex gap-2">
-              <Button type="submit" loading={pending}>{common.save}</Button>
+              <Button type="submit" loading={pending} disabled={bildLaeuft}>{common.save}</Button>
               <Button type="button" variant="secondary" onClick={() => setInfoOffen(null)}>{common.cancel}</Button>
             </div>
           </form>
