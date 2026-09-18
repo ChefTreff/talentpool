@@ -45,7 +45,7 @@ function stripTestWrapper(sql) {
 }
 
 function functionNames(sql) {
-  return [...new Set([...sql.matchAll(/create\s+or\s+replace\s+function\s+([a-z_0-9]+)\s*\(/gi)].map((m) => m[1].toLowerCase()))];
+  return [...new Set([...sql.matchAll(/create\s+(?:or\s+replace\s+)?function\s+([a-z_0-9]+)\s*\(/gi)].map((m) => m[1].toLowerCase()))];
 }
 
 function newBody(sql, fn) {
