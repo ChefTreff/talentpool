@@ -4,9 +4,10 @@
 // Verbindungs-URL: ~/.config/fls27/db.env (sh scripts/db-url-set.sh) — ausserhalb des Repos, nicht in .env.local, nicht in Vercel.
 // TLS ist Pflicht; ohne SUPABASE_DB_CA wird das Zertifikat nicht gegen eine CA geprüft (wie psql sslmode=require).
 // Für volle Prüfung: CA-Datei aus dem Supabase-Dashboard laden und in db.env `SUPABASE_DB_CA=/pfad/prod-ca-2021.crt` eintragen.
-import { readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { homedir, tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { spawnSync } from "node:child_process";
 import pg from "pg";
 
@@ -106,6 +107,30 @@ const commands = {
     } finally { rmSync(dir, { recursive: true, force: true }); }
     process.exitCode = changed ? 1 : 0;
   },
+  // Live-Fassung aller Funktionen in public als Dateien: Basis fuer jedes create or replace der Bau-Chats (18.09.2026).
+  async snapshot(client) {
+    const root = dirname(dirname(fileURLToPath(import.meta.url)));
+    const dir = join(root, "supabase", "snapshot", "functions");
+    mkdirSync(dir, { recursive: true });
+    const { rows } = await client.query(`select p.proname, pg_get_function_identity_arguments(p.oid) as args, pg_get_functiondef(p.oid) as def
+         from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.prokind in ('f', 'p') order by 1, 2`);
+    const count = new Map();
+    for (const r of rows) count.set(r.proname, (count.get(r.proname) ?? 0) + 1);
+    const keep = new Set();
+    for (const r of rows) {
+      const suffix = count.get(r.proname) > 1 ? "--" + r.args.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") : "";
+      const file = `${r.proname}${suffix}.sql`;
+      keep.add(file);
+      // In Migrationsform: Kleinschreibung im Kopf, ohne public., $$ statt $function$, Semikolon am Ende.
+      let def = r.def.replace(/^CREATE OR REPLACE FUNCTION public\./, "create or replace function ");
+      if (!def.includes("$$")) def = def.replace(/\$function\$/g, () => "$$");
+      writeFileSync(join(dir, file), def.trimEnd() + ";\n");
+    }
+    let removed = 0;
+    for (const f of readdirSync(dir)) if (f.endsWith(".sql") && !keep.has(f)) { rmSync(join(dir, f)); removed++; }
+    console.log(`SNAPSHOT: ${rows.length} Funktionen nach supabase/snapshot/functions/ geschrieben, ${removed} entfernt — auf main committen`);
+  },
   async apply(client) {
     if (!a1 || !a2) fail("Aufruf: apply <migration.sql> <name>  (Name z. B. v6_formate)");
     if (!/^[a-z0-9_]+$/.test(a2)) fail("Name nur aus a-z, 0-9, _");
@@ -125,5 +150,5 @@ const commands = {
   },
 };
 
-if (!commands[cmd]) fail("Befehle: check | test <test.sql> | dry-run <migration.sql> [<test.sql>] | fn-diff <migration.sql> | apply <migration.sql> <name>");
+if (!commands[cmd]) fail("Befehle: check | test <test.sql> | dry-run <migration.sql> [<test.sql>] | fn-diff <migration.sql> | snapshot | apply <migration.sql> <name>");
 withClient(commands[cmd]).catch((e) => { showError(e); process.exit(1); });

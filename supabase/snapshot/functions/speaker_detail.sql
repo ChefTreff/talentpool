@@ -1,0 +1,76 @@
+create or replace function speaker_detail(p_profile_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $$
+declare v_sp speaker_profile%rowtype; v_p person%rowtype; v_team boolean;
+begin
+  select * into v_sp from speaker_profile where id = p_profile_id;
+  if not found then raise exception 'speaker_not_found' using errcode = 'P0002'; end if;
+  if not can_manage_speaker(p_profile_id) then raise exception 'not allowed' using errcode = '42501'; end if;
+  select * into v_p from person where id = v_sp.person_id;
+  v_team := is_speaker_team(v_sp.edition_id);
+
+  return jsonb_build_object(
+    'id', v_sp.id,
+    'edition_id', v_sp.edition_id,
+    'person', jsonb_build_object(
+      'id', v_p.id, 'first_name', v_p.first_name, 'last_name', v_p.last_name, 'title', v_p.title,
+      'email', (select pe.email::text from person_email pe where pe.person_id = v_p.id and pe.is_primary),
+      'preferred_language', v_p.preferred_language,
+      'salutation_de', v_p.salutation_de, 'salutation_en', v_p.salutation_en,
+      'has_account', v_p.auth_user_id is not null),
+    'speaker_type', v_sp.speaker_type,
+    'pipeline_status', v_sp.pipeline_status,
+    'confirmed_at', v_sp.confirmed_at,
+    'declined_at', v_sp.declined_at,
+    'decline_reason', v_sp.decline_reason,
+    'invited_at', v_sp.invited_at,
+    'owner_person_id', v_sp.owner_person_id,
+    'owner_name', (select nullif(btrim(coalesce(o.first_name, '') || ' ' || coalesce(o.last_name, '')), '')
+                     from person o where o.id = v_sp.owner_person_id),
+    'assistant_person_id', v_sp.assistant_person_id,
+    'assistant_name', (select nullif(btrim(coalesce(a.first_name, '') || ' ' || coalesce(a.last_name, '')), '')
+                         from person a where a.id = v_sp.assistant_person_id),
+    'job_title', v_sp.job_title,
+    'organization_name', v_sp.organization_name,
+    'org_id', v_sp.org_id,
+    'org_name', (select coalesce(og.communication_name, og.legal_name) from organization og where og.id = v_sp.org_id),
+    'bio_short_de', v_sp.bio_short_de, 'bio_short_en', v_sp.bio_short_en,
+    'bio_long_de', v_sp.bio_long_de, 'bio_long_en', v_sp.bio_long_en,
+    'socials', v_sp.socials,
+    'tech_rider', v_sp.tech_rider,
+    'photo_asset_id', v_sp.photo_asset_id,
+    'reception_eligible', v_sp.reception_eligible,
+    'lounge_access', v_sp.lounge_access,
+    'pass_type', v_sp.pass_type,
+    'hotel_tier', v_sp.hotel_tier,
+    'hospitality_status', v_sp.hospitality_status,
+    'travel_costs_covered', v_sp.travel_costs_covered,
+    'travel_costs_approved_at', v_sp.travel_costs_approved_at,
+    'travel_costs_approved_by', (select nullif(btrim(coalesce(b.first_name, '') || ' ' || coalesce(b.last_name, '')), '')
+                                   from person b where b.id = v_sp.travel_costs_approved_by),
+    'lead_contact_id', v_sp.lead_contact_id,
+    'buddy_contact_id', v_sp.buddy_contact_id,
+    'contacts', (select coalesce(jsonb_agg(jsonb_build_object('id', c.id, 'type', c.type, 'display_name', c.display_name)
+                                           order by c.type), '[]'::jsonb)
+                   from edition_contact c
+                  where c.id in (v_sp.lead_contact_id, v_sp.buddy_contact_id)),
+    'travel', (select to_jsonb(tr) - 'updated_by' from speaker_travel tr where tr.profile_id = v_sp.id),
+    'sessions', coalesce((select jsonb_agg(jsonb_build_object(
+                                   'session_id', se.id, 'title_de', se.title_de, 'title_en', se.title_en,
+                                   'publish_status', se.publish_status, 'start_at', sl.start_at, 'stage_name', st.name)
+                                 order by sl.start_at nulls last)
+                          from session_speaker ss
+                          join session se on se.id = ss.session_id
+                          join event e on e.id = se.event_id
+                          left join slot sl on sl.id = se.slot_id
+                          left join stage st on st.id = sl.stage_id
+                          where ss.person_id = v_sp.person_id
+                            and (e.edition_id = v_sp.edition_id or e.id = v_sp.edition_id)), '[]'::jsonb),
+    'internal_notes_visible', v_team,
+    'created_at', v_sp.created_at,
+    'updated_at', v_sp.updated_at
+  ) || case when v_team then jsonb_build_object('internal_notes', v_sp.internal_notes) else '{}'::jsonb end;
+end $$;
