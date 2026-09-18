@@ -81,7 +81,7 @@ export async function registerAsset(input: {
   };
 }
 
-/** Slid@Home. Die RPC lässt nur den Speaker selbst und nur mit Consent durch. */
+/** Summit Slides. Die RPC lässt nur den Speaker selbst und nur mit Consent durch. */
 export async function setSlidesRelease(
   assetId: string,
   release: boolean,
