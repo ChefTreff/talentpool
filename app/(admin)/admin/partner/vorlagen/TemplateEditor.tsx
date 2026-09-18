@@ -347,7 +347,7 @@ export function TemplateEditor({
                           label={t.fieldOptions}
                           htmlFor={`f-opt-${i}`}
                           hint={t.fieldOptionsHint}
-                          className="min-w-[280px] flex-1"
+                          className="min-w-70 flex-1"
                         >
                           <Input
                             id={`f-opt-${i}`}

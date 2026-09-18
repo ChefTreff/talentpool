@@ -172,7 +172,7 @@ export function ExpenseQueue({
       {claims.map((c) => (
         <Card key={c.id} className="p-4">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-[280px] flex-1">
+            <div className="min-w-70 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="ct-h3 text-ink">{c.speaker_name || common.none}</span>
                 <Badge tone={STATUS_TONE[c.status] ?? "neutral"}>
@@ -238,7 +238,7 @@ export function ExpenseQueue({
               )}
             </div>
 
-            <div className="flex w-full max-w-[320px] flex-col gap-2">
+            <div className="flex w-full max-w-80 flex-col gap-2">
               <Field label={t.note} htmlFor={`note-${c.id}`} hint={t.noteHint}>
                 <Input
                   id={`note-${c.id}`}
