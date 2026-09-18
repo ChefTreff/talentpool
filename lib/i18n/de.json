@@ -3591,5 +3591,29 @@
     "loadFailed": "Das Bild ließ sich nicht öffnen. Versuch es mit einer anderen Datei.",
     "exportFailed": "Die Grafik ließ sich nicht erzeugen. Lade die Seite neu und versuch es noch einmal.",
     "privacyNote": "Dein Porträt bleibt auf deinem Rechner. Wir laden es nicht hoch und speichern es nicht — die Grafik entsteht hier im Browser."
+  },
+  "titleAssistant": {
+    "title": "Unsicher beim Titel?",
+    "teaser": "Du weisst, worum es geht, aber nicht, wie es heissen soll? Beschreib deinen Inhalt in eigenen Worten — wir machen einen Vorschlag und schärfen ihn mit dir.",
+    "open": "Vorschlag holen",
+    "close": "Schliessen",
+    "intro": "Schreib in ein paar Sätzen, worum es in deinem Vortrag geht. Je konkreter, desto besser der Vorschlag.",
+    "firstPrompt": "Worum geht es?",
+    "nextPrompt": "Was passt noch nicht?",
+    "placeholder": "Zum Beispiel: Es geht darum, wie Lieferketten transparenter werden, wenn Zulieferer ihre Daten selbst pflegen statt über Fragebögen.",
+    "placeholderNext": "Zum Beispiel: kürzer, und weniger nach Beratung klingend.",
+    "start": "Vorschlag machen",
+    "refine": "Schärfen",
+    "reset": "Von vorn",
+    "you": "Du",
+    "assistant": "Vorschlag",
+    "suggestion": "Aktueller Stand",
+    "take": "Übernehmen",
+    "taken": "In die Felder übernommen. Zum Speichern noch einreichen.",
+    "takeHint": "Übernehmen trägt Titel und Beschreibung oben ein. Geschickt wird erst, wenn du selbst auf Einreichen drückst.",
+    "rateLimited": "Für diese Stunde ist Schluss — der Assistent ist auf zehn Anläufe je Stunde begrenzt. Versuch es später noch einmal.",
+    "failed": "Der Assistent antwortet gerade nicht. Versuch es in ein paar Minuten noch einmal; dein Text bleibt stehen.",
+    "noModel": "Der Assistent ist noch nicht freigeschaltet. Melde dich bei deinem Buddy, wenn du ihn brauchst.",
+    "privacyNote": "An den Assistenten gehen nur das Format deines Slots und das, was du hier schreibst. Kein Name, keine Organisation, kein Kontakt."
   }
 }

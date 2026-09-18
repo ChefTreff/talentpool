@@ -13,6 +13,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { registerAsset, saveSessionTech, setSlidesRelease, submitSessionContent } from "./actions";
+import { TitelAssistent } from "./TitelAssistent";
 import {
   BUCKET,
   MAX_TECH_CHARS,
@@ -51,6 +52,7 @@ export function SessionView({
   locale,
   dateLocale,
   t,
+  assistant,
   common,
   rpcMessages,
 }: {
@@ -65,6 +67,8 @@ export function SessionView({
   locale: Locale;
   dateLocale: string;
   t: Strings;
+  /** Texte des Titel-Assistenten (SPK-012) — eigener Block, `t` bleibt flach. */
+  assistant: Strings;
   common: { cancel: string; choose: string; none: string; required: string; save: string };
   rpcMessages: Record<string, string>;
 }) {
@@ -176,6 +180,7 @@ export function SessionView({
           locale={locale}
           dateTime={dateTime}
           t={t}
+          assistant={assistant}
           common={common}
           message={message}
           onUpload={onUpload}
@@ -201,6 +206,7 @@ function SessionCard({
   locale,
   dateTime,
   t,
+  assistant,
   common,
   message,
   onUpload,
@@ -220,6 +226,8 @@ function SessionCard({
   locale: Locale;
   dateTime: Intl.DateTimeFormat;
   t: Strings;
+  /** Texte des Titel-Assistenten — eigener Block, damit `t` flach bleibt. */
+  assistant: Strings;
   common: { cancel: string; choose: string; none: string; required: string; save: string };
   message: (key: string) => string;
   onUpload: (session: MySession, file: File) => void;
@@ -421,6 +429,22 @@ function SessionCard({
             </Button>
           </div>
         </div>
+
+        {/* Der Assistent steht **unter** dem Formular, nicht davor: wer schon
+            weiss, wie sein Vortrag heisst, soll nicht an einer Hilfe
+            vorbeischreiben müssen (SPK-012). */}
+        <TitelAssistent
+          format={session.format ?? null}
+          language={locale === "de" ? "de" : "en"}
+          t={assistant}
+          onUebernehmen={(v) =>
+            setDraft((d) => ({
+              ...d,
+              title: v.titel || d.title,
+              description: v.beschreibung || d.description,
+            }))
+          }
+        />
       </div>
 
       {/* Präsentation */}

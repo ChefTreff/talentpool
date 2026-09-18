@@ -3591,5 +3591,29 @@
     "loadFailed": "That picture could not be opened. Try a different file.",
     "exportFailed": "The graphic could not be created. Reload the page and try again.",
     "privacyNote": "Your portrait stays on your computer. We do not upload it and do not store it — the graphic is made here in your browser."
+  },
+  "titleAssistant": {
+    "title": "Stuck on the title?",
+    "teaser": "You know what it is about, but not what to call it? Describe your content in your own words — we suggest a title and sharpen it with you.",
+    "open": "Get a suggestion",
+    "close": "Close",
+    "intro": "Write a few sentences about what your talk is about. The more concrete, the better the suggestion.",
+    "firstPrompt": "What is it about?",
+    "nextPrompt": "What does not fit yet?",
+    "placeholder": "For example: it is about how supply chains become more transparent when suppliers maintain their own data instead of filling in questionnaires.",
+    "placeholderNext": "For example: shorter, and less like a consulting pitch.",
+    "start": "Suggest a title",
+    "refine": "Sharpen",
+    "reset": "Start over",
+    "you": "You",
+    "assistant": "Suggestion",
+    "suggestion": "Current version",
+    "take": "Use this",
+    "taken": "Copied into the fields. Submit to save it.",
+    "takeHint": "This fills in the title and description above. Nothing is sent until you press submit yourself.",
+    "rateLimited": "That is it for this hour — the assistant is capped at ten attempts per hour. Try again later.",
+    "failed": "The assistant is not answering right now. Try again in a few minutes; your text stays.",
+    "noModel": "The assistant is not switched on yet. Talk to your buddy if you need it.",
+    "privacyNote": "Only your slot's format and what you write here go to the assistant. No name, no organisation, no contact details."
   }
 }
