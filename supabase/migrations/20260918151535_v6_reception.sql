@@ -1,5 +1,7 @@
 -- 0125 · Welle 6 · Speaker Reception als eigenes Objekt (A7.4, SPK-003)
 --
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918151535.
+--
 -- Vorschlag der Build-Session Speaker-Domäne. Anwenden, Umbenennen und der
 -- Eintrag ins Entscheidungslog gehören der Architektur-/Security-Session.
 -- Nummer 0125 zugeteilt.
