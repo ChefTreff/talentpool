@@ -51,3 +51,6 @@ next-env.d.ts
 # Finder-/Drive-Sync-Duplikate („name 2.sql“): das Gate lehnt sie ab, hier gar nicht erst stagen (15.09.2026)
 * [0-9].*
 * [0-9][0-9].*
+
+# Worktrees der Chats (git worktree add … .claude/worktrees/<name>)
+.claude/worktrees/
