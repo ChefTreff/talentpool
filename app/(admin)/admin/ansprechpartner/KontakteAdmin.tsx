@@ -81,6 +81,10 @@ export function KontakteAdmin({
    * beides kommt nichts zurueck — der Kontakt ist gepflegt und trotzdem
    * unsichtbar.
    */
+  // Reihenfolge wie im Vokabular (nach `sort_order` geladen); leer nur, wenn
+  // das Vokabular fehlt.
+  const typKeys = Object.keys(types).length > 0 ? Object.keys(types) : [...CONTACT_TYPES];
+
   const ohneStandard = [...new Set(kontakte.map((k) => k.type))].filter(
     (typ) => !kontakte.some((k) => k.type === typ && k.is_default),
   );
@@ -232,11 +236,15 @@ export function KontakteAdmin({
             onSubmit={(e) => { e.preventDefault(); speichern(offen); }}
           >
             {meldung}
+            {/* Die Auswahl kommt aus dem Vokabular `edition_contact_type`, nicht
+                aus einer Liste im Code: ein neuer Typ (etwa `tour_lead` fuer die
+                Company Tours) soll hier von allein auftauchen. `CONTACT_TYPES`
+                bleibt der Rueckfall, falls das Vokabular leer ankommt. */}
             <Field label={t.fieldType} htmlFor="k-type">
               <Select
                 id="k-type"
                 value={offen.type}
-                options={CONTACT_TYPES.map((v) => ({ value: v, label: types[v] ?? v }))}
+                options={typKeys.map((v) => ({ value: v, label: types[v] ?? v }))}
                 onChange={(e) => setOffen({ ...offen, type: e.target.value })}
               />
             </Field>
