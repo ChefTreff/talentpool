@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0114 · Welle 6 · Freelancer als Ansprechpersonen (ADM-040, D7)
 --
--- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918105038.
 --
 -- Konrad am 17.09. zu D7: „Die Regel bitte lockern."
 --

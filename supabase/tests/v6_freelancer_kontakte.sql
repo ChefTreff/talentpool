@@ -121,3 +121,4 @@ rollback;
 -- Nachtrag 18.09. (Auflage Architektur-Session): Schritt 09 prueft jetzt auch, dass beim
 -- Widerruf weder `email` noch `phone` im Protokoll stehen, waehrend das normale Loeschen einer
 -- Dienstadresse unveraendert bleibt — beides einzeln nachgelaufen, gruen.
+-- Nach dem Anwenden (20260918105038) am 18.09. live erneut gelaufen: 10/10 gruen.
