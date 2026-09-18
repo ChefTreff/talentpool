@@ -144,3 +144,34 @@ export async function registerSpeakerPhoto(input: {
   refresh();
   return { ok: true, data: undefined };
 }
+
+/**
+ * Zu- oder Absage zur Reception (SPK-003).
+ *
+ * Obergrenze, Frist und Einladung prüft `set_reception_rsvp`; hier steht keine
+ * zweite Regel daneben. Die Assistenz darf nicht antworten — eine Zusage ist
+ * eine persönliche Entscheidung, keine Verwaltungsaufgabe.
+ */
+export async function setReceptionRsvp(
+  receptionId: string,
+  status: "yes" | "no",
+  guests: number,
+  note: string,
+): Promise<SpeakerResult> {
+  const supabase = await client();
+  const { data: profile, error: profileError } = await supabase.rpc("my_speaker_profile");
+  if (profileError) return fail(profileError);
+  if ((profile as { is_assistant?: boolean } | null)?.is_assistant) {
+    return { ok: false, key: "not_allowed" };
+  }
+
+  const { error } = await supabase.rpc("set_reception_rsvp", {
+    p_reception_id: receptionId,
+    p_status: status,
+    p_guests: guests,
+    p_note: note.trim() ? note.trim() : null,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}

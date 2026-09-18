@@ -111,3 +111,25 @@ export function safeFileName(name: string): string {
     .replace(/^[-.]+/, "");
   return (cleaned || "datei").slice(-80);
 }
+
+/** Eine Reception in der Speaker-Sicht (`my_receptions`, Migration 0125). */
+export type MyReception = {
+  id: string;
+  title_de: string;
+  title_en: string;
+  description_de: string | null;
+  description_en: string | null;
+  location: string;
+  address: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  capacity: number | null;
+  taken: number;
+  /** Freie Plätze — `null`, wenn es keine Obergrenze gibt. */
+  free: number | null;
+  rsvp_deadline: string | null;
+  closed: boolean;
+  my_status: string | null;
+  my_guests: number | null;
+  my_note: string | null;
+};
