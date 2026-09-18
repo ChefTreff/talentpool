@@ -66,10 +66,16 @@ export function PortraitShape({
           style={{ clipPath: "var(--ct-shape-triangle)" }}
         />
       ) : (
+        /* Ohne Foto **nicht** die volle Akzentfläche (QS-021): drei gefüllte
+           Dreiecke nebeneinander lasen sich als Signal, nicht als Personen,
+           und der Verlauf, der die Form in `3:20146` ausmacht, verschwand
+           darunter. Hier trägt nur die Soft-Stufe, die Initiale steht in
+           `accent-deep` (7,0:1 darauf). Die Verlaufsfläche dahinter bleibt
+           sichtbar — sie ist der Teil, der nach Marke aussieht. */
         <span
           aria-hidden
           className={cn(
-            "absolute flex items-end justify-center bg-accent text-white",
+            "absolute flex items-end justify-center bg-accent-soft text-accent-deep",
             gross
               ? "inset-x-2 bottom-0 top-3 pb-5 ct-band-title"
               : "inset-x-1 bottom-0 top-1 pb-1 ct-label",

@@ -2,6 +2,7 @@ import { getI18n } from "@/lib/i18n";
 import { safeNextPath } from "@/lib/areas";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BrandBackdrop } from "@/components/layout/BrandBackdrop";
+import { PortalFooter, DEFAULT_MAILBOX } from "@/components/layout/PortalFooter";
 import { LoginForm } from "./LoginForm";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +36,7 @@ export default async function LoginPage({
         className="relative isolate flex flex-1 flex-col justify-center bg-navy px-6 py-16"
       >
         <BrandBackdrop />
-        <div className="mx-auto w-full max-w-[640px]">
+        <div className="mx-auto w-full max-w-form">
         <LoginForm
           next={safeNext}
           authError={authError}
@@ -56,6 +57,15 @@ export default async function LoginPage({
             helpMailbox: t.login.helpMailbox,
           }}
         />
+        </div>
+        <div className="mx-auto mt-16 w-full max-w-content px-0">
+          <PortalFooter
+            onNavy
+            mailbox={DEFAULT_MAILBOX}
+            mailboxLabel={t.common.supportMailbox}
+            imprintLabel={t.common.imprint}
+            privacyLabel={t.common.privacy}
+          />
         </div>
       </main>
     </>

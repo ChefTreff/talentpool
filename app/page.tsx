@@ -1,6 +1,7 @@
 import { getMyAreas, getSessionContext } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { PortalFooter, DEFAULT_MAILBOX } from "@/components/layout/PortalFooter";
 import { ButtonLink } from "@/components/ui/Button";
 import { landingPathFor } from "@/lib/areas";
 
@@ -46,6 +47,15 @@ export default async function Home() {
               </span>
             )}
           </div>
+        </div>
+        <div className="mx-auto w-full max-w-content px-6 pb-10">
+          <PortalFooter
+            onNavy
+            mailbox={DEFAULT_MAILBOX}
+            mailboxLabel={t.common.supportMailbox}
+            imprintLabel={t.common.imprint}
+            privacyLabel={t.common.privacy}
+          />
         </div>
       </main>
     </>

@@ -8,6 +8,7 @@ import { HeroBand, BandStat } from "./HeroBand";
 import { NextStepBanner } from "./NextStepBanner";
 import { StepBar } from "./StepBar";
 import { PersonCard } from "./PersonCard";
+import { ContactCard } from "./ContactCard";
 import { PhotoCard } from "./PhotoCard";
 import { TicketCard } from "./TicketCard";
 import { Accordion, AccordionItem } from "./Accordion";
@@ -110,6 +111,28 @@ export function KitSchau({ t }: { t: KitTexte }) {
           <PersonCard name="Miriam van Straelen" role={t.roleLead} organization="Stadt Hamburg" />
           <PersonCard name="Philipp Westermeyer" role={t.roleSpeaker} organization="OMR" />
           <PersonCard name="Barbara Frenkel" role={t.roleJury} organization="Porsche" />
+        </div>
+        {/* Die dichte Fassung derselben Form (QS-022). Sie stand vorher in
+            keiner Schau und war deshalb nur dort zu sehen, wo eine
+            Organisation Ansprechpartner zugeordnet hat — beim Testpartner also
+            nirgends. Ein Baustein, den man nicht vorführen kann, wird nicht
+            beurteilt. */}
+        <p className="ct-help mt-8 mb-3">{t.personsDenseHint}</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ContactCard
+            name="Laura Kessler"
+            role={t.roleLead}
+            email="partner@chef-treff.de"
+            phone="+49 40 1234567"
+            photoUrl={null}
+          />
+          <ContactCard
+            name="Patrick Jansen"
+            role={t.roleBuddy}
+            email="partner@chef-treff.de"
+            phone="+49 40 7654321"
+            photoUrl={null}
+          />
         </div>
       </Abschnitt>
 

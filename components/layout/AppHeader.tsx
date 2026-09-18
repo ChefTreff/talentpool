@@ -23,7 +23,11 @@ export async function AppHeader({ current }: { current?: AreaKey }) {
 
   return (
     <header className="bg-navy text-on-navy">
-      <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
+      {/* Dieselbe Maximalbreite wie der Inhalt jeder Portalseite. Vorher stand
+          hier 1400 und in der Shell 1200 — zwei Breiten für dieselbe App, und
+          auf breiten Schirmen saß die Wortmarke sichtbar weiter außen als
+          alles darunter. */}
+      <div className="mx-auto flex max-w-content flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
         <Link href={area?.path ?? "/"} className="flex items-center gap-2 text-on-navy">
           <Logo />
           <span className="ct-wordmark text-on-navy-muted">{wordmark}</span>
