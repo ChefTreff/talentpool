@@ -142,6 +142,14 @@ export default async function PartnerDashboard() {
   const darfOnboarding = canEditOnboarding(o.roles, o.team);
 
   const { fristen, naechste, jetzt } = fristenAuswahl(o.deadlines);
+  /**
+   * Das Lunch-Paket ist ein Angebot, kein Muss (PART-049). Der Hinweis steht
+   * hier, solange seine Frist läuft — ist sie vorbei, hilft er niemandem mehr.
+   * Konrad: „super wichtig, dass alle Partner das sehen."
+   */
+  const lunchOffen = o.deadlines.some(
+    (d) => d.key === "lunch_package" && d.due_at && new Date(d.due_at) > new Date(),
+  );
 
   return (
     <>
@@ -314,6 +322,18 @@ export default async function PartnerDashboard() {
           <Link href="/partner/checkliste" className="ct-link mt-3 inline-block">
             {t.partner.checklistOpen}
           </Link>
+          {/* PART-049: Das Lunch-Paket soll jeder Partner sehen, ohne dafür in
+              den Messeshop zu gehen. Es steht hier, solange es offen ist —
+              danach verschwindet der Hinweis von selbst. */}
+          {lunchOffen && (
+            <div className="mt-4 border-t border-border pt-3">
+              <h3 className="ct-label text-ink">{t.partner.lunchCardTitle}</h3>
+              <p className="ct-help mt-1">{t.partner.lunchCardBody}</p>
+              <Link href="/partner/checkliste" className="ct-link mt-2 inline-block">
+                {t.partner.lunchCardAction}
+              </Link>
+            </div>
+          )}
         </Card>
 
         <Card>

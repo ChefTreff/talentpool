@@ -34,6 +34,12 @@ export type ShopData = {
   categories: Record<string, string>;
   merchAssets: MerchAsset[];
   canOrder: boolean;
+  /**
+   * Hat diese Organisation einen Messestand? Der Shop gehört zum Stand
+   * (PART-037). Die Sperre selbst sitzt in den RPCs (Migration 0112) — hier
+   * wird nur entschieden, ob die Seite den Katalog oder eine Erklärung zeigt.
+   */
+  hasBooth: boolean;
 };
 
 export const loadShop = cache(async (): Promise<ShopData> => {
@@ -101,5 +107,12 @@ export const loadShop = cache(async (): Promise<ShopData> => {
     // Bestellen dürfen dieselben Rollen wie sonst auch; `event_app_member`
     // liest nur (Entscheidung 1, es gibt keine Rolle `shop`).
     canOrder: canEditOnboarding(overview?.roles ?? [], overview?.team ?? false),
+    // Dieselbe Regel wie `org_has_booth` in der Datenbank: Standfläche oder
+    // Standbühne als gebuchtes Produkt, oder ein vom Team zugewiesener Stand.
+    hasBooth:
+      overview?.booth != null ||
+      (overview?.products ?? []).some(
+        (p) => p.format_key === "booth" || p.format_key === "stage",
+      ),
   };
 });
