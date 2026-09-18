@@ -54,6 +54,7 @@ export function PortalFooter({
   mailboxLabel,
   imprintLabel,
   privacyLabel,
+  onNavy = false,
 }: {
   /** Rollen-Postfach des Bereichs, z. B. `partner@chef-treff.de`. */
   mailbox: string;
@@ -61,17 +62,33 @@ export function PortalFooter({
   mailboxLabel: string;
   imprintLabel: string;
   privacyLabel: string;
+  /**
+   * Fassung für die Marken-Momente auf Navy (Login, Startseite). Dieselben
+   * Angaben, andere Farben — gemessen 7,4:1 für den Hilfstext und 15,8:1 für
+   * die Links. Ohne diese Fassung hätte ausgerechnet die **einzige Seite ohne
+   * Anmeldung** keine Pflichtangaben getragen.
+   */
+  onNavy?: boolean;
 }) {
   const links = [
     { href: IMPRINT_URL, label: imprintLabel },
     { href: PRIVACY_URL, label: privacyLabel },
   ];
   return (
-    <footer className="mt-12 border-t pt-6">
+    <footer
+      className={
+        onNavy
+          ? "mt-12 border-t border-on-navy/20 pt-6"
+          : "mt-12 border-t pt-6"
+      }
+    >
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <p className="ct-help">
+        <p className={onNavy ? "ct-help text-on-navy-muted" : "ct-help"}>
           {mailboxLabel}{" "}
-          <a className="ct-link" href={`mailto:${mailbox}`}>
+          <a
+            className={onNavy ? "text-on-navy underline underline-offset-2" : "ct-link"}
+            href={`mailto:${mailbox}`}
+          >
             {mailbox}
           </a>
         </p>
@@ -82,7 +99,11 @@ export function PortalFooter({
               href={l.href}
               target="_blank"
               rel="noreferrer noopener"
-              className="ct-help hover:text-ink"
+              className={
+                onNavy
+                  ? "ct-help text-on-navy-muted hover:text-on-navy"
+                  : "ct-help hover:text-ink"
+              }
             >
               {l.label}
             </a>
