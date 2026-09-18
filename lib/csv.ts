@@ -45,3 +45,28 @@ export function csvSafe(value: unknown): string {
 export function csvCell(value: unknown): string {
   return `"${csvSafe(value).replace(/"/g, '""')}"`;
 }
+
+/**
+ * Eine CSV-Zelle, die **nur klammert, wenn nötig** — für Dateien, deren Form
+ * sich nicht ändern soll.
+ *
+ * Der Volunteer-Export klammert seit jeher nur Werte mit Anführungszeichen,
+ * Semikolon oder Zeilenumbruch. Wer die Datei seit Monaten bekommt, hat sich
+ * an ihre Form gewöhnt; ein Schutz, der jede Zelle in Anführungszeichen setzt,
+ * wäre eine Formatänderung durch die Hintertür.
+ *
+ * **Eine Ausnahme gibt es doch:** musste der Wert entschärft werden, wird er
+ * geklammert. Ein führendes Leerzeichen in einem ungeklammerten Feld ist nach
+ * RFC 4180 zwar Teil des Werts, aber nicht jeder Leser hält sich daran — und
+ * ein Leser, der es wegschneidet, bekommt die Formel zurück, die wir gerade
+ * entschärft haben. Für echte Daten tritt der Fall nie ein; genau dann ändert
+ * sich also auch nichts an der Datei.
+ */
+export function csvCellMinimal(value: unknown): string {
+  const roh = String(value ?? "");
+  const sicher = csvSafe(roh);
+  const entschaerft = sicher !== roh;
+  return entschaerft || /[";\n\r]/.test(sicher)
+    ? `"${sicher.replace(/"/g, '""')}"`
+    : sicher;
+}

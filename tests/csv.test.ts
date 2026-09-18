@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { csvCell, csvSafe } from "@/lib/csv";
+import { csvCell, csvCellMinimal, csvSafe } from "@/lib/csv";
 
 /**
  * Der Schutz gegen Formelauswertung ist unsichtbar, solange ihn niemand
@@ -66,5 +66,28 @@ describe("CSV: Zelle", () => {
     // Die Routen übergeben `csvCell` als Referenz an `map`, das drei Argumente
     // liefert. Käme der Index mit an, stünde er in der Datei.
     assert.deepEqual(["a", "=b"].map(csvCell), ['"a"', '" =b"']);
+  });
+});
+
+describe("CSV: Zelle mit bedingter Klammerung", () => {
+  it("lässt harmlose Werte ungeklammert — die Form der Datei bleibt", () => {
+    // Der Volunteer-Export sieht seit Monaten so aus; der Empfänger hat sich
+    // daran gewöhnt. Der Schutz darf das nicht nebenbei ändern.
+    assert.equal(csvCellMinimal("Mia Lohmeier"), "Mia Lohmeier");
+    assert.equal(csvCellMinimal(3), "3");
+    assert.equal(csvCellMinimal(null), "");
+  });
+
+  it("klammert weiterhin bei Anführungszeichen, Semikolon und Umbruch", () => {
+    assert.equal(csvCellMinimal('sagt "hallo"'), '"sagt ""hallo"""');
+    assert.equal(csvCellMinimal("a;b"), '"a;b"');
+    assert.equal(csvCellMinimal("a\nb"), '"a\nb"');
+  });
+
+  it("klammert einen entschärften Wert **immer**", () => {
+    // Sonst könnte ein Leser, der führende Leerzeichen wegschneidet, die
+    // Formel zurückbekommen, die wir gerade entschärft haben.
+    assert.equal(csvCellMinimal("=1+1"), '" =1+1"');
+    assert.equal(csvCellMinimal("@SUM(A1)"), '" @SUM(A1)"');
   });
 });
