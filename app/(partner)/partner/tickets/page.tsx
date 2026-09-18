@@ -69,7 +69,7 @@ export default async function PartnerTicketsPage() {
       )}
 
       {video && (
-        <div className="mt-8 max-w-[640px]">
+        <div className="mt-8 max-w-form">
           <EmbedGate
             src={loomEmbedUrl(video.url)}
             title={(locale === "en" ? video.title_en : video.title_de) ?? t.partnerTickets.videoTitle}

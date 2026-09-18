@@ -240,7 +240,7 @@ export function ShopView({
                 aria-selected={key === current}
                 onClick={() => setTab(key)}
                 className={cn(
-                  "rounded-ct-sm px-2.5 py-1.5 text-[14px] font-semibold transition-colors",
+                  "rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors",
                   key === current
                     ? "bg-accent-soft text-accent-deep"
                     : "text-muted hover:bg-surface-hover hover:text-ink",

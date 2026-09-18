@@ -142,7 +142,7 @@ export function Schritte({
 
                   {/* Zweite Spalte wie in der Checkliste — hier steht nicht die
                       Frist, sondern wann es gemeldet wurde. */}
-                  <span className="hidden w-[160px] shrink-0 text-right sm:block">
+                  <span className="hidden w-40 shrink-0 text-right sm:block">
                     {st?.done_at ? (
                       <span className="ct-small tabular-nums text-muted">
                         {t.stepDone.replace("{date}", datum.format(new Date(st.done_at)))}
