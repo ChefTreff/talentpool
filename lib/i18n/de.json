@@ -2688,7 +2688,13 @@
     "emptySuppliers": "Keine Bestellungen",
     "emptySuppliersBody": "Noch hat niemand etwas im Messeshop bestellt.",
     "tabFiles": "Dateien",
-    "tabCatering": "Catering"
+    "tabCatering": "Catering",
+    "colTech": "Ansage Speaker",
+    "tech_people_on_stage": "Personen",
+    "tech_microphone": "Mikrofon",
+    "tech_presentation_media": "Präsentation",
+    "tech_special_requirements": "Besonderes",
+    "tech_furniture": "Mobiliar"
   },
   "wiki": {
     "title": "Wiki",

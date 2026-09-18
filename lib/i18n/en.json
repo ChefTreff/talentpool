@@ -2688,7 +2688,13 @@
     "emptySuppliers": "No orders",
     "emptySuppliersBody": "Nobody has ordered in the trade-show shop yet.",
     "tabFiles": "Files",
-    "tabCatering": "Catering"
+    "tabCatering": "Catering",
+    "colTech": "Speaker request",
+    "tech_people_on_stage": "People",
+    "tech_microphone": "Microphone",
+    "tech_presentation_media": "Presentation",
+    "tech_special_requirements": "Special",
+    "tech_furniture": "Furniture"
   },
   "wiki": {
     "title": "Wiki",

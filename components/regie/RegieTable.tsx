@@ -99,6 +99,7 @@ export function RegieTable({
               <Th>{t.colEnd}</Th>
               <Th>{t.colAction}</Th>
               <Th>{t.colSession}</Th>
+              <Th>{t.colTech}</Th>
               <Th>{t.colModeration}</Th>
               <Th>{t.colRegie}</Th>
               <Th>{t.colBackstage}</Th>
@@ -209,6 +210,12 @@ function CueRow({
           <Badge>{t.colAction}</Badge>
         )}
       </Td>
+      {/* Die Ansage des Speakers (0121, SPK-018) — **lesend**. Wer hier etwas
+          ändern will, ändert es in seiner Disposition nebenan; die Ansage
+          gehört dem Speaker. Cues ohne Session bleiben leer. */}
+      <Td className="align-top">
+        <TechAnsage tech={cue.tech} t={t} />
+      </Td>
       <Td>{field("moderation", t.colModeration)}</Td>
       <Td>{field("regie", t.colRegie)}</Td>
       <Td>{field("backstage", t.colBackstage)}</Td>
@@ -225,5 +232,27 @@ function CueRow({
         </Button>
       </Td>
     </Tr>
+  );
+}
+
+/**
+ * Was der Speaker angemeldet hat, in einer Tabellenzelle.
+ *
+ * Kurz gehalten: die Regie überfliegt die Zeile, sie liest sie nicht. Leere
+ * Felder fallen weg, damit die Spalte bei Cues ohne Ansage wirklich leer ist
+ * und nicht nach einer Angabe aussieht.
+ */
+function TechAnsage({ tech, t }: { tech: Record<string, string> | null; t: Strings }) {
+  const eintraege = Object.entries(tech ?? {}).filter(([, v]) => (v ?? "").trim() !== "");
+  if (eintraege.length === 0) return <span className="ct-help text-muted">—</span>;
+  return (
+    <dl className="flex flex-col gap-0.5">
+      {eintraege.map(([key, wert]) => (
+        <div key={key} className="flex gap-1">
+          <dt className="ct-help shrink-0 font-semibold">{t[`tech_${key}`] ?? key}:</dt>
+          <dd className="ct-help">{wert}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
