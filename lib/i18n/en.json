@@ -195,7 +195,11 @@
     "stage_not_found": "No such stage.",
     "track_not_found": "No such track.",
     "invalid_format": "No such format key.",
-    "contact_consent_required": "An address outside @chef-treff.de needs the date of the contractual consent."
+    "contact_consent_required": "An address outside @chef-treff.de needs the date of the contractual consent.",
+    "invalid_locale": "No such language.",
+    "invalid_due_rule": "The system does not know this deadline rule. Allowed are an edition deadline or a number of days after the invitation.",
+    "booth_required": "The trade fair shop is open to partners with a booked booth. You can still order the lunch package from your checklist.",
+    "invalid_qty": "Please enter a number greater than zero."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1032,7 +1036,10 @@
     "helpA2": "Yes. Just upload a new version — the old one is kept as a revision.",
     "helpQ3": "Who do we ask about deadlines?",
     "helpA3": "Your contact or the partner mailbox. We reply the same working day.",
-    "bandStatNone": "None open"
+    "bandStatNone": "None open",
+    "lunchCardTitle": "Lunch package for your team",
+    "lunchCardBody": "Catering on both days for everyone working for you on site.",
+    "lunchCardAction": "Order it in your checklist"
   },
   "partnerContacts": {
     "title": "Contacts",
@@ -1115,7 +1122,13 @@
     "fulfilledByShop": "Taken care of by your order in the trade fair shop.",
     "groupDone": "{done} of {total}",
     "doneLabel": "done",
-    "openLabel": "open"
+    "openLabel": "open",
+    "lunchQty": "For how many people?",
+    "lunchQtyHint": "Catering on both days. You can change it later via the trade fair shop.",
+    "lunchOrder": "Order the lunch package",
+    "lunchOrdered": "Ordered — the confirmation is in your inbox.",
+    "lunchOpen": "View the order",
+    "lunchInCart": "Added to your cart — something was already in there. Please submit it in the trade fair shop."
   },
   "partnerFiles": {
     "title": "Files",
@@ -1221,10 +1234,10 @@
     "emptyBody": "As soon as the first ordering phase starts, the catalogue shows up here.",
     "phaseOpen": "Ordering phase {n} is running",
     "phase_1": "Ordering phase 1 is running",
-    "phase_2": "Ordering phase 2 is running",
+    "phase_2": "Late ordering is open",
     "phase_3": "Late ordering is running",
     "phaseOpenBody": "Whatever you confirm becomes binding at the end of the phase. Until then you can change it.",
-    "phaseLateOnly": "Late orders only — mainly the lunch package. Everything else is closed.",
+    "phaseLateOnly": "Only items available at short notice. Everything else is closed.",
     "phaseClosed": "The shop is closed",
     "phaseClosedBody": "The ordering phases are over. Get in touch with the partner team if something is missing.",
     "phaseEnds": "Runs until",
@@ -1316,7 +1329,11 @@
     "vatId": "VAT ID",
     "poNumber": "Purchase order number (PO)",
     "poHint": "Optional. Appears on your invoice. Pre-filled from “Your data”, changeable per order.",
-    "navOrders": "Orders"
+    "navOrders": "Orders",
+    "noBoothTitle": "The trade fair shop belongs to your booth",
+    "noBoothBody": "This is where you order furniture, tech, plants and catering for your booth. You have not booked a booth — if that is wrong, please contact the partner team.",
+    "noBoothLunch": "You can order the lunch package for your team from your checklist regardless.",
+    "noBoothAction": "Go to the checklist"
   },
   "volunteers": {
     "title": "Volunteers",
@@ -3144,5 +3161,35 @@
     "added": "Created.",
     "slotsAttached": "slots are attached",
     "sessionsAttached": "sessions are attached"
+  },
+  "adminMailTemplates": {
+    "title": "Mail",
+    "lead": "Edit templates and follow the sending.",
+    "tabLog": "Log",
+    "tabTemplates": "Templates",
+    "noAccessTitle": "No access to the templates",
+    "noAccessBody": "Templates go to every recipient — only the admin role may change them.",
+    "empty": "There is no template yet.",
+    "subject": "Subject",
+    "body": "Text",
+    "bodyHint": "Markdown. Placeholders in double curly braces are filled in when sending.",
+    "placeholders": "Placeholders",
+    "newPlaceholderWarning": "A new placeholder stays empty when sending if the code does not know it. Please check first.",
+    "queuedWarning": "mails are waiting on this template. A change affects them too — on purpose, so a correction still lands.",
+    "waiting": "waiting",
+    "inactive": "Switched off",
+    "preview": "Preview",
+    "previewTitle": "This is how the mail looks",
+    "previewHint": "Rendered with the same functions as the sending; placeholders appear as examples in brackets.",
+    "history": "Earlier versions",
+    "historyTitle": "Earlier versions",
+    "historyHint": "From the log. The text shows what stood there **before** each change.",
+    "historyEmpty": "This template has not been changed in the portal yet.",
+    "restore": "Restore this version",
+    "restored": "Restored.",
+    "saved": "Saved.",
+    "version": "Version",
+    "changed": "changed",
+    "sent30d": "mails in 30 days"
   }
 }

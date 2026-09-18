@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
+import { MailTabs } from "./MailTabs";
 import { TestMailForm } from "./TestMailForm";
 
 export const dynamic = "force-dynamic";
@@ -52,6 +53,7 @@ export default async function MailPage() {
   return (
     <div className="max-w-[1000px]">
       <PageHeader title={t.admin.mail.title} description={t.admin.mail.lead} />
+      <MailTabs label={t.adminMailTemplates.title} log={t.adminMailTemplates.tabLog} templates={t.adminMailTemplates.tabTemplates} />
 
       <Card className="mb-4">
         <TestMailForm

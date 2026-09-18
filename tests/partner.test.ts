@@ -99,9 +99,38 @@ describe("Menü folgt den gebuchten Leistungen", () => {
     assert.equal(keys.includes("tickets"), false);
     assert.equal(keys.includes("stage"), false);
     assert.equal(keys.includes("applicants"), false);
-    for (const always of ["dashboard", "onboarding", "contacts", "checklist", "files", "shop"]) {
+    // Seit PART-037 gehört der Messeshop zum Messestand.
+    assert.equal(keys.includes("shop"), false);
+    for (const always of ["dashboard", "onboarding", "contacts", "checklist", "files"]) {
       assert.ok(keys.includes(always as never), `fehlt: ${always}`);
     }
+  });
+
+  /**
+   * PART-037, Konrads Antwort vom 17.09.: Der Messeshop verkauft Mobiliar,
+   * Technik und Gastronomie für die Standfläche. Als Stand zählen die
+   * Standflächen-Pakete und die Standbühne — der Hackathon-Stand nicht.
+   * Das Lunch-Paket bleibt trotzdem für alle bestellbar, aber über die
+   * Checkliste (PART-049), nicht über den Katalog.
+   */
+  it("öffnet den Messeshop nur mit Messestand", () => {
+    assert.equal(
+      nav({ products: [product({ sku: "I-50131", format_key: "booth" })] }).includes("shop"),
+      true,
+      "Standfläche öffnet den Shop",
+    );
+    assert.equal(
+      nav({ products: [product({ sku: "I-79895", format_key: "stage" })] }).includes("shop"),
+      true,
+      "Standbühne öffnet den Shop",
+    );
+    assert.equal(
+      nav({ products: [product({ sku: "I-10729", format_key: "hackathon" })] }).includes("shop"),
+      false,
+      "Hackathon-Stand öffnet den Shop nicht",
+    );
+    // Ein vom Team zugewiesener Stand zählt wie ein gebuchtes Produkt.
+    assert.equal(nav({ has_booth: true }).includes("shop"), true);
   });
 
   it("blendet Tickets nur mit Ticket-Produkt ein", () => {

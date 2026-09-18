@@ -8,7 +8,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 
 ## Quelle der Wahrheit (zuerst lesen)
 1. `docs/masterplan.md` — freigegebener Plan (v0.1d): Komponenten, Datenmodell, Rollen, Integrationen, Bau-Wellen.
-2. `docs/entscheidungen.md` — Entscheidungslog. **Jede Abweichung vom Masterplan wird hier eingetragen, sonst gilt sie nicht.**
+2. `docs/entscheidungen.md` — Entscheidungslog. **Jede Abweichung vom Masterplan wird hier eingetragen, sonst gilt sie nicht.** Einträge bis 13.09.2026 liegen in `docs/entscheidungen-archiv.md`; ein Chat liest nur die Einträge ab seinem eigenen Startdatum, das Archiv nur bei Bedarf.
 3. `docs/arbeitsauftrag-welle-*.md` — konkreter Arbeitsauftrag der laufenden Welle mit Akzeptanzkriterien; `docs/db-konventionen.md` — Regeln für Migrationen, RPCs und Tests.
 4. `docs/legacy-inventar.md`, `docs/feedback-fls26.md`, `docs/fragenkatalog-2026-09-07.md` — Herkunft der Anforderungen.
 5. `docs/design-briefing.md` — Tokens, Schriften (Sharp Sans SemiBold als Textschnitt, ABC Laica Italic), Events-Theme, **kein Dark Mode**, DE/EN. Ausführende Schicht für UI-Arbeit: Skill `.claude/skills/portal-design/` (`/portal-design`).
@@ -23,8 +23,9 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 ## Arbeitsweise
 - 80-%-Lösung je Bereich → Feedback von Konrad → schärfen. Nichts bauen, was nicht im Masterplan oder Entscheidungslog steht.
 - Build-Sessions arbeiten auf Feature-Branches (`welle-N/<thema>`), **ein PR je Baustein** (ein Abschnitt des Arbeitsauftrags, z. B. B3 + B6) gegen `main`; ein Review-Durchgang durch die Architektur-/Security-Session (Sicherheitsgrenzen, Kontrakte, Datenverlust) vor dem Merge, Nachbesserungen als Diff-Prüfung; UI-Details über Konrads Feedback-Runden. `main` deployt automatisch auf Vercel.
-- Datenbankänderungen nur als Migration unter `supabase/migrations/` nach `docs/db-konventionen.md` (Kopf, Rechteprüfung, Fehlerschlüssel, Test je Migration). **Anwenden** (Supabase-MCP `apply_migration` auf Projekt `jqmqvgaiyjudkvtncijw`, Umbenennen auf die Server-Version, Entscheidungslog) macht ausschließlich die Architektur-/Security-Session. Nie direkt im Dashboard „mal eben" ändern. **Jede Migration endet mit `select harden_definer_functions();`** (entzieht anon das EXECUTE auf SECURITY-DEFINER-Funktionen, pinnt search_path).
+- Datenbankänderungen nur als Migration unter `supabase/migrations/` nach `docs/db-konventionen.md` (Kopf, Rechteprüfung, Fehlerschlüssel, Test je Migration). **Anwenden** (`sh scripts/db.sh dry-run` und `apply` per psql direkt aus der Datei, Projekt `jqmqvgaiyjudkvtncijw`, Umbenennen auf die Server-Version, Entscheidungslog) macht ausschließlich die Architektur-/Security-Session. Nie direkt im Dashboard „mal eben" ändern. **Jede Migration endet mit `select harden_definer_functions();`** (entzieht anon das EXECUTE auf SECURITY-DEFINER-Funktionen, pinnt search_path).
 - Konrad loggt sich für Browser-Walkthroughs selbst ein; Alt-Systeme nur deaktivieren, nie löschen.
+- Token sparen (18.09.2026): Nachrichten zwischen Chats je Meilenstein bündeln (PR fertig, Korrektur gepusht), nicht je Schritt; `docs/schema.md` nur mit grep oder abschnittsweise lesen, nie ganz; grosse Dateien nicht in den Chat pasten, sondern per Skript verarbeiten; höchstens fünf Chats gleichzeitig.
 
 ## Toolchain auf diesem Mac
 - Die Bash-Tool-Shell lädt keine rc-Dateien: Befehle mit `node`, `npm`, `supabase`, `gh`, `vercel` immer mit `source "$HOME/.zshenv" && …` beginnen.
