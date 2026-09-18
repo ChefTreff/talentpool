@@ -333,7 +333,7 @@ export function ChecklistView({
 
                       {/* Eigene Spalte, wie Konrad es wollte: die Frist ist das
                           zweite, wonach man in einer Checkliste schaut. */}
-                      <span className="hidden w-[160px] shrink-0 text-right sm:block">
+                      <span className="hidden w-40 shrink-0 text-right sm:block">
                         {d.due_at ? (
                           <span
                             className={
@@ -418,7 +418,7 @@ export function ChecklistView({
                             )}
                         </div>
 
-                        <div className="flex w-full flex-col gap-2 sm:max-w-[320px]">
+                        <div className="flex w-full flex-col gap-2 sm:max-w-80">
                           {!editable ? (
                             <p className="ct-help">
                               {d.status === "submitted"

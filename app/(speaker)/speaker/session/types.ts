@@ -72,7 +72,10 @@ export type SpeakerAsset = {
   created_at: string;
 };
 
-export const BUCKET = "speaker-assets";
+// Bucket und Dateinamen-Regel gelten für alle Speaker-Dateien, nicht nur für
+// Präsentationen — sie stehen deshalb eine Ebene höher und werden hier nur
+// weitergereicht, damit es sie genau einmal gibt (SPK-004).
+export { SPEAKER_BUCKET as BUCKET, safeFileName } from "../types";
 
 /** Was der Bucket annimmt (PDF, PowerPoint, Keynote) — 100 MB Grenze. */
 export const PRESENTATION_MIME = [
@@ -83,17 +86,3 @@ export const PRESENTATION_MIME = [
   "application/x-iwork-keynote-sffkey",
 ];
 export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
-
-/**
- * Dateinamen für den Objektschlüssel entschärfen: Storage mag keine Pfad-
- * trenner und keine Sonderzeichen, und der Name landet 1:1 im Schlüssel.
- * Der Originalname wird daneben in `speaker_asset.filename` gespeichert.
- */
-export function safeFileName(name: string): string {
-  const cleaned = name
-    .normalize("NFKD")
-    .replace(/[^A-Za-z0-9._-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^[-.]+/, "");
-  return (cleaned || "datei").slice(-80);
-}

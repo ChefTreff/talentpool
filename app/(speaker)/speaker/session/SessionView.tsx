@@ -469,7 +469,7 @@ function SessionCard({
                   {a.tech_check_note && <p className="ct-help mt-1">{a.tech_check_note}</p>}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Slid@Home entscheidet nur der Speaker, nicht die Assistenz. */}
+                  {/* Summit Slides entscheidet nur der Speaker, nicht die Assistenz. */}
                   {!isAssistant && a.is_current && (
                     <label className="flex items-center gap-2 ct-help">
                       <input

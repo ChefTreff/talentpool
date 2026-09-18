@@ -45,11 +45,11 @@ function stripTestWrapper(sql) {
 }
 
 function functionNames(sql) {
-  return [...new Set([...sql.matchAll(/create\s+or\s+replace\s+function\s+([a-z_0-9]+)\s*\(/gi)].map((m) => m[1].toLowerCase()))];
+  return [...new Set([...sql.matchAll(/create\s+(?:or\s+replace\s+)?function\s+([a-z_0-9]+)\s*\(/gi)].map((m) => m[1].toLowerCase()))];
 }
 
 function newBody(sql, fn) {
-  const re = new RegExp(`create\\s+or\\s+replace\\s+function\\s+${fn}\\s*\\([\\s\\S]*?\\bas\\s+\\$\\$([\\s\\S]*?)\\$\\$;`, "i");
+  const re = new RegExp(`create\\s+(?:or\\s+replace\\s+)?function\\s+${fn}\\s*\\([\\s\\S]*?\\bas\\s+\\$\\$([\\s\\S]*?)\\$\\$;`, "i");
   return (sql.match(re) ?? [])[1] ?? null;
 }
 

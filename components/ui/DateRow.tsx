@@ -23,6 +23,7 @@ export function DateRow({
   date,
   note,
   title,
+  onTitleClick,
   subtitle,
   status,
   action,
@@ -34,6 +35,15 @@ export function DateRow({
   /** Kleine Zeile unter dem Datum: Restzeit, Uhrzeit, „ganztägig". */
   note?: ReactNode;
   title: string;
+  /**
+   * Macht den Titel anklickbar — fuer Listen, in denen eine Zeile ein Detail
+   * oeffnet (Programm, Einreichungen). Ohne die Angabe bleibt der Titel Text.
+   *
+   * Warum nicht einfach einen ReactNode als `title` zulassen: dann setzt jede
+   * Seite ihre eigene Schrift und die Liste laeuft auseinander. So bleibt die
+   * Typografie hier und die Seite sagt nur, was beim Klick passiert.
+   */
+  onTitleClick?: () => void;
   subtitle?: string;
   /** Rechts: `<Badge>` mit Wortlaut. */
   status?: ReactNode;
@@ -76,7 +86,17 @@ export function DateRow({
           bricht der Status in die nächste Zeile, statt den Titel auf drei
           Zeilen zu quetschen. Genau das passierte bei 375 px. */}
       <div className="min-w-0 flex-1 basis-48">
-        <p className="ct-label text-ink">{title}</p>
+        {onTitleClick ? (
+          <button
+            type="button"
+            onClick={onTitleClick}
+            className="block max-w-full text-left ct-label text-ink hover:underline"
+          >
+            {title}
+          </button>
+        ) : (
+          <p className="ct-label text-ink">{title}</p>
+        )}
         {subtitle && <p className="ct-help mt-0.5">{subtitle}</p>}
       </div>
 

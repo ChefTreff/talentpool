@@ -151,7 +151,7 @@ export function SubmissionQueue({
         return (
           <Card key={s.id} className="p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-[280px] flex-1">
+              <div className="min-w-70 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="ct-h3 text-ink">{sessionTitle}</span>
                   {s.publish_status && (

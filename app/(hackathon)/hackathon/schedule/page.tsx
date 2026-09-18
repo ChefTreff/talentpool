@@ -4,6 +4,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Card } from "@/components/ui/Card";
+import { DateRow, DateList } from "@/components/ui/DateRow";
 import { Badge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic";
@@ -77,20 +79,29 @@ export default async function SchedulePage() {
         {[...byDay.entries()].map(([date, items]) => (
           <section key={date} className="flex flex-col gap-2">
             <h2 className="ct-h3">{day.format(new Date(`${date}T12:00:00Z`))}</h2>
-            <ul className="flex flex-col gap-2">
-              {items.map((s) => (
-                <li key={s.session_id} className="flex flex-wrap items-baseline gap-3 border-b pb-2">
-                  <span className="ct-label tabular-nums">
-                    {time.format(new Date(s.start_at))}–{time.format(new Date(s.end_at))}
-                  </span>
-                  <span className="ct-label">{s.title_en ?? s.title_de ?? "—"}</span>
-                  {s.format && <Badge>{vlabel(vocab, "session_format", s.format)}</Badge>}
-                  {(s.stage_name || s.room) && (
-                    <span className="ct-help">{[s.stage_name, s.room].filter(Boolean).join(" · ")}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
+            {/* Die Zeilen standen als Divs nebeneinander: Uhrzeit, Titel und
+                Ort rutschten je nach Textlaenge an andere Stellen, und bei
+                zehn Punkten las sich das wie zehn einzelne Zeilen. `DateRow`
+                gibt der Zeitspalte eine feste Breite, damit die Titel
+                untereinander auf einer Kante stehen. */}
+            <Card className="p-0">
+              <DateList>
+                {items.map((s) => (
+                  <DateRow
+                    key={s.session_id}
+                    date={time.format(new Date(s.start_at))}
+                    note={`${t.common.until} ${time.format(new Date(s.end_at))}`}
+                    title={s.title_en ?? s.title_de ?? "—"}
+                    subtitle={
+                      [s.stage_name, s.room].filter(Boolean).join(" · ") || undefined
+                    }
+                    status={
+                      s.format ? <Badge>{vlabel(vocab, "session_format", s.format)}</Badge> : undefined
+                    }
+                  />
+                ))}
+              </DateList>
+            </Card>
           </section>
         ))}
       </div>

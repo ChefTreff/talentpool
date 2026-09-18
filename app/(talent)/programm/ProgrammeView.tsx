@@ -2,11 +2,12 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDay, formatRange } from "@/lib/tz";
+import { formatDay, formatRange, formatTime } from "@/lib/tz";
 import type { Locale } from "@/lib/i18n/shared";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { DateRow, DateList } from "@/components/ui/DateRow";
 import { Drawer } from "@/components/ui/Drawer";
 import { ConfirmDialog, Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -71,7 +72,7 @@ export function ProgrammeView({
   labels: ProgrammeLabels;
   locale: Locale;
   t: Strings;
-  common: { cancel: string; close: string; save: string };
+  common: { cancel: string; close: string; save: string; until: string };
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
@@ -285,35 +286,28 @@ export function ProgrammeView({
       {visible.length === 0 ? (
         <EmptyState title={t.noMatchTitle} description={t.noMatchBody} />
       ) : (
-        <ul className="flex flex-col gap-3">
-          {visible.map((s) => {
-            const app = appBySession.get(s.session_id);
-            const reg = regBySession.get(s.session_id);
-            return (
-              <Card as="li" key={s.session_id} className="p-4">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="ct-help flex flex-wrap items-center gap-2">
-                      {s.start_at && s.end_at && (
-                        <span className="tabular-nums">
-                          {formatRange(s.start_at, s.end_at, tz(s))}
-                        </span>
-                      )}
-                      {s.stage_name && <span>· {s.stage_name}</span>}
-                      {s.room && <span>· {s.room}</span>}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setOpenId(s.session_id)}
-                      className="mt-1 block text-left"
-                    >
-                      <span className="ct-h3 text-ink hover:underline">{title(s)}</span>
-                    </button>
-                    <div className="mt-2 flex flex-wrap gap-2">
+        /* Vorher eine Karte je Session. Das Programm hat Dutzende Punkte,
+           und ab dem fuenften sieht man nicht mehr, dass es eine Liste ist
+           (Archetyp A). Jetzt Zeilen: die Zeit links in fester Breite,
+           dadurch stehen alle Titel auf einer Kante. Inhalt und Aktionen
+           sind dieselben. */
+        <Card className="p-0">
+          <DateList>
+            {visible.map((s) => {
+              const app = appBySession.get(s.session_id);
+              const reg = regBySession.get(s.session_id);
+              return (
+                <DateRow
+                  key={s.session_id}
+                  date={s.start_at ? formatTime(s.start_at, tz(s)) : "—"}
+                  note={s.end_at ? `${common.until} ${formatTime(s.end_at, tz(s))}` : undefined}
+                  title={title(s)}
+                  onTitleClick={() => setOpenId(s.session_id)}
+                  subtitle={[s.stage_name, s.room].filter(Boolean).join(" · ") || undefined}
+                  status={
+                    <div className="flex flex-wrap gap-2">
                       {s.format && <Badge>{labels.format[s.format] ?? s.format}</Badge>}
-                      {s.language && (
-                        <Badge>{labels.language[s.language] ?? s.language}</Badge>
-                      )}
+                      {s.language && <Badge>{labels.language[s.language] ?? s.language}</Badge>}
                       {s.access_mode && s.access_mode !== "open" && (
                         <Badge tone="accent">
                           {labels.accessMode[s.access_mode] ?? s.access_mode}
@@ -326,25 +320,27 @@ export function ProgrammeView({
                       )}
                       {reg && <Badge tone="success">{t.registeredShort}</Badge>}
                     </div>
-                  </div>
-                  <SessionAction
-                    session={s}
-                    application={app}
-                    registered={Boolean(reg)}
-                    pending={pending}
-                    t={t}
-                    onApply={() => onApply(s)}
-                    onRegister={() => onRegister(s)}
-                    onCancelRegistration={() => onCancelRegistration(s)}
-                    onConfirm={() => app && onConfirm(app)}
-                    onWithdraw={() => app && onWithdraw(app)}
-                    onOpen={() => setOpenId(s.session_id)}
-                  />
-                </div>
-              </Card>
-            );
-          })}
-        </ul>
+                  }
+                  action={
+                    <SessionAction
+                      session={s}
+                      application={app}
+                      registered={Boolean(reg)}
+                      pending={pending}
+                      t={t}
+                      onApply={() => onApply(s)}
+                      onRegister={() => onRegister(s)}
+                      onCancelRegistration={() => onCancelRegistration(s)}
+                      onConfirm={() => app && onConfirm(app)}
+                      onWithdraw={() => app && onWithdraw(app)}
+                      onOpen={() => setOpenId(s.session_id)}
+                    />
+                  }
+                />
+              );
+            })}
+          </DateList>
+        </Card>
       )}
 
       {/* Detail */}
