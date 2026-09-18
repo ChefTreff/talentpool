@@ -3184,7 +3184,9 @@
     "badgeOverdue": "Überfällig",
     "footerMailbox": "Fragen? Schreibt uns:",
     "footerImprint": "Impressum",
-    "footerPrivacy": "Datenschutz"
+    "footerPrivacy": "Datenschutz",
+    "personsDenseHint": "Dieselbe Form, dicht: wer für euch zuständig ist, mit Mail und Telefon zum Antippen.",
+    "roleBuddy": "Buddy"
   },
   "adminEdition": {
     "title": "Edition & Bühnen",
