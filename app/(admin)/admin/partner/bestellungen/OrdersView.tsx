@@ -315,7 +315,7 @@ export function OrdersView({
                   </p>
                 )}
                 <div className="mt-2 flex flex-wrap items-end gap-2">
-                  <Field label={t.answer} htmlFor={`a-${r.id}`} className="min-w-[280px] flex-1">
+                  <Field label={t.answer} htmlFor={`a-${r.id}`} className="min-w-70 flex-1">
                     <Textarea
                       id={`a-${r.id}`}
                       rows={2}

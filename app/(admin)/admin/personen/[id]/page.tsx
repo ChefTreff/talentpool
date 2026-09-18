@@ -72,7 +72,7 @@ export default async function PersonDetail({
     t.admin.persons.noName;
 
   return (
-    <div className="max-w-[1000px]">
+    <div className="max-w-detail">
       <Link href="/admin/personen" className="ct-link ct-small">
         ← {d.back}
       </Link>
