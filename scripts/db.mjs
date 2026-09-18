@@ -111,9 +111,12 @@ const commands = {
     if (!/^[a-z0-9_]+$/.test(a2)) fail("Name nur aus a-z, 0-9, _");
     const mig = readFileSync(a1, "utf8");
     if (!/harden_definer_functions\s*\(\s*\)/.test(mig)) fail("Migration endet nicht mit select harden_definer_functions();");
-    const v = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
+    let v = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
     try {
       await client.query("begin");
+      // Zwei Anwendungen in derselben Sekunde: Version muss streng steigen (18.09.2026, Kollision bei 0113/0114).
+      const { rows: [{ max }] } = await client.query("select coalesce(max(version), '0') as max from supabase_migrations.schema_migrations");
+      if (v <= max) v = String(BigInt(max) + 1n);
       await client.query(mig);
       await client.query("insert into supabase_migrations.schema_migrations (version, name, statements) values ($1, $2, $3)", [v, a2, [mig]]);
       await client.query("commit");
