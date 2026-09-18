@@ -1,5 +1,7 @@
 -- 0126 · Welle 6 · Zähler für Assistenten ausserhalb der Wissensbasis (SPK-012)
 --
+-- Angewendet von der Architektur-Session am 18.09.2026 als 20260918204334.
+--
 -- Vorschlag der Build-Session Speaker-Domäne. Anwenden, Umbenennen und der
 -- Eintrag ins Entscheidungslog gehören der Architektur-/Security-Session.
 -- Nummer 0126 zugeteilt.
