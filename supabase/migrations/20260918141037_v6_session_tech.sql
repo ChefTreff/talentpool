@@ -1,4 +1,4 @@
--- 2360 · Welle 6 · Technik am Slot: die Ansage des Speakers (A7.2, SPK-018, PROD-007)
+-- 0117 · Welle 6 · Technik am Slot: die Ansage des Speakers (A7.2, SPK-018, PROD-007)
 --
 -- Angewendet von der Architektur-Session am 18.09.2026 als 20260918141037.
 --
