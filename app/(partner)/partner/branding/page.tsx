@@ -44,6 +44,7 @@ export default async function PartnerBrandingPage() {
   const overview = (overviewJson ?? null) as PartnerOverview | null;
   const deliverables = (deliverableRows ?? []) as Deliverable[];
   const s = t.partnerBranding;
+  const dateTime = new Intl.DateTimeFormat(t.meta.dateLocale, { dateStyle: "long", timeStyle: "short" });
 
   const gebucht = (overview?.products ?? []).filter((p) => p.format_key === "branding");
   const canEdit = overview ? canEditOnboarding(overview.roles, overview.team) : false;
@@ -95,7 +96,14 @@ export default async function PartnerBrandingPage() {
                 )}
                 {d.due_at && (
                   <div className="mt-3">
-                    <DeadlineCard dueAt={d.due_at} label={s.dueLabel} locale={locale} />
+                    <DeadlineCard
+                      dueAt={d.due_at}
+                      label={s.dueLabel}
+                      dateText={dateTime.format(new Date(d.due_at))}
+                      days={t.partner.countdownDays}
+                      hours={t.partner.countdownHours}
+                      soon={t.partner.countdownSoon}
+                    />
                   </div>
                 )}
                 <div className="mt-4">
