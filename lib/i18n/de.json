@@ -1189,7 +1189,9 @@
     "asset_accepted": "Angenommen",
     "asset_rejected": "Zurückgewiesen",
     "downloadFailed": "Die Datei lässt sich gerade nicht öffnen.",
-    "invoicesSoon": "Angebot und Rechnung kommen später dazu."
+    "invoicesSoon": "Angebot und Rechnung kommen später dazu.",
+    "docKindOffer": "Angebot",
+    "docKindInvoice": "Rechnung"
   },
   "partnerTickets": {
     "title": "Tickets",
