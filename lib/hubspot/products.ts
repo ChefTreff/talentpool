@@ -35,6 +35,19 @@ function felder(p: ProductOut): Record<string, string> {
   };
 }
 
+/** Die SKU drüben suchen — **nur lesend**. Grundlage des Dublettenschutzes und des Trockenlaufs. */
+export async function findHubspotProduct(sku: string): Promise<string | null> {
+  const suche = await hs<{ results?: HsProduct[] }>("/crm/v3/objects/products/search", {
+    method: "POST",
+    body: JSON.stringify({
+      filterGroups: [{ filters: [{ propertyName: "hs_sku", operator: "EQ", value: sku }] }],
+      properties: ["hs_sku"],
+      limit: 1,
+    }),
+  });
+  return suche.results?.[0]?.id ?? null;
+}
+
 /**
  * Anlegen oder ändern, je nachdem, ob wir den Fremdschlüssel schon kennen.
  *
@@ -54,15 +67,7 @@ export async function upsertHubspotProduct(
     return { id: bekannt, angelegt: false };
   }
 
-  const suche = await hs<{ results?: HsProduct[] }>("/crm/v3/objects/products/search", {
-    method: "POST",
-    body: JSON.stringify({
-      filterGroups: [{ filters: [{ propertyName: "hs_sku", operator: "EQ", value: p.sku }] }],
-      properties: ["hs_sku"],
-      limit: 1,
-    }),
-  });
-  const gefunden = suche.results?.[0]?.id;
+  const gefunden = await findHubspotProduct(p.sku);
   if (gefunden) {
     await hs(`/crm/v3/objects/products/${gefunden}`, {
       method: "PATCH",

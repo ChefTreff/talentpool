@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { upsertHubspotProduct, type ProductOut } from "@/lib/hubspot/products";
-import { upsertSevdeskPart } from "@/lib/sevdesk/parts";
+import { findHubspotProduct, upsertHubspotProduct, type ProductOut } from "@/lib/hubspot/products";
+import { findSevdeskPart, upsertSevdeskPart } from "@/lib/sevdesk/parts";
 import { hasSevdeskToken } from "@/lib/sevdesk/client";
 
 export type SyncSystem = "hubspot" | "sevdesk";
@@ -9,18 +9,28 @@ export type SyncSystem = "hubspot" | "sevdesk";
 export type SyncErgebnis = {
   system: SyncSystem;
   jobId: number | null;
-  /** Neu drüben angelegt. */
+  /** Trockenlauf: gelesen und verglichen, nichts geschrieben. */
+  dryRun: boolean;
+  /** Neu drüben angelegt — im Trockenlauf: **würde** angelegt. */
   created: number;
-  /** Drüben geändert. */
+  /** Drüben geändert — im Trockenlauf: **würde** geändert. */
   updated: number;
   /** Bewusst nicht hinausgegangen — mit Grund. */
   skipped: number;
   failed: number;
+  /**
+   * Die Artikel, die drüben noch fehlen, mit Nummer und Namen. Genau diese Liste
+   * entscheidet, ob ein Lauf sauber ist: steht dort ein Artikel, den es drüben
+   * längst gibt, stimmt die Artikelnummer nicht überein — und ein scharfer Lauf
+   * legte ihn ein zweites Mal an.
+   */
+  neu: { sku: string; name: string }[];
   /** Warum nichts passiert ist, wenn nichts passiert ist. */
   skippedReason?: string;
 };
 
 type Zeile = ProductOut & { external_id: string | null };
+
 
 /**
  * Den Produktstamm hinausschreiben.
@@ -31,6 +41,12 @@ type Zeile = ProductOut & { external_id: string | null };
  * Abbruch beim ersten Problem hiesse, dass ein Tippfehler in einem Artikel den
  * ganzen Stamm aufhält.
  *
+ * **`dryRun` ist die Vorgabe der Route.** Er liest denselben Weg (gemerkter
+ * Fremdschlüssel, sonst Suche über Artikelnummer beziehungsweise SKU) und sagt
+ * je Artikel, ob er drüben schon steht — schreibt aber nichts. Damit lässt sich
+ * vor dem ersten scharfen Lauf sehen, wie viele Artikel wirklich neu wären.
+ * Konrad, 21.09.2026: vor jedem Anlegen in SevDesk wird gefragt.
+ *
  * `supabase` ist der Client des Teammitglieds: die RPCs prüfen
  * `is_partner_team()` selbst. `admin` schreibt nur Protokoll und
  * Fremdschlüssel — nach der Rollenprüfung, nie davor.
@@ -40,8 +56,9 @@ export async function syncProducts(
   admin: SupabaseClient,
   system: SyncSystem,
   triggeredBy: string,
+  dryRun = true,
 ): Promise<SyncErgebnis> {
-  const out: SyncErgebnis = { system, jobId: null, created: 0, updated: 0, skipped: 0, failed: 0 };
+  const out: SyncErgebnis = { system, jobId: null, dryRun, created: 0, updated: 0, skipped: 0, failed: 0, neu: [] };
 
   const { data, error } = await supabase.rpc("products_for_sync", { p_system: system });
   if (error) throw new Error(error.message);
@@ -62,19 +79,34 @@ export async function syncProducts(
   const { data: jobId } = await admin.rpc("start_sync_job", {
     p_system: system,
     p_direction: "out",
-    p_job_type: "product_sync",
+    p_job_type: dryRun ? "product_sync_preview" : "product_sync",
     p_triggered_by: triggeredBy,
   });
   out.jobId = typeof jobId === "number" ? jobId : null;
 
   for (const z of zeilen) {
     try {
+      // Im Trockenlauf denselben Weg gehen, aber nur lesen: gemerkter
+      // Fremdschlüssel schlägt Suche, Suche schlägt „neu".
+      if (dryRun) {
+        const gefunden =
+          z.external_id ??
+          (system === "hubspot" ? await findHubspotProduct(z.sku) : await findSevdeskPart(z.sku));
+        if (gefunden) out.updated += 1;
+        else {
+          out.created += 1;
+          out.neu.push({ sku: z.sku, name: z.name_de });
+        }
+        continue;
+      }
       const res =
         system === "hubspot"
           ? await upsertHubspotProduct(z, z.external_id)
           : await upsertSevdeskPart(z, z.external_id);
-      if (res.angelegt) out.created += 1;
-      else out.updated += 1;
+      if (res.angelegt) {
+        out.created += 1;
+        out.neu.push({ sku: z.sku, name: z.name_de });
+      } else out.updated += 1;
       // Den Schlüssel erst merken, wenn drüben etwas steht — andersherum
       // zeigte die Referenz auf einen Artikel, den es nie gab.
       if (res.id !== z.external_id) {
@@ -103,7 +135,7 @@ export async function syncProducts(
     await admin.rpc("finish_sync_job", {
       p_id: out.jobId,
       p_status: out.failed === 0 ? "ok" : out.created + out.updated > 0 ? "partial" : "failed",
-      p_stats: { created: out.created, updated: out.updated, skipped: out.skipped, failed: out.failed },
+      p_stats: { dryRun, created: out.created, updated: out.updated, skipped: out.skipped, failed: out.failed },
     });
   }
   return out;

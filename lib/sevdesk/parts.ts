@@ -36,6 +36,19 @@ function felder(p: ProductOut): Record<string, unknown> {
 }
 
 /**
+ * Die Artikelnummer drüben suchen — **nur lesend**.
+ *
+ * Die Suche ist exakt, kein Präfix: `?partNumber=I-42` findet `I-42738` nicht
+ * (geprüft am 21.09.2026 am echten Stamm). Darauf beruht der Dublettenschutz —
+ * ein Artikel wird nur dann als „neu" gezählt, wenn die Nummer drüben wirklich
+ * fehlt.
+ */
+export async function findSevdeskPart(sku: string): Promise<string | null> {
+  const suche = await sd<SdList<SdPart[]>>(`/Part?partNumber=${encodeURIComponent(sku)}&limit=1`);
+  return suche.objects?.[0]?.id ?? null;
+}
+
+/**
  * Anlegen oder ändern.
  *
  * Wie bei HubSpot: kennen wir den Fremdschlüssel nicht, suchen wir einmal über
@@ -51,10 +64,7 @@ export async function upsertSevdeskPart(
     return { id: bekannt, angelegt: false };
   }
 
-  const suche = await sd<SdList<SdPart[]>>(
-    `/Part?partNumber=${encodeURIComponent(p.sku)}&limit=1`,
-  );
-  const gefunden = suche.objects?.[0]?.id;
+  const gefunden = await findSevdeskPart(p.sku);
   if (gefunden) {
     await sd(`/Part/${gefunden}`, { method: "PUT", body: JSON.stringify(felder(p)) });
     return { id: gefunden, angelegt: false };
