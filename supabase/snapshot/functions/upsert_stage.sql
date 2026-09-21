@@ -18,7 +18,8 @@ begin
   if not is_programme_editor(v_event) then raise exception 'not allowed' using errcode = '42501'; end if;
 
   v_type := nullif(p_data->>'type', '');
-  if v_type is not null and v_type not in ('main', 'side', 'partner_booth', 'room') then
+  -- Vorher: v_type not in ('main', 'side', 'partner_booth', 'room')
+  if v_type is not null and not is_vocab_key('stage_type', v_type) then
     raise exception 'invalid_stage_type' using errcode = '22023', detail = v_type;
   end if;
 

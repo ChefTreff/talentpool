@@ -9,7 +9,7 @@ begin
   if not can_edit_edition_contacts() then raise exception 'not allowed' using errcode = '42501'; end if;
   v_id := nullif(p_data->>'id', '')::uuid;
   v_typ := nullif(btrim(p_data->>'type'), '');
-  if v_typ is not null and v_typ not in ('partner_lead','partner_buddy','speaker_lead','speaker_buddy') then
+  if v_typ is not null and v_typ not in ('partner_lead','partner_buddy','speaker_lead','speaker_buddy','tour_lead') then
     raise exception 'invalid_contact_type' using errcode = '22023', detail = coalesce(v_typ, 'null');
   end if;
   v_mail := nullif(btrim(p_data->>'email'), '');

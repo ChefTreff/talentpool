@@ -50,7 +50,9 @@ begin
                   from deliverable d where d.org_edition_id = v_oe.id),
     'sessions_count', (select count(*) from session se join event ev on ev.id = se.event_id
                        where se.host_org_id = p_org_id and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id) and se.publish_status <> 'cancelled'),
+    -- Nur eine echte Standbühne blendet den Menüpunkt ein. Tische und Side-Event-Orte
+    -- gehören dem Partner ebenfalls, sind aber keine Bühne, die er bespielt.
     'has_stage', exists (select 1 from stage st join event ev on ev.id = st.event_id
-                         where st.partner_org_id = p_org_id and st.active and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id))
+                         where st.partner_org_id = p_org_id and st.active and st.type = 'partner_booth' and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id))
   );
 end $$;

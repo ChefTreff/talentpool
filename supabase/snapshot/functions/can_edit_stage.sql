@@ -14,7 +14,8 @@ AS $$
            (ra.role in ('admin','programme_team') and ra.scope_type = 'global')
         or (ra.role in ('admin','programme_team') and ra.scope_type = 'edition' and ra.edition_id in (ev.id, ev.edition_id))
         or (ra.role in ('speaker_manager','standbuehne_editor') and ra.scope_type = 'stage' and ra.scope_id = st.id)
-        or (ra.role = 'standbuehne_editor' and ra.scope_type = 'org' and st.partner_org_id is not null and ra.scope_id = st.partner_org_id)
+        or (ra.role = 'standbuehne_editor' and ra.scope_type = 'org' and st.type = 'partner_booth'
+            and st.partner_org_id is not null and ra.scope_id = st.partner_org_id)
       )
   )
 $$;
