@@ -132,9 +132,10 @@ export default async function PartnerHackathonPage() {
                 </Badge>
               </div>
               {text(backdrop) && <p className="ct-small mt-2 leading-6">{text(backdrop)}</p>}
-              {/* Das Endformat steht noch aus (Konrad liefert es nach). Bis
-                  dahin sagt die Seite das, statt ein Maß zu erfinden. */}
-              <p className="ct-help mt-2">{s.backdropSizeSoon}</p>
+              {/* Das Endformat steht als eigene Zeile, obwohl es auch in der
+                  Beschreibung vorkommt: es ist die erste Zahl, nach der jemand
+                  sucht, der die Datei bauen soll (Konrad 21.09.). */}
+              <p className="ct-help mt-2">{s.backdropSize}</p>
               {backdrop.due_at && (
                 <div className="mt-3">
                   <DeadlineCard

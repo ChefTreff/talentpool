@@ -2,7 +2,8 @@
 --   01 die Vorlage `hackathon_backdrop` steht an der Kategorie `hackathon` — nicht an einer
 --      einzelnen SKU: wer Challenge, Stand oder Impuls gebucht hat, bekommt die Fläche;
 --   02 Konrads Anforderungen stehen vollständig in der Beschreibung, in beiden Sprachen
---      (Schutzrand 100 mm, PDF/X-4, CMYK ISO Coated v2, 62 dpi, Schriften, Beschnitt);
+--      (Schutzrand 100 mm, PDF/X-4, CMYK ISO Coated v2, 62 dpi, Schriften, Beschnitt)
+--      samt Endformat 1610 x 2790 mm (Konrad 21.09., D4-Ergaenzung);
 --   03 die Dateiregel prüft, was prüfbar ist: PDF ja, PNG nein;
 --   04 sie hängt an der Challenge-Frist (18.03.2027) — die Folie muss produziert werden;
 --   05 ein Hackathon-Partner bekommt die Pflicht, ein Partner ohne Hackathon nicht;
@@ -37,11 +38,13 @@ begin
   insert into t_res values ('02_anforderungen_de',
     case when v_txt like '%100 mm%' and v_txt like '%PDF/X-4%' and v_txt like '%ISO Coated v2%'
               and v_txt like '%62 dpi%' and v_txt like '%Beschnitt%'
+              and v_txt like '%1610 × 2790 mm%'
          then 'Schutzrand, Format, Farbraum, Aufloesung, Beschnitt (richtig)'
          else 'unvollstaendig' end);
   insert into t_res values ('02b_anforderungen_en',
     case when v_txt2 like '%100 mm%' and v_txt2 like '%PDF/X-4%' and v_txt2 like '%ISO Coated v2%'
               and v_txt2 like '%62 dpi%' and v_txt2 like '%bleed%'
+              and v_txt2 like '%1610 × 2790 mm%'
          then 'dasselbe auf Englisch (richtig)' else 'unvollstaendig' end);
 
   -- 03 Dateiregel: nur das Prüfbare

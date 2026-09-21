@@ -3673,7 +3673,7 @@
     "challengeView": "View the challenge",
     "challengeSubmitted": "Submitted. We review it and present it to the teams.",
     "backdropDue": "File due",
-    "backdropSizeSoon": "We will add the final size in millimetres once the space is set. You can upload your file already.",
+    "backdropSize": "Final format 1610 × 2790 mm (width × height). This is the visible frame; your data format is the final format plus bleed.",
     "backdropUpload": "Upload the backdrop",
     "backdropUploadNew": "Upload a new version",
     "appTitle": "The participant app",

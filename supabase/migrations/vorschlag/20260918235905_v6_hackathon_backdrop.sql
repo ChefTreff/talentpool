@@ -11,8 +11,9 @@
 -- Was die Datei prüft, ist das Format (PDF) und die Größe. Eine behauptete Prüfung wäre
 -- schlimmer als keine: der Partner verließe sich darauf.
 --
--- **Das Endformat in Millimetern fehlt noch** (Konrad liefert es nach). Solange es fehlt, nennt
--- die Seite kein Maß — hochladen kann der Partner trotzdem. Das Maß kommt später über
+-- **Endformat: 1610 × 2790 mm** (Breite × Höhe), von Konrad am 21.09. nachgereicht als Ergänzung
+-- zu D4. Es steht in der Beschreibung, weil es die erste Zahl ist, die ein Grafiker braucht;
+-- geprüft wird es nicht (siehe oben). Ändert sich die Fläche, geht das Maß über
 -- `/admin/partner/vorlagen` in die Beschreibung, ohne Migration.
 --
 -- Frist: dieselbe wie für die Challenge (`hackathon_challenge`, 18.03.2027). Die Folie muss
@@ -32,13 +33,15 @@ values (
   || 'Schriften eingebettet oder in Pfade umgewandelt. '
   || 'Schutzrand: Text, Logos und Gesichter mindestens 100 mm von der sichtbaren Kante entfernt; '
   || 'die Schutzzone liegt 100 mm nach innen und gehört **nicht** zum Beschnitt. '
-  || 'Endformat ist der sichtbare Rahmen, das Datenformat das Endformat plus Beschnitt.',
+  || 'Endformat 1610 × 2790 mm (Breite × Höhe) — das ist der sichtbare Rahmen; '
+  || 'das Datenformat ist das Endformat plus Beschnitt.',
   'Your artwork for the wall behind your challenge area — we use it to film the window panes. '
   || 'Requirements: PDF/X-4, colour space CMYK (ISO Coated v2), at least 62 dpi at final size, '
   || 'fonts embedded or converted to outlines. '
   || 'Safety margin: text, logos and faces at least 100 mm from the visible edge; '
   || 'the safety zone runs 100 mm inward and is **not** part of the bleed. '
-  || 'Final format is the visible frame, the data format is final format plus bleed.',
+  || 'Final format 1610 × 2790 mm (width × height) — this is the visible frame; '
+  || 'the data format is the final format plus bleed.',
   jsonb_build_object('deadline_key', 'hackathon_challenge'),
   -- Geprüft wird, was prüfbar ist: Format und Größe. Alles andere sieht das Team.
   '{"ext": ["pdf"], "mime": ["application/pdf"], "max_bytes": 104857600}'::jsonb,

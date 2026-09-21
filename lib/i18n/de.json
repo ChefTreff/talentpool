@@ -3673,7 +3673,7 @@
     "challengeView": "Challenge ansehen",
     "challengeSubmitted": "Eingereicht. Wir schauen sie durch und stellen sie den Teams vor.",
     "backdropDue": "Datei bis",
-    "backdropSizeSoon": "Das Endformat in Millimetern reichen wir nach, sobald die Fläche steht. Ihr könnt eure Datei trotzdem schon hochladen.",
+    "backdropSize": "Endformat 1610 × 2790 mm (Breite × Höhe). Das ist der sichtbare Rahmen; euer Datenformat ist das Endformat plus Beschnitt.",
     "backdropUpload": "Rückwand hochladen",
     "backdropUploadNew": "Neue Fassung hochladen",
     "appTitle": "Die Teilnehmer-App",
