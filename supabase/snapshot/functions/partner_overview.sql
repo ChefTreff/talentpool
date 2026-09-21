@@ -39,7 +39,8 @@ begin
     'deadlines', coalesce((select jsonb_agg(jsonb_build_object('key', d.key, 'due_at', d.due_at, 'label_de', d.label_de, 'label_en', d.label_en,
                                                                  'description_de', d.description_de, 'description_en', d.description_en) order by d.due_at)
                            from deadline d where d.edition_id = v_oe.edition_id and d.audience in ('partner', 'all')), '[]'::jsonb),
-    'booth', (select to_jsonb(b) - 'id' - 'org_edition_id' - 'notes' from booth b where b.org_edition_id = v_oe.id),
+    'booth', (select to_jsonb(b) - 'id' - 'notes' from booth_assignment ba join booth b on b.id = ba.booth_id
+               where ba.org_edition_id = v_oe.id order by ba.event_day_id nulls first, b.created_at limit 1),
     'checklist', (select jsonb_build_object('total', count(*) filter (where d.status <> 'not_required'),
                                             'done', count(*) filter (where d.status in ('submitted', 'accepted')),
                                             'open', count(*) filter (where d.status in ('open', 'overdue')),

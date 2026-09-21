@@ -114,6 +114,10 @@ const BUSINESS_KEYS = new Set([
   // Rabattstufen (Migration 0123)
   "invalid_discount",
   "derived_allocation",
+  // Vokabularpflege (Migration 0130)
+  "usage_unknown",
+  "has_children",
+  "invalid_key",
   "org_not_found",
   // Nachträge aus dem B4-Review (Migrationen 0053/0054) und B5
   "answers_incomplete",
