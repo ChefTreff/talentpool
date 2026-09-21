@@ -17,7 +17,12 @@
 --   12 `partner_admin_overview` liefert die Standnummer auch bei geteiltem Stand —
 --      die Unterabfrage hatte vorher kein `limit` und waere abgebrochen;
 --   13 Loesen entfernt die Belegung, nicht den Stand;
---   14 jede Belegung und jedes Loesen steht im Protokoll.
+--   14 jede Belegung und jedes Loesen steht im Protokoll;
+--   15 auf `booth` steht **genau eine** Lesepolitik, sie geht ueber `booth_assignment`
+--      und nennt `booth.org_edition_id` nicht mehr — die alte Policy haette den `drop column`
+--      scheitern lassen (2BP01), ein blosses Loeschen haette Partnern den Blick auf
+--      ihren Stand genommen;
+--   16 an der Spalte haengt nichts mehr: `pg_attribute` kennt sie nicht.
 -- Der Test legt sich **eigene Veranstaltungstage** an: die Edition hat heute keine
 -- (`event_day` ist leer, das Programm-Geruest ist noch nicht gefuellt). Ohne das
 -- wuerden die Schritte 03 bis 09 nichts pruefen.
@@ -138,6 +143,24 @@ begin
    where action in ('booth.assignment', 'booth.assignment_removed');
   insert into t_res values ('14_protokoll',
     case when v_n >= 2 then v_n || ' Eintraege (richtig)' else 'FEHLT (' || v_n || ')' end);
+
+  -- 15 die Lesepolitik ist ersetzt, nicht nur entfernt --------------------------
+  select count(*)::integer into v_n from pg_policies
+   where schemaname = 'public' and tablename = 'booth' and cmd = 'SELECT';
+  select string_agg(qual, ' | ') into v_txt from pg_policies
+   where schemaname = 'public' and tablename = 'booth' and cmd = 'SELECT';
+  -- Geprueft wird `booth.org_edition_id`, nicht `org_edition_id` schlechthin:
+  -- die neue Policy nennt `ba.org_edition_id` im Join, und das muss sie auch.
+  insert into t_res values ('15_lesepolitik',
+    case when v_n = 1 and v_txt like '%booth_assignment%' and v_txt not like '%booth.org_edition_id%'
+         then 'eine Policy ueber die Zuordnung (richtig)'
+         else 'unerwartet: ' || v_n || ' Policy/Policies — ' || coalesce(left(v_txt, 160), 'keine') end);
+
+  -- 16 an der alten Spalte haengt nichts mehr ------------------------------------
+  select count(*)::integer into v_n from pg_attribute
+   where attrelid = 'booth'::regclass and attname = 'org_edition_id' and not attisdropped;
+  insert into t_res values ('16_spalte_weg',
+    case when v_n = 0 then 'Spalte entfernt (richtig)' else 'steht noch (BUG)' end);
 end $$;
 select * from t_res order by step;
 rollback;

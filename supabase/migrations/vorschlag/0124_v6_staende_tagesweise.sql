@@ -41,6 +41,10 @@
 -- liefert nichts — richtig so, aber es gehört gesagt, damit niemand den leeren
 -- Plan für einen Fehler hält. Der Test legt sich deshalb eigene Tage an.
 --
+-- **Drei Objekte hingen an der Spalte** (`pg_depend`): der Fremdschlüssel, die
+-- Eindeutigkeit und die Lesepolitik `booth_read`. Die ersten beiden nimmt
+-- Postgres beim `drop column` mit, die Policy nicht — sie wird vorher ersetzt.
+--
 -- Fehlerschlüssel: 42501 ohne Partner-/Produktions-Team · 22023 `invalid_day`
 -- (Tag gehört nicht zur Edition) · P0002 `booth_not_found` ·
 -- P0002 `org_edition_not_found` · 23505 bei doppelter Belegung.
@@ -95,6 +99,26 @@ insert into booth_assignment (booth_id, org_edition_id, event_day_id)
 select b.id, b.org_edition_id, null from booth b
 where b.org_edition_id is not null
 on conflict (booth_id, event_day_id) do nothing;
+
+-- **Die Lesepolitik haengt an der Spalte und faellt nicht von allein.**
+-- Fremdschluessel und Eindeutigkeit nimmt Postgres beim `drop column` mit, eine
+-- Policy nicht — sie laesst den Drop mit 2BP01 scheitern (Probelauf der
+-- Architektur-Session, 21.09.). Deshalb erst ersetzen, dann entfernen; ein
+-- blosses Loeschen der Policy haette den Partnern den Blick auf ihren eigenen
+-- Stand genommen.
+--
+-- `is_staff()` steht dabei jetzt **ausserhalb** der Unterabfrage. Vorher war es
+-- darin, was nur deshalb gleichbedeutend war, weil jeder Stand eine Teilnahme
+-- hatte. Seit dieser Migration kann eine Flaeche unbelegt sein — und eine
+-- unbelegte Flaeche ist genau das, was das Team sehen muss, um sie zu vergeben.
+drop policy if exists booth_read on booth;
+create policy booth_read on booth for select to authenticated
+using (
+  is_staff()
+  or exists (select 1 from booth_assignment ba
+               join org_edition oe on oe.id = ba.org_edition_id
+              where ba.booth_id = booth.id and is_partner_of(oe.org_id))
+);
 
 alter table booth drop constraint if exists booth_org_edition_id_key;
 alter table booth drop column if exists org_edition_id;
