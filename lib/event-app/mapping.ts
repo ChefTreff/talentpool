@@ -18,11 +18,16 @@ export function normalizeWebsite(url: string | null | undefined): string | undef
 }
 
 /**
- * Logo-Typ in der App = Sponsoring-Level (Arbeitsauftrag A12); ohne Level die Partnerkategorie. Wird bis zur Entscheidung, was `type` 2027
- * bedeutet (2026 stand dort die Branche), **nicht** an Swapcard gesendet — siehe docs/runbooks/swapcard-aussteller.md.
+ * Sponsoring-Level und Ausstellerkategorien, wie sie aus den gebuchten Produkten kommen (0135) — für Anzeige und Protokoll.
+ * **Nicht** an Swapcard gesendet: `Exhibitor.type` ist dort die *Branche* („Tech, Data & IT"), nicht das Level (Probe 21.09.2026);
+ * eine Branche kennt das Portal bisher nicht. Siehe docs/runbooks/swapcard-aussteller.md, Abschnitt „Offen".
  */
-export function exhibitorType(row: Pick<ExhibitorRow, "sponsoring_level" | "partner_category">): string | undefined {
-  return row.sponsoring_level?.trim() || row.partner_category?.trim() || undefined;
+export function exhibitorTier(row: Pick<ExhibitorRow, "level_key" | "level_source" | "categories">): {
+  level: string | null;
+  source: "product" | "hubspot" | null;
+  categories: string[];
+} {
+  return { level: row.level_key ?? null, source: row.level_source ?? null, categories: row.categories ?? [] };
 }
 
 export function toExhibitorUpsert(row: ExhibitorRow, opts: { logoUrl?: string | null } = {}): ExhibitorUpsert {
@@ -34,8 +39,6 @@ export function toExhibitorUpsert(row: ExhibitorRow, opts: { logoUrl?: string | 
   const website = normalizeWebsite(row.website);
   if (website) item.websiteUrl = website;
   if (opts.logoUrl) item.logoUrl = opts.logoUrl;
-  const type = exhibitorType(row);
-  if (type) item.type = type;
   const booth = row.booth_number?.trim();
   if (booth) item.booth = booth;
   return item;
@@ -53,13 +56,26 @@ export function matchRemote(remotes: RemoteExhibitor[], row: Pick<ExhibitorRow, 
   return remotes.find((r) => r.name.trim().toLowerCase() === wanted);
 }
 
-/** Muss der Aussteller in der App geschrieben werden? Logo zählt nur, wenn wir eines liefern; `type` wird noch nicht gesendet und zählt nicht. */
+/**
+ * Beschreibungen ohne jeden Leerraum vergleichen. Swapcard speichert den Text als HTML und gibt ihn beim Lesen **ohne Tags und ohne
+ * Trennzeichen** zurück: aus „Absatz A\n\nAbsatz B" wird „Absatz AAbsatz B" (Probe 21.09.2026 an den 191 Ausstellern der Community).
+ * Ein Vergleich auf Gleichheit hielte jeden mehrzeiligen Text für geändert und schriebe ihn bei **jedem** Lauf neu.
+ */
+function sameText(a: string | null | undefined, b: string | undefined): boolean {
+  const plain = (t: string | null | undefined) => (t ?? "").replace(/<[^>]*>/g, "").replace(/\s+/g, "");
+  return plain(a) === plain(b);
+}
+
+/** Muss der Aussteller in der App geschrieben werden? Logo und Standnummer zählen nur, wenn wir sie liefern; `type` (Branche) gehört Swapcard. */
 export function exhibitorChanged(remote: RemoteExhibitor, wanted: ExhibitorUpsert): boolean {
   const same = (a: string | null | undefined, b: string | undefined) => (a ?? "").trim() === (b ?? "").trim();
   if (!same(remote.name, wanted.name)) return true;
-  if (!same(remote.description, wanted.description)) return true;
+  if (!sameText(remote.description, wanted.description)) return true;
   if (!same(remote.websiteUrl, wanted.websiteUrl)) return true;
   if (wanted.logoUrl !== undefined && !same(remote.logoUrl, wanted.logoUrl)) return true;
+  // Die Standnummer hängt am Event, nicht am Aussteller: sie kommt nur mit, wenn wir den Aussteller **im Event** gelesen haben.
+  // Ohne diesen Vergleich erreichte eine Standänderung Swapcard nach dem ersten Schreiben nie wieder.
+  if (wanted.booth !== undefined && remote.booths !== undefined && !remote.booths.some((b) => same(b, wanted.booth))) return true;
   return false;
 }
 

@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     });
     if (job) {
       await admin.rpc("finish_sync_job", {
-        p_id: job, p_status: summary.errors > 0 ? "partial" : "ok", p_stats: { ...summary, runs: undefined }, p_error: summary.skipped ?? null,
+        p_id: job, p_status: summary.errors > 0 ? "partial" : "ok", p_stats: { ...summary, runs: undefined, tiers: undefined }, p_error: summary.skipped ?? null,
       });
     }
     return NextResponse.json({ ok: true, job, ...summary });

@@ -4,7 +4,11 @@ import { SwapcardError, gql } from "@/lib/event-app/swapcard/client";
 import { EVENT_QUERY, LIST_EXHIBITORS, UPSERT_EXHIBITORS, DELETE_EXHIBITORS, toSwapcardInput } from "@/lib/event-app/swapcard/queries";
 import { chunks } from "@/lib/event-app/mapping";
 
-type Node = { id: string; name: string; description?: string | null; websiteUrl?: string | null; logoUrl?: string | null; clientIds?: string[] | null; type?: string | null };
+type Node = {
+  id: string; name: string; description?: string | null; websiteUrl?: string | null; logoUrl?: string | null;
+  clientIds?: string[] | null; type?: string | null;
+  withEvent?: { booths?: { name?: string | null }[] | null } | null;
+};
 type Page = { pageInfo: { hasNextPage: boolean; endCursor: string | null }; totalCount: number; nodes: Node[] };
 type UpsertData = {
   upsertEventExhibitorsV2: {
@@ -14,7 +18,14 @@ type UpsertData = {
 };
 
 function toRemote(n: Node): RemoteExhibitor {
-  return { id: n.id, name: n.name, clientIds: n.clientIds ?? undefined, description: n.description ?? null, websiteUrl: n.websiteUrl ?? null, logoUrl: n.logoUrl ?? null, type: n.type ?? null };
+  const remote: RemoteExhibitor = {
+    id: n.id, name: n.name, clientIds: n.clientIds ?? undefined,
+    description: n.description ?? null, websiteUrl: n.websiteUrl ?? null, logoUrl: n.logoUrl ?? null, type: n.type ?? null,
+  };
+  // Nur wenn der Aussteller wirklich am Event hängt, kennen wir seine Standnummern. Ein leeres Array heißt „am Event, ohne Stand",
+  // `undefined` heißt „wissen wir nicht" — nur der zweite Fall darf den Vergleich überspringen.
+  if (n.withEvent) remote.booths = (n.withEvent.booths ?? []).map((b) => b?.name ?? "").filter((b) => b !== "");
+  return remote;
 }
 
 const communityCache = new Map<string, string>();
@@ -43,6 +54,7 @@ export const swapcardAdapter: EventAppAdapter = {
       const data = await gql<{ exhibitorsV2: Page | null }>("exhibitorsV2", LIST_EXHIBITORS, {
         communityId,
         eventIds: scope === "event" ? [eventId] : null,
+        eventId,
         cursor,
       });
       const conn = data.exhibitorsV2;

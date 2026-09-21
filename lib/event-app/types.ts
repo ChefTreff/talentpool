@@ -2,6 +2,7 @@
  * Event-App-Adapter (Welle 3 A12, Entscheidung 13: Swapcard bleibt 2027, Eigenbau/Conferras wird für 2028 evaluiert).
  * Der Portal-Code spricht nur diesen Vertrag; Swapcard ist eine Implementierung (`lib/event-app/swapcard`).
  * Umfang in Welle 3: Aussteller (Name, Beschreibung DE/EN, Website, Logo, Standnummer). Personen, Sessions und Mitglieder folgen in Welle 4/5.
+ * EA1 (21.09.2026): Abnahme gegen das 27er-Event; Level und Kategorie kommen aus den gebuchten Produkten (0135) und bleiben vorerst im Portal.
  */
 
 /** Zeile aus `event_app_exhibitors(p_edition_id?)` (Migration 0055). */
@@ -21,6 +22,13 @@ export type ExhibitorRow = {
   /** Schlüssel und Rang aus dem Vokabular `sponsoring_level` (0097): z. B. `premium`/40; unbekanntes Level ⇒ Schlüssel normalisiert, Rang null. */
   sponsoring_key: string | null;
   sponsoring_rank: number | null;
+  /** Abgeleitetes Level (0135): bestes Level unter den gebuchten Produkten, sonst der HubSpot-Freitext. */
+  level_key: string | null;
+  level_rank: number | null;
+  /** `product` = aus den gebuchten Produkten, `hubspot` = Freitext vom Deal, `null` = nichts bekannt. */
+  level_source: "product" | "hubspot" | null;
+  /** Produktkategorien der gebuchten **Pakete**, in Vokabular-Reihenfolge (0135). Leeres Array, nie null. */
+  categories: string[];
   partner_category: string | null;
   org_type: string | null;
   booth_number: string | null;
@@ -44,7 +52,6 @@ export type ExhibitorUpsert = {
   descriptionEn?: string;
   websiteUrl?: string;
   logoUrl?: string;
-  type?: string;
   booth?: string;
   existingId?: string;
 };
@@ -57,7 +64,10 @@ export type RemoteExhibitor = {
   description?: string | null;
   websiteUrl?: string | null;
   logoUrl?: string | null;
+  /** In Swapcard ist `type` die **Branche** („Tech, Data & IT"), nicht das Sponsoring-Level — Probe 21.09.2026. Wir lesen ihn nur. */
   type?: string | null;
+  /** Standnummern im abgefragten Event; nur gesetzt, wenn der Aussteller schon am Event hängt. */
+  booths?: string[];
 };
 
 /** Ergebnis eines Upserts: je Eingabe (`inputId` = clientId) der Aussteller oder ein Prüf-Fehler. */
@@ -68,7 +78,7 @@ export type UpsertOutcome = {
 
 export interface EventAppAdapter {
   readonly system: "swapcard";
-  /** Aussteller des Events oder der ganzen Community (dort liegen auch die Vorjahre). */
+  /** Aussteller des Events oder der ganzen Community (dort liegen auch die Vorjahre). Im Scope `event` kommen die Standnummern mit. */
   listExhibitors(eventId: string, scope?: "event" | "community"): Promise<RemoteExhibitor[]>;
   /** `validateOnly` lässt die App prüfen, ohne zu schreiben (Trockenlauf mit echter Validierung). */
   upsertExhibitors(eventId: string, items: ExhibitorUpsert[], opts?: { validateOnly?: boolean }): Promise<UpsertOutcome>;

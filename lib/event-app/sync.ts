@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { EventAppAdapter, ExhibitorRow, ExhibitorUpsert, RemoteExhibitor } from "@/lib/event-app/types";
-import { exhibitorChanged, matchRemote, toExhibitorUpsert } from "@/lib/event-app/mapping";
+import { exhibitorChanged, exhibitorTier, matchRemote, toExhibitorUpsert } from "@/lib/event-app/mapping";
 import { ensurePublicLogo, publicLogoUrl } from "@/lib/event-app/logos";
 
 export type SyncSummary = {
@@ -13,10 +13,17 @@ export type SyncSummary = {
   /** Aussteller, den die Community schon kennt (Vorjahr): wird ans Event gehängt und aktualisiert statt verdoppelt. */
   attach: number;
   unchanged: number;
-  /** Im Trockenlauf: Eingaben, die Swapcard mit `validateOnly` angenommen hat. */
+  /**
+   * Im Trockenlauf: Eingaben, die Swapcard mit `validateOnly` **nicht** beanstandet hat. Swapcard gibt dabei nie `results` zurück,
+   * nur `errors` (Probe 21.09.2026) — „gültig" ist also die Menge der Eingaben minus der beanstandeten, nicht eine Rückmeldung.
+   */
   validated: number;
   refs: number;
   errors: number;
+  /** Abgeleitetes Level je Org (0135) — geht noch nicht nach Swapcard, steht aber im Lauf, damit die Ableitung prüfbar ist. */
+  tiers: { org: string; level: string | null; source: string | null; categories: string[] }[];
+  /** Organisationen ohne ableitbares Level: dort fehlt entweder das gebuchte Paket oder dem Paket das Level. */
+  withoutTier: number;
   skipped?: string;
   runs: { org: string; outcome: string; detail?: string }[];
 };
@@ -24,7 +31,8 @@ export type SyncSummary = {
 /**
  * Aussteller einer Edition in die Event-App bringen: `event_app_exhibitors()` → Abbildung → bestehende Aussteller des Events und der Community lesen →
  * nur Neues und Geändertes schreiben (`upsertEventExhibitorsV2`), App-ID je Org×Edition in `external_ref` (`set_event_app_ref`).
- * `dryRun` (Standard in der Admin-Route) rechnet alles durch und lässt Swapcard mit `validateOnly` prüfen — geschrieben wird nichts.
+ * `dryRun` (Standard in der Admin-Route) rechnet alles durch und lässt Swapcard mit `validateOnly` prüfen — geschrieben wird nichts;
+ * Swapcard meldet dabei nur Beanstandungen, `validated` ist deshalb „Eingaben minus Fehler" (EA1, 21.09.2026).
  * Ohne Adapter (kein `SWAPCARD_API_KEY`) endet der Lauf als `skipped`. Das freigegebene PNG-Logo wird im Echtlauf in den öffentlichen Bucket
  * `partner-logos` kopiert und als `logoUrl` mitgegeben (0057); im Trockenlauf zählt die URL, unter der es liegen wird.
  */
@@ -37,13 +45,18 @@ export async function syncExhibitors(opts: {
   orgId?: string | null;
 }): Promise<SyncSummary> {
   const { admin, adapter, dryRun, jobId } = opts;
-  const summary: SyncSummary = { dryRun, rows: 0, events: 0, create: 0, update: 0, attach: 0, unchanged: 0, validated: 0, refs: 0, errors: 0, runs: [] };
+  const summary: SyncSummary = { dryRun, rows: 0, events: 0, create: 0, update: 0, attach: 0, unchanged: 0, validated: 0, refs: 0, errors: 0, tiers: [], withoutTier: 0, runs: [] };
 
   const { data, error } = await admin.rpc("event_app_exhibitors", { p_edition_id: opts.editionId ?? null });
   if (error) throw new Error(`event_app_exhibitors: ${error.message}`);
   let rows = (data ?? []) as ExhibitorRow[];
   if (opts.orgId) rows = rows.filter((r) => r.org_id === opts.orgId);
   summary.rows = rows.length;
+  for (const r of rows) {
+    const tier = exhibitorTier(r);
+    summary.tiers.push({ org: r.name, level: tier.level, source: tier.source, categories: tier.categories });
+    if (!tier.level) summary.withoutTier += 1;
+  }
   if (rows.length === 0) return summary;
   if (!adapter) return { ...summary, skipped: "SWAPCARD_API_KEY fehlt – nichts übertragen" };
 
@@ -109,6 +122,9 @@ export async function syncExhibitors(opts: {
     try {
       const outcome = await adapter.upsertExhibitors(eventId, pending.map((p) => p.wanted), { validateOnly: dryRun });
       const byInput = new Map(pending.map((p) => [p.row.org_id, p]));
+      // Im Trockenlauf antwortet Swapcard nur mit Beanstandungen. Alles, was nicht beanstandet wurde, ist gültig — hier gezählt,
+      // bevor die Fehler abgezogen werden. Vorher stand der Zähler auf den (immer leeren) `results` und blieb dauerhaft 0.
+      if (dryRun) summary.validated += pending.length - outcome.errors.length;
       for (const err of outcome.errors) {
         const p = byInput.get(err.inputId);
         summary.errors += 1;
@@ -117,11 +133,7 @@ export async function syncExhibitors(opts: {
       }
       for (const res of outcome.results) {
         const p = byInput.get(res.inputId);
-        if (!p) continue;
-        if (dryRun) {
-          summary.validated += 1;
-          continue;
-        }
+        if (!p || dryRun) continue;
         if (res.exhibitor.id !== p.row.swapcard_exhibitor_id) await saveRef(admin, p.row, res.exhibitor.id, adapter.system, summary);
       }
     } catch (e) {

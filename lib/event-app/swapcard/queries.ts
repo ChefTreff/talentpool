@@ -12,11 +12,15 @@ export const EVENT_QUERY = `query PortalEvent($id: ID!) {
   event(id: $id) { id title beginsAt endsAt totalExhibitors community { id } }
 }`;
 
-export const LIST_EXHIBITORS = `query PortalExhibitors($communityId: ID!, $eventIds: [ID!], $cursor: CursorPaginationInput) {
+/**
+ * `withEvent(eventId)` liefert, was am **Event** hängt statt am Aussteller — vor allem die Standnummern (Probe 21.09.2026).
+ * Für Aussteller, die nur in der Community stehen (Vorjahre), ist es `null`; dann vergleichen wir die Standnummer nicht.
+ */
+export const LIST_EXHIBITORS = `query PortalExhibitors($communityId: ID!, $eventIds: [ID!], $eventId: ID!, $cursor: CursorPaginationInput) {
   exhibitorsV2(communityId: $communityId, filter: { eventIds: $eventIds }, cursor: $cursor) {
     pageInfo { hasNextPage endCursor }
     totalCount
-    nodes { id name description websiteUrl logoUrl clientIds type }
+    nodes { id name description websiteUrl logoUrl clientIds type withEvent(eventId: $eventId) { booths { name } } }
   }
 }`;
 
