@@ -1,5 +1,7 @@
 -- 0129 · Wiki: Hackathon-Inhalte für Partner (PART-018, Konrads Auftrag vom 21.09.).
 --
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921110522.
+--
 -- Anlass: Konrad hat das Notion-Wiki „AI Hackathon 2026" als Quelle genannt (Welle 6 §D4) und
 -- am 21.09. aufgetragen, die Wiki-Daten ins Portal zu übertragen, damit er sie dort prüfen kann.
 --
