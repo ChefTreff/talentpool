@@ -36,6 +36,8 @@ const LOG_TONE: Record<string, BadgeTone> = {
 export function IntegrationsView({
   editions,
   log,
+  levels,
+  categories,
   dateLocale,
   t,
   common,
@@ -43,6 +45,10 @@ export function IntegrationsView({
 }: {
   editions: AdminEdition[];
   log: IngestLogRow[];
+  /** Vokabular `sponsoring_level` für die Anzeige des abgeleiteten Levels (0132). */
+  levels: Record<string, string>;
+  /** Vokabular `product_category` für die abgeleiteten Ausstellerkategorien (0132). */
+  categories: Record<string, string>;
   dateLocale: string;
   t: Strings;
   common: { cancel: string; none: string; save: string };
@@ -223,6 +229,7 @@ export function IntegrationsView({
           <div className="mt-3">
             <p className="ct-help">
               {t.rows}: {dry.rows ?? 0} · {t.errors}: {dry.errors ?? 0}
+              {dry.dryRun && ` · ${t.validated}: ${dry.validated ?? 0}`}
               {dry.skipped && ` · ${t.skipped}: ${dry.skipped}`}
               {dry.job != null && ` · Job ${dry.job}`}
             </p>
@@ -235,6 +242,22 @@ export function IntegrationsView({
                   </li>
                 ))}
               </ul>
+            )}
+            {dry.tiers && dry.tiers.length > 0 && (
+              <div className="mt-3">
+                <div className="ct-label text-ink">{t.tiersTitle}</div>
+                <p className="ct-help">{t.tiersHint}</p>
+                <ul className="ct-help mt-1 flex flex-col gap-1">
+                  {dry.tiers.map((r, i) => (
+                    <li key={`tier-${r.org}-${i}`}>
+                      {r.org} · {r.level ? (levels[r.level] ?? r.level) : t.tierNone}
+                      {r.source && ` (${t[`tierSource_${r.source}`] ?? r.source})`}
+                      {r.categories.length > 0 &&
+                        ` · ${r.categories.map((c) => categories[c] ?? c).join(", ")}`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
         )}

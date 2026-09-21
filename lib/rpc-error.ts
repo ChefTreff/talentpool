@@ -70,6 +70,7 @@ const BUSINESS_KEYS = new Set([
   // Reisekosten (Migrationen 0031-0033)
   "invalid_category",
   "invalid_format",
+  "invalid_sponsoring_level",
   "invalid_due_rule",
   "invalid_qty",
   "booth_required",

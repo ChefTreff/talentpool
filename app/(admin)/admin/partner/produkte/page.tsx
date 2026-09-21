@@ -30,6 +30,7 @@ export default async function AdminProductsPage() {
       components={(parts ?? []) as ProductComponent[]}
       categories={vgroup(vocab, "product_category")}
       formats={vgroup(vocab, "partner_format")}
+      levels={vgroup(vocab, "sponsoring_level")}
       roles={vgroup(vocab, "role")}
       passTypes={PASS_TYPES}
       dateLocale={t.meta.dateLocale}
