@@ -1,6 +1,8 @@
 -- =============================================================================
 -- 0130 · Welle 6 · Vokabular vollständig pflegen (ADM-032)
 --
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921104956.
+--
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --
 -- `/admin/vokabular` kann heute genau eine Sache: einen Begriff aktiv oder
