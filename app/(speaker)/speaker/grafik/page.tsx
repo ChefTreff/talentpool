@@ -12,6 +12,10 @@ function dateiname(vorname: string | null, nachname: string | null): string {
   const name = [vorname, nachname].filter(Boolean).join("-").toLowerCase();
   const sauber = name
     .normalize("NFKD")
+    // Ohne diese Zeile wird aus „Müller" ein „mu-ller": die Zerlegung trennt
+    // den Umlaut in „u" und ein kombinierendes Trema, und das Trema fällt in
+    // den nächsten Schritt (gefunden beim Bauen von SPK-014, 21.09.).
+    .replace(/\p{M}/gu, "")
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");

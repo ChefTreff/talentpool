@@ -1,4 +1,4 @@
-# Mail-Plan (Stand 10.09.2026, Migrationen bis 0048)
+# Mail-Plan (Stand 21.09.2026; die Vorlagentabelle ist bis Migration 0048 vollständig, spätere Vorlagen werden einzeln nachgetragen)
 
 Grundsatz aus dem Feedback FLS26 (T9, P4): so wenige System-Mails wie möglich, jede Mail hat ein Ereignis, Erinnerungen nur bei offenem Deliverable. **Die Datenbank entscheidet**, wann eine Mail fällig ist (Trigger und RPCs rufen `queue_mail()`), der Worker verschickt nur (`lib/mail/queue.ts`, Vercel Cron `/api/cron/mail` alle 10 Minuten, Resend, Idempotenzschlüssel `mail_log-<id>`, drei Versuche, Dry-Run in der Entwicklung).
 
@@ -31,9 +31,10 @@ Grundsatz aus dem Feedback FLS26 (T9, P4): so wenige System-Mails wie möglich, 
 | `shop_order_completed` | Partner | Housekeeping `run_shop_finalization` (Phasenfrist vorbei ⇒ verbindlich) | Bestätigende + `primary_ops` | Bestellung × Person | 0048 |
 | `shop_request_received` | Partner → Team | `shop_request_product` (Anfrage-Produkt oder Freitext) | `area_lead_partner` (Fallback Admins) | Anfrage | 0048 |
 | `partner_gate_failed` | HubSpot → Sales | `ingest_partner_deal` (Gate-Fehler; Fehlerliste, Deal-Link) | Deal-Owner als `person` (E-Mail), sonst `area_lead_partner`, sonst Admins | je Gate-Fehler (kein Bezugsobjekt-Dedupe: jede Wiederholung ist ein neuer Versuch) | 0043 |
+| `stage_photos_ready` | Speaker | `register_session_asset` (erstes Bühnenfoto einer Session) | alle Speaker der Session | Speaker × Session | 0122 |
 | `presentation_reminder` | Speaker | Housekeeping (`send_presentation_reminders`): `reminder_lead_hours` (Default 48) vor der wirksamen Fälligkeit (Deadline ∧ 48 h vor Slot), nur mit Slot in der Zukunft, ohne aktuelle Präsentation, Session nicht abgesagt | Speaker (nicht Assistenz) | Speaker × Session | 0035 |
 
 ## Offen
-- ICS-Anhang für die Erinnerung (S im Arbeitsauftrag): der Worker kennt noch keine Anhänge; kommt mit der Qonto-Mail (B8, PDF-Anhang).
+- **ICS gibt es als Download** (SPK-014, 21.09.2026): `/api/speaker/kalender` liefert den Slot und zugesagte Receptions als `.ics`, erzeugt von `lib/ics.ts` (UTC statt `VTIMEZONE`, `METHOD:PUBLISH`, stabile UIDs). Offen bleibt der **Anhang an der Mail** — der Worker kennt keine Anhänge; das kommt mit der Qonto-Mail (B8, PDF-Anhang). Erst damit lässt sich eine Einladung verschicken statt herunterladen, und Konrad hat den Versand ohnehin bis zum finalen Test gesperrt.
 - Ticket-Mails (eigenes Speaker-Ticket, Begleitticket ausgestellt) folgen mit der vivenu-Ausstellung (A7b): Vorlage `ticket_final` aus Welle 1 A2.
 - Partner-, Volunteer- und Hackathon-Journeys: Welle 3/4.

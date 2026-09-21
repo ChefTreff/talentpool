@@ -98,6 +98,14 @@ export function ReceptionCard({
       </p>
       {text && <p className="ct-small mt-3 whitespace-pre-line leading-6">{text}</p>}
 
+      {/* Erst nach der Zusage (SPK-014): ein Termin, den man abgesagt hat,
+          gehört in keinen Kalender. */}
+      {zugesagt && (
+        <a className="ct-link mt-3 inline-block" href={`/api/speaker/kalender?reception=${reception.id}`}>
+          {t.calendarAdd}
+        </a>
+      )}
+
       {reception.free != null && (
         <p className="ct-help mt-3">
           {reception.free > 0

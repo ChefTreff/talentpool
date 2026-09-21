@@ -292,6 +292,17 @@ function SessionCard({
           )}
           {session.stage_name && <span>· {session.stage_name}</span>}
           {session.room && <span>· {session.room}</span>}
+          {/* Der Termin zum Mitnehmen (SPK-014). Nur mit Slot — ohne Zeit gibt
+              es nichts einzutragen. Ein einfacher Link, kein Knopf: die Seite
+              hat ihre primäre Aktion schon im Einreichen. */}
+          {session.start_at && (
+            <a
+              className="ct-link"
+              href={`/api/speaker/kalender?session=${session.session_id}`}
+            >
+              {t.calendarAdd}
+            </a>
+          )}
         </div>
         <h2 className="ct-h3 mt-1 text-ink">{finalTitle ?? t.untitled}</h2>
         <div className="mt-2 flex flex-wrap gap-2">
