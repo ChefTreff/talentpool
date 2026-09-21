@@ -867,7 +867,9 @@
     "photosReadyLabel": "After your talk",
     "photosReadyTitle": "Your stage photos are here",
     "photosReadyHint": "Download them, post them, tag people — the text templates sit right next to them.",
-    "photosReadyAction": "Go to your media"
+    "photosReadyAction": "Go to your media",
+    "calendarAdd": "Add to your calendar",
+    "calendarAll": "Add all dates to your calendar"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -3631,7 +3633,8 @@
     "freeSeats": "{n} seats left.",
     "fullHint": "The reception is fully booked. If you would still like to come, let your buddy know.",
     "closedHint": "The deadline has passed. Contact your buddy if anything changes.",
-    "assistantNote": "The speaker answers this themselves; you only see the current state here."
+    "assistantNote": "The speaker answers this themselves; you only see the current state here.",
+    "calendarAdd": "Add to your calendar"
   },
   "speakerGraphic": {
     "title": "Your graphic",
@@ -3657,6 +3660,10 @@
     "loadFailed": "That picture could not be opened. Try a different file.",
     "exportFailed": "The graphic could not be created. Reload the page and try again.",
     "privacyNote": "Your portrait stays on your computer. We do not upload it and do not store it — the graphic is made here in your browser."
+  },
+  "speakerCalendar": {
+    "slotNote": "Your talk at the Future Leaders Summit. Stage, time and everything else are always up to date in the portal:",
+    "receptionNote": "Your RSVP is in the portal. If anything changes, you will find it here:"
   },
   "speakerMedia": {
     "title": "Your media",

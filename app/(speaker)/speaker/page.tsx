@@ -198,6 +198,11 @@ export default async function SpeakerPage() {
               {eventDays.map((d) => formatDay(d, t.meta.dateLocale)).join(" · ")}
             </p>
           )}
+          {/* Alles auf einmal (SPK-014). Die Datei enthält, was feststeht:
+              den Slot und zugesagte Receptions. */}
+          <a className="ct-link mt-3 inline-block" href="/api/speaker/kalender">
+            {t.speaker.calendarAll}
+          </a>
         </Card>
 
         {kontakte.length === 0 && (
