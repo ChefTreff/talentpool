@@ -396,3 +396,4 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **0138 Branche des Ausstellers live** (`20260921120434`, #99 im Gate): Vokabular `industry` (14 Branchen mit Swapcard-Schlüsseln), `organization.industry`, Pflege durch den Partner über `update_partner_onboarding`, `event_app_exhibitors` und `partner_overview` additiv erweitert, Grants geprüft. Test 14/14. Snapshot 492.
 - **#96 Kalender (Speaker, S8) im Gate:** ICS für Slot und zugesagte Receptions über `/api/speaker/kalender` (Nutzer-Sitzung, `requireArea("speaker")`, eigene RPCs), keine Migration.
 - **Pause:** Konrad gibt bis Donnerstag (24.09.) nur Feedback in die Chats; Merges und Migrationen wieder ab Donnerstag durch die Architektur-Session.
+- **#99 Branche gemergt** (281 Tests) und **#96 Kalender gemergt**; damit sind am 21.09. alle offenen PRs auf `main`: #83, #87, #88, #90, #72, #89, #94, #91, #92, #93, #95, #97, #98, #68, #99, #96. Deploy grün.
