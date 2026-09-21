@@ -1,6 +1,8 @@
 -- =============================================================================
 -- 0131 · Welle 6 · Messeshop-Artikel gehen nach SevDesk (Nachtrag zu A4.3)
 --
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921112022.
+--
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --
 -- 0120 schickte in **beide** Systeme dieselbe Menge: 86 Artikel mit
