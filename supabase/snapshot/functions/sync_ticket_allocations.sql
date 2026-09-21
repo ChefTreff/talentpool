@@ -14,9 +14,9 @@ begin
     where op.org_edition_id = v_oe.id and op.status = 'booked' and pr.pass_type is not null
     group by effective_pass_type(pr.pass_type, v_oe.id)
   loop
-    insert into org_ticket_allocation (event_id, org_id, org_edition_id, pass_type, quantity)
-    values (v_oe.edition_id, v_oe.org_id, v_oe.id, r.pass_type, r.quantity)
-    on conflict (event_id, org_id, pass_type) do update set
+    insert into org_ticket_allocation (event_id, org_id, org_edition_id, pass_type, quantity, discount_percent)
+    values (v_oe.edition_id, v_oe.org_id, v_oe.id, r.pass_type, r.quantity, 100)
+    on conflict (event_id, org_id, pass_type, discount_percent) do update set
       quantity = excluded.quantity, org_edition_id = excluded.org_edition_id,
       status = case when org_ticket_allocation.status = 'disabled' then 'pending_vivenu' else org_ticket_allocation.status end,
       synced_at = case when org_ticket_allocation.quantity <> excluded.quantity or org_ticket_allocation.status = 'disabled' then null else org_ticket_allocation.synced_at end;
@@ -25,10 +25,12 @@ begin
   -- Kontingente ohne Produkt: noch nicht in vivenu ⇒ weg; sonst deaktivieren (die Route schaltet den Coupon ab)
   delete from org_ticket_allocation a
    where a.org_id = v_oe.org_id and a.event_id = v_oe.edition_id and a.status = 'pending_vivenu'
+     and a.discount_percent = 100
      and not exists (select 1 from org_product op join product pr on pr.sku = op.product_sku
                      where op.org_edition_id = v_oe.id and op.status = 'booked' and pr.pass_type is not null and effective_pass_type(pr.pass_type, v_oe.id) = a.pass_type);
   update org_ticket_allocation a set status = 'disabled', quantity = 0, synced_at = null
    where a.org_id = v_oe.org_id and a.event_id = v_oe.edition_id and a.status in ('active', 'error')
+     and a.discount_percent = 100
      and not exists (select 1 from org_product op join product pr on pr.sku = op.product_sku
                      where op.org_edition_id = v_oe.id and op.status = 'booked' and pr.pass_type is not null and effective_pass_type(pr.pass_type, v_oe.id) = a.pass_type);
   return v_n;

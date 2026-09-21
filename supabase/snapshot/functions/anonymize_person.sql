@@ -89,7 +89,15 @@ begin
     -- `tech_rider` und `socials` sind `not null default '{}'` — hier gehoert der
     -- leere Wert hin, nicht `null` (Probelauf der Architektur-Session, 23502).
     tech_rider = '{}'::jsonb, socials = '{}'::jsonb,
-    decline_reason = null, photo_asset_id = null
+    decline_reason = null, photo_asset_id = null,
+    -- Der Kontakt ohne Portalzugang (0127) gehoert einer **dritten** Person:
+    -- Agentur, Office, Management. Sie hat hier nie ein Konto gehabt und kann
+    -- die Loeschung auch nicht selbst verlangen — deshalb faellt sie mit dem
+    -- Profil, das sie eingetragen hat. Keine Sperrliste: die Adresse stand nie
+    -- in einem Verteiler, das Portal kann an sie gar nicht senden (`queue_mail`
+    -- braucht eine `person_id`, und eine hat sie nicht).
+    contact_first_name = null, contact_last_name = null, contact_email = null,
+    contact_phone = null, contact_kind = null, contact_consent_at = null
    where person_id = p_person_id;
   -- Titel und Beschreibung sind der veröffentlichte Programmpunkt und gehören
   -- zur Veranstaltung, nicht zur Person; die interne Notiz nicht.
