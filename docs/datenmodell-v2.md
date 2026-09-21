@@ -56,6 +56,7 @@
 | Welle 6 · 0124 | **Welle 6 · Stände tagesweise (A3.5, ADM-022)** (`20260921103627`, `v6_staende_tagesweise`; Details im Migrationskopf) | — |
 | Welle 6 · 0130 | **Welle 6 · Vokabular vollständig pflegen (ADM-032)** (`20260921104956`, `v6_vokabularpflege`; Details im Migrationskopf) | — |
 | Welle 6 · 0129 | **0129** (`20260921110522`, `v6_wiki_hackathon`, 21.09.): Sechs jahresunabhaengige Wiki-Artikel fuer Partner aus dem Notion-Wiki „AI Hackathon 2026" (Konrads Auftrag vom 21.09., PART-018) — Challenge definieren, Mentorinnen und Jury, Preise, Vorstellung am ersten Morgen, Teilnehmende, Rueckwand mit den Grafikanforderungen. **Alle als `draft`**, Konrad schaltet frei. **Vier Dinge bewusst nicht uebernommen** und im Migrationskopf begruendet: die Mobilnummer der Ansprechperson (gehoert in `edition_contact` mit Foto und Einwilligung, und eine Migration bleibt dauerhaft in der Historie), die Challenge-Liste 2026, die ausformulierten Challenge-Beschreibungen 2025 (interne Aufgaben fremder Firmen in einem Portal, das alle Partner lesen) sowie Daten, Ort und Zeitplan 2026. | — |
+| Welle 6 · 0117 | **Welle 6 B4: Backdrop der Challenge Area (PART-033, PART-052)** (`20260921111140`, `v6_hackathon_backdrop`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
