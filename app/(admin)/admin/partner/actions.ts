@@ -254,6 +254,60 @@ export async function saveAllocation(input: {
   return { ok: true, data: undefined };
 }
 
+/**
+ * Rabattkontingent von Hand setzen (0123). Nur 50 % — die 100er-Zeile leitet
+ * `sync_ticket_allocations` aus den gebuchten Produkten ab und würde jede
+ * Handarbeit beim nächsten Lauf überschreiben; die RPC weist sie mit P0001
+ * `derived_allocation` ab. Menge 0 deaktiviert das Kontingent, statt es zu löschen.
+ */
+export async function saveAllocationDiscount(input: {
+  orgEditionId: string;
+  passType: string;
+  discountPercent: number;
+  quantity: number;
+}): Promise<AdminResult<{ id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("set_ticket_allocation_discount", {
+    p_org_edition_id: input.orgEditionId,
+    p_pass_type: input.passType,
+    p_discount_percent: input.discountPercent,
+    p_quantity: input.quantity,
+  });
+  if (error) return fail(error);
+  refresh("kontingente");
+  return { ok: true, data: { id: data as string } };
+}
+
+// === Stände =================================================================
+
+/** Stand einer Teilnahme zuordnen — ohne Tag gilt die Belegung für alle Tage (0124). */
+export async function saveBoothAssignment(input: {
+  boothId: string;
+  orgEditionId: string;
+  eventDayId?: string | null;
+  note?: string | null;
+}): Promise<AdminResult<{ id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("set_booth_assignment", {
+    p_booth_id: input.boothId,
+    p_org_edition_id: input.orgEditionId,
+    p_event_day_id: input.eventDayId ?? null,
+    p_note: input.note ?? null,
+  });
+  if (error) return fail(error);
+  refresh("staende");
+  return { ok: true, data: { id: data as string } };
+}
+
+/** Belegung lösen. Der Stand selbst bleibt stehen — er wird nur wieder frei. */
+export async function removeBoothAssignment(id: string): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("remove_booth_assignment", { p_id: id });
+  if (error) return fail(error);
+  refresh("staende");
+  return { ok: true, data: undefined };
+}
+
 // === Shop ===================================================================
 
 export async function adminSetOrderLine(

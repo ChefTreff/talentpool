@@ -4,12 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
-import { saveAllocation, syncAllocation } from "../actions";
-import { ALLOCATION_STATUS, type AdminAllocation } from "../types";
+import { saveAllocation, saveAllocationDiscount, syncAllocation } from "../actions";
+import { ALLOCATION_STATUS, type AdminAllocation, type OrgEditionOption } from "../types";
 
 type Strings = Record<string, string>;
 
@@ -22,6 +24,7 @@ const TONE: Record<string, BadgeTone> = {
 
 export function AllocationTable({
   rows,
+  orgs,
   passTypes,
   dateLocale,
   t,
@@ -29,6 +32,8 @@ export function AllocationTable({
   rpcMessages,
 }: {
   rows: AdminAllocation[];
+  /** Teilnahmen der Edition — das Formular braucht die `org_edition_id`. */
+  orgs: OrgEditionOption[];
   passTypes: Record<string, string>;
   dateLocale: string;
   t: Strings;
@@ -39,6 +44,7 @@ export function AllocationTable({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [edits, setEdits] = useState<Record<string, { quantity: string; code: string; url: string; status: string; notes: string }>>({});
+  const [neu, setNeu] = useState({ orgEditionId: "", passType: "", quantity: "" });
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "short", timeStyle: "short" });
@@ -65,6 +71,37 @@ export function AllocationTable({
     });
   }
 
+  /**
+   * Ein Rabattkontingent von Hand. Nur 50 % — die 100er-Zeile leitet der
+   * Abgleich aus den gebuchten Produkten ab, und die RPC weist sie ab.
+   */
+  function onNew() {
+    const quantity = Number(neu.quantity);
+    if (!neu.orgEditionId || !neu.passType) {
+      toast("error", message("fields_required"));
+      return;
+    }
+    if (!Number.isInteger(quantity) || quantity < 0) {
+      toast("error", message("invalid_quantity"));
+      return;
+    }
+    startTransition(async () => {
+      const res = await saveAllocationDiscount({
+        orgEditionId: neu.orgEditionId,
+        passType: neu.passType,
+        discountPercent: 50,
+        quantity,
+      });
+      if (!res.ok) {
+        toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+        return;
+      }
+      setNeu({ orgEditionId: "", passType: "", quantity: "" });
+      toast("success", t.saved);
+      router.refresh();
+    });
+  }
+
   function onSave(a: AdminAllocation) {
     const d = draft(a);
     const quantity = Number(d.quantity);
@@ -86,10 +123,51 @@ export function AllocationTable({
   }
 
   return (
+    <div className="flex flex-col gap-6">
+      <Card>
+        <CardHeader title={t.discountTitle} description={t.discountLead} />
+        <div className="flex flex-wrap items-end gap-3">
+          <Field label={t.colOrg} htmlFor="d-org">
+            <Select
+              id="d-org"
+              className="w-72"
+              value={neu.orgEditionId}
+              placeholder={common.none}
+              options={orgs.map((o) => ({ value: o.org_edition_id, label: o.org_name ?? o.org_id }))}
+              onChange={(e) => setNeu((n) => ({ ...n, orgEditionId: e.target.value }))}
+            />
+          </Field>
+          <Field label={t.colPassType} htmlFor="d-pass">
+            <Select
+              id="d-pass"
+              className="w-48"
+              value={neu.passType}
+              placeholder={common.none}
+              options={Object.entries(passTypes).map(([value, label]) => ({ value, label }))}
+              onChange={(e) => setNeu((n) => ({ ...n, passType: e.target.value }))}
+            />
+          </Field>
+          <Field label={t.colQuantity} htmlFor="d-qty" hint={t.discountZeroHint}>
+            <Input
+              id="d-qty"
+              type="number"
+              min={0}
+              className="w-24"
+              value={neu.quantity}
+              onChange={(e) => setNeu((n) => ({ ...n, quantity: e.target.value }))}
+            />
+          </Field>
+          <Button disabled={pending} onClick={onNew}>
+            {t.discountAdd}
+          </Button>
+        </div>
+      </Card>
+
     <Table>
       <Thead>
         <Th>{t.colOrg}</Th>
         <Th>{t.colPassType}</Th>
+        <Th>{t.colDiscount}</Th>
         <Th>{t.colQuantity}</Th>
         <Th>{t.colCode}</Th>
         <Th>{t.colStatus}</Th>
@@ -111,6 +189,14 @@ export function AllocationTable({
               </Td>
               <Td className="text-muted">{passTypes[a.pass_type] ?? a.pass_type}</Td>
               <Td>
+                <Badge tone={a.discount_percent === 100 ? "neutral" : "accent"}>
+                  {a.discount_percent} %
+                </Badge>
+                <div className="ct-help">
+                  {a.discount_percent === 100 ? t.discountDerived : t.discountManual}
+                </div>
+              </Td>
+              <Td>
                 <div className="flex items-center gap-2">
                   <Input
                     aria-label={t.colQuantity}
@@ -118,6 +204,9 @@ export function AllocationTable({
                     min={0}
                     className="w-20"
                     value={d.quantity}
+                    /* Die Menge der 100er-Zeile gehört der Ableitung (0123/0137):
+                       die RPC weist sie ab, und das Feld sagt es vorher. */
+                    disabled={a.discount_percent === 100}
                     onChange={(e) => patch(a, { quantity: e.target.value })}
                   />
                   <span className="ct-help tabular-nums">
@@ -178,5 +267,6 @@ export function AllocationTable({
         })}
       </Tbody>
     </Table>
+    </div>
   );
 }

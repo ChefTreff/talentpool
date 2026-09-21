@@ -42,6 +42,7 @@ export async function partnerAdminShell(pathname: string): Promise<
     },
     { href: "/admin/partner/review", label: t.adminPartner.tabReview },
     { href: "/admin/partner/kontingente", label: t.adminPartner.tabAllocations },
+    { href: "/admin/partner/staende", label: t.adminPartner.tabBooths },
     { href: "/admin/partner/bestellungen", label: t.adminPartner.tabOrders },
     { href: "/admin/partner/vorlagen", label: t.adminPartner.tabTemplates },
     { href: "/admin/partner/produkte", label: t.adminPartner.tabProducts },
