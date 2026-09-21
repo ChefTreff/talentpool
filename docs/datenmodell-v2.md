@@ -58,6 +58,7 @@
 | Welle 6 · 0129 | **0129** (`20260921110522`, `v6_wiki_hackathon`, 21.09.): Sechs jahresunabhaengige Wiki-Artikel fuer Partner aus dem Notion-Wiki „AI Hackathon 2026" (Konrads Auftrag vom 21.09., PART-018) — Challenge definieren, Mentorinnen und Jury, Preise, Vorstellung am ersten Morgen, Teilnehmende, Rueckwand mit den Grafikanforderungen. **Alle als `draft`**, Konrad schaltet frei. **Vier Dinge bewusst nicht uebernommen** und im Migrationskopf begruendet: die Mobilnummer der Ansprechperson (gehoert in `edition_contact` mit Foto und Einwilligung, und eine Migration bleibt dauerhaft in der Historie), die Challenge-Liste 2026, die ausformulierten Challenge-Beschreibungen 2025 (interne Aufgaben fremder Firmen in einem Portal, das alle Partner lesen) sowie Daten, Ort und Zeitplan 2026. | — |
 | Welle 6 · 0117 · `20260921111140` | **Welle 6 B4: Backdrop der Challenge Area (PART-033, PART-052)** (`20260921111140`, `v6_hackathon_backdrop`; Details im Migrationskopf) | — |
 | Welle 6 · 0131 | **Welle 6 · Messeshop-Artikel gehen nach SevDesk (Nachtrag zu A4.3)** (`20260921112022`, `v6_sevdesk_shopartikel`; Details im Migrationskopf) | — |
+| Welle 6 · 0135 | **EA1 Aussteller: Level und Kategorie aus den gebuchten Produkten** (`20260921112508`, `v6_ea1_aussteller_level`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
