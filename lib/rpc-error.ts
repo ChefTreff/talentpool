@@ -194,6 +194,8 @@ const BUSINESS_KEYS = new Set([
   // `consent_required` schon die fehlende Einwilligung der angemeldeten Person
   // meint — hier fehlt das Vertragsdatum einer dritten Person.
   "contact_consent_required",
+  "speaker_contact_consent_required",
+  "invalid_contact_kind",
   // Profil loeschen (Migration 0115)
   "already_requested",
   "invalid_action",
