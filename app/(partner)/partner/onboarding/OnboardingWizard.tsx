@@ -225,7 +225,7 @@ export function OnboardingWizard({
   }
 
   return (
-    <div className="max-w-[800px]">
+    <div className="max-w-text">
       {/* Archetyp C: der Fortschritt steht als Linie über dem Inhalt, nicht
           als Knopfreihe. Waagerecht ab 640 px, darunter senkrecht — so
           bricht die Website die Step Section mobil um. */}

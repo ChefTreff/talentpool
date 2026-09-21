@@ -65,3 +65,7 @@ export const DETAIL_FIELDS: Record<string, { key: string; kind: "date" | "text" 
     { key: "arrival_info", kind: "area" },
   ],
 };
+
+// Shuttle: Typ und Feldliste stehen in `components/shuttle/types.ts`, weil
+// Lead-Bereich und Admin dieselben brauchen (SPK-016, LEAD-011, ADM-028).
+export { SHUTTLE_FIELDS, SHUTTLE_LIMIT, type ShuttleBooking } from "@/components/shuttle/types";

@@ -81,7 +81,7 @@ export async function registerAsset(input: {
   };
 }
 
-/** Slid@Home. Die RPC lässt nur den Speaker selbst und nur mit Consent durch. */
+/** Summit Slides. Die RPC lässt nur den Speaker selbst und nur mit Consent durch. */
 export async function setSlidesRelease(
   assetId: string,
   release: boolean,
@@ -90,6 +90,28 @@ export async function setSlidesRelease(
   const { error } = await supabase.rpc("set_slides_release", {
     p_asset_id: assetId,
     p_release: release,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Technik-Ansage zum Slot (SPK-018).
+ *
+ * Die RPC kennt die fünf erlaubten Schlüssel und weist alles andere ab; hier
+ * steht deshalb keine zweite Prüfung, die davon abweichen könnte. Sie ersetzt
+ * den ganzen Satz — das Formular zeigt alle Felder zugleich, also ist das, was
+ * ankommt, der neue Stand.
+ */
+export async function saveSessionTech(
+  sessionId: string,
+  tech: Record<string, string>,
+): Promise<SessionResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("update_session_tech", {
+    p_session_id: sessionId,
+    p_tech: tech,
   });
   if (error) return fail(error);
   refresh();

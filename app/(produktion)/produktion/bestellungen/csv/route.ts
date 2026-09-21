@@ -1,12 +1,13 @@
 import { requireArea } from "@/lib/auth";
+import { csvCell } from "@/lib/csv";
 import { loadAxes, loadSuppliers } from "../../load";
 
 export const dynamic = "force-dynamic";
 
-/** Ein CSV-Feld: Anführungszeichen verdoppeln, alles in Anführungszeichen. */
-function cell(value: unknown): string {
-  return `"${String(value ?? "").replace(/"/g, '""')}"`;
-}
+// Zelle aus `lib/csv.ts`: verdoppelt Anführungszeichen **und** entschärft
+// Formelanfänge. Die Liste geht per Mail an den Messebauer und wird dort in
+// Excel geöffnet; Leistungsnamen und Standbezeichnungen sind Freitext
+// (Befund der Architektur-Session an #81, 18.09.2026).
 
 /**
  * Bestellliste als CSV je Dienstleister — das, was per Mail an den Messebauer
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
 
   const head = ["Dienstleister", "Artikelnummer", "Leistung", "Menge", "Einheit", "Stände", "EK je Einheit", "EK gesamt"];
   const lines = [
-    head.map(cell).join(";"),
+    head.map(csvCell).join(";"),
     ...rows.map((r) =>
       [
         r.supplier,
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
         r.purchase_price_cents == null ? "" : (r.purchase_price_cents / 100).toFixed(2),
         r.purchase_price_cents == null ? "" : ((r.purchase_price_cents * Number(r.qty)) / 100).toFixed(2),
       ]
-        .map(cell)
+        .map(csvCell)
         .join(";"),
     ),
   ];

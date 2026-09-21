@@ -1,13 +1,14 @@
 import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { csvCell } from "@/lib/csv";
 import { loadRegieCues } from "@/components/regie/load";
 
 export const dynamic = "force-dynamic";
 
-/** Ein CSV-Feld: Anführungszeichen verdoppeln, alles in Anführungszeichen. */
-function cell(value: unknown): string {
-  return `"${String(value ?? "").replace(/"/g, '""')}"`;
-}
+// Die Zelle kommt aus `lib/csv.ts`: sie verdoppelt nicht nur Anführungszeichen,
+// sondern entschärft auch Formelanfänge. Der Ablaufplan enthält Freitext aus
+// dem Portal (Moderation, Regie, Hinweise) und wird von Technikern in Excel
+// geöffnet — derselbe Weg wie beim Shuttle-Export (Befund 18.09.).
 
 /**
  * Der Ablaufplan als CSV — für Techniker und Stage Hands, die ihn in ihre
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
   });
   const head = ["Von", "Bis", "Umbau (min)", "Aktion", "Titel", "Speaker", "Moderation", "Regie", "Backstage", "Mobiliar", "Notiz"];
   const lines = [
-    head.map(cell).join(";"),
+    head.map(csvCell).join(";"),
     ...cues.map((c) =>
       [
         zeit.format(new Date(c.cue_start)),
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
         c.mobiliar ?? "",
         c.notes ?? "",
       ]
-        .map(cell)
+        .map(csvCell)
         .join(";"),
     ),
   ];

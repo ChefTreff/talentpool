@@ -42,7 +42,27 @@ export type MySession = {
   latest_submission: SessionSubmission | null;
   /** Gesetzt, wenn die Assistenz zusieht: für wen sie gerade arbeitet. */
   on_behalf_of: { person_id: string; first_name: string | null; last_name: string | null } | null;
+  /** Die Technik-Ansage des Speakers (A7.2). Feste Schlüssel, freie Werte. */
+  tech: Record<string, string> | null;
 };
+
+/**
+ * Die fünf Felder der Technik-Ansage, in der Reihenfolge der Regie 2026.
+ *
+ * Die Schlüssel sind fest — `update_session_tech` weist alles andere ab —, die
+ * Werte sind Freitext (Konrad, 17.09.: „ich denke Freitext bietet mehr
+ * Flexibilität"). `lines` sagt, ob das Feld eine Zeile oder ein Feld braucht.
+ */
+export const TECH_FIELDS: { key: string; lines: 1 | 2 }[] = [
+  { key: "people_on_stage", lines: 1 },
+  { key: "microphone", lines: 1 },
+  { key: "presentation_media", lines: 2 },
+  { key: "special_requirements", lines: 2 },
+  { key: "furniture", lines: 1 },
+];
+
+/** Was `update_session_tech` je Feld annimmt. */
+export const MAX_TECH_CHARS = 500;
 
 /** Antwort aus `presentation_window()`. */
 export type PresentationWindow = {
@@ -72,7 +92,10 @@ export type SpeakerAsset = {
   created_at: string;
 };
 
-export const BUCKET = "speaker-assets";
+// Bucket und Dateinamen-Regel gelten für alle Speaker-Dateien, nicht nur für
+// Präsentationen — sie stehen deshalb eine Ebene höher und werden hier nur
+// weitergereicht, damit es sie genau einmal gibt (SPK-004).
+export { SPEAKER_BUCKET as BUCKET, safeFileName } from "../types";
 
 /** Was der Bucket annimmt (PDF, PowerPoint, Keynote) — 100 MB Grenze. */
 export const PRESENTATION_MIME = [
@@ -83,17 +106,3 @@ export const PRESENTATION_MIME = [
   "application/x-iwork-keynote-sffkey",
 ];
 export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
-
-/**
- * Dateinamen für den Objektschlüssel entschärfen: Storage mag keine Pfad-
- * trenner und keine Sonderzeichen, und der Name landet 1:1 im Schlüssel.
- * Der Originalname wird daneben in `speaker_asset.filename` gespeichert.
- */
-export function safeFileName(name: string): string {
-  const cleaned = name
-    .normalize("NFKD")
-    .replace(/[^A-Za-z0-9._-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^[-.]+/, "");
-  return (cleaned || "datei").slice(-80);
-}

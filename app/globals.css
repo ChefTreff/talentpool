@@ -76,6 +76,10 @@
   /* Breite der Navy-Seitenleiste. Stand als roher Wert in `SidebarShell`;
      eine Zahl, die das Layout jeder Seite bestimmt, gehört zu den Tokens. */
   --ct-w-sidebar: 264px;
+  /* Detailseiten im Admin: breiter als eine Textspalte (800), schmaler als
+     der volle Inhalt (1200). Stand an drei Stellen als roher Wert — bei drei
+     Verwendungen ist es ein Mass und kein Einzelfall. */
+  --ct-w-detail: 1000px;
 
   /* --- Formensprache Events (Design-System v2, 17.09.2026) -----------------
      Die Grundformen der Division als Tokens, damit keine Komponente ihre
@@ -165,6 +169,7 @@
   --container-text: var(--ct-w-text);
   --container-form: var(--ct-w-form);
   --container-sidebar: var(--ct-w-sidebar);
+  --container-detail: var(--ct-w-detail);
 
   --radius-ct-sm: var(--ct-radius-sm);
   --radius-ct-md: var(--ct-radius-md);

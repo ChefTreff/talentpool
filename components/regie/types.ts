@@ -20,6 +20,15 @@ export type RegieCue = {
   title: string | null;
   format: string | null;
   speakers: { person_id: string; first_name: string | null; last_name: string | null }[] | null;
+  /**
+   * Die Technik-Ansage des Speakers zu dieser Session (0121, aus `session.tech`).
+   *
+   * **Nur Anzeige.** Die Disposition der Regie steht in `mic_assignments` und
+   * `media` und wird davon nicht berührt — sonst gäbe es zwei Felder für
+   * dieselbe Aussage und keines wäre die Wahrheit. Cues ohne Session (Doors
+   * open, Puffer) tragen ein leeres Objekt.
+   */
+  tech: Record<string, string> | null;
 };
 
 export type OpenSlot = {

@@ -86,7 +86,7 @@ export function AntraegeView({
 
   return (
     <>
-      <div className="mb-4 max-w-[260px]">
+      <div className="mb-4 max-w-65">
         <Field label={t.filterStatus} htmlFor="f-status">
           <Select
             id="f-status"

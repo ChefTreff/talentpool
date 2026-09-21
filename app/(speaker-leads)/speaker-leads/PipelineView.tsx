@@ -130,7 +130,7 @@ export function PipelineView({
       </div>
 
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <Field label={t.search} htmlFor="lead-search" className="min-w-[260px]">
+        <Field label={t.search} htmlFor="lead-search" className="min-w-65">
           <Input
             id="lead-search"
             value={query}

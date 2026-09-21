@@ -92,10 +92,10 @@ export function Hallenplan({
         ) : (
           <Card className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[480px] border-collapse">
+              <table className="w-full min-w-120 border-collapse">
                 <thead>
                   <tr className="border-b">
-                    <th scope="col" className="ct-label w-[120px] px-4 py-2.5 text-left text-muted">
+                    <th scope="col" className="ct-label w-30 px-4 py-2.5 text-left text-muted">
                       {t.colBooth}
                     </th>
                     <th scope="col" className="ct-label px-4 py-2.5 text-left text-muted">

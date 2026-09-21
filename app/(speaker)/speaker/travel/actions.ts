@@ -70,3 +70,33 @@ export async function saveTravel(data: Record<string, unknown>): Promise<TravelR
   refresh();
   return { ok: true, data: undefined };
 }
+
+/**
+ * Eine Shuttle-Fahrt anfordern (SPK-016).
+ *
+ * Status ist immer `requested`; freigegeben wird im Speaker-Admin. Die
+ * Obergrenze von fünf Fahrten prüft `request_shuttle` selbst und antwortet mit
+ * P0001 `shuttle_limit` — die Oberfläche blendet das Begründungsfeld nur
+ * rechtzeitig ein, sie entscheidet nicht.
+ */
+export async function requestShuttle(
+  profileId: string,
+  data: Record<string, unknown>,
+): Promise<TravelResult<{ id: string }>> {
+  const supabase = await client();
+  const { data: res, error } = await supabase.rpc("request_shuttle", {
+    p_profile_id: profileId,
+    p_data: data,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: { id: (res as { id?: string } | null)?.id ?? "" } };
+}
+
+export async function cancelShuttle(bookingId: string): Promise<TravelResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("cancel_shuttle", { p_booking_id: bookingId });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
