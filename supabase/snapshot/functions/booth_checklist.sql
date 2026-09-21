@@ -15,7 +15,10 @@ begin
       join organization o on o.id = oe.org_id
       join org_product op on op.org_edition_id = oe.id
       join product p on p.sku = op.product_sku
-      left join booth b on b.org_edition_id = oe.id
+      left join lateral (
+        select b2.* from booth_assignment ba join booth b2 on b2.id = ba.booth_id
+         where ba.org_edition_id = oe.id
+         order by ba.event_day_id nulls first, b2.created_at limit 1) b on true
       left join booth_service_check c on c.org_edition_id = oe.id and c.product_sku = p.sku
       left join person pe on pe.id = c.checked_by
      where oe.edition_id = p_edition_id
