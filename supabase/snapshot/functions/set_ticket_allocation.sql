@@ -10,6 +10,13 @@ begin
   select * into v_a from org_ticket_allocation where id = p_id for update;
   if not found then raise exception 'allocation_not_found' using errcode = 'P0002'; end if;
   if p_quantity is not null and p_quantity < 0 then raise exception 'invalid_quantity' using errcode = '22023'; end if;
+  -- Die 100er-Zeile leitet `sync_ticket_allocations` aus den gebuchten Produkten
+  -- ab (0123). Eine Menge von Hand wäre beim nächsten Lauf wieder weg — und
+  -- niemand sähe, dass sie verschwunden ist.
+  if p_quantity is not null and p_quantity <> v_a.quantity and v_a.discount_percent = 100 then
+    raise exception 'derived_allocation' using errcode = 'P0001',
+      detail = 'Die Menge der 100-Prozent-Zeile kommt aus den gebuchten Produkten.';
+  end if;
   if p_status is not null and p_status not in ('pending_vivenu', 'active', 'error', 'disabled') then raise exception 'invalid_status' using errcode = '22023'; end if;
   update org_ticket_allocation set
     quantity = coalesce(p_quantity, quantity),

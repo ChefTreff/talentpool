@@ -1,5 +1,5 @@
 create or replace function booth_day_plan(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(event_day_id uuid, day_date date, day_label text, booth_id uuid, booth_number text, booth_type text, segment text, org_edition_id uuid, org_id uuid, org_name text, geteilt boolean, note text)
+ RETURNS TABLE(assignment_id uuid, event_day_id uuid, day_date date, day_label text, booth_id uuid, booth_number text, booth_type text, segment text, org_edition_id uuid, org_id uuid, org_name text, geteilt boolean, note text)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -12,7 +12,7 @@ begin
   select coalesce(p_edition_id, (select e.id from event e where e.is_edition
                                   order by e.start_date desc limit 1)) into v_ed;
   return query
-    select d.id, d.day_date, coalesce(d.label_de, to_char(d.day_date, 'DD.MM.')),
+    select ba.id, d.id, d.day_date, coalesce(d.label_de, to_char(d.day_date, 'DD.MM.')),
            b.id, b.booth_number, b.booth_type, b.segment,
            ba.org_edition_id, o.id, coalesce(nullif(btrim(o.communication_name), ''), o.legal_name),
            -- „Geteilt" heisst: an diesem Stand haengt mindestens eine
@@ -27,5 +27,5 @@ begin
       join org_edition oe on oe.id = ba.org_edition_id and oe.edition_id = v_ed
       join organization o on o.id = oe.org_id
      where d.event_id = v_ed
-     order by d.day_date, b.booth_number nulls last, 10;
+     order by d.day_date, b.booth_number nulls last, 11;
 end $$;
