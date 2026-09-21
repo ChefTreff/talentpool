@@ -31,6 +31,7 @@ export default async function SpeakerLayout({ children }: { children: ReactNode 
             { href: "/speaker/travel", label: t.speaker.navTravel },
             { href: "/speaker/tickets", label: t.speaker.navTickets },
             { href: "/speaker/reisekosten", label: t.speaker.navExpenses },
+            { href: "/speaker/media", label: t.speaker.navMedia },
             { href: "/speaker/grafik", label: t.speaker.navGraphic },
             { href: "/speaker/profil", label: t.speaker.navProfile },
             { href: "/speaker/wiki", label: t.speaker.navWiki },
