@@ -14,7 +14,7 @@
 --   11 Katalogfragen nur, wenn `partner_selectable` — sonst P0001 `question_not_selectable`;
 --   12 eine beantragte Frage braucht einen Zweck und ist erst nach Freigabe sichtbar;
 --      höchstens zwei je Session;
---   13 `partner_add_speaker` legt Person, Speaker-Profil (`invited`, `partner_editable…`) und
+--   13 `partner_add_speaker` legt Person, Speaker-Profil (`lead`, `partner_editable…`) und
 --      die Zuordnung an; ein bestätigter Speaker blockiert (P0001 `slot_locked`);
 --   14 alle Helfer sind für `authenticated` gesperrt; fremde Organisation ⇒ 42501;
 --   15 Einzelgespräch setzt Kapazität 1, Gruppengespräch nimmt die Angabe (Konrad, D1);
@@ -196,9 +196,11 @@ begin
   select pipeline_status, partner_editable_until_login, created_by_org_id into v_txt, v_j, v_person
     from (select pipeline_status, to_jsonb(partner_editable_until_login) as partner_editable_until_login, created_by_org_id
             from speaker_profile where id = v_prof) x;
+  -- `lead`, nicht `invited`: das Vokabular `speaker_pipeline` kennt kein „eingeladen", und
+  -- eingeladen ist hier auch niemand — das macht das Speaker-Team ab `confirmed`.
   insert into t_res values ('13_speaker_angelegt',
-    case when v_txt = 'invited' and v_j = 'true'::jsonb and v_person = v_org
-         then 'invited, partner darf pflegen, Org vermerkt (richtig)'
+    case when v_txt = 'lead' and v_j = 'true'::jsonb and v_person = v_org
+         then 'lead, partner darf pflegen, Org vermerkt (richtig)'
          else 'unerwartet ' || coalesce(v_txt,'?') || '/' || coalesce(v_j::text,'?') end);
 
   -- 19 Auflage 3: eine **bestehende** Person, nur per Mailadresse getroffen, gibt dem Partner

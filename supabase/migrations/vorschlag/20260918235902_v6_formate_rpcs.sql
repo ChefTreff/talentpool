@@ -538,9 +538,18 @@ begin
   select sp.id into v_prof from speaker_profile sp
    where sp.person_id = v_person and sp.edition_id = coalesce(v_oe.edition_id, v_se.event_id);
   if v_prof is null then
+    -- **`lead`, nicht `invited`** (Probelauf der Architektur-Session, 21.09.: 23514). Das
+    -- Vokabular `speaker_pipeline` kennt lead, contacted, confirmed, onboarded, ready,
+    -- published, attended, declined — `invited` war meine Erfindung und hätte am CHECK
+    -- scheitern müssen, was sie auch tat.
+    --
+    -- `lead` ist auch inhaltlich der richtige Anfang: wen ein Partner für seine Session
+    -- einträgt, hat aus Sicht des Speaker-Teams noch niemand kontaktiert. Die Einladung
+    -- verschickt das Team, und zwar erst ab `confirmed` (Regel aus 0025) — stünde hier
+    -- „eingeladen", behauptete der Status etwas, das noch nicht passiert ist.
     insert into speaker_profile (person_id, edition_id, pipeline_status, owner_person_id,
                                  created_by_org_id, partner_editable_until_login)
-    values (v_person, coalesce(v_oe.edition_id, v_se.event_id), 'invited', v_owner,
+    values (v_person, coalesce(v_oe.edition_id, v_se.event_id), 'lead', v_owner,
             v_se.partner_org_id, v_neu)
     returning id into v_prof;
   end if;
