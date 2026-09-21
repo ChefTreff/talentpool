@@ -1,6 +1,8 @@
 -- =============================================================================
 -- 0123 · Welle 6 · Rabattstufen je Kontingent (A3.3, ADM-022)
 --
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921101601.
+--
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --
 -- Initiativen bekommen Tickets als Gegenleistung, und nicht alle davon
