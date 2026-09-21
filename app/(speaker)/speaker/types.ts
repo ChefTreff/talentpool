@@ -60,6 +60,21 @@ export type SpeakerProfile = {
   travel_costs_approved: boolean;
   invited_at: string | null;
   assistant: SpeakerAssistant | null;
+  /**
+   * Kontakt ohne Portalzugang (0127): Agentur, Office oder Management.
+   *
+   * `null`, solange nichts hinterlegt ist. Bewusst **kein** Personendatensatz —
+   * die Person soll im Portal nichts tun, und ein ungenutztes Konto wäre mehr
+   * Datenhaltung, nicht weniger.
+   */
+  contact: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    phone: string | null;
+    kind: string | null;
+    consent_at: string | null;
+  } | null;
   person: SpeakerPerson;
   consents: Record<string, boolean>;
   next_steps: NextSteps;
@@ -133,3 +148,11 @@ export type MyReception = {
   my_guests: number | null;
   my_note: string | null;
 };
+
+/** Die Felder des Kontakts ohne Portalzugang, in der Reihenfolge des Formulars. */
+export const KONTAKT_FELDER = [
+  { key: "contact_first_name", kind: "text" },
+  { key: "contact_last_name", kind: "text" },
+  { key: "contact_email", kind: "email" },
+  { key: "contact_phone", kind: "tel" },
+] as const;

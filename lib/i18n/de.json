@@ -206,7 +206,9 @@
     "invalid_action": "Diesen Vorgang gibt es nicht.",
     "contact_consent_required": "Für eine Adresse ausserhalb @chef-treff.de braucht es das Datum der vertraglichen Einwilligung.",
     "invalid_stage": "Diese Funnel-Stufe kennt das System nicht.",
-    "invalid_items": "Die Liste der Leistungen passt nicht."
+    "invalid_items": "Die Liste der Leistungen passt nicht.",
+    "speaker_contact_consent_required": "Bitte bestätige, dass die eingetragene Person einverstanden ist — es sind die Daten eines anderen Menschen.",
+    "invalid_contact_kind": "Diese Art des Kontakts kennen wir nicht."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -764,7 +766,7 @@
     "travelSaved": "Reisedaten gespeichert",
     "savedAt": "Zuletzt gespeichert: {date}",
     "contactsTitle": "Deine Ansprechpersonen",
-    "contactLead": "Speaker-Leitung",
+    "contactLead": "Wenn Anfragen nicht an dich, sondern an eine Agentur, ein Office oder dein Management gehen sollen. Diese Person bekommt **keinen** Zugang zum Portal — wir schreiben sie nur an.",
     "contactBuddy": "Dein Speaker-Buddy",
     "photoTitle": "Dein Foto",
     "photoLead": "Wir nutzen es im Programm, auf der Website und in der Event-App. Quer oder hochkant ist egal, das Gesicht sollte gut erkennbar sein.",
@@ -837,7 +839,24 @@
     "shuttle_over_limit_reason": "Warum diese zusätzliche Fahrt?",
     "shuttle_over_limit_reason_hint": "Ein Satz reicht.",
     "required": "Pflichtfeld",
-    "navGraphic": "Deine Grafik"
+    "navGraphic": "Deine Grafik",
+    "sectionContact": "Agentur oder Office",
+    "contactKind": "Art des Kontakts",
+    "contact_first_name": "Vorname",
+    "contact_last_name": "Nachname",
+    "contact_email": "E-Mail",
+    "contact_phone": "Telefon",
+    "contactConsent": "Diese Person weiß Bescheid und ist einverstanden, dass wir sie hier hinterlegen und anschreiben.",
+    "contactConsentHint": "Ohne diese Bestätigung speichern wir die Angaben nicht — es sind die Daten eines anderen Menschen.",
+    "contactSaved": "Kontakt gespeichert.",
+    "contactRemove": "Kontakt entfernen",
+    "contactRemoved": "Kontakt entfernt.",
+    "contactAssistantNote": "Anders als die Assistenz hat dieser Kontakt keinen Login und sieht nichts im Portal.",
+    "kind_agency": "Agentur",
+    "kind_office": "Office",
+    "kind_management": "Management",
+    "kind_assistant": "Assistenz",
+    "kind_other": "Sonstige"
   },
   "leads": {
     "title": "Speaker-Pipeline",
