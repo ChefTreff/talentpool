@@ -1,4 +1,4 @@
--- Smoke-Test 0114 (Partner-RPCs „Eure Formate", Welle 6 A1 Teil 2). Belegt:
+-- Smoke-Test 0133 (Partner-RPCs „Eure Formate", Welle 6 A1 Teil 2). Belegt:
 --   01 ohne gebuchtes Produkt darf niemand ein Side-Event anlegen (P0001 `no_entitlement`);
 --   02 mit Produkt geht es, und der Slot trägt die Zeiten (Weg A) — die Session hat keine;
 --   03 der Anspruch ist danach aufgebraucht: ein zweites Side-Event wird abgewiesen;

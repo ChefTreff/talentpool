@@ -1,4 +1,4 @@
--- Smoke-Test 0115 (Company Tours mit Stopps und Tour Lead, PART-046). Belegt:
+-- Smoke-Test 0134 (Company Tours mit Stopps und Tour Lead, PART-046). Belegt:
 --   01 `tour_lead` ist als Kontakttyp erlaubt, ein erfundener Typ weiterhin nicht;
 --   01c **die Pflege-RPC kennt ihn auch** — ein neuer Typ steht an drei Stellen (Vokabular,
 --      CHECK, Whitelist in `upsert_edition_contact`); ohne die dritte erlaubt die Tabelle

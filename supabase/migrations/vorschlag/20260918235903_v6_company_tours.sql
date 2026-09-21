@@ -1,4 +1,4 @@
--- 0115 · Welle 6: Company Tours mit Stopps und Tour Lead (PART-046, ADM-026).
+-- 0134 · Welle 6: Company Tours mit Stopps und Tour Lead (PART-046, ADM-026).
 --
 -- Anlass: Konrads Entscheidung D5 vom 18.09.2026. Eine Company Tour ist keine Session mit ein
 -- paar Zusatzfeldern, sondern eine **Rundfahrt**: ein Sammelpunkt, drei Stationen bei drei

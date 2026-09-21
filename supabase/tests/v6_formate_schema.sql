@@ -1,4 +1,4 @@
--- Smoke-Test 0113 (Schema „Eure Formate", Welle 6 A1 Teil 1). Belegt:
+-- Smoke-Test 0132 (Schema „Eure Formate", Welle 6 A1 Teil 1). Belegt:
 --   01 `interview_table` steht im Vokabular `session_format`; die vier anderen Formate
 --      waren schon da (deshalb prüft der Test sie mit, nicht nur das neue);
 --   02 `stage.type` nimmt die zwei neuen Typen an …
