@@ -31,7 +31,11 @@
 --   21 **(Auflage 4)** die zurückgeschickte Session steht in `partner_sessions_pending` —
 --      auch als Keynote, denn der Formatfilter dort ist gefallen;
 --   22 **(Auflage 6)** `image_asset_id` muss eine UUID sein und eine Datei **dieser**
---      Organisation; die Datei eines fremden Partners wird abgewiesen.
+--      Organisation; die Datei eines fremden Partners wird abgewiesen;
+--   23 **(Auflage 21.09.)** die Freigabe ohne englischen Titel scheitert mit **22023
+--      `fields_required`** und nennt das fehlende Feld — nicht mit dem rohen 23514 aus
+--      `session_publish_check`, das keine Oberfläche übersetzen kann; mit beiden Titeln
+--      geht sie durch.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -137,7 +141,10 @@ begin
     perform partner_update_session(v_t1, jsonb_build_object('capacity', 9));
     insert into t_res values ('09_kapazitaet_gesperrt', 'ERLAUBT (BUG)');
   exception when others then insert into t_res values ('09_kapazitaet_gesperrt', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
-  perform partner_update_session(v_t1, jsonb_build_object('title_de', 'ZZ Neuer Titel', 'description_de', 'ZZ Text'));
+  -- Beide Titel: `session_publish_check` laesst `published` sonst nicht zu (Slot, title_de,
+  -- title_en, eine Beschreibung). Schritt 16 gibt diese Session gleich frei.
+  perform partner_update_session(v_t1, jsonb_build_object('title_de', 'ZZ Neuer Titel',
+    'title_en', 'ZZ New title', 'description_de', 'ZZ Text'));
   select title_de into v_txt from session where id = v_t1;
   insert into t_res values ('09b_titel_aenderbar',
     case when v_txt = 'ZZ Neuer Titel' then 'geaendert (richtig)' else 'unerwartet ' || coalesce(v_txt,'leer') end);
@@ -329,8 +336,12 @@ begin
   insert into slot (stage_id, event_day_id, start_at, end_at, status)
     values (v_stage, v_day, v_start, v_start + interval '30 minutes', 'final')
     returning id into v_slot;
-  insert into session (event_id, format, title_de, partner_org_id, slot_id, publish_status)
-    values (v_summit, 'interview_table', 'ZZ Vorher', v_org, v_slot, 'published') returning id into v_se;
+  -- Beide Titel und eine Beschreibung, sonst laesst `session_publish_check` `published`
+  -- nicht zu — die Session soll hier ja den Zustand nach einer Freigabe darstellen.
+  insert into session (event_id, format, title_de, title_en, description_de,
+                       partner_org_id, slot_id, publish_status)
+    values (v_summit, 'interview_table', 'ZZ Vorher', 'ZZ Before', 'ZZ Beschreibung',
+            v_org, v_slot, 'published') returning id into v_se;
   -- Zwei Dateien: eine eigene, eine fremde.
   insert into partner_asset (org_edition_id, kind, storage_path, filename)
     values (v_oe, 'logo', 'zz/eigen.png', 'eigen.png') returning id into v_asset;
@@ -392,6 +403,35 @@ begin
   insert into t_res values ('22c_eigene_datei',
     case when v_txt = v_asset::text then 'eigene Datei uebernommen (richtig)'
          else 'unerwartet ' || coalesce(v_txt, 'null') end);
+
+  -- 23 Freigabe ohne englischen Titel: **22023 mit Namen**, nicht das rohe 23514 aus dem
+  --    Trigger. Der Fehlerschluessel-Vertrag kennt 23514 nicht; die Oberflaeche haette einen
+  --    englischen Datenbanktext angezeigt und das Team haette raten duerfen, was fehlt.
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
+  update session set publish_status = 'review', title_en = null where id = v_se;
+  delete from role_assignment where person_id = v_pid and role = 'admin';
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'area_lead_partner', 'global');
+  begin
+    perform release_partner_session(v_se, true, null);
+    insert into t_res values ('23_freigabe_ohne_title_en', 'ALLOWED (BUG): ohne englischen Titel freigegeben');
+  exception
+    when sqlstate '22023' then
+      insert into t_res values ('23_freigabe_ohne_title_en',
+        case when sqlerrm like '%fields_required%' or sqlerrm = 'fields_required'
+             then '22023 fields_required (richtig)' else '22023, aber ' || sqlerrm end);
+    when sqlstate '23514' then
+      insert into t_res values ('23_freigabe_ohne_title_en',
+        'ROH (BUG): 23514 aus dem Trigger statt eines uebersetzbaren Schluessels');
+  end;
+  -- Mit beiden Titeln geht sie durch.
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
+  update session set title_en = 'ZZ Before' where id = v_se;
+  delete from role_assignment where person_id = v_pid and role = 'admin';
+  perform release_partner_session(v_se, true, null);
+  select publish_status into v_txt from session where id = v_se;
+  insert into t_res values ('23b_mit_beiden_titeln',
+    case when v_txt = 'published' then 'freigegeben (richtig)' else 'unerwartet ' || coalesce(v_txt, 'null') end);
+  delete from role_assignment where person_id = v_pid and role = 'area_lead_partner';
 end $$;
 
 -- 14b Helfer nicht fuer die API
