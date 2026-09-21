@@ -54,8 +54,8 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
 
   // Was in diesem Baustein schon existiert. Der Rest steht in `visibleNavKeys`
   // bereit und wird hier freigeschaltet, sobald die Seite dazukommt — deshalb
-  // fehlen Masterclass, Company Tour, Side-Event, Interview Table und Media Kit
-  // hier noch (PART-041/045–048, Bausteine B7, B10).
+  // fehlen Masterclass, Company Tour und Media Kit hier noch
+  // (PART-041/045/046, Bausteine B7b, B10).
   const PAGES: Partial<Record<PartnerNavKey, { href: string; label: string }>> = {
     dashboard: { href: "/partner", label: t.partner.navDashboard },
     onboarding: { href: "/partner/onboarding", label: t.partner.navCompany },
@@ -69,6 +69,8 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     hackathon: { href: "/partner/hackathon", label: t.partner.navHackathon },
     branding: { href: "/partner/branding", label: t.partner.navBranding },
     talk: { href: "/partner/talk", label: t.partner.navTalk },
+    side_event: { href: "/partner/side-event", label: t.partner.navSideEvent },
+    interview_table: { href: "/partner/interview-tables", label: t.partner.navInterviewTables },
     stage: { href: "/partner/buehne", label: t.partner.navStage },
     shop: { href: "/partner/shop", label: t.partner.navShop },
     wiki: { href: "/partner/wiki", label: t.partner.navWiki },

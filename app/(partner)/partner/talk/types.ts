@@ -19,6 +19,9 @@ export type PartnerFormatSession = {
   applications_total: number;
   applications_accepted: number;
   is_host: boolean;
+  /** Seit 0140. Die Zuordnung laeuft ueber die Kennung, nicht ueber den Namen. */
+  stage_id: string | null;
+  event_day_id: string | null;
 };
 
 /**
