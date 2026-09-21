@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { processMailQueue } from "@/lib/mail/queue";
 import { processStoragePurgeQueue } from "@/lib/storage-purge";
+import { syncPartnerDocuments } from "@/lib/partner/documents-sync";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -27,6 +28,9 @@ function authorized(request: Request): boolean {
  * 3. `purge_checkins()` — Einlass-Scans 30 Tage nach Editionsende löschen (Welle 4 A2).
  * 4. `storage_purge_queue` abräumen — Dateien, die eine Profillöschung zurückgelassen
  *    hat (Welle 6, Migration 0115). SQL kann Storage nicht anfassen; hier passiert es.
+ * 5. Belege aus SevDesk holen (Welle 6, Migration 0122): Angebote und Rechnungen als
+ *    PDF in `partner-assets`, damit Partner sie im Portal finden statt per Mail
+ *    nachzufragen. Nur Lesen bei SevDesk.
  * Kein Nutzerkontext: service_role nach Prüfung des Secrets, die Route ist im Proxy
  * als öffentlich eingetragen und schützt sich selbst.
  */
@@ -50,6 +54,17 @@ export async function GET(request: Request) {
     console.error(`[cron/mail] ${storage.giveUp} Datei(en) bleiben liegen — bitte nachsehen`);
   }
 
+  // Belege: der Cron läuft als `service_role` und hat keine Nutzersitzung. Die
+  // Zielliste prüft aber `is_partner_team()` — deshalb bekommt sie hier den
+  // Admin-Client, und die Rechteprüfung liegt bei der Herkunft des Aufrufs
+  // (CRON_SECRET), nicht bei einer Rolle, die es hier nicht gibt.
+  let documents: Awaited<ReturnType<typeof syncPartnerDocuments>> | null = null;
+  try {
+    documents = await syncPartnerDocuments(admin, admin, "cron");
+  } catch (fehler) {
+    console.error("[cron/mail] Belegabruf fehlgeschlagen:", fehler instanceof Error ? fehler.message : fehler);
+  }
+
   return NextResponse.json({
     ok: !error,
     housekeeping: housekeeping ?? null,
@@ -57,5 +72,6 @@ export async function GET(request: Request) {
     queue,
     checkinsPurged: purged ?? null,
     storage,
+    documents,
   });
 }

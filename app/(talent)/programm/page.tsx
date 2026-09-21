@@ -172,7 +172,12 @@ export default async function ProgrammPage() {
         labels={labels}
         locale={locale}
         t={t.programme}
-        common={{ cancel: t.common.cancel, close: t.common.close, save: t.common.save }}
+        common={{
+          cancel: t.common.cancel,
+          close: t.common.close,
+          save: t.common.save,
+          until: t.common.until,
+        }}
         rpcMessages={t.rpc}
       />
     </>

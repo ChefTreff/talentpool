@@ -51,39 +51,50 @@ export async function removeInfo(id: string): Promise<Ergebnis> {
 }
 
 /**
- * Bild hochladen.
+ * Einen Platz im Bucket freigeben, damit der Browser das Bild **direkt** dorthin
+ * lädt.
  *
- * Der Bucket `contact-photos` ist öffentlich lesbar, aber **nur service_role
- * darf schreiben** — niemand lädt aus dem Browser direkt hinein. Deshalb geht
- * der Weg über diese Aktion: erst die Rolle prüfen (dieselbe Regel wie beim
- * Pflegen, geprüft von der Datenbank und nicht hier), dann mit dem
- * Admin-Client ablegen.
+ * Vorher ging die Datei durch eine Server Action — und die hat bei Next.js ein
+ * Limit von 1 MB. Ein normales Porträt aus einer Kamera ist grösser, der Upload
+ * brach mit 413 ab, und im Formular erschien nur „Das hat nicht geklappt"
+ * (Konrad, 18.09.). Die Oberfläche versprach 5 MB, die Plattform hielt 1 MB —
+ * ein Versprechen, das nicht uns gehörte.
+ *
+ * Jetzt prüft der Server nur noch das Recht und den Dateityp und gibt einen
+ * signierten Pfad zurück; die Bytes nimmt Supabase entgegen. **Den Pfad
+ * bestimmt der Server**, nicht der Browser — sonst könnte jemand aus dem
+ * Bucket-Ordner hinausschreiben. Die Grösse (5 MB) und die erlaubten Typen
+ * stehen am Bucket selbst und gelten auch dann, wenn jemand die Oberfläche
+ * umgeht.
  */
-export async function uploadPhoto(form: FormData): Promise<Ergebnis & { path?: string }> {
-  const datei = form.get("file");
-  const kontakt = String(form.get("contactId") ?? "");
-  if (!(datei instanceof File) || datei.size === 0) return { ok: false, key: "invalid_argument" };
-  if (datei.size > 5 * 1024 * 1024) return { ok: false, key: "file_too_large" };
+export async function createPhotoUploadUrl(
+  contactId: string,
+  contentType: string,
+): Promise<{ ok: true; path: string; token: string } | { ok: false; key: string }> {
   // Nur die drei Bildtypen des Buckets — alles andere wird hier abgewiesen und
   // nicht als „jpg“ umetikettiert (Review 14.09.).
   const ENDUNG: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
-  const endung = ENDUNG[datei.type];
+  const endung = ENDUNG[contentType];
   if (!endung) return { ok: false, key: "invalid_argument" };
-  // Die Kontakt-Id kommt aus dem Formular: nur eine echte UUID wird Dateiname,
-  // sonst könnte der Pfad aus dem Bucket-Ordner hinausführen.
-  const istUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(kontakt);
 
   // Rechteprüfung über die Datenbank, nicht über eine Annahme im Code.
   const supabase = await createSupabaseServerClient();
   const { data: darf, error } = await supabase.rpc("can_edit_edition_contacts");
   if (error || darf !== true) return { ok: false, key: "not_allowed" };
 
-  const pfad = `${istUuid ? kontakt : crypto.randomUUID()}.${endung}`;
+  // Die Kontakt-Id kommt aus dem Formular: nur eine echte UUID wird Dateiname,
+  // sonst könnte der Pfad aus dem Bucket-Ordner hinausführen.
+  const istUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(contactId);
+  const pfad = `${istUuid ? contactId : crypto.randomUUID()}.${endung}`;
+
   const admin = createSupabaseAdminClient();
-  const { error: up } = await admin.storage
+  const { data, error: sigFehler } = await admin.storage
     .from(BUCKET)
-    .upload(pfad, datei, { contentType: datei.type, upsert: true });
-  if (up) return { ok: false, key: "upload_failed" };
+    .createSignedUploadUrl(pfad, { upsert: true });
+  if (sigFehler || !data) {
+    console.error("[ansprechpartner] Upload-Adresse nicht erstellt:", sigFehler?.message);
+    return { ok: false, key: "upload_failed" };
+  }
   revalidatePath(PFAD);
-  return { ok: true, path: pfad };
+  return { ok: true, path: pfad, token: data.token };
 }

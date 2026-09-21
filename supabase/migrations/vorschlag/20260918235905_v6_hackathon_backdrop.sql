@@ -51,7 +51,13 @@ on conflict (key, product_sku, category) do update set
 
 -- Bestehende Organisationen mit Hackathon-Produkt bekommen die Pflicht sofort, nicht erst
 -- beim nächsten Housekeeping.
-select resync_deliverables(e.id) from event e
+--
+-- **Nicht `resync_deliverables`** (Auflage der Architektur-Session, 18.09.): die Funktion prüft
+-- `is_partner_team()` und scheitert in einer Migration, weil dort kein Sitzungskontext
+-- existiert. `sync_deliverables` je Organisation tut dasselbe ohne Rechteprüfung — derselbe
+-- Weg wie in der Shop-Migration 20260917192416.
+select sync_deliverables(oe.id) from org_edition oe
+  join event e on e.id = oe.edition_id
  where e.is_edition and coalesce(e.end_date, current_date) >= current_date;
 
 select harden_definer_functions();

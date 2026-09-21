@@ -1,5 +1,7 @@
 # Chat-Startpakete — sechs Sessions, ein Repo (Stand 17.09.2026)
 
+> Ort des Repositorys seit 18.09.2026: `~/Developer/talentpool` (nicht `Documents/GitHub`, der Ordner ist iCloud-synchronisiert und hat das Repository einmal zerstört). Chats immer aus diesem Ordner starten.
+
 > Konrads Entscheidung vom 17.09.: fünf Build-Chats nach Datenverbund plus ein Design-Chat, dazu die Architektur-/Security-Session (`talentpool-a9`, arbeitet nur für `main`). Höchstens **zwei bis drei Chats gleichzeitig aktiv** — das Wochenkontingent gilt für alle Sessions gemeinsam, und Konrads Review-Zeit ist der Engpass. Ein ruhender Chat verliert nichts: sein Gedächtnis ist das Backlog in `docs/feedback/`.
 
 ## Übersicht

@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { TicketCard } from "@/components/ui/TicketCard";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
@@ -87,7 +88,50 @@ export function TicketsView({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Eigenes Ticket */}
+      {/* Eigenes Ticket. Der **gueltige** Fall traegt die Ticket-Form aus dem
+          Design-System: Perforation, gestrichelte Trennung, QR im Bauch. Das
+          ist die Ansicht, die am Einlass vorgezeigt wird — sie darf wie ein
+          Ticket aussehen. Alle anderen Faelle sind Wartezustaende („kommt
+          nach der Bestaetigung", „wird ausgestellt"); die bleiben eine
+          schlichte Karte, denn ein Ticket, das es noch nicht gibt, soll auch
+          nicht wie eines aussehen. */}
+      {own?.issued && own.barcode ? (
+        <section>
+          <h2 className="ct-h3 mb-3 text-ink">{t.ownTicket}</h2>
+          <TicketCard
+            passType={own.pass_type ? (passTypes[own.pass_type] ?? own.pass_type) : t.ownTicket}
+            title={
+              [own.holder_first_name, own.holder_last_name].filter(Boolean).join(" ") ||
+              common.none
+            }
+            status={<Badge tone="success">{t.ticket_valid}</Badge>}
+            footer={
+              <div className="flex flex-wrap items-start gap-6">
+                <QrCode value={own.barcode} label={t.qrAlt} />
+                <div className="min-w-0">
+                  {(own.holder_position || own.holder_company) && (
+                    <p className="ct-help">
+                      {[own.holder_position, own.holder_company].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+                  {own.lounge_access && (
+                    <p className="mt-2">
+                      <Badge tone="accent">{t.loungeBadge}</Badge>
+                    </p>
+                  )}
+                  {own.lounge_access && <p className="ct-help mt-2">{t.loungeHint}</p>}
+                  {own.checked_in_at && (
+                    <p className="ct-help mt-2">
+                      {t.checkedIn}: {dateTime.format(new Date(own.checked_in_at))}
+                    </p>
+                  )}
+                  <p className="ct-help mt-2">{t.qrHint}</p>
+                </div>
+              </div>
+            }
+          />
+        </section>
+      ) : (
       <Card className="p-6">
         <h2 className="ct-h3 mb-3 text-ink">{t.ownTicket}</h2>
 
@@ -122,39 +166,9 @@ export function TicketsView({
             </p>
             <p className="ct-help mt-2">{t.qrSpeakerOnly}</p>
           </>
-        ) : (
-          <>
-            <div className="flex flex-wrap items-start gap-6">
-              <QrCode value={own.barcode} label={t.qrAlt} />
-              <div className="min-w-0">
-                <div className="flex flex-wrap gap-2">
-                  <Badge tone="success">{t.ticket_valid}</Badge>
-                  {own.pass_type && (
-                    <Badge>{passTypes[own.pass_type] ?? own.pass_type}</Badge>
-                  )}
-                  {own.lounge_access && <Badge tone="accent">{t.loungeBadge}</Badge>}
-                </div>
-                <p className="ct-label mt-3 text-ink">
-                  {[own.holder_first_name, own.holder_last_name].filter(Boolean).join(" ") ||
-                    common.none}
-                </p>
-                {(own.holder_position || own.holder_company) && (
-                  <p className="ct-help">
-                    {[own.holder_position, own.holder_company].filter(Boolean).join(" · ")}
-                  </p>
-                )}
-                {own.lounge_access && <p className="ct-help mt-2">{t.loungeHint}</p>}
-                {own.checked_in_at && (
-                  <p className="ct-help mt-2">
-                    {t.checkedIn}: {dateTime.format(new Date(own.checked_in_at))}
-                  </p>
-                )}
-              </div>
-            </div>
-            <p className="ct-help mt-4">{t.qrHint}</p>
-          </>
-        )}
+        ) : null}
       </Card>
+      )}
 
       {/* Begleitticket */}
       <Card className="p-6">
@@ -194,7 +208,7 @@ export function TicketsView({
             {/* Ausgestelltes zieht man nicht mehr selbst zurück — die RPC
                 antwortet dann `already_issued`, das sagen wir vorher. */}
             {companion.issued ? (
-              <p className="ct-help max-w-[260px]">{t.companionIssuedContact}</p>
+              <p className="ct-help max-w-65">{t.companionIssuedContact}</p>
             ) : (
               <Button
                 variant="ghost"

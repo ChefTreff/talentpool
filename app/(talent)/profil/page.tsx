@@ -112,7 +112,7 @@ export default async function ProfilPage() {
   };
 
   return (
-    <div className="max-w-[800px]">
+    <div className="max-w-text">
       <PageHeader
         title={t.profile.title}
         description={`${t.profile.lead} ${t.profile.loggedInAs} ${user.email}.`}

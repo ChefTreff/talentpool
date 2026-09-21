@@ -60,6 +60,21 @@ export type SpeakerProfile = {
   travel_costs_approved: boolean;
   invited_at: string | null;
   assistant: SpeakerAssistant | null;
+  /**
+   * Kontakt ohne Portalzugang (0127): Agentur, Office oder Management.
+   *
+   * `null`, solange nichts hinterlegt ist. Bewusst **kein** Personendatensatz —
+   * die Person soll im Portal nichts tun, und ein ungenutztes Konto wäre mehr
+   * Datenhaltung, nicht weniger.
+   */
+  contact: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    phone: string | null;
+    kind: string | null;
+    consent_at: string | null;
+  } | null;
   person: SpeakerPerson;
   consents: Record<string, boolean>;
   next_steps: NextSteps;
@@ -74,16 +89,70 @@ export const SPEAKER_CONSENTS = [
 ] as const;
 
 /**
- * Schritte aus `next_steps.open` und ihr Ziel. `null` heißt: die Seite gibt es
- * noch nicht (Foto braucht den Upload aus B2/A4, Ticket kommt mit B5) — die
- * Karte sagt das, statt ins Leere zu verlinken.
+ * Schritte aus `next_steps.open` und ihr Ziel. `null` hiesse: die Seite gibt es
+ * noch nicht — die Karte sagt das dann, statt ins Leere zu verlinken.
+ *
+ * Seit SPK-004 hat auch `photo` ein Ziel. Vorher stand der Schritt in der
+ * Aufgabenliste, ohne dass man ihn erledigen konnte: ein offener Punkt, den
+ * niemand abhaken kann, ist schlimmer als gar keiner.
  */
 export const STEP_HREF: Record<string, string | null> = {
   profile: "/speaker/profil",
   consents: "/speaker/profil#consent",
-  photo: null,
+  photo: "/speaker/profil#foto",
   session: "/speaker/session",
   session_content: "/speaker/session",
   presentation: "/speaker/session",
   ticket: "/speaker/tickets",
 };
+
+/** Der Bucket aller Speaker-Dateien: Präsentationen, Fotos, Sonstiges. */
+export const SPEAKER_BUCKET = "speaker-assets";
+
+/** Was der Foto-Upload annimmt (SPK-004). */
+export const PHOTO_MIME = ["image/jpeg", "image/png", "image/webp"];
+export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Dateinamen für den Objektschlüssel entschärfen: Storage mag keine Pfad-
+ * trenner und keine Sonderzeichen, und der Name landet 1:1 im Schlüssel.
+ * Der Originalname wird daneben in `speaker_asset.filename` gespeichert.
+ */
+export function safeFileName(name: string): string {
+  const cleaned = name
+    .normalize("NFKD")
+    .replace(/[^A-Za-z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-.]+/, "");
+  return (cleaned || "datei").slice(-80);
+}
+
+/** Eine Reception in der Speaker-Sicht (`my_receptions`, Migration 0125). */
+export type MyReception = {
+  id: string;
+  title_de: string;
+  title_en: string;
+  description_de: string | null;
+  description_en: string | null;
+  location: string;
+  address: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  capacity: number | null;
+  taken: number;
+  /** Freie Plätze — `null`, wenn es keine Obergrenze gibt. */
+  free: number | null;
+  rsvp_deadline: string | null;
+  closed: boolean;
+  my_status: string | null;
+  my_guests: number | null;
+  my_note: string | null;
+};
+
+/** Die Felder des Kontakts ohne Portalzugang, in der Reihenfolge des Formulars. */
+export const KONTAKT_FELDER = [
+  { key: "contact_first_name", kind: "text" },
+  { key: "contact_last_name", kind: "text" },
+  { key: "contact_email", kind: "email" },
+  { key: "contact_phone", kind: "tel" },
+] as const;

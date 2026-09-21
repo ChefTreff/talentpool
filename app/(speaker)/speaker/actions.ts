@@ -113,3 +113,65 @@ export async function removeAssistant(profileId: string): Promise<SpeakerResult>
   refresh();
   return { ok: true, data: undefined };
 }
+
+/**
+ * Profilfoto anmelden (SPK-004).
+ *
+ * Die Datei geht direkt aus dem Browser in den Bucket — die Storage-Policy
+ * `speaker_asset_path_allowed` prüft den Pfad, `register_speaker_asset` prüft
+ * ihn ein zweites Mal und setzt `speaker_profile.photo_asset_id`. Hier steht
+ * bewusst keine dritte Prüfung: zwei Stellen, die dasselbe entscheiden, laufen
+ * irgendwann auseinander.
+ */
+export async function registerSpeakerPhoto(input: {
+  profileId: string;
+  storagePath: string;
+  filename: string;
+  mime: string | null;
+  sizeBytes: number | null;
+}): Promise<SpeakerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("register_speaker_asset", {
+    p_profile_id: input.profileId,
+    p_kind: "photo",
+    p_storage_path: input.storagePath,
+    p_filename: input.filename,
+    p_mime: input.mime,
+    p_size_bytes: input.sizeBytes,
+    p_session_id: null,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Zu- oder Absage zur Reception (SPK-003).
+ *
+ * Obergrenze, Frist und Einladung prüft `set_reception_rsvp`; hier steht keine
+ * zweite Regel daneben. Die Assistenz darf nicht antworten — eine Zusage ist
+ * eine persönliche Entscheidung, keine Verwaltungsaufgabe.
+ */
+export async function setReceptionRsvp(
+  receptionId: string,
+  status: "yes" | "no",
+  guests: number,
+  note: string,
+): Promise<SpeakerResult> {
+  const supabase = await client();
+  const { data: profile, error: profileError } = await supabase.rpc("my_speaker_profile");
+  if (profileError) return fail(profileError);
+  if ((profile as { is_assistant?: boolean } | null)?.is_assistant) {
+    return { ok: false, key: "not_allowed" };
+  }
+
+  const { error } = await supabase.rpc("set_reception_rsvp", {
+    p_reception_id: receptionId,
+    p_status: status,
+    p_guests: guests,
+    p_note: note.trim() ? note.trim() : null,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}

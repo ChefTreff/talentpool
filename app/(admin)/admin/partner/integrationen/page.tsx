@@ -2,6 +2,7 @@ import { loadEditions } from "../editions";
 import { partnerAdminShell } from "../shell";
 import type { IngestLogRow } from "../types";
 import { IntegrationsView } from "./IntegrationsView";
+import { ProductSyncCard } from "./ProductSyncCard";
 
 export const dynamic = "force-dynamic";
 
@@ -22,13 +23,18 @@ export default async function AdminIntegrationsPage() {
     t.adminPartner.integrationsTitle,
     `${t.adminPartner.integrationsLead}` +
       (openErrors > 0 ? ` · ${openErrors} ${t.adminPartner.countOpenErrors}` : ""),
-    <IntegrationsView
+    <>
+      {/* Der Produktabgleich gehoert hierher und nicht auf eine eigene Seite:
+          hier steht schon, was mit welchem Fremdsystem passiert ist (A4.3). */}
+      <ProductSyncCard t={t.adminPartner} />
+      <IntegrationsView
       editions={editions}
       log={rows}
       dateLocale={t.meta.dateLocale}
       t={t.adminPartner}
       common={{ cancel: t.common.cancel, none: t.common.none, save: t.common.save }}
       rpcMessages={t.rpc}
-    />,
+      />
+    </>,
   );
 }

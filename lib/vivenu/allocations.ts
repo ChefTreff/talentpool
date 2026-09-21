@@ -14,6 +14,8 @@ export type PendingAllocation = {
   vivenu_event_id: string;
   pass_type: string;
   quantity: number;
+  /** Rabattsatz in Prozent (0123): 100 = kostenlos, 50 = halber Preis. */
+  discount_percent: number;
   status: string;
   coupon_code: string | null;
   vivenu_coupon_id: string | null;
@@ -219,7 +221,7 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
           // Freischaltung und wäre nicht wieder einzuschalten.
           if (r.vivenu_coupon_id && shop?._id) {
             await updateCoupon(r.vivenu_coupon_id, {
-              name: `${shopName} · ${r.pass_type}`,
+              name: couponName(shopName, r),
               ...couponFields(eventId, shop._id, r),
               active: false,
               maxTickets: 0,
@@ -234,15 +236,15 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
         if (!shop?._id) throw new Error("Undershop ohne _id in der vivenu-Antwort");
         if (r.ticket_type_ids.length === 0) throw new Error(`keine Tickettypen für Pass-Typ ${r.pass_type} in ticket_type_map`);
         if (r.vivenu_coupon_id) {
-          await updateCoupon(r.vivenu_coupon_id, { name: `${shopName} · ${r.pass_type}`, ...couponFields(eventId, shop._id, r) });
+          await updateCoupon(r.vivenu_coupon_id, { name: couponName(shopName, r), ...couponFields(eventId, shop._id, r) });
           await admin.rpc("set_ticket_allocation_vivenu", {
             p_id: r.id, p_status: "active", p_vivenu_undershop_id: shop._id, p_undershop_url: undershopUrl(eventId, shop),
           });
           summary.updated += 1;
           summary.runs.push({ id: r.id, org: r.org_name, pass_type: r.pass_type, outcome: "updated" });
         } else {
-          const code = r.coupon_code ?? couponCode(r.edition_slug, r.org_slug, r.org_name, r.pass_type);
-          const coupon = await createCoupon({ name: `${shopName} · ${r.pass_type}`, code, ...couponFields(eventId, shop._id, r) });
+          const code = r.coupon_code ?? couponCode(r.edition_slug, r.org_slug, r.org_name, r.pass_type, r.discount_percent);
+          const coupon = await createCoupon({ name: couponName(shopName, r), code, ...couponFields(eventId, shop._id, r) });
           await admin.rpc("set_ticket_allocation_vivenu", {
             p_id: r.id, p_status: "active", p_coupon_code: coupon.code ?? code, p_vivenu_coupon_id: String(coupon._id),
             p_vivenu_undershop_id: shop._id, p_undershop_url: undershopUrl(eventId, shop),
@@ -267,13 +269,27 @@ export async function provisionAllocations(admin: SupabaseClient, jobId: number 
  * antwortet vivenu mit 400 („name is required"). Jeder Aufruf schickt daher
  * den vollen Satz mit — wer hier ein Feld wegliesse, löschte es im Coupon.
  */
+/**
+ * Der Name, unter dem der Coupon in vivenu steht.
+ *
+ * Der Satz gehört hinein: seit 0123 kann eine Organisation zwei Kontingente
+ * desselben Pass-Typs haben, und zwei Coupons „FLS27 · partner" wären im
+ * vivenu-Backend nicht auseinanderzuhalten. Bei 100 % bleibt der Name wie
+ * bisher — sonst hätten alle bestehenden Coupons beim nächsten Lauf einen neuen.
+ */
+function couponName(shopName: string, r: PendingAllocation): string {
+  const satz = r.discount_percent ?? 100;
+  return satz === 100 ? `${shopName} · ${r.pass_type}` : `${shopName} · ${r.pass_type} · ${satz}%`;
+}
+
 function couponFields(eventId: string, underShopId: string, r: PendingAllocation): Partial<CouponInput> {
   return {
     // `var` ist der prozentuale Rabatt, und der Wert ist ein **Anteil**:
     // 1 = 100 %. Mit 100 zeigt der Shop „-10000.00 %" an (am 12.09. im
-    // Sandbox-Warenkorb gesehen) und nimmt nichts mehr in den Korb.
+    // Sandbox-Warenkorb gesehen) und nimmt nichts mehr in den Korb. Seit 0123
+    // trägt das Kontingent seinen Satz selbst — 50 % werden hier 0.5.
     discountType: "var",
-    discountValue: 1,
+    discountValue: Math.min(1, Math.max(0, (r.discount_percent ?? 100) / 100)),
     // Ohne die beiden `allowAll…: false` gälte der Coupon fuer alle Events und
     // alle Tickettypen des Kontos — siehe CouponInput in lib/vivenu/client.ts.
     allowAllEvents: false,

@@ -48,7 +48,7 @@ export default async function PartnerApplicantsPage() {
           {sessions.map((s) => (
             <Card as="li" key={s.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-[260px] flex-1">
+                <div className="min-w-65 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="ct-h3 text-ink">{title(s)}</span>
                     {s.format && <Badge>{formats[s.format] ?? s.format}</Badge>}

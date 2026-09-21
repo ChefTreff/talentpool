@@ -113,7 +113,7 @@ export function VorlagenView({
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-      <aside className="flex shrink-0 flex-col gap-1 lg:w-[280px]">
+      <aside className="flex shrink-0 flex-col gap-1 lg:w-70">
         {vorlagen.map((v) => (
           <button
             key={`${v.key}|${v.locale}`}

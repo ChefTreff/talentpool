@@ -42,7 +42,7 @@ export function TestMailForm({
         htmlFor="mail-to"
         required
         requiredLabel={labels.required}
-        className="min-w-[280px] flex-1"
+        className="min-w-70 flex-1"
       >
         <Input
           id="mail-to"

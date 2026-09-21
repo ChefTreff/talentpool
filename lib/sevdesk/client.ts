@@ -21,7 +21,14 @@ export function hasSevdeskToken(): boolean {
   return Boolean(process.env.SEVDESK_API_TOKEN?.trim());
 }
 
-async function sd<T>(path: string, init?: RequestInit): Promise<T> {
+/**
+ * Ein Aufruf gegen die SevDesk-API.
+ *
+ * Exportiert, damit der Artikelstamm (`lib/sevdesk/parts.ts`) denselben Weg
+ * nimmt — ein zweites `fetch` mit eigenem Token hätte irgendwann eine eigene
+ * Fehlerbehandlung, und eine davon verschluckt den Statuscode.
+ */
+export async function sd<T>(path: string, init?: RequestInit): Promise<T> {
   const token = process.env.SEVDESK_API_TOKEN?.trim();
   if (!token) throw new Error("SEVDESK_API_TOKEN fehlt (docs/zugangs-liste.md)");
   const res = await fetch(`${BASE}${path}`, {

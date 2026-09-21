@@ -84,6 +84,8 @@ Die Marker sind Sechsecke auf einer durchgehenden Linie — waagerecht ab 640 px
 
 **Breiten kommen aus Tokens, nie als rohe Werte.** `max-w-content` (1200) ist der Normalfall, `max-w-table` (1400) für dichte Admin-Listen — beides setzt die Shell über `width`. Für Text- und Formularspalten innerhalb einer Seite: `max-w-text` (800) und `max-w-form` (640). Fehlt ein Mass, kommt es als Token nach `globals.css`, nicht als `max-w-[900px]` in eine Seite.
 
+**`width="table"` gilt dem Bereich, nicht der Seite** — und deshalb nur dort, wo **fast alle** Seiten Tabellen sind. Im Admin wurde es probiert und wieder verworfen: 35 der 41 Seiten setzen gar keine eigene Breite, `width="table"` haette also auch jedes Formular und jede Kartenliste auf 1400 gezogen. Eine dichte Tabelle in einem 1200er Rahmen scrollt in ihrem eigenen `overflow-x-auto`-Container; das ist der kleinere Preis. Wer eine einzelne Seite wirklich breiter braucht, aendert nicht das Layout des ganzen Bereichs.
+
 **Die Porträt-Form gilt für Personen, nicht für Bedienelemente.** `PortraitShape` (gekipptes Dreieck) trägt jede Personen-Darstellung ab 56 px — `PersonCard`, `ContactCard`, Listen, Jury, Team. Der Avatar im Profilmenü bleibt rund: er ist bei 24 px der Auslöser eines Menüs, kein Porträt, und ein Dreieck in dieser Grösse ist nur noch ein Fleck.
 
 ## Login, Welcome, Marketing-Moment

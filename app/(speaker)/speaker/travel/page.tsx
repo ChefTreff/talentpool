@@ -6,9 +6,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Anreise, type SpeakerTravel } from "./Anreise";
 import { DietCard } from "@/components/diet/DietCard";
+import { ShuttleView } from "./ShuttleView";
 import { TravelView } from "./TravelView";
 import type { SpeakerProfile } from "../types";
-import type { HospitalityBooking, HospitalityOption } from "./types";
+import type { HospitalityBooking, HospitalityOption, ShuttleBooking } from "./types";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,9 @@ export default async function SpeakerTravelPage() {
     supabase.rpc("my_diet"),
     loadVocabMap(supabase, locale),
   ]);
+  // Fahrten stehen seit 0119 in einer eigenen Tabelle, nicht mehr als
+  // Kontingentbuchung — deshalb ein eigener Aufruf.
+  const { data: shuttleRows } = await supabase.rpc("my_shuttle_bookings");
 
   const profile = (profileJson ?? null) as SpeakerProfile | null;
   const travel = (travelJson ?? null) as SpeakerTravel | null;
@@ -78,6 +82,20 @@ export default async function SpeakerTravelPage() {
             rpcMessages={t.rpc}
           />
         )}
+      </div>
+
+      {/* Shuttle vor den Kontingenten: eine Fahrt ist ein Auftrag mit Zeit und
+          Ziel, kein Platz in einem Topf. Wer hierher kommt, sucht meistens sie. */}
+      <div className="mb-6">
+        <ShuttleView
+          profileId={profile.id}
+          bookings={(shuttleRows ?? []) as ShuttleBooking[]}
+          isAssistant={profile.is_assistant}
+          dateLocale={t.meta.dateLocale}
+          t={t.speaker}
+          common={{ cancel: t.common.cancel, save: t.common.save }}
+          rpcMessages={t.rpc}
+        />
       </div>
 
       <TravelView
