@@ -170,8 +170,8 @@ Konrad: Swapcard bleibt die Event-App (Frage 86 entschieden, kein Eigenbau). All
 - **EA1 Exhibitors:** vorhandenen Sync gegen das 27er-Event abnehmen; Kategorie/Tier aus den Partner-Produkten ableiten; Exhibitor-Rechte und Kategorien nach Abschluss-Checkliste festlegen.
 - **EA2 Speaker:** veröffentlichte Speaker-Profile → Swapcard-Personen mit Speaker-Rolle (Name, Foto, Kurzbio, Organisation, Titel); Swapcard-ID zurück in `external_ref`.
 - **EA3 Sessions und Tracks:** nur `published`-Sessions → Swapcard-Planning (Titel, Beschreibung, Zeit, Bühne, Speaker-Zuordnung); Tracks als Custom Field (Checkliste). Änderungen im Portal überschreiben Swapcard, nicht umgekehrt.
-- **EA4 Teilnehmende:** gültige Tickets (vivenu) → Swapcard-Personen in einer Gruppe je Pass-Typ; nur mit Einwilligung; Storno ⇒ Entfernen.
-- **EA5 Eingehend:** Webhook-Empfang von Swapcard mit Signaturprüfung und Idempotenz — **erst nach Klärung mit Konrad**, was zurückfließen soll.
+- **EA4 Teilnehmende:** gültige Tickets (vivenu) → Swapcard-Personen in einer Gruppe je Pass-Typ — **Partner, Student, Talent, Professional, Crew, Startup, Investor, Supporter** (Speaker Pass nicht: kommt aus EA2); nur mit Einwilligung `event_app`; Storno oder Widerruf ⇒ Entfernen. Vorher **EA4a Zuordnung:** lesendes Probe-Skript listet vivenu-Tickettypen und Swapcard-Gruppen, schlägt die Zuordnung je Pass-Typ vor, Konrad bestätigt; Ablage `ticket_type_map` plus Swapcard-Gruppen-Kennung (Konrad 21.09.).
+- **EA5 Eingehend: entfällt** (Konrad 21.09.: kein Rückkanal ins Profil, Nutzungsdaten werden in Swapcard gelesen).
 - **EA6 Abnahme:** Probelauf `dryRun` gegen das 27er-Event, dann echter Lauf mit Testdaten (ZZTEST-Kennung, danach Aufräumen); Checklisten-Punkte „Swapcard-Sync getestet" und „Processing-Fehler FLS26" abhaken. AVV Swapcard und Consent-Agent bleiben auf der Abschluss-Checkliste.
 
-**Fragen an Konrad (vor EA4/EA5):** Welche Pass-Typen kommen in die App? Was soll aus Swapcard zurück ins Portal (Webhook: Anmeldungen, Scans, Leads)? Steht die Einwilligung „Weitergabe an die Event-App" bereits im Consent-Set von Bewerbung und Ticketkauf?
+**Konrads Antworten (21.09.):** Pass-Typen wie unter EA4; kein Rückkanal; Einwilligung `event_app` wird eingeholt (Bewerbung, Ticket-Redirect, Speaker-Onboarding). Neuer vivenu-Schlüssel für das Haupt-Event kommt von Konrad.
