@@ -29,6 +29,8 @@ export type ExhibitorRow = {
   level_source: "product" | "hubspot" | null;
   /** Produktkategorien der gebuchten **Pakete**, in Vokabular-Reihenfolge (0135). Leeres Array, nie null. */
   categories: string[];
+  /** Branche aus dem Vokabular `industry` (0138) — Schlüssel = Optionswert des Swapcard-Feldes „Branche". */
+  industry: string | null;
   partner_category: string | null;
   org_type: string | null;
   booth_number: string | null;
@@ -52,6 +54,8 @@ export type ExhibitorUpsert = {
   descriptionEn?: string;
   websiteUrl?: string;
   logoUrl?: string;
+  /** Branche. In Swapcard heisst das Feld `type`; der Wert ist der Optionswert von „Branche" (`tech-and-it` …), nicht das Sponsoring-Level. */
+  industry?: string;
   booth?: string;
   existingId?: string;
 };
@@ -64,8 +68,10 @@ export type RemoteExhibitor = {
   description?: string | null;
   websiteUrl?: string | null;
   logoUrl?: string | null;
-  /** In Swapcard ist `type` die **Branche** („Tech, Data & IT"), nicht das Sponsoring-Level — Probe 21.09.2026. Wir lesen ihn nur. */
+  /** In Swapcard ist `type` die **Branche** — beim Lesen als Beschriftung („Tech, Data & IT"), Probe 21.09.2026. */
   type?: string | null;
+  /** Derselbe Wert als Optionsschlüssel (`tech-and-it`). Nur der lässt sich mit unserem Vokabular vergleichen. */
+  typeValue?: string | null;
   /** Standnummern im abgefragten Event; nur gesetzt, wenn der Aussteller schon am Event hängt. */
   booths?: string[];
 };

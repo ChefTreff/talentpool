@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
+import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { OnboardingWizard } from "./OnboardingWizard";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ export default async function PartnerOnboardingPage() {
   const supabase = await createSupabaseServerClient();
   // Kontakte werden hier nicht mehr geladen: sie stehen unter „Kontakte" und
   // standen vorher doppelt (F12.6).
-  const [{ data: overviewJson }, { data: deliverableRows }] = await Promise.all([
+  const [{ data: overviewJson }, { data: deliverableRows }, vocab] = await Promise.all([
     supabase.rpc("partner_overview", {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
@@ -36,6 +37,7 @@ export default async function PartnerOnboardingPage() {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
     }),
+    loadVocabMap(supabase, locale),
   ]);
 
   const overview = (overviewJson ?? null) as PartnerOverview | null;
@@ -69,6 +71,7 @@ export default async function PartnerOnboardingPage() {
         editionId={current.edition_id}
         overview={overview}
         logos={logos}
+        industries={vgroup(vocab, "industry")}
         locale={locale}
         dateLocale={t.meta.dateLocale}
         t={t.partner}

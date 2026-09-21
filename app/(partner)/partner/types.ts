@@ -39,6 +39,8 @@ export type PartnerOverview = {
       country: string | null;
     };
     partner_category: string | null;
+    /** Vokabular `industry` (0138): Branche, geht als `type` an Swapcard. */
+    industry: string | null;
   };
   roles: string[];
   team: boolean;

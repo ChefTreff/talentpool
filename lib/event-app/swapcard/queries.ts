@@ -20,7 +20,7 @@ export const LIST_EXHIBITORS = `query PortalExhibitors($communityId: ID!, $event
   exhibitorsV2(communityId: $communityId, filter: { eventIds: $eventIds }, cursor: $cursor) {
     pageInfo { hasNextPage endCursor }
     totalCount
-    nodes { id name description websiteUrl logoUrl clientIds type withEvent(eventId: $eventId) { booths { name } } }
+    nodes { id name description websiteUrl logoUrl clientIds type typeLabel { value } withEvent(eventId: $eventId) { booths { name } } }
   }
 }`;
 
@@ -38,7 +38,7 @@ export const DELETE_EXHIBITORS = `mutation PortalDeleteExhibitors($eventId: Stri
 /** Sprachen der App (`LanguageEnum`), die wir nutzen. */
 export type SwapcardLanguage = "de_DE" | "en_US";
 
-/** Nur geprüfte Felder von `ExhibitorInput`; `type` bleibt draußen, bis geklärt ist, was er 2027 bedeutet (Runbook). */
+/** Nur geprüfte Felder von `ExhibitorInput`. `type` ist die Branche (0138) und geht nur mit, wenn der Partner eine angegeben hat. */
 export type SwapcardExhibitorInput = {
   inputId: string;
   clientId: string;
@@ -48,6 +48,8 @@ export type SwapcardExhibitorInput = {
   descriptionTranslations?: { language: SwapcardLanguage; value: string }[];
   websiteUrl?: string;
   logoUrl?: string;
+  /** Die Branche. Heisst drüben `type` — das Sponsoring-Level steht hier ausdrücklich **nicht**. */
+  type?: string;
   booth?: string;
 };
 
@@ -58,6 +60,7 @@ export function toSwapcardInput(item: ExhibitorUpsert): SwapcardExhibitorInput {
   if (item.descriptionEn) input.descriptionTranslations = [{ language: "en_US", value: item.descriptionEn }];
   if (item.websiteUrl) input.websiteUrl = item.websiteUrl;
   if (item.logoUrl) input.logoUrl = item.logoUrl;
+  if (item.industry) input.type = item.industry;
   if (item.booth) input.booth = item.booth;
   return input;
 }
