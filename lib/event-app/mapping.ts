@@ -39,6 +39,10 @@ export function toExhibitorUpsert(row: ExhibitorRow, opts: { logoUrl?: string | 
   const website = normalizeWebsite(row.website);
   if (website) item.websiteUrl = website;
   if (opts.logoUrl) item.logoUrl = opts.logoUrl;
+  // Branche (0138). Ohne Angabe geht das Feld **nicht** mit: Swapcard behält
+  // dann, was dort steht, statt es auf leer zu setzen.
+  const industry = row.industry?.trim();
+  if (industry) item.industry = industry;
   const booth = row.booth_number?.trim();
   if (booth) item.booth = booth;
   return item;
@@ -66,7 +70,12 @@ function sameText(a: string | null | undefined, b: string | undefined): boolean 
   return plain(a) === plain(b);
 }
 
-/** Muss der Aussteller in der App geschrieben werden? Logo und Standnummer zählen nur, wenn wir sie liefern; `type` (Branche) gehört Swapcard. */
+/**
+ * Muss der Aussteller in der App geschrieben werden? Logo, Standnummer und Branche zählen nur, wenn wir sie liefern.
+ *
+ * Die Branche steht drüben zweimal: `type` gibt beim Lesen die **Beschriftung** zurück („Tech, Data & IT"), `typeLabel.value`
+ * den Optionswert (`tech-and-it`) — den wir schicken. Verglichen wird deshalb gegen `typeValue`, nicht gegen `type`.
+ */
 export function exhibitorChanged(remote: RemoteExhibitor, wanted: ExhibitorUpsert): boolean {
   const same = (a: string | null | undefined, b: string | undefined) => (a ?? "").trim() === (b ?? "").trim();
   if (!same(remote.name, wanted.name)) return true;
@@ -76,6 +85,7 @@ export function exhibitorChanged(remote: RemoteExhibitor, wanted: ExhibitorUpser
   // Die Standnummer hängt am Event, nicht am Aussteller: sie kommt nur mit, wenn wir den Aussteller **im Event** gelesen haben.
   // Ohne diesen Vergleich erreichte eine Standänderung Swapcard nach dem ersten Schreiben nie wieder.
   if (wanted.booth !== undefined && remote.booths !== undefined && !remote.booths.some((b) => same(b, wanted.booth))) return true;
+  if (wanted.industry !== undefined && !same(remote.typeValue, wanted.industry)) return true;
   return false;
 }
 

@@ -6,7 +6,7 @@ import { chunks } from "@/lib/event-app/mapping";
 
 type Node = {
   id: string; name: string; description?: string | null; websiteUrl?: string | null; logoUrl?: string | null;
-  clientIds?: string[] | null; type?: string | null;
+  clientIds?: string[] | null; type?: string | null; typeLabel?: { value?: string | null } | null;
   withEvent?: { booths?: { name?: string | null }[] | null } | null;
 };
 type Page = { pageInfo: { hasNextPage: boolean; endCursor: string | null }; totalCount: number; nodes: Node[] };
@@ -20,7 +20,8 @@ type UpsertData = {
 function toRemote(n: Node): RemoteExhibitor {
   const remote: RemoteExhibitor = {
     id: n.id, name: n.name, clientIds: n.clientIds ?? undefined,
-    description: n.description ?? null, websiteUrl: n.websiteUrl ?? null, logoUrl: n.logoUrl ?? null, type: n.type ?? null,
+    description: n.description ?? null, websiteUrl: n.websiteUrl ?? null, logoUrl: n.logoUrl ?? null,
+    type: n.type ?? null, typeValue: n.typeLabel?.value ?? null,
   };
   // Nur wenn der Aussteller wirklich am Event hängt, kennen wir seine Standnummern. Ein leeres Array heißt „am Event, ohne Stand",
   // `undefined` heißt „wissen wir nicht" — nur der zweite Fall darf den Vergleich überspringen.

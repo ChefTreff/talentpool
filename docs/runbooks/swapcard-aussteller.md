@@ -35,8 +35,18 @@ Zweite Probe, nur lesend plus ein `validateOnly`-Trockenlauf (nichts geschrieben
 
 **Rollen im Event:** genau zwei, „Admin" (Vorgabe) und „Limited" (`event.exhibitorRoles`). Eine Zuweisung läuft über `updateExhibitorMemberRoles` und gehört zum Personen-Sync (EA2/EA4), nicht hierher.
 
+## Stand 21.09.2026 — Branche (Migration 0138)
+Konrad: die Branche wird im Portal gepflegt. Umgesetzt als Vokabular **`industry`** und Spalte `organization.industry` — an der Organisation, nicht an der Teilnahme, weil eine Branche sich nicht von Edition zu Edition ändert (wie `organization.type` und `partner_category`).
+
+Die vierzehn Schlüssel sind **nicht erfunden**, sondern die Optionswerte des Swapcard-Feldes „Branche", am 21.09. aus dem Bestand der 191 Aussteller gelesen: `tech-and-it`, `consulting`, `banking-and-finance`, `industrie`, `logistics`, `fmcg`, `e-commerce`, `marketing-and-advertising`, `b2b-services`, `energy-and-sustainability`, `health`, `deep-tech-and-science`, `education`, `accelerator`. `label_en` ist wörtlich die Beschriftung, die Swapcard anzeigt („Tech, Data & IT"), `label_de` unsere Übersetzung. Die Übertragung ist damit eine Gleichsetzung, keine Übersetzungstabelle.
+
+Gepflegt wird sie vom Partner selbst im Onboarding (Schritt „Beschreibung"); `partner_can_edit` schliesst das Team ein, also ist sie auch von innen korrigierbar. Ohne Angabe geht `type` **nicht** mit — Swapcard behält dann, was dort steht, statt auf leer gesetzt zu werden. Dasselbe gilt für einen Schlüssel, den jemand im Vokabular deaktiviert hat.
+
+**Zwei Feinheiten, die beim Lesen auffielen:**
+* Swapcard gibt `type` beim Lesen als **Beschriftung** zurück („Tech, Data & IT"), den Optionswert nur in `typeLabel.value`. Der Vergleich läuft über `typeValue`; gegen `type` hielte er jeden Lauf für geändert.
+* **Welche Schreibweise Swapcard beim *Schreiben* annimmt, ist ungeprüft.** `validateOnly` beanstandet auch erfundene Werte nicht (dreifach probiert: Optionswert, Beschriftung, Unsinn — alle drei ohne Fehler). Wir schicken den Optionswert, weil er der kanonische Wert ist. Klärt der erste Echtlauf (EA6); falls Swapcard die Beschriftung will, ist es eine Zeile — das Vokabular trägt beides.
+
 ## Offen — Entscheidungen Konrad
-- **Branche (Swapcard-Feld „Typ"/`type`):** Das Portal hat kein Branchenfeld. Entweder die Partner pflegen es im Portal (neues Vokabular, 14 Werte aus Swapcard übernehmen, Feld im Partner-Onboarding) — oder es bleibt in Swapcard Handarbeit. Solange nichts entschieden ist, sendet der Sync kein `type`.
 - **Wohin mit Level und Kategorie?** `ExhibitorInput` bietet `categories: [String!]` und `customFields` (Auswahlfelder je `definitionId`). Für ein Sponsoring-Level wäre ein eigenes Auswahlfeld im Event sauberer als die Branche zu überschreiben. Braucht ein angelegtes Feld in Swapcard, dann eine Zeile Code.
 - **Ohne Level:** „Standbühne (18qm)" (I-79895) passt in keines der acht Vokabular-Level, und `main_stage_loge` hat kein Produkt. Beides ist im Produkt-Editor nachtragbar, sobald Konrad sagt, was gilt.
 - **`type`:** Konrad (11.09.): Kategorien werden noch erarbeitet und dann in Swapcard nachgezogen; bis dahin kein `type`. 2026 stand dort die Branche, Sponsoring-Level sind in Swapcard eher Sponsoren-Kategorien.

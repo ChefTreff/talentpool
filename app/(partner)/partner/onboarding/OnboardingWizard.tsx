@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { FileButton } from "@/components/ui/FileButton";
 import { Input, Textarea } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { StepBar } from "@/components/ui/StepBar";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { useToast } from "@/components/ui/Toast";
@@ -40,6 +41,7 @@ type Draft = {
   address_city: string;
   address_country: string;
   website: string;
+  industry: string;
   description_de: string;
   description_en: string;
   invoice_email: string;
@@ -58,6 +60,7 @@ function draftFrom(o: PartnerOverview): Draft {
     address_city: o.org.address.city ?? "",
     address_country: o.org.address.country ?? "",
     website: o.org.website ?? "",
+    industry: o.org.industry ?? "",
     description_de: o.edition.description_de ?? "",
     description_en: o.edition.description_en ?? "",
     invoice_email: o.edition.invoice_email ?? "",
@@ -73,6 +76,7 @@ export function OnboardingWizard({
   editionId,
   overview,
   logos,
+  industries,
   locale,
   dateLocale,
   t,
@@ -84,6 +88,8 @@ export function OnboardingWizard({
   overview: PartnerOverview;
   /** Die Logo-Pflichten aus `my_deliverables` — seit 0057 SVG **und** PNG. */
   logos: Deliverable[];
+  /** Vokabular `industry` (0138) — dieselben Werte wie das Swapcard-Feld „Branche". */
+  industries: Record<string, string>;
   locale: Locale;
   dateLocale: string;
   t: Strings;
@@ -345,6 +351,17 @@ export function OnboardingWizard({
                 rows={5}
                 value={draft.description_en}
                 onChange={(e) => set({ description_en: e.target.value })}
+              />
+            </Field>
+            {/* Die Branche steht bei der Beschreibung, weil beides dasselbe tut:
+                den Stand im Programm und in der Event-App auffindbar machen. */}
+            <Field label={t.fieldIndustry} htmlFor="industry" hint={t.fieldIndustryHint}>
+              <Select
+                id="industry"
+                value={draft.industry}
+                placeholder={common.none}
+                options={Object.entries(industries).map(([value, label]) => ({ value, label }))}
+                onChange={(e) => set({ industry: e.target.value })}
               />
             </Field>
           </div>
