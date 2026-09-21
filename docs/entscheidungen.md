@@ -397,3 +397,9 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **#96 Kalender (Speaker, S8) im Gate:** ICS für Slot und zugesagte Receptions über `/api/speaker/kalender` (Nutzer-Sitzung, `requireArea("speaker")`, eigene RPCs), keine Migration.
 - **Pause:** Konrad gibt bis Donnerstag (24.09.) nur Feedback in die Chats; Merges und Migrationen wieder ab Donnerstag durch die Architektur-Session.
 - **#99 Branche gemergt** (281 Tests) und **#96 Kalender gemergt**; damit sind am 21.09. alle offenen PRs auf `main`: #83, #87, #88, #90, #72, #89, #94, #91, #92, #93, #95, #97, #98, #68, #99, #96. Deploy grün.
+
+## 2026-09-21 — Zwischenstand zum Feierabend: alles auf main, Pause bis Donnerstag
+- **#100 Bild-Upload `/admin/grafiken` gemergt** (Speaker-Chat, ADM-043, Konrads Befund „This page couldn't load"): signierte Upload-Adresse über die Nutzer-Sitzung nach `requireArea("admin")`, Größen- und Typprüfung serverseitig, Fehler als Meldung; neuer Helfer `lib/fetch-json.ts`. Keine Migration. Gate grün.
+- **Stand:** keine offenen PRs; `main` deployt. Heute 18 PRs gemergt, 15 Migrationen live (0117, 0123, 0124, 0127, 0129–0135, 0137, 0138); Snapshot 491 Funktionen; Datenmodell-Doku eine Zeile je Migration (33 Zeilen Welle 6).
+- **Bis Donnerstag (24.09.):** Konrad testet alle Bereiche auf `main` und gibt Feedback in die Chats; die Chats arbeiten es ein und legen PRs bereit (Probeläufe selbst per `db.sh dry-run`); Anwenden, Snapshot, Merges wieder ab Donnerstag durch die Architektur-Session. Nummern frei ab 0139 (reserviert: 0128 Speaker, 0136 EA2).
+- **Offen bei Konrad:** Schlüsselrotation (Supabase Secret Key zuerst), Aufbewahrungsfristen für `docs/datenschutz-verarbeitungen.md`, Bestätigung der INV0-SKU-Liste, wenn der Build-Chat sie vorlegt.
