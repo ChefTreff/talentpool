@@ -208,7 +208,9 @@
     "invalid_stage": "Diese Funnel-Stufe kennt das System nicht.",
     "invalid_items": "Die Liste der Leistungen passt nicht.",
     "speaker_contact_consent_required": "Bitte bestätige, dass die eingetragene Person einverstanden ist — es sind die Daten eines anderen Menschen.",
-    "invalid_contact_kind": "Diese Art des Kontakts kennen wir nicht."
+    "invalid_contact_kind": "Diese Art des Kontakts kennen wir nicht.",
+    "invalid_discount": "Erlaubt sind nur 100 % und 50 %.",
+    "derived_allocation": "Die 100-%-Zeile ergibt sich aus den gebuchten Produkten und lässt sich hier nicht ändern."
   },
   "nav": {
     "brand": "ChefTreff",

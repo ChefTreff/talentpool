@@ -208,7 +208,9 @@
     "invalid_stage": "No such funnel stage.",
     "invalid_items": "The list of services does not fit.",
     "speaker_contact_consent_required": "Please confirm that the person you entered agrees — these are someone else's details.",
-    "invalid_contact_kind": "We do not know that type of contact."
+    "invalid_contact_kind": "We do not know that type of contact.",
+    "invalid_discount": "Only 100 % and 50 % are allowed.",
+    "derived_allocation": "The 100 % row comes from the booked products and cannot be changed here."
   },
   "nav": {
     "brand": "ChefTreff",

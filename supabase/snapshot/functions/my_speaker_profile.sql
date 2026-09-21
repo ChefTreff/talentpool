@@ -15,6 +15,16 @@ begin
   if not found then return null; end if;
   select * into v_p from person where id = v_sp.person_id;
   return jsonb_build_object(
+    -- Kontakt ohne Portalzugang (0127): Agentur oder Office, das die
+    -- Speakerin angeschrieben haben moechte. Steht am Profil, nicht als
+    -- eigene Person — sonst waechst die Personentabelle um Karteileichen.
+    'contact', case when v_sp.contact_first_name is null and v_sp.contact_last_name is null
+                     and v_sp.contact_email is null and v_sp.contact_phone is null
+                    then null
+                    else jsonb_build_object(
+                      'first_name', v_sp.contact_first_name, 'last_name', v_sp.contact_last_name,
+                      'email', v_sp.contact_email, 'phone', v_sp.contact_phone,
+                      'kind', v_sp.contact_kind, 'consent_at', v_sp.contact_consent_at) end,
     'id', v_sp.id, 'edition_id', v_sp.edition_id, 'is_assistant', (v_sp.person_id <> v_me),
     'edition_name', (select e.name from event e where e.id = v_sp.edition_id),
     'speaker_type', v_sp.speaker_type, 'pipeline_status', v_sp.pipeline_status,

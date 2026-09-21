@@ -13,6 +13,15 @@ begin
   v_team := is_speaker_team(v_sp.edition_id);
 
   return jsonb_build_object(
+    -- Der Kontakt ohne Portalzugang (0127) ist genau fuer das Team da: es
+    -- soll wissen, wen es statt der Speakerin anschreibt.
+    'contact', case when v_sp.contact_first_name is null and v_sp.contact_last_name is null
+                     and v_sp.contact_email is null and v_sp.contact_phone is null
+                    then null
+                    else jsonb_build_object(
+                      'first_name', v_sp.contact_first_name, 'last_name', v_sp.contact_last_name,
+                      'email', v_sp.contact_email, 'phone', v_sp.contact_phone,
+                      'kind', v_sp.contact_kind, 'consent_at', v_sp.contact_consent_at) end,
     'id', v_sp.id,
     'edition_id', v_sp.edition_id,
     'person', jsonb_build_object(
