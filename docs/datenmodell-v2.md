@@ -59,6 +59,7 @@
 | Welle 6 · 0117 · `20260921111140` | **Welle 6 B4: Backdrop der Challenge Area (PART-033, PART-052)** (`20260921111140`, `v6_hackathon_backdrop`; Details im Migrationskopf) | — |
 | Welle 6 · 0131 | **Welle 6 · Messeshop-Artikel gehen nach SevDesk (Nachtrag zu A4.3)** (`20260921112022`, `v6_sevdesk_shopartikel`; Details im Migrationskopf) | — |
 | Welle 6 · 0135 | **EA1 Aussteller: Level und Kategorie aus den gebuchten Produkten** (`20260921112508`, `v6_ea1_aussteller_level`; Details im Migrationskopf) | — |
+| Welle 6 · 0137 | **Oberflächen zu 0123 (Rabattstufen) und 0124 (Stände tagesweise)** (`20260921114217`, `v6_oberflaechen_rabatt_staende`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
