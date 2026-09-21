@@ -63,6 +63,7 @@
 | Welle 6 · 0132 | **Welle 6 A1, Teil 1: Schema für „Eure Formate" (PART-034, PART-044–048)** (`20260921115330`, `v6_formate_schema`; Details im Migrationskopf) | — |
 | Welle 6 · 0133 | **Welle 6 A1, Teil 2: Partner-RPCs für „Eure Formate" (PART-034, PART-044–048)** (`20260921115331`, `v6_formate_rpcs`; Details im Migrationskopf) | — |
 | Welle 6 · 0134 | **Welle 6: Company Tours mit Stopps und Tour Lead (PART-046, ADM-026)** (`20260921115332`, `v6_company_tours`; Details im Migrationskopf) | — |
+| Welle 6 · 0138 | **Branche des Ausstellers (Vokabular `industry`, Swapcard `Exhibitor.type`)** (`20260921120434`, `v6_branche_aussteller`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
