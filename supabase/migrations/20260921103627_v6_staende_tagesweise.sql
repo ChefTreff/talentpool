@@ -1,6 +1,8 @@
 -- =============================================================================
 -- 0124 · Welle 6 · Stände tagesweise (A3.5, ADM-022)
 --
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921103627.
+--
 -- Liegt unter `vorschlag/`, bis die Architektur-Session sie anwendet.
 --
 -- Initiativen bekommen einen Stand für **einen** Tag (`INI-STAND-1T`, 0116) —
