@@ -1,5 +1,7 @@
 -- 0117 · Welle 6 B4: Backdrop der Challenge Area (PART-033, PART-052).
 --
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921111140.
+--
 -- Anlass: Konrads Entscheidung D4 vom 18.09. und die Grafikanforderungen, die er im Wortlaut
 -- geliefert hat. Der Hackathon hatte bisher **keinen** eigenen Backdrop — `backdrop_print`
 -- hängt an den vier großen Stand-SKUs des Summits und meint die Standrückwand. Ein
