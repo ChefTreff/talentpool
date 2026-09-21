@@ -1,9 +1,8 @@
 -- 0135 · EA1 Aussteller: Level und Kategorie aus den gebuchten Produkten
--- Zweck: Das Sponsoring-Level eines Partners stand bisher als Freitext in
--- `org_edition.sponsoring_level` (aus dem HubSpot-Deal, Feld `fls_booth_type`).
 -- Angewendet von der Architektur-Session am 21.09.2026 als 20260921112508.
 --
--- Was der Partner wirklich gebucht hat, steht in `org_product`. Diese Migration
+-- Zweck: Das Sponsoring-Level eines Partners stand bisher als Freitext in
+-- `org_edition.sponsoring_level` (aus dem HubSpot-Deal, Feld `fls_booth_type`).-- Was der Partner wirklich gebucht hat, steht in `org_product`. Diese Migration
 -- gibt dem Produkt sein Level (`product.sponsoring_level_key`, Vokabular
 -- `sponsoring_level`) und leitet daraus je Org×Edition ab:
 --   * `level_key`/`level_rank` — bestes Level unter den gebuchten Produkten,
