@@ -154,3 +154,24 @@ Täglicher Abruf je Organisation mit `sevdesk_contact_id`: Angebote und Rechnung
 - 17.09.2026: Entwurf der Architektur-Session aus Konrads Walkthrough-Antworten. Offene Entscheidungen D1–D6 an Konrad; A1 gilt vorbehaltlich D1/D2 (Kapazität und Freigabe-Gate sind in der RPC ein Parameter).
 - 17.09.2026 (abends): Korrekturen aus den Rückmeldungen der Chats eingearbeitet — `late_orderable` statt neuer Spalte (A4.1), `format_key` als kleine Migration mit B1 (A1.4), Shuttle additiv ohne Kontingent (A7.1), Rollenverteilung Technik (A7.2), Ansprechperson über `my_contacts()` statt neuer RPC (A7.3), S10–S13 aus dem Speaker-Backlog, PART-002 an B1, D7–D10. **Backlog-IDs:** vergeben wird fortlaufend gegen den Stand auf `main`; ein PR, der IDs vergibt, die auf `main` inzwischen belegt sind, nummeriert vor dem Merge um (betrifft PR #52: ADM-022…031 ⇒ ab ADM-029). Programm-Grundgerüst (M8) bleibt beim Chat Admin & Schnittstellen (Konrad im Admin-Chat, 17.09.), Reihenfolge dort: Grundgerüst → Mail-Vorlagen → Mail-Protokoll → Profil löschen.
 - 17.09.2026 (spät): A7 nach Konrads Antworten im Speaker-Chat nachgezogen — Shuttle-Anforderer und Freigabe durch den Speaker-Admin, D8 (fünf Fahrten, „Weitere Fahrt beantragen“), Technik als Freitext (A7.2), D7 (Freelancer-Kontakte mit `contract_consent_at`, ADM-040), Speaker Reception als eigenes Objekt (A7.4, S11). Live an diesem Abend: 20260917183022, 184553, 185108, 185916, 190103, 190402.
+
+## Arbeitspaket EA · Event-App Swapcard (Entscheidung Konrad, 21.09.2026)
+
+Konrad: Swapcard bleibt die Event-App (Frage 86 entschieden, kein Eigenbau). Alle Verbindungen jetzt per API bauen und gegen das 27er-Event in Swapcard testen (`SWAPCARD_EVENT_ID`; Schlüssel liegen in Vercel und lokal, Namen `SWAPCARD_API_KEY`, `SWAPCARD_EVENT_ID`). Zuständig: Build-Chat, **vor** ADM-033. Grundlage im Repo: `lib/event-app/*` (Adapter, Client, Queries, `syncExhibitors`), `app/api/admin/swapcard/exhibitors/route.ts`, `scripts/swapcard-probe.mjs` (nur lesend); Muster aus 0120/0122 (Sync-Jobs, `external_ref`, Zähler, Audit, beide Kontexte).
+
+**Leitplanken (jeder Teil):**
+- Schlüssel nur serverseitig aus der Vercel-Umgebung; keine Werte in Chat, Repo, Doku, Logs.
+- Auslöser manuell im Admin mit `dryRun` als Vorgabe; Cron je Objektart erst nach Freigabe durch die Architektur-Session. Jeder Lauf als `sync_job` (`start_sync_job`/`finish_sync_job`) mit Zählern created/updated/skipped/failed, Fehler über `record_sync_error`, Audit-Eintrag mit Zählern.
+- Idempotent über `external_ref` (System `swapcard`; `object_id` für Personen, Sessions, Teilnahmen). **Nie Fremdobjekte löschen** — entfernt wird nur, was das Portal selbst angelegt hat (Kennzeichen in `external_ref`).
+- Datenminimierung: Sessions nur mit den öffentlichen Feldern (Masterplan, Abschnitt Programm); Personen nur Name, Pass-Typ, E-Mail (Konto-Zuordnung), Organisation und Titel, soweit öffentlich. Teilnehmende nur mit erteilter Einwilligung „Weitergabe an die Event-App"; Widerruf oder Storno ⇒ Entfernen beim nächsten Lauf.
+- Lesen aus der Datenbank über SECURITY-DEFINER-Listen mit beiden Kontexten (Team im Portal, Cron als Service), Schreiben der Rückverweise im Servermuster (`auth.uid() is null`), Tests in beiden Kontexten (Lehre 0120).
+
+**Teile (je ein PR, Migrationen als Vorschlag ab 0131):**
+- **EA1 Exhibitors:** vorhandenen Sync gegen das 27er-Event abnehmen; Kategorie/Tier aus den Partner-Produkten ableiten; Exhibitor-Rechte und Kategorien nach Abschluss-Checkliste festlegen.
+- **EA2 Speaker:** veröffentlichte Speaker-Profile → Swapcard-Personen mit Speaker-Rolle (Name, Foto, Kurzbio, Organisation, Titel); Swapcard-ID zurück in `external_ref`.
+- **EA3 Sessions und Tracks:** nur `published`-Sessions → Swapcard-Planning (Titel, Beschreibung, Zeit, Bühne, Speaker-Zuordnung); Tracks als Custom Field (Checkliste). Änderungen im Portal überschreiben Swapcard, nicht umgekehrt.
+- **EA4 Teilnehmende:** gültige Tickets (vivenu) → Swapcard-Personen in einer Gruppe je Pass-Typ; nur mit Einwilligung; Storno ⇒ Entfernen.
+- **EA5 Eingehend:** Webhook-Empfang von Swapcard mit Signaturprüfung und Idempotenz — **erst nach Klärung mit Konrad**, was zurückfließen soll.
+- **EA6 Abnahme:** Probelauf `dryRun` gegen das 27er-Event, dann echter Lauf mit Testdaten (ZZTEST-Kennung, danach Aufräumen); Checklisten-Punkte „Swapcard-Sync getestet" und „Processing-Fehler FLS26" abhaken. AVV Swapcard und Consent-Agent bleiben auf der Abschluss-Checkliste.
+
+**Fragen an Konrad (vor EA4/EA5):** Welche Pass-Typen kommen in die App? Was soll aus Swapcard zurück ins Portal (Webhook: Anmeldungen, Scans, Leads)? Steht die Einwilligung „Weitergabe an die Event-App" bereits im Consent-Set von Bewerbung und Ticketkauf?
