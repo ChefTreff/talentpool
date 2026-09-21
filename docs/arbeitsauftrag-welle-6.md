@@ -178,11 +178,12 @@ Konrad: Swapcard bleibt die Event-App (Frage 86 entschieden, kein Eigenbau). All
 
 ## Arbeitspaket INV · Inventar im Produktionsportal (Konrad, 21.09.2026 — geplant, wartet auf drei Entscheidungen)
 
-Das Portal ist alleinige Quelle des Artikelstamms; die Pflege wandert vom Partner-Admin ins **Produktionsportal**; der erste scharfe Abgleich nach HubSpot und SevDesk kommt **am Ende**, nach der Inventur durch das Produktionsteam (Entscheidungslog 21.09.). Zuständig: Build-Chat, nach EA2; Beginn erst, wenn Konrad die drei Fragen aus dem Log entschieden hat (Altkatalog HubSpot, Umfang des Stamms, Knopf oder Automatik).
+Das Portal ist alleinige Quelle des Artikelstamms; die Pflege wandert vom Partner-Admin ins **Produktionsportal**; der erste scharfe Abgleich nach HubSpot und SevDesk kommt **am Ende**, nach der Inventur durch das Produktionsteam (Entscheidungslog 21.09.). Zuständig: Build-Chat, nach EA2; Konrads Entscheidungen (21.09.): standardisierte Hauptartikel jetzt nach HubSpot (Vorschau → Bestätigung → gezielter Lauf), 38 Altprodukte ohne SKU archivieren; Umfang nur Event- und Messekatalog; Knopf mit Vorschau; keine Bilder nach HubSpot.
 
 - **INV1 Liste mit Lückenanzeige** unter `/produktion/inventar`: alle Artikel mit Kennzeichen „ohne Bild", „ohne Beschreibung DE/EN", „ohne Name EN", „inaktiv"; Filter je Kategorie; Zähler oben. Rechte: `is_production_team() or is_partner_team()`.
 - **INV2 Pflege je Artikel:** Name und Beschreibung DE/EN, Kategorie, Preis, Steuersatz, Status, Sponsoring-Level, Format — über `upsert_product` (Snapshot-Basis, nur additiv erweitern); Bild-Upload in `product-images` mit Pfadregel und Größenlimit wie bei den Partner-Uploads.
 - **INV3 Anlegen fehlender Artikel** mit SKU-Regel (`I-NNNNN`, INI-Muster), Prüfung auf Dublette per Name.
 - **INV4 Partner-Admin-Editor** wird Leseansicht mit Verweis ins Produktionsportal (kein zweiter Schreibweg).
-- **INV5 Abgleich am Ende:** Trockenlauf-Bericht (#98) als Pflichtschritt, dann Lauf je System auf Konrads Go; Bilder nach HubSpot, nicht nach SevDesk; Altkatalog HubSpot nach Entscheidung (1).
+- **INV0 Sofort (vor INV1):** gezielter HubSpot-Lauf nur für die standardisierten Hauptartikel (Liste per Trockenlauf, Konrad bestätigt SKUs), Archivierung der 38 HubSpot-Produkte ohne SKU per API (Soft-Archive, Liste im Audit, nichts löschen).
+- **INV5 Abgleich am Ende:** Trockenlauf-Bericht (#98) als Pflichtschritt, dann Lauf je System auf Konrads Go; keine Bilder in HubSpot oder SevDesk (nur Messeshop).
 - Akzeptanz: Produktionsteam kann jeden Artikel ohne Datenbankzugriff vollständig pflegen; Lückenzähler auf null bringen ist der Inventur-Abschluss; Abgleich schreibt nur nach Vorschau; Audit je Änderung.

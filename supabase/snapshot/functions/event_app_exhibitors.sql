@@ -1,5 +1,5 @@
 create or replace function event_app_exhibitors(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(org_edition_id uuid, org_id uuid, edition_id uuid, edition_slug text, swapcard_event_id text, name text, legal_name text, slug text, description_de text, description_en text, website text, sponsoring_level text, sponsoring_key text, sponsoring_rank integer, level_key text, level_rank integer, level_source text, categories text[], partner_category text, org_type text, booth_number text, onboarding_status text, logo_svg_path text, logo_png_path text, logo_png_asset_id uuid, swapcard_exhibitor_id text, members jsonb)
+ RETURNS TABLE(org_edition_id uuid, org_id uuid, edition_id uuid, edition_slug text, swapcard_event_id text, name text, legal_name text, slug text, description_de text, description_en text, website text, sponsoring_level text, sponsoring_key text, sponsoring_rank integer, level_key text, level_rank integer, level_source text, categories text[], industry text, partner_category text, org_type text, booth_number text, onboarding_status text, logo_svg_path text, logo_png_path text, logo_png_asset_id uuid, swapcard_exhibitor_id text, members jsonb)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -23,6 +23,11 @@ begin
            case when abl.level_key is not null then 'product'
                 when sponsoring_level_key(oe.sponsoring_level) is not null then 'hubspot' end,
            abl.categories,
+           -- Branche (0138): nur, wenn sie im Vokabular steht. Ein Schlüssel, den
+           -- jemand nachträglich deaktiviert hat, geht nicht mehr hinaus — Swapcard
+           -- behält dann, was dort steht, statt eine tote Auswahl zu bekommen.
+           (select v.key from vocab_term v
+             where v.vocabulary = 'industry' and v.active and v.key = o.industry),
            o.partner_category, o.type,
            (select b.booth_number from booth_assignment ba join booth b on b.id = ba.booth_id
              where ba.org_edition_id = oe.id order by ba.event_day_id nulls first, b.created_at limit 1),

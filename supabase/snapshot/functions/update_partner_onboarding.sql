@@ -15,6 +15,12 @@ begin
   if p_data ? 'invoice_email' and nullif(p_data->>'invoice_email', '') is not null and (p_data->>'invoice_email') !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
     raise exception 'invalid_email' using errcode = '22023';
   end if;
+  -- Neu (0138): Branche. Leerer Text heisst „nicht angegeben" — sonst liesse
+  -- sich eine falsche Angabe ueber die Oberflaeche nie wieder entfernen.
+  if p_data ? 'industry' and nullif(btrim(p_data->>'industry'), '') is not null
+     and not is_vocab_key('industry', btrim(p_data->>'industry')) then
+    raise exception 'invalid_industry' using errcode = '22023', detail = coalesce(p_data->>'industry', 'null');
+  end if;
   update organization set
     legal_name         = case when p_data ? 'legal_name' then nullif(btrim(p_data->>'legal_name'), '') else legal_name end,
     communication_name = case when p_data ? 'communication_name' then nullif(btrim(p_data->>'communication_name'), '') else communication_name end,
@@ -24,7 +30,8 @@ begin
     address_country    = case when p_data ? 'address_country' then nullif(btrim(p_data->>'address_country'), '') else address_country end,
     website            = case when p_data ? 'website' then nullif(btrim(p_data->>'website'), '') else website end,
     description_de     = case when p_data ? 'description_de' then nullif(btrim(p_data->>'description_de'), '') else description_de end,
-    description_en     = case when p_data ? 'description_en' then nullif(btrim(p_data->>'description_en'), '') else description_en end
+    description_en     = case when p_data ? 'description_en' then nullif(btrim(p_data->>'description_en'), '') else description_en end,
+    industry           = case when p_data ? 'industry' then nullif(btrim(p_data->>'industry'), '') else industry end
   where id = p_org_id;
   update org_edition set
     invoice_email    = case when p_data ? 'invoice_email' then nullif(lower(btrim(p_data->>'invoice_email')), '')::citext else invoice_email end,

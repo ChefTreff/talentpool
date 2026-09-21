@@ -17,7 +17,7 @@ begin
                               'website', v_o.website, 'description_de', v_o.description_de, 'description_en', v_o.description_en,
                               'logo_dark', v_o.logo_dark, 'logo_light', v_o.logo_light,
                               'address', jsonb_build_object('street', v_o.address_street, 'zip', v_o.address_zip, 'city', v_o.address_city, 'country', v_o.address_country),
-                              'partner_category', v_o.partner_category),
+                              'partner_category', v_o.partner_category, 'industry', v_o.industry),
     'roles', to_jsonb(v_roles),
     'team', is_partner_team(),
     'edition', case when v_oe.id is null then null else jsonb_build_object(
@@ -50,9 +50,7 @@ begin
                   from deliverable d where d.org_edition_id = v_oe.id),
     'sessions_count', (select count(*) from session se join event ev on ev.id = se.event_id
                        where se.host_org_id = p_org_id and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id) and se.publish_status <> 'cancelled'),
-    -- Nur eine echte Standbühne blendet den Menüpunkt ein. Tische und Side-Event-Orte
-    -- gehören dem Partner ebenfalls, sind aber keine Bühne, die er bespielt.
     'has_stage', exists (select 1 from stage st join event ev on ev.id = st.event_id
-                         where st.partner_org_id = p_org_id and st.active and st.type = 'partner_booth' and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id))
+                         where st.partner_org_id = p_org_id and st.active and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id))
   );
 end $$;
