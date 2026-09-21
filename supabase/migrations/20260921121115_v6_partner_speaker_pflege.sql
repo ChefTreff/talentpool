@@ -1,4 +1,6 @@
 -- 0139 · Welle 6 B6: Der Partner pflegt seinen Speaker (PART-044).
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921121115.
+--
 --
 -- Anlass: Konrad, 17.09. — „der Partner-Ansprechpartner pflegt die Infos, wenn der Speaker
 -- (z. B. ein CEO) es nicht selbst tut". A1 (0132/0133) hat dafür die halbe Strecke gebaut:
