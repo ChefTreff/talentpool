@@ -1,4 +1,6 @@
 -- 0132 · Welle 6 A1, Teil 1: Schema für „Eure Formate" (PART-034, PART-044–048).
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921115330.
+--
 --
 -- Anlass: Arbeitsauftrag Welle 6 §A1, Entwurf `docs/entwurf-a1-formate-2026-09-17.md`,
 -- Konrads Entscheidung vom 18.09.2026 für **Weg A** („die saubere Variante"): die Zeiten der
