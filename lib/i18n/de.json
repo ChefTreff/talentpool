@@ -1183,7 +1183,8 @@
     "bandStatNone": "Keine offen",
     "lunchCardTitle": "Lunch-Paket fürs Team",
     "lunchCardBody": "Verpflegung an beiden Tagen für alle, die für euch vor Ort sind.",
-    "lunchCardAction": "In der Checkliste bestellen"
+    "lunchCardAction": "In der Checkliste bestellen",
+    "navBranding": "Branding"
   },
   "partnerContacts": {
     "title": "Kontakte",
@@ -3676,5 +3677,28 @@
     "failed": "Der Assistent antwortet gerade nicht. Versuch es in ein paar Minuten noch einmal; dein Text bleibt stehen.",
     "noModel": "Der Assistent ist noch nicht freigeschaltet. Melde dich bei deinem Buddy, wenn du ihn brauchst.",
     "privacyNote": "An den Assistenten gehen nur das Format deines Slots und das, was du hier schreibst. Kein Name, keine Organisation, kein Kontakt."
+  },
+  "partnerBranding": {
+    "title": "Branding",
+    "lead": "Eure Marke auf dem Summit — und was wir dafür von euch brauchen.",
+    "emptyTitle": "Noch keine Branding-Leistung gebucht",
+    "emptyBody": "Sobald ihr Branding gebucht habt, stehen hier eure Flächen und die Dateien, die wir dafür brauchen.",
+    "toChecklist": "Zur Checkliste",
+    "dueLabel": "Datei bis",
+    "pastDue": "Die Frist ist vorbei. Meldet euch beim Partner-Team, wenn sich noch etwas ändern muss.",
+    "noFileTitle": "Dafür brauchen wir nichts von euch",
+    "noFileBody": "Diese Leistungen produzieren wir mit dem Logo aus eurem Onboarding. Falls wir doch etwas brauchen, melden wir uns rechtzeitig.",
+    "wikiHint": "Die Druckanforderungen im Einzelnen stehen im Wiki unter Branding.",
+    "uploadNew": "Neue Fassung hochladen",
+    "uploadFirst": "Datei hochladen",
+    "uploadHint": "Erlaubt: {allowed}, höchstens {max}.",
+    "uploading": "Wird hochgeladen …",
+    "uploaded": "Hochgeladen (Fassung {v})",
+    "uploadFailed": "Der Upload hat nicht geklappt",
+    "uploadTooBig": "Die Datei ist größer als {max}.",
+    "uploadWrongType": "Erlaubt sind nur {allowed} — die Datei ist {got}.",
+    "uploadCurrent": "Aktuell",
+    "uploadRejected": "Zurückgewiesen",
+    "uploadNoDeliverable": "Für diese Leistung ist keine Datei hinterlegt."
   }
 }
