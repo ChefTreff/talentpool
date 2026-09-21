@@ -75,12 +75,28 @@ revoke execute on function format_detail_keys(text) from public, anon, authentic
 
 -- Prüft Schlüssel, Längen und Vokabular. Gibt den bereinigten Wert zurück (getrimmt, leere
 -- Texte als NULL entfernt), damit nicht jede Aufruferin dasselbe noch einmal tut.
-create or replace function check_format_details(p_format text, p_details jsonb) returns jsonb
+-- **Auflage 6 der Architektur-Session (21.09.).** `image_asset_id` wurde ungeprüft
+-- durchgereicht — und der Kommentar darunter behauptete trotzdem, es sei „eine Datei dieser
+-- Organisation". Eine behauptete Prüfung ist schlimmer als keine: sie beruhigt den nächsten
+-- Leser, statt ihn zu warnen.
+--
+-- Jetzt wird zweierlei geprüft. Erstens die **Form**: eine UUID, sonst 22023. Zweitens die
+-- **Zugehörigkeit**, wenn die aufrufende Funktion die Organisation kennt — die Datei muss ein
+-- `partner_asset` dieser Organisation in dieser Edition sein. Ohne das könnte ein Partner die
+-- UUID des Uploads eines anderen eintragen und dessen Bild in seinem Programmpunkt zeigen.
+--
+-- Die Organisation ist ein eigener Parameter statt eines Rückgriffs auf den Sitzungskontext:
+-- Die Funktion ist auch aus dem Team-Weg aufrufbar, und was sie prüft, soll am Aufruf
+-- ablesbar sein. `null` heißt ausdrücklich „nur die Form" — das steht hier, damit niemand es
+-- für vollständige Prüfung hält.
+drop function if exists check_format_details(text, jsonb);
+create or replace function check_format_details(p_format text, p_details jsonb,
+                                                p_org_id uuid default null) returns jsonb
 language plpgsql stable security definer set search_path = public, extensions as $$
 declare
   v_allowed text[] := format_detail_keys(p_format);
   v_out jsonb := '{}'::jsonb;
-  k text; v_txt text; v_prof jsonb; v_key text; v_el text;
+  k text; v_txt text; v_prof jsonb; v_key text; v_el text; v_asset uuid;
 begin
   if p_details is null or p_details = '{}'::jsonb then return '{}'::jsonb; end if;
   if jsonb_typeof(p_details) <> 'object' then
@@ -144,11 +160,27 @@ begin
   -- Hintergrundbild: eine Datei **dieser** Organisation, sonst zeigte ein Programmpunkt auf
   -- den Upload eines fremden Partners.
   if p_details ? 'image_asset_id' then
-    v_out := v_out || jsonb_build_object('image_asset_id', p_details->>'image_asset_id');
+    if nullif(btrim(p_details->>'image_asset_id'), '') is null then
+      -- Leer heißt „Bild entfernen"; das bleibt erlaubt.
+      null;
+    else
+      begin
+        v_asset := (p_details->>'image_asset_id')::uuid;
+      exception when invalid_text_representation then
+        raise exception 'invalid_format_details' using errcode = '22023', detail = 'image_asset_id:uuid';
+      end;
+      if p_org_id is not null and not exists (
+           select 1 from partner_asset pa
+             join org_edition oe on oe.id = pa.org_edition_id
+            where pa.id = v_asset and oe.org_id = p_org_id) then
+        raise exception 'invalid_format_details' using errcode = '22023', detail = 'image_asset_id:foreign';
+      end if;
+      v_out := v_out || jsonb_build_object('image_asset_id', v_asset);
+    end if;
   end if;
   return v_out;
 end $$;
-revoke execute on function check_format_details(text, jsonb) from public, anon, authenticated;
+revoke execute on function check_format_details(text, jsonb, uuid) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------- 3) Lesen
 
@@ -229,7 +261,9 @@ begin
     if v_free <= 0 then raise exception 'no_entitlement' using errcode = 'P0001', detail = p_format; end if;
   end if;
 
-  v_details := check_format_details(p_format, p_details);
+  -- Auflage 6: auch beim Anlegen die Organisation mitgeben, sonst könnte ein Partner beim
+  -- ersten Speichern ein fremdes Bild setzen und es danach nie wieder anfassen.
+  v_details := check_format_details(p_format, p_details, p_org_id);
 
   -- Zeiten am Slot (Weg A, Konrad 18.09.): der Ausschluss-Constraint `slot_no_overlap`
   -- verhindert zwei Gespräche zur selben Zeit an derselben Fläche — ohne eigene Prüfung.
@@ -268,10 +302,27 @@ end $$;
 
 -- Whitelist der Felder, die ein Partner an seiner Session ändern darf. **Nie** Zeiten, Bühne,
 -- Kapazität, Status oder die Organisation — das entscheidet das Programm.
+--
+-- **Auflage 4 der Architektur-Session (21.09.).** Titel und Beschreibung waren auch bei
+-- `publish_status = 'published'` frei änderbar. Das unterläuft D2: die Freigabe hätte gegolten
+-- für einen Text, den danach niemand mehr gesehen hat. Ein freigegebener Beitrag, dessen
+-- Überschrift sich ändert, ist ein anderer Beitrag.
+--
+-- Jetzt gilt: eine Änderung an `title_*`, `description_*` oder `language` an einer
+-- **veröffentlichten** Session schickt sie zurück auf `review`, und der Slot geht von `final`
+-- auf `requested` — genau der Zustand, aus dem `release_partner_session` sie wieder
+-- herausholt. `format_details` (Stellenausschreibung, Zielprofil, Ort eines Side Events)
+-- dürfen ohne erneute Freigabe: sie stehen nicht im veröffentlichten Programm.
+--
+-- Die Rückgabe sagt es dem Partner: `true` heißt „geht noch einmal zur Freigabe". Ohne das
+-- änderte er einen Titel und wunderte sich, warum sein Beitrag aus dem Programm verschwindet.
+-- Die Funktion ist neu in dieser Migration, deshalb ist der Wechsel von `void` auf `boolean`
+-- kein Bruch eines bestehenden Vertrags.
+drop function if exists partner_update_session(uuid, jsonb);
 create or replace function partner_update_session(p_session_id uuid, p_fields jsonb)
-returns void
+returns boolean
 language plpgsql volatile security definer set search_path = public, extensions as $$
-declare v_se session; v_org uuid; v_details jsonb; v_bad text;
+declare v_se session; v_org uuid; v_details jsonb; v_bad text; v_zurueck boolean := false;
 begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_se from session where id = p_session_id;
@@ -289,8 +340,19 @@ begin
   end if;
 
   v_details := case when p_fields ? 'format_details'
-                    then check_format_details(v_se.format, p_fields->'format_details')
+                    -- Auflage 6: die Organisation mitgeben, sonst prüft die Funktion nur die Form.
+                    then check_format_details(v_se.format, p_fields->'format_details', v_org)
                     else v_se.format_details end;
+
+  -- Auflage 4: Nur die Felder, die im veröffentlichten Programm stehen, lösen eine erneute
+  -- Freigabe aus — und nur, wenn sie sich wirklich ändern. Wer denselben Titel noch einmal
+  -- speichert, soll nicht aus dem Programm fallen.
+  v_zurueck := v_se.publish_status = 'published' and (
+       (p_fields ? 'title_de'       and nullif(btrim(p_fields->>'title_de'), '')       is distinct from v_se.title_de)
+    or (p_fields ? 'title_en'       and nullif(btrim(p_fields->>'title_en'), '')       is distinct from v_se.title_en)
+    or (p_fields ? 'description_de' and nullif(btrim(p_fields->>'description_de'), '') is distinct from v_se.description_de)
+    or (p_fields ? 'description_en' and nullif(btrim(p_fields->>'description_en'), '') is distinct from v_se.description_en)
+    or (p_fields ? 'language'       and (p_fields->>'language')                        is distinct from v_se.language));
 
   update session set
     title_de = case when p_fields ? 'title_de' then nullif(btrim(p_fields->>'title_de'), '') else title_de end,
@@ -299,12 +361,22 @@ begin
     description_en = case when p_fields ? 'description_en' then nullif(btrim(p_fields->>'description_en'), '') else description_en end,
     language = case when p_fields ? 'language' then p_fields->>'language' else language end,
     format_details = v_details,
+    publish_status = case when v_zurueck then 'review' else publish_status end,
     updated_by = current_person_id()
   where id = p_session_id;
 
+  if v_zurueck and v_se.slot_id is not null then
+    -- Der Slot zieht mit, wie bei der Ablehnung in `release_partner_session`: die Zeit bleibt
+    -- reserviert, gilt aber nicht mehr als zugesagt.
+    update slot set status = 'requested' where id = v_se.slot_id and status = 'final';
+  end if;
+
   perform log_audit('partner.session_update', 'session', p_session_id::text,
-                    jsonb_build_object('format_details', v_se.format_details),
-                    jsonb_build_object('fields', (select array_agg(k) from jsonb_object_keys(p_fields) k)));
+                    jsonb_build_object('format_details', v_se.format_details,
+                                       'publish_status', v_se.publish_status),
+                    jsonb_build_object('fields', (select array_agg(k) from jsonb_object_keys(p_fields) k),
+                                       'back_to_review', v_zurueck));
+  return v_zurueck;
 end $$;
 
 -- ---------------------------------------------------------------- 6) Löschen (nur ohne Zusagen)
@@ -407,11 +479,24 @@ end $$;
 -- Der Partner trägt selbst einen Speaker ein (PART-044) — wie ein Stage Lead. Die Person
 -- bekommt das normale Speaker-Onboarding; der Partner darf ihre Angaben pflegen, **bis sie
 -- sich selbst anmeldet** (Trigger aus Teil 1).
+--
+-- **Auflage 3 der Architektur-Session (21.09.), Sicherheitsgrenze.** Das Pflegerecht
+-- (`partner_editable_until_login`) bekommt nur, wer **hier neu angelegt** wurde. Vorher
+-- reichte es, die Mailadresse einer beliebigen bestehenden Person einzutippen — eines
+-- Talents, einer Volunteerin, einer Person aus einer früheren Edition: die RPC fand sie,
+-- legte ein Speaker-Profil mit `partner_editable_until_login = true` an, und der Partner
+-- hätte die Stammdaten eines Menschen pflegen dürfen, den er nur „geclaimt" hat.
+--
+-- Die Mailadresse ist keine Berechtigung. Sie ist eine Behauptung, die jeder aufstellen kann,
+-- der sie kennt. Ein Recht an fremden Daten darf daran nicht hängen. Bei einer bestehenden
+-- Person bleibt das Profil also `false`: der Partner sieht, dass sie eingetragen ist, und
+-- kann sie der Session zuordnen — pflegen darf sie nur sie selbst oder das Team.
 create or replace function partner_add_speaker(
   p_session_id uuid, p_email text, p_first_name text, p_last_name text)
 returns uuid
 language plpgsql volatile security definer set search_path = public, extensions as $$
 declare v_se session; v_oe org_edition; v_person uuid; v_prof uuid; v_email citext; v_n integer; v_owner uuid;
+        v_neu boolean := false;
 begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_se from session where id = p_session_id;
@@ -438,6 +523,8 @@ begin
     insert into person (first_name, last_name) values (nullif(btrim(p_first_name), ''), nullif(btrim(p_last_name), ''))
       returning id into v_person;
     insert into person_email (person_id, email, is_primary) values (v_person, v_email, true);
+    -- Nur diese Person ist eine, die es ohne den Partner nicht gäbe. Nur sie darf er pflegen.
+    v_neu := true;
   end if;
 
   select oe.* into v_oe from org_edition oe where oe.org_id = v_se.partner_org_id
@@ -454,7 +541,7 @@ begin
     insert into speaker_profile (person_id, edition_id, pipeline_status, owner_person_id,
                                  created_by_org_id, partner_editable_until_login)
     values (v_person, coalesce(v_oe.edition_id, v_se.event_id), 'invited', v_owner,
-            v_se.partner_org_id, true)
+            v_se.partner_org_id, v_neu)
     returning id into v_prof;
   end if;
 
@@ -462,8 +549,11 @@ begin
   values (p_session_id, v_person, 'speaker')
   on conflict do nothing;
 
+  -- `claimed` im Audit, damit im Nachhinein erkennbar ist, welcher Partner eine bestehende
+  -- Person nur zugeordnet und welche er selbst angelegt hat.
   perform log_audit('partner.add_speaker', 'session', p_session_id::text, null,
-                    jsonb_build_object('org_id', v_se.partner_org_id, 'person_id', v_person, 'profile_id', v_prof));
+                    jsonb_build_object('org_id', v_se.partner_org_id, 'person_id', v_person,
+                                       'profile_id', v_prof, 'claimed', not v_neu));
   return v_prof;
 end $$;
 
@@ -521,8 +611,11 @@ begin
       join event ev on ev.id = se.event_id
       left join slot sl on sl.id = se.slot_id
       left join stage st on st.id = sl.stage_id
+     -- Der Formatfilter ist gefallen (Auflage 4): seit einer Textänderung eine
+     -- veröffentlichte Session zurück auf `review` schickt, kann auch ein Talk oder eine
+     -- Masterclass hier landen. Mit dem alten Filter wäre sie aus dem Programm verschwunden,
+     -- ohne dass sie jemand in der Warteschlange gesehen hätte.
      where se.publish_status = 'review'
-       and se.format in ('side_event', 'interview_table')
        and (p_edition_id is null or ev.id = p_edition_id or ev.edition_id = p_edition_id)
      order by se.created_at;
 end $$;

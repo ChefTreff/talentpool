@@ -17,7 +17,11 @@
 --   09 `question_catalog.partner_selectable` mit Vorgabe falsch, `session_question` nimmt
 --      `requested_by` und `purpose`;
 --   10 das Talk-Flag fällt beim ersten Login des Speakers (Trigger), und zwar nur dann;
---   11 die Hilfsfunktion des Triggers ist für `authenticated` gesperrt.
+--   11 die Hilfsfunktion des Triggers ist für `authenticated` gesperrt;
+--   13 **`upsert_stage` nimmt die neuen Typen an** (Auflage 2): das Team kann eine
+--      `interview_table`-Bühne im Admin anlegen — vorher scheiterte das an einer
+--      Literalliste im Code, und ohne Bühne legt `partner_create_session` nichts an.
+--      Ein Typ, den das Vokabular nicht kennt, wird weiterhin mit 22023 abgewiesen.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -25,6 +29,7 @@ declare
   v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_summit uuid; v_day uuid;
   v_org uuid; v_org2 uuid; v_oe uuid; v_stage_booth uuid; v_stage_table uuid;
   v_sess uuid; v_n integer; v_txt text; v_j jsonb; v_person uuid; v_prof uuid; v_flag boolean;
+  v_uid2 uuid;
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary
@@ -114,21 +119,42 @@ begin
   insert into t_res values ('09b_antrag_ohne_freigabe',
     case when v_n = 1 then 'beantragt, nicht freigegeben (richtig)' else 'unerwartet ' || v_n end);
 
-  -- 10 Talk-Flag faellt beim ersten Login
+  -- 10 Talk-Flag faellt beim ersten Login.
+  --
+  -- **Auflage 1 der Architektur-Session (21.09.).** Hier stand vorher eine frisch angelegte
+  -- Person, der der Test `auth_user_id = gen_random_uuid()` gab. Das verletzt
+  -- `person_auth_user_id_fkey`: die Spalte zeigt auf `auth.users`, erfundene UUIDs gibt es
+  -- dort nicht. Dieselbe Lehre wie im Loeschtest #65 — Konten werden geliehen, nicht erfunden.
+  --
+  -- Geliehen wird ein **zweites** bestehendes Konto: seine Person wird selbst zur Testperson.
+  -- Wir nehmen ihr die Verknuepfung weg (das loest den Trigger nicht aus, er prueft
+  -- null -> nicht null) und geben sie danach zurueck — das ist genau der Vorgang „meldet sich
+  -- zum ersten Mal an", mit einer echten UUID. Der Rollback stellt alles wieder her.
   insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
-  insert into person (first_name, last_name) values ('ZZ', 'Speaker') returning id into v_person;
-  insert into speaker_profile (person_id, edition_id, created_by_org_id, partner_editable_until_login)
-    values (v_person, v_ed, v_org, true) returning id into v_prof;
-  -- Eine Änderung, die **nicht** das Anmelden ist, lässt das Flag stehen.
-  update person set city = 'ZZ Stadt' where id = v_person;
-  select partner_editable_until_login into v_flag from speaker_profile where id = v_prof;
-  insert into t_res values ('10_flag_bleibt_ohne_login',
-    case when v_flag then 'bleibt gesetzt (richtig)' else 'ALLOWED (BUG): zu frueh gefallen' end);
-  -- Das Anmelden lässt es fallen.
-  update person set auth_user_id = gen_random_uuid() where id = v_person;
-  select partner_editable_until_login into v_flag from speaker_profile where id = v_prof;
-  insert into t_res values ('10b_flag_faellt_bei_login',
-    case when v_flag = false then 'gefallen (richtig)' else 'ALLOWED (BUG): steht noch' end);
+  select p.id, p.auth_user_id into v_person, v_uid2
+    from person p
+   where p.auth_user_id is not null and p.id <> v_pid
+     and not exists (select 1 from speaker_profile sp where sp.person_id = p.id and sp.edition_id = v_ed)
+   limit 1;
+  if v_person is null then
+    -- Lieber ehrlich aussetzen als mit einer erfundenen UUID gruen werden.
+    insert into t_res values ('10_flag_bleibt_ohne_login',
+      'AUSGESETZT — kein zweites Konto ohne Speaker-Profil im Bestand');
+  else
+    update person set auth_user_id = null where id = v_person;
+    insert into speaker_profile (person_id, edition_id, created_by_org_id, partner_editable_until_login)
+      values (v_person, v_ed, v_org, true) returning id into v_prof;
+    -- Eine Änderung, die **nicht** das Anmelden ist, lässt das Flag stehen.
+    update person set city = 'ZZ Stadt' where id = v_person;
+    select partner_editable_until_login into v_flag from speaker_profile where id = v_prof;
+    insert into t_res values ('10_flag_bleibt_ohne_login',
+      case when v_flag then 'bleibt gesetzt (richtig)' else 'ALLOWED (BUG): zu frueh gefallen' end);
+    -- Das Anmelden lässt es fallen — mit dem echten Konto, das die Person vorher hatte.
+    update person set auth_user_id = v_uid2 where id = v_person;
+    select partner_editable_until_login into v_flag from speaker_profile where id = v_prof;
+    insert into t_res values ('10b_flag_faellt_bei_login',
+      case when v_flag = false then 'gefallen (richtig)' else 'ALLOWED (BUG): steht noch' end);
+  end if;
   delete from role_assignment where person_id = v_pid and role = 'admin';
 end $$;
 
@@ -178,6 +204,39 @@ insert into t_res
 select '11_trigger_gesperrt',
        case when has_function_privilege('authenticated', 'drop_partner_edit_on_login()', 'execute')
             then 'ALLOWED (BUG)' else 'gesperrt (richtig)' end;
+
+-- 13 upsert_stage prueft ueber das Vokabular, nicht ueber eine Liste im Code (Auflage 2).
+do $$
+declare v_pid uuid; v_uid uuid; v_email text; v_ev uuid; v_id uuid; v_txt text;
+begin
+  select p.id, p.auth_user_id into v_pid, v_uid from person p where p.auth_user_id is not null limit 1;
+  select e.id into v_ev from event e where e.is_edition and e.slug = 'fls27';
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', v_uid, 'role', 'authenticated')::text, true);
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'programme_team', 'global');
+
+  begin
+    select upsert_stage(jsonb_build_object(
+      'event_id', v_ev::text, 'name', 'ZZ Tisch 1', 'type', 'interview_table')) into v_id;
+    select st.type into v_txt from stage st where st.id = v_id;
+    insert into t_res values ('13_neuer_typ_erlaubt',
+      case when v_txt = 'interview_table' then 'Tisch-Buehne angelegt (richtig)'
+           else 'unerwartet ' || coalesce(v_txt, 'null') end);
+  exception when others then
+    insert into t_res values ('13_neuer_typ_erlaubt',
+      'BLOCKIERT (BUG): ' || sqlstate || ' ' || sqlerrm);
+  end;
+
+  begin
+    perform upsert_stage(jsonb_build_object(
+      'event_id', v_ev::text, 'name', 'ZZ Erfunden', 'type', 'zz_gibt_es_nicht'));
+    insert into t_res values ('13b_erfundener_typ', 'ALLOWED (BUG): durchgelassen');
+  exception when sqlstate '22023' then
+    insert into t_res values ('13b_erfundener_typ', '22023 (richtig)');
+  end;
+
+  delete from role_assignment where person_id = v_pid and role = 'programme_team';
+end $$;
 
 select * from t_res order by step;
 rollback;

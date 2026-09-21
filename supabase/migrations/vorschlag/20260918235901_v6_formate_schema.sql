@@ -41,6 +41,77 @@ alter table stage add constraint stage_type_check
 comment on column stage.type is
   'main/side/room = Bühnen und Räume des Programms · partner_booth = Standbühne eines Partners (gibt Bearbeitungsrechte) · interview_table = Tisch eines Partners für Interview Tables · side_event_venue = Träger für Side-Event-Slots, der wirkliche Ort steht in session.format_details.location_text.';
 
+-- **Auflage 2 der Architektur-Session (21.09.).** `upsert_stage` trug die vier alten Typen als
+-- Literalliste im Code. Das Team hätte im Admin keine `interview_table`- und keine
+-- `side_event_venue`-Bühne anlegen können (22023 `invalid_stage_type`), und ohne die legt
+-- `partner_create_session` nichts an — der ganze Baustein wäre über eine vergessene Zeile
+-- gestolpert.
+--
+-- Die Liste weicht dem Vokabular. Damit trägt `stage_type` künftige Typen ohne Migration, und
+-- es gibt nur noch **eine** Stelle, die weiß, welche Typen es gibt (der CHECK oben bleibt die
+-- harte Grenze, das Vokabular die weiche — beide werden in derselben Migration erweitert).
+-- Grundlage ist die Live-Fassung aus `supabase/snapshot/functions/upsert_stage.sql`
+-- (20260917184553); geändert ist nur die Typprüfung.
+create or replace function upsert_stage(p_data jsonb)
+ returns uuid
+ language plpgsql
+ security definer
+ set search_path to 'public', 'extensions'
+as $$
+declare v_id uuid := nullif(p_data->>'id', '')::uuid; v_event uuid; v_type text; v_before jsonb;
+begin
+  if v_id is not null then
+    select st.event_id into v_event from stage st where st.id = v_id;
+    if v_event is null then raise exception 'stage_not_found' using errcode = 'P0002'; end if;
+  else
+    v_event := nullif(p_data->>'event_id', '')::uuid;
+    if not exists (select 1 from event e where e.id = v_event) then
+      raise exception 'event_not_found' using errcode = 'P0002';
+    end if;
+  end if;
+  if not is_programme_editor(v_event) then raise exception 'not allowed' using errcode = '42501'; end if;
+
+  v_type := nullif(p_data->>'type', '');
+  -- Vorher: v_type not in ('main', 'side', 'partner_booth', 'room')
+  if v_type is not null and not is_vocab_key('stage_type', v_type) then
+    raise exception 'invalid_stage_type' using errcode = '22023', detail = v_type;
+  end if;
+
+  select to_jsonb(st) into v_before from stage st where st.id = v_id;
+
+  if v_id is null then
+    insert into stage (event_id, name, slug, type, room, capacity, partner_org_id, stage_lead_person_id,
+                       changeover_min, default_duration_min, partner_slot_quota, sort_order, active)
+    values (v_event, btrim(p_data->>'name'), nullif(btrim(p_data->>'slug'), ''), coalesce(v_type, 'side'),
+            nullif(btrim(p_data->>'room'), ''), (p_data->>'capacity')::integer,
+            nullif(p_data->>'partner_org_id', '')::uuid, nullif(p_data->>'stage_lead_person_id', '')::uuid,
+            coalesce((p_data->>'changeover_min')::integer, 0),
+            coalesce((p_data->>'default_duration_min')::integer, 30),
+            (p_data->>'partner_slot_quota')::integer,
+            coalesce((p_data->>'sort_order')::integer, 0),
+            coalesce((p_data->>'active')::boolean, true))
+    returning id into v_id;
+  else
+    update stage set
+      name                 = coalesce(nullif(btrim(p_data->>'name'), ''), name),
+      slug                 = case when p_data ? 'slug' then nullif(btrim(p_data->>'slug'), '') else slug end,
+      type                 = coalesce(v_type, type),
+      room                 = case when p_data ? 'room' then nullif(btrim(p_data->>'room'), '') else room end,
+      capacity             = case when p_data ? 'capacity' then (p_data->>'capacity')::integer else capacity end,
+      partner_org_id       = case when p_data ? 'partner_org_id' then nullif(p_data->>'partner_org_id', '')::uuid else partner_org_id end,
+      stage_lead_person_id = case when p_data ? 'stage_lead_person_id' then nullif(p_data->>'stage_lead_person_id', '')::uuid else stage_lead_person_id end,
+      changeover_min       = coalesce((p_data->>'changeover_min')::integer, changeover_min),
+      default_duration_min = coalesce((p_data->>'default_duration_min')::integer, default_duration_min),
+      partner_slot_quota   = case when p_data ? 'partner_slot_quota' then (p_data->>'partner_slot_quota')::integer else partner_slot_quota end,
+      sort_order           = coalesce((p_data->>'sort_order')::integer, sort_order),
+      active               = coalesce((p_data->>'active')::boolean, active)
+    where id = v_id;
+  end if;
+
+  perform log_audit('programme.stage_upsert', 'stage', v_id::text, v_before, p_data);
+  return v_id;
+end $$;
+
 -- ---------------------------------------------------------------- 2) Spalten an `session`
 
 alter table session add column if not exists partner_org_id uuid references organization (id) on delete set null;
@@ -83,11 +154,20 @@ comment on column session_question.purpose is
 -- ein Partner dadurch Dinge, die er nicht gebucht hat.
 
 -- (a) Menü: „Standbühne" nur bei einer echten Standbühne.
---     Grundlage ist die Live-Fassung aus `20260917183022_v6_aufraeumen_feldmatrix.sql`
---     (Beschreibung an der Organisation) plus `format_key` aus `20260917190103`; neu ist
---     allein `st.type = 'partner_booth'` in `has_stage`.
-create or replace function partner_overview(p_org_id uuid, p_edition_id uuid default null) returns jsonb
-language plpgsql stable security definer set search_path = public, extensions as $$
+--     Grundlage ist die Live-Fassung aus `supabase/snapshot/functions/partner_overview.sql`,
+--     Stand nach **0124** („Stände tagesweise", 21.09.); neu ist allein
+--     `st.type = 'partner_booth'` in `has_stage`.
+--
+--     Die erste Fassung dieses Vorschlags ging von einem älteren Stand aus und hätte zwei
+--     Dinge still zurückgedreht: `logo_dark`/`logo_light` an der Organisation und den Stand,
+--     der seit 0124 über `booth_assignment` je Tag gelesen wird. Genau dafür gibt es den
+--     Snapshot (`docs/db-konventionen.md` §1).
+create or replace function partner_overview(p_org_id uuid, p_edition_id uuid DEFAULT NULL::uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $$
 declare v_o organization%rowtype; v_oe org_edition; v_roles text[]; v_full boolean;
 begin
   v_roles := partner_roles(p_org_id);
@@ -99,6 +179,7 @@ begin
   return jsonb_build_object(
     'org', jsonb_build_object('id', v_o.id, 'legal_name', v_o.legal_name, 'communication_name', v_o.communication_name, 'type', v_o.type,
                               'website', v_o.website, 'description_de', v_o.description_de, 'description_en', v_o.description_en,
+                              'logo_dark', v_o.logo_dark, 'logo_light', v_o.logo_light,
                               'address', jsonb_build_object('street', v_o.address_street, 'zip', v_o.address_zip, 'city', v_o.address_city, 'country', v_o.address_country),
                               'partner_category', v_o.partner_category),
     'roles', to_jsonb(v_roles),
@@ -122,7 +203,8 @@ begin
     'deadlines', coalesce((select jsonb_agg(jsonb_build_object('key', d.key, 'due_at', d.due_at, 'label_de', d.label_de, 'label_en', d.label_en,
                                                                  'description_de', d.description_de, 'description_en', d.description_en) order by d.due_at)
                            from deadline d where d.edition_id = v_oe.edition_id and d.audience in ('partner', 'all')), '[]'::jsonb),
-    'booth', (select to_jsonb(b) - 'id' - 'org_edition_id' - 'notes' from booth b where b.org_edition_id = v_oe.id),
+    'booth', (select to_jsonb(b) - 'id' - 'notes' from booth_assignment ba join booth b on b.id = ba.booth_id
+               where ba.org_edition_id = v_oe.id order by ba.event_day_id nulls first, b.created_at limit 1),
     'checklist', (select jsonb_build_object('total', count(*) filter (where d.status <> 'not_required'),
                                             'done', count(*) filter (where d.status in ('submitted', 'accepted')),
                                             'open', count(*) filter (where d.status in ('open', 'overdue')),
@@ -135,8 +217,7 @@ begin
     -- Nur eine echte Standbühne blendet den Menüpunkt ein. Tische und Side-Event-Orte
     -- gehören dem Partner ebenfalls, sind aber keine Bühne, die er bespielt.
     'has_stage', exists (select 1 from stage st join event ev on ev.id = st.event_id
-                         where st.partner_org_id = p_org_id and st.active and st.type = 'partner_booth'
-                           and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id))
+                         where st.partner_org_id = p_org_id and st.active and st.type = 'partner_booth' and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id))
   );
 end $$;
 

@@ -10,6 +10,9 @@
 --   04 ein Partner sieht nur **seinen** Stopp, mit Tour, Sammelpunkt und Tour Lead;
 --   05 die Kontaktdaten des Tour Leads kommen mit (Konrads Serviceversprechen) …
 --   06 … und ein externer Tour Lead braucht `contract_consent_at`, sonst greift der CHECK;
+--   05b **(Auflage 5, 21.09.)** `lead_contract_consent_at` steht nicht mehr in der Rückgabe
+--      von `partner_company_tour` — es ist unser interner Nachweis, keine Angabe für den
+--      Partner. Geprüft an der Signatur, nicht am Wert;
 --   07 der Partner füllt seinen Stopp: die neun Angaben, `filled_at` wird gesetzt;
 --   08 Zeiten, Reihenfolge und Zuordnung darf er **nicht** ändern (P0001 `not_editable`);
 --   09 gesuchte Profile nur aus dem Vokabular;
@@ -117,6 +120,18 @@ begin
               and v_r.meeting_point like 'CCH%'
          then 'Name, Mail, Telefon und Sammelpunkt (richtig)'
          else 'unerwartet ' || coalesce(v_r.lead_name,'ohne Lead') end);
+
+  -- 05b Auflage 5 der Architektur-Session (21.09.): das interne Nachweisfeld
+  --     `contract_consent_at` geht **nicht** an den Partner. Geprueft an der Signatur, nicht
+  --     am Wert — ein Test auf „ist null" waere auch dann gruen, wenn die Spalte wieder
+  --     dabeistuende und nur zufaellig leer bliebe.
+  select string_agg(pg_get_function_result(pr.oid), ' | ') into v_txt
+    from pg_proc pr join pg_namespace ns on ns.oid = pr.pronamespace
+   where ns.nspname = 'public' and pr.proname = 'partner_company_tour';
+  insert into t_res values ('05b_kein_einwilligungsdatum',
+    case when v_txt is null then 'FUNKTION FEHLT'
+         when v_txt ilike '%consent%' then 'ALLOWED (BUG): internes Nachweisfeld beim Partner'
+         else 'nicht in der Rueckgabe (richtig)' end);
 
   -- 06 Externer Tour Lead braucht die Einwilligung
   insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');

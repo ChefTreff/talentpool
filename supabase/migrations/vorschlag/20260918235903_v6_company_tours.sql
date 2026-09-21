@@ -209,6 +209,15 @@ grant all on company_tour, company_tour_stop to service_role;
 
 -- Was der Partner zu seinem Stopp sieht — Tour, Zeitfenster, Sammelpunkt und die
 -- Begleitperson mit Kontaktdaten (Konrads Serviceversprechen, Regeländerung 17.09.).
+--
+-- **Auflage 5 der Architektur-Session (21.09.).** `lead_contract_consent_at` ist heraus.
+-- Das Feld belegt intern, dass eine freie Mitarbeiterin der Veröffentlichung ihrer Daten im
+-- Vertrag zugestimmt hat — es ist ein Nachweis für uns, keine Angabe für den Partner. Name,
+-- Rolle, Foto, E-Mail und Telefon bleiben, genau die will Konrad zeigen.
+--
+-- Die Prüfung, ob die Einwilligung vorliegt, gehört ohnehin nicht in die Anzeige, sondern in
+-- `upsert_edition_contact` beim Anlegen — dort steht sie.
+drop function if exists partner_company_tour(uuid, uuid);
 create or replace function partner_company_tour(p_org_id uuid, p_edition_id uuid default null)
 returns table (stop_id uuid, tour_id uuid, tour_name text, track text, meeting_point text,
                tour_starts_at timestamptz, tour_ends_at timestamptz,
@@ -217,7 +226,7 @@ returns table (stop_id uuid, tour_id uuid, tour_name text, track text, meeting_p
                time_note text, snacks boolean, notes_public text, target_profile jsonb,
                photos_allowed boolean, filled_at timestamptz,
                lead_name text, lead_role_de text, lead_role_en text, lead_email text, lead_phone text,
-               lead_photo_path text, lead_contract_consent_at date)
+               lead_photo_path text)
 language plpgsql stable security definer set search_path = public, extensions as $$
 declare v_oe org_edition;
 begin
@@ -229,8 +238,7 @@ begin
            st.sort_order, st.arrival_at, st.departure_at, st.address,
            st.contact_name, st.contact_email::text, st.contact_phone,
            st.time_note, st.snacks, st.notes_public, st.target_profile, st.photos_allowed, st.filled_at,
-           ec.display_name, ec.role_label_de, ec.role_label_en, ec.email::text, ec.phone, ec.photo_path,
-           ec.contract_consent_at
+           ec.display_name, ec.role_label_de, ec.role_label_en, ec.email::text, ec.phone, ec.photo_path
       from company_tour_stop st
       join company_tour ct on ct.id = st.tour_id
       left join edition_contact ec on ec.id = ct.lead_contact_id

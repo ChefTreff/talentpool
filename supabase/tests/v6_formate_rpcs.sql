@@ -21,12 +21,24 @@
 --   16 die Freigabe hebt Session und Slot, eine Ablehnung ohne Grund wird abgewiesen (D2);
 --   17 der Export liefert **nur** Bewerbungen mit Einwilligung und protokolliert sich (D3);
 --   18 der Datenschutzhinweis existiert in beiden Sprachen und nennt die Zweckbindung.
+--
+-- Die Auflagen der Architektur-Session vom 21.09. haben vier eigene Schritte:
+--   19 **(Auflage 3, Sicherheitsgrenze)** eine per Mailadresse „geclaimte" **bestehende**
+--      Person gibt dem Partner **kein** Pflegerecht; nur eine hier neu angelegte;
+--   20 **(Auflage 4)** eine Textänderung an einer veröffentlichten Session schickt sie zurück
+--      auf `review` und den Slot auf `requested`; `format_details` allein nicht, und derselbe
+--      Titel noch einmal gespeichert auch nicht;
+--   21 **(Auflage 4)** die zurückgeschickte Session steht in `partner_sessions_pending` —
+--      auch als Keynote, denn der Formatfilter dort ist gefallen;
+--   22 **(Auflage 6)** `image_asset_id` muss eine UUID sein und eine Datei **dieser**
+--      Organisation; die Datei eines fremden Partners wird abgewiesen.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
 declare
   v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_summit uuid; v_day uuid;
   v_org uuid; v_oe uuid; v_fremd uuid;
+  v_s3 uuid; v_prof2 uuid; v_flag boolean; v_asset uuid; v_asset_fremd uuid; v_zurueck boolean;
   v_stage_side uuid; v_stage_table uuid; v_stage_fremd uuid;
   v_s1 uuid; v_s2 uuid; v_t1 uuid; v_grp uuid; v_q1 uuid; v_qcat uuid; v_prof uuid;
   v_n integer; v_txt text; v_txt2 text; v_start timestamptz; v_j jsonb; v_person uuid;
@@ -188,6 +200,25 @@ begin
     case when v_txt = 'invited' and v_j = 'true'::jsonb and v_person = v_org
          then 'invited, partner darf pflegen, Org vermerkt (richtig)'
          else 'unerwartet ' || coalesce(v_txt,'?') || '/' || coalesce(v_j::text,'?') end);
+
+  -- 19 Auflage 3: eine **bestehende** Person, nur per Mailadresse getroffen, gibt dem Partner
+  --    kein Pflegerecht. Vorher genuegte die Kenntnis der Adresse, um Stammdaten eines
+  --    fremden Menschen pflegen zu duerfen.
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
+  insert into session (event_id, format, title_de, partner_org_id)
+    values (v_summit, 'panel', 'ZZ Panel fuer Bestandsperson', v_org) returning id into v_s3;
+  delete from role_assignment where person_id = v_pid and role = 'admin';
+  -- Eine Person, die es schon gibt (hier: die Testperson selbst) — der Partner tippt nur ihre Adresse.
+  v_prof2 := partner_add_speaker(v_s3, v_email, 'ZZ', 'Egal');
+  select partner_editable_until_login, created_by_org_id into v_flag, v_person
+    from speaker_profile where id = v_prof2;
+  insert into t_res values ('19_bestandsperson_kein_pflegerecht',
+    case when v_flag is not true then 'kein Pflegerecht an fremden Stammdaten (richtig)'
+         else 'ALLOWED (BUG): geclaimt und pflegbar' end);
+  insert into t_res values ('19b_org_trotzdem_vermerkt',
+    case when v_person = v_org then 'created_by_org_id gesetzt (richtig — Zuordnung ja, Pflege nein)'
+         else 'unerwartet ' || coalesce(v_person::text, 'null') end);
+
   update session_speaker set confirmed = true where session_id = v_s2;
   begin
     perform partner_add_speaker(v_s2, 'zz-anderer@example.org', 'ZZ', 'Anderer');
@@ -263,11 +294,109 @@ begin
   exception when others then insert into t_res values ('14_fremde_org', 'abgewiesen ' || sqlstate); end;
 end $$;
 
+-- 20-22 Auflagen 4 und 6: Freigabe nach Textaenderung, und das Hintergrundbild.
+do $$
+declare
+  v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_summit uuid; v_org uuid; v_oe uuid;
+  v_fremd uuid; v_oe_fremd uuid; v_se uuid; v_slot uuid; v_stage uuid; v_day uuid;
+  v_asset uuid; v_asset_fremd uuid; v_zurueck boolean; v_txt text; v_n integer; v_start timestamptz;
+begin
+  select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
+    from person p join person_email pe on pe.person_id = p.id and pe.is_primary
+   where p.auth_user_id is not null limit 1;
+  delete from role_assignment where person_id = v_pid;
+  select e.id into v_ed from event e where e.is_edition and e.slug = 'fls27';
+  select e.id into v_summit from event e where e.edition_id = v_ed order by e.start_date limit 1;
+  select ed.id into v_day from event_day ed where ed.event_id = v_summit order by ed.sort_order limit 1;
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', v_uid, 'role', 'authenticated', 'email', v_email)::text, true);
+
+  insert into organization (legal_name) values ('ZZ Auflagen GmbH') returning id into v_org;
+  insert into organization (legal_name) values ('ZZ Fremde GmbH') returning id into v_fremd;
+  insert into org_edition (org_id, edition_id, onboarding_status) values (v_org, v_ed, 'invited') returning id into v_oe;
+  insert into org_edition (org_id, edition_id, onboarding_status) values (v_fremd, v_ed, 'invited') returning id into v_oe_fremd;
+
+  -- Eine veroeffentlichte Session mit Slot, wie nach einer Freigabe.
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
+  -- Pflegerecht kommt aus org_membership, nicht aus role_assignment (`partner_can_edit`).
+  perform upsert_partner_contact(v_org, v_email, 'Test', 'Person', '{primary_ops}');
+  insert into stage (event_id, name, type) values (v_summit, 'ZZ Tisch Auflage', 'interview_table')
+    returning id into v_stage;
+  select (ed.day_date + time '16:00') at time zone 'Europe/Berlin' into v_start
+    from event_day ed where ed.id = v_day;
+  insert into slot (stage_id, event_day_id, start_at, end_at, status)
+    values (v_stage, v_day, v_start, v_start + interval '30 minutes', 'final')
+    returning id into v_slot;
+  insert into session (event_id, format, title_de, partner_org_id, slot_id, publish_status)
+    values (v_summit, 'interview_table', 'ZZ Vorher', v_org, v_slot, 'published') returning id into v_se;
+  -- Zwei Dateien: eine eigene, eine fremde.
+  insert into partner_asset (org_edition_id, kind, storage_path, filename)
+    values (v_oe, 'logo', 'zz/eigen.png', 'eigen.png') returning id into v_asset;
+  insert into partner_asset (org_edition_id, kind, storage_path, filename)
+    values (v_oe_fremd, 'logo', 'zz/fremd.png', 'fremd.png') returning id into v_asset_fremd;
+  delete from role_assignment where person_id = v_pid and role = 'admin';
+
+  -- 20 Textaenderung schickt zurueck zur Freigabe.
+  v_zurueck := partner_update_session(v_se, jsonb_build_object('title_de', 'ZZ Nachher'));
+  select publish_status into v_txt from session where id = v_se;
+  insert into t_res values ('20_titel_zurueck_zur_freigabe',
+    case when v_zurueck and v_txt = 'review' then 'review, Rueckgabe true (richtig)'
+         else 'ALLOWED (BUG): ' || coalesce(v_txt, 'null') || ', Rueckgabe ' || coalesce(v_zurueck::text, 'null') end);
+  select status into v_txt from slot where id = v_slot;
+  insert into t_res values ('20b_slot_wieder_angefragt',
+    case when v_txt = 'requested' then 'requested (richtig)' else 'unerwartet ' || coalesce(v_txt, 'null') end);
+
+  -- 21 Und sie steht in der Warteschlange des Teams.
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'partner_team', 'global');
+  select count(*)::integer into v_n from partner_sessions_pending(v_ed) q where q.session_id = v_se;
+  insert into t_res values ('21_in_der_warteschlange',
+    case when v_n = 1 then 'sichtbar (richtig)'
+         else 'ALLOWED (BUG): aus dem Programm verschwunden, ohne in der Liste zu stehen' end);
+  delete from role_assignment where person_id = v_pid and role = 'partner_team';
+
+  -- 20c Derselbe Titel noch einmal und eine reine format_details-Aenderung schicken **nicht** zurueck.
+  update session set publish_status = 'published' where id = v_se;
+  update slot set status = 'final' where id = v_slot;
+  v_zurueck := partner_update_session(v_se, jsonb_build_object('title_de', 'ZZ Nachher'));
+  select publish_status into v_txt from session where id = v_se;
+  insert into t_res values ('20c_gleicher_titel_bleibt',
+    case when not v_zurueck and v_txt = 'published' then 'bleibt veroeffentlicht (richtig)'
+         else 'unerwartet ' || coalesce(v_txt, 'null') end);
+  v_zurueck := partner_update_session(v_se, jsonb_build_object(
+    'format_details', jsonb_build_object('job_title', 'ZZ Stelle')));
+  select publish_status into v_txt from session where id = v_se;
+  insert into t_res values ('20d_format_details_ohne_freigabe',
+    case when not v_zurueck and v_txt = 'published' then 'bleibt veroeffentlicht (richtig — D2 meint das Programm)'
+         else 'unerwartet ' || coalesce(v_txt, 'null') end);
+
+  -- 22 Auflage 6: das Hintergrundbild.
+  begin
+    perform partner_update_session(v_se, jsonb_build_object(
+      'format_details', jsonb_build_object('image_asset_id', 'kein-uuid')));
+    insert into t_res values ('22_bild_form', 'ALLOWED (BUG): Freitext als Bild-ID');
+  exception when sqlstate '22023' then
+    insert into t_res values ('22_bild_form', '22023 bei Freitext (richtig)');
+  end;
+  begin
+    perform partner_update_session(v_se, jsonb_build_object(
+      'format_details', jsonb_build_object('image_asset_id', v_asset_fremd::text)));
+    insert into t_res values ('22b_fremde_datei', 'ALLOWED (BUG): fremder Upload im eigenen Programmpunkt');
+  exception when sqlstate '22023' then
+    insert into t_res values ('22b_fremde_datei', '22023 bei fremder Datei (richtig)');
+  end;
+  perform partner_update_session(v_se, jsonb_build_object(
+    'format_details', jsonb_build_object('image_asset_id', v_asset::text)));
+  select format_details->>'image_asset_id' into v_txt from session where id = v_se;
+  insert into t_res values ('22c_eigene_datei',
+    case when v_txt = v_asset::text then 'eigene Datei uebernommen (richtig)'
+         else 'unerwartet ' || coalesce(v_txt, 'null') end);
+end $$;
+
 -- 14b Helfer nicht fuer die API
 insert into t_res
 select '14b_helfer_gesperrt',
        case when has_function_privilege('authenticated', 'partner_entitlement(uuid, text)', 'execute')
-              or has_function_privilege('authenticated', 'check_format_details(text, jsonb)', 'execute')
+              or has_function_privilege('authenticated', 'check_format_details(text, jsonb, uuid)', 'execute')
               or has_function_privilege('authenticated', 'format_detail_keys(text)', 'execute')
               or has_function_privilege('authenticated', 'session_needs_release(uuid)', 'execute')
             then 'ALLOWED (BUG)' else 'alle vier gesperrt (richtig)' end;
