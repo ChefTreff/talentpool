@@ -43,7 +43,7 @@
 | Welle 6 · 0115 | **Welle 6 · Profil löschen (ADM-031, Art. 17 DSGVO)** (`20260918105546`, `v6_profil_loeschen`; Details im Migrationskopf) | — |
 | Welle 6 · 0116 · `20260918122700` | **0116** (`20260918122700`, `v6_branding`, 18.09.): Die Pflicht `digital_branding` (Produkt I-95690, seit 20260910163331) bekommt eine Frist — sie hatte `due_rule = {}` und damit weder Countdown noch Erinnerung, derselbe stille Ausfall wie bei der Hackathon-Challenge. Jetzt `booth_changes_until` (02.04.2027, die Datei geht in die Produktion), Maße 1920 × 1080 (16:9) in der Beschreibung DE/EN, Dateiregeln auf PDF/PNG/JPG verengt (SVG und ZIP raus). Die Maße prueft die Datei **nicht** — Bildmasse brauchen eine Bildbibliothek; das Team prueft sie bei der Freigabe. | — |
 | Welle 6 · 0116 · `20260918141036` | **Welle 6 · Initiativen: Funnel und Leistungen ohne HubSpot (A3.1, A3.2, A3.4)** (`20260918141036`, `v6_initiativen`; Details im Migrationskopf) | — |
-| Welle 6 · 0117 | **Welle 6 · Technik am Slot: die Ansage des Speakers (A7.2, SPK-018, PROD-007)** (`20260918141037`, `v6_session_tech`; Details im Migrationskopf) | — |
+| Welle 6 · 0117 · `20260918141037` | **Welle 6 · Technik am Slot: die Ansage des Speakers (A7.2, SPK-018, PROD-007)** (`20260918141037`, `v6_session_tech`; Details im Migrationskopf) | — |
 | Welle 6 · 0118 | **Welle 6 · Rechteprüfungen NULL-sicher (Hotfix, Architektur-Session)** (`20260918142035`, `v6_rechte_nullsicher`; Details im Migrationskopf) | — |
 | Welle 6 · 0119 | **Welle 6 · Shuttle-Fahrten als eigenes Objekt (A7.1, SPK-016, LEAD-011, ADM-028)** (`20260918142855`, `v6_shuttle`; Details im Migrationskopf) | — |
 | Welle 6 · 0121 | **Welle 6 · Die Technik-Ansage des Speakers im Regieplan (A7.2, SPK-018, PROD-007)** (`20260918143817`, `v6_regie_tech`; Details im Migrationskopf) | — |
@@ -56,7 +56,7 @@
 | Welle 6 · 0124 | **Welle 6 · Stände tagesweise (A3.5, ADM-022)** (`20260921103627`, `v6_staende_tagesweise`; Details im Migrationskopf) | — |
 | Welle 6 · 0130 | **Welle 6 · Vokabular vollständig pflegen (ADM-032)** (`20260921104956`, `v6_vokabularpflege`; Details im Migrationskopf) | — |
 | Welle 6 · 0129 | **0129** (`20260921110522`, `v6_wiki_hackathon`, 21.09.): Sechs jahresunabhaengige Wiki-Artikel fuer Partner aus dem Notion-Wiki „AI Hackathon 2026" (Konrads Auftrag vom 21.09., PART-018) — Challenge definieren, Mentorinnen und Jury, Preise, Vorstellung am ersten Morgen, Teilnehmende, Rueckwand mit den Grafikanforderungen. **Alle als `draft`**, Konrad schaltet frei. **Vier Dinge bewusst nicht uebernommen** und im Migrationskopf begruendet: die Mobilnummer der Ansprechperson (gehoert in `edition_contact` mit Foto und Einwilligung, und eine Migration bleibt dauerhaft in der Historie), die Challenge-Liste 2026, die ausformulierten Challenge-Beschreibungen 2025 (interne Aufgaben fremder Firmen in einem Portal, das alle Partner lesen) sowie Daten, Ort und Zeitplan 2026. | — |
-| Welle 6 · 0117 | **Welle 6 B4: Backdrop der Challenge Area (PART-033, PART-052)** (`20260921111140`, `v6_hackathon_backdrop`; Details im Migrationskopf) | — |
+| Welle 6 · 0117 · `20260921111140` | **Welle 6 B4: Backdrop der Challenge Area (PART-033, PART-052)** (`20260921111140`, `v6_hackathon_backdrop`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
