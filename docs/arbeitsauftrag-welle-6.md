@@ -175,3 +175,14 @@ Konrad: Swapcard bleibt die Event-App (Frage 86 entschieden, kein Eigenbau). All
 - **EA6 Abnahme:** Probelauf `dryRun` gegen das 27er-Event, dann echter Lauf mit Testdaten (ZZTEST-Kennung, danach Aufräumen); Checklisten-Punkte „Swapcard-Sync getestet" und „Processing-Fehler FLS26" abhaken. AVV Swapcard und Consent-Agent bleiben auf der Abschluss-Checkliste.
 
 **Konrads Antworten (21.09.):** Pass-Typen wie unter EA4; kein Rückkanal; Einwilligung `event_app` wird eingeholt (Bewerbung, Ticket-Redirect, Speaker-Onboarding). Neuer vivenu-Schlüssel für das Haupt-Event kommt von Konrad.
+
+## Arbeitspaket INV · Inventar im Produktionsportal (Konrad, 21.09.2026 — geplant, wartet auf drei Entscheidungen)
+
+Das Portal ist alleinige Quelle des Artikelstamms; die Pflege wandert vom Partner-Admin ins **Produktionsportal**; der erste scharfe Abgleich nach HubSpot und SevDesk kommt **am Ende**, nach der Inventur durch das Produktionsteam (Entscheidungslog 21.09.). Zuständig: Build-Chat, nach EA2; Beginn erst, wenn Konrad die drei Fragen aus dem Log entschieden hat (Altkatalog HubSpot, Umfang des Stamms, Knopf oder Automatik).
+
+- **INV1 Liste mit Lückenanzeige** unter `/produktion/inventar`: alle Artikel mit Kennzeichen „ohne Bild", „ohne Beschreibung DE/EN", „ohne Name EN", „inaktiv"; Filter je Kategorie; Zähler oben. Rechte: `is_production_team() or is_partner_team()`.
+- **INV2 Pflege je Artikel:** Name und Beschreibung DE/EN, Kategorie, Preis, Steuersatz, Status, Sponsoring-Level, Format — über `upsert_product` (Snapshot-Basis, nur additiv erweitern); Bild-Upload in `product-images` mit Pfadregel und Größenlimit wie bei den Partner-Uploads.
+- **INV3 Anlegen fehlender Artikel** mit SKU-Regel (`I-NNNNN`, INI-Muster), Prüfung auf Dublette per Name.
+- **INV4 Partner-Admin-Editor** wird Leseansicht mit Verweis ins Produktionsportal (kein zweiter Schreibweg).
+- **INV5 Abgleich am Ende:** Trockenlauf-Bericht (#98) als Pflichtschritt, dann Lauf je System auf Konrads Go; Bilder nach HubSpot, nicht nach SevDesk; Altkatalog HubSpot nach Entscheidung (1).
+- Akzeptanz: Produktionsteam kann jeden Artikel ohne Datenbankzugriff vollständig pflegen; Lückenzähler auf null bringen ist der Inventur-Abschluss; Abgleich schreibt nur nach Vorschau; Audit je Änderung.
