@@ -5,8 +5,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { formatDay } from "@/lib/tz";
 import { Badge } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { NextStepBanner } from "@/components/ui/NextStepBanner";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
@@ -32,10 +34,14 @@ export default async function SpeakerPage() {
   const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: profileJson }, vocab] = await Promise.all([
+  const [{ data: profileJson }, vocab, { data: photoRows }] = await Promise.all([
     supabase.rpc("my_speaker_profile"),
     loadVocabMap(supabase, locale),
+    // Nur die Anzahl zählt hier. Vor dem Summit ist die Liste leer, danach ist
+    // sie das Erste, was eine Speakerin sehen will (SPK-019).
+    supabase.rpc("my_session_photos"),
   ]);
+  const fotoZahl = (photoRows ?? []).length;
   const profile = (profileJson ?? null) as SpeakerProfile | null;
 
   if (!profile) {
@@ -116,6 +122,19 @@ export default async function SpeakerPage() {
           {t.speaker.assistantBanner.replace("{name}", speakerName)}{" "}
           {t.speaker.assistantConsentNote}
         </p>
+      )}
+
+      {fotoZahl > 0 && (
+        <NextStepBanner
+          label={t.speaker.photosReadyLabel}
+          title={t.speaker.photosReadyTitle}
+          hint={t.speaker.photosReadyHint}
+          action={
+            <ButtonLink href="/speaker/media" variant="onAccent">
+              {t.speaker.photosReadyAction}
+            </ButtonLink>
+          }
+        />
       )}
 
       <section aria-labelledby="h-next" className="mb-8">
