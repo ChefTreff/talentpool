@@ -31,6 +31,8 @@ export type ExhibitorRow = {
   categories: string[];
   /** Branche aus dem Vokabular `industry` (0138) — Schlüssel = Optionswert des Swapcard-Feldes „Branche". */
   industry: string | null;
+  /** Kategorie der Logo-Wand (0139). Nie null: wer keine Stufe trägt, ist `official_partner`. */
+  sponsor_category: string;
   partner_category: string | null;
   org_type: string | null;
   booth_number: string | null;
@@ -90,3 +92,27 @@ export interface EventAppAdapter {
   upsertExhibitors(eventId: string, items: ExhibitorUpsert[], opts?: { validateOnly?: boolean }): Promise<UpsertOutcome>;
   deleteExhibitors(eventId: string, ids: string[]): Promise<void>;
 }
+
+/** Eine Kategorie der Logo-Wand, wie die App sie führt. */
+export type RemoteSponsorCategory = { id: string; name: string };
+
+/** Ein Eintrag auf der Logo-Wand. `name` ist bei Alteinträgen aus dem Vorjahr leer. */
+export type RemoteSponsor = {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
+};
+
+/** Was der Adapter je Logo anlegt oder ändert. */
+export type SponsorUpsert = {
+  /** Unsere Org×Edition — nur zur Zuordnung im Protokoll, Swapcard kennt sie nicht. */
+  orgEditionId: string;
+  name: string;
+  categoryId: string;
+  logoUrl: string;
+  redirectUrl?: string;
+  /** Vorhandener Eintrag, den wir selbst angelegt haben (aus `external_ref`). */
+  existingId?: string;
+};
