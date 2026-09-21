@@ -10,7 +10,8 @@
 --   06 die Firmennamen der Challenges 2025/2026 kommen nicht vor — interne Aufgaben fremder
 --      Unternehmen gehören nicht in ein Portal, das alle Partner lesen;
 --   07 die Daten und der Ort von 2026 stehen nicht drin (der Hackathon 27 läuft am 15./16.04.);
---   08 die Grafikanforderungen der Rückwand sind vollständig;
+--   08 die Grafikanforderungen der Rückwand sind vollständig, samt Endformat
+--      1610 × 2790 mm (Konrad 21.09., D4-Ergänzung);
 --   09 als Entwurf sieht ein Partner sie nicht, nach dem Freischalten schon;
 --   10 ein zweiter Lauf der Migration legt nichts doppelt an.
 begin;
@@ -82,7 +83,8 @@ begin
   insert into t_res values ('08_rueckwand_vollstaendig',
     case when v_txt like '%100 mm%' and v_txt like '%PDF/X-4%' and v_txt like '%ISO Coated v2%'
               and v_txt like '%62 dpi%' and v_txt like '%Beschnitt%'
-         then 'alle sieben Angaben (richtig)' else 'unvollstaendig' end);
+              and v_txt like '%1610 × 2790 mm%'
+         then 'alle sieben Angaben samt Endformat (richtig)' else 'unvollstaendig' end);
 
   -- 09 Sichtbarkeit: Entwurf nein, freigeschaltet ja.
   --    Die Rolle kommt unmittelbar vor dem Schritt, der sie braucht (Konvention §6): ohne

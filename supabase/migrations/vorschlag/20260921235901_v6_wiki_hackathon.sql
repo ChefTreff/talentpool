@@ -175,11 +175,10 @@ der Area.
 - **Auflösung:** mindestens 62 dpi im Endformat.
 - **Schriften:** eingebettet oder in Pfade umgewandelt.
 - **Schutzzone:** 100 mm nach innen, **nicht** im Beschnitt enthalten.
-- **Endformat:** der sichtbare Rahmen.
+- **Endformat:** **1610 × 2790 mm** (Breite × Höhe) — der sichtbare Rahmen.
 - **Datenformat:** Endformat plus Beschnitt.
 
-Das Endformat in Millimetern nennen wir, sobald die Fläche steht. Hochladen könnt ihr eure
-Datei im Portal unter **Hackathon**; dort steht auch die Frist.
+Hochladen könnt ihr eure Datei im Portal unter **Hackathon**; dort steht auch die Frist.
 $md$, 'draft', 60)
 
 on conflict do nothing;

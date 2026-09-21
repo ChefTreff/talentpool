@@ -88,9 +88,9 @@ Die Architektur-Session hat den kombinierten Probelauf gefahren und **sechs** Pu
 
 | Was | Wofür |
 | --- | --- |
-| **Artikelnummer der Interview Tables** | Seed von `format_key` für das neue Format (B7) |
-| **Endformat der Hackathon-Rückwand in mm** | Die sieben Grafikanforderungen stehen vollständig im Artikel und in der Pflicht; nur das Endformat fehlt |
-| **Katalogpreise**, bevor weitere Shop-Kategorien freigeschaltet werden | PART-010, seine eigene Aufgabe |
+| ~~Artikelnummer der Interview Tables~~ | **beantwortet am 21.09.: I-66084**, intern angelegt, noch nicht in HubSpot oder SevDesk — Produktzeile kommt in #68 |
+| ~~Endformat der Hackathon-Rückwand~~ | **beantwortet am 21.09.: 1610 × 2790 mm** (Breite × Höhe), eingearbeitet in #89 und #74 |
+| ~~Katalogpreise~~ | **beantwortet am 21.09.: kommen im Oktober mit der neuen Liste** — bis dahin keine weiteren Shop-Kategorien freischalten (PART-010) |
 | **Freischalten der sechs Wiki-Artikel** aus #89 | Sie stehen bewusst alle als `draft` |
 | **Challenge-Beispiele der Vorjahre ins Portal?** | Entscheidung über fremde Geschäftsdaten, keine technische (siehe §6) |
 
