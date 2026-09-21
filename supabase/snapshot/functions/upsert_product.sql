@@ -22,6 +22,12 @@ begin
      and not is_vocab_key('partner_format', btrim(p_data->>'format_key')) then
     raise exception 'invalid_format' using errcode = '22023', detail = coalesce(p_data->>'format_key', 'null');
   end if;
+  -- Neu (0135): welches Sponsoring-Level dieses Produkt vergibt. Wie beim
+  -- Formatschluessel heisst leerer Text „kein Level".
+  if p_data ? 'sponsoring_level_key' and nullif(btrim(p_data->>'sponsoring_level_key'), '') is not null
+     and not is_vocab_key('sponsoring_level', btrim(p_data->>'sponsoring_level_key')) then
+    raise exception 'invalid_sponsoring_level' using errcode = '22023', detail = coalesce(p_data->>'sponsoring_level_key', 'null');
+  end if;
   if p_data ? 'pass_type' and nullif(p_data->>'pass_type', '') is not null and (p_data->>'pass_type') not in ('partner', 'talent', 'investor') then raise exception 'invalid_pass_type' using errcode = '22023'; end if;
   if p_data ? 'grants_role' and nullif(p_data->>'grants_role', '') is not null and not is_vocab_key('role', p_data->>'grants_role') then raise exception 'invalid_role' using errcode = '22023'; end if;
   select exists (select 1 from product where sku = v_sku) into v_exists;
@@ -29,7 +35,7 @@ begin
     insert into product (sku, name_de, name_en, description_de, description_en, type, category, unit, net_price_cents, purchase_price_cents, margin, vat_rate,
                          supplier, supplier_sku, supplier_url, stock_total, track_stock, available_until, shop_visible, shop_sort, late_orderable,
                          shop_hint_de, shop_hint_en, purchase_note_de, purchase_note_en, merch_config, images, source_hubspot, source_shop, internal_comment, active, edition_id,
-                         pass_type, grants_role, format_key)
+                         pass_type, grants_role, format_key, sponsoring_level_key)
     values (v_sku, p_data->>'name_de', p_data->>'name_en', p_data->>'description_de', p_data->>'description_en', coalesce(p_data->>'type', 'shop_item'), p_data->>'category',
             coalesce(p_data->>'unit', 'piece'), (p_data->>'net_price_cents')::integer, (p_data->>'purchase_price_cents')::integer, (p_data->>'margin')::numeric,
             coalesce((p_data->>'vat_rate')::numeric, 7), p_data->>'supplier', p_data->>'supplier_sku', p_data->>'supplier_url', (p_data->>'stock_total')::integer,
@@ -38,7 +44,8 @@ begin
             p_data->>'purchase_note_de', p_data->>'purchase_note_en', p_data->'merch_config', coalesce(p_data->'images', '[]'::jsonb),
             coalesce((p_data->>'source_hubspot')::boolean, false), coalesce((p_data->>'source_shop')::boolean, false), p_data->>'internal_comment',
             coalesce((p_data->>'active')::boolean, true), (p_data->>'edition_id')::uuid,
-            nullif(p_data->>'pass_type', ''), nullif(p_data->>'grants_role', ''), nullif(btrim(p_data->>'format_key'), ''));
+            nullif(p_data->>'pass_type', ''), nullif(p_data->>'grants_role', ''), nullif(btrim(p_data->>'format_key'), ''),
+            nullif(btrim(p_data->>'sponsoring_level_key'), ''));
   else
     update product set
       name_de = case when p_data ? 'name_de' then p_data->>'name_de' else name_de end,
@@ -71,7 +78,8 @@ begin
       active = case when p_data ? 'active' then (p_data->>'active')::boolean else active end,
       pass_type = case when p_data ? 'pass_type' then nullif(p_data->>'pass_type', '') else pass_type end,
       grants_role = case when p_data ? 'grants_role' then nullif(p_data->>'grants_role', '') else grants_role end,
-      format_key = case when p_data ? 'format_key' then nullif(btrim(p_data->>'format_key'), '') else format_key end
+      format_key = case when p_data ? 'format_key' then nullif(btrim(p_data->>'format_key'), '') else format_key end,
+      sponsoring_level_key = case when p_data ? 'sponsoring_level_key' then nullif(btrim(p_data->>'sponsoring_level_key'), '') else sponsoring_level_key end
     where sku = v_sku;
   end if;
   perform log_audit('product.upsert', 'product', v_sku, null, p_data - 'description_de' - 'description_en');

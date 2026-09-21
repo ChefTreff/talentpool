@@ -1,5 +1,5 @@
 create or replace function event_app_exhibitors(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(org_edition_id uuid, org_id uuid, edition_id uuid, edition_slug text, swapcard_event_id text, name text, legal_name text, slug text, description_de text, description_en text, website text, sponsoring_level text, sponsoring_key text, sponsoring_rank integer, partner_category text, org_type text, booth_number text, onboarding_status text, logo_svg_path text, logo_png_path text, logo_png_asset_id uuid, swapcard_exhibitor_id text, members jsonb)
+ RETURNS TABLE(org_edition_id uuid, org_id uuid, edition_id uuid, edition_slug text, swapcard_event_id text, name text, legal_name text, slug text, description_de text, description_en text, website text, sponsoring_level text, sponsoring_key text, sponsoring_rank integer, level_key text, level_rank integer, level_source text, categories text[], partner_category text, org_type text, booth_number text, onboarding_status text, logo_svg_path text, logo_png_path text, logo_png_asset_id uuid, swapcard_exhibitor_id text, members jsonb)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -12,6 +12,17 @@ begin
            sponsoring_level_key(oe.sponsoring_level),
            (select v.sort_order from vocab_term v
              where v.vocabulary = 'sponsoring_level' and v.active and v.key = sponsoring_level_key(oe.sponsoring_level)),
+           -- Abgeleitetes Level (0135): gebuchtes Produkt schlägt Freitext. Ohne
+           -- gebuchtes Produkt fällt die Ableitung auf den HubSpot-Freitext zurück,
+           -- damit ein Partner, dessen Positionen noch nicht im Portal stehen, nicht
+           -- ohne Level dasteht.
+           coalesce(abl.level_key, sponsoring_level_key(oe.sponsoring_level)),
+           coalesce(abl.level_rank, (select v.sort_order from vocab_term v
+                                      where v.vocabulary = 'sponsoring_level' and v.active
+                                        and v.key = sponsoring_level_key(oe.sponsoring_level))),
+           case when abl.level_key is not null then 'product'
+                when sponsoring_level_key(oe.sponsoring_level) is not null then 'hubspot' end,
+           abl.categories,
            o.partner_category, o.type,
            (select b.booth_number from booth_assignment ba join booth b on b.id = ba.booth_id
              where ba.org_edition_id = oe.id order by ba.event_day_id nulls first, b.created_at limit 1),
@@ -33,6 +44,32 @@ begin
     from org_edition oe
     join organization o on o.id = oe.org_id
     join event e on e.id = oe.edition_id
+    left join lateral (
+      select
+        (select v.key from org_product op
+           join product pr on pr.sku = op.product_sku
+           join vocab_term v on v.vocabulary = 'sponsoring_level' and v.active and v.key = pr.sponsoring_level_key
+          where op.org_edition_id = oe.id and op.status = 'booked'
+          order by v.sort_order nulls last, v.key
+          limit 1) as level_key,
+        (select v.sort_order from org_product op
+           join product pr on pr.sku = op.product_sku
+           join vocab_term v on v.vocabulary = 'sponsoring_level' and v.active and v.key = pr.sponsoring_level_key
+          where op.org_edition_id = oe.id and op.status = 'booked'
+          order by v.sort_order nulls last, v.key
+          limit 1) as level_rank,
+        -- Kategorien des Ausstellers: die Produktkategorien seiner gebuchten
+        -- Pakete, in Vokabular-Reihenfolge. Zusatzleistungen und Shop-Artikel
+        -- zählen nicht — ein Barhocker macht niemanden zum Hackathon-Partner.
+        (select coalesce(array_agg(c.category order by c.sort_order nulls last, c.category), '{}'::text[])
+           from (select distinct pr.category,
+                        (select v.sort_order from vocab_term v
+                          where v.vocabulary = 'product_category' and v.active and v.key = pr.category) as sort_order
+                   from org_product op
+                   join product pr on pr.sku = op.product_sku
+                  where op.org_edition_id = oe.id and op.status = 'booked'
+                    and pr.type = 'package' and pr.category is not null) c) as categories
+    ) abl on true
     where o.active
       and (p_edition_id is null or oe.edition_id = p_edition_id)
       and (p_edition_id is not null or e.swapcard_event_id is not null)
