@@ -206,7 +206,9 @@
     "invalid_action": "No such action.",
     "contact_consent_required": "An address outside @chef-treff.de needs the date of the contractual consent.",
     "invalid_stage": "No such funnel stage.",
-    "invalid_items": "The list of services does not fit."
+    "invalid_items": "The list of services does not fit.",
+    "invalid_discount": "Only 100 % and 50 % are allowed.",
+    "derived_allocation": "The 100 % row comes from the booked products and cannot be changed here."
   },
   "nav": {
     "brand": "ChefTreff",

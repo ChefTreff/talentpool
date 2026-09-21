@@ -206,7 +206,9 @@
     "invalid_action": "Diesen Vorgang gibt es nicht.",
     "contact_consent_required": "Für eine Adresse ausserhalb @chef-treff.de braucht es das Datum der vertraglichen Einwilligung.",
     "invalid_stage": "Diese Funnel-Stufe kennt das System nicht.",
-    "invalid_items": "Die Liste der Leistungen passt nicht."
+    "invalid_items": "Die Liste der Leistungen passt nicht.",
+    "invalid_discount": "Erlaubt sind nur 100 % und 50 %.",
+    "derived_allocation": "Die 100-%-Zeile ergibt sich aus den gebuchten Produkten und lässt sich hier nicht ändern."
   },
   "nav": {
     "brand": "ChefTreff",
