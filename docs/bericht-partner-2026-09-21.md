@@ -48,7 +48,7 @@ Bereich: `/partner/*` und `/admin/partner/*`. Auftrag: `docs/arbeitsauftrag-well
 | `vorschlag/20260918235902_v6_formate_rpcs.sql` | #68 | Teil 2 |
 | `vorschlag/20260918235903_v6_company_tours.sql` | #68 | Teil 3 |
 | `vorschlag/20260918235905_v6_hackathon_backdrop.sql` | #74 | Auflage eingearbeitet |
-| `vorschlag/20260921235901_v6_wiki_hackathon.sql` | #89 | Nummer 0129 von der Architektur-Session; **sie hat dieselbe Nummer auch für die #68-Nacharbeit genannt — vor dem nächsten Vorschlag eine neue erfragen** |
+| `vorschlag/20260921235901_v6_wiki_hackathon.sql` | #89 | Nummer **0129**. Für die #68-Nacharbeit hat die Architektur-Session am 21.09. **0132** genannt (0131 liegt beim Swapcard-Chat) — die drei A1-Teile brauchen drei Nummern, Rückfrage läuft |
 
 ---
 
@@ -129,7 +129,7 @@ Diese Punkte haben Fehler verursacht oder beinahe verursacht. Sie stehen hier, w
 
 ## 8 · Ein Fund außerhalb des eigenen Bausteins
 
-**`docs/datenmodell-v2.md`, Zeile 34 (Welle-6-Zelle), enthält den Block zu 0110 dreimal**, 0111 zweimal. Das steht so auf `main` und stammt nicht aus meinen Commits — mehrere Chats hängen an dieselbe Tabellenzelle an, und die Dreiweg-Merges haben dabei Text verdoppelt statt zusammengeführt. Die Zelle ist inzwischen ein einzelner Absatz von mehreren tausend Zeichen. Das schadet niemandem beim Bauen, aber die Datei ist die Grundlage dafür, das Schema aus der Doku zu reproduzieren; drei Kopien derselben Beschreibung lassen bald offen, welche gilt. Ich fasse sie bewusst **nicht** in diesem PR an — dafür braucht es einen Zeitpunkt, an dem keine Welle-6-Chats gleichzeitig darauf schreiben. Vorschlag: eine Zeile je Migration statt eine Zelle je Welle.
+**`docs/datenmodell-v2.md`, Zeile 34 (Welle-6-Zelle), enthält den Block zu 0110 dreimal**, 0111 zweimal. Das steht so auf `main` und stammt nicht aus meinen Commits — mehrere Chats hängen an dieselbe Tabellenzelle an, und die Dreiweg-Merges haben dabei Text verdoppelt statt zusammengeführt. Die Zelle ist inzwischen ein einzelner Absatz von mehreren tausend Zeichen. Das schadet niemandem beim Bauen, aber die Datei ist die Grundlage dafür, das Schema aus der Doku zu reproduzieren; drei Kopien derselben Beschreibung lassen bald offen, welche gilt. Ich fasse sie bewusst **nicht** an — dafür braucht es einen Zeitpunkt, an dem keine Welle-6-Chats gleichzeitig darauf schreiben. **Erledigt:** die Architektur-Session hat den Fund am 21.09. übernommen und den Vorschlag „eine Zeile je Migration statt eine Zelle je Welle" angenommen. Die Datei gehört zu ihrer Doku; wir fassen sie weiter nicht an.
 
 ---
 
