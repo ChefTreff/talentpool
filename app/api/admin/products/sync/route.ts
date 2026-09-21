@@ -3,6 +3,7 @@ import { requireArea } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { istTrockenlauf } from "@/lib/products/dry-run";
 import { syncProducts, type SyncSystem } from "@/lib/products/sync";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +14,12 @@ const SYSTEME: SyncSystem[] = ["hubspot", "sevdesk"];
 /**
  * Den Produktstamm nach HubSpot und SevDesk schreiben.
  *
- * **Nur von Hand.** Kein nächtlicher Lauf: ein Abgleich, der ungefragt
- * Preise in zwei Fremdsysteme schreibt, ist genau dann gefährlich, wenn
- * niemand hinsieht. Wer den Knopf drückt, steht im Protokoll.
+ * **Nur von Hand, und `dryRun` ist die Vorgabe.** Kein nächtlicher Lauf: ein
+ * Abgleich, der ungefragt Preise in zwei Fremdsysteme schreibt, ist genau dann
+ * gefährlich, wenn niemand hinsieht. Geschrieben wird erst mit
+ * `{"dryRun": false}` — ein weggelassenes Feld oder ein Tippfehler im Namen
+ * führt zum Trockenlauf, nie zum Schreiben. Wer drückt, steht im Protokoll.
+ * (Konrad, 21.09.2026: vor jedem Anlegen in SevDesk wird gefragt.)
  *
  * Die Rolle prüft `requireArea("admin")` **vor** dem Admin-Client, und die
  * RPCs prüfen `is_partner_team()` noch einmal in der Datenbank. Der
@@ -24,7 +28,8 @@ const SYSTEME: SyncSystem[] = ["hubspot", "sevdesk"];
 export async function POST(request: Request) {
   const ctx = await requireArea("admin", "/admin/partner/integrationen");
 
-  const body = (await request.json().catch(() => ({}))) as { system?: string };
+  const body = (await request.json().catch(() => ({}))) as { system?: string; dryRun?: boolean };
+  const dryRun = istTrockenlauf(body);
   const gewuenscht = body.system;
   if (gewuenscht !== undefined && !SYSTEME.includes(gewuenscht as SyncSystem)) {
     return NextResponse.json({ error: "invalid_system" }, { status: 400 });
@@ -38,21 +43,23 @@ export async function POST(request: Request) {
   const ergebnisse = [];
   for (const system of systeme) {
     try {
-      ergebnisse.push(await syncProducts(supabase, admin, system, wer));
+      ergebnisse.push(await syncProducts(supabase, admin, system, wer, dryRun));
     } catch (fehler) {
       const text = fehler instanceof Error ? fehler.message : String(fehler);
       console.error(`[products/sync] ${system}:`, text);
-      ergebnisse.push({ system, jobId: null, created: 0, updated: 0, skipped: 0, failed: 0, error: text });
+      ergebnisse.push({ system, jobId: null, dryRun, created: 0, updated: 0, skipped: 0, failed: 0, neu: [], error: text });
     }
   }
 
   // Ein Eintrag je Lauf, mit den Zählern — nicht je Artikel. Wer wissen will,
   // welcher Artikel gescheitert ist, findet ihn in `integration.sync_error`.
   await logAudit({
-    action: "product.sync",
+    action: dryRun ? "product.sync_preview" : "product.sync",
     objectType: "product",
     objectId: systeme.join(","),
-    after: { runs: ergebnisse },
+    // Die Liste der neuen Artikel bleibt draussen: im Protokoll zaehlen die
+    // Zahlen, die Namen stehen in der Antwort und im Fehlerprotokoll.
+    after: { runs: ergebnisse.map((r) => ({ ...r, neu: undefined, neuCount: r.neu?.length ?? 0 })) },
   });
 
   return NextResponse.json({ ok: true, runs: ergebnisse });
