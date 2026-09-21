@@ -11,9 +11,16 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
+import { postJson, readJson } from "@/lib/fetch-json";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Bild, SessionZeile } from "./types";
 
 type Strings = Record<string, string>;
+
+const BUCKET = "session-assets";
+/** Wie der Bucket selbst (`20260917185916_v6_session_grafiken`): 25 MB. */
+const MAX_BYTES = 25 * 1024 * 1024;
+const ERLAUBT = ["image/jpeg", "image/png", "image/webp"];
 
 /**
  * Die Arbeitsliste des Marketings: **wo fehlt noch was.**
@@ -66,35 +73,84 @@ export function GrafikenView({
   const ohneFoto = sessions.filter((s) => s.photos === 0).length;
   const ohneGrafik = sessions.filter((s) => s.graphics === 0).length;
 
-  async function hochladen(sessionId: string, datei: File) {
-    const form = new FormData();
-    form.set("file", datei);
-    form.set("session_id", sessionId);
-    form.set("kind", art[sessionId] ?? "stage_photo");
-    // Freistellung ist bei der Slot-Grafik erwartet, beim Bühnenfoto nie —
-    // deshalb folgt der Haken der Art und ist keine eigene Frage.
-    form.set("cutout", String((art[sessionId] ?? "stage_photo") === "slot_graphic"));
-    if (credit[sessionId]) form.set("credit", credit[sessionId]);
+  /** Ein Fehler wird gesagt, nicht verschluckt — und nie geworfen. */
+  function melden(key: string, detail?: string) {
+    toast("error", (t[`error_${key}`] ?? t.error_unknown) + (detail ? ` (${detail})` : ""));
+  }
 
-    const res = await fetch("/api/admin/session-assets", { method: "POST", body: form });
-    const json = (await res.json()) as { error?: string; detail?: string };
-    if (!res.ok) {
-      toast("error", (t[`error_${json.error}`] ?? t.error_unknown) + (json.detail ? ` (${json.detail})` : ""));
-      return;
+  /**
+   * Hochladen in drei Zügen: Platz holen, Bytes direkt zu Supabase, Zeile
+   * anlegen.
+   *
+   * **Die Datei geht nicht durch unseren Server.** Sie ging es bis zum
+   * 21.09.2026, und dann hielt die Plattform sie bei gut 4 MB an — mit einer
+   * HTML-Seite, an der `res.json()` zerbrach. Weil das hier in einer
+   * `startTransition` läuft, riss der Fehler die ganze Seite mit („This page
+   * couldn't load", Konrads Befund). Beides ist behoben: die Bytes nehmen den
+   * kurzen Weg, und gelesen wird nur noch über `postJson`, das nie wirft.
+   */
+  async function hochladen(sessionId: string, datei: File) {
+    const kind = art[sessionId] ?? "stage_photo";
+    try {
+      // Zuerst hier prüfen: der Bucket weist es ohnehin ab, aber dann hätte
+      // der Upload schon begonnen — und das dauert bei 20 MB.
+      if (!ERLAUBT.includes(datei.type)) return melden("wrong_type", datei.type || undefined);
+      if (datei.size > MAX_BYTES) return melden("file_too_large");
+
+      const platz = await postJson<{ path: string; token: string }>(
+        "/api/admin/session-assets?step=url",
+        {
+          session_id: sessionId,
+          kind,
+          content_type: datei.type,
+          size_bytes: datei.size,
+          filename: datei.name,
+        },
+      );
+      if (!platz.ok) return melden(platz.key, platz.detail);
+
+      const browser = createSupabaseBrowserClient();
+      const { error } = await browser.storage
+        .from(BUCKET)
+        .uploadToSignedUrl(platz.data.path, platz.data.token, datei, { contentType: datei.type });
+      if (error) return melden("upload_failed");
+
+      // Freistellung ist bei der Slot-Grafik erwartet, beim Bühnenfoto nie —
+      // deshalb folgt der Haken der Art und ist keine eigene Frage.
+      const zeile = await postJson<{ id: string }>("/api/admin/session-assets", {
+        path: platz.data.path,
+        session_id: sessionId,
+        kind,
+        filename: datei.name,
+        mime: datei.type,
+        size_bytes: datei.size,
+        cutout: kind === "slot_graphic",
+        ...(credit[sessionId] ? { credit: credit[sessionId] } : {}),
+      });
+      if (!zeile.ok) return melden(zeile.key, zeile.detail);
+
+      toast("success", t.uploaded);
+      router.refresh();
+    } catch {
+      // Letzte Grenze. Was hier ankommt, hat niemand vorhergesehen — aber es
+      // darf die Seite nicht mehr kosten.
+      melden("unknown");
     }
-    toast("success", t.uploaded);
-    router.refresh();
   }
 
   async function loeschen(id: string) {
-    const res = await fetch(`/api/admin/session-assets?id=${id}`, { method: "DELETE" });
-    if (!res.ok) {
-      const json = (await res.json()) as { error?: string };
-      toast("error", t[`error_${json.error}`] ?? t.error_unknown);
-      return;
+    try {
+      const res = await fetch(`/api/admin/session-assets?id=${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const json = await readJson<{ error?: string }>(res);
+        melden(json?.error ?? "unknown");
+        return;
+      }
+      toast("success", t.deleted);
+      router.refresh();
+    } catch {
+      melden("network");
     }
-    toast("success", t.deleted);
-    router.refresh();
   }
 
   return (
