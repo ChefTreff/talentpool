@@ -42,7 +42,7 @@ export default async function SpeakerExpensePage() {
   const open = claims.find((c) => EDITABLE.includes(c.status)) ?? null;
 
   return (
-    <div className="max-w-[900px]">
+    <div className="max-w-text">
       <PageHeader title={t.speaker.expenseTitle} description={t.speaker.expenseLead} />
       <ExpenseWizard
         key={open?.id ?? claims[0]?.id ?? "leer"}

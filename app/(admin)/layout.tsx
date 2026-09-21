@@ -50,6 +50,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         { href: "/admin/speaker-tickets", label: nav.speakerTickets },
         { href: "/admin/reisekosten", label: nav.expenses },
         { href: "/admin/hospitality", label: nav.hospitality },
+        { href: "/admin/reception", label: nav.reception },
         { href: "/admin/anreise", label: nav.travel },
         { href: "/admin/technik", label: nav.tech },
         { href: "/admin/grafiken", label: nav.graphics },
@@ -57,7 +58,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     },
     {
       label: nav.sections.partner,
-      items: [{ href: "/admin/partner", label: nav.partnerCare }],
+      items: [
+        { href: "/admin/partner", label: nav.partnerCare },
+        { href: "/admin/initiativen", label: nav.initiatives },
+      ],
     },
     {
       label: nav.sections.volunteers,

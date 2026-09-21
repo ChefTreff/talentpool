@@ -5,6 +5,8 @@ import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { HospitalityAdmin, type AdminQuota } from "./HospitalityAdmin";
+import { ShuttleAdmin } from "./ShuttleAdmin";
+import type { ShuttleAdminRow } from "@/components/shuttle/types";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +20,9 @@ export default async function AdminHospitalityPage() {
     supabase.from("event").select("id, name, slug, is_edition").eq("is_edition", true),
     loadVocabMap(supabase, locale),
   ]);
+  // Fahrten stehen seit 0119 in einer eigenen Tabelle neben den Kontingenten:
+  // eine Fahrt ist ein Auftrag, kein Platz in einem Topf (ADM-028).
+  const { data: shuttleRows } = await supabase.rpc("shuttle_bookings_admin");
 
   const quotas = (rows ?? []) as AdminQuota[];
   const waiting = quotas.reduce((n, q) => n + q.waitlisted, 0);
@@ -55,6 +60,17 @@ export default async function AdminHospitalityPage() {
           rpcMessages={t.rpc}
         />
       )}
+
+      {/* Shuttle unter den Kontingenten: dieselbe Seite, weil beides zur
+          Betreuung gehört — aber eine eigene Sektion, weil eine Fahrt kein
+          Kontingentplatz ist (ADM-028). */}
+      <ShuttleAdmin
+        rows={(shuttleRows ?? []) as ShuttleAdminRow[]}
+        dateLocale={t.meta.dateLocale}
+        t={t.admin.hospitality}
+        common={{ cancel: t.common.cancel }}
+        rpcMessages={t.rpc}
+      />
     </>
   );
 }

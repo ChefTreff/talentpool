@@ -172,7 +172,7 @@ export function Warenkorb({
                   <span className="ct-small tabular-nums">{line.qty} ×</span>
                 )}
 
-                <span className="ct-small w-[140px] shrink-0 text-right tabular-nums text-ink">
+                <span className="ct-small w-35 shrink-0 text-right tabular-nums text-ink">
                   {money(line.line_net_cents, dateLocale)}
                 </span>
 

@@ -78,7 +78,7 @@ export function ShiftList({
       {shifts.map((s) => (
         <Card key={s.assignment_id}>
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-[260px] flex-1">
+            <div className="min-w-65 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="ct-h3 text-ink">{areas[s.area] ?? s.area}</span>
                 <span className="ct-label text-muted">{s.position}</span>

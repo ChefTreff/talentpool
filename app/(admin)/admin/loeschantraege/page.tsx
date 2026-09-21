@@ -28,7 +28,7 @@ export default async function LoeschantraegePage({
   const { data, error } = await supabase.rpc("deletion_requests_admin", { p_status: gewaehlt });
 
   return (
-    <div className="max-w-[1000px]">
+    <div className="max-w-detail">
       <PageHeader title={t.adminDeletions.title} description={t.adminDeletions.lead} />
       {error ? (
         <EmptyState title={t.adminDeletions.noAccessTitle} description={t.adminDeletions.noAccessBody} />

@@ -83,7 +83,7 @@ export function ApplicantList({
         return (
           <Card as="li" key={a.id}>
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-[260px] flex-1">
+              <div className="min-w-65 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="ct-label text-ink">
                     {a.display_name ?? t.hiddenName}
@@ -137,7 +137,7 @@ export function ApplicantList({
               </div>
 
               {canDecide && (
-                <div className="flex w-full max-w-[300px] flex-wrap gap-2">
+                <div className="flex w-full max-w-75 flex-wrap gap-2">
                   {APPLICATION_DECISIONS.map((status) => (
                     <Button
                       key={status}

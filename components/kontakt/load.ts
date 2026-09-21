@@ -1,6 +1,5 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { supabaseUrl } from "@/lib/supabase/env";
 
 /** Zeile aus `my_contacts()` (Migration 0091). */
 export type MeinKontakt = {
@@ -24,14 +23,9 @@ export type EditionInfo = {
   sort_order: number;
 };
 
-const BUCKET = "contact-photos";
-
-/** Öffentliche Adresse eines Kontaktbilds. Der Bucket ist öffentlich lesbar. */
-export function contactPhotoUrl(path: string | null): string | null {
-  const base = supabaseUrl();
-  if (!path || !base) return null;
-  return `${base}/storage/v1/object/public/${BUCKET}/${path.replace(/^\/+/, "")}`;
-}
+// `contactPhotoUrl` steht in `photo.ts` — diese Datei zieht den Server-Client
+// herein und ist aus einer Client-Komponente nicht importierbar.
+export { contactPhotoUrl } from "./photo";
 
 /**
  * Die eigenen Ansprechpartner. Wer keine Zuordnung hat, bekommt eine leere

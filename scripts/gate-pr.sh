@@ -1,5 +1,5 @@
 #!/bin/sh
-# PR-Gate unabhängig vom Build-Worktree: frischer Git-Worktree, npm ci, lint, tsc, test, build.
+# PR-Gate unabhängig vom Build-Worktree: frischer Git-Worktree, npm ci, audit, lint, tsc, test, build.
 # Aufruf: sh scripts/gate-pr.sh <branch>      (z. B. welle-1/rollen-org-scope)
 # Turbopack akzeptiert kein symbolisch verlinktes node_modules, deshalb eine echte Installation.
 set -eu
@@ -26,6 +26,8 @@ marker="$(git grep -lE '^(<<<<<<< |>>>>>>> )' -- . || true)"
 [ -z "$marker" ] || { echo "dateien: FEHLER (Konfliktmarker)"; echo "$marker"; exit 1; }
 echo "dateien: ok"
 npm ci --no-audit --no-fund >/dev/null 2>&1 || { echo "npm ci: FEHLER"; exit 1; }
+# Sicherheitsmeldungen der Produktionsabhaengigkeiten (18.09.2026, Next.js-Advisory): kritisch = rot, hoch/moderat = sichtbar.
+audit="$(npm audit --omit=dev --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const v=JSON.parse(s).metadata.vulnerabilities;console.log(`${v.critical} kritisch, ${v.high} hoch, ${v.moderate} moderat`);process.exit(v.critical>0?2:0)})')" && echo "audit: $audit" || { echo "audit: FEHLER (kritische Meldung) — $audit"; exit 1; }
 npm run lint >/dev/null 2>&1 && echo "lint: ok" || { echo "lint: FEHLER"; npm run lint 2>&1 | tail -20; exit 1; }
 # Typprüfung über alles inkl. tests/ — `npm test` entfernt Typen nur (strip-types), `next build` prüft tests/ nicht.
 npx tsc --noEmit >/dev/null 2>&1 && echo "tsc: ok" || { echo "tsc: FEHLER"; npx tsc --noEmit 2>&1 | head -20; exit 1; }

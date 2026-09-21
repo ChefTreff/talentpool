@@ -32,9 +32,18 @@ export default async function PartnerFilesPage() {
 
   const files: FileRow[] = ((rows ?? []) as PartnerAsset[]).map((a) => ({
     ...a,
-    // Ohne Pflicht dahinter bleibt die Art des Uploads als Beschriftung.
+    // Ohne Pflicht dahinter bleibt die Art des Uploads als Beschriftung. Belege
+    // aus SevDesk (0122) haengen an keiner Pflicht — ohne diesen Zweig stuende
+    // dort „invoice" statt „Rechnung".
     deliverableLabel:
-      (locale === "en" ? a.label_en : a.label_de) ?? a.label_de ?? a.deliverable_key ?? a.kind,
+      (locale === "en" ? a.label_en : a.label_de) ??
+      a.label_de ??
+      a.deliverable_key ??
+      (a.kind === "invoice"
+        ? t.partnerFiles.docKindInvoice
+        : a.kind === "offer"
+          ? t.partnerFiles.docKindOffer
+          : a.kind),
   }));
 
   return (

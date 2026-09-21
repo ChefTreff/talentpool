@@ -82,7 +82,7 @@ export function ReviewQueue({
       {items.map((item) => (
         <Card key={item.id}>
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-[280px] flex-1">
+            <div className="min-w-70 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="ct-label text-ink">{item.org_name ?? common.none}</span>
                 <span className="ct-h3 text-ink">{label(item)}</span>
@@ -130,7 +130,7 @@ export function ReviewQueue({
               )}
             </div>
 
-            <div className="flex w-full max-w-[320px] flex-col gap-2">
+            <div className="flex w-full max-w-80 flex-col gap-2">
               <Field label={t.note} htmlFor={`n-${item.id}`} hint={t.noteHint}>
                 <Input
                   id={`n-${item.id}`}

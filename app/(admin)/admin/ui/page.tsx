@@ -1,13 +1,18 @@
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { UiKitDemo } from "./UiKitDemo";
+import { KitSchau } from "@/components/ui/KitSchau";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Storybook-freie Referenzseite: alle Bausteine an einem Ort — für Reviews
- * (80-%-Prinzip) und als Vorlage beim Bau neuer Bereiche.
+ * Die Bausteinschau im Admin-Bereich.
+ *
+ * Sie zeigt jetzt **dieselbe** Schau wie `/design`. Vorher stand hier eine
+ * zweite, eigene Demo mit dem alten Kit — zwei Referenzseiten nebeneinander,
+ * und wer in die falsche sah, baute mit Bausteinen weiter, die es so nicht
+ * mehr gibt. Eine Referenz, zwei Wege dorthin: `/design` für alle
+ * Angemeldeten, dieser Weg über die Admin-Navigation.
  */
 export default async function UiKitPage() {
   // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation nicht neu.
@@ -17,17 +22,7 @@ export default async function UiKitPage() {
   return (
     <>
       <PageHeader title={t.admin.ui.title} description={t.admin.ui.lead} />
-      <UiKitDemo
-        t={{
-          ...t.admin.ui,
-          save: t.common.save,
-          cancel: t.common.cancel,
-          close: t.common.close,
-          required: t.common.required,
-          choose: t.common.choose,
-          active: t.common.active,
-        }}
-      />
+      <KitSchau t={t.kit} />
     </>
   );
 }

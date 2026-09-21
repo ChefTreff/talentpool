@@ -123,6 +123,13 @@ const BUSINESS_KEYS = new Set([
   "answers_required",
   "deliverable_not_found",
   "org_edition_not_found",
+  // Rabattstufen (Migration 0123)
+  "invalid_discount",
+  "derived_allocation",
+  // Vokabularpflege (Migration 0130)
+  "usage_unknown",
+  "has_children",
+  "invalid_key",
   "org_not_found",
   // Nachträge aus dem B4-Review (Migrationen 0053/0054) und B5
   "answers_incomplete",
@@ -192,6 +199,10 @@ const BUSINESS_KEYS = new Set([
   // Messestand und Editionsdateien (Migration 20260915115415)
   "edition_file_not_found",
   "invalid_path",
+  // Initiativen (Migration 0116)
+  "invalid_stage",
+  "invalid_items",
+  "org_edition_not_found",
   // Mail-Protokoll (Migration 0113)
   "mail_not_found",
   "not_resendable",
@@ -199,6 +210,8 @@ const BUSINESS_KEYS = new Set([
   // `consent_required` schon die fehlende Einwilligung der angemeldeten Person
   // meint — hier fehlt das Vertragsdatum einer dritten Person.
   "contact_consent_required",
+  "speaker_contact_consent_required",
+  "invalid_contact_kind",
   // Profil loeschen (Migration 0115)
   "already_requested",
   "invalid_action",
