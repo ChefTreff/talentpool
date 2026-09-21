@@ -15,7 +15,9 @@ begin
            (select e.external_id from external_ref e
              where e.system = p_system and e.object_type = 'product' and e.object_key = p.sku)
       from product p
-     -- Barter und reine Shop-Artikel bleiben hier (siehe Kopf).
-     where p.sku not like 'INI-%' and p.source_hubspot
+     -- Barter bleibt hier. Shop-Artikel gehen nach SevDesk, aber nicht nach
+     -- HubSpot (siehe Kopf).
+     where p.sku not like 'INI-%'
+       and (p_system = 'sevdesk' or p.source_hubspot)
      order by p.sku;
 end $$;
