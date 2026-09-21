@@ -1,4 +1,4 @@
--- Smoke-Test 0132 (EA1 · Aussteller: Level und Kategorie aus den Produkten). Belegt:
+-- Smoke-Test 0135 (EA1 · Aussteller: Level und Kategorie aus den Produkten). Belegt:
 --   01 erfundenes Level am Produkt ⇒ 22023 `invalid_sponsoring_level`;
 --   02 Level setzen, und leerer Text nimmt es wieder weg (wie beim Formatschluessel) —
 --      ohne das liesse sich eine falsche Zuordnung ueber die Oberflaeche nie loesen;

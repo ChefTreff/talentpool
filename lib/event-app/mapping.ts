@@ -18,7 +18,7 @@ export function normalizeWebsite(url: string | null | undefined): string | undef
 }
 
 /**
- * Sponsoring-Level und Ausstellerkategorien, wie sie aus den gebuchten Produkten kommen (0132) — für Anzeige und Protokoll.
+ * Sponsoring-Level und Ausstellerkategorien, wie sie aus den gebuchten Produkten kommen (0135) — für Anzeige und Protokoll.
  * **Nicht** an Swapcard gesendet: `Exhibitor.type` ist dort die *Branche* („Tech, Data & IT"), nicht das Level (Probe 21.09.2026);
  * eine Branche kennt das Portal bisher nicht. Siehe docs/runbooks/swapcard-aussteller.md, Abschnitt „Offen".
  */

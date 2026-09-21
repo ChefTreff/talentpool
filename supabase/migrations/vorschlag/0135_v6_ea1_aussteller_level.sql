@@ -1,4 +1,4 @@
--- 0132 · EA1 Aussteller: Level und Kategorie aus den gebuchten Produkten
+-- 0135 · EA1 Aussteller: Level und Kategorie aus den gebuchten Produkten
 -- Zweck: Das Sponsoring-Level eines Partners stand bisher als Freitext in
 -- `org_edition.sponsoring_level` (aus dem HubSpot-Deal, Feld `fls_booth_type`).
 -- Was der Partner wirklich gebucht hat, steht in `org_product`. Diese Migration
@@ -21,10 +21,10 @@ set search_path = public, extensions;
 
 alter table product add column if not exists sponsoring_level_key text;
 comment on column product.sponsoring_level_key is
-  'Vokabular sponsoring_level (0132): welches Sponsoring-Level dieses Produkt dem Partner gibt. NULL = vergibt kein Level (Zusatzleistungen, Bühnenformate, Tickets). Gebucht ein Partner mehrere, gilt das beste (kleinster sort_order).';
+  'Vokabular sponsoring_level (0135): welches Sponsoring-Level dieses Produkt dem Partner gibt. NULL = vergibt kein Level (Zusatzleistungen, Bühnenformate, Tickets). Gebucht ein Partner mehrere, gilt das beste (kleinster sort_order).';
 
 insert into vocab_binding (vocabulary, table_name, column_name, is_array, vocabulary_column, note)
-values ('sponsoring_level', 'product', 'sponsoring_level_key', false, null, 'product.sponsoring_level_key (0132)')
+values ('sponsoring_level', 'product', 'sponsoring_level_key', false, null, 'product.sponsoring_level_key (0135)')
 on conflict (vocabulary, table_name, column_name) do nothing;
 
 -- Startbelegung aus dem Produktkatalog, Stand 21.09.2026. Nur eindeutige Fälle:
@@ -77,7 +77,7 @@ begin
      and not is_vocab_key('partner_format', btrim(p_data->>'format_key')) then
     raise exception 'invalid_format' using errcode = '22023', detail = coalesce(p_data->>'format_key', 'null');
   end if;
-  -- Neu (0132): welches Sponsoring-Level dieses Produkt vergibt. Wie beim
+  -- Neu (0135): welches Sponsoring-Level dieses Produkt vergibt. Wie beim
   -- Formatschluessel heisst leerer Text „kein Level".
   if p_data ? 'sponsoring_level_key' and nullif(btrim(p_data->>'sponsoring_level_key'), '') is not null
      and not is_vocab_key('sponsoring_level', btrim(p_data->>'sponsoring_level_key')) then
@@ -161,7 +161,7 @@ begin
            sponsoring_level_key(oe.sponsoring_level),
            (select v.sort_order from vocab_term v
              where v.vocabulary = 'sponsoring_level' and v.active and v.key = sponsoring_level_key(oe.sponsoring_level)),
-           -- Abgeleitetes Level (0132): gebuchtes Produkt schlägt Freitext. Ohne
+           -- Abgeleitetes Level (0135): gebuchtes Produkt schlägt Freitext. Ohne
            -- gebuchtes Produkt fällt die Ableitung auf den HubSpot-Freitext zurück,
            -- damit ein Partner, dessen Positionen noch nicht im Portal stehen, nicht
            -- ohne Level dasteht.

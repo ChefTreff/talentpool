@@ -45,9 +45,9 @@ export function IntegrationsView({
 }: {
   editions: AdminEdition[];
   log: IngestLogRow[];
-  /** Vokabular `sponsoring_level` für die Anzeige des abgeleiteten Levels (0132). */
+  /** Vokabular `sponsoring_level` für die Anzeige des abgeleiteten Levels (0135). */
   levels: Record<string, string>;
-  /** Vokabular `product_category` für die abgeleiteten Ausstellerkategorien (0132). */
+  /** Vokabular `product_category` für die abgeleiteten Ausstellerkategorien (0135). */
   categories: Record<string, string>;
   dateLocale: string;
   t: Strings;

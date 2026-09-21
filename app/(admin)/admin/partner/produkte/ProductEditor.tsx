@@ -82,7 +82,7 @@ export function ProductEditor({
   categories: Record<string, string>;
   /** Vokabular `partner_format` — welche Partner-Seite dieses Produkt öffnet. */
   formats: Record<string, string>;
-  /** Vokabular `sponsoring_level` — welches Level dieses Produkt dem Partner gibt (0132). */
+  /** Vokabular `sponsoring_level` — welches Level dieses Produkt dem Partner gibt (0135). */
   levels: Record<string, string>;
   /** Vokabular `role` — `grants_role` prüft die RPC dagegen. */
   roles: Record<string, string>;
@@ -168,7 +168,7 @@ export function ProductEditor({
     // Kategorie wird er deshalb immer mitgeschickt: leerer Text heißt in der
     // RPC „keine Seite", Weglassen hieße „nicht anfassen".
     payload.format_key = draft.format_key ?? "";
-    // Dasselbe für das Sponsoring-Level (0132): leerer Text heißt „kein Level".
+    // Dasselbe für das Sponsoring-Level (0135): leerer Text heißt „kein Level".
     payload.sponsoring_level_key = draft.sponsoring_level_key ?? "";
     // Merch-Schema (S4): leere Liste heißt „kein Merch-Artikel", sonst stünde
     // im Shop ein Dialog ohne Felder.

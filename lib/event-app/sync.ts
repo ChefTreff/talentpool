@@ -20,7 +20,7 @@ export type SyncSummary = {
   validated: number;
   refs: number;
   errors: number;
-  /** Abgeleitetes Level je Org (0132) — geht noch nicht nach Swapcard, steht aber im Lauf, damit die Ableitung prüfbar ist. */
+  /** Abgeleitetes Level je Org (0135) — geht noch nicht nach Swapcard, steht aber im Lauf, damit die Ableitung prüfbar ist. */
   tiers: { org: string; level: string | null; source: string | null; categories: string[] }[];
   /** Organisationen ohne ableitbares Level: dort fehlt entweder das gebuchte Paket oder dem Paket das Level. */
   withoutTier: number;

@@ -2,7 +2,7 @@
  * Event-App-Adapter (Welle 3 A12, Entscheidung 13: Swapcard bleibt 2027, Eigenbau/Conferras wird für 2028 evaluiert).
  * Der Portal-Code spricht nur diesen Vertrag; Swapcard ist eine Implementierung (`lib/event-app/swapcard`).
  * Umfang in Welle 3: Aussteller (Name, Beschreibung DE/EN, Website, Logo, Standnummer). Personen, Sessions und Mitglieder folgen in Welle 4/5.
- * EA1 (21.09.2026): Abnahme gegen das 27er-Event; Level und Kategorie kommen aus den gebuchten Produkten (0132) und bleiben vorerst im Portal.
+ * EA1 (21.09.2026): Abnahme gegen das 27er-Event; Level und Kategorie kommen aus den gebuchten Produkten (0135) und bleiben vorerst im Portal.
  */
 
 /** Zeile aus `event_app_exhibitors(p_edition_id?)` (Migration 0055). */
@@ -22,12 +22,12 @@ export type ExhibitorRow = {
   /** Schlüssel und Rang aus dem Vokabular `sponsoring_level` (0097): z. B. `premium`/40; unbekanntes Level ⇒ Schlüssel normalisiert, Rang null. */
   sponsoring_key: string | null;
   sponsoring_rank: number | null;
-  /** Abgeleitetes Level (0132): bestes Level unter den gebuchten Produkten, sonst der HubSpot-Freitext. */
+  /** Abgeleitetes Level (0135): bestes Level unter den gebuchten Produkten, sonst der HubSpot-Freitext. */
   level_key: string | null;
   level_rank: number | null;
   /** `product` = aus den gebuchten Produkten, `hubspot` = Freitext vom Deal, `null` = nichts bekannt. */
   level_source: "product" | "hubspot" | null;
-  /** Produktkategorien der gebuchten **Pakete**, in Vokabular-Reihenfolge (0132). Leeres Array, nie null. */
+  /** Produktkategorien der gebuchten **Pakete**, in Vokabular-Reihenfolge (0135). Leeres Array, nie null. */
   categories: string[];
   partner_category: string | null;
   org_type: string | null;

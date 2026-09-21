@@ -159,7 +159,7 @@ export type AdminProduct = {
   category: string | null;
   /** Vokabular `partner_format`: welche Partner-Seite dieses Produkt öffnet (0110). */
   format_key: string | null;
-  /** Vokabular `sponsoring_level`: welches Level dieses Produkt dem Partner gibt (0132). NULL = keins. */
+  /** Vokabular `sponsoring_level`: welches Level dieses Produkt dem Partner gibt (0135). NULL = keins. */
   sponsoring_level_key: string | null;
   unit: string | null;
   net_price_cents: number | null;
@@ -249,7 +249,7 @@ export type DryRunResult = {
   events?: number;
   /** Trockenlauf Swapcard: Eingaben, die Swapcard nicht beanstandet hat (es meldet nur Fehler, nie Erfolge). */
   validated?: number;
-  /** Abgeleitetes Sponsoring-Level je Aussteller (0132) — zur Kontrolle, geht noch nicht nach Swapcard. */
+  /** Abgeleitetes Sponsoring-Level je Aussteller (0135) — zur Kontrolle, geht noch nicht nach Swapcard. */
   tiers?: { org: string; level: string | null; source: string | null; categories: string[] }[];
   withoutTier?: number;
   skipped?: string | null;
