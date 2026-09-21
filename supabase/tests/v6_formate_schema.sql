@@ -22,6 +22,7 @@
 --      `interview_table`-Bühne im Admin anlegen — vorher scheiterte das an einer
 --      Literalliste im Code, und ohne Bühne legt `partner_create_session` nichts an.
 --      Ein Typ, den das Vokabular nicht kennt, wird weiterhin mit 22023 abgewiesen.
+-- Probelauf Bau-Chat 21.09.2026 (`sh scripts/db.sh dry-run`, 0132 allein): **21/21 gruen**.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$

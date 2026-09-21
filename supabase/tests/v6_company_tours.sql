@@ -20,6 +20,7 @@
 --   11 derselbe Partner kann nicht zweimal auf dieselbe Tour (Unique-Index);
 --   12 Tour und Stopp pflegen nur Team/Programm; ein Tour Lead vom falschen Typ wird
 --      abgewiesen; die Tabellen haben keine Grants für `authenticated`.
+-- Probelauf Bau-Chat 21.09.2026 (`sh scripts/db.sh dry-run`, 0132+0133+0134): **24/24 gruen**.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$

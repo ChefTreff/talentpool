@@ -24,7 +24,9 @@
 --
 -- Die Auflagen der Architektur-Session vom 21.09. haben vier eigene Schritte:
 --   19 **(Auflage 3, Sicherheitsgrenze)** eine per Mailadresse „geclaimte" **bestehende**
---      Person gibt dem Partner **kein** Pflegerecht; nur eine hier neu angelegte;
+--      Person gibt dem Partner **kein** Pflegerecht; nur eine hier neu angelegte. Die Person
+--      darf noch kein Speaker-Profil dieser Edition haben, sonst fasst die RPC nichts an und
+--      der Schritt waere gruen, ohne den Zweig zu betreten — eine Vorbedingung prueft das;
 --   20 **(Auflage 4)** eine Textänderung an einer veröffentlichten Session schickt sie zurück
 --      auf `review` und den Slot auf `requested`; `format_details` allein nicht, und derselbe
 --      Titel noch einmal gespeichert auch nicht;
@@ -36,6 +38,8 @@
 --      `fields_required`** und nennt das fehlende Feld — nicht mit dem rohen 23514 aus
 --      `session_publish_check`, das keine Oberfläche übersetzen kann; mit beiden Titeln
 --      geht sie durch.
+-- Probelauf Bau-Chat 21.09.2026 (`sh scripts/db.sh dry-run`, 0132+0133 zusammengefuegt):
+-- **44/44 gruen**.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -43,6 +47,7 @@ declare
   v_pid uuid; v_uid uuid; v_email text; v_ed uuid; v_summit uuid; v_day uuid;
   v_org uuid; v_oe uuid; v_fremd uuid;
   v_s3 uuid; v_prof2 uuid; v_flag boolean; v_asset uuid; v_asset_fremd uuid; v_zurueck boolean;
+  v_person2 uuid; v_person3 uuid;
   v_stage_side uuid; v_stage_table uuid; v_stage_fremd uuid;
   v_s1 uuid; v_s2 uuid; v_t1 uuid; v_grp uuid; v_q1 uuid; v_qcat uuid; v_prof uuid;
   v_n integer; v_txt text; v_txt2 text; v_start timestamptz; v_j jsonb; v_person uuid;
@@ -213,18 +218,35 @@ begin
   -- 19 Auflage 3: eine **bestehende** Person, nur per Mailadresse getroffen, gibt dem Partner
   --    kein Pflegerecht. Vorher genuegte die Kenntnis der Adresse, um Stammdaten eines
   --    fremden Menschen pflegen zu duerfen.
+  --
+  --    Die Person muss **ohne Speaker-Profil dieser Edition** sein. Mein erster Versuch nahm
+  --    die Testperson selbst; die hat schon eins, die RPC sprang aus dem `if v_prof is null`
+  --    heraus und fasste nichts an. Der Schritt war gruen, ohne den neuen Zweig ueberhaupt
+  --    zu betreten — genau die Sorte Pruefung, die nichts belegt.
   insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
   insert into session (event_id, format, title_de, partner_org_id)
     values (v_summit, 'panel', 'ZZ Panel fuer Bestandsperson', v_org) returning id into v_s3;
+  -- Jemand, den es im Portal schon gibt (ein Talent, eine Volunteerin), aber nicht als Speaker.
+  insert into person (first_name, last_name) values ('ZZ', 'Bestandsperson') returning id into v_person2;
+  insert into person_email (person_id, email, is_primary)
+    values (v_person2, 'zz-bestand@example.org', true);
   delete from role_assignment where person_id = v_pid and role = 'admin';
-  -- Eine Person, die es schon gibt (hier: die Testperson selbst) — der Partner tippt nur ihre Adresse.
-  v_prof2 := partner_add_speaker(v_s3, v_email, 'ZZ', 'Egal');
-  select partner_editable_until_login, created_by_org_id into v_flag, v_person
-    from speaker_profile where id = v_prof2;
-  insert into t_res values ('19_bestandsperson_kein_pflegerecht',
-    case when v_flag is not true then 'kein Pflegerecht an fremden Stammdaten (richtig)'
+
+  select count(*)::integer into v_n from speaker_profile sp
+   where sp.person_id = v_person2 and sp.edition_id = v_ed;
+  insert into t_res values ('19_vorbedingung',
+    case when v_n = 0 then 'Person da, Speaker-Profil nicht (richtig)'
+         else 'FEHLT — die RPC fasst ein vorhandenes Profil nicht an, der Zweig bliebe ungeprueft' end);
+
+  -- Der Partner tippt nur ihre Adresse ein.
+  v_prof2 := partner_add_speaker(v_s3, 'zz-bestand@example.org', 'ZZ', 'Egal');
+  select partner_editable_until_login, created_by_org_id, person_id
+    into v_flag, v_person, v_person3 from speaker_profile where id = v_prof2;
+  insert into t_res values ('19b_bestandsperson_kein_pflegerecht',
+    case when v_person3 is distinct from v_person2 then 'FALSCHE PERSON — Dublettenregel greift nicht'
+         when v_flag is not true then 'kein Pflegerecht an fremden Stammdaten (richtig)'
          else 'ALLOWED (BUG): geclaimt und pflegbar' end);
-  insert into t_res values ('19b_org_trotzdem_vermerkt',
+  insert into t_res values ('19c_org_trotzdem_vermerkt',
     case when v_person = v_org then 'created_by_org_id gesetzt (richtig — Zuordnung ja, Pflege nein)'
          else 'unerwartet ' || coalesce(v_person::text, 'null') end);
 
@@ -329,7 +351,8 @@ begin
   insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
   -- Pflegerecht kommt aus org_membership, nicht aus role_assignment (`partner_can_edit`).
   perform upsert_partner_contact(v_org, v_email, 'Test', 'Person', '{primary_ops}');
-  insert into stage (event_id, name, type) values (v_summit, 'ZZ Tisch Auflage', 'interview_table')
+  -- Side-Event-Ort, nicht Tisch: `image_asset_id` (Schritt 22) ist ein Feld des Side-Events.
+  insert into stage (event_id, name, type) values (v_summit, 'ZZ Side-Ort Auflage', 'side_event_venue')
     returning id into v_stage;
   select (ed.day_date + time '16:00') at time zone 'Europe/Berlin' into v_start
     from event_day ed where ed.id = v_day;
@@ -340,7 +363,7 @@ begin
   -- nicht zu — die Session soll hier ja den Zustand nach einer Freigabe darstellen.
   insert into session (event_id, format, title_de, title_en, description_de,
                        partner_org_id, slot_id, publish_status)
-    values (v_summit, 'interview_table', 'ZZ Vorher', 'ZZ Before', 'ZZ Beschreibung',
+    values (v_summit, 'side_event', 'ZZ Vorher', 'ZZ Before', 'ZZ Beschreibung',
             v_org, v_slot, 'published') returning id into v_se;
   -- Zwei Dateien: eine eigene, eine fremde.
   insert into partner_asset (org_edition_id, kind, storage_path, filename)
@@ -360,12 +383,17 @@ begin
     case when v_txt = 'requested' then 'requested (richtig)' else 'unerwartet ' || coalesce(v_txt, 'null') end);
 
   -- 21 Und sie steht in der Warteschlange des Teams.
-  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'partner_team', 'global');
+  --    **`area_lead_partner`, nicht `partner_team`.** `is_partner_team()` ist
+  --    `has_role('admin') or has_role('area_lead_partner')` — „partner_team" gibt es als
+  --    Rolle nicht, und `role_assignment.role` hat keinen CHECK: der erfundene Name wurde
+  --    klaglos geschrieben, und erst `partner_sessions_pending` warf 42501. Weil der Aufruf
+  --    ausserhalb eines Handlers stand, starb der ganze DO-Block und `t_res` blieb leer.
+  insert into role_assignment (person_id, role, scope_type) values (v_pid, 'area_lead_partner', 'global');
   select count(*)::integer into v_n from partner_sessions_pending(v_ed) q where q.session_id = v_se;
   insert into t_res values ('21_in_der_warteschlange',
     case when v_n = 1 then 'sichtbar (richtig)'
          else 'ALLOWED (BUG): aus dem Programm verschwunden, ohne in der Liste zu stehen' end);
-  delete from role_assignment where person_id = v_pid and role = 'partner_team';
+  delete from role_assignment where person_id = v_pid and role = 'area_lead_partner';
 
   -- 20c Derselbe Titel noch einmal und eine reine format_details-Aenderung schicken **nicht** zurueck.
   update session set publish_status = 'published' where id = v_se;
@@ -376,7 +404,7 @@ begin
     case when not v_zurueck and v_txt = 'published' then 'bleibt veroeffentlicht (richtig)'
          else 'unerwartet ' || coalesce(v_txt, 'null') end);
   v_zurueck := partner_update_session(v_se, jsonb_build_object(
-    'format_details', jsonb_build_object('job_title', 'ZZ Stelle')));
+    'format_details', jsonb_build_object('location_text', 'ZZ Ort des Side-Events')));
   select publish_status into v_txt from session where id = v_se;
   insert into t_res values ('20d_format_details_ohne_freigabe',
     case when not v_zurueck and v_txt = 'published' then 'bleibt veroeffentlicht (richtig — D2 meint das Programm)'
@@ -422,6 +450,12 @@ begin
     when sqlstate '23514' then
       insert into t_res values ('23_freigabe_ohne_title_en',
         'ROH (BUG): 23514 aus dem Trigger statt eines uebersetzbaren Schluessels');
+    when others then
+      -- Ein Handler, der nur die erwarteten Zustaende faengt, laesst alles andere den
+      -- ganzen DO-Block reissen — dann ist `t_res` leer und der Lauf sagt nicht, woran
+      -- es lag. Lieber eine rote Zeile mit dem Code als gar keine.
+      insert into t_res values ('23_freigabe_ohne_title_en',
+        'UNERWARTET: ' || sqlstate || ' ' || sqlerrm);
   end;
   -- Mit beiden Titeln geht sie durch.
   insert into role_assignment (person_id, role, scope_type) values (v_pid, 'admin', 'global');
