@@ -19,7 +19,10 @@ begin
            pk.name_de, pk.name_en
       from org_edition oe
       join organization o on o.id = oe.org_id and o.active
-      join booth b on b.org_edition_id = oe.id
+      join lateral (
+        select b2.* from booth_assignment ba join booth b2 on b2.id = ba.booth_id
+         where ba.org_edition_id = oe.id
+         order by ba.event_day_id nulls first, b2.created_at limit 1) b on true
       left join lateral (
         select p.name_de, p.name_en
           from org_product op join product p on p.sku = op.product_sku

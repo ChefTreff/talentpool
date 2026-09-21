@@ -13,7 +13,8 @@ begin
            (select v.sort_order from vocab_term v
              where v.vocabulary = 'sponsoring_level' and v.active and v.key = sponsoring_level_key(oe.sponsoring_level)),
            o.partner_category, o.type,
-           (select b.booth_number from booth b where b.org_edition_id = oe.id order by b.created_at limit 1),
+           (select b.booth_number from booth_assignment ba join booth b on b.id = ba.booth_id
+             where ba.org_edition_id = oe.id order by ba.event_day_id nulls first, b.created_at limit 1),
            oe.onboarding_status,
            (select a.storage_path from deliverable d join partner_asset a on a.deliverable_id = d.id and a.is_current
              where d.org_edition_id = oe.id and d.key = 'logo_vector' and d.status = 'accepted' order by a.version desc limit 1),

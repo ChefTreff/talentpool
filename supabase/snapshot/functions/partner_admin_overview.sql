@@ -15,7 +15,8 @@ begin
            (select count(*)::integer from deliverable d where d.org_edition_id = oe.id and d.status in ('open', 'rejected')),
            (select count(*)::integer from deliverable d where d.org_edition_id = oe.id and d.status = 'submitted'),
            (select count(*)::integer from deliverable d where d.org_edition_id = oe.id and d.status = 'overdue'),
-           (select b.booth_number from booth b where b.org_edition_id = oe.id)
+           (select b.booth_number from booth_assignment ba join booth b on b.id = ba.booth_id
+            where ba.org_edition_id = oe.id order by ba.event_day_id nulls first, b.created_at limit 1)
     from org_edition oe join organization o on o.id = oe.org_id
     where (p_edition_id is null or oe.edition_id = p_edition_id)
     order by oe.onboarding_status, coalesce(o.communication_name, o.legal_name);
