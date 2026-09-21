@@ -1,7 +1,7 @@
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { partnerAdminShell } from "../shell";
-import type { AdminAllocation } from "../types";
+import type { AdminAllocation, OrgEditionOption } from "../types";
 import { AllocationTable } from "./AllocationTable";
 
 export const dynamic = "force-dynamic";
@@ -12,31 +12,37 @@ export default async function AdminAllocationsPage() {
   if (!shell.ok) return shell.view;
   const { supabase, t, locale, frame } = shell;
 
-  const [{ data: rows }, vocab] = await Promise.all([
+  const [{ data: rows }, { data: orgRows }, vocab] = await Promise.all([
     supabase.rpc("ticket_allocations_admin"),
+    supabase.rpc("org_editions_picker"),
     loadVocabMap(supabase, locale),
   ]);
   const allocations = (rows ?? []) as AdminAllocation[];
+  const orgs = (orgRows ?? []) as OrgEditionOption[];
   const pending = allocations.filter((a) => a.status === "pending_vivenu").length;
 
   return frame(
     t.adminPartner.allocationsTitle,
     `${t.adminPartner.allocationsLead} · ${allocations.length}` +
       (pending > 0 ? ` · ${pending} ${t.adminPartner.countPending}` : ""),
-    allocations.length === 0 ? (
-      <EmptyState
-        title={t.adminPartner.allocationsEmptyTitle}
-        description={t.adminPartner.allocationsEmptyBody}
-      />
-    ) : (
+    // Auch ohne Zeile bleibt die Maske stehen: das Rabattkontingent ist der Weg
+    // zur ersten Zeile, ein reiner Leerzustand waere eine Sackgasse.
+    <>
+      {allocations.length === 0 && (
+        <EmptyState
+          title={t.adminPartner.allocationsEmptyTitle}
+          description={t.adminPartner.allocationsEmptyBody}
+        />
+      )}
       <AllocationTable
         rows={allocations}
+        orgs={orgs}
         passTypes={vgroup(vocab, "ticket_type")}
         dateLocale={t.meta.dateLocale}
         t={t.adminPartner}
         common={{ none: t.common.none, save: t.common.save }}
         rpcMessages={t.rpc}
       />
-    ),
+    </>,
   );
 }

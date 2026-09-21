@@ -49,8 +49,12 @@ export type AdminAllocation = {
   id: string;
   org_id: string;
   org_name: string | null;
+  /** Teilnahme — `set_ticket_allocation_discount` braucht sie (0137). */
+  org_edition_id: string;
   edition_id: string;
   pass_type: string;
+  /** 100 = kostenlos (aus den Produkten abgeleitet), 50 = halber Preis (Handarbeit). 0123. */
+  discount_percent: number;
   quantity: number;
   used_count: number;
   coupon_code: string | null;
@@ -62,6 +66,42 @@ export type AdminAllocation = {
   vivenu_coupon_id: string | null;
   vivenu_undershop_id: string | null;
   updated_at: string | null;
+};
+
+/** Zeile aus `booth_day_plan` (0124/0137): je Tag, wer an welchem Stand steht. */
+export type BoothDayRow = {
+  assignment_id: string;
+  event_day_id: string;
+  day_date: string;
+  day_label: string | null;
+  booth_id: string;
+  booth_number: string | null;
+  booth_type: string | null;
+  segment: string | null;
+  org_edition_id: string;
+  org_id: string;
+  org_name: string | null;
+  /** An diesem Stand hängt mindestens eine Tagesbelegung. */
+  geteilt: boolean;
+  note: string | null;
+};
+
+/** Zeile aus `booths_free` (0137): Stand ohne Belegung „beide Tage" in dieser Edition. */
+export type FreeBooth = {
+  booth_id: string;
+  booth_number: string | null;
+  booth_type: string | null;
+  segment: string | null;
+  belegte_tage: number;
+};
+
+/** Zeile aus `org_editions_picker` (0137): schmale Auswahlliste, keine Kontaktdaten. */
+export type OrgEditionOption = {
+  org_edition_id: string;
+  org_id: string;
+  org_name: string | null;
+  org_type: string | null;
+  onboarding_status: string | null;
 };
 
 export type AdminOrder = {
