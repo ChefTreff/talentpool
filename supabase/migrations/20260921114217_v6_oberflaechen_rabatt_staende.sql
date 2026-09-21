@@ -1,4 +1,6 @@
 -- 0137 · Oberflächen zu 0123 (Rabattstufen) und 0124 (Stände tagesweise)
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921114217.
+--
 -- Zweck: Beide Bausteine haben funktionierende RPCs, aber keine Oberfläche —
 -- ein 50-%-Kontingent und eine tagesweise Standbelegung liessen sich bisher nur
 -- direkt in der Datenbank anlegen. Beim Bauen der Masken fehlten drei Angaben:
