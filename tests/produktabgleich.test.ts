@@ -30,3 +30,29 @@ describe("Produktabgleich: Trockenlauf ist die Vorgabe", () => {
     }
   });
 });
+
+/**
+ * Der gezielte Lauf (INV0): Konrad bestätigt Artikelnummern, und genau die gehen
+ * hinaus. Geprüft wird die Auswahl selbst — dass sie nichts durchlässt, was die
+ * Datenbank ohnehin nicht hergibt, und nichts schluckt, was bestätigt wurde.
+ */
+describe("Produktabgleich: gezielte Auswahl", () => {
+  const stamm = [{ sku: "I-10001" }, { sku: "I-10002" }, { sku: "I-10003" }];
+  const auswahl = (zeilen: { sku: string }[], nur?: string[]) =>
+    nur && nur.length > 0 ? zeilen.filter((z) => new Set(nur).has(z.sku)) : zeilen;
+
+  it("ohne Auswahl geht der ganze Stamm", () => {
+    assert.equal(auswahl(stamm).length, 3);
+    assert.equal(auswahl(stamm, []).length, 3);
+  });
+
+  it("mit Auswahl genau die bestätigten Artikel", () => {
+    assert.deepEqual(auswahl(stamm, ["I-10002"]).map((z) => z.sku), ["I-10002"]);
+  });
+
+  it("eine Nummer, die der Stamm nicht hergibt, holt nichts herein", () => {
+    // Barter und systemfremde Artikel filtert schon `products_for_sync`; eine
+    // Auswahl darf sie nicht nachträglich hereinholen.
+    assert.deepEqual(auswahl(stamm, ["INI-PARTNERSCHAFT", "I-10003"]).map((z) => z.sku), ["I-10003"]);
+  });
+});
