@@ -210,7 +210,11 @@
     "speaker_contact_consent_required": "Bitte bestätige, dass die eingetragene Person einverstanden ist — es sind die Daten eines anderen Menschen.",
     "invalid_contact_kind": "Diese Art des Kontakts kennen wir nicht.",
     "invalid_discount": "Erlaubt sind nur 100 % und 50 %.",
-    "derived_allocation": "Die 100-%-Zeile ergibt sich aus den gebuchten Produkten und lässt sich hier nicht ändern."
+    "derived_allocation": "Die 100-%-Zeile ergibt sich aus den gebuchten Produkten und lässt sich hier nicht ändern.",
+    "usage_unknown": "Für dieses Vokabular ist nicht hinterlegt, wo es benutzt wird — deshalb wird nicht gelöscht. Deaktivieren geht.",
+    "has_children": "Dieser Begriff hat Unterbegriffe. Erst die entfernen.",
+    "invalid_key": "Der Schlüssel darf nur Kleinbuchstaben, Ziffern und Unterstriche enthalten und muss mit einem Buchstaben beginnen.",
+    "term_not_found": "Diesen Begriff gibt es nicht."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1179,7 +1183,8 @@
     "bandStatNone": "Keine offen",
     "lunchCardTitle": "Lunch-Paket fürs Team",
     "lunchCardBody": "Verpflegung an beiden Tagen für alle, die für euch vor Ort sind.",
-    "lunchCardAction": "In der Checkliste bestellen"
+    "lunchCardAction": "In der Checkliste bestellen",
+    "navBranding": "Branding"
   },
   "partnerContacts": {
     "title": "Kontakte",
@@ -2595,6 +2600,42 @@
     "productsReplaceHint": "Diese Liste ersetzt die bisher vereinbarten Leistungen. Was hier auf 0 steht, gilt danach als nicht vereinbart — und die Pflichten dazu verschwinden mit. Bestellungen aus dem Messeshop und Positionen aus HubSpot bleiben unberührt.",
     "productsSaved": "{n} Leistungen vereinbart"
   },
+  "adminVocab": {
+    "lead": "Anlegen, umbenennen, sortieren, deaktivieren — und löschen, wo niemand den Begriff benutzt.",
+    "noAccessTitle": "Kein Zugriff auf das Vokabular",
+    "noAccessBody": "Die Begriffe steuern Auswahllisten im ganzen Portal. Nur die Admin-Rolle pflegt sie.",
+    "filterVocabulary": "Vokabular",
+    "allVocabularies": "Alle anzeigen",
+    "addTerm": "Begriff anlegen",
+    "editTerm": "Begriff bearbeiten",
+    "edit": "Bearbeiten",
+    "activate": "Aktivieren",
+    "deactivate": "Deaktivieren",
+    "deleted": "Begriff gelöscht",
+    "colKey": "Schlüssel",
+    "colDe": "Deutsch",
+    "colEn": "Englisch",
+    "colSort": "Reihung",
+    "colUsage": "Verwendung",
+    "colStatus": "Status",
+    "colActions": "Aktionen",
+    "usageNone": "nirgends benutzt",
+    "usageCount": "{n}×  benutzt",
+    "usageUnknown": "Verwendung unbekannt — nicht löschbar",
+    "children": "{n} Unterbegriffe",
+    "fieldVocabulary": "Vokabular",
+    "fieldVocabularyHint": "Ein neues Vokabular entsteht über eine Migration, nicht hier.",
+    "fieldKey": "Schlüssel",
+    "fieldKeyHint": "Kleinbuchstaben, Ziffern und Unterstriche. Er steht später als Wert in den Daten.",
+    "fieldKeyFixed": "Fest: der Schlüssel steht als Wert in den Daten. Ihn zu ändern wäre eine Migration.",
+    "fieldDe": "Beschriftung (DE)",
+    "fieldEn": "Beschriftung (EN)",
+    "fieldEnHint": "Pflicht: mehrere Portale sind auf Englisch voreingestellt.",
+    "fieldSort": "Reihung",
+    "fieldSortHint": "Kleinere Zahlen stehen oben. Gleiche Zahl heisst alphabetisch.",
+    "confirmDeleteTitle": "Begriff löschen?",
+    "confirmDeleteBody": "„{key}“ wird entfernt. Das geht nur, solange ihn niemand benutzt — sonst weist die Datenbank es ab."
+  },
   "initiativeStages": {
     "outreach": "Ansprache",
     "gespraech": "Gespräch",
@@ -3636,5 +3677,28 @@
     "failed": "Der Assistent antwortet gerade nicht. Versuch es in ein paar Minuten noch einmal; dein Text bleibt stehen.",
     "noModel": "Der Assistent ist noch nicht freigeschaltet. Melde dich bei deinem Buddy, wenn du ihn brauchst.",
     "privacyNote": "An den Assistenten gehen nur das Format deines Slots und das, was du hier schreibst. Kein Name, keine Organisation, kein Kontakt."
+  },
+  "partnerBranding": {
+    "title": "Branding",
+    "lead": "Eure Marke auf dem Summit — und was wir dafür von euch brauchen.",
+    "emptyTitle": "Noch keine Branding-Leistung gebucht",
+    "emptyBody": "Sobald ihr Branding gebucht habt, stehen hier eure Flächen und die Dateien, die wir dafür brauchen.",
+    "toChecklist": "Zur Checkliste",
+    "dueLabel": "Datei bis",
+    "pastDue": "Die Frist ist vorbei. Meldet euch beim Partner-Team, wenn sich noch etwas ändern muss.",
+    "noFileTitle": "Dafür brauchen wir nichts von euch",
+    "noFileBody": "Diese Leistungen produzieren wir mit dem Logo aus eurem Onboarding. Falls wir doch etwas brauchen, melden wir uns rechtzeitig.",
+    "wikiHint": "Die Druckanforderungen im Einzelnen stehen im Wiki unter Branding.",
+    "uploadNew": "Neue Fassung hochladen",
+    "uploadFirst": "Datei hochladen",
+    "uploadHint": "Erlaubt: {allowed}, höchstens {max}.",
+    "uploading": "Wird hochgeladen …",
+    "uploaded": "Hochgeladen (Fassung {v})",
+    "uploadFailed": "Der Upload hat nicht geklappt",
+    "uploadTooBig": "Die Datei ist größer als {max}.",
+    "uploadWrongType": "Erlaubt sind nur {allowed} — die Datei ist {got}.",
+    "uploadCurrent": "Aktuell",
+    "uploadRejected": "Zurückgewiesen",
+    "uploadNoDeliverable": "Für diese Leistung ist keine Datei hinterlegt."
   }
 }
