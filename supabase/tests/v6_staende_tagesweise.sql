@@ -46,8 +46,11 @@ begin
 
   select e.id into v_fremd_ed from event e where e.is_edition and e.id <> v_ed limit 1;
   if v_fremd_ed is null then
-    insert into event (name, slug, is_edition, start_date, end_date)
-    values ('ZZTEST Fremdedition', 'zztest-fremd', true, date '2028-04-16', date '2028-04-17')
+    -- `format_tag` ist Pflicht ohne Vorgabe. Aus der echten Edition kopiert,
+    -- damit der Test an keinem Vokabularwert haengt (Probelauf 21.09.).
+    insert into event (name, slug, is_edition, start_date, end_date, format_tag)
+    values ('ZZTEST Fremdedition', 'zztest-fremd', true, date '2028-04-16', date '2028-04-17',
+            (select e.format_tag from event e where e.id = v_ed))
     returning id into v_fremd_ed;
   end if;
   insert into event_day (event_id, day_date, label_de, sort_order)
