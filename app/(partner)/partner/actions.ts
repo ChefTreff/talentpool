@@ -374,3 +374,50 @@ export async function shopRequestProduct(input: {
   refreshShop();
   return { ok: true, data: { request_id: data as string } };
 }
+
+/**
+ * Talk (PART-044, B6). Zwei Wege, beide über die RPCs aus 0132/0133 und 0139.
+ *
+ * `addSpeaker` trägt eine Person zu einer gebuchten Keynote oder einem Panel
+ * ein — wie ein Stage Lead. Ob daraus ein Pflegerecht wird, entscheidet die
+ * Datenbank und nicht diese Stelle: nur eine Person, die es vorher nicht gab,
+ * darf der Partner danach pflegen. Wer nur eine bekannte Mailadresse eintippt,
+ * ordnet zu und sieht nichts weiter (Review-Auflage zu #68).
+ */
+export async function addTalkSpeaker(input: {
+  sessionId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}): Promise<PartnerResult<{ profile_id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_add_speaker", {
+    p_session_id: input.sessionId,
+    p_email: input.email,
+    p_first_name: input.firstName,
+    p_last_name: input.lastName,
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/talk`);
+  return { ok: true, data: { profile_id: data as string } };
+}
+
+/**
+ * Der Partner pflegt die Programmangaben seines Speakers, solange dieser sich
+ * nicht selbst angemeldet hat. Die Felder, die hier durchgehen, sind in der
+ * RPC als Whitelist festgelegt — Telefon, Pronomen, Assistenzkontakt und
+ * Technikbedarf gehören der Person und stehen nicht darin.
+ */
+export async function updateTalkSpeaker(input: {
+  profileId: string;
+  fields: Record<string, string | null>;
+}): Promise<PartnerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("partner_update_speaker", {
+    p_profile_id: input.profileId,
+    p_fields: input.fields,
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/talk`);
+  return { ok: true, data: undefined };
+}
