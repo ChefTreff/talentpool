@@ -1,5 +1,7 @@
 -- 0127 · Welle 6 · Kontakt ohne Portalzugang am Speaker-Profil (SPK-005)
 --
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921101742.
+--
 -- Vorschlag der Build-Session Speaker-Domäne. Anwenden, Umbenennen und der
 -- Eintrag ins Entscheidungslog gehören der Architektur-/Security-Session.
 -- Nummer 0127 zugeteilt.
