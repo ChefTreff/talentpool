@@ -1,4 +1,6 @@
 -- 0138 · Branche des Ausstellers (Vokabular `industry`, Swapcard `Exhibitor.type`)
+-- Angewendet von der Architektur-Session am 21.09.2026 als 20260921120434.
+--
 -- Zweck: Swapcard führt an jedem Aussteller eine **Branche** — dort heisst das
 -- Feld `type` und wird im Event über das Auswahlfeld „Branche" angeboten. Das
 -- Portal kannte dafür bisher keine Angabe; EA1 hat die falsche Zuordnung
