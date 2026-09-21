@@ -192,4 +192,49 @@ create trigger trg_person_login_drops_partner_edit
   after update of auth_user_id on person
   for each row execute function drop_partner_edit_on_login();
 
+-- 7) Interview Tables bekommen ihren Artikel (Konrad 21.09.: **I-66084**, intern angelegt,
+--    noch weder in HubSpot noch in SevDesk). Bis hierher war `format_key = 'interview_table'`
+--    das einzige Vokabular ohne Produkt (0110, PROD-006) — die Seite öffnete also bei
+--    niemandem, weil `visibleNavKeys` an gebuchten Produkten hängt.
+--
+--    Drei Entscheidungen, die wir hier treffen und nicht dem Zufall überlassen:
+--
+--    * **`category = 'stage_products'`.** Nicht `specials`, wo das Side Event liegt: Interview
+--      Tables sind in diesem Modell eine Bühne (`stage.type = 'interview_table'`) mit echten
+--      `slot`-Zeilen, genau wie Talk und Masterclass. Sie gehören zu denselben Nachbarn.
+--      `stage_products` trägt außerdem **keine** Pflicht auf Kategorieebene — der Artikel erbt
+--      also nichts, was für Standflächen, Branding oder Hackathon gedacht ist.
+--    * **`source_hubspot = true`.** Damit nimmt `products_for_sync('hubspot')` den Artikel beim
+--      nächsten Abgleich (A4.3) mit hinaus; dasselbe gilt für SevDesk. Das ist der Weg, den
+--      Konrad erwartet — die Nummer entsteht im Portal und wandert nach außen, nicht umgekehrt.
+--    * **`net_price_cents` bleibt NULL.** Die Katalogpreise kommen im Oktober mit der neuen
+--      Liste (Konrad 21.09.). Ein erfundener oder auf null gesetzter Preis wäre schlimmer als
+--      keiner: der Preis-Snapshot beim HubSpot-Ingest würde ihn übernehmen und in der
+--      Partner-Übersicht als „0,00 €" erscheinen. NULL heißt sichtbar „steht noch aus".
+--
+--    `active = true` ist nötig, damit der Ingest einen Deal mit dieser SKU annimmt — er weist
+--    inaktive Artikel mit `inactive_sku` ab. Pflege danach über `upsert_product` und den
+--    Produkte-Reiter im Partner-Admin, nicht über eine weitere Migration.
+--
+--    **Der Steuersatz ist nicht geraten.** Er kommt aus der Masterclass (I-33783), dem nächsten
+--    Verwandten in derselben Kategorie, und nur ersatzweise aus dem Tabellen-Default. Eine Zahl,
+--    die ich mir ausdenke, wäre hier eine steuerliche Aussage; die trifft die Buchhaltung.
+insert into product (sku, name_de, name_en, description_de, description_en,
+                     type, category, unit, vat_rate, source_hubspot, active, format_key)
+values ('I-66084', 'Interview Tables', 'Interview tables',
+        'Tisch und Stühle für volle Messetage. Ihr legt eure Gesprächsslots selbst an, hinterlegt eure Stellenausschreibung und wählt die Profile, die ihr sucht; Bewerbungen verwaltet ihr im Portal.',
+        'A table and chairs for full expo days. You set up your own interview slots, add your job posting and choose the profiles you are looking for; applications are managed in the portal.',
+        'package', 'stage_products', 'piece',
+        coalesce((select p.vat_rate from product p where p.sku = 'I-33783'), 7),
+        true, true, 'interview_table')
+on conflict (sku) do update set
+  format_key = excluded.format_key,
+  -- Namen und Texte nur füllen, wenn noch nichts da ist: sollte Konrad den Artikel vor dieser
+  -- Migration selbst angelegt haben, gewinnt seine Fassung. Das Portal ist Quelle der Wahrheit.
+  name_de = coalesce(nullif(product.name_de, ''), excluded.name_de),
+  name_en = coalesce(nullif(product.name_en, ''), excluded.name_en),
+  description_de = coalesce(nullif(product.description_de, ''), excluded.description_de),
+  description_en = coalesce(nullif(product.description_en, ''), excluded.description_en),
+  active = true;
+
 select harden_definer_functions();

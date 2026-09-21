@@ -11,6 +11,9 @@
 --   08 **Rechte:** `standbuehne_editor` (Scope org) darf seine Standbühne bearbeiten, aber
 --      nicht die Tisch-Bühne derselben Organisation — sonst käme über `can_edit_regie`
 --      die Regie dazu;
+--   12 der Artikel der Interview Tables (I-66084, Konrad 21.09.) ist angelegt, aktiv, in
+--      `stage_products`, mit `format_key` und **ohne** erfundenen Preis — vorher war
+--      `interview_table` das einzige Vokabular ohne Produkt, die Seite oeffnete bei niemandem;
 --   09 `question_catalog.partner_selectable` mit Vorgabe falsch, `session_question` nimmt
 --      `requested_by` und `purpose`;
 --   10 das Talk-Flag fällt beim ersten Login des Speakers (Trigger), und zwar nur dann;
@@ -127,6 +130,47 @@ begin
   insert into t_res values ('10b_flag_faellt_bei_login',
     case when v_flag = false then 'gefallen (richtig)' else 'ALLOWED (BUG): steht noch' end);
   delete from role_assignment where person_id = v_pid and role = 'admin';
+end $$;
+
+-- 12 Der Artikel der Interview Tables (Konrad 21.09.: I-66084) ist angelegt, traegt
+--    `format_key = 'interview_table'`, geht an den HubSpot-Abgleich und hat **keinen**
+--    erfundenen Preis; ein zweiter Lauf ueberschreibt einen gepflegten Namen nicht.
+do $$
+declare v_p record; v_n integer;
+begin
+  select * into v_p from product where sku = 'I-66084';
+  if not found then
+    -- Ohne Artikel sind die folgenden Schritte aussagelos; ein Test, der dann trotzdem
+    -- drei gruene Zeilen schreibt, verdeckt genau den Fehler, den er finden soll.
+    insert into t_res values ('12_interview_table_artikel', 'FEHLT — die Seite oeffnet bei niemandem');
+    return;
+  end if;
+  insert into t_res values ('12_interview_table_artikel',
+    case when v_p.format_key is distinct from 'interview_table' then 'falscher format_key: ' || coalesce(v_p.format_key, 'null')
+         when v_p.category <> 'stage_products' then 'falsche Kategorie: ' || v_p.category
+         when not v_p.active then 'inaktiv — der Ingest wiese den Deal mit inactive_sku ab'
+         else 'angelegt, aktiv, stage_products (richtig)' end);
+  insert into t_res values ('12b_preis_offen',
+    case when v_p.net_price_cents is null then 'kein erfundener Preis (richtig — Liste kommt im Oktober)'
+         else 'ALLOWED (BUG): Preis ' || v_p.net_price_cents || ' steht drin' end);
+
+  -- Der Abgleich traegt ihn hinaus. products_for_sync prueft is_partner_team(), deshalb
+  -- hier die Bedingung der Funktion statt der Funktion selbst.
+  insert into t_res values ('12c_geht_an_hubspot',
+    case when v_p.source_hubspot and v_p.sku not like 'INI-%'
+         then 'source_hubspot (richtig)' else 'bleibt liegen' end);
+
+  -- Zweiter Lauf: gepflegter Name bleibt stehen.
+  update product set name_de = 'Von Konrad umbenannt' where sku = 'I-66084';
+  insert into product (sku, name_de, name_en, type, category, unit, vat_rate, source_hubspot, active, format_key)
+  values ('I-66084', 'Interview Tables', 'Interview tables', 'package', 'stage_products', 'piece', 7, true, true, 'interview_table')
+  on conflict (sku) do update set
+    format_key = excluded.format_key,
+    name_de = coalesce(nullif(product.name_de, ''), excluded.name_de),
+    active = true;
+  select count(*)::integer into v_n from product where sku = 'I-66084' and name_de = 'Von Konrad umbenannt';
+  insert into t_res values ('12d_pflege_gewinnt',
+    case when v_n = 1 then 'Konrads Name bleibt (richtig)' else 'ALLOWED (BUG): ueberschrieben' end);
 end $$;
 
 -- 11 Trigger-Funktion nicht für die API
