@@ -2131,7 +2131,10 @@
       "registrations": "Registrations",
       "openDuplicates": "Open duplicates",
       "events": "Events",
-      "vocabTerms": "Vocabulary terms"
+      "vocabTerms": "Vocabulary terms",
+      "lead": "People, programme and master data of the platform.",
+      "bandHintOpen": "waiting for review",
+      "bandHintClear": "nothing open"
     },
     "programme": {
       "title": "Programme board",

@@ -2131,7 +2131,10 @@
       "registrations": "Registrierungen",
       "openDuplicates": "Offene Dubletten",
       "events": "Events",
-      "vocabTerms": "Vokabular-Terms"
+      "vocabTerms": "Vokabular-Terms",
+      "lead": "Personen, Programm und Stammdaten der Plattform.",
+      "bandHintOpen": "warten auf Prüfung",
+      "bandHintClear": "nichts offen"
     },
     "programme": {
       "title": "Programm-Board",
