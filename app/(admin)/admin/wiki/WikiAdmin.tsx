@@ -52,16 +52,28 @@ export function WikiAdmin({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState<KbAdminArticle | "neu" | null>(null);
+  // Fehler aus dem Schubfach stehen im Schubfach, nicht unten am Rand. Die
+  // Aktionen aus der Liste melden weiter ueber den Toast — dort ist er
+  // richtig, weil es kein Formular gibt (ADM-041, Skill-Verbotsliste).
+  const [fehler, setFehler] = useState<string | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
 
-  function run(action: Promise<{ ok: boolean; key?: string; detail?: string }>, okText: string) {
+  function run(
+    action: Promise<{ ok: boolean; key?: string; detail?: string }>,
+    okText: string,
+    /** Kommt die Aktion aus dem Schubfach? Dann gehoert der Fehler hinein. */
+    imSchubfach = false,
+  ) {
     startTransition(async () => {
       const res = await action;
       if (!res.ok) {
-        toast("error", message(res.key ?? "unknown") + (res.detail ? ` (${res.detail})` : ""));
+        const text = message(res.key ?? "unknown") + (res.detail ? ` (${res.detail})` : "");
+        if (imSchubfach) setFehler(text);
+        else toast("error", text);
         return;
       }
+      setFehler(null);
       toast("success", okText);
       setOpen(null);
       router.refresh();
@@ -131,7 +143,11 @@ export function WikiAdmin({
       {open && (
         <Drawer
           open
-          onClose={() => setOpen(null)}
+          error={fehler}
+          onClose={() => {
+            setFehler(null);
+            setOpen(null);
+          }}
           title={open === "neu" ? t.newArticle : open.title}
           closeLabel={common.close}
         >
@@ -143,7 +159,7 @@ export function WikiAdmin({
             pending={pending}
             t={t}
             common={common}
-            onSave={(input, okText) => run(saveArticle(input), okText)}
+            onSave={(input, okText) => run(saveArticle(input), okText, true)}
             onArchive={(id) => run(archiveArticle(id), t.archived)}
           />
         </Drawer>

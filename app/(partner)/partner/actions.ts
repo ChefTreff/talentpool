@@ -31,6 +31,14 @@ async function client() {
   return createSupabaseServerClient();
 }
 
+/** Nach einer Änderung an den selbst angelegten Formaten (B7). */
+function refreshFormats() {
+  revalidatePath(PATH);
+  revalidatePath(`${PATH}/side-event`);
+  revalidatePath(`${PATH}/interview-tables`);
+  revalidatePath(`${PATH}/bewerber`);
+}
+
 /** Nach jeder Änderung: Dashboard, Stammdaten, Kontakte neu laden. */
 function refresh() {
   revalidatePath(PATH);
@@ -373,4 +381,149 @@ export async function shopRequestProduct(input: {
   if (error) return fail(error);
   refreshShop();
   return { ok: true, data: { request_id: data as string } };
+}
+
+/**
+ * Talk (PART-044, B6). Zwei Wege, beide über die RPCs aus 0132/0133 und 0139.
+ *
+ * `addSpeaker` trägt eine Person zu einer gebuchten Keynote oder einem Panel
+ * ein — wie ein Stage Lead. Ob daraus ein Pflegerecht wird, entscheidet die
+ * Datenbank und nicht diese Stelle: nur eine Person, die es vorher nicht gab,
+ * darf der Partner danach pflegen. Wer nur eine bekannte Mailadresse eintippt,
+ * ordnet zu und sieht nichts weiter (Review-Auflage zu #68).
+ */
+export async function addTalkSpeaker(input: {
+  sessionId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}): Promise<PartnerResult<{ profile_id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_add_speaker", {
+    p_session_id: input.sessionId,
+    p_email: input.email,
+    p_first_name: input.firstName,
+    p_last_name: input.lastName,
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/talk`);
+  return { ok: true, data: { profile_id: data as string } };
+}
+
+/**
+ * Der Partner pflegt die Programmangaben seines Speakers, solange dieser sich
+ * nicht selbst angemeldet hat. Die Felder, die hier durchgehen, sind in der
+ * RPC als Whitelist festgelegt — Telefon, Pronomen, Assistenzkontakt und
+ * Technikbedarf gehören der Person und stehen nicht darin.
+ */
+export async function updateTalkSpeaker(input: {
+  profileId: string;
+  fields: Record<string, string | null>;
+}): Promise<PartnerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("partner_update_speaker", {
+    p_profile_id: input.profileId,
+    p_fields: input.fields,
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/talk`);
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Side-Event und Interview Tables (PART-047, PART-048, B7). Beide Formate legt
+ * der Partner **selbst** an — anders als Talk, Masterclass und Company Tour,
+ * die das Team setzt. Alles über die RPCs aus 0133; die Ansprüche prüft die
+ * Datenbank, nicht diese Stelle.
+ */
+export async function createFormatSession(input: {
+  orgId: string;
+  editionId?: string | null;
+  format: "side_event" | "interview_table";
+  stageId: string;
+  dayId: string;
+  start: string;
+  end: string;
+  titleDe: string;
+  capacity?: number | null;
+  details?: Record<string, unknown>;
+}): Promise<PartnerResult<{ session_id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_create_session", {
+    p_org_id: input.orgId,
+    p_format: input.format,
+    p_stage_id: input.stageId,
+    p_day_id: input.dayId,
+    p_start: input.start,
+    p_end: input.end,
+    p_title_de: input.titleDe,
+    p_capacity: input.capacity ?? 1,
+    p_details: input.details ?? {},
+    p_edition_id: input.editionId ?? null,
+  });
+  if (error) return fail(error);
+  refreshFormats();
+  return { ok: true, data: { session_id: data as string } };
+}
+
+export async function updateFormatSession(input: {
+  sessionId: string;
+  fields: Record<string, unknown>;
+}): Promise<PartnerResult<{ back_to_review: boolean }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_update_session", {
+    p_session_id: input.sessionId,
+    p_fields: input.fields,
+  });
+  if (error) return fail(error);
+  refreshFormats();
+  return { ok: true, data: { back_to_review: data === true } };
+}
+
+export async function deleteFormatSession(input: {
+  sessionId: string;
+}): Promise<PartnerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("partner_delete_session", {
+    p_session_id: input.sessionId,
+  });
+  if (error) return fail(error);
+  refreshFormats();
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Dieselbe Stellenausschreibung an allen Gesprächen eines Tisches.
+ *
+ * Im Datenmodell hängen die Angaben an der **Session**, also an einem
+ * einzelnen Gespräch — richtig so, denn ein Partner könnte an einem zweiten
+ * Tisch eine andere Stelle besetzen. Für den Normalfall wäre es aber Unsinn,
+ * dieselbe Ausschreibung zwanzigmal einzutippen. Deshalb schreibt dieser Weg
+ * sie einmal und verteilt sie.
+ *
+ * Fehler werden **gezählt, nicht verschluckt**: Wenn ein Gespräch nicht
+ * mitzieht, sagt die Antwort, wie viele — und mit welchem Schlüssel.
+ */
+export async function setInterviewPosting(input: {
+  sessionIds: string[];
+  details: Record<string, unknown>;
+}): Promise<PartnerResult<{ updated: number; failed: number; firstKey?: string }>> {
+  const supabase = await client();
+  let updated = 0;
+  let failed = 0;
+  let firstKey: string | undefined;
+  for (const id of input.sessionIds) {
+    const { error } = await supabase.rpc("partner_update_session", {
+      p_session_id: id,
+      p_fields: { format_details: input.details },
+    });
+    if (error) {
+      failed += 1;
+      firstKey ??= toRpcFailure(error as never).key;
+    } else {
+      updated += 1;
+    }
+  }
+  refreshFormats();
+  return { ok: true, data: { updated, failed, firstKey } };
 }
