@@ -910,7 +910,11 @@
     "dropoff": "I would like to be taken back",
     "pickupShuttleHint": "Pick-up and return ride run as a shuttle booking — we still need a phone number and addresses there.",
     "pickupShuttleLink": "Request a ride",
-    "shuttleWindowHint": "Pick-ups are possible from {von} to {bis}, between 9 am and 9 pm."
+    "shuttleWindowHint": "Pick-ups are possible from {von} to {bis}, between 9 am and 9 pm.",
+    "deleteSlides": "Remove",
+    "deleteSlidesTitle": "Remove slides?",
+    "deleteSlidesBody": "The file will be deleted. If there is an earlier version, it becomes the current one again.",
+    "slidesDeleted": "Slides removed"
   },
   "leads": {
     "title": "Speaker pipeline",
