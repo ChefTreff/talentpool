@@ -892,7 +892,11 @@
     "uploadChoose": "Datei auswählen",
     "uploadAction": "Hochladen",
     "uploadChange": "Andere Datei",
-    "receiptChoose": "Beleg auswählen"
+    "receiptChoose": "Beleg auswählen",
+    "sectionsLabel": "Auf dieser Seite",
+    "bandStatLabel": "Schritte erledigt",
+    "bandStatOpen": "noch offen",
+    "bandStatDone": "alles erledigt"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -2341,7 +2345,8 @@
       "salutationDe": "Deutsch",
       "salutationEn": "Englisch",
       "salutationSaved": "Anrede gespeichert",
-      "useSuggestion": "Vorschlag übernehmen: {v}"
+      "useSuggestion": "Vorschlag übernehmen: {v}",
+      "sectionsLabel": "Auf dieser Seite"
     },
     "vocab": {
       "title": "Vokabular",

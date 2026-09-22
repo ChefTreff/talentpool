@@ -892,7 +892,11 @@
     "uploadChoose": "Choose file",
     "uploadAction": "Upload",
     "uploadChange": "Choose another file",
-    "receiptChoose": "Choose receipt"
+    "receiptChoose": "Choose receipt",
+    "sectionsLabel": "On this page",
+    "bandStatLabel": "Steps done",
+    "bandStatOpen": "still open",
+    "bandStatDone": "all done"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -2341,7 +2345,8 @@
       "salutationDe": "German",
       "salutationEn": "English",
       "salutationSaved": "Salutation saved",
-      "useSuggestion": "Use suggestion: {v}"
+      "useSuggestion": "Use suggestion: {v}",
+      "sectionsLabel": "On this page"
     },
     "vocab": {
       "title": "Vocabulary",
