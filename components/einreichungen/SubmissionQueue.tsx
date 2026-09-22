@@ -10,7 +10,12 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
-import { approveSubmission, rejectSubmission } from "../actions";
+// Die Server-Aktionen bleiben im Lead-Portal: dort gehören sie hin, und der
+// Admin-Weg benutzt dieselben (Regel „Admin-Vollständigkeit", 22.09.).
+import {
+  approveSubmission,
+  rejectSubmission,
+} from "@/app/(speaker-leads)/speaker-leads/actions";
 
 type Strings = Record<string, string>;
 
