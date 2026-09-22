@@ -81,6 +81,8 @@ export default async function PartnerOnboardingPage() {
           none: t.common.none,
           back: t.common.back,
           next: t.common.next,
+                  upload: t.common.upload,
+          chooseOtherFile: t.common.chooseOtherFile,
         }}
         rpcMessages={t.rpc}
       />

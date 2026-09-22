@@ -35,6 +35,54 @@ function felder(p: ProductOut): Record<string, string> {
   };
 }
 
+/** Ein Produkt, wie HubSpot es führt — für die Altbestandsliste. */
+export type HubspotProductRow = { id: string; name: string; sku: string | null; price: string | null; createdAt: string | null };
+
+/**
+ * Alle Produkte lesen — **nur lesend**, blättert durch.
+ *
+ * Gebraucht für den Altbestand: Produkte **ohne** `hs_sku` findet der Abgleich
+ * nicht, also legt er unsere Artikel daneben neu an. Sie sind der Grund, warum
+ * HubSpot nach einem Lauf zwei Generationen desselben Katalogs hielte.
+ */
+export async function listHubspotProducts(): Promise<HubspotProductRow[]> {
+  const out: HubspotProductRow[] = [];
+  let after: string | null = null;
+  for (let seite = 0; seite < 50; seite++) {
+    const pfad = `/crm/v3/objects/products?limit=100&properties=hs_sku,name,price,createdate${after ? `&after=${after}` : ""}`;
+    const seiteJson: { results?: HsProduct[]; paging?: { next?: { after?: string } } } = await hs(pfad);
+    for (const p of seiteJson.results ?? []) {
+      out.push({
+        id: p.id,
+        name: (p.properties?.name ?? "").trim(),
+        sku: (p.properties?.hs_sku ?? "").trim() || null,
+        price: p.properties?.price ?? null,
+        createdAt: p.properties?.createdate ?? null,
+      });
+    }
+    after = seiteJson.paging?.next?.after ?? null;
+    if (!after) break;
+  }
+  return out;
+}
+
+/**
+ * Produkte **archivieren**, nicht löschen.
+ *
+ * HubSpot kennt kein Hartlöschen über die API: `batch/archive` legt die Zeilen in
+ * den Papierkorb, aus dem sie 90 Tage lang zurückgeholt werden können. Das ist
+ * dasselbe „deaktivieren statt löschen", das für alle Alt-Systeme gilt. Angebote
+ * und Deals, an denen ein archiviertes Produkt hängt, behalten ihre Positionen.
+ */
+export async function archiveHubspotProducts(ids: string[]): Promise<void> {
+  for (let i = 0; i < ids.length; i += 100) {
+    await hs("/crm/v3/objects/products/batch/archive", {
+      method: "POST",
+      body: JSON.stringify({ inputs: ids.slice(i, i + 100).map((id) => ({ id })) }),
+    });
+  }
+}
+
 /** Die SKU drüben suchen — **nur lesend**. Grundlage des Dublettenschutzes und des Trockenlaufs. */
 export async function findHubspotProduct(sku: string): Promise<string | null> {
   const suche = await hs<{ results?: HsProduct[] }>("/crm/v3/objects/products/search", {

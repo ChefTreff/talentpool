@@ -4,38 +4,92 @@
     {
       "name": "talentpool-dev",
       "runtimeExecutable": "/bin/zsh",
-      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev"],
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && exec npm run dev"
+      ],
       "port": 3000
     },
     {
       "name": "talentpool-dev-worktree",
       "runtimeExecutable": "/bin/zsh",
-      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3001"],
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3001"
+      ],
       "port": 3001
     },
     {
       "name": "talentpool-dev-3002",
       "runtimeExecutable": "/bin/zsh",
-      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3002"],
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3002"
+      ],
       "port": 3002
     },
     {
       "name": "talentpool-dev-3003",
       "runtimeExecutable": "/bin/zsh",
-      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3003"],
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3003"
+      ],
       "port": 3003
     },
     {
       "name": "talentpool-dev-3004",
       "runtimeExecutable": "/bin/zsh",
-      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3004"],
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3004"
+      ],
       "port": 3004
     },
     {
       "name": "talentpool-dev-3005",
       "runtimeExecutable": "/bin/zsh",
-      "runtimeArgs": ["-c", "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3005"],
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && exec npm run dev -- --port 3005"
+      ],
       "port": 3005
+    },
+    {
+      "name": "worktree-design",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && W=\"$(git worktree list --porcelain | awk '/^worktree /{w=$2} /^branch refs\\/heads\\/design\\//{print w; exit}')\"; [ -n \"$W\" ] || { echo \"Kein Worktree mit Branch design/… gefunden\" >&2; exit 1; }; cd \"$W\" && exec npm run dev -- --port 3006"
+      ],
+      "port": 3006
+    },
+    {
+      "name": "worktree-partner",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && W=\"$(git worktree list --porcelain | awk '/^worktree /{w=$2} /^branch refs\\/heads\\/partner\\//{print w; exit}')\"; [ -n \"$W\" ] || { echo \"Kein Worktree mit Branch partner/… gefunden\" >&2; exit 1; }; cd \"$W\" && exec npm run dev -- --port 3007"
+      ],
+      "port": 3007
+    },
+    {
+      "name": "worktree-speaker",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && W=\"$(git worktree list --porcelain | awk '/^worktree /{w=$2} /^branch refs\\/heads\\/speaker\\//{print w; exit}')\"; [ -n \"$W\" ] || { echo \"Kein Worktree mit Branch speaker/… gefunden\" >&2; exit 1; }; cd \"$W\" && exec npm run dev -- --port 3008"
+      ],
+      "port": 3008
+    },
+    {
+      "name": "worktree-welle-6",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && W=\"$(git worktree list --porcelain | awk '/^worktree /{w=$2} /^branch refs\\/heads\\/welle-6\\//{print w; exit}')\"; [ -n \"$W\" ] || { echo \"Kein Worktree mit Branch welle-6/… gefunden\" >&2; exit 1; }; cd \"$W\" && exec npm run dev -- --port 3009"
+      ],
+      "port": 3009
     }
   ]
 }

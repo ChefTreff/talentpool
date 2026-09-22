@@ -94,6 +94,7 @@ const BUSINESS_KEYS = new Set([
   "invalid_positions",
   "receipt_not_found",
   "not_editable",
+  "speaker_not_editable",
   "invalid_iban",
   "invalid_bic",
   "holder_required",

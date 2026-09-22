@@ -15,7 +15,9 @@ export function Card({
   id?: string;
 }) {
   return (
-    <As id={id} className={cn("rounded-ct-lg border bg-surface p-6", className)}>
+    // `scroll-mt`, sobald die Karte ein Anker ist: ohne das landet ihr
+    // Titel nach dem Sprung unter dem Seitenkopf.
+    <As id={id} className={cn("rounded-ct-lg border bg-surface p-6", id && "scroll-mt-20", className)}>
       {children}
     </As>
   );

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -193,6 +194,23 @@ export function SpeakerDetailView({
         }
       />
 
+      {/* Die Seite ist die laengste der Anwendung — zehn Karten untereinander,
+          und man scrollt blind (QS-026). Die Abschnitte stehen hier einmal;
+          dieselbe Liste spiegelt die Seitenleiste. */}
+      <AbschnittsNavigation
+        label={t.sectionsLabel}
+        items={[
+          { id: "status", label: t.pipelineTitle },
+          { id: "betreuung", label: t.careTitle },
+          { id: "stammdaten", label: t.basicsTitle },
+          { id: "bio", label: t.bioTitle },
+          { id: "links", label: t.linksTitle },
+          { id: "hospitality", label: t.hospitalityTitle },
+          { id: "reise", label: t.travelTitle },
+          { id: "sessions", label: t.sessionsTitle },
+        ]}
+      />
+
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone={TONE[speaker.pipeline_status] ?? "neutral"}>
@@ -226,7 +244,7 @@ export function SpeakerDetailView({
           </h2>
           <p className="ct-help mb-3">{t.sectionActionsHint}</p>
           <div className="flex flex-col gap-4">
-        <Card>
+        <Card id="status">
           <CardHeader title={t.pipelineTitle} description={t.pipelineHint} />
           <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
             <Field label={t.pipelineTitle} htmlFor="status">
@@ -278,7 +296,7 @@ export function SpeakerDetailView({
           )}
         </Card>
 
-        <Card>
+        <Card id="betreuung">
           <CardHeader title={t.careTitle} description={t.careHint} />
           <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
             <Field label={t.owner} htmlFor="owner" className="sm:col-span-2">
@@ -411,7 +429,7 @@ export function SpeakerDetailView({
             </h2>
             <p className="ct-help">{t.sectionDraftHint}</p>
           </div>
-        <Card>
+        <Card id="stammdaten">
           <CardHeader title={t.basicsTitle} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.speakerType} htmlFor="typ">
@@ -450,7 +468,7 @@ export function SpeakerDetailView({
           </div>
         </Card>
 
-        <Card>
+        <Card id="bio">
           <CardHeader title={t.bioTitle} description={t.bioHint} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.bioShortDe} htmlFor="bsd">
@@ -468,7 +486,7 @@ export function SpeakerDetailView({
           </div>
         </Card>
 
-        <Card>
+        <Card id="links">
           <CardHeader title={t.linksTitle} />
           <div className="grid gap-4 sm:grid-cols-3">
             {SOCIAL_KEYS.map((k) => (
@@ -500,7 +518,7 @@ export function SpeakerDetailView({
           </div>
         </Card>
 
-        <Card>
+        <Card id="hospitality">
           <CardHeader title={t.hospitalityTitle} description={t.hospitalityHint} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.passType} htmlFor="pass">
@@ -596,7 +614,7 @@ export function SpeakerDetailView({
             </h2>
             <p className="ct-help">{t.sectionReadonlyHint}</p>
           </div>
-        <Card>
+        <Card id="reise">
           <CardHeader title={t.travelTitle} description={t.travelHint} />
           {speaker.travel ? (
             <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
@@ -610,7 +628,7 @@ export function SpeakerDetailView({
           )}
         </Card>
 
-        <Card>
+        <Card id="sessions">
           <CardHeader title={t.sessionsTitle} />
           {speaker.sessions.length === 0 ? (
             <p className="ct-small text-muted">{t.noSessions}</p>
