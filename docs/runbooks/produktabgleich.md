@@ -32,6 +32,20 @@ Gelesen: Der Bestand in SevDesk ist sauber gepflegt — jede Nummer einmal, kein
 
 **HubSpot kann derzeit nicht abgeglichen werden.** Der private App-Schlüssel hat kein Produkt-Recht: sowohl `GET /crm/v3/objects/products` als auch die Produktsuche antworten mit **403 „hasn't been granted all required scopes"**. Der Abgleich würde bei jedem Artikel in den Fehlerzweig laufen. Zu tun: in HubSpot unter *Einstellungen → Integrationen → Private Apps* die Rechte `e-commerce` (bzw. `crm.objects.products.read` **und** `crm.objects.products.write`) ergänzen; der Schlüsselwert bleibt derselbe.
 
+## Stand 21.09.2026 — INV0: gezielter HubSpot-Lauf
+
+Konrad: die ersten Kunden brauchen jetzt Angebote, also gehen **zuerst nur die standardisierten Hauptartikel** hinaus; der vollständige Abgleich folgt nach der Inventur. Gemessen (nur lesend) sieht der Messekatalog in HubSpot so aus:
+
+**30 Pakete im Portal, davon 23 drüben unverändert vorhanden und 0 mit abweichendem Preis.** Alle Standflächen — All-Inclusive und Eigenproduktion in Premium, General, Intro und Start-Up, Lounge, Standbühne, Signature, Agency Area — stehen bereits korrekt in HubSpot. **Neu wären nur sieben:** fünf Company-Tour-Varianten (Consulting, Engineering, Finance, Logistik, Sales), „Hackathon Stand" und „Interview Tables".
+
+Der gezielte Lauf läuft deshalb über eine **Auswahl**: Der Trockenlauf listet jeden Artikel mit `wäre neu` oder `wird aktualisiert`, vorbelegt sind die neuen, und der scharfe Lauf schickt genau die angehakten Nummern (`{"dryRun": false, "skus": [...]}`). Ohne Auswahl ist der scharfe Knopf zu.
+
+## Altbestand in HubSpot archivieren
+
+38 der 149 HubSpot-Produkte haben **keine Artikelnummer** — der alte FLS26-Katalog („Premium Stand (inkl. Messebau)" 10900, „Career Stage" 1900, „Ticket Talent" 49 …). Der Abgleich findet sie nicht und legte unsere daneben neu an; HubSpot hielte danach beide Generationen. Konrad, 21.09.2026: „die Artikel ohne Nummer archivieren wir."
+
+*Partner → Integrationen → HubSpot: Altbestand archivieren* listet sie mit Name, Preis und Anlagedatum, alle vorgewählt. Abwählen, was bleiben soll, dann bestätigen. **Archiviert heisst Papierkorb**: HubSpot kennt über die API kein Hartlöschen, die Zeilen sind 90 Tage lang zurückholbar und bestehende Angebote behalten ihre Positionen. Die vollständige Liste des Laufs steht im Audit-Log (`hubspot.products_archived`) — der einzige Ort, an dem später nachvollziehbar ist, was wann von wem archiviert wurde. Eine Kennung, die zwischen Durchsicht und Knopfdruck eine SKU bekommen hat, wird übersprungen.
+
 ## Ablauf
 
 1. *Partner → Integrationen → Produktabgleich → **Trockenlauf***. Ergebnis je System: wie viele wären neu, wie viele stehen schon drüben, wie viele Fehler — und die neuen namentlich.
