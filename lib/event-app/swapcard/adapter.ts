@@ -1,7 +1,7 @@
 import "server-only";
 import type { EventAppAdapter, RemoteExhibitor, UpsertOutcome } from "@/lib/event-app/types";
 import { SwapcardError, gql } from "@/lib/event-app/swapcard/client";
-import { EVENT_QUERY, LIST_EXHIBITORS, UPSERT_EXHIBITORS, DELETE_EXHIBITORS, toSwapcardInput } from "@/lib/event-app/swapcard/queries";
+import { EVENT_QUERY, LIST_EXHIBITORS, UPSERT_EXHIBITORS, DELETE_EXHIBITORS, EVENT_GROUPS, IMPORT_PEOPLE, toSwapcardInput } from "@/lib/event-app/swapcard/queries";
 import { chunks } from "@/lib/event-app/mapping";
 
 type Node = {
@@ -88,3 +88,70 @@ export const swapcardAdapter: EventAppAdapter = {
     await gql("deleteEventExhibitors", DELETE_EXHIBITORS, { eventId, exhibitorIds: ids });
   },
 };
+
+
+// === Personen (Speaker, spaeter Teilnehmende) ================================
+
+const gruppenCache = new Map<string, string | null>();
+
+/** Die Kennung der Gruppe „Speakers" im Event. Ohne sie geht der Lauf durch, die Person landet nur in keiner Gruppe. */
+export async function speakerGroupId(eventId: string): Promise<string | null> {
+  if (gruppenCache.has(eventId)) return gruppenCache.get(eventId) ?? null;
+  const d = await gql<{ event: { groups: { id: string; name: string }[] } | null }>("groups", EVENT_GROUPS, { id: eventId });
+  const treffer = (d.event?.groups ?? []).find((g) => g.name.trim().toLowerCase() === "speakers");
+  const id = treffer?.id ?? null;
+  gruppenCache.set(eventId, id);
+  return id;
+}
+
+type ImportAntwort = {
+  importEventPeople: {
+    errors: { inputId: string; errorCode: string; message: string; path?: string[] | null; expectedValue?: string | null }[];
+    results: { inputId: string; eventPerson: { id: string } }[];
+    eventPeopleCreated: string[];
+    eventPeopleUpdated: string[];
+  } | null;
+};
+
+/**
+ * Personen anlegen oder ändern. `validateOnly` prüft wirklich und schreibt nichts —
+ * anders als beim Ausstellerlauf, wo Swapcard nur Fehler zurückgibt.
+ *
+ * Die Zuordnung Eingabe → Kennung läuft über `results { inputId eventPerson { id } }`.
+ * `eventPeopleCreated` und `eventPeopleUpdated` sind **reine Kennungslisten** und
+ * tragen unsere Eingabe-Kennung nicht — „war neu" heisst deshalb: die Personen-
+ * Kennung steht in der Liste der angelegten. Im Trockenlauf bleiben beide Listen
+ * leer, dort gilt der gemerkte Rückverweis.
+ */
+export async function importSpeakers(
+  eventId: string,
+  eintraege: Record<string, unknown>[],
+  validateOnly: boolean,
+): Promise<{
+  ids: Map<string, string>;
+  updated: Set<string>;
+  errors: { inputId: string; code: string; message: string }[];
+}> {
+  const ids = new Map<string, string>();
+  const updated = new Set<string>();
+  const errors: { inputId: string; code: string; message: string }[] = [];
+  // Paketweise: eine Mutation kostet 1 000 Punkte vom Minutenbudget (60 000).
+  for (const teil of chunks(eintraege, 50)) {
+    const d = await gql<ImportAntwort>("importEventPeople", IMPORT_PEOPLE, { eventId, data: teil, validateOnly });
+    const res = d.importEventPeople;
+    if (!res) continue;
+    for (const e of res.errors ?? []) {
+      errors.push({
+        inputId: e.inputId ?? "?",
+        code: e.errorCode ?? "?",
+        message: `${e.message ?? ""}${e.path?.length ? ` (${e.path.join(".")})` : ""}`,
+      });
+    }
+    const angelegt = new Set(res.eventPeopleCreated ?? []);
+    for (const r of res.results ?? []) {
+      ids.set(r.inputId, r.eventPerson.id);
+      if (!angelegt.has(r.eventPerson.id)) updated.add(r.inputId);
+    }
+  }
+  return { ids, updated, errors };
+}

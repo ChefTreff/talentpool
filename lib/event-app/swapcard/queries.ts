@@ -64,3 +64,29 @@ export function toSwapcardInput(item: ExhibitorUpsert): SwapcardExhibitorInput {
   if (item.booth) input.booth = item.booth;
   return input;
 }
+
+/**
+ * Personen — Speaker und (später) Teilnehmende.
+ *
+ * Geprüft am 22.09.2026: `importEventPeople(eventId, data: [ImportEventPersonInput!]!, validateOnly)` legt an **oder** ändert,
+ * je `clientId`; anders als beim Ausstellerlauf gibt es hier ein echtes `validateOnly`. Der Pass-Typ steht als `type` und
+ * nimmt die Werte aus `event.speakersTypes` (`speaker-pass`, `partner-pass`, `talent-pass`, …). Gruppen (`Speakers`,
+ * `Exhibitors`, `Attendees`, `Team`, `Helpdesk`) hängen am Event und werden über `actions.updateGroups` gesetzt.
+ *
+ * Die Antwort ordnet über `results { inputId eventPerson { id } }` zu; `eventPeopleCreated` und `eventPeopleUpdated` sind
+ * **reine Kennungslisten** (`[ID!]!`, keine Objekte) — ob ein Eintrag neu war, steht also daran, ob seine Personen-Kennung
+ * in der ersten Liste auftaucht. Das kostete eine Runde: die naheliegende Form mit `clientIds` an den beiden Listen
+ * existiert nicht.
+ */
+export const EVENT_GROUPS = `query PortalEventGroups($id: ID!) {
+  event(id: $id) { groups { id name } }
+}`;
+
+export const IMPORT_PEOPLE = `mutation PortalImportPeople($eventId: ID!, $data: [ImportEventPersonInput!]!, $validateOnly: Boolean) {
+  importEventPeople(eventId: $eventId, data: $data, validateOnly: $validateOnly) {
+    errors { inputId errorCode message path expectedValue }
+    results { inputId eventPerson { id } }
+    eventPeopleCreated
+    eventPeopleUpdated
+  }
+}`;

@@ -4,6 +4,7 @@ import { partnerAdminShell } from "../shell";
 import type { IngestLogRow } from "../types";
 import { IntegrationsView } from "./IntegrationsView";
 import { ProductSyncCard } from "./ProductSyncCard";
+import { SpeakerSyncCard } from "./SpeakerSyncCard";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ export default async function AdminIntegrationsPage() {
       {/* Der Produktabgleich gehoert hierher und nicht auf eine eigene Seite:
           hier steht schon, was mit welchem Fremdsystem passiert ist (A4.3). */}
       <ProductSyncCard t={t.adminPartner} />
+      <SpeakerSyncCard t={t.adminPartner} />
       <IntegrationsView
       editions={editions}
       log={rows}
