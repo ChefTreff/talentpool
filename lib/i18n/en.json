@@ -3062,7 +3062,8 @@
     "disclaimer": "Chefi summarises the sections named. If in doubt, the article applies.",
     "error_rate_limited": "That was a lot of questions in a short time. Try again next hour.",
     "error_empty_query": "The question is empty.",
-    "error_unknown": "That did not work just now. Please try again."
+    "error_unknown": "That did not work just now. Please try again.",
+    "openBubble": "Ask a question"
   },
   "hackathon": {
     "title": "Hackathon",

@@ -3062,7 +3062,8 @@
     "disclaimer": "Chefi fasst die genannten Abschnitte zusammen. Im Zweifel gilt der Artikel.",
     "error_rate_limited": "Das waren viele Fragen in kurzer Zeit. Probier es in der nächsten Stunde noch einmal.",
     "error_empty_query": "Die Frage ist leer.",
-    "error_unknown": "Das hat gerade nicht geklappt. Versuch es noch einmal."
+    "error_unknown": "Das hat gerade nicht geklappt. Versuch es noch einmal.",
+    "openBubble": "Frage stellen"
   },
   "hackathon": {
     "title": "Hackathon",
