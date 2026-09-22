@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { ContactCard } from "@/components/ui/ContactCard";
 import { Drawer } from "@/components/ui/Drawer";
 import { Field } from "@/components/ui/Field";
+import { FileButton } from "@/components/ui/FileButton";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -291,16 +292,18 @@ export function KontakteAdmin({
               <Input id="k-phone" value={offen.phone} required
                 onChange={(e) => setOffen({ ...offen, phone: e.target.value })} />
             </Field>
-            <Field label={t.fieldPhoto} htmlFor="k-photo" hint={t.fieldPhotoHint}>
-              <input
-                id="k-photo"
-                type="file"
+            {/* Der gemeinsame Baustein statt eines rohen Dateifelds (QS-025):
+                als Knopf erkennbar, und das Hochladen ist ein eigener Schritt.
+                Das rohe Feld sah in jedem Browser anders aus und hiess mal
+                „Datei auswählen", mal „Durchsuchen". */}
+            <Field label={t.fieldPhoto} hint={t.fieldPhotoHint}>
+              <FileButton
+                label={t.photoChoose}
+                uploadLabel={common.upload}
+                changeLabel={common.chooseOtherFile}
                 accept="image/png,image/jpeg,image/webp"
-                className="ct-small"
                 disabled={bildLaeuft}
-                onChange={async (e) => {
-                  const datei = e.target.files?.[0];
-                  if (!datei) return;
+                onFile={async (datei) => {
                   setFehler(null);
                   // Zuerst hier prüfen: der Bucket weist grössere Dateien ohnehin
                   // ab, aber dann hätte der Upload schon begonnen.

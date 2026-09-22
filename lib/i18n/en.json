@@ -888,7 +888,11 @@
     "calendarAdd": "Add to your calendar",
     "calendarAll": "Add all dates to your calendar",
     "commonUpload": "Upload",
-    "commonChangeFile": "Choose another file"
+    "commonChangeFile": "Choose another file",
+    "uploadChoose": "Choose file",
+    "uploadAction": "Upload",
+    "uploadChange": "Choose another file",
+    "receiptChoose": "Choose receipt"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -3418,7 +3422,8 @@
     "photoUploading": "Uploading photo …",
     "fieldRoleEn": "Role label (EN)",
     "fieldRoleEnHint": "The speaker portal defaults to English. Without this text it only shows the generic label there.",
-    "noDefaultWarning": "No default set for: {types}. Anyone without their own assignment then sees nobody — the portal falls back to the role mailbox. Mark one contact per type as the default."
+    "noDefaultWarning": "No default set for: {types}. Anyone without their own assignment then sees nobody — the portal falls back to the role mailbox. Mark one contact per type as the default.",
+    "photoChoose": "Choose photo"
   },
   "adminSpeakerLeads": {
     "title": "Speaker leads",

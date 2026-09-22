@@ -6,6 +6,7 @@ import { formatRange } from "@/lib/tz";
 import type { Locale } from "@/lib/i18n/shared";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { FileButton } from "@/components/ui/FileButton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -467,21 +468,19 @@ function SessionCard({
         </p>
         <p className="ct-help mt-1">{t.uploadHint}</p>
 
-        <label className="mt-3 inline-flex items-center gap-2">
-          <input
-            type="file"
-            accept=".pdf,.ppt,.pptx,.key"
-            disabled={uploading}
-            className="ct-small"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              // Zurücksetzen, damit dieselbe Datei erneut gewählt werden kann.
-              e.target.value = "";
-              if (file) onUpload(session, file);
-            }}
-          />
-          {uploading && <span className="ct-help">{t.uploading}</span>}
-        </label>
+        {/* Der gemeinsame Baustein statt eines rohen Dateifelds (QS-025) —
+            genau die Stelle, an der es Konrad aufgefallen ist. Als Knopf
+            erkennbar, und Hochladen ist ein eigener Schritt. */}
+        <FileButton
+          className="mt-3"
+          label={t.uploadChoose}
+          uploadLabel={t.uploadAction}
+          changeLabel={t.uploadChange}
+          accept=".pdf,.ppt,.pptx,.key"
+          disabled={uploading}
+          onFile={(file) => onUpload(session, file)}
+        />
+        {uploading && <p className="ct-help mt-1">{t.uploading}</p>}
 
         {assets.length > 0 && (
           <ul className="mt-4 flex flex-col gap-2">

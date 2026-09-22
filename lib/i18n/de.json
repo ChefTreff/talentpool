@@ -888,7 +888,11 @@
     "calendarAdd": "Termin in den Kalender",
     "calendarAll": "Alle Termine in den Kalender",
     "commonUpload": "Hochladen",
-    "commonChangeFile": "Andere Datei"
+    "commonChangeFile": "Andere Datei",
+    "uploadChoose": "Datei auswählen",
+    "uploadAction": "Hochladen",
+    "uploadChange": "Andere Datei",
+    "receiptChoose": "Beleg auswählen"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -3418,7 +3422,8 @@
     "photoUploading": "Bild wird hochgeladen …",
     "fieldRoleEn": "Rollenbezeichnung (EN)",
     "fieldRoleEnHint": "Das Speaker-Portal ist auf Englisch voreingestellt. Ohne diesen Text steht dort nur die allgemeine Beschriftung.",
-    "noDefaultWarning": "Kein Standard gesetzt für: {types}. Wer keine eigene Zuordnung hat, sieht dann niemanden — im Portal erscheint stattdessen das Rollenpostfach. Setz je Typ einen Kontakt als Standard."
+    "noDefaultWarning": "Kein Standard gesetzt für: {types}. Wer keine eigene Zuordnung hat, sieht dann niemanden — im Portal erscheint stattdessen das Rollenpostfach. Setz je Typ einen Kontakt als Standard.",
+    "photoChoose": "Foto auswählen"
   },
   "adminSpeakerLeads": {
     "title": "Speaker-Leads",
