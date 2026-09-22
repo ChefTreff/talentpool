@@ -617,7 +617,7 @@
     "stepPresentationBody": "PDF, PowerPoint oder Keynote. Spätestens 48 Stunden vor deinem Auftritt.",
     "navExpenses": "Reisekosten",
     "expenseTitle": "Reisekosten",
-    "expenseLead": "Belege erfassen, Auslagenrechnung freigeben.",
+    "expenseLead": "Was du für deinen Auftritt ausgelegt hast, bekommst du von uns zurück.",
     "expenseBlockedTitle": "Noch nicht möglich",
     "expenseNotCovered": "Für deinen Auftritt sind keine Reisekosten vorgesehen. Wenn das nicht stimmt, schreib dem Speaker-Team.",
     "expenseNotApproved": "Die Reisekosten sind vorgesehen, aber noch nicht endgültig freigegeben. Das macht die Speaker-Team — du bekommst Bescheid.",
@@ -864,7 +864,7 @@
     "shuttle_over_limit_reason_hint": "Ein Satz reicht.",
     "required": "Pflichtfeld",
     "navGraphic": "Deine Grafik",
-    "navMedia": "Deine Medien",
+    "navMedia": "Deine Bilder",
     "sectionContact": "Agentur oder Office",
     "contactKind": "Art des Kontakts",
     "contact_first_name": "Vorname",
@@ -910,7 +910,8 @@
     "dropoff": "Ich möchte weggebracht werden",
     "pickupShuttleHint": "Abholung und Rückfahrt laufen bei uns als Shuttle-Fahrt — dort brauchen wir noch Telefonnummer und Adressen.",
     "pickupShuttleLink": "Fahrt anfordern",
-    "shuttleWindowHint": "Abholungen sind von {von} bis {bis} möglich, jeweils zwischen 9 und 21 Uhr."
+    "shuttleWindowHint": "Abholungen sind von {von} bis {bis} möglich, jeweils zwischen 9 und 21 Uhr.",
+    "expenseIntro": "So läuft es: Du erfasst deine Belege — Bahn, Flug, Taxi, Hotel —, lädst zu jedem das Dokument hoch und gibst den Antrag frei. Danach schaut das Speaker-Team darüber, und du bekommst eine Mail, sobald entschieden ist. Einen freigegebenen Antrag kannst du nicht mehr ändern, also lies ihn vorher noch einmal durch. Die Auslagenrechnung erzeugen wir daraus selbst — du musst keine schreiben."
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -3792,30 +3793,7 @@
     "wrongType": "Bitte ein Bild als JPG, PNG oder WebP.",
     "loadFailed": "Das Bild ließ sich nicht öffnen. Versuch es mit einer anderen Datei.",
     "exportFailed": "Die Grafik ließ sich nicht erzeugen. Lade die Seite neu und versuch es noch einmal.",
-    "privacyNote": "Dein Porträt bleibt auf deinem Rechner. Wir laden es nicht hoch und speichern es nicht — die Grafik entsteht hier im Browser."
-  },
-  "speakerCalendar": {
-    "slotNote": "Dein Auftritt beim Future Leaders Summit. Bühne, Zeit und alles Weitere stehen immer aktuell im Portal:",
-    "receptionNote": "Deine Zusage steht im Portal. Wenn sich etwas ändert, findest du es hier:",
-    "editionFallback": "Future Leaders Summit",
-    "editionNote": "Die Veranstaltungstage. Alles Weitere zu deinem Auftritt steht im Portal:"
-  },
-  "speakerMedia": {
-    "title": "Deine Medien",
-    "lead": "Bühnenfotos, fertige Textbausteine für deinen Post und deine Speaker-Grafik — alles an einer Stelle.",
-    "photosTitle": "Bühnenfotos",
-    "photosEmptyTitle": "Noch keine Fotos",
-    "photosEmptyBody": "Deine Bühnenfotos stehen hier, sobald unser Team sie nach deinem Auftritt hochgeladen hat — in der Regel innerhalb von zwei Tagen. Du bekommst eine Mail, wenn es so weit ist.",
-    "photoAlt": "Bühnenfoto zu „{title}“",
-    "credit": "Bildnachweis",
-    "download": "Herunterladen",
-    "usageNote": "Du darfst die Fotos frei für deine eigenen Kanäle nutzen. Bitte nenne den Bildnachweis, wenn einer angegeben ist.",
-    "postsTitle": "Vorlagen für deinen Post",
-    "postsLead": "Ein Gerüst, kein fertiger Text. Die eckigen Klammern sind die Stellen, an denen deine Worte stehen sollten — genau die machen den Unterschied.",
-    "postsNoSession": "Sobald dein Beitrag feststeht, findest du hier Textvorlagen mit deinem Titel.",
-    "copy": "Text kopieren",
-    "copied": "Kopiert",
-    "copyFailed": "Kopieren hat nicht geklappt — markiere den Text und kopiere ihn von Hand.",
+    "privacyNote": "Dein Porträt bleibt auf deinem Rechner. Wir laden es nicht hoch und speichern es nicht — die Grafik entsteht hier im Browser.",
     "announceLabel": "Vorher: Ankündigung",
     "announceHint": "Ein bis zwei Wochen vor dem Summit. Am besten mit deiner Speaker-Grafik als Bild.",
     "announceText": "Ich spreche beim {event}.\n\nMein Thema: „{title}“.\n\n[Zwei, drei Sätze: warum dich das Thema umtreibt und was Zuhörende mitnehmen.]\n\nWer auch dabei ist: meldet euch gern, ich freue mich auf Gespräche.\n\n#ChefTreff #FutureLeadersSummit",
@@ -3825,8 +3803,30 @@
     "recapLabel": "Später: Rückblick",
     "recapHint": "Ein paar Tage danach, mit deinen Bühnenfotos. Gut, um Menschen zu verlinken, die du getroffen hast.",
     "recapText": "Rückblick auf das {event}.\n\nIch durfte über „{title}“ sprechen — [in zwei Sätzen, was hängen geblieben ist].\n\n[Wen du getroffen hast und was du mitgenommen hast. Verlinke die Menschen, über die du schreibst.]\n\n#ChefTreff #FutureLeadersSummit",
-    "graphicTitle": "Deine Speaker-Grafik",
-    "graphicBody": "„Hear me speak“ mit deinem Porträt — im Browser gebaut, als PNG heruntergeladen. Dein Foto verlässt dabei deinen Rechner nicht.",
+    "postsTitle": "Vorlagen für deinen Post",
+    "postsLead": "Ein Gerüst, kein fertiger Text. Die eckigen Klammern sind die Stellen, an denen deine Worte stehen sollten — genau die machen den Unterschied.",
+    "postsNoSession": "Sobald dein Beitrag feststeht, findest du hier Textvorlagen mit deinem Titel.",
+    "copy": "Text kopieren",
+    "copied": "Kopiert",
+    "copyFailed": "Kopieren hat nicht geklappt — markiere den Text und kopiere ihn von Hand.",
+    "toPhotos": "Zu deinen Bildern"
+  },
+  "speakerCalendar": {
+    "slotNote": "Dein Auftritt beim Future Leaders Summit. Bühne, Zeit und alles Weitere stehen immer aktuell im Portal:",
+    "receptionNote": "Deine Zusage steht im Portal. Wenn sich etwas ändert, findest du es hier:",
+    "editionFallback": "Future Leaders Summit",
+    "editionNote": "Die Veranstaltungstage. Alles Weitere zu deinem Auftritt steht im Portal:"
+  },
+  "speakerMedia": {
+    "title": "Deine Bilder",
+    "lead": "Die Fotos von deinem Auftritt, zum Herunterladen für deine Kanäle.",
+    "photosTitle": "Bühnenfotos",
+    "photosEmptyTitle": "Noch keine Fotos",
+    "photosEmptyBody": "Deine Bühnenfotos stehen hier, sobald unser Team sie nach deinem Auftritt hochgeladen hat — in der Regel innerhalb von zwei Tagen. Du bekommst eine Mail, wenn es so weit ist.",
+    "photoAlt": "Bühnenfoto zu „{title}“",
+    "credit": "Bildnachweis",
+    "download": "Herunterladen",
+    "usageNote": "Du darfst die Fotos frei für deine eigenen Kanäle nutzen. Bitte nenne den Bildnachweis, wenn einer angegeben ist.",
     "toGraphicAction": "Zur Speaker-Grafik"
   },
   "titleAssistant": {

@@ -617,7 +617,7 @@
     "stepPresentationBody": "PDF, PowerPoint or Keynote. At the latest 48 hours before you go on stage.",
     "navExpenses": "Expenses",
     "expenseTitle": "Travel expenses",
-    "expenseLead": "Record your receipts and release the expense invoice.",
+    "expenseLead": "What you paid out of pocket for your talk, you get back from us.",
     "expenseBlockedTitle": "Not possible yet",
     "expenseNotCovered": "Travel expenses are not part of your appearance. If that looks wrong, write to the speaker team.",
     "expenseNotApproved": "Travel expenses are planned but not finally approved yet. The speaker team does that — you will hear from us.",
@@ -864,7 +864,7 @@
     "shuttle_over_limit_reason_hint": "One sentence is enough.",
     "required": "required",
     "navGraphic": "Your graphic",
-    "navMedia": "Your media",
+    "navMedia": "Your photos",
     "sectionContact": "Agency or office",
     "contactKind": "Type of contact",
     "contact_first_name": "First name",
@@ -910,7 +910,8 @@
     "dropoff": "I would like to be taken back",
     "pickupShuttleHint": "Pick-up and return ride run as a shuttle booking — we still need a phone number and addresses there.",
     "pickupShuttleLink": "Request a ride",
-    "shuttleWindowHint": "Pick-ups are possible from {von} to {bis}, between 9 am and 9 pm."
+    "shuttleWindowHint": "Pick-ups are possible from {von} to {bis}, between 9 am and 9 pm.",
+    "expenseIntro": "How it works: you enter your receipts — train, flight, taxi, hotel —, upload the document for each one and release the claim. The speaker team then reviews it, and you get an email once it is decided. A released claim cannot be changed, so read it through once more before you send it. We produce the expense invoice ourselves — you do not need to write one."
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -3792,30 +3793,7 @@
     "wrongType": "Please use a JPG, PNG or WebP image.",
     "loadFailed": "That picture could not be opened. Try a different file.",
     "exportFailed": "The graphic could not be created. Reload the page and try again.",
-    "privacyNote": "Your portrait stays on your computer. We do not upload it and do not store it — the graphic is made here in your browser."
-  },
-  "speakerCalendar": {
-    "slotNote": "Your talk at the Future Leaders Summit. Stage, time and everything else are always up to date in the portal:",
-    "receptionNote": "Your RSVP is in the portal. If anything changes, you will find it here:",
-    "editionFallback": "Future Leaders Summit",
-    "editionNote": "The event days. Everything else about your talk is in the portal:"
-  },
-  "speakerMedia": {
-    "title": "Your media",
-    "lead": "Stage photos, ready-made text for your post and your speaker graphic — all in one place.",
-    "photosTitle": "Stage photos",
-    "photosEmptyTitle": "No photos yet",
-    "photosEmptyBody": "Your stage photos appear here once our team has uploaded them after your talk — usually within two days. We will email you when they are ready.",
-    "photoAlt": "Stage photo from “{title}”",
-    "credit": "Photo credit",
-    "download": "Download",
-    "usageNote": "You are free to use these photos on your own channels. Please name the photo credit where one is given.",
-    "postsTitle": "Templates for your post",
-    "postsLead": "A scaffold, not a finished text. The square brackets mark the places where your own words belong — those are what make the difference.",
-    "postsNoSession": "As soon as your talk is confirmed, you will find templates here with your title in them.",
-    "copy": "Copy text",
-    "copied": "Copied",
-    "copyFailed": "Copying did not work — select the text and copy it by hand.",
+    "privacyNote": "Your portrait stays on your computer. We do not upload it and do not store it — the graphic is made here in your browser.",
     "announceLabel": "Before: the announcement",
     "announceHint": "One or two weeks before the summit. Works best with your speaker graphic as the image.",
     "announceText": "I am speaking at {event}.\n\nMy topic: “{title}”.\n\n[Two or three sentences: why this topic keeps you up at night and what the audience will take away.]\n\nIf you are coming too, get in touch — I would love to talk.\n\n#ChefTreff #FutureLeadersSummit",
@@ -3825,8 +3803,30 @@
     "recapLabel": "Later: the recap",
     "recapHint": "A few days later, with your stage photos. A good moment to tag the people you met.",
     "recapText": "Looking back at {event}.\n\nI got to speak about “{title}” — [in two sentences, what stayed with you].\n\n[Who you met and what you took home. Tag the people you write about.]\n\n#ChefTreff #FutureLeadersSummit",
-    "graphicTitle": "Your speaker graphic",
-    "graphicBody": "“Hear me speak” with your portrait — built in your browser, downloaded as a PNG. Your photo never leaves your machine.",
+    "postsTitle": "Templates for your post",
+    "postsLead": "A scaffold, not a finished text. The square brackets mark the places where your own words belong — those are what make the difference.",
+    "postsNoSession": "As soon as your talk is confirmed, you will find templates here with your title in them.",
+    "copy": "Copy text",
+    "copied": "Copied",
+    "copyFailed": "Copying did not work — select the text and copy it by hand.",
+    "toPhotos": "Go to your photos"
+  },
+  "speakerCalendar": {
+    "slotNote": "Your talk at the Future Leaders Summit. Stage, time and everything else are always up to date in the portal:",
+    "receptionNote": "Your RSVP is in the portal. If anything changes, you will find it here:",
+    "editionFallback": "Future Leaders Summit",
+    "editionNote": "The event days. Everything else about your talk is in the portal:"
+  },
+  "speakerMedia": {
+    "title": "Your photos",
+    "lead": "The photos from your talk, ready to download for your channels.",
+    "photosTitle": "Stage photos",
+    "photosEmptyTitle": "No photos yet",
+    "photosEmptyBody": "Your stage photos appear here once our team has uploaded them after your talk — usually within two days. We will email you when they are ready.",
+    "photoAlt": "Stage photo from “{title}”",
+    "credit": "Photo credit",
+    "download": "Download",
+    "usageNote": "You are free to use these photos on your own channels. Please name the photo credit where one is given.",
     "toGraphicAction": "Go to the speaker graphic"
   },
   "titleAssistant": {
