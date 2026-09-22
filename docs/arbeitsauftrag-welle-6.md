@@ -191,3 +191,7 @@ Das Portal ist alleinige Quelle des Artikelstamms; die Pflege wandert vom Partne
 ## Querschnitt · Admin-Vollständigkeit (Konrad, 22.09.2026)
 
 Jede Funktion in einem Unterportal, die eine Admin-Funktion ist, ist auch im Admin-Bereich erreichbar und bearbeitbar (Seite oder Abschnitt unter `/admin`, dieselbe Komponente, keine zweite Logik). Gilt rückwirkend für Welle 6 und für alle neuen Bausteine — Akzeptanzkriterium jedes PR; Ausnahmen werden in der PR-Beschreibung begründet. Die Architektur-Session listet die bestehenden Lücken am 24.09. je Domäne in `docs/feedback/<bereich>.md`.
+
+## Querschnitt · Kein Feedback geht verloren (Konrad, 22.09.2026)
+
+Jedes Feedback und jeder Feature-Wunsch von Konrad steht sofort in der zuständigen Liste `docs/feedback/<bereich>.md` (Nummer, Status, genau eine Liste; Querschnitt in `docs/feedback/querschnitt.md`) — auch wenn er in einem anderen Chat ankommt: der empfangende Chat trägt ihn in die Liste des zuständigen Bereichs ein und vermerkt „übergeben an <Bereich>". Akzeptanzkriterium jeder Feedback-Runde: alle Punkte aus Konrads Nachricht finden sich mit Nummer wieder.
