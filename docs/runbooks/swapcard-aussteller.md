@@ -46,6 +46,28 @@ Gepflegt wird sie vom Partner selbst im Onboarding (Schritt „Beschreibung"); `
 * Swapcard gibt `type` beim Lesen als **Beschriftung** zurück („Tech, Data & IT"), den Optionswert nur in `typeLabel.value`. Der Vergleich läuft über `typeValue`; gegen `type` hielte er jeden Lauf für geändert.
 * **Welche Schreibweise Swapcard beim *Schreiben* annimmt, ist ungeprüft.** `validateOnly` beanstandet auch erfundene Werte nicht (dreifach probiert: Optionswert, Beschriftung, Unsinn — alle drei ohne Fehler). Wir schicken den Optionswert, weil er der kanonische Wert ist. Klärt der erste Echtlauf (EA6); falls Swapcard die Beschriftung will, ist es eine Zeile — das Vokabular trägt beides.
 
+## Stand 21.09.2026 — Logo-Wand („Sponsoring & Werbung", Migration 0139)
+
+Konrad pflegt die Logo-Wand bisher von Hand: „das ist immer super viel Arbeit". Sie lässt sich über die API füllen — `createEventSponsor(eventId, {categoryId!, name!, logoUrl, redirectUrl, mode})`, gelesen über die **oberste** Ebene `sponsors(eventId)` (nicht über `event { … }`), Kategorien über `event { sponsorsCategories }`.
+
+Die Kategorien im 27er-Event sind die Sponsoring-Stufen. Zuordnung von Konrad, abgelegt als Eltern-Kind-Beziehung im Vokabular (`sponsoring_level` → `swapcard_sponsor_category`), also über die Vokabularpflege änderbar:
+
+| Stufe | Kategorie |
+|---|---|
+| Premium, Lounge | Premium Partner |
+| Signature | Presenting Partner |
+| General, Intro, Gemeinschaftsstand | Official Partner |
+| Start-Up | Startup Partner |
+| **alles ohne Stufe** | **Official Partner** |
+
+Die letzte Zeile ist die wichtigste: Wer nur eine Masterclass, eine Company Tour oder einen Speaking Slot gebucht hat, trägt keine Stufe. Konrad: „Es darf auf jeden Fall niemand durchrutschen." Das `coalesce` steht deshalb in `event_app_exhibitors` und nicht im Anwendungscode. `main_stage_loge` ist bewusst **nicht** zugeordnet (keine Angabe, kein Produkt) und fällt ins Netz.
+
+**Zwei Funde beim Bauen:**
+* `set_event_app_ref` schrieb `object_type` **fest** als `'exhibitor'`. Für die Wand gebraucht, hätte sie die Ausstellerreferenz derselben Teilnahme überschrieben — ein stiller Datenverlust, der erst beim nächsten Standsync aufgefallen wäre. Sie nimmt jetzt die Art als Parameter (Vorgabe unverändert `exhibitor`).
+* **Der 27er-Event trägt noch die Wand von 2026: 54 Einträge**, alle mit Logo, alle **ohne Namen**, keiner mit einem Aussteller verknüpft. Weder über den Namen noch über eine Verknüpfung zuzuordnen — ein Lauf legte unsere daneben und die Wand stünde doppelt. Der Trockenlauf zählt sie deshalb getrennt auf, mit Bild, und die Oberfläche bietet das Entfernen an. **Entfernen ist endgültig**: Swapcard kennt für Sponsoren keinen Papierkorb, anders als HubSpot bei Produkten.
+
+Partner ohne freigegebenes PNG können nicht auf die Wand. Der Lauf zählt sie namentlich auf, statt sie zu überspringen.
+
 ## Offen — Entscheidungen Konrad
 - **Wohin mit Level und Kategorie?** `ExhibitorInput` bietet `categories: [String!]` und `customFields` (Auswahlfelder je `definitionId`). Für ein Sponsoring-Level wäre ein eigenes Auswahlfeld im Event sauberer als die Branche zu überschreiben. Braucht ein angelegtes Feld in Swapcard, dann eine Zeile Code.
 - **Ohne Level:** „Standbühne (18qm)" (I-79895) passt in keines der acht Vokabular-Level, und `main_stage_loge` hat kein Produkt. Beides ist im Produkt-Editor nachtragbar, sobald Konrad sagt, was gilt.

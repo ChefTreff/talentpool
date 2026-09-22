@@ -1,5 +1,5 @@
 create or replace function partner_format_sessions(p_org_id uuid, p_format text DEFAULT NULL::text, p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(id uuid, format text, title_de text, title_en text, description_de text, description_en text, language text, access_mode text, capacity integer, publish_status text, format_details jsonb, starts_at timestamp with time zone, ends_at timestamp with time zone, stage_name text, day_label_de text, applications_total integer, applications_accepted integer, is_host boolean)
+ RETURNS TABLE(id uuid, format text, title_de text, title_en text, description_de text, description_en text, language text, access_mode text, capacity integer, publish_status text, format_details jsonb, starts_at timestamp with time zone, ends_at timestamp with time zone, stage_name text, day_label_de text, applications_total integer, applications_accepted integer, is_host boolean, stage_id uuid, event_day_id uuid)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -15,7 +15,8 @@ begin
            sl.start_at, sl.end_at, st.name, ed.label_de,
            (select count(*)::integer from application a where a.session_id = se.id),
            (select count(*)::integer from application a where a.session_id = se.id and a.status in ('accepted','confirmed')),
-           (se.host_org_id = p_org_id)
+           (se.host_org_id = p_org_id),
+           st.id, ed.id
       from session se
       join event ev on ev.id = se.event_id
       left join slot sl on sl.id = se.slot_id
