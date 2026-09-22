@@ -1,7 +1,7 @@
 import "server-only";
-import type { EventAppAdapter, RemoteExhibitor, UpsertOutcome } from "@/lib/event-app/types";
+import type { EventAppAdapter, RemoteExhibitor, RemoteSponsor, RemoteSponsorCategory, SponsorUpsert, UpsertOutcome } from "@/lib/event-app/types";
 import { SwapcardError, gql } from "@/lib/event-app/swapcard/client";
-import { EVENT_QUERY, LIST_EXHIBITORS, UPSERT_EXHIBITORS, DELETE_EXHIBITORS, EVENT_GROUPS, IMPORT_PEOPLE, toSwapcardInput } from "@/lib/event-app/swapcard/queries";
+import { EVENT_QUERY, LIST_EXHIBITORS, UPSERT_EXHIBITORS, DELETE_EXHIBITORS, SPONSOR_CATEGORIES, LIST_SPONSORS, CREATE_SPONSOR, UPDATE_SPONSOR, DELETE_SPONSORS, toSwapcardInput, EVENT_GROUPS, IMPORT_PEOPLE } from "@/lib/event-app/swapcard/queries";
 import { chunks } from "@/lib/event-app/mapping";
 
 type Node = {
@@ -89,6 +89,61 @@ export const swapcardAdapter: EventAppAdapter = {
   },
 };
 
+// === Logo-Wand („Sponsoring & Werbung") =====================================
+
+type SponsorNode = { id: string; name?: string | null; logoUrl?: string | null; category?: { id: string; name: string } | null };
+
+/** Die Kategorien der Logo-Wand des Events. */
+export async function sponsorCategories(eventId: string): Promise<RemoteSponsorCategory[]> {
+  const data = await gql<{ event: { sponsorsCategories: { id: string; name: string }[] } | null }>(
+    "sponsorsCategories", SPONSOR_CATEGORIES, { id: eventId },
+  );
+  return (data.event?.sponsorsCategories ?? []).map((c) => ({ id: c.id, name: c.name }));
+}
+
+/** Alles, was auf der Wand steht — auch die Alteinträge aus dem Vorjahr, die keinen Namen tragen. */
+export async function listSponsors(eventId: string): Promise<RemoteSponsor[]> {
+  const data = await gql<{ sponsors: SponsorNode[] }>("sponsors", LIST_SPONSORS, { eventId });
+  return (data.sponsors ?? []).map((s) => ({
+    id: s.id,
+    name: (s.name ?? "").trim(),
+    logoUrl: s.logoUrl ?? null,
+    categoryId: s.category?.id ?? null,
+    categoryName: s.category?.name ?? null,
+  }));
+}
+
+/** Anlegen oder ändern. Eine Stapelmutation gibt es nicht, also je Eintrag ein Aufruf (1 000 Punkte). */
+export async function upsertSponsor(eventId: string, item: SponsorUpsert): Promise<string> {
+  const sponsor: Record<string, unknown> = {
+    name: item.name,
+    categoryId: item.categoryId,
+    logoUrl: item.logoUrl,
+    mode: "NORMAL",
+  };
+  if (item.redirectUrl) sponsor.redirectUrl = item.redirectUrl;
+  if (item.existingId) {
+    sponsor.id = item.existingId;
+    const d = await gql<{ updateEventSponsor: SponsorNode }>("updateEventSponsor", UPDATE_SPONSOR, { eventId, sponsor });
+    return d.updateEventSponsor.id;
+  }
+  const d = await gql<{ createEventSponsor: SponsorNode }>("createEventSponsor", CREATE_SPONSOR, { eventId, sponsor });
+  return d.createEventSponsor.id;
+}
+
+/**
+ * Einträge von der Wand nehmen.
+ *
+ * **Endgültig.** Swapcard kennt für Sponsoren keinen Papierkorb; anders als bei
+ * HubSpot-Produkten gibt es kein Zurückholen. Deshalb ruft das nur die
+ * Admin-Route auf, nach Durchsicht der Liste und ausdrücklicher Bestätigung.
+ */
+export async function deleteSponsors(eventId: string, ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  for (let i = 0; i < ids.length; i += 50) {
+    await gql("deleteEventSponsors", DELETE_SPONSORS, { eventId, sponsorIds: ids.slice(i, i + 50) });
+  }
+}
 
 // === Personen (Speaker, spaeter Teilnehmende) ================================
 

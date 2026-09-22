@@ -31,7 +31,7 @@ audit="$(npm audit --omit=dev --json 2>/dev/null | node -e 'let s="";process.std
 npm run lint >/dev/null 2>&1 && echo "lint: ok" || { echo "lint: FEHLER"; npm run lint 2>&1 | tail -20; exit 1; }
 # Typprüfung über alles inkl. tests/ — `npm test` entfernt Typen nur (strip-types), `next build` prüft tests/ nicht.
 npx tsc --noEmit >/dev/null 2>&1 && echo "tsc: ok" || { echo "tsc: FEHLER"; npx tsc --noEmit 2>&1 | head -20; exit 1; }
-out="$(npm test 2>&1)"; echo "$out" | grep -E "tests |pass |fail " | tr -s ' ' | tr '\n' ' '; echo
+out="$(npm test 2>&1 || true)"; echo "$out" | grep -E "tests |pass |fail " | tr -s ' ' | tr '\n' ' '; echo
 echo "$out" | grep -qE "fail 0" || { echo "test: FEHLER"; echo "$out" | tail -20; exit 1; }
 npm run build >/dev/null 2>&1 && echo "build: ok" || { echo "build: FEHLER"; npm run build 2>&1 | grep -E -A6 "Build error|Error" | head -30; exit 1; }
 echo "GATE GRÜN ($BR @ $(git rev-parse --short HEAD))"

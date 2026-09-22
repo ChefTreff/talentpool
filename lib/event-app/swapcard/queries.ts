@@ -66,6 +66,44 @@ export function toSwapcardInput(item: ExhibitorUpsert): SwapcardExhibitorInput {
 }
 
 /**
+ * Sponsoren — der Bereich „Sponsoring & Werbung" in Swapcard: Logos, nach Kategorien sortiert.
+ *
+ * Geprüft am 21.09.2026 am 27er-Event. Lesen über die **oberste** Ebene (`sponsors(eventId)`), nicht über `event { … }`;
+ * die Kategorien hängen dagegen am Event (`sponsorsCategories`, ohne Argumente). Geschrieben wird je Eintrag einzeln
+ * (`createEventSponsor` / `updateEventSponsor`); eine Stapelmutation gibt es nicht. `logoUrl` ist eine frei abrufbare
+ * Adresse — dieselbe öffentliche Kopie des freigegebenen PNG, die auch der Aussteller bekommt (0057).
+ *
+ * `deleteEventSponsors` **löscht endgültig**: einen Papierkorb wie in HubSpot gibt es hier nicht.
+ */
+export const SPONSOR_CATEGORIES = `query PortalSponsorCategories($id: ID!) {
+  event(id: $id) { sponsorsCategories { id name value position } }
+}`;
+
+export const LIST_SPONSORS = `query PortalSponsors($eventId: String!) {
+  sponsors(eventId: $eventId) {
+    ... on Sponsor { id name logoUrl externalUrl mode category { id name value } }
+    ... on SponsorExhibitor { id name logoUrl externalUrl mode category { id name value } }
+  }
+}`;
+
+export const CREATE_SPONSOR = `mutation PortalCreateSponsor($eventId: String!, $sponsor: CreateSponsorInput!) {
+  createEventSponsor(eventId: $eventId, sponsor: $sponsor) {
+    ... on Sponsor { id name logoUrl category { id name } }
+    ... on SponsorExhibitor { id name logoUrl category { id name } }
+  }
+}`;
+
+export const UPDATE_SPONSOR = `mutation PortalUpdateSponsor($eventId: String!, $sponsor: UpdateSponsorInput!) {
+  updateEventSponsor(eventId: $eventId, sponsor: $sponsor) {
+    ... on Sponsor { id name logoUrl category { id name } }
+    ... on SponsorExhibitor { id name logoUrl category { id name } }
+  }
+}`;
+
+export const DELETE_SPONSORS = `mutation PortalDeleteSponsors($eventId: String!, $sponsorIds: [String!]!) {
+  deleteEventSponsors(eventId: $eventId, sponsorIds: $sponsorIds) { ... on Sponsor { id } ... on SponsorExhibitor { id } }
+}`;
+/**
  * Personen — Speaker und (später) Teilnehmende.
  *
  * Geprüft am 22.09.2026: `importEventPeople(eventId, data: [ImportEventPersonInput!]!, validateOnly)` legt an **oder** ändert,

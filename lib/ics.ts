@@ -31,6 +31,12 @@ export type IcsEvent = {
    * im Kalender.
    */
   end?: Date | null;
+  /**
+   * Ganztägig — für die Veranstaltungstage. Dann stehen `DTSTART` und `DTEND`
+   * als reines Datum, und das Ende ist **exklusiv**: der 16. bis 17. April
+   * endet am 18. Ohne das fiele der letzte Tag aus dem Kalender.
+   */
+  allDay?: boolean;
   summary: string;
   location?: string | null;
   description?: string | null;
@@ -58,6 +64,11 @@ function escapeText(value: string): string {
 /** `20270416T093000Z` — Basisformat, wie die Spezifikation es verlangt. */
 function stamp(date: Date): string {
   return `${date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}`;
+}
+
+/** `20270416` — Datum ohne Zeit, für ganztägige Termine. */
+function tag(date: Date): string {
+  return date.toISOString().slice(0, 10).replace(/-/g, "");
 }
 
 /**
@@ -112,8 +123,14 @@ export function icsCalendar(events: IcsEvent[], options?: { now?: Date }): strin
     zeilen.push("BEGIN:VEVENT");
     zeilen.push(zeile("UID", e.uid));
     zeilen.push(`DTSTAMP:${dtstamp}`);
-    zeilen.push(`DTSTART:${stamp(e.start)}`);
-    if (e.end) zeilen.push(`DTEND:${stamp(e.end)}`);
+    if (e.allDay) {
+      const ende = new Date((e.end ?? e.start).getTime() + 24 * 60 * 60 * 1000);
+      zeilen.push(`DTSTART;VALUE=DATE:${tag(e.start)}`);
+      zeilen.push(`DTEND;VALUE=DATE:${tag(ende)}`);
+    } else {
+      zeilen.push(`DTSTART:${stamp(e.start)}`);
+      if (e.end) zeilen.push(`DTEND:${stamp(e.end)}`);
+    }
     zeilen.push(zeile("SUMMARY", e.summary));
     if (e.location) zeilen.push(zeile("LOCATION", e.location));
     if (e.description) zeilen.push(zeile("DESCRIPTION", e.description));

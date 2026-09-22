@@ -44,7 +44,7 @@ export default async function EditionFilesPage() {
           kinds={vgroup(vocab, "edition_file_kind")}
           dateLocale={t.meta.dateLocale}
           t={t.productionFiles}
-          common={{ cancel: t.common.cancel, delete: t.common.delete }}
+          common={{ cancel: t.common.cancel, delete: t.common.delete, upload: t.common.upload, chooseOtherFile: t.common.chooseOtherFile }}
         />
       )}
     </>

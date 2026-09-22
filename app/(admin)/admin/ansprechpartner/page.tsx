@@ -36,7 +36,13 @@ export default async function AnsprechpartnerPage() {
         types={vgroup(vocab, "edition_contact_type")}
         audiences={Object.fromEntries(KB_AUDIENCES.map((a) => [a, a]))}
         t={t.contacts}
-        common={{ save: t.common.save, cancel: t.common.cancel, delete: t.common.delete }}
+        common={{
+          save: t.common.save,
+          cancel: t.common.cancel,
+          delete: t.common.delete,
+          upload: t.common.upload,
+          chooseOtherFile: t.common.chooseOtherFile,
+        }}
         rpcMessages={t.rpc}
       />
     </>

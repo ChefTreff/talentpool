@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -25,6 +26,12 @@ export default async function SpeakerExpensePage() {
 
   const profile = (profileJson ?? null) as SpeakerProfile | null;
   const eligibility = (eligibilityJson ?? null) as ExpenseEligibility | null;
+
+  // Ohne Kostenübernahme gibt es diese Seite für dieses Konto nicht (SPK-031).
+  // Der Menüpunkt ist schon weg; wer die Adresse noch im Verlauf hat, landet
+  // auf der Übersicht statt vor einem Kasten, der ihm absagt. Geprüft wird
+  // hier und nicht nur im Menü — eine Navigation ist keine Rechtegrenze.
+  if (eligibility && eligibility.covered !== true) redirect("/speaker");
 
   if (!profile || !eligibility) {
     return (

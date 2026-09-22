@@ -1,4 +1,4 @@
-/** Der Bucket, in dem Bühnenfotos und Slot-Grafiken liegen (0122). */
+/** Der Bucket, in dem Bühnenfotos und Slot-Grafiken liegen (`v6_session_grafiken`). */
 export const BUCKET = "session-assets";
 
 /**
@@ -9,7 +9,7 @@ export const BUCKET = "session-assets";
  */
 export const URL_GUELTIG_SEKUNDEN = 60 * 30;
 
-/** Eine Zeile aus `my_session_photos()` (Migration 0122, `v6_session_grafiken`). */
+/** Eine Zeile aus `my_session_photos()` (`20260917185916_v6_session_grafiken`). */
 export type SessionPhoto = {
   id: string;
   session_id: string;

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
@@ -216,7 +217,20 @@ export function SpeakerProfileForm({
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="p-6">
+      {/* Das laengste Formular im Speaker-Portal (QS-026). */}
+      <AbschnittsNavigation
+        label={t.sectionsLabel}
+        items={[
+          { id: "person", label: t.sectionPerson },
+          { id: "auftritt", label: t.sectionAppearance },
+          { id: "bio", label: t.sectionBio },
+          { id: "socials", label: t.sectionSocials },
+          { id: "technik", label: t.sectionTech },
+          { id: "consent", label: t.sectionConsent },
+        ]}
+      />
+
+      <Card id="person" className="p-6">
         <h2 className="ct-h3 mb-4 text-ink">{t.sectionPerson}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.fieldTitle} htmlFor="title" hint={t.fieldTitleHint}>
@@ -265,7 +279,7 @@ export function SpeakerProfileForm({
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card id="auftritt" className="p-6">
         <h2 className="ct-h3 mb-4 text-ink">{t.sectionAppearance}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.fieldJobTitle} htmlFor="job_title">
@@ -285,7 +299,7 @@ export function SpeakerProfileForm({
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card id="bio" className="p-6">
         <h2 className="ct-h3 mb-4 text-ink">{t.sectionBio}</h2>
         <div className="flex flex-col gap-4">
           <Field
@@ -329,7 +343,7 @@ export function SpeakerProfileForm({
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card id="socials" className="p-6">
         <h2 className="ct-h3 mb-4 text-ink">{t.sectionSocials}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.fieldLinkedin} htmlFor="linkedin">
@@ -365,7 +379,7 @@ export function SpeakerProfileForm({
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card id="technik" className="p-6">
         <h2 className="ct-h3 mb-4 text-ink">{t.sectionTech}</h2>
         <div className="flex flex-col gap-4">
           <Field label={t.techMic} htmlFor="mic">
@@ -414,7 +428,7 @@ export function SpeakerProfileForm({
         </div>
       </Card>
 
-      <Card className="p-6" id="consent">
+      <Card id="consent" className="p-6">
         <h2 className="ct-h3 mb-1 text-ink">{t.sectionConsent}</h2>
         {readOnlyConsent && <p className="ct-help mb-3">{t.consentReadOnly}</p>}
         <div className="mt-3 flex flex-col gap-3">

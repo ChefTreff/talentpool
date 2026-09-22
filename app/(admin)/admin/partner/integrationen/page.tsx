@@ -3,9 +3,10 @@ import { loadEditions } from "../editions";
 import { partnerAdminShell } from "../shell";
 import type { IngestLogRow } from "../types";
 import { IntegrationsView } from "./IntegrationsView";
+import { HubspotArchiveCard } from "./HubspotArchiveCard";
 import { ProductSyncCard } from "./ProductSyncCard";
+import { SponsorWallCard } from "./SponsorWallCard";
 import { SpeakerSyncCard } from "./SpeakerSyncCard";
-
 export const dynamic = "force-dynamic";
 
 /** HubSpot, vivenu und Swapcard: Kennungen, Trockenläufe und das Protokoll. */
@@ -30,6 +31,8 @@ export default async function AdminIntegrationsPage() {
       {/* Der Produktabgleich gehoert hierher und nicht auf eine eigene Seite:
           hier steht schon, was mit welchem Fremdsystem passiert ist (A4.3). */}
       <ProductSyncCard t={t.adminPartner} />
+      <HubspotArchiveCard t={t.adminPartner} />
+      <SponsorWallCard t={t.adminPartner} />
       <SpeakerSyncCard t={t.adminPartner} />
       <IntegrationsView
       editions={editions}

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
-import { Textarea } from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { saveDiet } from "./actions";
@@ -83,9 +83,11 @@ export function DietCard({
           />
         </Field>
         <Field label={t.note} htmlFor="diet-note" hint={t.noteHint}>
-          <Textarea
+          {/* Kurztext statt Textfeld (SPK-033, Konrad 22.09.): ein Satz
+              reicht, und ein grosses Feld lädt zu mehr ein, als wir für das
+              Catering brauchen. */}
+          <Input
             id="diet-note"
-            rows={2}
             maxLength={300}
             value={text}
             onChange={(e) => setText(e.target.value)}

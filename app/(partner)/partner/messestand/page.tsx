@@ -134,7 +134,7 @@ export default async function MessestandPage() {
             canEdit={canEditOnboarding(overview.roles, overview.team)}
             dateLocale={t.meta.dateLocale}
             t={b}
-            common={{ save: t.common.save, cancel: t.common.cancel }}
+            common={{ save: t.common.save, cancel: t.common.cancel, upload: t.common.upload, chooseOtherFile: t.common.chooseOtherFile }}
             rpcMessages={t.rpc}
           />
         </section>
