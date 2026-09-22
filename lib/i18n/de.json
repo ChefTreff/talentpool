@@ -4040,5 +4040,25 @@
     "uploadCurrent": "Aktuell",
     "uploadRejected": "Zurückgewiesen",
     "uploadNoDeliverable": "Für diese Leistung ist keine Datei hinterlegt."
+  },
+  "talentStart": {
+    "greeting": "Moin {name},",
+    "greetingHighlight": "willkommen",
+    "lead": "Hier findest du das Programm, deine Anmeldungen und dein Profil.",
+    "action": "Programm ansehen",
+    "statLabel": "Bewerbungen und Anmeldungen",
+    "statHint": "laufen gerade",
+    "statNone": "noch nichts eingereicht",
+    "cardProgrammeWord": "Entdecken",
+    "cardProgrammeBody": "Alle Sessions, Masterclasses und Formate. Bewerben und anmelden, solange Plätze frei sind.",
+    "cardProgrammeAction": "Zum Programm",
+    "cardMineWord": "Überblick",
+    "cardMineBody": "Woran du dran bist: Bewerbungen, Zusagen, Anmeldungen und Tickets an einem Ort.",
+    "cardMineAction": "Meine Teilnahme",
+    "cardProfileWord": "Profil",
+    "cardProfileBody": "Deine Daten pflegst du einmal — sie gelten für alle Formate und für das Matching.",
+    "cardProfileAction": "Profil öffnen",
+    "loggedInAs": "Angemeldet als",
+    "navLabel": "Übersicht"
   }
 }

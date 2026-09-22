@@ -4040,5 +4040,25 @@
     "uploadCurrent": "Current",
     "uploadRejected": "Sent back",
     "uploadNoDeliverable": "No file is required for this item."
+  },
+  "talentStart": {
+    "greeting": "Hi {name},",
+    "greetingHighlight": "welcome",
+    "lead": "Here you find the programme, your registrations and your profile.",
+    "action": "View programme",
+    "statLabel": "Applications and registrations",
+    "statHint": "currently running",
+    "statNone": "nothing submitted yet",
+    "cardProgrammeWord": "Discover",
+    "cardProgrammeBody": "All sessions, masterclasses and formats. Apply and register while seats are free.",
+    "cardProgrammeAction": "To the programme",
+    "cardMineWord": "Overview",
+    "cardMineBody": "What you are part of: applications, confirmations, registrations and tickets in one place.",
+    "cardMineAction": "My participation",
+    "cardProfileWord": "Profile",
+    "cardProfileBody": "You keep your data once — it applies to every format and to matching.",
+    "cardProfileAction": "Open profile",
+    "loggedInAs": "Signed in as",
+    "navLabel": "Overview"
   }
 }

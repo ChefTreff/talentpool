@@ -58,7 +58,7 @@ describe("Rücksprungziel nach dem Login", () => {
       "",
       null,
     ]) {
-      assert.equal(safeNextPath(evil), "/profil", `abgelehnt: ${String(evil)}`);
+      assert.equal(safeNextPath(evil), "/start", `abgelehnt: ${String(evil)}`);
     }
   });
 });
@@ -74,7 +74,10 @@ describe("Einstieg nach dem Login (F1)", () => {
   });
 
   it("bleibt beim Teilnehmer-Portal, wenn es der einzige Bereich ist", () => {
-    assert.equal(landingPathFor(areasFor([])), "/profil");
+    // Seit 22.09.2026 die Menueseite statt des Profils: wer nur das
+    // Teilnehmer-Portal hat, soll sehen, was es gibt, statt in einem
+    // Formular zu landen.
+    assert.equal(landingPathFor(areasFor([])), "/start");
   });
 
   it("führt das Team nach Admin, auch mit Testrollen in anderen Bereichen", () => {
