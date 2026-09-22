@@ -5,6 +5,7 @@ import type { IngestLogRow } from "../types";
 import { IntegrationsView } from "./IntegrationsView";
 import { HubspotArchiveCard } from "./HubspotArchiveCard";
 import { ProductSyncCard } from "./ProductSyncCard";
+import { SponsorWallCard } from "./SponsorWallCard";
 
 export const dynamic = "force-dynamic";
 
