@@ -887,6 +887,12 @@
     "photosReadyAction": "Go to your media",
     "calendarAdd": "Add to your calendar",
     "calendarAll": "Add all dates to your calendar",
+    "datesTitle": "Dates",
+    "datesEmpty": "Once your slot is scheduled, you will find it here.",
+    "dateSlotLabel": "Your slot",
+    "calGoogle": "Google Calendar",
+    "calOutlook": "Outlook",
+    "calApple": "Apple Calendar (.ics)",
     "commonUpload": "Upload",
     "commonChangeFile": "Choose another file",
     "uploadChoose": "Choose file",
@@ -3780,7 +3786,9 @@
   },
   "speakerCalendar": {
     "slotNote": "Your talk at the Future Leaders Summit. Stage, time and everything else are always up to date in the portal:",
-    "receptionNote": "Your RSVP is in the portal. If anything changes, you will find it here:"
+    "receptionNote": "Your RSVP is in the portal. If anything changes, you will find it here:",
+    "editionFallback": "Future Leaders Summit",
+    "editionNote": "The event days. Everything else about your talk is in the portal:"
   },
   "speakerMedia": {
     "title": "Your media",

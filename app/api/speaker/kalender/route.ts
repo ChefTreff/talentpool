@@ -1,9 +1,10 @@
 import { requireArea } from "@/lib/auth";
+import { loadEventDays } from "@/lib/event-days";
 import { getI18n } from "@/lib/i18n";
 import { icsCalendar, icsFileName, type IcsEvent } from "@/lib/ics";
 import { portalUrl } from "@/lib/mail/portal-url";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { MyReception } from "@/app/(speaker)/speaker/types";
+import type { MyReception, SpeakerProfile } from "@/app/(speaker)/speaker/types";
 import type { MySession } from "@/app/(speaker)/speaker/session/types";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +41,8 @@ export async function GET(request: Request) {
 
   const nurSession = url.searchParams.get("session");
   const nurReception = url.searchParams.get("reception");
-  const einzeln = Boolean(nurSession || nurReception);
+  const nurEdition = url.searchParams.get("edition") !== null;
+  const einzeln = Boolean(nurSession || nurReception || nurEdition);
 
   const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
@@ -48,14 +50,33 @@ export async function GET(request: Request) {
   const basis = portalUrl();
   const host = basis ? new URL(basis).host : UID_HOST;
 
-  const [{ data: sessionRows }, { data: receptionRows }] = await Promise.all([
+  const [{ data: sessionRows }, { data: receptionRows }, { data: profileJson }] = await Promise.all([
     supabase.rpc("my_sessions"),
     supabase.rpc("my_receptions"),
+    supabase.rpc("my_speaker_profile"),
   ]);
+  const profile = (profileJson ?? null) as SpeakerProfile | null;
 
   const events: IcsEvent[] = [];
 
-  if (!nurReception) {
+  // Der Summit selbst: ein ganztaegiger Termin ueber alle Veranstaltungstage
+  // (SPK-026). Er steht vor Slot und Reception, weil er der Rahmen ist.
+  if (!nurSession && !nurReception && profile) {
+    const tage = await loadEventDays(supabase, profile.edition_id);
+    if (tage.length > 0) {
+      events.push({
+        uid: `edition-${profile.edition_id}@${host}`,
+        start: new Date(`${tage[0]}T00:00:00.000Z`),
+        end: new Date(`${tage[tage.length - 1]}T00:00:00.000Z`),
+        allDay: true,
+        summary: profile.edition_name ?? t.speakerCalendar.editionFallback,
+        description: mitLink(t.speakerCalendar.editionNote, basis, "/speaker"),
+        url: basis ? `${basis}/speaker` : null,
+      });
+    }
+  }
+
+  if (!nurReception && !nurEdition) {
     for (const s of (sessionRows ?? []) as MySession[]) {
       if (!s.start_at) continue; // ohne Slot gibt es keinen Termin
       if (nurSession && s.session_id !== nurSession) continue;
@@ -73,7 +94,7 @@ export async function GET(request: Request) {
     }
   }
 
-  if (!nurSession) {
+  if (!nurSession && !nurEdition) {
     for (const r of (receptionRows ?? []) as MyReception[]) {
       if (r.my_status !== "yes") continue;
       if (nurReception && r.id !== nurReception) continue;
