@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { HeroBand } from "@/components/ui/HeroBand";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ProductionTabs } from "./shell";
 import { AxisPicker } from "@/components/regie/AxisPicker";
@@ -43,7 +44,11 @@ export default async function ProduktionPage({
 
   return (
     <>
-      <PageHeader title={t.production.title} description={t.production.lead} />
+      <HeroBand
+        eyebrow={t.areas.produktion.portal}
+        title={t.production.title}
+        lead={t.production.lead}
+      />
       <ProductionTabs />
       <AxisPicker
         stages={axes.stages}

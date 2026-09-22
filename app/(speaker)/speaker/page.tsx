@@ -9,6 +9,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { NextStepBanner } from "@/components/ui/NextStepBanner";
+import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
@@ -223,8 +224,27 @@ export default async function SpeakerPage() {
     .map((g) => g.termin);
 
   return (
-    <div className="max-w-[900px]">
-      <PageHeader title={t.speaker.title} description={t.speaker.lead} />
+    <div>
+      {/* Hero-Band auf der Startseite, wie im Partner-Portal (Konrads
+          Entscheidung vom 17.09.: auf **jeder** Startseite). Es traegt den
+          Titel, deshalb steht hier kein `PageHeader` mehr — zwei
+          Ueberschriften uebereinander waren der Fehler, den es vermeidet.
+
+          Die Breitenbegrenzung ist weg: das Band braucht die volle Breite des
+          Inhaltsbereichs, sonst sitzt es als Kasten in der Mitte. Der Rest
+          der Seite steht ohnehin in Karten-Rastern, die selbst umbrechen. */}
+      <HeroBand
+        eyebrow={`${t.speaker.title}${profile.edition_name ? ` · ${profile.edition_name}` : ""}`}
+        title={speakerName || t.speaker.title}
+        lead={t.speaker.lead}
+        aside={
+          <BandStat
+            value={`${done.length} / ${done.length + open.length}`}
+            label={t.speaker.bandStatLabel}
+            hint={open.length > 0 ? t.speaker.bandStatOpen : t.speaker.bandStatDone}
+          />
+        }
+      />
 
       {profile.is_assistant && (
         <p className="mb-6 rounded-ct-md border border-accent-soft bg-accent-soft px-4 py-3 ct-small text-accent-deep">

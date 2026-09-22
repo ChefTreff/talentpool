@@ -64,6 +64,9 @@
 | Welle 6 · 0133 | **Welle 6 A1, Teil 2: Partner-RPCs für „Eure Formate" (PART-034, PART-044–048)** (`20260921115331`, `v6_formate_rpcs`; Details im Migrationskopf) | — |
 | Welle 6 · 0134 | **Welle 6: Company Tours mit Stopps und Tour Lead (PART-046, ADM-026)** (`20260921115332`, `v6_company_tours`; Details im Migrationskopf) | — |
 | Welle 6 · 0138 | **Branche des Ausstellers (Vokabular `industry`, Swapcard `Exhibitor.type`)** (`20260921120434`, `v6_branche_aussteller`; Details im Migrationskopf) | — |
+| Welle 6 · 0139 | **Welle 6 B6: Der Partner pflegt seinen Speaker (PART-044)** (`20260921121115`, `v6_partner_speaker_pflege`; Details im Migrationskopf) | — |
+| Welle 6 · 0140 | **Welle 6 B7: `partner_format_sessions` nennt die Fläche und den Tag (PART-047, PART-048)** (`20260922095138`, `v6_format_sessions_flaeche`; Details im Migrationskopf) | — |
+| Welle 6 · 0141 | **Sponsoren-Kategorien: vom gebuchten Paket zur Logo-Wand in Swapcard** (`20260922095139`, `v6_sponsoren_kategorien`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

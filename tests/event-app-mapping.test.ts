@@ -8,7 +8,7 @@ const row: ExhibitorRow = {
   org_edition_id: "oe1", org_id: "org1", edition_id: "ed1", edition_slug: "fls27", swapcard_event_id: "evt1",
   name: " Expo ", legal_name: "Expo GmbH", slug: "expo", description_de: "Wir bauen Messen.", description_en: "We build fairs.", website: "expo.example",
   sponsoring_level: "Premium", sponsoring_key: "premium", sponsoring_rank: 40,
-  level_key: "premium", level_rank: 40, level_source: "product", categories: ["standflaeche", "hackathon"], industry: "tech-and-it",
+  level_key: "premium", level_rank: 40, level_source: "product", categories: ["standflaeche", "hackathon"], industry: "tech-and-it", sponsor_category: "premium_partner",
   partner_category: null, org_type: "corporate", booth_number: "A12", onboarding_status: "filled",
   logo_svg_path: null, logo_png_path: null, logo_png_asset_id: null, swapcard_exhibitor_id: null, members: [],
 };

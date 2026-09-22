@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { ContactCard } from "@/components/ui/ContactCard";
 import { Drawer } from "@/components/ui/Drawer";
 import { Field } from "@/components/ui/Field";
+import { FileButton } from "@/components/ui/FileButton";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -68,6 +69,9 @@ export function KontakteAdmin({
    * klickt auf Speichern, nichts passiert, und der Grund steht hinter dem
    * Dialog (Konrad, 18.09.).
    */
+  // Nur noch fuer Fehler **ausserhalb** der Schubfaecher. Die Meldung im
+  // Schubfach kommt seit ADM-041 von `Drawer` selbst (`error`), damit sie an
+  // jeder Stelle gleich aussieht und nicht hinter dem Dialog landet.
   const meldung = fehler ? (
     <p role="alert" className="rounded-ct-md border border-error-soft bg-error-soft p-3 ct-small text-error-ink">
       {fehler}
@@ -230,12 +234,16 @@ export function KontakteAdmin({
       </section>
 
       {offen && (
-        <Drawer open onClose={() => { setFehler(null); setOffen(null); }} title={offen.id ? t.editContact : t.addContact}>
+        <Drawer
+          open
+          error={fehler}
+          onClose={() => { setFehler(null); setOffen(null); }}
+          title={offen.id ? t.editContact : t.addContact}
+        >
           <form
             className="flex flex-col gap-4"
             onSubmit={(e) => { e.preventDefault(); speichern(offen); }}
           >
-            {meldung}
             {/* Die Auswahl kommt aus dem Vokabular `edition_contact_type`, nicht
                 aus einer Liste im Code: ein neuer Typ (etwa `tour_lead` fuer die
                 Company Tours) soll hier von allein auftauchen. `CONTACT_TYPES`
@@ -291,16 +299,18 @@ export function KontakteAdmin({
               <Input id="k-phone" value={offen.phone} required
                 onChange={(e) => setOffen({ ...offen, phone: e.target.value })} />
             </Field>
-            <Field label={t.fieldPhoto} htmlFor="k-photo" hint={t.fieldPhotoHint}>
-              <input
-                id="k-photo"
-                type="file"
+            {/* Der gemeinsame Baustein statt eines rohen Dateifelds (QS-025):
+                als Knopf erkennbar, und das Hochladen ist ein eigener Schritt.
+                Das rohe Feld sah in jedem Browser anders aus und hiess mal
+                „Datei auswählen", mal „Durchsuchen". */}
+            <Field label={t.fieldPhoto} hint={t.fieldPhotoHint}>
+              <FileButton
+                label={t.photoChoose}
+                uploadLabel={common.upload}
+                changeLabel={common.chooseOtherFile}
                 accept="image/png,image/jpeg,image/webp"
-                className="ct-small"
                 disabled={bildLaeuft}
-                onChange={async (e) => {
-                  const datei = e.target.files?.[0];
-                  if (!datei) return;
+                onFile={async (datei) => {
                   setFehler(null);
                   // Zuerst hier prüfen: der Bucket weist grössere Dateien ohnehin
                   // ab, aber dann hätte der Upload schon begonnen.
@@ -339,7 +349,12 @@ export function KontakteAdmin({
       )}
 
       {infoOffen && (
-        <Drawer open onClose={() => { setFehler(null); setInfoOffen(null); }} title={infoOffen.id ? t.editInfo : t.addInfo}>
+        <Drawer
+          open
+          error={fehler}
+          onClose={() => { setFehler(null); setInfoOffen(null); }}
+          title={infoOffen.id ? t.editInfo : t.addInfo}
+        >
           <form
             className="flex flex-col gap-4"
             onSubmit={(e) => {
@@ -357,7 +372,6 @@ export function KontakteAdmin({
               });
             }}
           >
-            {meldung}
             <Field label={t.fieldKey} htmlFor="i-key" hint={t.fieldKeyHint} required>
               <Input id="i-key" value={infoOffen.key} required
                 onChange={(e) => setInfoOffen({ ...infoOffen, key: e.target.value })} />

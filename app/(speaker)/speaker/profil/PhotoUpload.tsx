@@ -129,6 +129,8 @@ export function PhotoUpload({
         <div className="flex flex-col gap-1">
           {!photoUrl && <p className="ct-help">{t.photoNone}</p>}
           <FileButton
+            uploadLabel={t.commonUpload}
+            changeLabel={t.commonChangeFile}
             label={busy ? t.photoUploading : photoUrl ? t.photoReplace : t.photoUpload}
             accept={PHOTO_MIME.join(",")}
             disabled={busy}

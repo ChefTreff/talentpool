@@ -93,7 +93,7 @@ export function OnboardingWizard({
   locale: Locale;
   dateLocale: string;
   t: Strings;
-  common: { save: string; cancel: string; none: string; back: string; next: string };
+  common: { save: string; cancel: string; none: string; back: string; next: string; upload: string; chooseOtherFile: string };
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
@@ -436,6 +436,8 @@ export function OnboardingWizard({
                     )}
 
                     <FileButton
+                      uploadLabel={common.upload}
+                      changeLabel={common.chooseOtherFile}
                       label={current ? t.logoReplace : t.logoUpload}
                       accept={acceptAttribute(rules)}
                       disabled={uploading !== null || pending}

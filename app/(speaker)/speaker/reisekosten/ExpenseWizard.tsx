@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { FileButton } from "@/components/ui/FileButton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CheckMark } from "@/components/ui/CheckMark";
@@ -362,18 +363,16 @@ export function ExpenseWizard({
                   ) : (
                     <Badge tone="warning">{t.receiptMissing}</Badge>
                   )}
-                  <label className="ct-help">
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png,.webp"
-                      disabled={uploading === i}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        e.target.value = "";
-                        if (file) onReceipt(i, file);
-                      }}
-                    />
-                  </label>
+                  {/* Der gemeinsame Baustein statt eines rohen Dateifelds
+                      (QS-025). In einer Belegzeile steht er klein. */}
+                  <FileButton
+                    label={t.receiptChoose}
+                    uploadLabel={t.uploadAction}
+                    changeLabel={t.uploadChange}
+                    accept=".pdf,.jpg,.jpeg,.png,.webp"
+                    disabled={uploading === i}
+                    onFile={(file) => onReceipt(i, file)}
+                  />
                   {uploading === i && <span className="ct-help">{t.uploading}</span>}
                 </div>
                 {rows.length > 1 && (

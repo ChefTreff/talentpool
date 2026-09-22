@@ -6,6 +6,18 @@ import { useEffect, useRef, type ReactNode } from "react";
  * Seiten-Panel für Detail-/Bearbeitungsansichten.
  * Nutzt <dialog showModal> — Fokusfalle, Escape und Inertisierung des
  * Hintergrunds kommen damit vom Browser statt aus eigenem JS.
+ *
+ * **`error` gehört hierher und nicht in die Seite** (ADM-041). Ein
+ * `<dialog showModal>` liegt über allem; eine Fehlermeldung, die die Seite
+ * oben anzeigt, ist dahinter unsichtbar. Man klickt auf Speichern, nichts
+ * passiert, der Grund ist nicht zu sehen — das hat Konrad zweimal Zeit
+ * gekostet. Drei Seiten hatten daraufhin ihre eigene Meldung in den Dialog
+ * gebaut, jede ein bisschen anders.
+ *
+ * Die Meldung sitzt **über dem Fuß und außerhalb des scrollenden Bereichs**:
+ * sie gehört neben den Knopf, der sie ausgelöst hat, und bleibt sichtbar,
+ * egal wie weit der Inhalt gescrollt ist. `role="alert"` sagt sie auch
+ * Vorlesesoftware an, ohne dass der Fokus springt.
  */
 export function Drawer({
   open,
@@ -13,6 +25,7 @@ export function Drawer({
   title,
   children,
   footer,
+  error,
   closeLabel = "Schließen",
 }: {
   open: boolean;
@@ -20,6 +33,8 @@ export function Drawer({
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** Fehlermeldung zur Aktion im Fuß. Siehe Kopf dieser Datei. */
+  error?: string | null;
   closeLabel?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -53,6 +68,14 @@ export function Drawer({
         </button>
       </header>
       <div className="flex-1 overflow-y-auto px-6 py-6">{children}</div>
+      {error && (
+        <p
+          role="alert"
+          className="border-t border-error-soft bg-error-soft px-6 py-3 ct-small text-error-ink"
+        >
+          {error}
+        </p>
+      )}
       {footer && <footer className="border-t px-6 py-4">{footer}</footer>}
     </dialog>
   );
