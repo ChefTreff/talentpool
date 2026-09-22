@@ -1,4 +1,6 @@
--- ???? · Welle 6 · Hochgeladene Folien wieder entfernen (SPK-028)
+-- 0142 · Welle 6 · Hochgeladene Folien wieder entfernen (SPK-028)
+-- Angewendet von der Architektur-Session am 22.09.2026 als 20260922102936.
+--
 --
 -- **Nummer offen.** 0128 ist für SPK-040 vorgemerkt; `v6_speaker_abreise`
 -- (SPK-032) und diese hier brauchen je eine eigene. Vorschlag der
