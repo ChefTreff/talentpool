@@ -57,6 +57,10 @@ export function VokabularView({
   const toast = useToast();
   const [pending, start] = useTransition();
   const [offen, setOffen] = useState<VocabTerm | null>(null);
+  // Fehler aus dem Schubfach gehoeren **in** das Schubfach: ein Toast liegt
+  // im Top-Layer zwar jetzt richtig, aber ein Formularfehler gehoert an das
+  // Formular, nicht an den unteren Bildschirmrand (Skill, Verbotsliste).
+  const [fehler, setFehler] = useState<string | null>(null);
   const [neu, setNeu] = useState(false);
   const [frage, setFrage] = useState<VocabTerm | null>(null);
   const [filter, setFilter] = useState("");
@@ -87,9 +91,10 @@ export function VokabularView({
         parent_key: term.parent_key,
       });
       if (!res.ok) {
-        toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+        setFehler(message(res.key) + (res.detail ? ` (${res.detail})` : ""));
         return;
       }
+      setFehler(null);
       setOffen(null);
       setNeu(false);
       router.refresh();
@@ -222,7 +227,9 @@ export function VokabularView({
 
       <Drawer
         open={offen !== null}
+        error={fehler}
         onClose={() => {
+          setFehler(null);
           setOffen(null);
           setNeu(false);
         }}

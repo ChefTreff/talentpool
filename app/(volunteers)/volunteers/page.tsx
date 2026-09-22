@@ -1,7 +1,7 @@
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { HeroBand } from "@/components/ui/HeroBand";
 import { DietCard } from "@/components/diet/DietCard";
 import { undershopUrl } from "@/lib/vivenu/naming";
 import { ApplyForm } from "./ApplyForm";
@@ -40,9 +40,14 @@ export default async function VolunteersPage() {
 
   return (
     <>
-      <PageHeader
+      <HeroBand
+        eyebrow={
+          edition?.name
+            ? `${t.areas.volunteers.portal} · ${edition.name}`
+            : t.areas.volunteers.portal
+        }
         title={t.volunteers.title}
-        description={edition?.name ? `${t.volunteers.lead} · ${edition.name}` : t.volunteers.lead}
+        lead={t.volunteers.lead}
       />
       {profile ? (
         <>

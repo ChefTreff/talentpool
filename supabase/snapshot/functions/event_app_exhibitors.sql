@@ -1,5 +1,5 @@
 create or replace function event_app_exhibitors(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(org_edition_id uuid, org_id uuid, edition_id uuid, edition_slug text, swapcard_event_id text, name text, legal_name text, slug text, description_de text, description_en text, website text, sponsoring_level text, sponsoring_key text, sponsoring_rank integer, level_key text, level_rank integer, level_source text, categories text[], industry text, partner_category text, org_type text, booth_number text, onboarding_status text, logo_svg_path text, logo_png_path text, logo_png_asset_id uuid, swapcard_exhibitor_id text, members jsonb)
+ RETURNS TABLE(org_edition_id uuid, org_id uuid, edition_id uuid, edition_slug text, swapcard_event_id text, name text, legal_name text, slug text, description_de text, description_en text, website text, sponsoring_level text, sponsoring_key text, sponsoring_rank integer, level_key text, level_rank integer, level_source text, categories text[], industry text, sponsor_category text, partner_category text, org_type text, booth_number text, onboarding_status text, logo_svg_path text, logo_png_path text, logo_png_asset_id uuid, swapcard_exhibitor_id text, members jsonb)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -28,6 +28,16 @@ begin
            -- behält dann, was dort steht, statt eine tote Auswahl zu bekommen.
            (select v.key from vocab_term v
              where v.vocabulary = 'industry' and v.active and v.key = o.industry),
+           -- Kategorie der Logo-Wand (0139): aus der Stufe, sonst `official_partner`.
+           -- Das `coalesce` ist Konrads Auffangnetz — wer nur eine Masterclass,
+           -- eine Company Tour oder einen Speaking Slot gebucht hat, traegt keine
+           -- Stufe und wuerde sonst auf der Wand fehlen.
+           coalesce((select k.key from vocab_term l
+                       join vocab_term k on k.vocabulary = l.parent_vocabulary and k.key = l.parent_key and k.active
+                      where l.vocabulary = 'sponsoring_level' and l.active
+                        and l.key = coalesce(abl.level_key, sponsoring_level_key(oe.sponsoring_level))
+                        and l.parent_vocabulary = 'swapcard_sponsor_category'),
+                    'official_partner'),
            o.partner_category, o.type,
            (select b.booth_number from booth_assignment ba join booth b on b.id = ba.booth_id
              where ba.org_edition_id = oe.id order by ba.event_day_id nulls first, b.created_at limit 1),

@@ -19,12 +19,13 @@ export type SyncErgebnis = {
   skipped: number;
   failed: number;
   /**
-   * Die Artikel, die drüben noch fehlen, mit Nummer und Namen. Genau diese Liste
-   * entscheidet, ob ein Lauf sauber ist: steht dort ein Artikel, den es drüben
-   * längst gibt, stimmt die Artikelnummer nicht überein — und ein scharfer Lauf
-   * legte ihn ein zweites Mal an.
+   * Jeder betrachtete Artikel mit dem, was mit ihm geschähe. Genau diese Liste
+   * entscheidet, ob ein Lauf sauber ist: steht bei einem Artikel `create`, den es
+   * drüben längst gibt, stimmt die Artikelnummer nicht überein — und ein scharfer
+   * Lauf legte ihn ein zweites Mal an. Aus ihr wählt das Team auch aus, was
+   * wirklich hinausgehen soll (INV0, Konrad 21.09.2026).
    */
-  neu: { sku: string; name: string }[];
+  artikel: { sku: string; name: string; category: string | null; aktion: "create" | "update" }[];
   /** Warum nichts passiert ist, wenn nichts passiert ist. */
   skippedReason?: string;
 };
@@ -57,12 +58,23 @@ export async function syncProducts(
   system: SyncSystem,
   triggeredBy: string,
   dryRun = true,
+  /** Nur diese Artikelnummern. Leer oder `undefined` heisst „alle". */
+  nurSkus?: string[],
 ): Promise<SyncErgebnis> {
-  const out: SyncErgebnis = { system, jobId: null, dryRun, created: 0, updated: 0, skipped: 0, failed: 0, neu: [] };
+  const out: SyncErgebnis = { system, jobId: null, dryRun, created: 0, updated: 0, skipped: 0, failed: 0, artikel: [] };
 
   const { data, error } = await supabase.rpc("products_for_sync", { p_system: system });
   if (error) throw new Error(error.message);
-  const zeilen = (data ?? []) as Zeile[];
+  let zeilen = (data ?? []) as Zeile[];
+  // Gezielter Lauf (INV0): nur die bestätigten Artikel. Die Auswahl schneidet die
+  // Liste **nach** der RPC zu — was die Datenbank ohnehin nicht hinauslässt
+  // (Barter, systemfremde Artikel), kommt auch über eine Auswahl nicht hinaus.
+  if (nurSkus && nurSkus.length > 0) {
+    const gewollt = new Set(nurSkus);
+    const vorher = zeilen.length;
+    zeilen = zeilen.filter((z) => gewollt.has(z.sku));
+    out.skipped = vorher - zeilen.length;
+  }
 
   // Ohne Zugang passiert nichts, und zwar sichtbar: ein stiller Trockenlauf,
   // der „0 Fehler" meldet, ist schlimmer als eine klare Absage.
@@ -93,20 +105,17 @@ export async function syncProducts(
           z.external_id ??
           (system === "hubspot" ? await findHubspotProduct(z.sku) : await findSevdeskPart(z.sku));
         if (gefunden) out.updated += 1;
-        else {
-          out.created += 1;
-          out.neu.push({ sku: z.sku, name: z.name_de });
-        }
+        else out.created += 1;
+        out.artikel.push({ sku: z.sku, name: z.name_de, category: z.category, aktion: gefunden ? "update" : "create" });
         continue;
       }
       const res =
         system === "hubspot"
           ? await upsertHubspotProduct(z, z.external_id)
           : await upsertSevdeskPart(z, z.external_id);
-      if (res.angelegt) {
-        out.created += 1;
-        out.neu.push({ sku: z.sku, name: z.name_de });
-      } else out.updated += 1;
+      if (res.angelegt) out.created += 1;
+      else out.updated += 1;
+      out.artikel.push({ sku: z.sku, name: z.name_de, category: z.category, aktion: res.angelegt ? "create" : "update" });
       // Den Schlüssel erst merken, wenn drüben etwas steht — andersherum
       // zeigte die Referenz auf einen Artikel, den es nie gab.
       if (res.id !== z.external_id) {

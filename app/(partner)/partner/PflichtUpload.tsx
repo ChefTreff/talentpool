@@ -107,6 +107,8 @@ export function PflichtUpload({
     <div>
       {canEdit && !locked && (
         <FileButton
+          uploadLabel={t.commonUpload}
+          changeLabel={t.commonChangeFile}
           label={dateien.length > 0 ? (labelNew ?? t.uploadNew) : (labelFirst ?? t.uploadFirst)}
           accept={acceptAttribute(rules)}
           disabled={uploading}

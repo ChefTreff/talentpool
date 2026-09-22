@@ -283,7 +283,7 @@ export function ReceptionAdmin({
       )}
 
       {offen && (
-        <Drawer open onClose={() => setOffen(null)} title={offen.id ? t.edit : t.add}>
+        <Drawer open error={fehler} onClose={() => setOffen(null)} title={offen.id ? t.edit : t.add}>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e) => {
@@ -291,16 +291,6 @@ export function ReceptionAdmin({
               speichern(offen);
             }}
           >
-            {/* Die Meldung steht **im** Schubfach: `<dialog showModal>` rendert
-                im Top-Layer, ein Toast dahinter wäre unsichtbar (ADM-041). */}
-            {fehler && (
-              <p
-                role="alert"
-                className="rounded-ct-md border border-error-soft bg-error-soft p-3 ct-small text-error-ink"
-              >
-                {fehler}
-              </p>
-            )}
 
             {RECEPTION_FIELDS.map((f) => (
               <Field
