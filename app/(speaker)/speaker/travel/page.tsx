@@ -9,7 +9,11 @@ import { DietCard } from "@/components/diet/DietCard";
 import { ShuttleView } from "./ShuttleView";
 import { TravelView } from "./TravelView";
 import type { SpeakerProfile } from "../types";
-import type { HospitalityBooking, HospitalityOption, ShuttleBooking } from "./types";
+import type {
+  HospitalityBooking,
+  HospitalityOption,
+  ShuttleBooking,
+} from "./types";
 
 export const dynamic = "force-dynamic";
 
@@ -39,20 +43,48 @@ export default async function SpeakerTravelPage() {
 
   const profile = (profileJson ?? null) as SpeakerProfile | null;
   const travel = (travelJson ?? null) as SpeakerTravel | null;
-  const diet = (dietJson ?? null) as { diet: string | null; diet_note: string | null } | null;
+  const diet = (dietJson ?? null) as {
+    diet: string | null;
+    diet_note: string | null;
+  } | null;
+
+  // Hotel und Kontingente nur für die, die welche bekommen (SPK-031). Die
+  // Liste der Stati ist dieselbe wie in `hospitality_block_reason`, plus
+  // `declined`: wer abgesagt hat, soll es zurücknehmen können, statt die
+  // Sektion verschwinden zu sehen.
+  //
+  // **Anreise, Ernährung und Shuttle bleiben für alle stehen.** Die brauchen
+  // wir von jedem Speaker — auch von dem, der mit dem eigenen Auto kommt und
+  // kein Zimmer bekommt. Nur das Hotelangebot weckt Erwartungen, die wir für
+  // diese Person nicht einlösen.
+  const HOSPITALITY_ANSPRUCH = new Set([
+    "eligible",
+    "requested",
+    "booked",
+    "declined",
+  ]);
 
   if (!profile) {
     return (
       <>
-        <PageHeader title={t.speaker.travelTitle} description={t.speaker.travelLead} />
-        <EmptyState title={t.speaker.noProfileTitle} description={t.speaker.noProfileBody} />
+        <PageHeader
+          title={t.speaker.travelTitle}
+          description={t.speaker.travelLead}
+        />
+        <EmptyState
+          title={t.speaker.noProfileTitle}
+          description={t.speaker.noProfileBody}
+        />
       </>
     );
   }
 
   return (
     <div className="max-w-[900px]">
-      <PageHeader title={t.speaker.travelTitle} description={t.speaker.travelLead} />
+      <PageHeader
+        title={t.speaker.travelTitle}
+        description={t.speaker.travelLead}
+      />
 
       <div className="mb-6 flex flex-col gap-6">
         {/* An-/Abreise zuerst: sie steht am Anfang der Reise und entscheidet,
@@ -98,22 +130,24 @@ export default async function SpeakerTravelPage() {
         />
       </div>
 
-      <TravelView
-        isAssistant={profile.is_assistant}
-        options={(optionRows ?? []) as HospitalityOption[]}
-        bookings={(bookingRows ?? []) as HospitalityBooking[]}
-        tierLabels={vgroup(vocab, "hotel_tier")}
-        locale={locale}
-        dateLocale={t.meta.dateLocale}
-        t={t.speaker}
-        common={{
-          cancel: t.common.cancel,
-          choose: t.common.choose,
-          none: t.common.none,
-          save: t.common.save,
-        }}
-        rpcMessages={t.rpc}
-      />
+      {HOSPITALITY_ANSPRUCH.has(profile.hospitality_status) && (
+        <TravelView
+          isAssistant={profile.is_assistant}
+          options={(optionRows ?? []) as HospitalityOption[]}
+          bookings={(bookingRows ?? []) as HospitalityBooking[]}
+          tierLabels={vgroup(vocab, "hotel_tier")}
+          locale={locale}
+          dateLocale={t.meta.dateLocale}
+          t={t.speaker}
+          common={{
+            cancel: t.common.cancel,
+            choose: t.common.choose,
+            none: t.common.none,
+            save: t.common.save,
+          }}
+          rpcMessages={t.rpc}
+        />
+      )}
     </div>
   );
 }
