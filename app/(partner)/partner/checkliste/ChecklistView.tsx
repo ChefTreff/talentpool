@@ -430,6 +430,8 @@ export function ChecklistView({
                           ) : d.type === "upload" ? (
                             <>
                               <FileButton
+                                uploadLabel={t.commonUpload}
+                                changeLabel={t.commonChangeFile}
                                 label={d.assets.length > 0 ? t.uploadNew : t.upload}
                                 accept={acceptAttribute(rules)}
                                 disabled={uploading !== null || pending}

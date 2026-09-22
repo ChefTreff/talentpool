@@ -53,7 +53,7 @@ export function Rueckwand({
   canEdit: boolean;
   dateLocale: string;
   t: Strings;
-  common: { save: string; cancel: string };
+  common: { save: string; cancel: string; upload: string; chooseOtherFile: string };
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
@@ -151,6 +151,8 @@ export function Rueckwand({
             <span className="ct-help">{t.backNone}</span>
           ) : !canEdit || abgelaufen ? null : (
             <FileButton
+              uploadLabel={common.upload}
+              changeLabel={common.chooseOtherFile}
               label={dateien.length > 0 ? t.backUploadNew : t.backUpload}
               accept={acceptAttribute(rules)}
               disabled={uploading}

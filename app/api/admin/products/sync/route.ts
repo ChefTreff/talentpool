@@ -28,8 +28,13 @@ const SYSTEME: SyncSystem[] = ["hubspot", "sevdesk"];
 export async function POST(request: Request) {
   const ctx = await requireArea("admin", "/admin/partner/integrationen");
 
-  const body = (await request.json().catch(() => ({}))) as { system?: string; dryRun?: boolean };
+  const body = (await request.json().catch(() => ({}))) as { system?: string; dryRun?: boolean; skus?: unknown };
   const dryRun = istTrockenlauf(body);
+  // Gezielter Lauf (INV0, Konrad 21.09.2026): „Hauptpunkte nur updaten". Ohne
+  // Auswahl geht der ganze Stamm, mit Auswahl genau diese Artikelnummern.
+  const skus = Array.isArray(body.skus)
+    ? body.skus.filter((s): s is string => typeof s === "string" && s.trim() !== "").map((s) => s.trim())
+    : undefined;
   const gewuenscht = body.system;
   if (gewuenscht !== undefined && !SYSTEME.includes(gewuenscht as SyncSystem)) {
     return NextResponse.json({ error: "invalid_system" }, { status: 400 });
@@ -43,11 +48,11 @@ export async function POST(request: Request) {
   const ergebnisse = [];
   for (const system of systeme) {
     try {
-      ergebnisse.push(await syncProducts(supabase, admin, system, wer, dryRun));
+      ergebnisse.push(await syncProducts(supabase, admin, system, wer, dryRun, skus));
     } catch (fehler) {
       const text = fehler instanceof Error ? fehler.message : String(fehler);
       console.error(`[products/sync] ${system}:`, text);
-      ergebnisse.push({ system, jobId: null, dryRun, created: 0, updated: 0, skipped: 0, failed: 0, neu: [], error: text });
+      ergebnisse.push({ system, jobId: null, dryRun, created: 0, updated: 0, skipped: 0, failed: 0, artikel: [], error: text });
     }
   }
 
@@ -57,9 +62,10 @@ export async function POST(request: Request) {
     action: dryRun ? "product.sync_preview" : "product.sync",
     objectType: "product",
     objectId: systeme.join(","),
-    // Die Liste der neuen Artikel bleibt draussen: im Protokoll zaehlen die
-    // Zahlen, die Namen stehen in der Antwort und im Fehlerprotokoll.
-    after: { runs: ergebnisse.map((r) => ({ ...r, neu: undefined, neuCount: r.neu?.length ?? 0 })) },
+    // Die Artikelliste bleibt draussen: im Protokoll zaehlen die Zahlen. Bei einem
+    // **gezielten** Lauf gehoert die Auswahl aber hinein — sonst stuende dort nicht,
+    // was eigentlich hinausgegangen ist.
+    after: { runs: ergebnisse.map((r) => ({ ...r, artikel: undefined })), skus: skus ?? null },
   });
 
   return NextResponse.json({ ok: true, runs: ergebnisse });

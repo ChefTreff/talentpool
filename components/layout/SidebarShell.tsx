@@ -5,6 +5,7 @@ import { Logo } from "./Logo";
 import { PortalSwitcher } from "./PortalSwitcher";
 import { SidebarNav, type SidebarGroup } from "./SidebarNav";
 import { PortalFooter, mailboxFor } from "./PortalFooter";
+import { AssistentBubble } from "@/components/wiki/AssistentBubble";
 import { getMyAreas, getSessionContext } from "@/lib/auth";
 import { getI18n, type Locale } from "@/lib/i18n";
 import type { AreaKey } from "@/lib/areas";
@@ -37,6 +38,12 @@ export type { SidebarGroup, SidebarItem } from "./SidebarNav";
  * Disziplin einzelner Seiten hängen. Das Rollen-Postfach sucht sich die Shell
  * über den Bereich; `mailbox` überschreibt es, wo ein Bereich eine eigene
  * Adresse braucht.
+ *
+ * **Der Wiki-Assistent sitzt als Bubble unten rechts** (QS-028), nicht mehr
+ * nur auf der Wiki-Seite. Er erscheint in den Bereichen, für die es eine
+ * Wissens-Zielgruppe gibt — Partner, Speaker, Volunteers. In den übrigen
+ * Bereichen gibt es keine Artikel für ihn; eine Bubble, die auf ein leeres
+ * Wiki zeigt, wäre schlimmer als keine.
  *
  * `width` steuert die Textbreite des Inhalts: `content` (1200) ist der
  * Normalfall, `table` (1400) für dichte Admin-Listen. Beide kommen aus den
@@ -89,6 +96,17 @@ export async function SidebarShell({
   const admin = areas.find((a) => a.key === "admin");
 
   const name = ctx.firstName?.trim() || ctx.user?.email?.split("@")[0] || t.nav.account;
+
+  // Welcher Bereich welche Wissens-Zielgruppe hat. Dieselben Werte, die die
+  // Wiki-Seiten an `WikiPage` geben — steht hier noch einmal, weil die Shell
+  // keine Wiki-Seite ist und die Zuordnung sonst zweimal auseinanderlaufen
+  // könnte. Bereiche ohne Eintrag bekommen keine Bubble.
+  const ZIELGRUPPE: Partial<Record<AreaKey, string>> = {
+    partner: "partner",
+    speaker: "speaker",
+    volunteers: "volunteer",
+  };
+  const zielgruppe = ZIELGRUPPE[area];
 
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
@@ -154,6 +172,17 @@ export async function SidebarShell({
           />
         </main>
       </div>
+
+      {zielgruppe && (
+        <AssistentBubble
+          audience={zielgruppe}
+          locale={aktiv}
+          t={t.wikiAssistent}
+          openLabel={t.wikiAssistent.openBubble}
+          closeLabel={t.common.close}
+          title={t.wikiAssistent.title}
+        />
+      )}
     </div>
   );
 }
