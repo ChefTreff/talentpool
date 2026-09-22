@@ -34,7 +34,9 @@ export type Area = {
 };
 
 export const AREAS: readonly Area[] = [
-  { key: "talent", path: "/profil", roles: [], leadRole: "area_lead_talent" },
+  // Seit 22.09.2026 die Menueseite statt des Profils (Konrad): wer sich
+  // anmeldet, soll sehen, was es gibt, nicht in einem Formular landen.
+  { key: "talent", path: "/start", roles: [], leadRole: "area_lead_talent" },
   {
     key: "speaker",
     path: "/speaker",
@@ -143,7 +145,7 @@ export function areasFor(roles: readonly string[]): Area[] {
 }
 
 /** Ziel nach dem Login, wenn `next` fehlt oder verworfen wurde. */
-export const DEFAULT_AFTER_LOGIN = "/profil";
+export const DEFAULT_AFTER_LOGIN = "/start";
 
 /**
  * Wohin nach dem Login, wenn kein Ziel mitkam (Feedback-Runde 1, Punkt 2:

@@ -73,7 +73,7 @@ export default async function OnboardingPage() {
     Boolean(person?.last_name?.trim()) &&
     granted.get("terms") === true &&
     granted.get("privacy") === true;
-  if (done) redirect("/profil");
+  if (done) redirect("/start");
 
   const initial: WizardData = {
     first_name: person?.first_name ?? "",
