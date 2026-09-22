@@ -2892,7 +2892,8 @@
     "sectionReadonly": "Read only",
     "unsaved": "Unsaved changes",
     "discard": "Discard",
-    "sectionReadonlyHint": "Comes from elsewhere and is not edited here."
+    "sectionReadonlyHint": "Comes from elsewhere and is not edited here.",
+    "sectionsLabel": "On this page"
   },
   "adminTeam": {
     "title": "Team",

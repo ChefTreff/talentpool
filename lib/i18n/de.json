@@ -2892,7 +2892,8 @@
     "sectionReadonly": "Nur lesen",
     "unsaved": "Ungespeicherte Änderungen",
     "discard": "Verwerfen",
-    "sectionReadonlyHint": "Kommt aus anderen Quellen und wird hier nicht geändert."
+    "sectionReadonlyHint": "Kommt aus anderen Quellen und wird hier nicht geändert.",
+    "sectionsLabel": "Auf dieser Seite"
   },
   "adminTeam": {
     "title": "Team",
