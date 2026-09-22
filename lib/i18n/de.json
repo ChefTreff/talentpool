@@ -906,7 +906,11 @@
     "sectionsLabel": "Auf dieser Seite",
     "bandStatLabel": "Schritte erledigt",
     "bandStatOpen": "noch offen",
-    "bandStatDone": "alles erledigt"
+    "bandStatDone": "alles erledigt",
+    "dropoff": "Ich möchte weggebracht werden",
+    "pickupShuttleHint": "Abholung und Rückfahrt laufen bei uns als Shuttle-Fahrt — dort brauchen wir noch Telefonnummer und Adressen.",
+    "pickupShuttleLink": "Fahrt anfordern",
+    "shuttleWindowHint": "Abholungen sind von {von} bis {bis} möglich, jeweils zwischen 9 und 21 Uhr."
   },
   "leads": {
     "title": "Speaker-Pipeline",
