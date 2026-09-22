@@ -13,7 +13,14 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
-import { registerAsset, saveSessionTech, setSlidesRelease, submitSessionContent } from "./actions";
+import { ConfirmDialog } from "@/components/ui/Modal";
+import {
+  deleteAsset,
+  registerAsset,
+  saveSessionTech,
+  setSlidesRelease,
+  submitSessionContent,
+} from "./actions";
 import { TitelAssistent } from "./TitelAssistent";
 import {
   BUCKET,
@@ -77,6 +84,8 @@ export function SessionView({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState<string | null>(null);
+  /** Welche Folien gerade zum Entfernen anstehen (SPK-028). */
+  const [loeschen, setLoeschen] = useState<SpeakerAsset | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, {
@@ -151,6 +160,28 @@ export function SessionView({
     window.open(data.signedUrl, "_blank", "noopener");
   }
 
+  /**
+   * Folien entfernen (SPK-028, Konrad 21.09.: „Außerdem sollte man Slides
+   * wieder löschen könnne").
+   *
+   * Mit Rückfrage: eine hochgeladene Präsentation ist Arbeit, und ein
+   * versehentlicher Klick liesse sich nicht zurücknehmen. Die Datenbank lässt
+   * die vorige Fassung nachrücken — wer Version 3 entfernt, steht danach mit
+   * Version 2 da und nicht ohne Präsentation.
+   */
+  function onDelete(asset: SpeakerAsset) {
+    startTransition(async () => {
+      const res = await deleteAsset(asset.id);
+      if (!res.ok) {
+        toast("error", message(res.key));
+        return;
+      }
+      setLoeschen(null);
+      toast("success", t.slidesDeleted);
+      router.refresh();
+    });
+  }
+
   function onSlides(asset: SpeakerAsset, release: boolean) {
     startTransition(async () => {
       const res = await setSlidesRelease(asset.id, release);
@@ -163,8 +194,33 @@ export function SessionView({
     });
   }
 
+  // Der Upload noch einmal ganz oben (SPK-028, Konrad 21.09.: „Ich würde gern
+  // den Button für den Upload der Präsentation nochmal oben zeigen").
+  //
+  // **Nur bei genau einer Session.** Wer zwei Auftritte hat, müsste bei einem
+  // Knopf ohne Überschrift raten, für welchen er gilt — dann ist der Knopf im
+  // jeweiligen Abschnitt der ehrlichere Weg.
+  const einzige = sessions.length === 1 ? sessions[0] : null;
+
   return (
     <div className="flex flex-col gap-6">
+      {einzige && (
+        <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+          <div className="min-w-0">
+            <p className="ct-label text-ink">{t.presentationTitle}</p>
+            <p className="ct-help mt-1">{t.uploadHint}</p>
+          </div>
+          <FileButton
+            label={t.uploadChoose}
+            uploadLabel={t.uploadAction}
+            changeLabel={t.uploadChange}
+            accept=".pdf,.ppt,.pptx,.key"
+            disabled={uploading === einzige.session_id}
+            onFile={(file) => onUpload(einzige, file)}
+          />
+        </Card>
+      )}
+
       {sessions.map((session) => (
         <SessionCard
           key={session.session_id}
@@ -187,10 +243,24 @@ export function SessionView({
           onUpload={onUpload}
           onDownload={onDownload}
           onSlides={onSlides}
+          onDelete={setLoeschen}
           onSubmitted={() => router.refresh()}
           toast={toast}
         />
       ))}
+
+      {loeschen && (
+        <ConfirmDialog
+          title={t.deleteSlidesTitle}
+          body={t.deleteSlidesBody}
+          detail={`${loeschen.filename ?? loeschen.storage_path.split("/").pop()} · v${loeschen.version}`}
+          confirmLabel={t.deleteSlides}
+          cancelLabel={common.cancel}
+          pending={pending}
+          onCancel={() => setLoeschen(null)}
+          onConfirm={() => onDelete(loeschen)}
+        />
+      )}
     </div>
   );
 }
@@ -213,6 +283,7 @@ function SessionCard({
   onUpload,
   onDownload,
   onSlides,
+  onDelete,
   onSubmitted,
   toast,
 }: {
@@ -234,6 +305,7 @@ function SessionCard({
   onUpload: (session: MySession, file: File) => void;
   onDownload: (asset: SpeakerAsset) => void;
   onSlides: (asset: SpeakerAsset, release: boolean) => void;
+  onDelete: (asset: SpeakerAsset) => void;
   onSubmitted: () => void;
   toast: (tone: "success" | "error", text: string) => void;
 }) {
@@ -521,6 +593,18 @@ function SessionCard({
                   <Button size="sm" variant="secondary" onClick={() => onDownload(a)}>
                     {t.download}
                   </Button>
+                  {/* Die Assistenz lädt hoch, entfernt aber nicht: was weg
+                      ist, ist weg, und das entscheidet die Speakerin. */}
+                  {!isAssistant && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => onDelete(a)}
+                    >
+                      {t.deleteSlides}
+                    </Button>
+                  )}
                 </div>
               </li>
             ))}

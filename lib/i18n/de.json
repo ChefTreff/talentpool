@@ -910,7 +910,11 @@
     "dropoff": "Ich möchte weggebracht werden",
     "pickupShuttleHint": "Abholung und Rückfahrt laufen bei uns als Shuttle-Fahrt — dort brauchen wir noch Telefonnummer und Adressen.",
     "pickupShuttleLink": "Fahrt anfordern",
-    "shuttleWindowHint": "Abholungen sind von {von} bis {bis} möglich, jeweils zwischen 9 und 21 Uhr."
+    "shuttleWindowHint": "Abholungen sind von {von} bis {bis} möglich, jeweils zwischen 9 und 21 Uhr.",
+    "deleteSlides": "Entfernen",
+    "deleteSlidesTitle": "Folien entfernen?",
+    "deleteSlidesBody": "Die Datei wird gelöscht. Gibt es eine ältere Fassung, wird sie wieder die aktuelle.",
+    "slidesDeleted": "Folien entfernt"
   },
   "leads": {
     "title": "Speaker-Pipeline",
