@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/Modal";
@@ -89,7 +90,17 @@ export function GeruestView({
   return (
     <div className="flex flex-col gap-6">
       {/* --- Tage ---------------------------------------------------------- */}
-      <Card>
+      <AbschnittsNavigation
+        label={t.sectionsLabel}
+        items={[
+          { id: "tage", label: t.daysTitle },
+          { id: "buehnen", label: t.stagesTitle },
+          { id: "zeiten", label: t.hoursTitle },
+          { id: "tracks", label: t.tracksTitle },
+        ]}
+      />
+
+      <Card id="tage">
         <CardHeader title={t.daysTitle} description={t.daysHint} />
         <Table>
           <Thead>
@@ -171,7 +182,7 @@ export function GeruestView({
       </Card>
 
       {/* --- Bühnen -------------------------------------------------------- */}
-      <Card>
+      <Card id="buehnen">
         <CardHeader title={t.stagesTitle} description={t.stagesHint} />
         <Table>
           <Thead>
@@ -273,7 +284,7 @@ export function GeruestView({
       </Card>
 
       {/* --- Öffnungszeiten ------------------------------------------------ */}
-      <Card>
+      <Card id="zeiten">
         <CardHeader title={t.hoursTitle} description={t.hoursHint} />
         {geruest.days.length === 0 || geruest.stages.length === 0 ? (
           <p className="ct-small text-muted">{t.hoursNeedsBoth}</p>
@@ -319,7 +330,7 @@ export function GeruestView({
       </Card>
 
       {/* --- Tracks -------------------------------------------------------- */}
-      <Card>
+      <Card id="tracks">
         <CardHeader title={t.tracksTitle} description={t.tracksHint} />
         <Table>
           <Thead>
