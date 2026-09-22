@@ -12,6 +12,8 @@ import { FileButton } from "@/components/ui/FileButton";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { postJson } from "@/lib/fetch-json";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export type EditionFileRow = {
   id: string;
@@ -31,13 +33,24 @@ export type EditionFileRow = {
 
 type Strings = Record<string, string>;
 
+const BUCKET = "edition-files";
+/** Wie Bucket und Route: 25 MB. */
+const MAX_BYTES = 25 * 1024 * 1024;
+const ERLAUBT = ["application/pdf", "image/png", "image/jpeg", "image/webp", "image/svg+xml"];
+
 /**
  * Hochladen, ansehen, entfernen — mehr braucht es hier nicht.
  *
- * Der Upload geht über eine Route und nicht direkt in den Bucket: der Bucket
- * hat keine Schreib-Policy für angemeldete Konten, und das soll er auch nicht
- * bekommen. Die Route prüft die Rolle, schreibt mit `service_role` und legt
- * den Eintrag über die RPC an.
+ * Der Bucket hat **keine** Schreib-Policy für angemeldete Konten, und das soll
+ * er auch nicht bekommen. Die Route prüft deshalb die Rolle und gibt mit
+ * `service_role` einen signierten Platz für genau einen Pfad heraus; die Bytes
+ * gehen von hier direkt zu Supabase, der Eintrag entsteht über die RPC.
+ *
+ * **Warum nicht mehr durch unseren Server** (PROD-008, Konrad 21.09.): die
+ * Plattform hält Funktionsrümpfe bei gut 4 MB an, und zwar mit einer
+ * HTML-Seite. Der Hallenplan mit 2,9 MB ging durch, ein grösserer nicht — und
+ * weil die Antwort ungeprüft als JSON gelesen wurde, brach der Aufruf still ab:
+ * der Balken hörte auf, eine Meldung kam nie. Beides ist behoben.
  */
 export function DateienView({
   editionId,
@@ -64,23 +77,63 @@ export function DateienView({
 
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium", timeStyle: "short" });
 
+  /** Ein Fehler wird gesagt, nicht verschluckt — und nie geworfen. */
+  function melden(key: string, detail?: string) {
+    const text =
+      key === "too_large"
+        ? t.uploadTooLarge
+        : key === "wrong_type"
+          ? t.uploadWrongType
+          : key === "forbidden" || key === "not_allowed"
+            ? t.uploadNotAllowed
+            : `${t.uploadFailed}${detail ? ` (${detail})` : ""}`;
+    toast("error", text);
+  }
+
   async function onUpload(file: File) {
     setBusy(true);
     try {
-      const body = new FormData();
-      body.set("file", file);
-      body.set("edition_id", editionId);
-      body.set("kind", kind);
-      if (label.trim() !== "") body.set("label_de", label.trim());
-      const res = await fetch("/api/produktion/edition-files", { method: "POST", body });
-      const json = (await res.json()) as { ok?: boolean; error?: string; detail?: string };
-      if (!res.ok || !json.ok) {
-        toast("error", `${t.uploadFailed}${json.error ? ` (${json.error})` : ""}`);
-        return;
-      }
+      // Zuerst hier prüfen: der Bucket weist es ohnehin ab, aber dann hätte
+      // der Upload schon begonnen — und das dauert bei 20 MB.
+      if (!ERLAUBT.includes(file.type)) return melden("wrong_type");
+      if (file.size > MAX_BYTES) return melden("too_large");
+
+      const platz = await postJson<{ path: string; token: string }>(
+        "/api/produktion/edition-files?step=url",
+        {
+          edition_id: editionId,
+          kind,
+          content_type: file.type,
+          size_bytes: file.size,
+          filename: file.name,
+        },
+      );
+      if (!platz.ok) return melden(platz.key, platz.detail);
+
+      const browser = createSupabaseBrowserClient();
+      const { error } = await browser.storage
+        .from(BUCKET)
+        .uploadToSignedUrl(platz.data.path, platz.data.token, file, { contentType: file.type });
+      if (error) return melden("upload_failed");
+
+      const zeile = await postJson<{ ok: boolean; id: string }>("/api/produktion/edition-files", {
+        path: platz.data.path,
+        edition_id: editionId,
+        kind,
+        filename: file.name,
+        mime: file.type,
+        size_bytes: file.size,
+        ...(label.trim() !== "" ? { label_de: label.trim() } : {}),
+      });
+      if (!zeile.ok) return melden(zeile.key, zeile.detail);
+
       toast("success", t.uploaded);
       setLabel("");
       router.refresh();
+    } catch {
+      // Letzte Grenze. Was hier ankommt, hat niemand vorhergesehen — aber es
+      // darf die Seite nicht kosten.
+      melden("unknown");
     } finally {
       setBusy(false);
     }
