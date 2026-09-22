@@ -31,7 +31,7 @@ Grundsatz aus dem Feedback FLS26 (T9, P4): so wenige System-Mails wie möglich, 
 | `shop_order_completed` | Partner | Housekeeping `run_shop_finalization` (Phasenfrist vorbei ⇒ verbindlich) | Bestätigende + `primary_ops` | Bestellung × Person | 0048 |
 | `shop_request_received` | Partner → Team | `shop_request_product` (Anfrage-Produkt oder Freitext) | `area_lead_partner` (Fallback Admins) | Anfrage | 0048 |
 | `partner_gate_failed` | HubSpot → Sales | `ingest_partner_deal` (Gate-Fehler; Fehlerliste, Deal-Link) | Deal-Owner als `person` (E-Mail), sonst `area_lead_partner`, sonst Admins | je Gate-Fehler (kein Bezugsobjekt-Dedupe: jede Wiederholung ist ein neuer Versuch) | 0043 |
-| `stage_photos_ready` | Speaker | `register_session_asset` (erstes Bühnenfoto einer Session) | alle Speaker der Session | Speaker × Session | 0122 |
+| `stage_photos_ready` | Speaker | `register_session_asset` (erstes Bühnenfoto einer Session) | alle Speaker der Session | Speaker × Session | 17.09. (`v6_session_grafiken`) |
 | `presentation_reminder` | Speaker | Housekeeping (`send_presentation_reminders`): `reminder_lead_hours` (Default 48) vor der wirksamen Fälligkeit (Deadline ∧ 48 h vor Slot), nur mit Slot in der Zukunft, ohne aktuelle Präsentation, Session nicht abgesagt | Speaker (nicht Assistenz) | Speaker × Session | 0035 |
 
 ## Offen

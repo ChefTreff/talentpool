@@ -29,12 +29,11 @@ Alles aus der Feedback-Runde vom 17.09. ist gebaut und auf `main`, bis auf zwei 
 
 | Backlog | Prio | Stand |
 | --- | --- | --- |
-| **SPK-014** Kalendereinträge (ICS) für Slot, Briefing, Soundcheck | P2 | in Arbeit. Slot-Daten liegen vor (`my_sessions`), **Briefing und Soundcheck haben kein Datenobjekt** (siehe SPK-022), und der Mail-Worker kennt keine Anhänge (`docs/mail-plan.md`, Abschnitt „Offen") |
-| **SPK-019** Media Kit und Bühnenfotos | P2 | in Arbeit. Das Backend ist live: `session_asset` mit `kind = 'stage_photo'`, `register_session_asset` benachrichtigt beim ersten Foto je Session (`stage_photos_ready`), `my_session_photos()` liest sie speakerseitig, hochgeladen wird unter `/admin/grafiken`. Es fehlt allein die Seite im Speaker-Portal |
 | **SPK-021** mehrere Assistenzen mit eigenem Login | P2 | neu am 21.09. von Konrad, noch nicht angefangen. Datenmodell-Frage, siehe unten |
-| **SPK-022** Briefing und Soundcheck als Termin | P2 | neu, Fund aus SPK-014 |
 | **LEAD-010** Partner-Organisation am Slot | P2 | erfasst, noch nicht angefangen; greift in das Partner-Portal hinein (`/partner/talk`), also mit dem Partner-Chat abzustimmen |
 | LEAD-009, SPK-001, 008, 009, 010, LEAD-008 | P3 | zurückgestellt bzw. Aufgabe Konrad |
+
+Am Abend des 21.09. sind **SPK-014** (#96) und **SPK-019** (#93) gemergt, und **SPK-022** ist erledigt, ohne gebaut zu werden: Konrad hat entschieden, dass der Speaker keinen Soundcheck macht und dass den Briefing-Termin der Speaker-Buddy direkt ausmacht. Aus der Runde vom 17.09. bleibt damit nichts mehr offen.
 
 **SPK-021 ist keine Kleinigkeit.** Heute hängt genau eine Assistenz als `speaker_profile.assistant_person_id` am Profil, und dieses eine Feld steckt in einer ganzen Reihe von Rechteprüfungen (`my_speaker_profile`, `update_my_speaker_profile`, `my_sessions`, Shuttle, Hospitality). Mehrere Assistenzen heißt: eine Zuordnungstabelle statt einer Spalte, und jede dieser Prüfungen muss mit. Das ist eine Migration mit Breitenwirkung und gehört vor dem Bauen in den Plan-Chat — nicht, weil es schwierig wäre, sondern weil ein übersehener Leser stillschweigend zu wenig oder zu viel zeigt.
 
@@ -86,7 +85,6 @@ Fünf Dinge, die hier schiefgegangen sind und die ein nachfolgender Chat nicht w
 
 **Plan-/Architektur-Chat**
 - Datenmodell für mehrere Assistenzen (SPK-021).
-- Datenmodell für Speaker-Termine jenseits des Slots (SPK-022) — ohne das bleibt SPK-014 auf den Slot beschränkt.
 - Anhänge im Mail-Worker; erst damit lassen sich ICS-Einladungen verschicken statt herunterladen (`docs/mail-plan.md`, „Offen"; hängt an B8).
 
 **Auf der Abschluss-Checkliste**
@@ -96,6 +94,6 @@ Fünf Dinge, die hier schiefgegangen sind und die ein nachfolgender Chat nicht w
 
 ## 6 · Nächste Schritte in diesem Bereich
 
-1. **SPK-019** Seite `/speaker/media`: Bühnenfotos nach dem Slot, LinkedIn-Vorlagen, Verweis auf die Grafik. Ohne Migration, das Backend steht.
-2. **SPK-014** ICS für den Slot und die Reception als Download im Portal; Versand erst, wenn der Worker Anhänge kann.
-3. Danach Konrads Feedback-Runde zu allem Gebauten, und **LEAD-010** in Abstimmung mit dem Partner-Chat.
+1. Konrads Feedback-Runde zu allem Gebauten — er geht bis zum 24.09. alle Bereiche auf `main` durch.
+2. **SPK-021** und **LEAD-010**, beide erst nach einer Entscheidung: die eine ist eine Rechteänderung quer durch die Domäne, die andere reicht ins Partner-Portal.
+3. Anhänge im Mail-Worker (B8) machen aus dem ICS-Download eine Einladung per Mail; der Versand bleibt bis zum finalen Test ohnehin gesperrt.
