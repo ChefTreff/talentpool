@@ -187,3 +187,7 @@ Das Portal ist alleinige Quelle des Artikelstamms; die Pflege wandert vom Partne
 - **INV0 Sofort (vor INV1):** gezielter HubSpot-Lauf nur für die standardisierten Hauptartikel (Liste per Trockenlauf, Konrad bestätigt SKUs), Archivierung der 38 HubSpot-Produkte ohne SKU per API (Soft-Archive, Liste im Audit, nichts löschen).
 - **INV5 Abgleich am Ende:** Trockenlauf-Bericht (#98) als Pflichtschritt, dann Lauf je System auf Konrads Go; keine Bilder in HubSpot oder SevDesk (nur Messeshop).
 - Akzeptanz: Produktionsteam kann jeden Artikel ohne Datenbankzugriff vollständig pflegen; Lückenzähler auf null bringen ist der Inventur-Abschluss; Abgleich schreibt nur nach Vorschau; Audit je Änderung.
+
+## Querschnitt · Admin-Vollständigkeit (Konrad, 22.09.2026)
+
+Jede Funktion in einem Unterportal, die eine Admin-Funktion ist, ist auch im Admin-Bereich erreichbar und bearbeitbar (Seite oder Abschnitt unter `/admin`, dieselbe Komponente, keine zweite Logik). Gilt rückwirkend für Welle 6 und für alle neuen Bausteine — Akzeptanzkriterium jedes PR; Ausnahmen werden in der PR-Beschreibung begründet. Die Architektur-Session listet die bestehenden Lücken am 24.09. je Domäne in `docs/feedback/<bereich>.md`.
