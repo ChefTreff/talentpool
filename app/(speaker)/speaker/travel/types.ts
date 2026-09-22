@@ -53,12 +53,19 @@ export type HospitalityBooking = {
  * diese Liste ist der Vorschlag aus dem Arbeitsauftrag, damit das Team überall
  * dieselben Schlüssel vorfindet.
  */
-export const DETAIL_FIELDS: Record<string, { key: string; kind: "date" | "text" | "area" }[]> = {
+export type DetailArt = "date" | "datetime" | "text" | "area" | "check";
+
+export const DETAIL_FIELDS: Record<string, { key: string; kind: DetailArt }[]> = {
+  // Hotel nach Konrads Durchgang (SPK-036, 22.09.): Anreise mit Uhrzeit,
+  // Late Checkout und Frühstück als Haken, Besonderheiten als Kurztext.
+  // **„Zimmerwunsch" ist raus** — das Feld meinte die Zimmerart, und solange
+  // wir ein Kontingent einer Art anbieten, fragt es nichts Sinnvolles.
   hotel: [
-    { key: "check_in", kind: "date" },
+    { key: "check_in", kind: "datetime" },
     { key: "check_out", kind: "date" },
-    { key: "room_type", kind: "text" },
-    { key: "special", kind: "area" },
+    { key: "late_checkout", kind: "check" },
+    { key: "breakfast", kind: "check" },
+    { key: "special", kind: "text" },
   ],
   shuttle: [
     { key: "pickup_location", kind: "text" },
