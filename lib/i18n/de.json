@@ -883,7 +883,13 @@
     "photosReadyHint": "Herunterladen, posten, verlinken — die Textvorlagen liegen daneben.",
     "photosReadyAction": "Zu deinen Medien",
     "calendarAdd": "Termin in den Kalender",
-    "calendarAll": "Alle Termine in den Kalender"
+    "calendarAll": "Alle Termine in den Kalender",
+    "datesTitle": "Termine",
+    "datesEmpty": "Sobald dein Slot steht, findest du ihn hier.",
+    "dateSlotLabel": "Dein Slot",
+    "calGoogle": "Google Kalender",
+    "calOutlook": "Outlook",
+    "calApple": "Apple Kalender (.ics)"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -3724,7 +3730,9 @@
   },
   "speakerCalendar": {
     "slotNote": "Dein Auftritt beim Future Leaders Summit. Bühne, Zeit und alles Weitere stehen immer aktuell im Portal:",
-    "receptionNote": "Deine Zusage steht im Portal. Wenn sich etwas ändert, findest du es hier:"
+    "receptionNote": "Deine Zusage steht im Portal. Wenn sich etwas ändert, findest du es hier:",
+    "editionFallback": "Future Leaders Summit",
+    "editionNote": "Die Veranstaltungstage. Alles Weitere zu deinem Auftritt steht im Portal:"
   },
   "speakerMedia": {
     "title": "Deine Medien",
