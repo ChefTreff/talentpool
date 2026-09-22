@@ -1,4 +1,6 @@
 -- 0140 · Welle 6 B7: `partner_format_sessions` nennt die Fläche und den Tag (PART-047, PART-048).
+-- Angewendet von der Architektur-Session am 22.09.2026 als 20260922095138.
+--
 --
 -- Anlass: Die Interview-Tables-Seite zeigt **je Tisch** einen Block — ein Partner kann zwei
 -- Tische haben und an jedem eine andere Stelle besetzen. Dafür muss sie die Gespräche ihren
