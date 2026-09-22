@@ -91,7 +91,7 @@ export function VideoAdmin({
       )}
 
       {offen && (
-        <Drawer open onClose={() => setOffen(null)} title={offen.id ? t.edit : t.add}>
+        <Drawer open error={fehler} onClose={() => setOffen(null)} title={offen.id ? t.edit : t.add}>
           <form
             className="flex flex-col gap-4"
             onSubmit={(e) => {

@@ -20,6 +20,7 @@ Eine Supabase-Datenbank, eine Next.js-App, ein Login (`portal.chef-treff.de`) mi
 - **Migration der Altdaten ist der letzte Schritt.** Stammdaten ohne Personenbezug (Produktkatalog, Vokabular) dürfen früher importiert werden.
 - Datenschutz: Datenminimierung, Consent versioniert, „Profil löschen" + Suppression, **Ansprechpersonen stehen mit Name, Foto, E-Mail und Telefon im Portal** (Konrad, 17.09.2026: Serviceversprechen — gilt für Team und Speaker-Buddys; dienstliche Adressen bevorzugt, Freelancer nur mit Einwilligung im Vertrag); sonst keine privaten Kontaktdaten Dritter.
 - **Exporte:** jede CSV-Ausgabe läuft über `lib/csv.ts` (`csvCell`; `csvCellMinimal` nur für Altformate, deren Klammerung sich nicht ändern darf) — Formelschutz gegen CSV-Injection, reine Zahlen bleiben Zahlen (18.09.2026, #81).
+- **Admin-Vollständigkeit** (Konrad, 22.09.2026): Jede Funktion in einem Unterportal (Produktion, Speaker-Leads, Partner, Volunteers, Check-in, Programm …), die eine Admin-Funktion ist, muss **auch im Admin-Bereich erreichbar und bearbeitbar** sein — Konrad arbeitet ausschließlich dort, Teammitglieder bekommen die Portalzugänge. Ergänzende Funktionen im Unterportal sind erlaubt, nie exklusive. Akzeptanzkriterium jedes PR: Admin-Weg vorhanden (Seite oder Abschnitt unter `/admin`) oder in der PR-Beschreibung begründet, warum es keine Admin-Funktion ist.
 
 ## Arbeitsweise
 - 80-%-Lösung je Bereich → Feedback von Konrad → schärfen. Nichts bauen, was nicht im Masterplan oder Entscheidungslog steht.
