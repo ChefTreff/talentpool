@@ -195,3 +195,14 @@ Jede Funktion in einem Unterportal, die eine Admin-Funktion ist, ist auch im Adm
 ## Querschnitt · Kein Feedback geht verloren (Konrad, 22.09.2026)
 
 Jedes Feedback und jeder Feature-Wunsch von Konrad steht sofort in der zuständigen Liste `docs/feedback/<bereich>.md` (Nummer, Status, genau eine Liste; Querschnitt in `docs/feedback/querschnitt.md`) — auch wenn er in einem anderen Chat ankommt: der empfangende Chat trägt ihn in die Liste des zuständigen Bereichs ein und vermerkt „übergeben an <Bereich>". Akzeptanzkriterium jeder Feedback-Runde: alle Punkte aus Konrads Nachricht finden sich mit Nummer wieder.
+
+## Arbeitspaket PORT · Portalstruktur: Admin zuerst (Konrad, 22.09.2026 — Planung Donnerstag, kein Umbau vorher)
+
+Ziel: ein Admin-Bereich für alle Team-Funktionen mit rollenabhängiger Navigation; eigene Portale nur für Externe (Talent, Speaker, Partner, Volunteers, Hackathon, Stage Lead — letzteres sehr limitiert); Bereich „Verwaltung" für Konrad (Personen, Zugänge, Rechte und Rollen).
+
+- **PORT1 Zugangsmodell:** `requireArea("admin")` lässt neben `admin` die Teamrollen ein (`production_team`, `area_lead_partner`, `area_lead_speaker`, weitere nach Rollenmodell); jeder Admin-Abschnitt prüft seine Rolle serverseitig (Seite und Action), die Navigation zeigt nur erlaubte Abschnitte. Konrad (`admin`) sieht alles.
+- **PORT2 Umzug Produktion:** `/produktion/*` → `/admin/produktion/*` (dieselben Komponenten), alte Pfade leiten weiter; Launch-Konfigurationen, Links und Mail-Vorlagen anpassen; `docs/feedback/produktion.md` bleibt die Liste.
+- **PORT3 Speaker-Admin:** Programm- und Speaker-Management vollständig unter `/admin/speaker/*` bzw. `/admin/programm/*`; das Stage-Lead-Portal (`/speaker-leads/*`) behält nur, was externe Bühnenleitungen brauchen, und bekommt einen Rechte-Review (keine Admin-Routen, keine Personendaten außer den zugeordneten Speakern).
+- **PORT4 Verwaltung:** `/admin/verwaltung/*` nur `admin`: Personen, Zugänge (Magic-Link-Einladungen), Rollen und Rechte (`role_assignment`), Audit-Einsicht.
+- **PORT5 Regel für neue Bausteine:** jede neue Team-Funktion entsteht unter `/admin/…` mit Rollenprüfung; ein Unterportal bekommt nur die Sicht der Externen. Ersetzt in der Praxis die Regel „Admin-Vollständigkeit" (die für Bestehendes weiter gilt).
+- Akzeptanz: kein Team-Mitglied braucht mehr als einen Einstieg (`/admin`); Rollen entscheiden über Abschnitte; Stage Leads erreichen keine Admin-Route (Test); alle alten Produktions-Links funktionieren als Weiterleitung.
