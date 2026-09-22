@@ -35,7 +35,9 @@
     "privacy": "Privacy",
     "supportMailbox": "Questions? Write to us:",
     "ofTotal": "of",
-    "until": "until"
+    "until": "until",
+    "upload": "Upload",
+    "chooseOtherFile": "Choose another file"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",
@@ -884,7 +886,9 @@
     "photosReadyHint": "Download them, post them, tag people — the text templates sit right next to them.",
     "photosReadyAction": "Go to your media",
     "calendarAdd": "Add to your calendar",
-    "calendarAll": "Add all dates to your calendar"
+    "calendarAll": "Add all dates to your calendar",
+    "commonUpload": "Upload",
+    "commonChangeFile": "Choose another file"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -1299,7 +1303,9 @@
     "lunchOrder": "Order the lunch package",
     "lunchOrdered": "Ordered — the confirmation is in your inbox.",
     "lunchOpen": "View the order",
-    "lunchInCart": "Added to your cart — something was already in there. Please submit it in the trade fair shop."
+    "lunchInCart": "Added to your cart — something was already in there. Please submit it in the trade fair shop.",
+    "commonUpload": "Upload",
+    "commonChangeFile": "Choose another file"
   },
   "partnerFiles": {
     "title": "Files",

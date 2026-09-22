@@ -52,7 +52,7 @@ export function DateienView({
   kinds: Record<string, string>;
   dateLocale: string;
   t: Strings;
-  common: { cancel: string; delete: string };
+  common: { cancel: string; delete: string; upload: string; chooseOtherFile: string };
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -119,6 +119,8 @@ export function DateienView({
             <Input id="label" value={label} onChange={(e) => setLabel(e.target.value)} />
           </Field>
           <FileButton
+            uploadLabel={common.upload}
+            changeLabel={common.chooseOtherFile}
             label={t.upload}
             accept=".pdf,.png,.jpg,.jpeg,.webp,.svg"
             disabled={busy}

@@ -35,7 +35,9 @@
     "privacy": "Datenschutz",
     "supportMailbox": "Fragen? Schreibt uns:",
     "ofTotal": "von",
-    "until": "bis"
+    "until": "bis",
+    "upload": "Hochladen",
+    "chooseOtherFile": "Andere Datei"
   },
   "messages": {
     "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",
@@ -884,7 +886,9 @@
     "photosReadyHint": "Herunterladen, posten, verlinken — die Textvorlagen liegen daneben.",
     "photosReadyAction": "Zu deinen Medien",
     "calendarAdd": "Termin in den Kalender",
-    "calendarAll": "Alle Termine in den Kalender"
+    "calendarAll": "Alle Termine in den Kalender",
+    "commonUpload": "Hochladen",
+    "commonChangeFile": "Andere Datei"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -1299,7 +1303,9 @@
     "lunchOrder": "Lunch-Paket bestellen",
     "lunchOrdered": "Bestellt — die Bestätigung liegt in eurem Postfach.",
     "lunchOpen": "Bestellung ansehen",
-    "lunchInCart": "Ins Warenkorb gelegt — dort lag schon etwas. Bitte im Messeshop abschicken."
+    "lunchInCart": "Ins Warenkorb gelegt — dort lag schon etwas. Bitte im Messeshop abschicken.",
+    "commonUpload": "Hochladen",
+    "commonChangeFile": "Andere Datei"
   },
   "partnerFiles": {
     "title": "Dateien",
