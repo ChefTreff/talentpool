@@ -7,6 +7,7 @@ import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Badge } from "@/components/ui/Badge";
 import { Anrede } from "./Anrede";
 
@@ -81,7 +82,19 @@ export default async function PersonDetail({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <AbschnittsNavigation
+          label={d.sectionsLabel}
+          items={[
+            { id: "stammdaten", label: d.masterData },
+            { id: "arbeit", label: d.workStudy },
+            { id: "mails", label: d.emails },
+            { id: "interessen", label: d.interests },
+            { id: "kanaele", label: d.channels },
+            { id: "anmeldungen", label: d.registrations },
+          ]}
+        />
+
+        <Card id="stammdaten">
           <h2 className="ct-h2 mb-3 text-ink">{d.masterData}</h2>
           <dl>
             <Row label={f.birthdate} value={person.birthdate} />
@@ -108,7 +121,7 @@ export default async function PersonDetail({
           </dl>
         </Card>
 
-        <Card>
+        <Card id="arbeit">
           <h2 className="ct-h2 mb-3 text-ink">{d.workStudy}</h2>
           <dl>
             <Row
@@ -148,7 +161,7 @@ export default async function PersonDetail({
           </dl>
         </Card>
 
-        <Card>
+        <Card id="mails">
           <h2 className="ct-h2 mb-3 text-ink">{d.emails}</h2>
           <ul className="ct-small">
             {(emails ?? []).map((e) => (
@@ -165,7 +178,7 @@ export default async function PersonDetail({
           </ul>
         </Card>
 
-        <Card>
+        <Card id="interessen">
           <h2 className="ct-h2 mb-3 text-ink">{d.interests}</h2>
           <div className="flex flex-wrap gap-2">
             {(interests ?? []).map((i) => (
@@ -178,7 +191,7 @@ export default async function PersonDetail({
             )}
           </div>
 
-          <h2 className="ct-h2 mb-3 mt-6 text-ink">{d.channels}</h2>
+          <h2 id="kanaele" className="ct-h2 mb-3 mt-6 scroll-mt-20 text-ink">{d.channels}</h2>
           <div className="flex flex-wrap gap-2">
             {(channels ?? []).map((c) => (
               <Badge key={c.term_key}>
@@ -204,7 +217,7 @@ export default async function PersonDetail({
         rpcMessages={t.rpc}
       />
 
-      <Card className="mt-4">
+      <Card id="anmeldungen" className="mt-4">
         <h2 className="ct-h2 mb-3 text-ink">{d.registrations}</h2>
         <ul className="ct-small">
           {(regs ?? []).map((r, idx) => {

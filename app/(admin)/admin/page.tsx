@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { StatCard } from "@/components/ui/Card";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,21 @@ export default async function AdminDashboard() {
 
   return (
     <>
-      <PageHeader title={t.admin.overview.title} />
+      {/* Hero-Band auf jeder Startseite (Konrad, 17.09.). Rechts steht die
+          Zahl, die zum Handeln auffordert — offene Dubletten sind das
+          einzige auf dieser Seite, das liegen bleibt, wenn niemand hinsieht. */}
+      <HeroBand
+        eyebrow={t.areas.admin.portal}
+        title={t.admin.overview.title}
+        lead={t.admin.overview.lead}
+        aside={
+          <BandStat
+            value={String(dupes.count ?? 0)}
+            label={t.admin.overview.openDuplicates}
+            hint={(dupes.count ?? 0) > 0 ? t.admin.overview.bandHintOpen : t.admin.overview.bandHintClear}
+          />
+        }
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c) =>
           c.href ? (

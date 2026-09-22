@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { Menu, MenuItem, MenuSeparator } from "@/components/ui/Menu";
 import { cn } from "@/components/ui/cn";
 import { signOut } from "@/lib/auth-actions";
-import { setLocale } from "@/lib/i18n/actions";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 import type { Locale } from "@/lib/i18n/shared";
 
 /**
@@ -40,9 +40,8 @@ export function AccountMenu({
   languageLabel: string;
   logoutLabel: string;
 }) {
-  const [pending, start] = useTransition();
+  const [, start] = useTransition();
   const initiale = (name.trim()[0] ?? email?.trim()[0] ?? "?").toUpperCase();
-  const andere: Locale = locale === "de" ? "en" : "de";
 
   return (
     <Menu
@@ -65,10 +64,15 @@ export function AccountMenu({
       </div>
       <MenuSeparator />
       <MenuItem href={profileHref}>{profileLabel}</MenuItem>
-      <MenuItem onSelect={() => start(async () => void (await setLocale(andere)))}>
-        {languageLabel}: <span lang={andere} className="uppercase">{andere}</span>
-        {pending && <span className="ct-help">…</span>}
-      </MenuItem>
+      {/* Der Umschalter statt einer Zeile „Sprache: EN" (QS-024). Die zeigte
+          die **andere** Sprache — niemand wusste, ob EN gerade an ist oder ob
+          man damit dorthin wechselt. Kein `MenuItem`: das Menü schliesst beim
+          Klick auf einen Eintrag, und wer die Sprache umstellt, will das
+          Ergebnis sehen, ohne das Menü neu zu öffnen. */}
+      <div className="flex items-center justify-between gap-3 px-3 py-2">
+        <span className="ct-label text-muted">{languageLabel}</span>
+        <LocaleSwitcher current={locale} label={languageLabel} tone="light" />
+      </div>
       <MenuSeparator />
       <MenuItem onSelect={() => start(async () => void (await signOut()))}>{logoutLabel}</MenuItem>
     </Menu>

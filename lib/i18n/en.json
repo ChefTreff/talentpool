@@ -35,7 +35,9 @@
     "privacy": "Privacy",
     "supportMailbox": "Questions? Write to us:",
     "ofTotal": "of",
-    "until": "until"
+    "until": "until",
+    "upload": "Upload",
+    "chooseOtherFile": "Choose another file"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",
@@ -884,7 +886,17 @@
     "photosReadyHint": "Download them, post them, tag people — the text templates sit right next to them.",
     "photosReadyAction": "Go to your media",
     "calendarAdd": "Add to your calendar",
-    "calendarAll": "Add all dates to your calendar"
+    "calendarAll": "Add all dates to your calendar",
+    "commonUpload": "Upload",
+    "commonChangeFile": "Choose another file",
+    "uploadChoose": "Choose file",
+    "uploadAction": "Upload",
+    "uploadChange": "Choose another file",
+    "receiptChoose": "Choose receipt",
+    "sectionsLabel": "On this page",
+    "bandStatLabel": "Steps done",
+    "bandStatOpen": "still open",
+    "bandStatDone": "all done"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -1301,7 +1313,9 @@
     "lunchOrder": "Order the lunch package",
     "lunchOrdered": "Ordered — the confirmation is in your inbox.",
     "lunchOpen": "View the order",
-    "lunchInCart": "Added to your cart — something was already in there. Please submit it in the trade fair shop."
+    "lunchInCart": "Added to your cart — something was already in there. Please submit it in the trade fair shop.",
+    "commonUpload": "Upload",
+    "commonChangeFile": "Choose another file"
   },
   "partnerFiles": {
     "title": "Files",
@@ -2147,7 +2161,10 @@
       "registrations": "Registrations",
       "openDuplicates": "Open duplicates",
       "events": "Events",
-      "vocabTerms": "Vocabulary terms"
+      "vocabTerms": "Vocabulary terms",
+      "lead": "People, programme and master data of the platform.",
+      "bandHintOpen": "waiting for review",
+      "bandHintClear": "nothing open"
     },
     "programme": {
       "title": "Programme board",
@@ -2361,7 +2378,8 @@
       "salutationDe": "German",
       "salutationEn": "English",
       "salutationSaved": "Salutation saved",
-      "useSuggestion": "Use suggestion: {v}"
+      "useSuggestion": "Use suggestion: {v}",
+      "sectionsLabel": "On this page"
     },
     "vocab": {
       "title": "Vocabulary",
@@ -2916,7 +2934,8 @@
     "sectionReadonly": "Read only",
     "unsaved": "Unsaved changes",
     "discard": "Discard",
-    "sectionReadonlyHint": "Comes from elsewhere and is not edited here."
+    "sectionReadonlyHint": "Comes from elsewhere and is not edited here.",
+    "sectionsLabel": "On this page"
   },
   "adminTeam": {
     "title": "Team",
@@ -3086,7 +3105,8 @@
     "disclaimer": "Chefi summarises the sections named. If in doubt, the article applies.",
     "error_rate_limited": "That was a lot of questions in a short time. Try again next hour.",
     "error_empty_query": "The question is empty.",
-    "error_unknown": "That did not work just now. Please try again."
+    "error_unknown": "That did not work just now. Please try again.",
+    "openBubble": "Ask a question"
   },
   "hackathon": {
     "title": "Hackathon",
@@ -3443,7 +3463,8 @@
     "photoUploading": "Uploading photo …",
     "fieldRoleEn": "Role label (EN)",
     "fieldRoleEnHint": "The speaker portal defaults to English. Without this text it only shows the generic label there.",
-    "noDefaultWarning": "No default set for: {types}. Anyone without their own assignment then sees nobody — the portal falls back to the role mailbox. Mark one contact per type as the default."
+    "noDefaultWarning": "No default set for: {types}. Anyone without their own assignment then sees nobody — the portal falls back to the role mailbox. Mark one contact per type as the default.",
+    "photoChoose": "Choose photo"
   },
   "adminSpeakerLeads": {
     "title": "Speaker leads",
