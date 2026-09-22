@@ -1890,6 +1890,8 @@
     "sessions": "Sessions",
     "stage": "Standbühne",
     "boothTitle": "Stand",
+    "logoWallTitle": "Logo auf der Foto-Wand",
+    "logoWallLead": "Ob dieser Partner dem Weißen seines Logos zugestimmt hat. Gibt er die Zustimmung am Telefon oder per Mail, könnt ihr sie hier eintragen — es ist derselbe Weg wie im Partner-Portal.",
     "boothLead": "Nummer, Segment und Maße — das Team pflegt sie, der Partner liest sie.",
     "boothNumber": "Standnummer",
     "boothType": "Standart",
@@ -3846,6 +3848,21 @@
     "noRoleYet": "Position und Unternehmen fehlen noch.",
     "privateFields": "Telefonnummer, Pronomen, Assistenz und Technikbedarf pflegt die Speakerin selbst — das sind ihre Angaben, nicht eure.",
     "programmeHint": "Titel und Beschreibung des Programmpunkts stimmt das Programm-Team direkt mit eurer Speakerin ab."
+  },
+  "logoWall": {
+    "title": "Logo auf der Foto-Wand",
+    "explain": "Auf dem Summit steht eine große Wand, vor der fotografiert wird. Alle Partnerlogos stehen darauf **einfarbig weiß** — das ist nötig, damit die Wand als Ganzes funktioniert, verändert aber die Darstellung eurer Marke. Dafür brauchen wir eure Zustimmung.",
+    "consequence": "Ohne eure Zustimmung drucken wir euer Logo nicht auf die Wand. Für Website, Event-App und Programm nutzen wir es unverändert weiter.",
+    "grant": "Wir sind einverstanden",
+    "granted": "Danke — euer Logo kommt auf die Wand.",
+    "grantedOn": "Zugestimmt am {date}.",
+    "revoke": "Zustimmung zurücknehmen",
+    "confirmRevoke": "Ja, zurücknehmen",
+    "revoked": "Zurückgenommen. Euer Logo kommt nicht auf die Wand.",
+    "badgeGranted": "Zugestimmt",
+    "badgeMissing": "Zustimmung fehlt",
+    "saving": "Wird gespeichert …",
+    "cancel": "Abbrechen"
   },
   "partnerHackathon": {
     "title": "Hackathon",

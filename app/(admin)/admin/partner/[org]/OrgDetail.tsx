@@ -10,7 +10,9 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
+import { LogoWandEinwilligung } from "@/components/partner/LogoWandEinwilligung";
 import {
+  adminSetLogoWhiteningConsent,
   adminUpsertContact,
   grantStageEditor,
   revokeStageEditor,
@@ -283,6 +285,28 @@ export function OrgDetail({
             {common.save}
           </Button>
         </div>
+      </Card>
+
+      {/* Logo-Wand (PART-053, Regel vom 22.09.: was ein Portal kann, kann der Admin auch).
+          Dieselbe Komponente wie im Partner-Portal, dieselbe RPC — gebraucht wird der Weg,
+          wenn ein Partner die Erlaubnis am Telefon gibt. */}
+      <Card>
+        <CardHeader title={t.logoWallTitle} description={t.logoWallLead} />
+        <LogoWandEinwilligung
+          grantedAt={overview.edition?.logo_whitening_consent_at ?? null}
+          canEdit={Boolean(overview.edition)}
+          onSet={async (granted) => {
+            const res = await adminSetLogoWhiteningConsent({
+              orgId: overview.org.id,
+              granted,
+              editionId: overview.edition?.edition_id ?? null,
+            });
+            return res.ok ? { ok: true } : { ok: false, key: res.key };
+          }}
+          dateLocale={dateLocale}
+          t={t.logoWall as unknown as Record<string, string>}
+          rpcMessages={rpcMessages}
+        />
       </Card>
 
       <Card>

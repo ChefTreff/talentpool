@@ -421,3 +421,24 @@ export async function updateTalkSpeaker(input: {
   revalidatePath(`${PATH}/talk`);
   return { ok: true, data: undefined };
 }
+
+/**
+ * Erlaubnis, das Logo für die Foto-Wand weiß zu drucken (PART-053).
+ * Dieselbe RPC wie im Admin — den Unterschied macht `partner_can_edit`.
+ */
+export async function setLogoWhiteningConsent(input: {
+  orgId: string;
+  granted: boolean;
+  editionId?: string | null;
+}): Promise<PartnerResult<{ granted_at: string | null }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("set_logo_whitening_consent", {
+    p_org_id: input.orgId,
+    p_granted: input.granted,
+    p_edition_id: input.editionId ?? null,
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/onboarding`);
+  revalidatePath(PATH);
+  return { ok: true, data: { granted_at: (data as string | null) ?? null } };
+}

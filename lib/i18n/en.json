@@ -1890,6 +1890,8 @@
     "sessions": "Sessions",
     "stage": "Booth stage",
     "boothTitle": "Booth",
+    "logoWallTitle": "Logo on the photo wall",
+    "logoWallLead": "Whether this partner has agreed to their logo being whitened. If they give consent by phone or email, you can record it here — the same path as in the partner portal.",
     "boothLead": "Number, segment and dimensions — the team maintains them, the partner reads them.",
     "boothNumber": "Booth number",
     "boothType": "Booth kind",
@@ -3846,6 +3848,21 @@
     "noRoleYet": "Position and company are still missing.",
     "privateFields": "Phone number, pronouns, assistant and technical requirements are maintained by the speaker — those are their details, not yours.",
     "programmeHint": "The programme team agrees the title and description of the programme slot directly with your speaker."
+  },
+  "logoWall": {
+    "title": "Logo on the photo wall",
+    "explain": "At the summit there is a large wall people take photos in front of. All partner logos appear on it in **solid white** — that is what makes the wall work as a whole, but it changes how your brand is shown. We need your consent for that.",
+    "consequence": "Without your consent we will not print your logo on the wall. We continue to use it unchanged for the website, event app and programme.",
+    "grant": "We agree",
+    "granted": "Thank you — your logo goes on the wall.",
+    "grantedOn": "Agreed on {date}.",
+    "revoke": "Withdraw consent",
+    "confirmRevoke": "Yes, withdraw",
+    "revoked": "Withdrawn. Your logo will not go on the wall.",
+    "badgeGranted": "Agreed",
+    "badgeMissing": "Consent missing",
+    "saving": "Saving …",
+    "cancel": "Cancel"
   },
   "partnerHackathon": {
     "title": "Hackathon",
