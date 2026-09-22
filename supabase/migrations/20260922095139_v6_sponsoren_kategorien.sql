@@ -1,4 +1,6 @@
--- 0139 · Sponsoren-Kategorien: vom gebuchten Paket zur Logo-Wand in Swapcard
+-- 0141 · Sponsoren-Kategorien: vom gebuchten Paket zur Logo-Wand in Swapcard
+-- Angewendet von der Architektur-Session am 22.09.2026 als 20260922095139 (Kopfnummer 0139 → 0141: 0139 ist v6_partner_speaker_pflege).
+--
 -- (Nummer vorläufig — die Architektur-Session vergibt sie beim Merge.)
 --
 -- Zweck: Swapcard führt neben den Ausstellern einen Bereich „Sponsoring &
