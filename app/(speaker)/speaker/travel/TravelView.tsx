@@ -45,7 +45,14 @@ export function TravelView({
   locale: Locale;
   dateLocale: string;
   t: Strings;
-  common: { cancel: string; choose: string; none: string; save: string };
+  common: {
+    cancel: string;
+    choose: string;
+    none: string;
+    save: string;
+    yes: string;
+    no: string;
+  };
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
@@ -69,7 +76,8 @@ export function TravelView({
    */
   const [consentError, setConsentError] = useState<string | null>(null);
 
-  const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
+  const message = (key: string) =>
+    rpcMessages[key] ?? rpcMessages.unknown ?? key;
   // `window_from`/`window_to` sind echte Zeitpunkte (timestamptz) — die gehören
   // in die Zone des Lesers.
   const dateOnly = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
@@ -81,7 +89,10 @@ export function TravelView({
     timeZone: "UTC",
   });
   const label = (o: { label_de: string | null; label_en: string | null }) =>
-    (locale === "en" ? o.label_en : o.label_de) ?? o.label_de ?? o.label_en ?? "—";
+    (locale === "en" ? o.label_en : o.label_de) ??
+    o.label_de ??
+    o.label_en ??
+    "—";
 
   // Der Grund steht an jeder Zeile gleich; für den Seitenhinweis reicht der erste.
   const blockReason = options.find((o) => !o.eligible)?.block_reason ?? null;
@@ -92,7 +103,10 @@ export function TravelView({
     startTransition(async () => {
       const res = await bookHospitality(option.quota_id, details, count);
       if (!res.ok) {
-        toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+        toast(
+          "error",
+          message(res.key) + (res.detail ? ` (${res.detail})` : ""),
+        );
         return;
       }
       setOpenForm(null);
@@ -206,7 +220,13 @@ export function TravelView({
                     {b.status === "waitlisted" && (
                       <p className="ct-help mt-2">{t.waitlistNote}</p>
                     )}
-                    <Details details={b.details} kind={b.kind} bareDate={bareDate} t={t} />
+                    <Details
+                      details={b.details}
+                      kind={b.kind}
+                      bareDate={bareDate}
+                      t={t}
+                      jaNein={{ yes: common.yes, no: common.no }}
+                    />
                     {b.team_note && (
                       <p className="ct-help mt-1">
                         {t.teamNote}: {b.team_note}
@@ -233,6 +253,7 @@ export function TravelView({
         <h2 id="h-options" className="ct-h3 mb-3 text-ink">
           {t.optionsTitle}
         </h2>
+        <p className="ct-help mb-3">{t.optionsLead}</p>
         {options.length === 0 ? (
           <EmptyOptions t={t} />
         ) : (
@@ -264,9 +285,13 @@ export function TravelView({
                           </span>
                         )}
                       </div>
-                      {(locale === "en" ? o.description_en : o.description_de) && (
+                      {(locale === "en"
+                        ? o.description_en
+                        : o.description_de) && (
                         <p className="ct-help mt-1">
-                          {locale === "en" ? o.description_en : o.description_de}
+                          {locale === "en"
+                            ? o.description_en
+                            : o.description_de}
                         </p>
                       )}
                       {/* Kapazität offen zeigen (R10), damit niemand rät. */}
@@ -277,8 +302,11 @@ export function TravelView({
                       </p>
                     </div>
                     {booked ? (
-                      <Badge tone={STATUS_TONE[o.my_booking!.status] ?? "neutral"}>
-                        {t[`hospitality_${o.my_booking!.status}`] ?? o.my_booking!.status}
+                      <Badge
+                        tone={STATUS_TONE[o.my_booking!.status] ?? "neutral"}
+                      >
+                        {t[`hospitality_${o.my_booking!.status}`] ??
+                          o.my_booking!.status}
                       </Badge>
                     ) : (
                       (o.eligible || needsConsent) && (
@@ -296,7 +324,11 @@ export function TravelView({
                             setGuests("1");
                           }}
                         >
-                          {isOpen ? common.cancel : full ? t.joinWaitlist : t.book}
+                          {isOpen
+                            ? common.cancel
+                            : full
+                              ? t.joinWaitlist
+                              : t.book}
                         </Button>
                       )
                     )}
@@ -311,35 +343,71 @@ export function TravelView({
                             key={f.key}
                             label={t[`detail_${f.key}`] ?? f.key}
                             htmlFor={`${o.quota_id}-${f.key}`}
-                            className={f.kind === "area" ? "sm:col-span-2" : undefined}
+                            className={
+                              f.kind === "area" ? "sm:col-span-2" : undefined
+                            }
                           >
-                            {f.kind === "area" ? (
+                            {f.kind === "check" ? (
+                              // Ein Haken steht als "true" im JSON, nicht als
+                              // übersetztes Wort: die Buchung liest auch das
+                              // Team, und zwar in seiner Sprache.
+                              <label className="flex min-h-11 items-center gap-2 ct-small text-ink">
+                                <input
+                                  id={`${o.quota_id}-${f.key}`}
+                                  type="checkbox"
+                                  checked={details[f.key] === "true"}
+                                  onChange={(e) =>
+                                    setDetails((d) => ({
+                                      ...d,
+                                      [f.key]: e.target.checked ? "true" : "",
+                                    }))
+                                  }
+                                />
+                                {t[`detail_${f.key}`] ?? f.key}
+                              </label>
+                            ) : f.kind === "area" ? (
                               <Textarea
                                 id={`${o.quota_id}-${f.key}`}
                                 rows={2}
                                 value={details[f.key] ?? ""}
                                 onChange={(e) =>
-                                  setDetails((d) => ({ ...d, [f.key]: e.target.value }))
+                                  setDetails((d) => ({
+                                    ...d,
+                                    [f.key]: e.target.value,
+                                  }))
                                 }
                               />
                             ) : (
                               <Input
                                 id={`${o.quota_id}-${f.key}`}
-                                type={f.kind === "date" ? "date" : "text"}
+                                type={
+                                  f.kind === "date"
+                                    ? "date"
+                                    : f.kind === "datetime"
+                                      ? "datetime-local"
+                                      : "text"
+                                }
                                 value={details[f.key] ?? ""}
                                 onChange={(e) =>
-                                  setDetails((d) => ({ ...d, [f.key]: e.target.value }))
+                                  setDetails((d) => ({
+                                    ...d,
+                                    [f.key]: e.target.value,
+                                  }))
                                 }
                               />
                             )}
                           </Field>
                         ))}
-                        <Field label={t.guests} htmlFor={`${o.quota_id}-guests`} hint={t.guestsHint}>
+                        <Field
+                          label={t.guests}
+                          htmlFor={`${o.quota_id}-guests`}
+                          hint={t.guestsHint}
+                        >
                           <Input
                             id={`${o.quota_id}-guests`}
                             type="number"
                             min={1}
-                            max={4}
+                            max={2}
                             value={guests}
                             onChange={(e) => setGuests(e.target.value)}
                           />
@@ -417,22 +485,33 @@ function Details({
   kind,
   bareDate,
   t,
+  jaNein,
 }: {
   details: Record<string, string> | null;
   kind: string;
   /** Formatter in UTC — die Werte sind Kalendertage ohne Zone. */
   bareDate: Intl.DateTimeFormat;
   t: Strings;
+  /** Für Haken: „Ja“ und „Nein“ stehen im gemeinsamen Wortschatz. */
+  jaNein: { yes: string; no: string };
 }) {
   const entries = Object.entries(details ?? {}).filter(([, v]) => v);
   if (entries.length === 0) return null;
-  const dateKeys = new Set(
-    (DETAIL_FIELDS[kind] ?? []).filter((f) => f.kind === "date").map((f) => f.key),
-  );
+  const felder = DETAIL_FIELDS[kind] ?? [];
+  const art = new Map(felder.map((f) => [f.key, f.kind]));
   const show = (key: string, value: string) => {
-    if (!dateKeys.has(key)) return value;
+    // Ein Haken steht als "true" im JSON — hier wird daraus ein Wort, sonst
+    // stünde „Late Checkout: true" in der Buchung.
+    if (art.get(key) === "check")
+      return value === "true" ? jaNein.yes : jaNein.no;
+    if (art.get(key) !== "date" && art.get(key) !== "datetime") return value;
     const parsed = new Date(value);
-    return Number.isNaN(parsed.valueOf()) ? value : bareDate.format(parsed);
+    if (Number.isNaN(parsed.valueOf())) return value;
+    // Reine Kalendertage ohne Zone formatiert `bareDate` in UTC; ein
+    // Zeitpunkt mit Uhrzeit gehört in die Zone der Leserin.
+    return art.get(key) === "datetime"
+      ? parsed.toLocaleString()
+      : bareDate.format(parsed);
   };
   return (
     <dl className="ct-help mt-2 flex flex-wrap gap-x-4 gap-y-1">

@@ -35,7 +35,9 @@
     "privacy": "Datenschutz",
     "supportMailbox": "Fragen? Schreibt uns:",
     "ofTotal": "von",
-    "until": "bis"
+    "until": "bis",
+    "yes": "Ja",
+    "no": "Nein"
   },
   "messages": {
     "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",
@@ -697,7 +699,7 @@
     "consentNeededTitle": "Eine Einwilligung fehlt noch",
     "consentGive": "Einwilligung geben",
     "myBookings": "Deine Buchungen",
-    "optionsTitle": "Angebote",
+    "optionsTitle": "Hotel & Übernachtung",
     "noOptions": "Für dich sind gerade keine Kontingente hinterlegt.",
     "kind_hotel": "Hotel",
     "kind_shuttle": "Shuttle",
@@ -709,7 +711,7 @@
     "free": "Frei",
     "of": "von",
     "guests": "Personen",
-    "guestsHint": "Eins bis vier.",
+    "guestsHint": "Eins oder zwei. Ab drei Personen braucht es ein zweites Zimmer — das machen wir persönlich aus.",
     "teamNote": "Hinweis vom Team",
     "bookedRequested": "Angefragt — das Team bestätigt.",
     "bookedWaitlist": "Auf der Warteliste eingetragen.",
@@ -723,7 +725,6 @@
     "hospitality_cancelled": "Storniert",
     "detail_check_in": "Anreise",
     "detail_check_out": "Abreise",
-    "detail_room_type": "Zimmerwunsch",
     "detail_special": "Besonderheiten",
     "detail_pickup_location": "Abholort",
     "detail_arrival_info": "Ankunft (Zug, Flug, Uhrzeit)",
@@ -889,7 +890,10 @@
     "dateSlotLabel": "Dein Slot",
     "calGoogle": "Google Kalender",
     "calOutlook": "Outlook",
-    "calApple": "Apple Kalender (.ics)"
+    "calApple": "Apple Kalender (.ics)",
+    "optionsLead": "Wir haben Zimmer für dich vorgehalten. Such dir eines aus und buch es hier — die Rechnung läuft über uns, du musst nichts auslegen.",
+    "detail_late_checkout": "Late Checkout gewünscht",
+    "detail_breakfast": "Frühstück gewünscht"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -3324,7 +3328,7 @@
     "choice": "Ernährungsform",
     "choiceHint": "Danach bestellen wir die Mengen.",
     "note": "Unverträglichkeiten oder Allergien",
-    "noteHint": "Kurz genügt, zum Beispiel „Nussallergie“.",
+    "noteHint": "Wenn du magst: Unverträglichkeiten oder Allergien in einem Satz. Freiwillig, das Catering liest mit.",
     "privacy": "Diese Angaben gehen ausschließlich als Zahl und als Hinweis an das Catering — ohne euren Namen. Sie erscheinen in keiner Teilnehmerliste.",
     "saved": "Angabe gespeichert"
   },

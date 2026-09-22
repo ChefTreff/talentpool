@@ -144,6 +144,8 @@ export default async function SpeakerTravelPage() {
             choose: t.common.choose,
             none: t.common.none,
             save: t.common.save,
+            yes: t.common.yes,
+            no: t.common.no,
           }}
           rpcMessages={t.rpc}
         />
