@@ -15,9 +15,10 @@ export const maxDuration = 300;
  * Body: `{ editionId?, dryRun? (Vorgabe true) }`. Gate `requireArea("admin")`
  * plus Rollenprüfung in der Datenbank; die Liste selbst prüft noch einmal.
  *
- * **Nur mit Einwilligung.** `event_app_speakers` liefert den Zustand je Person,
- * der Lauf schickt ausschliesslich `granted` — und meldet die Zurückgehaltenen
- * namentlich zurück, damit niemand unbemerkt fehlt.
+ * **Grundlage ist die Zusage** (Konrad, 22.09.2026): das Profil in der Event-App
+ * wird mit ihr gegeben, also geht jedes bestätigte Profil hinaus. Zurückgehalten
+ * wird nur, wer keinen vollständigen Namen hat, und der kommt namentlich zurück,
+ * damit niemand unbemerkt fehlt. Das Profilfoto geht als öffentliche Kopie mit.
  */
 export async function POST(request: Request) {
   await requireArea("admin", "/admin/partner/integrationen");

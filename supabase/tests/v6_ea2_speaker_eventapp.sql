@@ -3,13 +3,16 @@
 --      Servicekontext weiter — der Lauf haengt daran (Lehre 0120);
 --   02 ein **bestaetigtes** Profil steht in der Liste, ein abgesagtes nicht,
 --      eines im Zustand `contacted` auch nicht;
---   03 **die Einwilligung steht als Zustand an der Zeile, nicht als Filter**:
---      ohne Erhebung `missing`, nach Erteilung `granted`, nach Widerruf
---      `revoked` — wer stillschweigend uebersprungen wird, faellt niemandem auf;
+--   03 **die Zusage ist die Grundlage, nicht eine Einwilligung** (Konrad 22.09.):
+--      ein bestaetigtes Profil steht in der Liste, auch ohne jede Einwilligung, und
+--      eine widerrufene `event_app`-Einwilligung aendert daran nichts — sonst haette
+--      die Abschaffung der Huerde nur die halbe Wirkung;
 --   04 Name, Titel und Organisation kommen mit; die Organisation nimmt den
 --      Freitext, sonst den Namen der verknuepften Organisation;
---   05 das Foto wird als Pfad **und** Kennzeichen geliefert (der Lauf schickt es
---      noch nicht, aber die Oberflaeche muss sagen koennen, wem es fehlt);
+--   05 das Foto kommt mit Pfad, **Kennung und Medientyp** — daraus baut der Lauf
+--      die oeffentliche Kopie unter `<edition>/<asset_id>.<endung>`;
+--   12 der oeffentliche Bucket `speaker-photos` steht, ist oeffentlich lesbar und
+--      hat **keine** Policy fuer anon oder authenticated (Schreiben nur service_role);
 --   06 der Rueckverweis gehoert dem Server: aus einem angemeldeten Kontext 42501;
 --   07 im Servicekontext steht er, und ein zweiter Aufruf **aendert** statt zu
 --      verdoppeln;
@@ -71,21 +74,24 @@ begin
     from event_app_speakers(v_ed) x where x.last_name like 'ZZTEST-%';
   insert into t_res values ('02_liste', coalesce(v_txt, '(leer)'));
 
-  -- 03 Einwilligung als Zustand -------------------------------------------------------
-  select x.consent_state into v_txt from event_app_speakers(v_ed) x where x.person_id = v_p_ok;
-  insert into t_res values ('03a_ohne_erhebung', v_txt);
+  -- 03 die Zusage ist die Grundlage ----------------------------------------------------
+  select count(*)::text into v_txt from event_app_speakers(v_ed) x where x.person_id = v_p_ok;
+  insert into t_res values ('03a_ohne_einwilligung', v_txt || ' Zeile');
+  -- Eine erteilte und wieder widerrufene `event_app`-Einwilligung darf nichts
+  -- aendern: fuer Speaker haengt es an der Zusage (Konrad 22.09.).
   insert into consent_record (person_id, consent_type, version, granted, granted_at, source)
   values (v_p_ok, 'event_app', 'v1', true, now(), 'test');
-  select x.consent_state into v_txt from event_app_speakers(v_ed) x where x.person_id = v_p_ok;
-  insert into t_res values ('03b_erteilt', v_txt);
-  -- Bewusst mit **demselben** `granted_at`: genau dieser Gleichstand liess die
-  -- Sicht vorher zufaellig entscheiden, und der Widerruf verschwand.
   insert into consent_record (person_id, consent_type, version, granted, granted_at, revoked_at, source)
   values (v_p_ok, 'event_app', 'v1', false, (select cr.granted_at from consent_record cr
                                               where cr.person_id = v_p_ok and cr.consent_type = 'event_app' limit 1),
           now(), 'test');
-  select x.consent_state into v_txt from event_app_speakers(v_ed) x where x.person_id = v_p_ok;
-  insert into t_res values ('03c_widerrufen', v_txt);
+  select count(*)::text into v_txt from event_app_speakers(v_ed) x where x.person_id = v_p_ok;
+  insert into t_res values ('03b_nach_widerruf', v_txt || ' Zeile');
+  -- Der Gleichstandsbrecher aus Teil 4 bleibt pruefbar: die Sicht traegt alle
+  -- Einwilligungen, nicht nur diese.
+  select case when cc.granted then 'granted' else 'revoked' end into v_txt
+    from consent_current cc where cc.person_id = v_p_ok and cc.consent_type = 'event_app';
+  insert into t_res values ('03c_sicht_bei_gleichstand', v_txt);
 
   -- 04 Felder --------------------------------------------------------------------------
   select x.first_name || ' ' || x.last_name || ' · ' || coalesce(x.job_title, '-') || ' · ' || coalesce(x.organization, '-')
@@ -102,7 +108,8 @@ begin
   insert into t_res values ('05a_ohne_foto', v_txt);
   insert into speaker_asset (profile_id, kind, storage_path, filename, mime, size_bytes, version, is_current)
   values (v_prof_ok, 'photo', 'fls27/zztest/foto.jpg', 'foto.jpg', 'image/jpeg', 1000, 1, true);
-  select coalesce(x.photo_path, '(kein Pfad)') || ' / ' || x.has_photo::text into v_txt
+  select coalesce(x.photo_path, '(kein Pfad)') || ' / ' || x.has_photo::text
+         || ' / ' || coalesce(x.photo_mime, '-') || ' / kennung ' || (x.photo_asset_id is not null)::text into v_txt
     from event_app_speakers(v_ed) x where x.person_id = v_p_ok;
   insert into t_res values ('05b_mit_foto', v_txt);
 
@@ -117,6 +124,15 @@ begin
    where p.proname = 'event_app_speakers'
      and spalte in ('diet_note', 'allergies', 'health_note', 'phone', 'address_street');
   insert into t_res values ('10_keine_sensiblen_spalten', v_n::text);
+
+  -- 12 der Bucket ----------------------------------------------------------------------
+  select b.public::text || ' / ' || coalesce(array_to_string(b.allowed_mime_types, ','), '-') into v_txt
+    from storage.buckets b where b.id = 'speaker-photos';
+  insert into t_res values ('12a_bucket', coalesce(v_txt, 'FEHLT (BUG)'));
+  select count(*) into v_n from pg_policies
+   where schemaname = 'storage' and tablename = 'objects'
+     and qual like '%speaker-photos%' and ('anon' = any(roles) or 'authenticated' = any(roles));
+  insert into t_res values ('12b_keine_policy_fuer_nutzer', v_n::text);
 end $$;
 
 -- 01b/07/08/09 Servicekontext ------------------------------------------------------------
@@ -155,11 +171,13 @@ end $$;
 select * from t_res order by step;
 rollback;
 
--- Lauf 22.09.2026 gegen jqmqvgaiyjudkvtncijw (Probelauf, zurueckgerollt): 16/16 gruen.
+-- Lauf 22.09.2026 gegen jqmqvgaiyjudkvtncijw (Probelauf, zurueckgerollt): 18/18 gruen.
 --   01a abgewiesen 42501, 01b 1 Zeile im Servicekontext; 02 nur 'ZZTEST-Bestaetigt';
---   03a missing, 03b granted, 03c revoked (bei **gleichem** granted_at — vor dem
---   Gleichstandsbrecher in `consent_current` stand hier 'granted', der Widerruf war weg);
+--   03a 1 Zeile ohne jede Einwilligung, 03b 1 Zeile auch nach Widerruf (die Zusage
+--   traegt, Konrad 22.09.), 03c die Sicht meldet bei **gleichem** granted_at 'revoked'
+--   — vor dem Gleichstandsbrecher stand hier 'granted' und der Widerruf war weg;
 --   04a Name/Titel/Freitext-Org/E-Mail, 04b Org aus der Verknuepfung;
---   05a '(kein Pfad) / false', 05b Pfad mit true; 06 abgewiesen 42501;
+--   05a '(kein Pfad) / false', 05b Pfad + Kennung + image/jpeg; 06 abgewiesen 42501;
 --   07 '1 Zeile, ZZTEST-PERSON-2'; 08a P0002 person_not_found, 08b 22023 invalid_system;
---   09 'exhibitor, person'; 10 0 sensible Spalten.
+--   09 'exhibitor, person'; 10 0 sensible Spalten;
+--   12a Bucket 'true / image/jpeg,image/png,image/webp', 12b 0 Policies fuer anon/authenticated.

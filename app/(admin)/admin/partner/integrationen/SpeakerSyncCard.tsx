@@ -8,8 +8,8 @@ import { ConfirmDialog } from "@/components/ui/Modal";
 
 type Antwort = {
   ok: boolean; dryRun: boolean; rows: number; eligible: number; create: number; update: number;
-  errors: number; refs: number; skipped?: string; error?: string;
-  zurueckgehalten: { name: string; grund: "missing" | "revoked" | "kein_name" }[];
+  errors: number; refs: number; mitFoto: number; skipped?: string; error?: string;
+  zurueckgehalten: { name: string; grund: "kein_name" }[];
   ohneFoto: string[];
   runs: { name: string; outcome: string; detail?: string }[];
 };
@@ -17,11 +17,12 @@ type Antwort = {
 /**
  * EA2: bestätigte Speaker als Personen mit Speaker-Pass nach Swapcard.
  *
- * **Das Zurückhalten ist die eigentliche Information.** Ohne Einwilligung
- * „Weitergabe an die Event-App" geht niemand hinaus (Konrad, 21.09.2026) — und
- * wer zurückbleibt, steht hier namentlich mit Grund. Ein Lauf, der „12
- * übertragen" meldet, während acht fehlen, ist die Art Erfolgsmeldung, die
- * niemandem hilft.
+ * Grundlage ist die **Zusage**, nicht eine eigene Einwilligung (Konrad,
+ * 22.09.2026) — jedes bestätigte Profil geht hinaus. Wer trotzdem zurückbleibt,
+ * steht hier namentlich mit Grund; ein Lauf, der „12 übertragen" meldet, während
+ * zwei fehlen, ist die Art Erfolgsmeldung, die niemandem hilft. Dasselbe gilt für
+ * das Profilfoto: wer keines hat, bleibt in der App ein Platzhalter, und das
+ * sollte man vorher wissen.
  */
 export function SpeakerSyncCard({ t }: { t: Record<string, string> }) {
   const [laeuft, setLaeuft] = useState(false);
@@ -77,6 +78,7 @@ export function SpeakerSyncCard({ t }: { t: Record<string, string> }) {
             {t.speakerSyncResult
               .replace("{rows}", String(antwort.rows))
               .replace("{eligible}", String(antwort.eligible))
+              .replace("{photos}", String(antwort.mitFoto))
               .replace("{create}", String(antwort.create))
               .replace("{update}", String(antwort.update))
               .replace("{errors}", String(antwort.errors))}
@@ -92,7 +94,7 @@ export function SpeakerSyncCard({ t }: { t: Record<string, string> }) {
               <ul className="ct-help mt-1 flex flex-col gap-1">
                 {antwort.zurueckgehalten.map((z) => (
                   <li key={z.name} className="flex items-center gap-2">
-                    <Badge tone={z.grund === "revoked" ? "error" : "neutral"}>
+                    <Badge tone="neutral">
                       {t[`speakerHeld_${z.grund}`] ?? z.grund}
                     </Badge>
                     <span>{z.name}</span>

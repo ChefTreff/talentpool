@@ -3,24 +3,25 @@
 -- Swapcard stehen (Arbeitsauftrag Welle 6, Arbeitspaket EA, Teil EA2). Diese
 -- Migration liefert die Leseliste dafür und den Rückverweis je Person.
 --
--- **Einwilligung ist die Bedingung, nicht eine Prüfung im Anwendungscode.**
--- Konrad, 21.09.2026: nur Personen mit der Einwilligung „Weitergabe an die
--- Event-App" gehen nach Swapcard, Widerruf heisst Entfernen. Die Liste gibt
--- deshalb **beides** zurück: wer hinaus darf und wer zurückgehalten wird
--- (`consent_state` mit drei Zuständen) — ein Lauf, der Leute stillschweigend
--- überspringt, sieht fehlerfrei aus und ist falsch. `consent_record.consent_type`
--- trägt keinen CHECK, der neue Wert `event_app` braucht also keine
--- Schemaänderung; die **Erhebung** selbst (Texte DE/EN, Bewerbung,
--- Ticket-Redirect, Speaker-Onboarding) ist ein eigener Baustein und liegt hier
--- bewusst nicht mit drin.
+-- **Keine eigene Einwilligung.** Konrad, 22.09.2026: „Es braucht keine
+-- Einwilligung für das Profil in der Event-App, das wird automatisch mit der
+-- Zusage gegeben, also einfach immer übertragen." Grundlage ist damit
+-- `speaker_profile.confirmed_at` — wer zugesagt hat, steht mit Profil in der App.
+-- Die Liste filtert entsprechend auf bestätigte, nicht abgesagte Profile und
+-- kennt keinen `consent_state` mehr. (`photo_video` und `speaker_release` bleiben
+-- unberührt; sie regeln Aufnahmen und Folienveröffentlichung, nicht das Profil.)
+-- Für **Teilnehmende** (EA4) gilt das nicht — dort gibt es keine Zusage, und die
+-- Einwilligung „Weitergabe an die Event-App" bleibt Bedingung.
 --
--- Abweichungen: **kein Foto im Lauf.** `speaker_asset` liegt im privaten Bucket,
--- Swapcard braucht eine frei abrufbare Adresse. Für Partnerlogos gibt es dafür
--- den öffentlichen Bucket `partner-logos` (0057); dasselbe für Personenfotos ist
--- eine Datenschutzentscheidung und keine Bauentscheidung. Die Liste liefert
--- Pfad und Kennzeichen, der Lauf schickt sie noch nicht.
--- Keine Abhängigkeit zu anderen offenen Migrationen: der Personenverweis ist eine
--- eigene Funktion, `set_event_app_ref` wird nicht angefasst.
+-- **Das Foto geht mit.** Konrad, 22.09.2026: „bitte einen unauffindbaren,
+-- öffentlichen Link erzeugen, damit das Foto übertragen wird, das brauchen wir
+-- auf jeden Fall in der App." Dafür der öffentliche Bucket `speaker-photos`,
+-- genau wie `partner-logos` (0057): Lesen über die öffentliche Adresse, Schreiben
+-- nur `service_role`, **keine** Policies für anon oder authenticated. Der Pfad ist
+-- `<edition>/<asset_id>.<endung>` — die Asset-Kennung ist eine UUID, also nicht
+-- erratbar und nicht aufzählbar, und der Pfad **nennt weder Namen noch
+-- Personen-Kennung**. Eine neue Fassung bekommt eine neue Adresse, eine
+-- zurückgezogene bleibt nicht unter der alten erreichbar.
 
 set search_path = public, extensions;
 
@@ -51,7 +52,17 @@ begin
 end $$;
 revoke execute on function set_event_app_person_ref(uuid, text, text, jsonb) from public, anon, authenticated;
 
--- 2 · Die Speaker, die in die App gehören -----------------------------------------
+-- 2 · Öffentlicher Bucket für die Profilfotos -------------------------------------
+-- Wie `partner-logos` (0057): Lesen über die öffentliche Adresse, Schreiben nur
+-- `service_role`. Bewusst **keine** Policies für anon/authenticated — wer die
+-- Adresse nicht kennt, kommt nicht an die Datei, und niemand kann den Bucket
+-- auflisten.
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('speaker-photos', 'speaker-photos', true, 10485760, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+
+-- 3 · Die Speaker, die in die App gehören -----------------------------------------
 -- Beide Kontexte: das Team liest im Admin, der Lauf liest als Service Role
 -- (Lehre 0120). `person` wird **nicht** als Ganzes herausgegeben — nur benannte
 -- Spalten, keine Ernährungs- oder Gesundheitsangaben (db-konventionen §2).
@@ -60,8 +71,8 @@ create or replace function event_app_speakers(p_edition_id uuid DEFAULT NULL::uu
  RETURNS TABLE(profile_id uuid, person_id uuid, edition_id uuid, edition_slug text, swapcard_event_id text,
                first_name text, last_name text, email text, job_title text, organization text,
                bio_short_de text, bio_short_en text, website text,
-               photo_path text, has_photo boolean,
-               consent_state text, pipeline_status text, swapcard_person_id text)
+               photo_path text, photo_asset_id uuid, photo_mime text, has_photo boolean,
+               pipeline_status text, swapcard_person_id text)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -77,12 +88,9 @@ begin
            coalesce(nullif(btrim(sp.organization_name), ''), nullif(btrim(o.communication_name), ''), o.legal_name),
            sp.bio_short_de, sp.bio_short_en,
            nullif(btrim(coalesce(sp.socials->>'website', '')), ''),
-           a.storage_path, a.storage_path is not null,
-           -- Drei Zustände statt eines Wahrheitswerts: „erteilt", „widerrufen"
-           -- und „nie gefragt" sind für die Oberfläche verschiedene Aufgaben.
-           case when c.granted then 'granted'
-                when c.person_id is not null then 'revoked'
-                else 'missing' end,
+           -- Kennung und Medientyp braucht der Lauf, um die öffentliche Kopie
+           -- unter `<edition>/<asset_id>.<endung>` anzulegen.
+           a.storage_path, a.id, a.mime, a.storage_path is not null,
            sp.pipeline_status,
            (select r.external_id from external_ref r
              where r.system = 'swapcard' and r.object_type = 'person' and r.object_id = p.id)
@@ -92,8 +100,6 @@ begin
       left join person_email pe on pe.person_id = p.id and pe.is_primary
       left join organization o on o.id = sp.org_id
       left join speaker_asset a on a.profile_id = sp.id and a.kind = 'photo' and a.is_current
-      left join lateral (select cc.person_id, cc.granted from consent_current cc
-                          where cc.person_id = p.id and cc.consent_type = 'event_app') c on true
      where sp.confirmed_at is not null
        and sp.declined_at is null
        and (p_edition_id is null or sp.edition_id = p_edition_id)
@@ -101,14 +107,16 @@ begin
      order by p.last_name, p.first_name;
 end $$;
 
--- 3 · `consent_current` entschied bei Gleichstand zufällig ------------------------
--- Fund beim Testen von Teil 2: die Sicht nimmt
+-- 4 · `consent_current` entschied bei Gleichstand zufällig ------------------------
+-- Fund beim Testen der ersten Fassung dieser Migration (die noch auf die
+-- Einwilligung sah; Konrad hat sie am 22.09. für Speaker abgeschafft, der Fund
+-- bleibt aber gültig — die Sicht traegt **alle** Einwilligungen): sie nimmt
 -- `distinct on (person_id, consent_type) … order by granted_at desc` — bei **zwei
 -- Einträgen mit demselben `granted_at`** ist es dem Planer überlassen, welcher
 -- gewinnt. Ein Widerruf, der in derselben Sekunde wie die Erteilung landet
 -- (Formular mit Häkchen an und wieder aus, Import, Nachtrag von Hand), kann
--- deshalb stillschweigend verlorengehen — und diese Sicht ist das Tor, an dem
--- entschieden wird, ob personenbezogene Daten nach Swapcard gehen.
+-- deshalb stillschweigend verlorengehen — und an dieser Sicht hängen Newsletter,
+-- Fotofreigabe und ab EA4 die Weitergabe an die Event-App.
 -- Neu ist nur der Gleichstandsbrecher `created_at desc, id desc`; Spalten und
 -- Bedeutung bleiben unverändert. Die Reihenfolge ist damit eindeutig: der
 -- zuletzt geschriebene Eintrag gilt.

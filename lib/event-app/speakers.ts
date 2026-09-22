@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { importSpeakers, speakerGroupId } from "@/lib/event-app/swapcard/adapter";
+import { ensurePublicPhoto, publicPhotoUrl } from "@/lib/event-app/logos";
 
 /** Zeile aus `event_app_speakers()` (0136). */
 export type SpeakerRow = {
@@ -17,8 +18,9 @@ export type SpeakerRow = {
   bio_short_en: string | null;
   website: string | null;
   photo_path: string | null;
+  photo_asset_id: string | null;
+  photo_mime: string | null;
   has_photo: boolean;
-  consent_state: "granted" | "revoked" | "missing";
   pipeline_status: string | null;
   swapcard_person_id: string | null;
 };
@@ -27,15 +29,17 @@ export type SpeakerSummary = {
   dryRun: boolean;
   eventId: string | null;
   rows: number;
-  /** Mit Einwilligung — nur die gehen hinaus. */
+  /** Übertragbar — alles, was Vor- und Nachnamen hat. */
   eligible: number;
   create: number;
   update: number;
   errors: number;
   refs: number;
+  /** Mit Foto in der App. */
+  mitFoto: number;
   /** Zurückgehalten, mit Grund. Wer fehlt, steht namentlich da, statt still zu verschwinden. */
-  zurueckgehalten: { name: string; grund: "missing" | "revoked" | "kein_name" }[];
-  /** Mit Einwilligung, aber ohne Foto — das Foto geht noch nicht mit (Entscheidung offen). */
+  zurueckgehalten: { name: string; grund: "kein_name" }[];
+  /** Ohne Profilfoto — in der App bleibt der Platzhalter. */
   ohneFoto: string[];
   runs: { name: string; outcome: string; detail?: string }[];
   skipped?: string;
@@ -46,10 +50,12 @@ const name = (r: SpeakerRow) => `${(r.first_name ?? "").trim()} ${(r.last_name ?
 /**
  * Bestätigte Speaker als Personen mit Speaker-Pass nach Swapcard (EA2).
  *
- * **Die Einwilligung entscheidet, und das Zurückhalten ist sichtbar.** Nur
- * `consent_state = 'granted'` geht hinaus (Konrad, 21.09.2026); alle anderen
- * stehen namentlich in `zurueckgehalten`. Ein Lauf, der „12 übertragen" meldet,
- * während acht Leute fehlen, ist die Art Erfolgsmeldung, die niemandem hilft.
+ * **Die Zusage ist die Grundlage, keine eigene Einwilligung.** Konrad, 22.09.2026:
+ * das Profil in der Event-App wird mit der Zusage gegeben, also geht jedes
+ * bestätigte Profil hinaus. Zurückgehalten wird nur, wer keinen vollständigen
+ * Namen hat — und der steht namentlich in `zurueckgehalten`, statt still zu
+ * verschwinden. (Für Teilnehmende gilt das nicht: dort bleibt die Einwilligung
+ * „Weitergabe an die Event-App" Bedingung, siehe EA4.)
  *
  * Idempotent über `clientId` = unsere Personen-Kennung: Swapcard führt sie am
  * Datensatz, `importEventPeople` erkennt daran, ob es anlegt oder ändert. Die
@@ -71,7 +77,7 @@ export async function syncSpeakers(opts: {
 }): Promise<SpeakerSummary> {
   const { admin, dryRun } = opts;
   const out: SpeakerSummary = {
-    dryRun, eventId: null, rows: 0, eligible: 0, create: 0, update: 0, errors: 0, refs: 0,
+    dryRun, eventId: null, rows: 0, eligible: 0, create: 0, update: 0, errors: 0, refs: 0, mitFoto: 0,
     zurueckgehalten: [], ohneFoto: [], runs: [],
   };
 
@@ -88,10 +94,6 @@ export async function syncSpeakers(opts: {
 
   const gehen: SpeakerRow[] = [];
   for (const r of rows) {
-    if (r.consent_state !== "granted") {
-      out.zurueckgehalten.push({ name: name(r) || r.person_id, grund: r.consent_state });
-      continue;
-    }
     // Swapcard verlangt Vor- **und** Nachnamen. Eine Person ohne beides würde
     // drüben als Fehler zurückkommen; hier steht sie mit Grund in der Liste.
     if (!(r.first_name ?? "").trim() || !(r.last_name ?? "").trim()) {
@@ -99,12 +101,28 @@ export async function syncSpeakers(opts: {
       continue;
     }
     gehen.push(r);
-    if (!r.has_photo) out.ohneFoto.push(name(r));
+    if (r.has_photo) out.mitFoto += 1;
+    else out.ohneFoto.push(name(r));
   }
   out.eligible = gehen.length;
   if (gehen.length === 0) return out;
 
   const gruppe = await speakerGroupId(eventId);
+
+  // Im Echtlauf zuerst die öffentliche Kopie anlegen, dann schicken — sonst
+  // zeigte die App auf eine Adresse, unter der noch nichts liegt. Im Trockenlauf
+  // zählt die Adresse, unter der sie liegen wird.
+  const fotoUrl = new Map<string, string>();
+  for (const r of gehen) {
+    if (!r.has_photo) continue;
+    try {
+      const url = dryRun ? publicPhotoUrl(admin, r) : await ensurePublicPhoto(admin, r);
+      if (url) fotoUrl.set(r.person_id, url);
+    } catch (e) {
+      out.errors += 1;
+      out.runs.push({ name: name(r), outcome: "foto_fehler", detail: (e instanceof Error ? e.message : String(e)).slice(0, 200) });
+    }
+  }
 
   const eintraege = gehen.map((r) => {
     const felder = {
@@ -115,6 +133,7 @@ export async function syncSpeakers(opts: {
       biography: r.bio_short_de?.trim() || r.bio_short_en?.trim() || undefined,
       websiteUrl: r.website?.trim() || undefined,
       email: r.email ?? undefined,
+      photoUrl: fotoUrl.get(r.person_id),
       type: "speaker-pass",
       isVisible: true,
     };
