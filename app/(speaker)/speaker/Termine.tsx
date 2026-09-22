@@ -1,3 +1,4 @@
+import { AppleMarke, GoogleKalenderMarke, MicrosoftMarke } from "@/components/brand/KalenderMarken";
 import { DateList, DateRow } from "@/components/ui/DateRow";
 import { Menu, MenuItem } from "@/components/ui/Menu";
 
@@ -25,6 +26,10 @@ export type Termin = {
  * **Drei Wege, aber nur ein Knopf je Zeile.** Neun Schaltflächen auf einer
  * Übersicht wären lauter als alles andere darauf; das Menü zeigt die Auswahl
  * erst, wenn jemand sie sucht.
+ *
+ * **Die Zeichen sind die echten** (Konrad 22.09.). Sie liegen in
+ * `components/brand/KalenderMarken.tsx`, mit ihrer Herkunft; das ist auch die
+ * einzige Stelle im Portal mit rohen Farbwerten — eine Marke hat ihre Farbe.
  *
  * **Apple bekommt keine eigene Adresse.** Google und Microsoft öffnen einen
  * vorausgefüllten Termin per Link, Apple kennt das nicht — dort importiert man
@@ -61,9 +66,15 @@ export function Termine({
               align="end"
               trigger={<span className="ct-link">{t.add}</span>}
             >
-              <MenuItem href={termin.google}>{t.google}</MenuItem>
-              <MenuItem href={termin.outlook}>{t.outlook}</MenuItem>
-              <MenuItem href={termin.ics}>{t.apple}</MenuItem>
+              <MenuItem href={termin.google} icon={<GoogleKalenderMarke />}>
+                {t.google}
+              </MenuItem>
+              <MenuItem href={termin.outlook} icon={<MicrosoftMarke />}>
+                {t.outlook}
+              </MenuItem>
+              <MenuItem href={termin.ics} icon={<AppleMarke />}>
+                {t.apple}
+              </MenuItem>
             </Menu>
           }
         />
