@@ -56,3 +56,39 @@ Stand: 2026-09-17 · Pflege: die zuständige Build-Session; Konrad liest hier de
 | PART-050 | 18.09. | /partner/side-event, /partner/interview-tables, /admin/partner | Partner-angelegte Formate gingen sofort ins Programm → **erst nach Freigabe durch das Team** (Konrad 18.09., D2): Side-Event und Interview-Slot bleiben bis dahin unveröffentlicht, Freigabe im Partner-Admin mit Audit wie bei Bewerbungsentscheidungen | P2 | geplant #68 (Datenmodell) | Konrad 18.09., Auftrag §D2 |
 | PART-051 | 18.09. | /partner/bewerber, Format-Seiten | Kein Export der Bewerbungen → **Export aller Bewerbungsdaten** (Konrad 18.09., D3): Antworten, Datum, Status plus die Kontakt- und Profilfelder, die der Partner in der Liste ohnehin sieht; **nie** Art.-9-Felder, Geburtsdatum, Geschlecht, Telefon oder interne Notizen, außer das Format fragt sie selbst ab. Nur Bewerbungen mit `consent_share`, DSGVO-Hinweis in der Datei (Zweckbindung, Löschung nach dem Verfahren, Partner ist Verantwortlicher), jeder Export im Audit | P2 | geplant #68 (Datenmodell) | Konrad 18.09., Auftrag §D3 |
 | PART-052 | 18.09. | /partner/hackathon (Backdrop) | Dateiregeln des Hackathon-Backdrops fehlten → **Konrad 18.09. im Wortlaut geliefert:** Schutzrand 100 mm von der sichtbaren Kante für Text, Logos und Gesichter; PDF/X-4; CMYK ISO Coated v2; mindestens 62 dpi im Endformat; Schriften eingebettet oder in Pfade; Schutzzone 100 mm nach innen, **nicht** im Beschnitt; Endformat = sichtbarer Rahmen, Datenformat = Endformat + Beschnitt. Die Fensterscheiben hinter der Challenge Area werden foliert. **Endformat 1610 × 2790 mm** (Breite × Höhe), Konrad 21.09. Vorlage Hack 2026: Notion-Wiki (vor Übernahme PII prüfen) | P2 | gebaut #94 (0117 live 20260921111140) | Konrad 18.09., Auftrag §D4 |
+| PART-053 | 22.09. | **Admin/Produktion** (nicht /partner/*) | Partner-Logos für die Partner-Wall wurden in den Vorjahren immer wieder vergessen → **Produktionsliste fürs Marketing**: alle Partner der Edition mit Logo (Vektordatei) und Kategorie, als Tabelle und CSV. Entscheidend ist die **Umkehrung**: nicht die vorhandenen Logos auflisten, sondern **alle Partner** mit leerer Spalte, wo eines fehlt — eine Liste des Vorhandenen verhindert das Vergessen nicht. Daten sind vollständig da: Pflicht `logo_vector` (jeder Partner, `required`), `partner_asset` mit Prüfstand, `org_edition.sponsoring_level`. **Drei Punkte vor dem Bauen zu klären, siehe Notiz unten** | P2 | erfasst (Zuordnung offen: Seite gehört in den Admin-Bereich) | Konrad 22.09. |
+
+
+## Notiz zu PART-053 · Produktionsliste Partner-Logos (22.09.2026)
+
+Der Punkt ist aufgenommen, aber **nicht gebaut** — er gehört in den Admin-/Produktionsbereich, nicht ins
+Partner-Portal, und drei Fragen entscheiden, was die Liste überhaupt zeigt. Hier steht, was die Datenbank
+heute hergibt, damit die bauende Session nicht dieselbe Recherche zweimal macht.
+
+**Was schon da ist.** Die Vektordatei ist seit 0041 eine **Pflicht für jeden Partner**
+(`deliverable_template.key = 'logo_vector'`, ohne SKU und ohne Kategorie, `required = true`). Die Dateien
+liegen in `partner_asset` mit `kind = 'logo_vector'`, `is_current` und einem `status`
+(`pending`/`accepted`/`rejected`). Das Vergessen ist also kein Datenproblem, sondern ein Ansichtsproblem:
+die Information, wer nichts hochgeladen hat, steht heute nur verstreut in den Checklisten der einzelnen
+Partner.
+
+**1 · Welche „Kategorie" ist gemeint?** Es gibt zwei Felder, und das naheliegende ist vermutlich das
+falsche. `organization.partner_category` kennt im Vokabular nur `startup` und `talent` und ist im Bestand
+**überall leer**. `org_edition.sponsoring_level` kommt aus dem HubSpot-Deal und trägt Werte wie `premium`.
+Für eine Wand, auf der Hauptpartner größer stehen als Aussteller, ist das zweite gemeint — es hat aber kein
+Vokabular und keine feste Werteliste. Konrad entscheidet, welches Feld gilt; wenn es `sponsoring_level`
+ist, braucht es vorher ein Vokabular, sonst steht auf der Wand, was jemand in HubSpot getippt hat.
+
+**2 · „SVG" oder „Vektordatei"?** Die Pflicht nimmt `svg`, `eps`, `ai` und `pdf`. Wer eine `.ai`-Datei
+hochlädt, hat die Pflicht erfüllt — die Liste zeigte „vorhanden", und die Druckerei bekäme trotzdem nicht,
+was sie braucht. Die Liste muss deshalb das **Format** nennen, und es ist zu entscheiden, ob die Wand
+zwingend SVG verlangt (dann gehört das in die Dateiregel der Pflicht, nicht nur in die Liste).
+
+**3 · Geprüft oder nur hochgeladen?** Ein Logo mit `status = 'pending'` hat niemand angesehen. Für einen
+Druck ist das etwas anderes als `accepted`. Die Liste zeigt beides getrennt, sonst verschiebt sie das
+Vergessen nur von „fehlt" nach „war falsch".
+
+**Vorschlag für den Ort.** Die Liste ist ein Werkzeug des Teams, kein Partnerinhalt — sie gehört neben die
+bestehende Bestellliste der Produktion (`/produktion/bestellungen/csv` ist das Muster, inklusive `csvCell`
+und BOM für Excel). Gebaut wird sie sinnvollerweise von der Session, der der Admin-/Produktionsbereich
+gehört. Die Partner-Seite steuert nichts Neues bei: die Pflicht gibt es, die Dateien auch.
