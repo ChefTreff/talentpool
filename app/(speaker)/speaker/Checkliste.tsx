@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckMark } from "@/components/ui/CheckMark";
 import { Countdown } from "@/components/ui/Countdown";
+import { HakenSchalter } from "./HakenSchalter";
 
 /** Eine Aufgabe der Checkliste. */
 export type Aufgabe = {
@@ -12,6 +13,11 @@ export type Aufgabe = {
   erledigt: boolean;
   /** Frist aus `deadline`, sofern für diese Aufgabe eine gepflegt ist. */
   faellig?: { iso: string; text: string } | null;
+  /**
+   * Kennung aus `speaker_task`, wenn der Speaker diesen Punkt **selbst**
+   * abhakt (0149). Fehlt sie, ist der Haken abgeleitet und nicht klickbar.
+   */
+  selbstId?: string;
 };
 
 /**
@@ -21,12 +27,16 @@ export type Aufgabe = {
  * Deadline und der Möglichkeit abzuhaken." Vorher standen hier Karten ohne
  * Haken und ohne Frist — das war eine Aufzählung, keine Liste zum Abarbeiten.
  *
- * **Der Haken setzt sich selbst.** Ob eine Aufgabe erledigt ist, weiß das
- * Portal: das Foto liegt im Bucket oder nicht, die Einwilligung steht oder
- * nicht. Ein Häkchen zum Selbstsetzen wäre eine zweite Wahrheit daneben — und
- * die erste, die auseinanderläuft. Wer den Kreis anklickt, landet deshalb
- * dort, wo die Aufgabe erledigt wird, statt einen Haken zu setzen, der nichts
- * bedeutet.
+ * **Zwei Arten von Haken.** Wo das Portal die Erledigung selbst sieht — das
+ * Foto liegt im Bucket, die Einwilligung steht —, setzt sich der Haken von
+ * selbst; ihn von Hand setzen zu lassen wäre eine zweite Wahrheit daneben,
+ * und die erste, die auseinanderläuft. Wer dort auf den Kreis klickt, landet
+ * deshalb dort, wo die Aufgabe erledigt wird.
+ *
+ * Daneben gibt es Aufgaben, die das Portal **nicht** beobachten kann („Beim
+ * Hotel gemeldet") — die pflegt das Team unter `/admin/speaker/aufgaben`, und
+ * dort hakt der Speaker selbst ab (Konrad, 23.09.: „Es wird auch Punkte geben,
+ * die sie selbst abhaken können müssen"). Erkennbar an `selbstId`.
  *
  * **Erledigtes bleibt stehen**, durchgestrichen und nach unten sortiert: eine
  * Liste, aus der Zeilen verschwinden, fühlt sich an, als hätte man sie sich
@@ -45,6 +55,7 @@ export function Checkliste({
     hours: string;
     dueLabel: string;
     allDone: string;
+    tickError: string;
   };
 }) {
   if (aufgaben.length === 0) return <p className="ct-help">{t.allDone}</p>;
@@ -63,7 +74,16 @@ export function Checkliste({
           key={a.key}
           className="flex min-h-14 flex-wrap items-center gap-3 border-b px-4 py-3 last:border-b-0"
         >
-          <CheckMark done={a.erledigt} label={a.erledigt ? t.done : t.open} />
+          {a.selbstId ? (
+            <HakenSchalter
+              taskId={a.selbstId}
+              done={a.erledigt}
+              label={`${a.titel} — ${a.erledigt ? t.done : t.open}`}
+              fehler={t.tickError}
+            />
+          ) : (
+            <CheckMark done={a.erledigt} label={a.erledigt ? t.done : t.open} />
+          )}
           <div className="min-w-0 flex-1">
             {a.href ? (
               <Link href={a.href} className="ct-label text-ink hover:underline">

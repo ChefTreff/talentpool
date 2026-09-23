@@ -915,7 +915,9 @@
     "checklistTitle": "Deine Checkliste",
     "dueSoon": "heute fällig",
     "dueDays": "noch {n} Tage",
-    "dueHours": "noch {n} Stunden"
+    "dueHours": "noch {n} Stunden",
+    "checkSelfHint": "Hak ab, sobald du das erledigt hast.",
+    "checkTickError": "Der Haken ließ sich nicht setzen. Bitte lade die Seite neu."
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -2174,7 +2176,8 @@
       "initiatives": "Initiativen",
       "reception": "Reception",
       "submissions": "Einreichungen",
-      "regie": "Regie"
+      "regie": "Regie",
+      "speakerTasks": "Speaker-Aufgaben"
     },
     "overview": {
       "title": "Übersicht",
@@ -4065,5 +4068,36 @@
     "cardProfileAction": "Profil öffnen",
     "loggedInAs": "Angemeldet als",
     "navLabel": "Übersicht"
+  },
+  "adminSpeakerTasks": {
+    "title": "Speaker-Aufgaben",
+    "lead": "Punkte, die der Speaker in seiner Checkliste selbst abhakt — für Erledigungen, die das Portal nicht sehen kann. Was es selbst sieht (Foto, Einwilligung, Folien), steht ohnehin schon in der Liste und gehört nicht hierher.",
+    "emptyTitle": "Keine Edition angelegt",
+    "emptyBody": "Ohne Edition gibt es nichts zu pflegen.",
+    "newTitle": "Neue Aufgabe",
+    "newHint": "Erscheint in der Checkliste jedes Speakers dieser Edition.",
+    "key": "Schlüssel",
+    "keyHint": "Technisch, einmalig je Edition — z. B. hotel_gemeldet.",
+    "labelDe": "Aufgabe (DE)",
+    "labelEn": "Aufgabe (EN)",
+    "descDe": "Beschreibung (DE)",
+    "descEn": "Beschreibung (EN)",
+    "deadline": "Frist",
+    "deadlineHint": "Wird unter „Fristen“ gepflegt; hier nur verknüpft.",
+    "sortOrder": "Reihenfolge",
+    "add": "Anlegen",
+    "saved": "Gespeichert",
+    "ticks": "Abgehakt",
+    "state": "Zustand",
+    "actions": "Aktionen",
+    "active": "aktiv",
+    "inactive": "stillgelegt",
+    "activate": "Aktivieren",
+    "deactivate": "Stilllegen",
+    "activated": "Aktiviert",
+    "deactivated": "Stillgelegt",
+    "delete": "Löschen",
+    "deleted": "Gelöscht",
+    "deleteConfirm": "Aufgabe „{key}“ endgültig löschen?"
   }
 }

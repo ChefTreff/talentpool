@@ -167,3 +167,19 @@ export const KONTAKT_FELDER = [
 export const FRIST_KEY: Record<string, string> = {
   presentation: "presentation_upload",
 };
+
+/**
+ * Eine Aufgabe aus `speaker_task` samt eigenem Haken (`my_speaker_tasks`,
+ * 0149) — die Punkte, die das Portal nicht selbst beobachten kann.
+ */
+export type SpeakerTask = {
+  id: string;
+  key: string;
+  label_de: string;
+  label_en: string;
+  description_de: string | null;
+  description_en: string | null;
+  /** Schlüssel einer Frist aus `deadline`, oder `null`. */
+  deadline_key: string | null;
+  done_at: string | null;
+};

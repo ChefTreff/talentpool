@@ -15,7 +15,13 @@ import { loadMyContacts } from "@/components/kontakt/load";
 import { ReceptionCard } from "./ReceptionCard";
 import { Checkliste, type Aufgabe } from "./Checkliste";
 import { Termine, type Termin } from "./Termine";
-import { FRIST_KEY, STEP_HREF, type MyReception, type SpeakerProfile } from "./types";
+import {
+  FRIST_KEY,
+  STEP_HREF,
+  type MyReception,
+  type SpeakerProfile,
+  type SpeakerTask,
+} from "./types";
 import type { MySession } from "./session/types";
 
 export const dynamic = "force-dynamic";
@@ -118,7 +124,6 @@ export default async function SpeakerPage() {
       body: t.speaker.stepTicketBody,
     },
   };
-  const done = Object.keys(STEPS).filter((key) => !open.includes(key));
 
   // --- Checkliste (SPK-024) -----------------------------------------------
   // Konrad, 23.09.: „Eine Checkliste ist für mich eine ToDo-Liste mit Aufgabe,
@@ -146,6 +151,30 @@ export default async function SpeakerPage() {
       faellig: due ? { iso: due, text: fristFormat.format(new Date(due)) } : null,
     };
   });
+
+  // Dazu die Aufgaben, die der Speaker **selbst** abhakt (0149). Das Portal
+  // kann sie nicht beobachten — „Beim Hotel gemeldet" sieht niemand ausser ihm
+  // — also steht der Haken hier als Aussage und nicht als Beobachtung. Gepflegt
+  // werden sie unter `/admin/speaker/aufgaben`; gibt es keine, bleibt die Liste
+  // genau so, wie sie vorher war.
+  const { data: taskRows } = await supabase.rpc("my_speaker_tasks");
+  const selbst = (taskRows ?? []) as SpeakerTask[];
+  for (const task of selbst) {
+    const due = task.deadline_key ? fristen.get(task.deadline_key) : undefined;
+    aufgaben.push({
+      key: `task:${task.id}`,
+      selbstId: task.id,
+      titel: (locale === "en" ? task.label_en : task.label_de) || task.label_de,
+      beschreibung:
+        (locale === "en" ? task.description_en : task.description_de) ??
+        t.speaker.checkSelfHint,
+      href: null,
+      erledigt: task.done_at !== null,
+      faellig: due ? { iso: due, text: fristFormat.format(new Date(due)) } : null,
+    });
+  }
+  const offenGesamt = aufgaben.filter((a) => !a.erledigt).length;
+  const fertigGesamt = aufgaben.length - offenGesamt;
 
   // --- Termine (SPK-026) ---------------------------------------------------
   // Alles, was feststeht, in einer Liste: der Summit als Rahmen, der eigene
@@ -266,9 +295,9 @@ export default async function SpeakerPage() {
         lead={t.speaker.lead}
         aside={
           <BandStat
-            value={`${done.length} / ${done.length + open.length}`}
+            value={`${fertigGesamt} / ${aufgaben.length}`}
             label={t.speaker.bandStatLabel}
-            hint={open.length > 0 ? t.speaker.bandStatOpen : t.speaker.bandStatDone}
+            hint={offenGesamt > 0 ? t.speaker.bandStatOpen : t.speaker.bandStatDone}
           />
         }
       />
@@ -307,6 +336,7 @@ export default async function SpeakerPage() {
             hours: t.speaker.dueHours,
             dueLabel: t.speaker.deadline,
             allDone: t.speaker.allDone,
+            tickError: t.speaker.checkTickError,
           }}
         />
       </section>
