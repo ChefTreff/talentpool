@@ -1,4 +1,6 @@
--- ???? · Welle 6 · Weg zur Wallet über die vivenu-Ticketseite (SPK-037)
+-- 0145 · Welle 6 · Weg zur Wallet über die vivenu-Ticketseite (SPK-037)
+-- Angewendet von der Architektur-Session am 23.09.2026 als 20260923110335.
+--
 --
 -- **Nummer offen.** Vorschlag der Build-Session Speaker-Domäne; Anwenden,
 -- Umbenennen und der Eintrag ins Entscheidungslog gehören der
