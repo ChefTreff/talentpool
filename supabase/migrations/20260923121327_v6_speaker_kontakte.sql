@@ -1,4 +1,6 @@
 -- 0148 · Welle 6 · Assistenz und Agentur zu einem Kontakt (SPK-040)
+-- Angewendet von der Architektur-Session am 23.09.2026 als 20260923121327.
+--
 --
 -- Nummer 0148 von der Architektur-Session zugeteilt (23.09.; ersetzt die
 -- Vormerkung 0128). Vorschlag der Build-Session Speaker-Domäne; Anwenden,
