@@ -161,12 +161,6 @@ export function TravelView({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Anreise-FAQ: fester Text, bis die Wissensbasis steht (Welle 4). */}
-      <Card className="p-6">
-        <h2 className="ct-h3 mb-2 text-ink">{t.arrivalTitle}</h2>
-        <p className="ct-help whitespace-pre-line">{t.arrivalBody}</p>
-      </Card>
-
       {/* Freischaltung: Status setzt das Team, den Consent gibt der Speaker. */}
       {blockReason === "status" && (
         <Card className="p-6">

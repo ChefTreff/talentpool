@@ -911,7 +911,12 @@
     "deleteSlides": "Entfernen",
     "deleteSlidesTitle": "Folien entfernen?",
     "deleteSlidesBody": "Die Datei wird gelöscht. Gibt es eine ältere Fassung, wird sie wieder die aktuelle.",
-    "slidesDeleted": "Folien entfernt"
+    "slidesDeleted": "Folien entfernt",
+    "sectionArrival": "An- und Abreise",
+    "sectionShuttle": "Shuttle",
+    "sectionHotel": "Hotel & Übernachtung",
+    "sectionSlot": "Dein Slot",
+    "sectionContent": "Titel & Beschreibung"
   },
   "leads": {
     "title": "Speaker-Pipeline",
