@@ -15,14 +15,15 @@ import { useToast } from "@/components/ui/Toast";
 import {
   approveTravelCosts,
   handoverSpeaker,
-  inviteAssistant,
   inviteSpeaker,
-  removeAssistant,
+  removeSpeakerContact,
   saveSpeaker,
+  saveSpeakerContact,
   setContacts,
   setPipeline,
   type AdminResult,
 } from "../actions";
+import { KontakteCard } from "@/components/speaker/KontakteCard";
 import { RIDER_FLAGS, SOCIAL_KEYS, type ContactOption, type SpeakerDetail, type SpeakerManager } from "../types";
 
 type Strings = Record<string, string>;
@@ -90,9 +91,6 @@ export function SpeakerDetailView({
   const [owner, setOwner] = useState(speaker.owner_person_id ?? "");
   const [lead, setLead] = useState(speaker.lead_contact_id ?? "");
   const [buddy, setBuddy] = useState(speaker.buddy_contact_id ?? "");
-  const [assistEmail, setAssistEmail] = useState("");
-  const [assistFirst, setAssistFirst] = useState("");
-  const [assistLast, setAssistLast] = useState("");
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const datum = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
@@ -363,55 +361,19 @@ export function SpeakerDetailView({
             </Button>
           </div>
 
+          {/* Assistenz, Agentur und Office in einer Liste (SPK-040, 0148).
+              Dieselbe Karte wie im Speaker-Portal — „Admin-Vollständigkeit":
+              was das Team dort sieht, kann es hier auch pflegen. */}
           <div className="mt-5 border-t pt-4">
-            <p className="ct-label text-ink">{t.assistant}</p>
-            {speaker.assistant_name ? (
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <Badge tone="accent">{speaker.assistant_name}</Badge>
-                <Button
-                  variant="ghost"
-                  disabled={pending}
-                  onClick={() =>
-                    startTransition(async () =>
-                      report(await removeAssistant(speaker.id), t.assistantRemoved),
-                    )
-                  }
-                >
-                  {t.removeAssistant}
-                </Button>
-              </div>
-            ) : (
-              <div className="mt-2 grid gap-3 sm:grid-cols-4 sm:items-end">
-                <Field label={t.assistantEmail} htmlFor="ae" className="sm:col-span-2">
-                  <Input
-                    id="ae"
-                    type="email"
-                    value={assistEmail}
-                    onChange={(e) => setAssistEmail(e.target.value)}
-                  />
-                </Field>
-                <Field label={t.firstName} htmlFor="af">
-                  <Input id="af" value={assistFirst} onChange={(e) => setAssistFirst(e.target.value)} />
-                </Field>
-                <Field label={t.lastName} htmlFor="al">
-                  <Input id="al" value={assistLast} onChange={(e) => setAssistLast(e.target.value)} />
-                </Field>
-                <Button
-                  variant="secondary"
-                  disabled={pending || assistEmail.trim() === ""}
-                  onClick={() =>
-                    startTransition(async () =>
-                      report(
-                        await inviteAssistant(speaker.id, assistEmail, assistFirst, assistLast),
-                        t.assistantInvited,
-                      ),
-                    )
-                  }
-                >
-                  {t.inviteAssistant}
-                </Button>
-              </div>
-            )}
+            <KontakteCard
+              kontakte={speaker.speaker_contacts ?? []}
+              readOnly={false}
+              profileId={speaker.id}
+              aktionen={{ save: saveSpeakerContact, remove: removeSpeakerContact }}
+              t={t}
+              common={common}
+              message={message}
+            />
           </div>
         </Card>
 

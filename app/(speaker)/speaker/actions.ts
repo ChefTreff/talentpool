@@ -175,3 +175,28 @@ export async function setReceptionRsvp(
   refresh();
   return { ok: true, data: undefined };
 }
+
+// === Kontakte: Assistenz, Agentur, Office in einer Liste (SPK-040, 0148) ====
+
+/**
+ * Kontakt anlegen oder ändern. Mit `has_access` wird daraus ein Zugang: die
+ * RPC legt die Person an, vergibt die Rolle und verschickt die Einladung.
+ */
+export async function saveSpeakerContact(
+  data: Record<string, unknown>,
+): Promise<SpeakerResult<string>> {
+  const supabase = await client();
+  const { data: id, error } = await supabase.rpc("upsert_speaker_contact", { p_data: data });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: id as string };
+}
+
+/** Kontakt entfernen; ein Zugang geht damit auch. */
+export async function removeSpeakerContact(contactId: string): Promise<SpeakerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("remove_speaker_contact", { p_contact_id: contactId });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
