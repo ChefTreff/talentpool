@@ -69,6 +69,7 @@
 | Welle 6 · 0141 | **Sponsoren-Kategorien: vom gebuchten Paket zur Logo-Wand in Swapcard** (`20260922095139`, `v6_sponsoren_kategorien`; Details im Migrationskopf) | — |
 | Welle 6 · 0142 | **Welle 6 · Hochgeladene Folien wieder entfernen (SPK-028)** (`20260922102936`, `v6_folien_loeschen`; Details im Migrationskopf) | — |
 | Welle 6 · `20260923105946` | **0129? · Welle 6 · „Ich möchte weggebracht werden" an der Abreise (SPK-032)** (`20260923105946`, `v6_speaker_abreise`; Details im Migrationskopf) | — |
+| Welle 6 · 0144 | **Welle 6 · Themen als gepflegte Liste statt Freitext (SPK-027)** (`20260923105947`, `v6_session_themen`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

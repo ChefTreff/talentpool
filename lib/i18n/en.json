@@ -586,7 +586,7 @@
     "fieldSessionTitle": "Title",
     "fieldSessionDescription": "Description",
     "fieldTopics": "Topics",
-    "fieldTopicsHint": "Separated by commas.",
+    "fieldTopicsHint": "Pick as many as fit. The same list we sort the talks by.",
     "fieldSessionLanguage": "Session language",
     "fieldNotes": "Notes for the team",
     "fieldNotesHint": "Not public.",

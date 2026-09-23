@@ -586,7 +586,7 @@
     "fieldSessionTitle": "Titel",
     "fieldSessionDescription": "Beschreibung",
     "fieldTopics": "Themen",
-    "fieldTopicsHint": "Mit Komma getrennt.",
+    "fieldTopicsHint": "Mehrfachauswahl. Dieselbe Liste, nach der wir auch die Talks sortieren — such dir aus, was passt.",
     "fieldSessionLanguage": "Sprache der Session",
     "fieldNotes": "Hinweise fürs Team",
     "fieldNotesHint": "Nicht öffentlich.",

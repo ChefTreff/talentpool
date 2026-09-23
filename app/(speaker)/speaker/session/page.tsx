@@ -92,6 +92,7 @@ export default async function SpeakerSessionPage() {
             language: vgroup(vocab, "language"),
             accessMode: vgroup(vocab, "access_mode"),
             publishStatus: vgroup(vocab, "publish_status"),
+            topics: vgroup(vocab, "session_topic"),
           }}
           locale={locale}
           dateLocale={t.meta.dateLocale}
