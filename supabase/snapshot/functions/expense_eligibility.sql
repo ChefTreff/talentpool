@@ -8,7 +8,7 @@ declare v_sp speaker_profile%rowtype; v_me uuid := current_person_id(); v_reason
 begin
   select * into v_sp from speaker_profile where id = coalesce(p_profile_id, my_speaker_profile_id(null));
   if not found then return null; end if;
-  if not coalesce((v_sp.person_id = v_me or v_sp.assistant_person_id = v_me or can_manage_speaker(v_sp.id) or is_expense_approver()), false) then
+  if not coalesce((v_sp.person_id = v_me or is_speaker_assistant(v_sp.id, v_me) or can_manage_speaker(v_sp.id) or is_expense_approver()), false) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   v_reason := case when not v_sp.travel_costs_covered then 'not_covered' when v_sp.travel_costs_approved_at is null then 'not_approved' end;

@@ -9,6 +9,6 @@ AS $$
   from speaker_asset a
   join speaker_profile sp on sp.id = a.profile_id
   where (p_profile_id is null or a.profile_id = p_profile_id)
-    and (sp.person_id = current_person_id() or sp.assistant_person_id = current_person_id() or can_manage_speaker(a.profile_id) or is_staff())
+    and (sp.person_id = current_person_id() or is_speaker_assistant(sp.id, current_person_id()) or can_manage_speaker(a.profile_id) or is_staff())
   order by a.kind, a.session_id, a.version desc
 $$;

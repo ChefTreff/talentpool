@@ -19,9 +19,9 @@ begin
   if not found then raise exception 'speaker_not_found' using errcode = 'P0002'; end if;
 
   -- Dieselbe Prüfung wie beim Hochladen. `coalesce` ist hier keine Zierde:
-  -- ohne hinterlegte Assistenz wäre `v_sp.assistant_person_id = v_me` NULL und
+  -- ohne hinterlegte Assistenz wäre `is_speaker_assistant(...)` NULL und
   -- die ganze Kette NULL statt false (Hotfix 0118).
-  if not coalesce((v_sp.person_id = v_me or v_sp.assistant_person_id = v_me
+  if not coalesce((v_sp.person_id = v_me or is_speaker_assistant(v_sp.id, v_me)
                    or can_manage_speaker(v_a.profile_id)), false) then
     raise exception 'not allowed' using errcode = '42501';
   end if;

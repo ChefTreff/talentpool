@@ -18,7 +18,7 @@ begin
   -- Zugesagter Auftritt einer Edition, die noch bevorsteht.
   if exists (
     select 1 from speaker_profile sp join event e on e.id = sp.edition_id
-     where (sp.person_id = v_me or sp.assistant_person_id = v_me)
+     where (sp.person_id = v_me or is_speaker_assistant(sp.id, v_me))
        and sp.confirmed_at is not null and sp.declined_at is null
        and e.end_date >= current_date)
   then v_out := array_append(v_out, 'speaker'); end if;

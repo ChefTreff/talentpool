@@ -80,6 +80,12 @@ begin
                           left join stage st on st.id = sl.stage_id
                           where ss.person_id = v_sp.person_id
                             and (e.edition_id = v_sp.edition_id or e.id = v_sp.edition_id)), '[]'::jsonb),
+    'speaker_contacts', (select coalesce(jsonb_agg(jsonb_build_object(
+                                   'id', c.id, 'kind', c.kind, 'first_name', c.first_name,
+                                   'last_name', c.last_name, 'email', c.email, 'phone', c.phone,
+                                   'has_access', c.has_access, 'consent_at', c.consent_at)
+                                 order by c.kind, c.created_at), '[]'::jsonb)
+                           from speaker_contact c where c.profile_id = v_sp.id),
     'internal_notes_visible', v_team,
     'created_at', v_sp.created_at,
     'updated_at', v_sp.updated_at

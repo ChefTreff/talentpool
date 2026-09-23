@@ -23,6 +23,6 @@ AS $$
   join event e on e.id = se.event_id and (e.edition_id = sp.edition_id or e.id = sp.edition_id)
   left join slot sl on sl.id = se.slot_id
   left join stage st on st.id = sl.stage_id
-  where sp.person_id = current_person_id() or sp.assistant_person_id = current_person_id()
+  where sp.person_id = current_person_id() or is_speaker_assistant(sp.id, current_person_id())
   order by sl.start_at nulls last, se.title_de
 $$;

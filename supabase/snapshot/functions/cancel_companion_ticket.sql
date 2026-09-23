@@ -11,7 +11,7 @@ begin
   if not found then raise exception 'ticket_not_found' using errcode = 'P0002'; end if;
   select * into v_sp from speaker_profile where id = v_t.speaker_profile_id;
   v_team := is_speaker_team(v_sp.edition_id);
-  if not coalesce((v_team or v_sp.person_id = v_me or v_sp.assistant_person_id = v_me or can_manage_speaker(v_sp.id)), false) then
+  if not coalesce((v_team or v_sp.person_id = v_me or is_speaker_assistant(v_sp.id, v_me) or can_manage_speaker(v_sp.id)), false) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   if v_t.status = 'cancelled' then return; end if;
