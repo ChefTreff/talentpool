@@ -70,6 +70,10 @@
 | Welle 6 · 0142 | **Welle 6 · Hochgeladene Folien wieder entfernen (SPK-028)** (`20260922102936`, `v6_folien_loeschen`; Details im Migrationskopf) | — |
 | Welle 6 · `20260923105946` | **0129? · Welle 6 · „Ich möchte weggebracht werden" an der Abreise (SPK-032)** (`20260923105946`, `v6_speaker_abreise`; Details im Migrationskopf) | — |
 | Welle 6 · 0144 | **Welle 6 · Themen als gepflegte Liste statt Freitext (SPK-027)** (`20260923105947`, `v6_session_themen`; Details im Migrationskopf) | — |
+| Welle 6 · 0145 | **Welle 6 · Weg zur Wallet über die vivenu-Ticketseite (SPK-037)** (`20260923110335`, `v6_ticket_wallet_link`; Details im Migrationskopf) | — |
+| Welle 6 · 0136 | **EA2 Speaker in die Event-App: Quelle und Rückverweis** (`20260923111232`, `v6_ea2_speaker_eventapp`; Details im Migrationskopf) | — |
+| Welle 6 · 0146 | **Welle 6 · Technik neu geschnitten: Ansage beim Speaker, Disposition** (`20260923111840`, `v6_technik_neu_geschnitten`; Details im Migrationskopf) | — |
+| Welle 6 · 0147 | **Welle 6 · Reisekosten als Pauschale oder per Beleg (SPK-042)** (`20260923120811`, `v6_reisekosten_pauschale`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

@@ -12,7 +12,18 @@ begin
   v_elig := expense_eligibility(v_sp.id);
   if not (v_elig->>'eligible')::boolean then raise exception 'not_eligible' using errcode = 'P0001', detail = v_elig->>'reason'; end if;
   if not (p_data ? 'positions') then raise exception 'positions_required' using errcode = '22023'; end if;
-  v_sum := validate_expense_positions(p_data->'positions', v_sp.id);
+
+  if v_sp.expense_mode = 'lump_sum' then
+    -- Die Pauschale steht fest; Positionen wären eine zweite Rechnung daneben.
+    -- Ein leeres Feld bleibt erlaubt, weil der Antrag die Bankverbindung trägt.
+    if jsonb_array_length(coalesce(p_data->'positions', '[]'::jsonb)) > 0 then
+      raise exception 'lump_sum_no_positions' using errcode = '22023';
+    end if;
+    v_sum := coalesce(v_sp.expense_lump_sum_cents, 0);
+  else
+    v_sum := validate_expense_positions(p_data->'positions', v_sp.id);
+  end if;
+
   if v_id is null then
     select * into v_c from expense_claim where profile_id = v_sp.id and status in ('draft', 'rejected') order by created_at desc limit 1 for update;
     if found then v_id := v_c.id; end if;

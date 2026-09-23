@@ -42,14 +42,14 @@ begin
     end if;
     insert into regie_cue (stage_id, event_day_id, slot_id, cue_start, cue_end, sort_order,
                            action, umbau_min, moderation, regie, backstage, mobiliar, notes,
-                           mic_assignments, media, created_by, updated_by)
+                           people_on_stage, mic_assignments, media, created_by, updated_by)
     values (v_stage, v_day, nullif(p_data->>'slot_id', '')::uuid, v_start, v_end,
             coalesce((p_data->>'sort_order')::integer, 0),
             coalesce(nullif(btrim(p_data->>'action'), ''), '—'),
             nullif(p_data->>'umbau_min', '')::integer,
             nullif(p_data->>'moderation', ''), nullif(p_data->>'regie', ''),
             nullif(p_data->>'backstage', ''), nullif(p_data->>'mobiliar', ''),
-            nullif(p_data->>'notes', ''),
+            nullif(p_data->>'notes', ''), nullif(p_data->>'people_on_stage', ''),
             coalesce(p_data->'mic_assignments', '{}'::jsonb),
             coalesce(p_data->'media', '{}'::jsonb),
             current_person_id(), current_person_id())
@@ -75,6 +75,8 @@ begin
       backstage = case when p_data ? 'backstage' then nullif(p_data->>'backstage', '') else backstage end,
       mobiliar = case when p_data ? 'mobiliar' then nullif(p_data->>'mobiliar', '') else mobiliar end,
       notes = case when p_data ? 'notes' then nullif(p_data->>'notes', '') else notes end,
+      people_on_stage = case when p_data ? 'people_on_stage'
+                             then nullif(p_data->>'people_on_stage', '') else people_on_stage end,
       mic_assignments = coalesce(p_data->'mic_assignments', mic_assignments),
       media = coalesce(p_data->'media', media),
       updated_by = current_person_id(),

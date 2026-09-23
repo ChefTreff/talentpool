@@ -912,6 +912,8 @@
     "deleteSlidesTitle": "Remove slides?",
     "deleteSlidesBody": "The file will be deleted. If there is an earlier version, it becomes the current one again.",
     "slidesDeleted": "Slides removed",
+    "stepLumpSum": "Lump sum",
+    "lumpSumBody": "Your travel costs are covered by a fixed amount — no receipts needed. Just add your bank details below and submit, and we will transfer it.",
     "checklistTitle": "Your checklist",
     "dueSoon": "due today",
     "dueDays": "{n} days left",
@@ -2031,10 +2033,22 @@
     "sponsorRemoveConfirmTitle": "Remove permanently?",
     "sponsorRemoveConfirmBody": "{n} entries will be taken off the wall. Swapcard has no recycling bin — this cannot be undone.",
     "sponsorFailed": "That did not work. Details are in the server log.",
-    "productSyncRunning": "Running …",
+    "speakerSyncTitle": "Swapcard: speakers",
+    "speakerSyncLead": "Confirmed speakers as people with a speaker pass, in the “Speakers” group — with their profile photo. The acceptance is the basis; no separate consent is needed.",
+    "speakerSyncRun": "Transfer speakers",
+    "speakerSyncResult": "{rows} confirmed · {eligible} transferable · {photos} with a photo · {create} new · {update} changed · {errors} errors",
+    "speakerHeldTitle": "Held back ({n})",
+    "speakerHeldHint": "These speakers are not transferred — Swapcard requires both a first and a last name. They are listed here so nobody is missing unnoticed.",
+    "speakerHeld_kein_name": "name missing",
+    "speakerNoPhotoTitle": "Without a photo ({n})",
+    "speakerNoPhotoHint": "The app shows a placeholder for them. Anyone who uploads a photo is included in the next run.",
+    "speakerSyncConfirmTitle": "Transfer speakers?",
+    "speakerSyncConfirmBody": "{create} people will be created, {update} changed. {held} stay behind.",
+    "speakerSyncFailed": "That did not work. Details are in the server log.",
     "productSyncResult": "{created} created · {updated} updated · {failed} failed",
     "productSyncSkipped": "{n} skipped — {reason}",
-    "productSyncFailed": "The sync did not run. Details are in the server log."
+    "productSyncFailed": "The sync did not run. Details are in the server log.",
+    "sectionsLabel": "On this page"
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -2959,7 +2973,11 @@
     "unsaved": "Unsaved changes",
     "discard": "Discard",
     "sectionReadonlyHint": "Comes from elsewhere and is not edited here.",
-    "sectionsLabel": "On this page"
+    "sectionsLabel": "On this page",
+    "expenseModeTitle": "Reimbursement",
+    "expenseModeHint": "Lump sum or reimbursement against receipts. With a lump sum the speaker can no longer enter receipts; existing ones stay.",
+    "expenseAmount": "Lump sum (EUR)",
+    "expenseAmountInvalid": "Please enter an amount in euros, e.g. 1200 or 1200.50."
   },
   "adminTeam": {
     "title": "Team",
@@ -3684,7 +3702,8 @@
     "saved": "Saved.",
     "added": "Created.",
     "slotsAttached": "slots are attached",
-    "sessionsAttached": "sessions are attached"
+    "sessionsAttached": "sessions are attached",
+    "sectionsLabel": "On this page"
   },
   "adminGrafiken": {
     "title": "Graphics & photos",
