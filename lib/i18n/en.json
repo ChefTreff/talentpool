@@ -911,7 +911,9 @@
     "pickupShuttleHint": "Pick-up and return ride run as a shuttle booking — we still need a phone number and addresses there.",
     "pickupShuttleLink": "Request a ride",
     "shuttleWindowHint": "Pick-ups are possible from {von} to {bis}, between 9 am and 9 pm.",
-    "expenseIntro": "How it works: you enter your receipts — train, flight, taxi, hotel —, upload the document for each one and release the claim. The speaker team then reviews it, and you get an email once it is decided. A released claim cannot be changed, so read it through once more before you send it. We produce the expense invoice ourselves — you do not need to write one."
+    "expenseIntro": "How it works: you enter your receipts — train, flight, taxi, hotel —, upload the document for each one and release the claim. The speaker team then reviews it, and you get an email once it is decided. A released claim cannot be changed, so read it through once more before you send it. We produce the expense invoice ourselves — you do not need to write one.",
+    "walletAdd": "Add to your wallet",
+    "walletHint": "Opens your ticket at vivenu — the Apple and Google Wallet buttons are there."
   },
   "leads": {
     "title": "Speaker pipeline",

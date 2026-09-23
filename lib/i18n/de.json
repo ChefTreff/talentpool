@@ -911,7 +911,9 @@
     "pickupShuttleHint": "Abholung und Rückfahrt laufen bei uns als Shuttle-Fahrt — dort brauchen wir noch Telefonnummer und Adressen.",
     "pickupShuttleLink": "Fahrt anfordern",
     "shuttleWindowHint": "Abholungen sind von {von} bis {bis} möglich, jeweils zwischen 9 und 21 Uhr.",
-    "expenseIntro": "So läuft es: Du erfasst deine Belege — Bahn, Flug, Taxi, Hotel —, lädst zu jedem das Dokument hoch und gibst den Antrag frei. Danach schaut das Speaker-Team darüber, und du bekommst eine Mail, sobald entschieden ist. Einen freigegebenen Antrag kannst du nicht mehr ändern, also lies ihn vorher noch einmal durch. Die Auslagenrechnung erzeugen wir daraus selbst — du musst keine schreiben."
+    "expenseIntro": "So läuft es: Du erfasst deine Belege — Bahn, Flug, Taxi, Hotel —, lädst zu jedem das Dokument hoch und gibst den Antrag frei. Danach schaut das Speaker-Team darüber, und du bekommst eine Mail, sobald entschieden ist. Einen freigegebenen Antrag kannst du nicht mehr ändern, also lies ihn vorher noch einmal durch. Die Auslagenrechnung erzeugen wir daraus selbst — du musst keine schreiben.",
+    "walletAdd": "Zur Wallet hinzufügen",
+    "walletHint": "Öffnet dein Ticket bei vivenu — dort liegen die Knöpfe für Apple und Google Wallet."
   },
   "leads": {
     "title": "Speaker-Pipeline",
