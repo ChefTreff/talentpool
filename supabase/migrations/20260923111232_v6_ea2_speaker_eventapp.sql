@@ -1,4 +1,6 @@
 -- 0136 · EA2 Speaker in die Event-App: Quelle und Rückverweis
+-- Angewendet von der Architektur-Session am 23.09.2026 als 20260923111232.
+--
 -- Zweck: Bestätigte Speaker-Profile sollen als Personen mit Speaker-Pass in
 -- Swapcard stehen (Arbeitsauftrag Welle 6, Arbeitspaket EA, Teil EA2). Diese
 -- Migration liefert die Leseliste dafür und den Rückverweis je Person.
