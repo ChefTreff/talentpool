@@ -1,3 +1,5 @@
+import type { SpeakerContact } from "@/app/(speaker)/speaker/types";
+
 import type { ManagedSpeaker } from "@/app/(speaker-leads)/speaker-leads/types";
 
 /** Die Liste ist dieselbe wie im Lead-Portal — nur sieht das Team hier alle. */
@@ -54,6 +56,8 @@ export type SpeakerDetail = {
   pass_type: string;
   hotel_tier: string;
   hospitality_status: string;
+  /** Kontakte aus `speaker_contact` (0148) — Assistenz, Agentur, Office. */
+  speaker_contacts: SpeakerContact[];
   travel_costs_covered: boolean;
   /** Wie abgerechnet wird: per Beleg oder als Pauschale (SPK-042). */
   expense_mode: "receipts" | "lump_sum";

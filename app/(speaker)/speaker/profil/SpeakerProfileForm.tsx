@@ -7,17 +7,17 @@ import { Card } from "@/components/ui/Card";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
-import { ConfirmDialog } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import {
-  inviteAssistant,
-  removeAssistant,
+  removeSpeakerContact,
   saveSpeakerConsents,
+  saveSpeakerContact,
   saveSpeakerProfile,
   type SpeakerResult,
 } from "../actions";
-import { KONTAKT_FELDER, SPEAKER_CONSENTS, type SpeakerProfile } from "../types";
+import { SPEAKER_CONSENTS, type SpeakerProfile } from "../types";
+import { KontakteCard } from "@/components/speaker/KontakteCard";
 
 type Strings = Record<string, string>;
 
@@ -95,23 +95,6 @@ export function SpeakerProfileForm({
     Object.fromEntries(SPEAKER_CONSENTS.map((c) => [c, profile.consents?.[c] === true])),
   );
 
-  // Kontakt ohne Portalzugang (0127). Er haengt nicht am Haupt-Formular:
-  // die Einwilligung gehoert an genau diese Angaben, nicht an einen Knopf, der
-  // auch Bio und Jobtitel speichert.
-  const [kontakt, setKontakt] = useState({
-    contact_first_name: profile.contact?.first_name ?? "",
-    contact_last_name: profile.contact?.last_name ?? "",
-    contact_email: profile.contact?.email ?? "",
-    contact_phone: profile.contact?.phone ?? "",
-    contact_kind: profile.contact?.kind ?? "agency",
-  });
-  const [kontaktConsent, setKontaktConsent] = useState(profile.contact?.consent_at != null);
-
-  const [assistantEmail, setAssistantEmail] = useState("");
-  const [assistantFirst, setAssistantFirst] = useState("");
-  const [assistantLast, setAssistantLast] = useState("");
-  const [askRemove, setAskRemove] = useState(false);
-
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -158,63 +141,6 @@ export function SpeakerProfileForm({
     });
   }
 
-  const kontaktGefuellt = KONTAKT_FELDER.some(
-    (f) => (kontakt[f.key as keyof typeof kontakt] ?? "").trim() !== "",
-  );
-
-  function onSaveKontakt() {
-    startTransition(async () => {
-      report(
-        await saveSpeakerProfile({
-          id: profile.id,
-          ...kontakt,
-          // Das Datum setzt die Oberfläche, nicht die Person: gemeint ist
-          // „bestätigt am", und das ist heute.
-          contact_consent_at: kontaktConsent ? new Date().toISOString().slice(0, 10) : "",
-        }),
-        t.contactSaved,
-      );
-    });
-  }
-
-  function onRemoveKontakt() {
-    startTransition(async () => {
-      const leer = {
-        contact_first_name: "",
-        contact_last_name: "",
-        contact_email: "",
-        contact_phone: "",
-        contact_kind: "agency",
-      };
-      if (report(await saveSpeakerProfile({ id: profile.id, ...leer }), t.contactRemoved)) {
-        setKontakt(leer);
-        setKontaktConsent(false);
-      }
-    });
-  }
-
-  function onInvite() {
-    startTransition(async () => {
-      if (
-        report(
-          await inviteAssistant(profile.id, assistantEmail, assistantFirst, assistantLast),
-          t.assistantInvited,
-        )
-      ) {
-        setAssistantEmail("");
-        setAssistantFirst("");
-        setAssistantLast("");
-      }
-    });
-  }
-
-  function onRemove() {
-    startTransition(async () => {
-      setAskRemove(false);
-      report(await removeAssistant(profile.id), t.assistantRemoved);
-    });
-  }
-
   return (
     <div className="flex flex-col gap-6">
       {/* Das laengste Formular im Speaker-Portal (QS-026). */}
@@ -226,6 +152,7 @@ export function SpeakerProfileForm({
           { id: "bio", label: t.sectionBio },
           { id: "socials", label: t.sectionSocials },
           { id: "technik", label: t.sectionTech },
+          { id: "kontakte", label: t.sectionContacts },
           { id: "consent", label: t.sectionConsent },
         ]}
       />
@@ -456,150 +383,19 @@ export function SpeakerProfileForm({
         )}
       </Card>
 
-      {/* Agentur oder Office (SPK-005). Steht **vor** der Assistenz, weil es
-          der haeufigere Fall ist: viele Speaker haben ein Office, das man
-          anschreibt, aber niemanden, der im Portal etwas tun soll. */}
-      <Card className="p-6">
-        <h2 className="ct-h3 mb-1 text-ink">{t.sectionContact}</h2>
-        <p className="ct-help mb-4">{t.contactLead}</p>
+      {/* Ein Abschnitt für Assistenz, Agentur und Office (SPK-040, 0148).
+          Vorher waren es zwei Karten für dieselbe Sache — die Art sagt, wer es
+          ist, das Häkchen, ob die Person sich anmelden darf. */}
+      <KontakteCard
+        id="kontakte"
+        kontakte={profile.contacts ?? []}
+        readOnly={profile.is_assistant}
+        aktionen={{ save: saveSpeakerContact, remove: removeSpeakerContact }}
+        t={t}
+        common={common}
+        message={message}
+      />
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t.contactKind} htmlFor="contact_kind">
-            <Select
-              id="contact_kind"
-              value={kontakt.contact_kind}
-              onChange={(e) => setKontakt((k) => ({ ...k, contact_kind: e.target.value }))}
-              options={["agency", "office", "management", "assistant", "other"].map((v) => ({
-                value: v,
-                label: t[`kind_${v}`] ?? v,
-              }))}
-            />
-          </Field>
-          <div />
-          {KONTAKT_FELDER.map((f) => (
-            <Field key={f.key} label={t[f.key] ?? f.key} htmlFor={f.key}>
-              <Input
-                id={f.key}
-                type={f.kind === "text" ? "text" : f.kind}
-                value={kontakt[f.key as keyof typeof kontakt] ?? ""}
-                onChange={(e) => setKontakt((k) => ({ ...k, [f.key]: e.target.value }))}
-              />
-            </Field>
-          ))}
-        </div>
-
-        <label className="mt-4 flex items-start gap-2 ct-small">
-          <input
-            type="checkbox"
-            className="mt-1 size-4"
-            checked={kontaktConsent}
-            onChange={(e) => setKontaktConsent(e.target.checked)}
-          />
-          <span>
-            {t.contactConsent}
-            <span className="ct-help block">{t.contactConsentHint}</span>
-          </span>
-        </label>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button
-            disabled={pending || (kontaktGefuellt && !kontaktConsent)}
-            onClick={onSaveKontakt}
-          >
-            {common.save}
-          </Button>
-          {profile.contact && (
-            <Button variant="ghost" disabled={pending} onClick={onRemoveKontakt}>
-              {t.contactRemove}
-            </Button>
-          )}
-        </div>
-        <p className="ct-help mt-3">{t.contactAssistantNote}</p>
-      </Card>
-
-      <Card className="p-6">
-        <h2 className="ct-h3 mb-1 text-ink">{t.sectionAssistant}</h2>
-        <p className="ct-help mb-4">{t.assistantLead}</p>
-
-        {profile.assistant ? (
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="ct-label text-ink">
-                {[profile.assistant.first_name, profile.assistant.last_name]
-                  .filter(Boolean)
-                  .join(" ") || common.none}
-              </p>
-              {profile.assistant.email && (
-                <p className="ct-help">{profile.assistant.email}</p>
-              )}
-            </div>
-            {!profile.is_assistant && (
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={pending}
-                onClick={() => setAskRemove(true)}
-              >
-                {t.assistantRemove}
-              </Button>
-            )}
-          </div>
-        ) : (
-          <p className="ct-help">{t.assistantNone}</p>
-        )}
-
-        {profile.is_assistant ? (
-          <p className="ct-help mt-4">{t.assistantOnlySpeaker}</p>
-        ) : (
-          <div className="mt-4">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Field label={t.assistantEmail} htmlFor="a_email">
-                <Input
-                  id="a_email"
-                  type="email"
-                  value={assistantEmail}
-                  onChange={(e) => setAssistantEmail(e.target.value)}
-                />
-              </Field>
-              <Field label={t.assistantFirstName} htmlFor="a_first">
-                <Input
-                  id="a_first"
-                  value={assistantFirst}
-                  onChange={(e) => setAssistantFirst(e.target.value)}
-                />
-              </Field>
-              <Field label={t.assistantLastName} htmlFor="a_last">
-                <Input
-                  id="a_last"
-                  value={assistantLast}
-                  onChange={(e) => setAssistantLast(e.target.value)}
-                />
-              </Field>
-            </div>
-            <div className="mt-4">
-              <Button
-                variant="secondary"
-                disabled={pending || assistantEmail.trim() === ""}
-                onClick={onInvite}
-              >
-                {t.assistantInvite}
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
-
-      {askRemove && (
-        <ConfirmDialog
-          title={t.assistantRemoveTitle}
-          body={t.assistantRemoveBody}
-          confirmLabel={t.assistantRemove}
-          cancelLabel={common.cancel}
-          pending={pending}
-          onCancel={() => setAskRemove(false)}
-          onConfirm={onRemove}
-        />
-      )}
     </div>
   );
 }
