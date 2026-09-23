@@ -911,7 +911,11 @@
     "deleteSlides": "Remove",
     "deleteSlidesTitle": "Remove slides?",
     "deleteSlidesBody": "The file will be deleted. If there is an earlier version, it becomes the current one again.",
-    "slidesDeleted": "Slides removed"
+    "slidesDeleted": "Slides removed",
+    "checklistTitle": "Your checklist",
+    "dueSoon": "due today",
+    "dueDays": "{n} days left",
+    "dueHours": "{n} hours left"
   },
   "leads": {
     "title": "Speaker pipeline",

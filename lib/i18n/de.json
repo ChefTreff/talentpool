@@ -911,7 +911,11 @@
     "deleteSlides": "Entfernen",
     "deleteSlidesTitle": "Folien entfernen?",
     "deleteSlidesBody": "Die Datei wird gelöscht. Gibt es eine ältere Fassung, wird sie wieder die aktuelle.",
-    "slidesDeleted": "Folien entfernt"
+    "slidesDeleted": "Folien entfernt",
+    "checklistTitle": "Deine Checkliste",
+    "dueSoon": "heute fällig",
+    "dueDays": "noch {n} Tage",
+    "dueHours": "noch {n} Stunden"
   },
   "leads": {
     "title": "Speaker-Pipeline",

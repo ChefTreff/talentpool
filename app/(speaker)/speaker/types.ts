@@ -156,3 +156,14 @@ export const KONTAKT_FELDER = [
   { key: "contact_email", kind: "email" },
   { key: "contact_phone", kind: "tel" },
 ] as const;
+
+/**
+ * Welche Aufgabe der Checkliste an welcher Frist hängt (SPK-024).
+ *
+ * Gepflegt wird die Frist im Admin unter „Fristen"; hier steht nur, welcher
+ * Schlüssel zu welchem Schritt gehört. Was hier fehlt, hat schlicht keine
+ * Frist — dann zeigt die Liste auch keine.
+ */
+export const FRIST_KEY: Record<string, string> = {
+  presentation: "presentation_upload",
+};

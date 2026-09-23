@@ -1,6 +1,5 @@
 import { AppleMarke, GoogleKalenderMarke, MicrosoftMarke } from "@/components/brand/KalenderMarken";
 import { DateList, DateRow } from "@/components/ui/DateRow";
-import { Menu, MenuItem } from "@/components/ui/Menu";
 
 /** Ein Termin, fertig formatiert und mit den drei Wegen in den Kalender. */
 export type Termin = {
@@ -21,19 +20,22 @@ export type Termin = {
  * „Termine" auf der Startseite (SPK-026).
  *
  * Konrad: alle wichtigen Daten an einer Stelle, jeder Termin einzeln in den
- * Kalender, mit Google, Microsoft und Apple zur Auswahl.
+ * Kalender, „am besten jeweils mit einem kleinen Icon, dann erkennt man das
+ * sofort".
  *
- * **Drei Wege, aber nur ein Knopf je Zeile.** Neun Schaltflächen auf einer
- * Übersicht wären lauter als alles andere darauf; das Menü zeigt die Auswahl
- * erst, wenn jemand sie sucht.
- *
- * **Die Zeichen sind die echten** (Konrad 22.09.). Sie liegen in
- * `components/brand/KalenderMarken.tsx`, mit ihrer Herkunft; das ist auch die
- * einzige Stelle im Portal mit rohen Farbwerten — eine Marke hat ihre Farbe.
+ * **Die drei Zeichen stehen offen in der Zeile.** Zuerst lagen sie in einem
+ * Menü — das war falsch: ein Menü zeigt seine Einträge erst nach dem Klick,
+ * und genau das „sofort erkennen" fiel damit weg (Konrad, 23.09.: „wollte dort
+ * noch die Kalender-Icons, wo sind die?"). Drei kleine Marken nebeneinander
+ * sind schmaler als ein Knopf mit Beschriftung und sagen mehr.
  *
  * **Apple bekommt keine eigene Adresse.** Google und Microsoft öffnen einen
  * vorausgefüllten Termin per Link, Apple kennt das nicht — dort importiert man
- * eine Datei. Das ist genau die `.ics`, die es seit SPK-014 gibt.
+ * eine Datei. Das ist genau die `.ics` aus SPK-014.
+ *
+ * Die Zeichen liegen in `components/brand/KalenderMarken.tsx`, mit ihrer
+ * Herkunft; das ist auch die einzige Stelle im Portal mit rohen Farbwerten —
+ * eine Marke hat ihre Farbe.
  */
 export function Termine({
   termine,
@@ -60,25 +62,50 @@ export function Termine({
           title={termin.titel}
           subtitle={termin.ort}
           action={
-            <Menu
-              label={t.add}
-              width="w-64"
-              align="end"
-              trigger={<span className="ct-link">{t.add}</span>}
-            >
-              <MenuItem href={termin.google} icon={<GoogleKalenderMarke />}>
-                {t.google}
-              </MenuItem>
-              <MenuItem href={termin.outlook} icon={<MicrosoftMarke />}>
-                {t.outlook}
-              </MenuItem>
-              <MenuItem href={termin.ics} icon={<AppleMarke />}>
-                {t.apple}
-              </MenuItem>
-            </Menu>
+            <span className="flex items-center gap-1">
+              {/* Der Zweck der Reihe steht für Vorlesesoftware einmal davor;
+                  die drei Links tragen danach nur noch ihren Dienstnamen. */}
+              <span className="sr-only">{`${t.add}: ${termin.titel}`}</span>
+              <KalenderLink href={termin.google} name={t.google}>
+                <GoogleKalenderMarke />
+              </KalenderLink>
+              <KalenderLink href={termin.outlook} name={t.outlook}>
+                <MicrosoftMarke />
+              </KalenderLink>
+              <KalenderLink href={termin.ics} name={t.apple}>
+                <AppleMarke />
+              </KalenderLink>
+            </span>
           }
         />
       ))}
     </DateList>
+  );
+}
+
+/**
+ * Ein Zeichen als Link — mit Namen für Vorlesesoftware und Mauszeiger.
+ *
+ * 44 Pixel Fläche, auch wenn das Zeichen nur 16 misst: ein Ziel, das man auf
+ * dem Telefon nicht trifft, ist kein Ziel (Design-Regel 7).
+ */
+function KalenderLink({
+  href,
+  name,
+  children,
+}: {
+  href: string;
+  name: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      title={name}
+      aria-label={name}
+      className="flex h-11 w-11 items-center justify-center rounded-ct-sm transition-colors hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    >
+      {children}
+    </a>
   );
 }
