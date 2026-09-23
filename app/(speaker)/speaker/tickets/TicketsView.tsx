@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TicketCard } from "@/components/ui/TicketCard";
 import { Field } from "@/components/ui/Field";
@@ -126,6 +126,23 @@ export function TicketsView({
                     </p>
                   )}
                   <p className="ct-help mt-2">{t.qrHint}</p>
+                  {/* Zur Wallet über vivenu (SPK-037). Die Datei können wir
+                      nicht abrufen — die vivenu-API kennt Wallet nur als
+                      Vorlage —, also führen wir dorthin, wo die Knöpfe
+                      stehen. Nur für die Inhaberin; die RPC prüft das noch
+                      einmal. */}
+                  {!isAssistant && (
+                    <p className="mt-3">
+                      <ButtonLink
+                        href={`/api/speaker/ticket-wallet?ticket=${own.id}`}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        {t.walletAdd}
+                      </ButtonLink>
+                      <span className="ct-help mt-2 block">{t.walletHint}</span>
+                    </p>
+                  )}
                 </div>
               </div>
             }
