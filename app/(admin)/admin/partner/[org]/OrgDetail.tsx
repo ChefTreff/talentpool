@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -247,7 +248,26 @@ export function OrgDetail({
         </dl>
       </Card>
 
-      <Card>
+      <AbschnittsNavigation
+
+        label={t.sectionsLabel}
+
+        items={[
+
+          { id: "stand", label: t.boothTitle },
+
+          { id: "kontakte", label: t.contactsTitle },
+
+          { id: "deals", label: t.dealsTitle },
+
+          { id: "gebucht", label: t.bookedTitle },
+
+        ]}
+
+      />
+
+
+      <Card id="stand">
         <CardHeader title={t.boothTitle} description={t.boothLead} />
         <div className="grid gap-4 md:grid-cols-4">
           {(
@@ -285,7 +305,7 @@ export function OrgDetail({
         </div>
       </Card>
 
-      <Card>
+      <Card id="kontakte">
         <CardHeader title={t.contactsTitle} description={`${t.contactsLead} · ${contacts.length}`} />
         <Table>
           <Thead>
@@ -470,7 +490,7 @@ export function OrgDetail({
         </Table>
       </Card>
 
-      <Card>
+      <Card id="deals">
         <CardHeader title={t.dealsTitle} description={t.dealsLead} />
         {deals.length === 0 ? (
           <p className="ct-help">{t.dealsEmpty}</p>
@@ -499,7 +519,7 @@ export function OrgDetail({
         <p className="ct-help mt-3">{t.dealsReprocessHint}</p>
       </Card>
 
-      <Card>
+      <Card id="gebucht">
         <CardHeader title={t.bookedTitle} description={t.bookedLead} />
         {overview.products.length === 0 ? (
           <p className="ct-help">{t.bookedEmpty}</p>

@@ -2045,7 +2045,8 @@
     "speakerSyncFailed": "That did not work. Details are in the server log.",
     "productSyncResult": "{created} created · {updated} updated · {failed} failed",
     "productSyncSkipped": "{n} skipped — {reason}",
-    "productSyncFailed": "The sync did not run. Details are in the server log."
+    "productSyncFailed": "The sync did not run. Details are in the server log.",
+    "sectionsLabel": "On this page"
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -3693,7 +3694,8 @@
     "saved": "Saved.",
     "added": "Created.",
     "slotsAttached": "slots are attached",
-    "sessionsAttached": "sessions are attached"
+    "sessionsAttached": "sessions are attached",
+    "sectionsLabel": "On this page"
   },
   "adminGrafiken": {
     "title": "Graphics & photos",

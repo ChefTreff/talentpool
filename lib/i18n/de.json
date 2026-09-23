@@ -2045,7 +2045,8 @@
     "speakerSyncFailed": "Das hat nicht geklappt. Einzelheiten stehen im Server-Log.",
     "productSyncResult": "{created} angelegt · {updated} geändert · {failed} fehlgeschlagen",
     "productSyncSkipped": "{n} übersprungen — {reason}",
-    "productSyncFailed": "Der Abgleich ist nicht gelaufen. Einzelheiten stehen im Server-Log."
+    "productSyncFailed": "Der Abgleich ist nicht gelaufen. Einzelheiten stehen im Server-Log.",
+    "sectionsLabel": "Auf dieser Seite"
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -3693,7 +3694,8 @@
     "saved": "Gespeichert.",
     "added": "Angelegt.",
     "slotsAttached": "Slots hängen daran",
-    "sessionsAttached": "Sessions hängen daran"
+    "sessionsAttached": "Sessions hängen daran",
+    "sectionsLabel": "Auf dieser Seite"
   },
   "adminGrafiken": {
     "title": "Grafiken & Fotos",
