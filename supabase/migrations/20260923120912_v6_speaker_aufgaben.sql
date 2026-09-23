@@ -1,4 +1,6 @@
 -- 0149 · Welle 6 · Aufgaben, die der Speaker selbst abhakt (SPK-024)
+-- Angewendet von der Architektur-Session am 23.09.2026 als 20260923120912.
+--
 --
 -- Nummer 0149 von der Architektur-Session zugeteilt (23.09.). Vorschlag der
 -- Build-Session Speaker-Domäne; Anwenden, Umbenennen und der Eintrag ins
