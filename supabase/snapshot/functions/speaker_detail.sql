@@ -57,6 +57,8 @@ begin
     'hotel_tier', v_sp.hotel_tier,
     'hospitality_status', v_sp.hospitality_status,
     'travel_costs_covered', v_sp.travel_costs_covered,
+    'expense_mode', v_sp.expense_mode,
+    'expense_lump_sum_cents', v_sp.expense_lump_sum_cents,
     'travel_costs_approved_at', v_sp.travel_costs_approved_at,
     'travel_costs_approved_by', (select nullif(btrim(coalesce(b.first_name, '') || ' ' || coalesce(b.last_name, '')), '')
                                    from person b where b.id = v_sp.travel_costs_approved_by),
