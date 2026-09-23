@@ -99,6 +99,28 @@ export async function approveTravelCosts(
   return { ok: true, data: undefined };
 }
 
+/**
+ * Pauschale oder Übernahme per Beleg (SPK-042).
+ *
+ * Der Betrag kommt **in Cent** herein; das Umrechnen aus dem Eurofeld passiert
+ * einmal in der Oberfläche, nicht hier und nicht in der Datenbank.
+ */
+export async function setExpenseMode(
+  profileId: string,
+  mode: string,
+  amountCents: number | null,
+): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_expense_mode", {
+    p_profile_id: profileId,
+    p_mode: mode,
+    p_amount_cents: amountCents,
+  });
+  if (error) return fail(error);
+  refresh(profileId);
+  return { ok: true, data: undefined };
+}
+
 /** Ansprechpartner je Speaker; `null` fällt auf den Standard der Edition zurück. */
 export async function setContacts(
   profileId: string,

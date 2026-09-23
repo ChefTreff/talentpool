@@ -6,6 +6,10 @@ export type ExpenseEligibility = {
   covered: boolean;
   approved: boolean;
   is_assistant: boolean;
+  /** Wie abgerechnet wird (SPK-042). Bei `lump_sum` gibt es keine Positionen. */
+  mode: "receipts" | "lump_sum";
+  /** Der Pauschalbetrag in Cent — nur bei `lump_sum` gesetzt. */
+  lump_sum_cents: number | null;
   open_claim: string | null;
 };
 

@@ -911,7 +911,9 @@
     "deleteSlides": "Entfernen",
     "deleteSlidesTitle": "Folien entfernen?",
     "deleteSlidesBody": "Die Datei wird gelöscht. Gibt es eine ältere Fassung, wird sie wieder die aktuelle.",
-    "slidesDeleted": "Folien entfernt"
+    "slidesDeleted": "Folien entfernt",
+    "stepLumpSum": "Pauschale",
+    "lumpSumBody": "Deine Reisekosten sind pauschal abgegolten — du musst keine Belege sammeln. Hinterlege unten nur deine Bankverbindung und reiche ein, dann überweisen wir."
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -2964,7 +2966,11 @@
     "unsaved": "Ungespeicherte Änderungen",
     "discard": "Verwerfen",
     "sectionReadonlyHint": "Kommt aus anderen Quellen und wird hier nicht geändert.",
-    "sectionsLabel": "Auf dieser Seite"
+    "sectionsLabel": "Auf dieser Seite",
+    "expenseModeTitle": "Abrechnung",
+    "expenseModeHint": "Pauschale oder Übernahme per Beleg. Bei einer Pauschale kann der Speaker keine Belege mehr erfassen; bereits erfasste bleiben stehen.",
+    "expenseAmount": "Pauschalbetrag (EUR)",
+    "expenseAmountInvalid": "Bitte einen Betrag in Euro eintragen, z. B. 1200 oder 1200,50."
   },
   "adminTeam": {
     "title": "Team",
