@@ -20,6 +20,7 @@ import {
   saveSpeaker,
   saveSpeakerContact,
   setContacts,
+  setExpenseMode,
   setPipeline,
   type AdminResult,
 } from "../actions";
@@ -534,6 +535,16 @@ export function SpeakerDetailView({
               {speaker.travel_costs_approved_at === null ? t.approve : t.revokeApproval}
             </Button>
           </div>
+          <Abrechnungsart
+            speaker={speaker}
+            labels={labels.expenseMode}
+            pending={pending}
+            onSave={(mode, cents) =>
+              startTransition(async () => report(await setExpenseMode(speaker.id, mode, cents), t.saved))
+            }
+            t={t}
+            common={common}
+          />
         </Card>
 
         {speaker.internal_notes_visible ? (
@@ -682,4 +693,82 @@ function reise(
   ]
     .filter(Boolean)
     .join(" · ");
+}
+
+/**
+ * Pauschale oder Übernahme per Beleg (SPK-042).
+ *
+ * Konrad, 22.09.: „So haben wir zwei Arten von Deals. Entweder eine feste
+ * Summe, die pauschal abgerechnet wird … oder die Übernahme per Beleg."
+ *
+ * Steht bewusst **nicht** im gemeinsamen Speichern-Balken: die Art zu wechseln
+ * sperrt drüben die Belegerfassung, das ist keine Nebenwirkung eines Klicks auf
+ * „Speichern" weiter unten. Der Betrag wird in Euro eingegeben und hier einmal
+ * in Cent umgerechnet — gerechnet wird überall sonst nur noch in Cent.
+ */
+function Abrechnungsart({
+  speaker,
+  labels,
+  pending,
+  onSave,
+  t,
+  common,
+}: {
+  speaker: SpeakerDetail;
+  labels: Record<string, string>;
+  pending: boolean;
+  onSave: (mode: string, cents: number | null) => void;
+  t: Strings;
+  common: { save: string };
+}) {
+  const [mode, setMode] = useState(speaker.expense_mode);
+  const [betrag, setBetrag] = useState(
+    speaker.expense_lump_sum_cents === null ? "" : (speaker.expense_lump_sum_cents / 100).toFixed(2),
+  );
+
+  // Komma wie Punkt: wer „1200,50" tippt, meint denselben Betrag wie mit Punkt.
+  const cents = (() => {
+    const n = Number(betrag.replace(",", ".").replace(/\s/g, ""));
+    if (!betrag.trim() || !Number.isFinite(n) || n < 0) return null;
+    return Math.round(n * 100);
+  })();
+  const fehlt = mode === "lump_sum" && cents === null;
+  const geaendert =
+    mode !== speaker.expense_mode ||
+    (mode === "lump_sum" && cents !== speaker.expense_lump_sum_cents);
+
+  return (
+    <div className="mt-4 border-t pt-4">
+      <p className="ct-label text-ink">{t.expenseModeTitle}</p>
+      <p className="ct-help mb-3">{t.expenseModeHint}</p>
+      <div className="flex flex-wrap items-end gap-3">
+        <Field label={t.expenseModeTitle} htmlFor="em">
+          <Select
+            id="em"
+            value={mode}
+            onChange={(e) => setMode(e.target.value as SpeakerDetail["expense_mode"])}
+            options={Object.entries(labels).map(([value, label]) => ({ value, label }))}
+          />
+        </Field>
+        {mode === "lump_sum" && (
+          <Field label={t.expenseAmount} htmlFor="ec" error={fehlt ? t.expenseAmountInvalid : undefined}>
+            <Input
+              id="ec"
+              inputMode="decimal"
+              value={betrag}
+              onChange={(e) => setBetrag(e.target.value)}
+            />
+          </Field>
+        )}
+        <Button
+          className="mb-1"
+          variant="secondary"
+          disabled={pending || fehlt || !geaendert}
+          onClick={() => onSave(mode, mode === "lump_sum" ? cents : null)}
+        >
+          {common.save}
+        </Button>
+      </div>
+    </div>
+  );
 }

@@ -32,7 +32,7 @@ begin
     join session_speaker ss on ss.person_id = sp.person_id and ss.session_id = p_session_id
     join session se on se.id = p_session_id
     join event e on e.id = se.event_id and (e.edition_id = sp.edition_id or e.id = sp.edition_id)
-   where sp.person_id = v_me or sp.assistant_person_id = v_me
+   where sp.person_id = v_me or is_speaker_assistant(sp.id, v_me)
    order by (sp.person_id = v_me) desc limit 1;
   update session_submission set status = 'superseded' where session_id = p_session_id and status = 'submitted';
   insert into session_submission (session_id, speaker_profile_id, submitted_by, title, description, topics, language, notes)

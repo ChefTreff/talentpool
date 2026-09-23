@@ -18,7 +18,7 @@ begin
     from session_speaker ss
     join speaker_profile sp on sp.person_id = ss.person_id
    where ss.session_id = p_session_id
-     and (ss.person_id = v_me or sp.assistant_person_id = v_me)
+     and (ss.person_id = v_me or is_speaker_assistant(sp.id, v_me))
    limit 1;
   if v_person is null then raise exception 'not allowed' using errcode = '42501'; end if;
 

@@ -50,6 +50,7 @@ export default async function AdminSpeakerDetail({
         passType: vgroup(vocab, "ticket_type"),
         declineReason: vgroup(vocab, "speaker_decline_reason"),
         travelMode: vgroup(vocab, "travel_mode"),
+        expenseMode: vgroup(vocab, "expense_mode"),
       }}
       dateLocale={t.meta.dateLocale}
       t={t.adminSpeaker}

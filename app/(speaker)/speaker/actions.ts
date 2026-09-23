@@ -176,6 +176,28 @@ export async function setReceptionRsvp(
   return { ok: true, data: undefined };
 }
 
+/**
+ * Einen selbst abhakbaren Punkt der Checkliste setzen oder wieder wegnehmen
+ * (SPK-024, 0149).
+ *
+ * Anders als beim Reception-RSVP darf die **Assistenz** hier mitmachen: sie
+ * füllt die Seiten ohnehin aus, und „Beim Hotel gemeldet" ist genau so eine
+ * Erledigung, die sie erledigt. Die RPC prüft das noch einmal selbst.
+ */
+export async function setSpeakerTaskTick(
+  taskId: string,
+  done: boolean,
+): Promise<SpeakerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_speaker_task_tick", {
+    p_task_id: taskId,
+    p_done: done,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
+
 // === Kontakte: Assistenz, Agentur, Office in einer Liste (SPK-040, 0148) ====
 
 /**

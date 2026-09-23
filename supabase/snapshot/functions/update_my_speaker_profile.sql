@@ -12,7 +12,7 @@ declare
 begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_sp from speaker_profile sp
-   where (v_id is null or sp.id = v_id) and (sp.person_id = v_me or sp.assistant_person_id = v_me)
+   where (v_id is null or sp.id = v_id) and (sp.person_id = v_me or is_speaker_assistant(sp.id, v_me))
    order by (sp.person_id = v_me) desc, sp.created_at desc limit 1 for update;
   if not found then raise exception 'speaker_not_found' using errcode = 'P0002'; end if;
 

@@ -16,7 +16,13 @@ begin
            sp.reception_eligible, sp.travel_costs_covered, (sp.travel_costs_approved_at is not null),
            sp.hospitality_status, sp.hotel_tier, sp.pass_type, sp.lounge_access, sp.invited_at,
            sp.confirmed_at, sp.declined_at, sp.decline_reason,
-           (select btrim(coalesce(a.first_name, '') || ' ' || coalesce(a.last_name, '')) from person a where a.id = sp.assistant_person_id),
+           (select string_agg(x.name, ', ' order by x.name) from (
+              select nullif(btrim(coalesce(a.first_name, '') || ' ' || coalesce(a.last_name, '')), '') as name
+                from person a where a.id = sp.assistant_person_id
+              union
+              select nullif(btrim(coalesce(c.first_name, '') || ' ' || coalesce(c.last_name, '')), '')
+                from speaker_contact c where c.profile_id = sp.id and c.has_access
+            ) x where x.name is not null),
            coalesce((select jsonb_agg(jsonb_build_object('session_id', se.id, 'title_de', se.title_de, 'title_en', se.title_en,
                                                           'publish_status', se.publish_status, 'start_at', sl.start_at, 'stage_name', st.name)
                                        order by sl.start_at nulls last)

@@ -59,6 +59,10 @@ export type SpeakerDetail = {
   /** Kontakte aus `speaker_contact` (0148) — Assistenz, Agentur, Office. */
   speaker_contacts: SpeakerContact[];
   travel_costs_covered: boolean;
+  /** Wie abgerechnet wird: per Beleg oder als Pauschale (SPK-042). */
+  expense_mode: "receipts" | "lump_sum";
+  /** Der Pauschalbetrag in Cent — nur bei `lump_sum` gesetzt. */
+  expense_lump_sum_cents: number | null;
   travel_costs_approved_at: string | null;
   travel_costs_approved_by: string | null;
   lead_contact_id: string | null;
