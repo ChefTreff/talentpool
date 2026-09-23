@@ -3,7 +3,9 @@ import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SidebarShell } from "@/components/layout/SidebarShell";
-import type { SpeakerProfile } from "./speaker/types";
+import { CONSENT_VERSION } from "@/lib/consent";
+import { EinwilligungsGate } from "./EinwilligungsGate";
+import { SPEAKER_CONSENTS, type SpeakerProfile } from "./speaker/types";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +28,31 @@ export default async function SpeakerLayout({ children }: { children: ReactNode 
   const { data } = await supabase.rpc("my_speaker_profile");
   const profile = (data ?? null) as SpeakerProfile | null;
   const zeigeReisekosten = profile?.travel_costs_covered === true;
+
+  // --- Einwilligung beim ersten Anmelden (SPK-024) --------------------------
+  // Gefragt wird, solange **nicht jede** der vier Einwilligungen in der
+  // geltenden Fassung beantwortet ist. Geprüft wird die Fassung mit, nicht nur
+  // das Vorhandensein: ändert sich der Text, ist die alte Zustimmung eine
+  // Zustimmung zu etwas anderem. `consent_current` liest die Person selbst,
+  // dafür braucht es keine eigene RPC — und keinen Filter auf die Person:
+  // die Policy `cr_self_sel` auf `consent_record` lässt ohnehin nur die
+  // eigenen Zeilen durch, die Sicht ist `security_invoker`.
+  //
+  // **Die Assistenz wird nicht gefragt** — sie darf keine Einwilligung geben
+  // (Antwort 58). Ein Dialog, den sie nicht erfüllen kann, wäre eine Aussperrung.
+  let fehlendeEinwilligung = false;
+  if (profile && !profile.is_assistant) {
+    const { data: rows } = await supabase
+      .from("consent_current")
+      .select("consent_type, version")
+      .in("consent_type", [...SPEAKER_CONSENTS]);
+    const beantwortet = new Set(
+      ((rows ?? []) as { consent_type: string; version: string }[])
+        .filter((r) => r.version === CONSENT_VERSION)
+        .map((r) => r.consent_type),
+    );
+    fehlendeEinwilligung = SPEAKER_CONSENTS.some((k) => !beantwortet.has(k));
+  }
 
   return (
     <SidebarShell
@@ -53,6 +80,29 @@ export default async function SpeakerLayout({ children }: { children: ReactNode 
       ]}
     >
       {children}
+      {fehlendeEinwilligung && (
+        <EinwilligungsGate
+          keys={SPEAKER_CONSENTS.map((key) => ({
+            key,
+            label: (t.speaker as Record<string, string>)[CONSENT_LABEL[key]] ?? key,
+          }))}
+          t={{
+            title: t.speaker.consentGateTitle,
+            lead: t.speaker.consentGateLead,
+            freeChoice: t.speaker.consentGateFreeChoice,
+            submit: t.speaker.consentGateSubmit,
+          }}
+          rpcMessages={t.rpc}
+        />
+      )}
     </SidebarShell>
   );
 }
+
+/** Einwilligungsschlüssel → Textschlüssel im Wörterbuch. */
+const CONSENT_LABEL: Record<string, string> = {
+  photo_video: "consentPhotoVideo",
+  speaker_release: "consentSpeakerRelease",
+  slides_publication: "consentSlides",
+  hospitality_data: "consentHospitality",
+};
