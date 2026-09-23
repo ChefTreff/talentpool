@@ -48,6 +48,8 @@ export function Termine({
     google: string;
     outlook: string;
     apple: string;
+    /** Hinweis für Vorlesesoftware, dass der Link ein neues Fenster öffnet. */
+    newTab: string;
   };
 }) {
   if (termine.length === 0) return <p className="ct-help">{t.empty}</p>;
@@ -66,10 +68,10 @@ export function Termine({
               {/* Der Zweck der Reihe steht für Vorlesesoftware einmal davor;
                   die drei Links tragen danach nur noch ihren Dienstnamen. */}
               <span className="sr-only">{`${t.add}: ${termin.titel}`}</span>
-              <KalenderLink href={termin.google} name={t.google}>
+              <KalenderLink href={termin.google} name={t.google} extern={t.newTab}>
                 <GoogleKalenderMarke />
               </KalenderLink>
-              <KalenderLink href={termin.outlook} name={t.outlook}>
+              <KalenderLink href={termin.outlook} name={t.outlook} extern={t.newTab}>
                 <MicrosoftMarke />
               </KalenderLink>
               <KalenderLink href={termin.ics} name={t.apple}>
@@ -92,17 +94,28 @@ export function Termine({
 function KalenderLink({
   href,
   name,
+  extern,
   children,
 }: {
   href: string;
   name: string;
+  /**
+   * Gesetzt, wenn der Link aus dem Portal herausführt — dann steht hier der
+   * Hinweis für Vorlesesoftware. Google und Microsoft führen hinaus, die
+   * eigene `.ics` nicht: die lädt herunter, und ein Tab, der sich sofort
+   * wieder schliesst, ist kein Gewinn.
+   */
+  extern?: string;
   children: React.ReactNode;
 }) {
   return (
     <a
       href={href}
       title={name}
-      aria-label={name}
+      // `noopener` ist nicht Zierde: ohne es bekommt die geöffnete Seite
+      // `window.opener` und kann unsere Seite umleiten.
+      {...(extern ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      aria-label={extern ? `${name} (${extern})` : name}
       className="flex h-11 w-11 items-center justify-center rounded-ct-sm transition-colors hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       {children}

@@ -39,7 +39,8 @@
     "yes": "Yes",
     "no": "No",
     "upload": "Upload",
-    "chooseOtherFile": "Choose another file"
+    "chooseOtherFile": "Choose another file",
+    "newTab": "opens in a new window"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",

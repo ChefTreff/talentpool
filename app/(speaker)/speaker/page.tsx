@@ -357,6 +357,7 @@ export default async function SpeakerPage() {
             google: t.speaker.calGoogle,
             outlook: t.speaker.calOutlook,
             apple: t.speaker.calApple,
+            newTab: t.common.newTab,
           }}
         />
         {termine.length > 1 && (
