@@ -8,7 +8,7 @@ declare v_me uuid := current_person_id(); v_sp speaker_profile%rowtype; v_p pers
 begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_sp from speaker_profile sp
-   where (sp.person_id = v_me or sp.assistant_person_id = v_me)
+   where (sp.person_id = v_me or is_speaker_assistant(sp.id, v_me))
      and (p_edition_id is null or sp.edition_id = p_edition_id)
    order by (sp.person_id = v_me) desc, sp.created_at desc
    limit 1;
@@ -36,6 +36,12 @@ begin
     'pass_type', v_sp.pass_type, 'hotel_tier', v_sp.hotel_tier, 'hospitality_status', v_sp.hospitality_status,
     'travel_costs_covered', v_sp.travel_costs_covered, 'travel_costs_approved', (v_sp.travel_costs_approved_at is not null),
     'invited_at', v_sp.invited_at,
+    'contacts', (select coalesce(jsonb_agg(jsonb_build_object(
+                            'id', c.id, 'kind', c.kind, 'first_name', c.first_name,
+                            'last_name', c.last_name, 'email', c.email, 'phone', c.phone,
+                            'has_access', c.has_access, 'consent_at', c.consent_at)
+                          order by c.kind, c.created_at), '[]'::jsonb)
+                   from speaker_contact c where c.profile_id = v_sp.id),
     'assistant', case when v_sp.assistant_person_id is null then null else (
        select jsonb_build_object('person_id', a.id, 'first_name', a.first_name, 'last_name', a.last_name,
                                  'email', (select pe.email::text from person_email pe where pe.person_id = a.id and pe.is_primary))

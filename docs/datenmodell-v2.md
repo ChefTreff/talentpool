@@ -74,6 +74,7 @@
 | Welle 6 · 0136 | **EA2 Speaker in die Event-App: Quelle und Rückverweis** (`20260923111232`, `v6_ea2_speaker_eventapp`; Details im Migrationskopf) | — |
 | Welle 6 · 0146 | **Welle 6 · Technik neu geschnitten: Ansage beim Speaker, Disposition** (`20260923111840`, `v6_technik_neu_geschnitten`; Details im Migrationskopf) | — |
 | Welle 6 · 0147 | **Welle 6 · Reisekosten als Pauschale oder per Beleg (SPK-042)** (`20260923120811`, `v6_reisekosten_pauschale`; Details im Migrationskopf) | — |
+| Welle 6 · 0149 | **Welle 6 · Aufgaben, die der Speaker selbst abhakt (SPK-024)** (`20260923120912`, `v6_speaker_aufgaben`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

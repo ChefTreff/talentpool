@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -14,8 +13,15 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
 import { ReceptionCard } from "./ReceptionCard";
+import { Checkliste, type Aufgabe } from "./Checkliste";
 import { Termine, type Termin } from "./Termine";
-import { STEP_HREF, type MyReception, type SpeakerProfile } from "./types";
+import {
+  FRIST_KEY,
+  STEP_HREF,
+  type MyReception,
+  type SpeakerProfile,
+  type SpeakerTask,
+} from "./types";
 import type { MySession } from "./session/types";
 
 export const dynamic = "force-dynamic";
@@ -118,7 +124,57 @@ export default async function SpeakerPage() {
       body: t.speaker.stepTicketBody,
     },
   };
-  const done = Object.keys(STEPS).filter((key) => !open.includes(key));
+
+  // --- Checkliste (SPK-024) -----------------------------------------------
+  // Konrad, 23.09.: „Eine Checkliste ist für mich eine ToDo-Liste mit Aufgabe,
+  // Deadline und der Möglichkeit abzuhaken." Die Fristen stehen in `deadline`
+  // und sind für Angemeldete lesbar; heute gibt es genau eine für Speaker
+  // (`presentation_upload`), die übrigen Aufgaben haben schlicht keine.
+  const { data: fristRows } = await supabase
+    .from("deadline")
+    .select("key, due_at, label_de, label_en, audience")
+    .eq("edition_id", profile.edition_id)
+    .in("audience", ["all", "speaker"]);
+  const fristen = new Map(
+    ((fristRows ?? []) as { key: string; due_at: string }[]).map((f) => [f.key, f.due_at]),
+  );
+  const fristFormat = new Intl.DateTimeFormat(t.meta.dateLocale, { dateStyle: "medium" });
+
+  const aufgaben: Aufgabe[] = Object.entries(STEPS).map(([key, step]) => {
+    const due = fristen.get(FRIST_KEY[key] ?? "");
+    return {
+      key,
+      titel: step.title,
+      beschreibung: step.body,
+      href: STEP_HREF[key] ?? null,
+      erledigt: !open.includes(key),
+      faellig: due ? { iso: due, text: fristFormat.format(new Date(due)) } : null,
+    };
+  });
+
+  // Dazu die Aufgaben, die der Speaker **selbst** abhakt (0149). Das Portal
+  // kann sie nicht beobachten — „Beim Hotel gemeldet" sieht niemand ausser ihm
+  // — also steht der Haken hier als Aussage und nicht als Beobachtung. Gepflegt
+  // werden sie unter `/admin/speaker/aufgaben`; gibt es keine, bleibt die Liste
+  // genau so, wie sie vorher war.
+  const { data: taskRows } = await supabase.rpc("my_speaker_tasks");
+  const selbst = (taskRows ?? []) as SpeakerTask[];
+  for (const task of selbst) {
+    const due = task.deadline_key ? fristen.get(task.deadline_key) : undefined;
+    aufgaben.push({
+      key: `task:${task.id}`,
+      selbstId: task.id,
+      titel: (locale === "en" ? task.label_en : task.label_de) || task.label_de,
+      beschreibung:
+        (locale === "en" ? task.description_en : task.description_de) ??
+        t.speaker.checkSelfHint,
+      href: null,
+      erledigt: task.done_at !== null,
+      faellig: due ? { iso: due, text: fristFormat.format(new Date(due)) } : null,
+    });
+  }
+  const offenGesamt = aufgaben.filter((a) => !a.erledigt).length;
+  const fertigGesamt = aufgaben.length - offenGesamt;
 
   // --- Termine (SPK-026) ---------------------------------------------------
   // Alles, was feststeht, in einer Liste: der Summit als Rahmen, der eigene
@@ -239,9 +295,9 @@ export default async function SpeakerPage() {
         lead={t.speaker.lead}
         aside={
           <BandStat
-            value={`${done.length} / ${done.length + open.length}`}
+            value={`${fertigGesamt} / ${aufgaben.length}`}
             label={t.speaker.bandStatLabel}
-            hint={open.length > 0 ? t.speaker.bandStatOpen : t.speaker.bandStatDone}
+            hint={offenGesamt > 0 ? t.speaker.bandStatOpen : t.speaker.bandStatDone}
           />
         }
       />
@@ -268,39 +324,21 @@ export default async function SpeakerPage() {
 
       <section aria-labelledby="h-next" className="mb-8">
         <h2 id="h-next" className="ct-h3 mb-3 text-ink">
-          {open.length > 0 ? t.speaker.openSteps : t.speaker.allDone}
+          {t.speaker.checklistTitle}
         </h2>
-        {open.length > 0 && (
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {open.map((key) => {
-              const step = STEPS[key];
-              if (!step) return null;
-              const href = STEP_HREF[key];
-              return (
-                <Card as="li" key={key} className="p-4">
-                  <h3 className="ct-label text-ink">{step.title}</h3>
-                  <p className="ct-help mt-1">{step.body}</p>
-                  {href ? (
-                    <Link href={href} className="ct-link mt-3 inline-block">
-                      {step.title}
-                    </Link>
-                  ) : (
-                    // Seite gibt es noch nicht (B3/B5, Upload mit A4) — dann
-                    // lieber sagen, dass es kommt, als ins Leere verlinken.
-                    <p className="ct-help mt-3 font-semibold">
-                      {t.speaker.soon}
-                    </p>
-                  )}
-                </Card>
-              );
-            })}
-          </ul>
-        )}
-        {done.length > 0 && (
-          <p className="ct-help mt-3">
-            {t.speaker.doneLabel}: {done.map((k) => STEPS[k].title).join(" · ")}
-          </p>
-        )}
+        <Checkliste
+          aufgaben={aufgaben}
+          t={{
+            done: t.speaker.checkDone,
+            open: t.speaker.checkOpen,
+            soon: t.speaker.dueSoon,
+            days: t.speaker.dueDays,
+            hours: t.speaker.dueHours,
+            dueLabel: t.speaker.deadline,
+            allDone: t.speaker.allDone,
+            tickError: t.speaker.checkTickError,
+          }}
+        />
       </section>
 
       {/* „Dein Stand" ist raus (SPK-025, Konrad 22.09.): die Karte zeigte
