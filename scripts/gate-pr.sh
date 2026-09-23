@@ -24,6 +24,9 @@ platzhalter="$(git ls-files supabase/migrations | grep -E '^supabase/migrations/
 # Konfliktmarker in verfolgten Dateien: ein mit tail gekuerztes Merge-Protokoll liess am 17.09.2026 zwei Konflikte durch, `git add -A` committete die Marker.
 marker="$(git grep -lE '^(<<<<<<< |>>>>>>> )' -- . || true)"
 [ -z "$marker" ] || { echo "dateien: FEHLER (Konfliktmarker)"; echo "$marker"; exit 1; }
+# Neue Migrationen ausserhalb von vorschlag/ muessen den Vermerk der Architektur-Session tragen (22.09.2026, #121 hatte eine selbst benannte Datei).
+neu="$(git diff --name-only "$(git merge-base HEAD origin/main)" HEAD -- supabase/migrations | grep -vE "/vorschlag/" | grep -E "\.sql$" || true)"
+for f in $neu; do grep -q "Angewendet von der Architektur-Session" "$f" || { echo "dateien: FEHLER (Migration ohne Anwendungsvermerk ausserhalb von vorschlag/): $f"; exit 1; }; done
 echo "dateien: ok"
 npm ci --no-audit --no-fund >/dev/null 2>&1 || { echo "npm ci: FEHLER"; exit 1; }
 # Sicherheitsmeldungen der Produktionsabhaengigkeiten (18.09.2026, Next.js-Advisory): kritisch = rot, hoch/moderat = sichtbar.

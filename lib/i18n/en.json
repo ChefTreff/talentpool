@@ -911,7 +911,11 @@
     "pickupShuttleHint": "Pick-up and return ride run as a shuttle booking — we still need a phone number and addresses there.",
     "pickupShuttleLink": "Request a ride",
     "shuttleWindowHint": "Pick-ups are possible from {von} to {bis}, between 9 am and 9 pm.",
-    "expenseIntro": "How it works: you enter your receipts — train, flight, taxi, hotel —, upload the document for each one and release the claim. The speaker team then reviews it, and you get an email once it is decided. A released claim cannot be changed, so read it through once more before you send it. We produce the expense invoice ourselves — you do not need to write one."
+    "expenseIntro": "How it works: you enter your receipts — train, flight, taxi, hotel —, upload the document for each one and release the claim. The speaker team then reviews it, and you get an email once it is decided. A released claim cannot be changed, so read it through once more before you send it. We produce the expense invoice ourselves — you do not need to write one.",
+    "deleteSlides": "Remove",
+    "deleteSlidesTitle": "Remove slides?",
+    "deleteSlidesBody": "The file will be deleted. If there is an earlier version, it becomes the current one again.",
+    "slidesDeleted": "Slides removed"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -4040,5 +4044,25 @@
     "uploadCurrent": "Current",
     "uploadRejected": "Sent back",
     "uploadNoDeliverable": "No file is required for this item."
+  },
+  "talentStart": {
+    "greeting": "Hi {name},",
+    "greetingHighlight": "welcome",
+    "lead": "Here you find the programme, your registrations and your profile.",
+    "action": "View programme",
+    "statLabel": "Applications and registrations",
+    "statHint": "currently running",
+    "statNone": "nothing submitted yet",
+    "cardProgrammeWord": "Discover",
+    "cardProgrammeBody": "All sessions, masterclasses and formats. Apply and register while seats are free.",
+    "cardProgrammeAction": "To the programme",
+    "cardMineWord": "Overview",
+    "cardMineBody": "What you are part of: applications, confirmations, registrations and tickets in one place.",
+    "cardMineAction": "My participation",
+    "cardProfileWord": "Profile",
+    "cardProfileBody": "You keep your data once — it applies to every format and to matching.",
+    "cardProfileAction": "Open profile",
+    "loggedInAs": "Signed in as",
+    "navLabel": "Overview"
   }
 }

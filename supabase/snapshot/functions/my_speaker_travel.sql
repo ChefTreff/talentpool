@@ -15,6 +15,7 @@ begin
     'arrival_mode', v_t.arrival_mode, 'arrival_ref', v_t.arrival_ref,
     'departure_date', v_t.departure_date, 'departure_time', v_t.departure_time,
     'departure_mode', v_t.departure_mode, 'departure_ref', v_t.departure_ref,
-    'needs_pickup', coalesce(v_t.needs_pickup, false), 'note', v_t.note,
+    'needs_pickup', coalesce(v_t.needs_pickup, false),
+    'needs_dropoff', coalesce(v_t.needs_dropoff, false), 'note', v_t.note,
     'updated_at', v_t.updated_at);
 end $$;
