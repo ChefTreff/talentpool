@@ -638,6 +638,7 @@ function SessionCard({
           Menschen. `speaker_profile.tech_rider` bleibt nur Vorbelegung. */}
       <TechSection
         session={session}
+        labels={labels}
         t={t}
         common={common}
         message={message}
@@ -650,8 +651,12 @@ function SessionCard({
 /**
  * Die Technik-Ansage des Speakers.
  *
- * Fünf feste Felder, alle Freitext (Konrads Entscheidung vom 17.09.). Was hier
- * steht, ist die **Ansage**; was die Regie daraus disponiert, steht im
+ * Seit dem 23.09. **zwei** Felder (SPK-029): das gewünschte Mikrofon als
+ * Auswahl und ein Kurztext für alles Weitere. „Personen auf der Bühne",
+ * „Präsentation und Medien" und „Mobiliar" sind raus — das weiß der Speaker
+ * nicht, das disponieren die Stage Leads im Regieplan (LEAD-012).
+ *
+ * Was hier steht, ist die **Ansage**; was die Regie daraus macht, steht im
  * Regieplan und wird hier nicht angezeigt — sonst wüsste niemand mehr, welche
  * der beiden Angaben gilt.
  *
@@ -660,12 +665,14 @@ function SessionCard({
  */
 function TechSection({
   session,
+  labels,
   t,
   common,
   message,
   toast,
 }: {
   session: MySession;
+  labels: Record<string, Record<string, string>>;
   t: Strings;
   common: { cancel: string; choose: string; none: string; required: string; save: string };
   message: (key: string) => string;
@@ -711,13 +718,19 @@ function TechSection({
               label={t[`tech_${f.key}`] ?? f.key}
               htmlFor={id}
               hint={ueber ? t.techTooLong : t[`tech_${f.key}_hint`]}
-              className={f.lines === 2 ? "sm:col-span-2" : undefined}
+              className={f.kind === "text" ? "sm:col-span-2" : undefined}
             >
-              {f.lines === 2 ? (
-                <Textarea
+              {f.kind === "select" ? (
+                // Zwei sinnvolle Antworten, also eine Auswahl statt Freitext
+                // (SPK-029). Was die Regie tatsächlich stellt, trägt sie
+                // daneben in ihre eigene Zeile ein.
+                <Select
                   id={id}
-                  rows={2}
                   value={wert}
+                  placeholder={common.choose}
+                  options={Object.entries(
+                    (labels[f.vocab ?? ""] ?? {}) as Record<string, string>,
+                  ).map(([value, label]) => ({ value, label }))}
                   onChange={(e) => setTech((v) => ({ ...v, [f.key]: e.target.value }))}
                 />
               ) : (
