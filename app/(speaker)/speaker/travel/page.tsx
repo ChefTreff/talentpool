@@ -4,7 +4,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { loadEventDays } from "@/lib/event-days";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { AbschnittsNavigation, Sektion } from "@/components/ui/Abschnitte";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Anfahrt } from "./Anfahrt";
 import { Anreise, type SpeakerTravel } from "./Anreise";
 import { DietCard } from "@/components/diet/DietCard";
 import { ShuttleView } from "./ShuttleView";
@@ -125,6 +127,19 @@ export default async function SpeakerTravelPage() {
     "declined",
   ]);
 
+  // Die Übersicht führt nur, was auf dieser Seite auch steht (SPK-035, Muster
+  // QS-026): Ernährung und Hotel hängen an Bedingungen, ein Anker ins Leere
+  // wäre schlimmer als ein fehlender.
+  const zeigtDiet = !profile.is_assistant;
+  const zeigtHotel = HOSPITALITY_ANSPRUCH.has(profile.hospitality_status);
+  const abschnitte = [
+    { id: "anfahrt", label: t.speaker.arrivalTitle },
+    { id: "anreise", label: t.speaker.sectionArrival },
+    ...(zeigtDiet ? [{ id: "ernaehrung", label: t.diet.title }] : []),
+    { id: "shuttle", label: t.speaker.sectionShuttle },
+    ...(zeigtHotel ? [{ id: "hotel", label: t.speaker.sectionHotel }] : []),
+  ];
+
   return (
     <div className="max-w-[900px]">
       <PageHeader
@@ -132,9 +147,18 @@ export default async function SpeakerTravelPage() {
         description={t.speaker.travelLead}
       />
 
+      <AbschnittsNavigation label={t.speaker.sectionsLabel} items={abschnitte} />
+
+      {/* Die Anfahrt zuerst: sie gilt für jeden, der kommt — auch für die
+          ohne Zimmer. Vorher stand sie unten und steckte im Hotelteil. */}
+      <Sektion id="anfahrt" className="mb-6">
+        <Anfahrt t={t.speaker} />
+      </Sektion>
+
       <div className="mb-6 flex flex-col gap-6">
         {/* An-/Abreise zuerst: sie steht am Anfang der Reise und entscheidet,
             ob ein Hotel überhaupt gebraucht wird. */}
+        <Sektion id="anreise">
         <Anreise
           travel={travel}
           isAssistant={profile.is_assistant}
@@ -144,12 +168,14 @@ export default async function SpeakerTravelPage() {
           common={{ save: t.common.save, choose: t.common.choose }}
           rpcMessages={t.rpc}
         />
+        </Sektion>
         {/* Die Ernährung gehört hierher und nicht ins Profil: sie wird fürs
             Catering gebraucht, also dort, wo auch Hotel und Anreise stehen.
             **Nicht für die Assistenz**: sie darf die Angabe nicht lesen, sähe
             ein leeres Formular und würde beim Speichern eine hinterlegte
             Allergie löschen. */}
-        {!profile.is_assistant && (
+        {zeigtDiet && (
+          <Sektion id="ernaehrung">
           <DietCard
             diet={diet?.diet ?? null}
             note={diet?.diet_note ?? null}
@@ -159,12 +185,13 @@ export default async function SpeakerTravelPage() {
             common={{ save: t.common.save, choose: t.common.choose }}
             rpcMessages={t.rpc}
           />
+          </Sektion>
         )}
       </div>
 
       {/* Shuttle vor den Kontingenten: eine Fahrt ist ein Auftrag mit Zeit und
           Ziel, kein Platz in einem Topf. Wer hierher kommt, sucht meistens sie. */}
-      <div className="mb-6" id="shuttle">
+      <Sektion id="shuttle" className="mb-6">
         <ShuttleView
           profileId={profile.id}
           vorschlag={vorschlag}
@@ -176,9 +203,10 @@ export default async function SpeakerTravelPage() {
           common={{ cancel: t.common.cancel, save: t.common.save }}
           rpcMessages={t.rpc}
         />
-      </div>
+      </Sektion>
 
-      {HOSPITALITY_ANSPRUCH.has(profile.hospitality_status) && (
+      {zeigtHotel && (
+        <Sektion id="hotel">
         <TravelView
           isAssistant={profile.is_assistant}
           options={(optionRows ?? []) as HospitalityOption[]}
@@ -197,6 +225,7 @@ export default async function SpeakerTravelPage() {
           }}
           rpcMessages={t.rpc}
         />
+        </Sektion>
       )}
     </div>
   );

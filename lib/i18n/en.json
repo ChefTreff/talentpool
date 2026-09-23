@@ -933,7 +933,12 @@
     "contactAccessHint": "They can then maintain profile, session and travel — but cannot give consent or invite anyone. They will receive an email with their access.",
     "contactEmailRequired": "We need the email address for access — the invitation goes there.",
     "accessActive": "signed in",
-    "accessInvited": "invited"
+    "accessInvited": "invited",
+    "sectionArrival": "Arrival and departure",
+    "sectionShuttle": "Shuttle",
+    "sectionHotel": "Hotel & accommodation",
+    "sectionSlot": "Your slot",
+    "sectionContent": "Title & description"
   },
   "leads": {
     "title": "Speaker pipeline",

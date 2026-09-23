@@ -350,8 +350,14 @@ function SessionCard({
   }
 
   return (
-    <Card className="p-6">
-      <header className="mb-4">
+    // Konrad, 21.09.: „Ist aktuell noch sehr unübersichtlich … ich möchte
+    // klarere Abgrenzungen der einzelnen Teilbereiche der Seite." Vorher stand
+    // alles in **einer** Karte, getrennt nur durch Linien und `h3`. Jetzt trägt
+    // jeder Teilbereich eine eigene Karte mit eigener Überschrift und eigenem
+    // Anker — die Grenze ist damit sichtbar und anspringbar (SPK-043).
+    <div className="flex flex-col gap-6">
+    <Card id="slot" className="scroll-mt-20 p-6">
+      <header>
         <div className="ct-help flex flex-wrap items-center gap-x-3">
           {session.start_at && session.end_at ? (
             <span className="tabular-nums">
@@ -395,9 +401,12 @@ function SessionCard({
           </p>
         )}
       </header>
+    </Card>
 
+    <Card id="inhalt" className="scroll-mt-20 p-6">
+      <h2 className="ct-h3 mb-4 text-ink">{t.sectionContent}</h2>
       {/* Eingereicht vs. final — nebeneinander, damit man den Unterschied sieht. */}
-      <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <h3 className="ct-label mb-1 text-ink">{t.submitted}</h3>
           {submission ? (
@@ -549,9 +558,12 @@ function SessionCard({
         />
       </div>
 
+    </Card>
+
       {/* Präsentation */}
-      <div className="mt-6 border-t pt-4">
-        <h3 className="ct-label mb-1 text-ink">{t.presentationTitle}</h3>
+    <Card id="praesentation" className="scroll-mt-20 p-6">
+      <div>
+        <h2 className="ct-h3 mb-1 text-ink">{t.presentationTitle}</h2>
         <p className="ct-help">
           {due ? `${t.deadline}: ${dateTime.format(new Date(due))}` : t.deadlineUnknown}
           {lateNow && ` — ${t.deadlinePassedHint}`}
@@ -636,6 +648,8 @@ function SessionCard({
       {/* Technik (SPK-018). Sie steht **unter dem Slot**, nicht im Profil:
           was auf der Bühne gebraucht wird, hängt am Auftritt, nicht am
           Menschen. `speaker_profile.tech_rider` bleibt nur Vorbelegung. */}
+    </Card>
+
       <TechSection
         session={session}
         labels={labels}
@@ -644,7 +658,7 @@ function SessionCard({
         message={message}
         toast={toast}
       />
-    </Card>
+    </div>
   );
 }
 
@@ -703,8 +717,8 @@ function TechSection({
   }
 
   return (
-    <div className="mt-6 border-t pt-4">
-      <h3 className="ct-label mb-1 text-ink">{t.techTitle}</h3>
+    <Card id="technik" className="scroll-mt-20 p-6">
+      <h2 className="ct-h3 mb-1 text-ink">{t.techTitle}</h2>
       <p className="ct-help">{t.techLead}</p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -748,6 +762,6 @@ function TechSection({
       <Button className="mt-4" disabled={!geaendert || zuLang} loading={pending} onClick={onSave}>
         {common.save}
       </Button>
-    </div>
+    </Card>
   );
 }

@@ -6,6 +6,7 @@ import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SessionView } from "./SessionView";
 import type { SpeakerProfile } from "../types";
@@ -73,6 +74,21 @@ export default async function SpeakerSessionPage() {
   return (
     <div className="max-w-[900px]">
       <PageHeader title={t.speaker.sessionTitle} description={t.speaker.sessionLead} />
+
+      {/* Die Abschnitte der längsten Seite im Portal (SPK-043, Muster QS-026).
+          Nur was auch da ist: ohne Session gibt es keine Anker. */}
+      {sessions.length > 0 && (
+        <AbschnittsNavigation
+          label={t.speaker.sectionsLabel}
+          items={[
+            { id: "slot", label: t.speaker.sectionSlot },
+            { id: "inhalt", label: t.speaker.sectionContent },
+            { id: "praesentation", label: t.speaker.presentationTitle },
+            { id: "technik", label: t.speaker.techTitle },
+            ...(plan ? [{ id: "hallenplan", label: t.speaker.planTitle }] : []),
+          ]}
+        />
+      )}
       {sessions.length === 0 ? (
         <EmptyState
           title={t.speaker.noSessionTitle}
@@ -110,7 +126,7 @@ export default async function SpeakerSessionPage() {
         />
       )}
 
-      <section aria-labelledby="hallenplan" className="mt-8">
+      <section aria-labelledby="hallenplan" className="mt-8 scroll-mt-20">
         <h2 id="hallenplan" className="ct-h3 mb-3 text-ink">
           {t.speaker.planTitle}
         </h2>

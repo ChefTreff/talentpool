@@ -933,7 +933,12 @@
     "contactAccessHint": "Sie kann dann Profil, Session und Reise pflegen — aber keine Einwilligung geben und niemanden einladen. Sie bekommt eine E-Mail mit dem Zugang.",
     "contactEmailRequired": "Für den Zugang brauchen wir die E-Mail-Adresse — die Einladung geht dorthin.",
     "accessActive": "angemeldet",
-    "accessInvited": "eingeladen"
+    "accessInvited": "eingeladen",
+    "sectionArrival": "An- und Abreise",
+    "sectionShuttle": "Shuttle",
+    "sectionHotel": "Hotel & Übernachtung",
+    "sectionSlot": "Dein Slot",
+    "sectionContent": "Titel & Beschreibung"
   },
   "leads": {
     "title": "Speaker-Pipeline",
