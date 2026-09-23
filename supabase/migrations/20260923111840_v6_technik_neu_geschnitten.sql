@@ -1,4 +1,6 @@
--- ???? · Welle 6 · Technik neu geschnitten: Ansage beim Speaker, Disposition
+-- 0146 · Welle 6 · Technik neu geschnitten: Ansage beim Speaker, Disposition
+-- Angewendet von der Architektur-Session am 23.09.2026 als 20260923111840.
+--
 -- bei der Regie (SPK-029, LEAD-012)
 --
 -- **Nummer offen.** Vorschlag der Build-Session Speaker-Domäne; Anwenden,
