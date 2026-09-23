@@ -323,7 +323,7 @@ function SessionCard({
   const [draft, setDraft] = useState({
     title: submission?.title ?? finalTitle ?? "",
     description: submission?.description ?? finalDescription ?? "",
-    topics: (submission?.topics ?? []).join(", "),
+    topics: submission?.topics ?? [],
     language: submission?.language ?? session.language ?? "",
     notes: submission?.notes ?? "",
   });
@@ -336,10 +336,7 @@ function SessionCard({
       const res = await submitSessionContent(session.session_id, {
         title: draft.title,
         description: draft.description,
-        topics: draft.topics
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        topics: draft.topics,
         language: draft.language,
         notes: draft.notes,
       });
@@ -418,7 +415,9 @@ function SessionCard({
                 <p className="ct-help mt-1 whitespace-pre-line">{submission.description}</p>
               )}
               {submission.topics && submission.topics.length > 0 && (
-                <p className="ct-help mt-1">{submission.topics.join(" · ")}</p>
+                <p className="ct-help mt-1">
+                  {submission.topics.map((k) => labels.topics?.[k] ?? k).join(" · ")}
+                </p>
               )}
               {submission.review_note && (
                 <p className="ct-help mt-2">
@@ -475,17 +474,36 @@ function SessionCard({
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              label={t.fieldTopics}
-              htmlFor={`topics-${session.session_id}`}
-              hint={t.fieldTopicsHint}
-            >
-              <Input
-                id={`topics-${session.session_id}`}
-                value={draft.topics}
-                onChange={(e) => setDraft((d) => ({ ...d, topics: e.target.value }))}
-              />
-            </Field>
+            {/* Mehrfachauswahl statt Freitext (SPK-027, Konrad 21.09.). Die
+                Liste ist dieselbe, die wir für die Talks setzen; sie steht im
+                Vokabular `session_topic` und wird im Admin gepflegt.
+                Kästchen statt einer Mehrfachliste: siebzehn Einträge in einem
+                `<select multiple>` sind auf dem Telefon nicht zu bedienen,
+                und was ausgewählt ist, sieht man dort auch nicht. */}
+            <fieldset className="sm:col-span-2">
+              <legend className="ct-label text-ink">{t.fieldTopics}</legend>
+              <p className="ct-help mt-1">{t.fieldTopicsHint}</p>
+              <div className="mt-2 grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3">
+                {Object.entries(labels.topics ?? {}).map(([key, label]) => (
+                  <label key={key} className="flex min-h-11 items-center gap-2 ct-small text-ink">
+                    <input
+                      type="checkbox"
+                      className="size-4 shrink-0"
+                      checked={draft.topics.includes(key)}
+                      onChange={(e) =>
+                        setDraft((d) => ({
+                          ...d,
+                          topics: e.target.checked
+                            ? [...d.topics, key]
+                            : d.topics.filter((k) => k !== key),
+                        }))
+                      }
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <Field label={t.fieldSessionLanguage} htmlFor={`lang-${session.session_id}`}>
               <Select
                 id={`lang-${session.session_id}`}
