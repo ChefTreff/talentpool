@@ -2025,10 +2025,22 @@
     "sponsorRemoveConfirmTitle": "Remove permanently?",
     "sponsorRemoveConfirmBody": "{n} entries will be taken off the wall. Swapcard has no recycling bin — this cannot be undone.",
     "sponsorFailed": "That did not work. Details are in the server log.",
-    "productSyncRunning": "Running …",
+    "speakerSyncTitle": "Swapcard: speakers",
+    "speakerSyncLead": "Confirmed speakers as people with a speaker pass, in the \u201cSpeakers\u201d group \u2014 with their profile photo. The acceptance is the basis; no separate consent is needed.",
+    "speakerSyncRun": "Transfer speakers",
+    "speakerSyncResult": "{rows} confirmed \u00b7 {eligible} transferable \u00b7 {photos} with a photo \u00b7 {create} new \u00b7 {update} changed \u00b7 {errors} errors",
+    "speakerHeldTitle": "Held back ({n})",
+    "speakerHeldHint": "These speakers are not transferred \u2014 Swapcard requires both a first and a last name. They are listed here so nobody is missing unnoticed.",
+    "speakerHeld_kein_name": "name missing",
+    "speakerNoPhotoTitle": "Without a photo ({n})",
+    "speakerNoPhotoHint": "The app shows a placeholder for them. Anyone who uploads a photo is included in the next run.",
+    "speakerSyncConfirmTitle": "Transfer speakers?",
+    "speakerSyncConfirmBody": "{create} people will be created, {update} changed. {held} stay behind.",
+    "speakerSyncFailed": "That did not work. Details are in the server log.",
     "productSyncResult": "{created} created · {updated} updated · {failed} failed",
     "productSyncSkipped": "{n} skipped — {reason}",
-    "productSyncFailed": "The sync did not run. Details are in the server log."
+    "productSyncFailed": "The sync did not run. Details are in the server log.",
+    "sectionsLabel": "On this page"
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -3677,7 +3689,8 @@
     "saved": "Saved.",
     "added": "Created.",
     "slotsAttached": "slots are attached",
-    "sessionsAttached": "sessions are attached"
+    "sessionsAttached": "sessions are attached",
+    "sectionsLabel": "On this page"
   },
   "adminGrafiken": {
     "title": "Graphics & photos",
