@@ -1,4 +1,6 @@
 -- 0147 · Welle 6 · Reisekosten als Pauschale oder per Beleg (SPK-042)
+-- Angewendet von der Architektur-Session am 23.09.2026 als 20260923120811.
+--
 --
 -- Nummer 0147 von der Architektur-Session zugeteilt (23.09.). Vorschlag der
 -- Build-Session Speaker-Domäne; Anwenden, Umbenennen und der Eintrag ins
