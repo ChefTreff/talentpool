@@ -34,13 +34,13 @@ Prio:  P2
 
 ## 3 · Was die Session daraufhin tun muss (Pflichtablauf)
 
-1. **Erfassen vor Bauen.** Jeder Punkt kommt in die Backlog-Datei mit ID (`PART-014`), Datum, Seite, Ist → Soll, Prio, Status `erfasst`, Quelle.
+1. **Erfassen vor Bauen.** Jeder Punkt kommt in die Backlog-Datei mit ID (`PART-014`), Datum, Seite, Ist → Soll, Prio, Status `offen`, Quelle.
 2. **Antwort mit IDs:** „Erfasst: PART-014 bis PART-019. Rückfragen zu PART-016 und PART-018: …“ — Rückfragen gesammelt, nicht einzeln.
 3. **Bauen in Prio-Reihenfolge**, Status `geplant #PR`. Die PR-Beschreibung nennt die IDs.
 4. **Walkthrough-Bericht** je ID mit Screenshot oder Beleg, Status `gebaut`.
 5. **Du hakst ab** („PART-014 passt, PART-016 so nicht: …“) → `abgenommen`, oder ein neuer Punkt mit Verweis auf den alten.
 
-**Status:** `erfasst` · `geplant` · `gebaut` · `abgenommen` · `zurückgestellt` (Grund + Datum) · `abgelehnt` (Verweis Entscheidungslog). **Nie löschen**, nur Status ändern. Ein Punkt gilt erst als erledigt, wenn du ihn abgenommen hast.
+**Status:** `offen` · `geplant` · `gebaut` · `abgenommen` · `zurückgestellt` (Grund + Datum) · `abgelehnt` (Verweis Entscheidungslog). **Nie löschen**, nur Status ändern. Ein Punkt gilt erst als erledigt, wenn du ihn abgenommen hast.
 
 ## 4 · Wann welches Feedback dran ist
 
