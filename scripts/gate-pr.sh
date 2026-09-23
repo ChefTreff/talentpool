@@ -24,6 +24,9 @@ platzhalter="$(git ls-files supabase/migrations | grep -E '^supabase/migrations/
 # Konfliktmarker in verfolgten Dateien: ein mit tail gekuerztes Merge-Protokoll liess am 17.09.2026 zwei Konflikte durch, `git add -A` committete die Marker.
 marker="$(git grep -lE '^(<<<<<<< |>>>>>>> )' -- . || true)"
 [ -z "$marker" ] || { echo "dateien: FEHLER (Konfliktmarker)"; echo "$marker"; exit 1; }
+# Neue Migrationen ausserhalb von vorschlag/ muessen den Vermerk der Architektur-Session tragen (22.09.2026, #121 hatte eine selbst benannte Datei).
+neu="$(git diff --name-only "$(git merge-base HEAD origin/main)" HEAD -- supabase/migrations | grep -vE "/vorschlag/" | grep -E "\.sql$" || true)"
+for f in $neu; do grep -q "Angewendet von der Architektur-Session" "$f" || { echo "dateien: FEHLER (Migration ohne Anwendungsvermerk ausserhalb von vorschlag/): $f"; exit 1; }; done
 echo "dateien: ok"
 npm ci --no-audit --no-fund >/dev/null 2>&1 || { echo "npm ci: FEHLER"; exit 1; }
 # Sicherheitsmeldungen der Produktionsabhaengigkeiten (18.09.2026, Next.js-Advisory): kritisch = rot, hoch/moderat = sichtbar.
@@ -31,7 +34,7 @@ audit="$(npm audit --omit=dev --json 2>/dev/null | node -e 'let s="";process.std
 npm run lint >/dev/null 2>&1 && echo "lint: ok" || { echo "lint: FEHLER"; npm run lint 2>&1 | tail -20; exit 1; }
 # Typprüfung über alles inkl. tests/ — `npm test` entfernt Typen nur (strip-types), `next build` prüft tests/ nicht.
 npx tsc --noEmit >/dev/null 2>&1 && echo "tsc: ok" || { echo "tsc: FEHLER"; npx tsc --noEmit 2>&1 | head -20; exit 1; }
-out="$(npm test 2>&1)"; echo "$out" | grep -E "tests |pass |fail " | tr -s ' ' | tr '\n' ' '; echo
+out="$(npm test 2>&1 || true)"; echo "$out" | grep -E "tests |pass |fail " | tr -s ' ' | tr '\n' ' '; echo
 echo "$out" | grep -qE "fail 0" || { echo "test: FEHLER"; echo "$out" | tail -20; exit 1; }
 npm run build >/dev/null 2>&1 && echo "build: ok" || { echo "build: FEHLER"; npm run build 2>&1 | grep -E -A6 "Build error|Error" | head -30; exit 1; }
 echo "GATE GRÜN ($BR @ $(git rev-parse --short HEAD))"

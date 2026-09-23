@@ -52,12 +52,22 @@ export function ShuttleView({
   bookings,
   isAssistant,
   dateLocale,
+  vorschlag,
+  fenster,
   t,
   common,
   rpcMessages,
 }: {
   profileId: string;
   bookings: ShuttleBooking[];
+  /** Vorbelegung einer neuen Fahrt aus der hinterlegten An- und Abreise. */
+  vorschlag?: Record<string, string>;
+  /**
+   * Erlaubtes Zeitfenster für die Abholung (SPK-034). `min`/`max` begrenzen
+   * die Tage am Feld, `vonStunde`/`bisStunde` die Uhrzeit beim Absenden —
+   * der Browser prüft die Stunde nicht mit.
+   */
+  fenster?: { min: string; max: string; vonStunde: number; bisStunde: number; hint: string };
   isAssistant: boolean;
   dateLocale: string;
   t: Strings;
@@ -68,7 +78,10 @@ export function ShuttleView({
   const toast = useToast();
   const [pending, start] = useTransition();
   const [offen, setOffen] = useState(false);
-  const [draft, setDraft] = useState<Record<string, string>>(LEER);
+  // Was aus der hinterlegten An- und Abreise schon bekannt ist, steht im
+  // Formular drin (SPK-032). Wer „ich möchte abgeholt werden" angehakt hat,
+  // soll hier nicht dieselbe Uhrzeit ein zweites Mal eintippen.
+  const [draft, setDraft] = useState<Record<string, string>>({ ...LEER, ...vorschlag });
   const [fehler, setFehler] = useState<string | null>(null);
   const [askCancel, setAskCancel] = useState<ShuttleBooking | null>(null);
 
@@ -82,8 +95,26 @@ export function ShuttleView({
   // Ab der sechsten offenen Fahrt verlangt `request_shuttle` eine Begründung.
   const brauchtGrund = aktiv.length >= SHUTTLE_LIMIT;
 
+  /**
+   * Liegt die Abholzeit im erlaubten Fenster? (SPK-034)
+   *
+   * `min` und `max` am Feld begrenzen nur den Tag — die Uhrzeit prüft der
+   * Browser nicht. Ohne diesen Schritt liesse sich eine Abholung um drei Uhr
+   * morgens bestellen, und das Shuttle-Unternehmen bekäme sie auf die Liste.
+   */
+  function zeitAusserhalb(wert: string): boolean {
+    if (!fenster || !wert) return false;
+    const stunde = Number(wert.slice(11, 13));
+    if (!Number.isFinite(stunde)) return false;
+    return stunde < fenster.vonStunde || stunde >= fenster.bisStunde;
+  }
+
   function onSubmit() {
     setFehler(null);
+    if (zeitAusserhalb(draft.pickup_at)) {
+      setFehler(fenster?.hint ?? "");
+      return;
+    }
     start(async () => {
       const res = await requestShuttle(profileId, {
         passenger_name: draft.passenger_name,
@@ -213,15 +244,15 @@ export function ShuttleView({
                 key={f.key}
                 label={t[`shuttle_${f.key}`] ?? f.key}
                 htmlFor={`sh-${f.key}`}
-                hint={t[`shuttle_${f.key}_hint`]}
+                hint={f.key === "pickup_at" ? fenster?.hint : t[`shuttle_${f.key}_hint`]}
                 required={f.required}
                 requiredLabel={t.required}
               >
                 <Input
                   id={`sh-${f.key}`}
                   type={f.kind === "text" ? "text" : f.kind}
-                  min={f.kind === "number" ? 1 : undefined}
-                  max={f.kind === "number" ? 8 : undefined}
+                  min={f.kind === "number" ? 1 : fenster?.min}
+                  max={f.kind === "number" ? 8 : fenster?.max}
                   value={draft[f.key] ?? ""}
                   onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
                 />
@@ -234,9 +265,10 @@ export function ShuttleView({
               hint={t.shuttle_note_hint}
               className="sm:col-span-2"
             >
-              <Textarea
+              {/* Kurztext statt Textfeld (SPK-034, Konrad 21.09.): hier steht
+                  ein Satz für den Fahrer, kein Absatz. */}
+              <Input
                 id="sh-note"
-                rows={2}
                 value={draft.note}
                 onChange={(e) => setDraft((d) => ({ ...d, note: e.target.value }))}
               />

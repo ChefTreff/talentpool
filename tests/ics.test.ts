@@ -56,6 +56,40 @@ describe("ICS: Zeiten", () => {
   });
 });
 
+describe("ICS: ganztägig", () => {
+  it("schreibt reine Daten und ein exklusives Ende", () => {
+    // Der 16. bis 17. April sind zwei Tage. Ohne das exklusive Ende zeigte der
+    // Kalender nur den ersten (SPK-026).
+    const z = zeilen(
+      icsCalendar(
+        [
+          {
+            uid: "edition-1@x",
+            start: new Date("2027-04-16T00:00:00.000Z"),
+            end: new Date("2027-04-17T00:00:00.000Z"),
+            allDay: true,
+            summary: "Future Leaders Summit 27",
+          },
+        ],
+        { now: JETZT },
+      ),
+    );
+    assert.ok(z.includes("DTSTART;VALUE=DATE:20270416"));
+    assert.ok(z.includes("DTEND;VALUE=DATE:20270418"));
+    assert.ok(!z.some((l) => l.startsWith("DTSTART:")), "es steht zusätzlich eine Uhrzeit da");
+  });
+
+  it("kommt auch mit einem einzigen Tag zurecht", () => {
+    const z = zeilen(
+      icsCalendar([{ uid: "a@x", start: new Date("2027-04-16T00:00:00.000Z"), allDay: true, summary: "Tag" }], {
+        now: JETZT,
+      }),
+    );
+    assert.ok(z.includes("DTSTART;VALUE=DATE:20270416"));
+    assert.ok(z.includes("DTEND;VALUE=DATE:20270417"));
+  });
+});
+
 describe("ICS: Maskierung", () => {
   it("maskiert Komma, Semikolon, Backslash und Umbruch im Text", () => {
     const ics = icsCalendar(

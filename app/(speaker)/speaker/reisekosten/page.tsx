@@ -1,7 +1,9 @@
+import { redirect } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ExpenseWizard } from "./ExpenseWizard";
@@ -26,6 +28,12 @@ export default async function SpeakerExpensePage() {
   const profile = (profileJson ?? null) as SpeakerProfile | null;
   const eligibility = (eligibilityJson ?? null) as ExpenseEligibility | null;
 
+  // Ohne Kostenübernahme gibt es diese Seite für dieses Konto nicht (SPK-031).
+  // Der Menüpunkt ist schon weg; wer die Adresse noch im Verlauf hat, landet
+  // auf der Übersicht statt vor einem Kasten, der ihm absagt. Geprüft wird
+  // hier und nicht nur im Menü — eine Navigation ist keine Rechtegrenze.
+  if (eligibility && eligibility.covered !== true) redirect("/speaker");
+
   if (!profile || !eligibility) {
     return (
       <>
@@ -44,6 +52,12 @@ export default async function SpeakerExpensePage() {
   return (
     <div className="max-w-text">
       <PageHeader title={t.speaker.expenseTitle} description={t.speaker.expenseLead} />
+      {/* Die Seite fing ohne Erklärung an (SPK-041, Konrad 22.09.). Der Ablauf
+          in drei Sätzen: was hochzuladen ist, wer danach schaut, und dass ein
+          freigegebener Antrag feststeht. */}
+      <Card className="mb-6 p-4">
+        <p className="ct-small leading-6">{t.speaker.expenseIntro}</p>
+      </Card>
       <ExpenseWizard
         key={open?.id ?? claims[0]?.id ?? "leer"}
         profileId={profile.id}

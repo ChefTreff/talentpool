@@ -6,8 +6,15 @@ import { SidebarShell, type SidebarGroup } from "@/components/layout/SidebarShel
 export const dynamic = "force-dynamic";
 
 /**
- * Teilnehmer-Portal: Programm, Anmeldungen, Profil. Offen für **jede**
- * angemeldete Person — die Tür entscheidet `requireArea`, nicht die Rolle.
+ * Teilnehmer-Portal: Übersicht, Programm, Anmeldungen, Profil. Offen für
+ * **jede** angemeldete Person — die Tür entscheidet `requireArea`, nicht die
+ * Rolle.
+ *
+ * **Seit 22.09.2026 beginnt das Portal auf `/start`** (Konrad), einer
+ * Menüseite. Vorher begann es auf `/profil`: wer sich anmeldete, landete in
+ * einem Formular und musste raten, dass es daneben Programm und Anmeldungen
+ * gibt. Das korrigiert die Entscheidung F8.4 („keine eigene Übersicht"), die
+ * aus einer Zeit stammt, in der es die Übersicht noch nicht gab.
  *
  * Wer einen Fachbereich hat, sieht diese Seiten als Teil **seines** Portals:
  * oben steht weiter „CHEFTREFF SPEAKER-PORTAL", und der erste Punkt führt
@@ -24,6 +31,7 @@ export default async function TalentLayout({ children }: { children: ReactNode }
   const mine: SidebarGroup = {
     label: home ? t.nav.account : "",
     items: [
+      { href: "/start", label: t.talentStart.navLabel },
       { href: "/programm", label: t.programme.title },
       { href: "/meine", label: t.participation.title },
       { href: "/profil", label: t.profile.title },
@@ -35,7 +43,7 @@ export default async function TalentLayout({ children }: { children: ReactNode }
       <SidebarShell
         area="talent"
         label={t.areas.talent.portal}
-        rootHref="/profil"
+        rootHref="/start"
         groups={[mine]}
       >
         {children}
