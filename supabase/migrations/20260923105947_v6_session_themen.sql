@@ -1,4 +1,6 @@
--- ???? · Welle 6 · Themen als gepflegte Liste statt Freitext (SPK-027)
+-- 0144 · Welle 6 · Themen als gepflegte Liste statt Freitext (SPK-027)
+-- Angewendet von der Architektur-Session am 23.09.2026 als 20260923105947.
+--
 --
 -- **Nummer offen.** Vorschlag der Build-Session Speaker-Domäne; Anwenden,
 -- Umbenennen und der Eintrag ins Entscheidungslog gehören der
