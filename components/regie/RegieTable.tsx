@@ -102,6 +102,7 @@ export function RegieTable({
               <Th>{t.colTech}</Th>
               <Th>{t.colModeration}</Th>
               <Th>{t.colRegie}</Th>
+              <Th>{t.colPeopleOnStage}</Th>
               <Th>{t.colBackstage}</Th>
               <Th>{t.colMobiliar}</Th>
               <Th>{t.colNotes}</Th>
@@ -169,6 +170,7 @@ function CueRow({
     action: cue.action ?? "",
     moderation: cue.moderation ?? "",
     regie: cue.regie ?? "",
+    people_on_stage: cue.people_on_stage ?? "",
     backstage: cue.backstage ?? "",
     mobiliar: cue.mobiliar ?? "",
     notes: cue.notes ?? "",
@@ -218,6 +220,9 @@ function CueRow({
       </Td>
       <Td>{field("moderation", t.colModeration)}</Td>
       <Td>{field("regie", t.colRegie)}</Td>
+      {/* Kommt seit dem 23.09. von hier und nicht mehr vom Speaker
+          (SPK-029, LEAD-012). */}
+      <Td>{field("people_on_stage", t.colPeopleOnStage)}</Td>
       <Td>{field("backstage", t.colBackstage)}</Td>
       <Td>{field("mobiliar", t.colMobiliar)}</Td>
       <Td>{field("notes", t.colNotes, true)}</Td>

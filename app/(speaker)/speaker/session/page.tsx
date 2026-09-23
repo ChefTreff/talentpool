@@ -93,6 +93,7 @@ export default async function SpeakerSessionPage() {
             accessMode: vgroup(vocab, "access_mode"),
             publishStatus: vgroup(vocab, "publish_status"),
             topics: vgroup(vocab, "session_topic"),
+            speaker_microphone: vgroup(vocab, "speaker_microphone"),
           }}
           locale={locale}
           dateLocale={t.meta.dateLocale}
