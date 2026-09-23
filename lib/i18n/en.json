@@ -913,7 +913,13 @@
     "deleteSlidesBody": "The file will be deleted. If there is an earlier version, it becomes the current one again.",
     "slidesDeleted": "Slides removed",
     "stepLumpSum": "Lump sum",
-    "lumpSumBody": "Your travel costs are covered by a fixed amount — no receipts needed. Just add your bank details below and submit, and we will transfer it."
+    "lumpSumBody": "Your travel costs are covered by a fixed amount — no receipts needed. Just add your bank details below and submit, and we will transfer it.",
+    "checklistTitle": "Your checklist",
+    "dueSoon": "due today",
+    "dueDays": "{n} days left",
+    "dueHours": "{n} hours left",
+    "checkSelfHint": "Tick this off once you have done it.",
+    "checkTickError": "The tick could not be saved. Please reload the page."
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -2184,7 +2190,8 @@
       "initiatives": "Initiatives",
       "reception": "Reception",
       "submissions": "Submissions",
-      "regie": "Show flow"
+      "regie": "Show flow",
+      "speakerTasks": "Speaker tasks"
     },
     "overview": {
       "title": "Overview",
@@ -4080,5 +4087,36 @@
     "cardProfileAction": "Open profile",
     "loggedInAs": "Signed in as",
     "navLabel": "Overview"
+  },
+  "adminSpeakerTasks": {
+    "title": "Speaker tasks",
+    "lead": "Items speakers tick off themselves in their checklist — for things the portal cannot observe. What it does see (photo, consent, slides) is already in the list and does not belong here.",
+    "emptyTitle": "No edition yet",
+    "emptyBody": "Without an edition there is nothing to maintain.",
+    "newTitle": "New task",
+    "newHint": "Appears in the checklist of every speaker of this edition.",
+    "key": "Key",
+    "keyHint": "Technical, unique per edition — e.g. hotel_contacted.",
+    "labelDe": "Task (DE)",
+    "labelEn": "Task (EN)",
+    "descDe": "Description (DE)",
+    "descEn": "Description (EN)",
+    "deadline": "Deadline",
+    "deadlineHint": "Maintained under “Deadlines”; only linked here.",
+    "sortOrder": "Order",
+    "add": "Create",
+    "saved": "Saved",
+    "ticks": "Ticked",
+    "state": "State",
+    "actions": "Actions",
+    "active": "active",
+    "inactive": "retired",
+    "activate": "Activate",
+    "deactivate": "Retire",
+    "activated": "Activated",
+    "deactivated": "Retired",
+    "delete": "Delete",
+    "deleted": "Deleted",
+    "deleteConfirm": "Delete task “{key}” for good?"
   }
 }

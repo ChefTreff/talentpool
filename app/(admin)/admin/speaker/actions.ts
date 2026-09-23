@@ -172,3 +172,27 @@ export async function removeAssistant(profileId: string): Promise<AdminResult> {
   refresh(profileId);
   return { ok: true, data: undefined };
 }
+
+// === Aufgaben zum Selbst-Abhaken (SPK-024, 0149) ============================
+
+/** Aufgabe anlegen oder ändern; schlüsselt auf Edition + `key`. */
+export async function saveSpeakerTask(data: Record<string, unknown>): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("upsert_speaker_task", { p_data: data });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/aufgaben`);
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Aufgabe löschen. Die RPC weist das ab, sobald jemand sie abgehakt hat
+ * (`task_has_ticks`) — dann bleibt nur das Stilllegen, und die Haken bleiben
+ * nachlesbar.
+ */
+export async function deleteSpeakerTask(taskId: string): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("delete_speaker_task", { p_task_id: taskId });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/aufgaben`);
+  return { ok: true, data: undefined };
+}
