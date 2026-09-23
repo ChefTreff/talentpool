@@ -97,6 +97,28 @@ export async function setSlidesRelease(
 }
 
 /**
+ * Eine hochgeladene Präsentation wieder entfernen (SPK-028).
+ *
+ * **Erst die Zeile, dann die Datei.** Die RPC prüft das Recht, löscht den
+ * Eintrag, lässt die vorige Fassung nachrücken und gibt den Pfad zurück.
+ * Andersherum bliebe bei einem Fehler ein Eintrag stehen, der ins Leere zeigt
+ * — eine verwaiste Datei im Bucket ist der harmlosere der beiden Fälle und
+ * steht im Log.
+ */
+export async function deleteAsset(assetId: string): Promise<SessionResult> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("delete_speaker_asset", { p_id: assetId });
+  if (error) return fail(error);
+
+  if (typeof data === "string" && data !== "") {
+    const { error: wegFehler } = await supabase.storage.from("speaker-assets").remove([data]);
+    if (wegFehler) console.error("[speaker-assets] remove:", wegFehler.message);
+  }
+  refresh();
+  return { ok: true, data: undefined };
+}
+
+/**
  * Technik-Ansage zum Slot (SPK-018).
  *
  * Die RPC kennt die fünf erlaubten Schlüssel und weist alles andere ab; hier

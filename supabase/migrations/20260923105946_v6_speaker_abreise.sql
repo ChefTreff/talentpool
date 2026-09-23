@@ -1,4 +1,6 @@
--- 0129? · Welle 6 · „Ich möchte weggebracht werden" an der Abreise (SPK-032)
+-- 0143 · Welle 6 · „Ich möchte weggebracht werden" an der Abreise (SPK-032)
+-- Angewendet von der Architektur-Session am 23.09.2026 als 20260923105946.
+--
 --
 -- **Nummer offen.** 0128 ist für SPK-040 (Kontakt zusammenlegen) vorgemerkt;
 -- diese hier braucht eine eigene. Vorschlag der Build-Session Speaker-Domäne.
