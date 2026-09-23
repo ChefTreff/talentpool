@@ -912,6 +912,8 @@
     "deleteSlidesTitle": "Remove slides?",
     "deleteSlidesBody": "The file will be deleted. If there is an earlier version, it becomes the current one again.",
     "slidesDeleted": "Slides removed",
+    "stepLumpSum": "Lump sum",
+    "lumpSumBody": "Your travel costs are covered by a fixed amount — no receipts needed. Just add your bank details below and submit, and we will transfer it.",
     "sectionArrival": "Arrival and departure",
     "sectionShuttle": "Shuttle",
     "sectionHotel": "Hotel & accommodation",
@@ -2969,7 +2971,11 @@
     "unsaved": "Unsaved changes",
     "discard": "Discard",
     "sectionReadonlyHint": "Comes from elsewhere and is not edited here.",
-    "sectionsLabel": "On this page"
+    "sectionsLabel": "On this page",
+    "expenseModeTitle": "Reimbursement",
+    "expenseModeHint": "Lump sum or reimbursement against receipts. With a lump sum the speaker can no longer enter receipts; existing ones stay.",
+    "expenseAmount": "Lump sum (EUR)",
+    "expenseAmountInvalid": "Please enter an amount in euros, e.g. 1200 or 1200.50."
   },
   "adminTeam": {
     "title": "Team",
