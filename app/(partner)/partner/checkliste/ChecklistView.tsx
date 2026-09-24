@@ -274,7 +274,7 @@ export function ChecklistView({
       {groups.map((group) => (
         <section key={group.sku ?? "global"} aria-labelledby={`g-${group.sku ?? "global"}`}>
           <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-            <h2 id={`g-${group.sku ?? "global"}`} className="ct-h3 text-ink">
+            <h2 id={`g-${group.sku ?? "global"}`} className="ct-h2 text-ink">
               {group.label}
             </h2>
             {group.sku && <span className="ct-help">{group.sku}</span>}

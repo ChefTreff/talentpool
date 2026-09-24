@@ -51,7 +51,7 @@ export async function partnerAdminShell(pathname: string): Promise<
 
   const frame = (title: string, description: string, children: ReactNode) => (
     <>
-      <PageHeader title={title} description={description} />
+      <PageHeader word={t.admin.words.partner} title={title} description={description} />
       <SectionTabs items={items} label={t.adminPartner.title} />
       {children}
     </>
@@ -62,7 +62,7 @@ export async function partnerAdminShell(pathname: string): Promise<
       ok: false,
       view: (
         <>
-          <PageHeader title={t.adminPartner.title} description={t.adminPartner.lead} />
+          <PageHeader word={t.admin.words.partner} title={t.adminPartner.title} description={t.adminPartner.lead} />
           <EmptyState
             title={t.adminPartner.noAccessTitle}
             description={t.adminPartner.noAccessBody}

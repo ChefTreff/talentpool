@@ -1,16 +1,20 @@
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminSection } from "@/lib/auth";
+import { canEnterAdminSection } from "@/lib/admin-sections";
 import { getI18n } from "@/lib/i18n";
+import { ButtonLink } from "@/components/ui/Button";
 import { HeroBand, BandStat } from "@/components/ui/HeroBand";
+import { PhotoCard } from "@/components/ui/PhotoCard";
 import { StatCard } from "@/components/ui/Card";
+import { einstiegeFuer } from "./einstiege";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
   // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
   // nicht neu. Muss vor createSupabaseAdminClient() stehen.
-  await requireAdminSection("overview", "/admin");
+  const { firstName, roleNames } = await requireAdminSection("overview", "/admin");
   const admin = createSupabaseAdminClient();
   const { t } = await getI18n();
 
@@ -37,15 +41,34 @@ export default async function AdminDashboard() {
     { label: t.admin.overview.vocabTerms, value: vocab.count ?? 0, href: "/admin/vokabular" },
   ];
 
+  const vorname = firstName?.trim() || null;
+  const offeneDubletten = dupes.count ?? 0;
+  const nav = t.admin.nav;
+  const woerter: Record<string, string> = t.admin.words;
+  const saetze: Record<string, string> = t.admin.entries;
+  // Die drei Einstiege nach Rolle (QS-037) — Auswahl und Begründung in ./einstiege.ts.
+  const einstiege = einstiegeFuer(roleNames);
+
   return (
     <>
       {/* Hero-Band auf jeder Startseite (Konrad, 17.09.). Rechts steht die
           Zahl, die zum Handeln auffordert — offene Dubletten sind das
-          einzige auf dieser Seite, das liegen bleibt, wenn niemand hinsieht. */}
+          einzige auf dieser Seite, das liegen bleibt, wenn niemand hinsieht.
+
+          Seit QS-037 nach dem Vorbild der Talent-Startseite: Gruss mit dem
+          einen Wort im Highlight-Pink, und die Zahl rechts bekommt ihren
+          Knopf — aber nur, wenn es etwas zu prüfen gibt und die Rolle die
+          Dubletten öffnen darf. */}
       <HeroBand
         eyebrow={t.areas.admin.portal}
-        title={t.admin.overview.title}
+        title={vorname ? t.admin.overview.bandGreeting.replace("{name}", vorname) : t.admin.overview.title}
+        highlight={vorname ? t.admin.overview.bandHighlight : undefined}
         lead={t.admin.overview.lead}
+        action={
+          offeneDubletten > 0 && canEnterAdminSection("duplicates", roleNames) ? (
+            <ButtonLink href="/admin/dubletten">{t.admin.overview.bandActionDuplicates}</ButtonLink>
+          ) : undefined
+        }
         aside={
           <BandStat
             value={String(dupes.count ?? 0)}
@@ -54,6 +77,25 @@ export default async function AdminDashboard() {
           />
         }
       />
+
+      {einstiege.length > 0 && (
+        <div className="mb-10 grid gap-6 sm:grid-cols-3">
+          {einstiege.map((e) => (
+            <PhotoCard
+              key={e.key}
+              word={woerter[e.key]}
+              title={nav[e.nav]}
+              description={saetze[e.key]}
+              action={
+                <ButtonLink href={e.href} variant="secondary" size="sm">
+                  {t.admin.overview.entryOpen.replace("{title}", nav[e.nav])}
+                </ButtonLink>
+              }
+            />
+          ))}
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c) =>
           c.href ? (

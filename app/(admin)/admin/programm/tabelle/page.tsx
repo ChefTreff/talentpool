@@ -26,7 +26,7 @@ export default async function ProgrammeTablePage({
 
   return (
     <>
-      <PageHeader title={t.admin.programme.title} description={t.admin.programme.lead} />
+      <PageHeader word={t.admin.words.programme} title={t.admin.programme.title} description={t.admin.programme.lead} />
       <TableTabs basePath={BASE} withRelease />
       {!data.currentEvent ? (
         <EmptyState

@@ -254,7 +254,7 @@ export function OnboardingWizard({
 
       {step === 0 && (
         <Card>
-          <h2 className="ct-h3 mb-1 text-ink">{t.stepCompany}</h2>
+          <h2 className="ct-h2 mb-1 text-ink">{t.stepCompany}</h2>
           <p className="ct-help mb-4">{t.stepCompanyHint}</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.fieldLegalName} htmlFor="legal_name" required requiredLabel={t.requiredLabel}>
@@ -335,7 +335,7 @@ export function OnboardingWizard({
 
       {step === 1 && (
         <Card>
-          <h2 className="ct-h3 mb-1 text-ink">{t.stepDescription}</h2>
+          <h2 className="ct-h2 mb-1 text-ink">{t.stepDescription}</h2>
           <p className="ct-help mb-4">{t.stepDescriptionHint}</p>
           <div className="flex flex-col gap-4">
             <Field
@@ -384,7 +384,7 @@ export function OnboardingWizard({
 
       {step === 2 && (
         <Card>
-          <h2 className="ct-h3 mb-1 text-ink">{t.stepLogo}</h2>
+          <h2 className="ct-h2 mb-1 text-ink">{t.stepLogo}</h2>
           <p className="ct-help mb-4">{t.stepLogoHint}</p>
 
           {logos.length === 0 ? (
@@ -487,7 +487,7 @@ export function OnboardingWizard({
 
       {step === 3 && (
         <Card>
-          <h2 className="ct-h3 mb-1 text-ink">{t.stepInvoice}</h2>
+          <h2 className="ct-h2 mb-1 text-ink">{t.stepInvoice}</h2>
           <p className="ct-help mb-4">{t.stepInvoiceHint}</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field

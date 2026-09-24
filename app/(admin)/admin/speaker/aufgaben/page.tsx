@@ -49,7 +49,7 @@ export default async function AdminSpeakerTasksPage() {
 
   return (
     <>
-      <PageHeader title={t.adminSpeakerTasks.title} description={t.adminSpeakerTasks.lead} />
+      <PageHeader word={t.admin.words.speakers} title={t.adminSpeakerTasks.title} description={t.adminSpeakerTasks.lead} />
       {editionen.length === 0 ? (
         <EmptyState
           title={t.adminSpeakerTasks.emptyTitle}

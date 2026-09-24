@@ -45,6 +45,7 @@ export default async function BewerbungenPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.applications}
         title={t.admin.applications.title}
         description={t.admin.applications.lead}
       />

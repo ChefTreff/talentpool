@@ -28,7 +28,7 @@ export default async function SupplierOrdersPage({
 
   return (
     <>
-      <PageHeader title={t.production.supplierTitle} description={t.production.supplierLead} />
+      <PageHeader word={t.admin.words.production} title={t.production.supplierTitle} description={t.production.supplierLead} />
       <ProductionTabs />
       {rows.length === 0 ? (
         <EmptyState title={t.production.emptySuppliers} description={t.production.emptySuppliersBody} />

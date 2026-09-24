@@ -292,6 +292,8 @@ Konrad, Feedback-Runde 24.09.: Auf der Startseite des Teilnehmer-Portals ist das
 
 Wer im Namen eines anderen arbeitet (Assistenz), wird nicht mit dessen Vornamen begrüsst: Titel bleibt der Name, ohne Highlight.
 
+**Einstiege nach Rolle:** Wo ein Portal mehrere Rollen trägt (Admin), zeigt die Startseite die ersten drei Abschnitte, die die Rolle öffnen darf — geprüft mit derselben Funktion wie die Seitenleiste (`canEnterAdminSection`). Eine Karte, die danach mit 404 antwortet, ist schlimmer als keine. Wo ein Portal Leistungen bucht (Partner), folgen die Einstiege den sichtbaren Menüpunkten (`visibleNavKeys`).
+
 **Unterseite**
 
 - `PageHeader word={…}`: das kursive Wort ist **derselbe Begriff** wie auf der Einstiegskarte, die hierher führt. Man erkennt die Seite, bevor man den Titel gelesen hat.
@@ -314,12 +316,29 @@ Wer im Namen eines anderen arbeitet (Assistenz), wird nicht mit dessen Vornamen 
 | Speaker | Reisekosten | Erstattung / Refund |
 | Speaker | Deine Bilder | Erinnerungen / Memories |
 | Speaker | Profil | Steckbrief / Bio |
+| Partner | Startseite (Leerzustand) | Partnerschaft / Partnership |
+| Partner | Eure Daten | Unternehmen / Company |
+| Partner | Kontakte | Team / Team |
+| Partner | Checkliste | Vorbereitung / Preparation |
+| Partner | Dateien | Material / Material |
+| Partner | Tickets | Zugang / Access |
+| Partner | Event-App | Sichtbarkeit / Visibility |
+| Partner | Messestand | Präsenz / Presence |
+| Partner | Messeshop (alle Reiter) | Ausstattung / Equipment |
+| Partner | Bewerber | Talente / Talent |
+| Partner | Hackathon | Challenge / Challenge |
+| Partner | Branding | Marke / Brand |
+| Partner | Euer Talk | Bühne / Stage |
+| Partner | Side-Event | Einladung / Invitation |
+| Partner | Interview Tables | Gespräche / Conversations |
+| Partner | Standbühne | Programm / Programme |
 | Speaker-Leads | Pipeline | Line-up / Line-up |
 | Speaker-Leads | An- und Abreise | Unterwegs / Journey |
 | Speaker-Leads | Shuttle | Transfer / Transfer |
 | Speaker-Leads | Programm-Board (auch Tabelle) | Programm / Programme |
 | Speaker-Leads, Admin | Einreichungen (`components/einreichungen`) | Auswahl / Selection |
 | alle | Wiki (`components/wiki/WikiPage`) | Wissen / Know-how |
+| Admin | jeder Abschnitt (31) | im Wörterbuch unter `admin.words.<Abschnitt>` — ein Wort je Abschnitt aus `lib/admin-sections.ts`, dasselbe auf der Einstiegskarte und in jedem Seitenkopf des Abschnitts (auch Detailseiten: *Line-up* über dem Namen eines Speakers). Die Einstiege der Startseite folgen der Rolle: `app/(admin)/admin/einstiege.ts` |
 | Talent | Einstiege | Entdecken · Überblick · Profil |
 
 Neue Wörter: ein Wort, kein Halbsatz; ein Begriff aus der Welt des Nutzers, nicht aus der Bedienung („Zugang", nicht „Verwalten"); nie derselbe wie der Titel darunter.

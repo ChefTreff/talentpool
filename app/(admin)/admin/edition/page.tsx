@@ -31,6 +31,7 @@ export default async function AdminEditionPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.edition}
         title={t.adminEdition.title}
         description={[geruest.event?.name, zeitraum, geruest.event?.venue]
           .filter(Boolean)

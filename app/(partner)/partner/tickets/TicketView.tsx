@@ -160,7 +160,7 @@ export function TicketView({
 
       {canRequest && asking && (
         <Card>
-          <h2 className="ct-h3 mb-1 text-ink">{t.requestTitle}</h2>
+          <h2 className="ct-h2 mb-1 text-ink">{t.requestTitle}</h2>
           <p className="ct-help mb-4">{t.requestHint}</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.fieldPassType} htmlFor="r-pass">
@@ -265,7 +265,7 @@ export function TicketView({
           eine leere Sektion wäre eine Frage ohne Anlass. */}
       {requests.length > 0 && (
         <section>
-          <h2 className="ct-h3 text-ink">{t.extraTitle}</h2>
+          <h2 className="ct-h2 text-ink">{t.extraTitle}</h2>
           <p className="ct-help mt-1">{t.extraLead}</p>
           <ul className="mt-3 flex flex-col gap-2">
             {requests.map((r) => (
@@ -299,7 +299,7 @@ export function TicketView({
           **nicht** hier: sie hängen an der Edition (Wochentage wechseln) und
           gehören ins Wiki. */}
       <section>
-        <h2 className="ct-h3 text-ink">{t.howTitle}</h2>
+        <h2 className="ct-h2 text-ink">{t.howTitle}</h2>
         <ol className="mt-3 flex flex-col gap-3">
           <li className="rounded-ct-md border border-border bg-surface px-4 py-3">
             <p className="ct-label text-ink">{t.step1Title}</p>

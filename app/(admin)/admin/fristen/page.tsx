@@ -29,7 +29,7 @@ export default async function AdminDeadlinesPage() {
 
   return (
     <>
-      <PageHeader title={t.admin.deadlines.title} description={t.admin.deadlines.lead} />
+      <PageHeader word={t.admin.words.deadlines} title={t.admin.deadlines.title} description={t.admin.deadlines.lead} />
       {editions.length === 0 ? (
         <EmptyState
           title={t.admin.deadlines.emptyTitle}

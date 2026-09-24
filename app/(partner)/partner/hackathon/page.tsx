@@ -66,7 +66,7 @@ export default async function PartnerHackathonPage() {
 
   return (
     <>
-      <PageHeader title={s.title} description={s.lead} />
+      <PageHeader word={t.partner.wordChallenge} title={s.title} description={s.lead} />
 
       {gebucht.length === 0 ? (
         <EmptyState
@@ -166,7 +166,7 @@ export default async function PartnerHackathonPage() {
           )}
 
           <Card>
-            <h2 className="ct-h3 text-ink">{s.appTitle}</h2>
+            <h2 className="ct-h2 text-ink">{s.appTitle}</h2>
             <p className="ct-small mt-1 leading-6">{s.appBody}</p>
             <div className="mt-4">
               <ButtonLink href="/hackathon" variant="secondary">

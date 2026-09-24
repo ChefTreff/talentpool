@@ -61,7 +61,7 @@ export default async function PartnerInterviewTablesPage() {
 
   return (
     <>
-      <PageHeader title={s.title} description={s.lead} />
+      <PageHeader word={t.partner.wordConversations} title={s.title} description={s.lead} />
 
       {!gebucht ? (
         <EmptyState

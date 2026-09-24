@@ -54,7 +54,7 @@ export default async function PartnerOnboardingPage() {
   if (!editable) {
     return (
       <>
-        <PageHeader title={t.partner.onboardingTitle} description={t.partner.onboardingLead} />
+        <PageHeader word={t.partner.wordCompany} title={t.partner.onboardingTitle} description={t.partner.onboardingLead} />
         <EmptyState
           title={t.partner.onboardingNoRightsTitle}
           description={t.partner.onboardingNoRightsBody}
@@ -65,7 +65,7 @@ export default async function PartnerOnboardingPage() {
 
   return (
     <>
-      <PageHeader title={t.partner.onboardingTitle} description={t.partner.onboardingLead} />
+      <PageHeader word={t.partner.wordCompany} title={t.partner.onboardingTitle} description={t.partner.onboardingLead} />
       <OnboardingWizard
         orgId={current.org_id}
         editionId={current.edition_id}

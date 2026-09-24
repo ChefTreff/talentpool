@@ -120,7 +120,7 @@ export function Warenkorb({
 
       <section aria-labelledby="h-cart">
         <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-          <h2 id="h-cart" className="ct-h3 text-ink">
+          <h2 id="h-cart" className="ct-h2 text-ink">
             {t.cart}
           </h2>
           <span className="ct-help ml-auto tabular-nums">
@@ -218,7 +218,7 @@ export function Warenkorb({
       {canOrder && cart.editable && (
         <section aria-labelledby="h-checkout">
           <div className="mb-2 border-b pb-2">
-            <h2 id="h-checkout" className="ct-h3 text-ink">
+            <h2 id="h-checkout" className="ct-h2 text-ink">
               {t.checkout}
             </h2>
           </div>

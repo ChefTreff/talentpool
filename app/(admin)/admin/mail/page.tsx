@@ -74,7 +74,7 @@ export default async function MailPage({
   if (protokoll.error) {
     return (
       <>
-        <PageHeader title={t.adminMailLog.title} description={t.adminMailLog.lead} />
+        <PageHeader word={t.admin.words.mail} title={t.adminMailLog.title} description={t.adminMailLog.lead} />
         <MailTabs
           label={t.adminMailTemplates.title}
           log={t.adminMailTemplates.tabLog}
@@ -100,7 +100,7 @@ export default async function MailPage({
 
   return (
     <>
-      <PageHeader title={t.adminMailLog.title} description={t.adminMailLog.lead} />
+      <PageHeader word={t.admin.words.mail} title={t.adminMailLog.title} description={t.adminMailLog.lead} />
       <MailTabs
         label={t.adminMailTemplates.title}
         log={t.adminMailTemplates.tabLog}

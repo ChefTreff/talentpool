@@ -34,7 +34,7 @@ export default async function InitiativenPage() {
   if (liste.error) {
     return (
       <>
-        <PageHeader title={t.adminInitiatives.title} description={t.adminInitiatives.lead} />
+        <PageHeader word={t.admin.words.initiatives} title={t.adminInitiatives.title} description={t.adminInitiatives.lead} />
         <EmptyState
           title={t.adminInitiatives.noAccessTitle}
           description={t.adminInitiatives.noAccessBody}
@@ -50,7 +50,7 @@ export default async function InitiativenPage() {
 
   return (
     <>
-      <PageHeader title={t.adminInitiatives.title} description={t.adminInitiatives.lead} />
+      <PageHeader word={t.admin.words.initiatives} title={t.adminInitiatives.title} description={t.adminInitiatives.lead} />
       {zeilen.length === 0 ? (
         <EmptyState title={t.adminInitiatives.emptyTitle} description={t.adminInitiatives.emptyBody} />
       ) : (
