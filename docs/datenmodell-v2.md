@@ -76,6 +76,8 @@
 | Welle 6 · 0147 | **Welle 6 · Reisekosten als Pauschale oder per Beleg (SPK-042)** (`20260923120811`, `v6_reisekosten_pauschale`; Details im Migrationskopf) | — |
 | Welle 6 · 0149 | **Welle 6 · Aufgaben, die der Speaker selbst abhakt (SPK-024)** (`20260923120912`, `v6_speaker_aufgaben`; Details im Migrationskopf) | — |
 | Welle 6 · 0148 | **Welle 6 · Assistenz und Agentur zu einem Kontakt (SPK-040)** (`20260923121327`, `v6_speaker_kontakte`; Details im Migrationskopf) | — |
+| Welle 6 · 0151 | **Welle 6 · Porträt im Teilnehmer-Profil (TAL-012): Spalte, privater Bucket, Pfadregel, RPC** (`20260924101125`, `v6_person_portraet`; Details im Migrationskopf) | — |
+| Welle 6 · 0152 | **Welle 6 · Logo-Wand: Einwilligung zum Weißen, nur noch SVG oder EPS (PART-053)** (`20260924101126`, `v6_logo_druck_einwilligung`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

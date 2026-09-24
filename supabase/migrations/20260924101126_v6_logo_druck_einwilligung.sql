@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6: Logo-Wand — Einwilligung zum Weißen, und nur noch SVG oder EPS (PART-053).
+-- 0152 · Welle 6 · Logo-Wand: Einwilligung zum Weißen, nur noch SVG oder EPS (PART-053)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924101126.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 -- Neu aufgesetzt nach dem Einzug von `main` am 24.09.; `register_partner_asset` und

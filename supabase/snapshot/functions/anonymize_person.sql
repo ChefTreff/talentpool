@@ -24,6 +24,11 @@ begin
   insert into storage_purge_queue (bucket, path)
     select 'speaker-assets', sa.storage_path from speaker_asset sa where sa.profile_id = any (v_profile)
   on conflict (bucket, path) do nothing;
+  -- Porträt aus dem Teilnehmer-Profil (TAL-012).
+  insert into storage_purge_queue (bucket, path)
+    select 'person-photos', p.photo_path from person p
+     where p.id = p_person_id and p.photo_path is not null
+  on conflict (bucket, path) do nothing;
 
   -- 3 · Zeilen, die ohne die Person keinen Sinn mehr haben.
   delete from person_interest            where person_id = p_person_id;
@@ -45,7 +50,7 @@ begin
     linkedin_url = null, linkedin_normalized = null, cv_url = null,
     employer_name = null, university = null, title = null, city = null, pronouns = null,
     nationality = null, invite_code = null, auth_user_id = null,
-    gender = null, diet = null, diet_note = null,
+    gender = null, diet = null, diet_note = null, photo_path = null,
     salutation_de = null, salutation_en = null, self_assessment = null,
     deleted_at = now()
   where id = p_person_id;

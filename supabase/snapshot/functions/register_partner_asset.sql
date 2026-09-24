@@ -28,8 +28,11 @@ begin
     if v_rules ? 'max_bytes' and p_size_bytes is not null and p_size_bytes > (v_rules->>'max_bytes')::bigint then
       raise exception 'file_rules' using errcode = '22023', detail = 'max_bytes';
     end if;
-  elsif p_kind = 'logo_vector' and coalesce(v_ext, '') not in ('svg', 'eps', 'ai', 'pdf') then
-    raise exception 'file_rules' using errcode = '22023', detail = 'logo_vector: svg, eps, ai, pdf';
+  -- Vorher: ('svg', 'eps', 'ai', 'pdf'). Konrad, 22.09.: nur noch Vektordateien, die die
+  -- Druckerei ohne Rueckfrage oeffnet. Dieser Zweig greift nur ohne `p_deliverable_id` —
+  -- mit Pflicht gelten die `file_rules` der Vorlage, die oben angepasst sind.
+  elsif p_kind = 'logo_vector' and coalesce(v_ext, '') not in ('svg', 'eps') then
+    raise exception 'file_rules' using errcode = '22023', detail = 'logo_vector: svg, eps';
   end if;
   select coalesce(max(version), 0) + 1 into v_version from partner_asset
    where org_edition_id = v_oe.id and kind = p_kind and coalesce(deliverable_id, '00000000-0000-0000-0000-000000000000'::uuid) = coalesce(p_deliverable_id, '00000000-0000-0000-0000-000000000000'::uuid);

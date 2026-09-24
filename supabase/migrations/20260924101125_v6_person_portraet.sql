@@ -1,4 +1,5 @@
--- 00NN · Porträt im Teilnehmer-Profil (TAL-012): Spalte, privater Bucket, Pfadregel, RPC.
+-- 0151 · Welle 6 · Porträt im Teilnehmer-Profil (TAL-012): Spalte, privater Bucket, Pfadregel, RPC
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924101125.
 --
 -- Anlass: Konrad 24.09.2026 (Eingang, TAL-012) — „Kein Porträtfoto → Porträt-Upload im
 -- Profil". Muster: Speaker-Foto (`speaker_asset_path_allowed`, `register_speaker_asset`).
