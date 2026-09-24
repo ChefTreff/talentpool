@@ -96,3 +96,45 @@ export const APPLICATION_FORMATS = [
 export function isApplicationFormat(format: string | null | undefined): boolean {
   return (APPLICATION_FORMATS as readonly string[]).includes(format ?? "");
 }
+
+/**
+ * Format-Details je Session (TAL-002/003) — aufbereitet auf dem Server:
+ * Bild bereits signiert, gesuchte Profile als Beschriftungen, Zeiten als ISO.
+ */
+export type FormatDetails = {
+  hostName: string | null;
+  location: string | null;
+  imageUrl: string | null;
+  jobTitle: string | null;
+  jobPostingText: string | null;
+  jobPostingUrl: string | null;
+  interviewMode: "single" | "group" | null;
+  targetProfile: string[];
+  tour: {
+    name: string;
+    meetingPoint: string | null;
+    startsAt: string | null;
+    endsAt: string | null;
+    stops: {
+      hostName: string | null;
+      address: string | null;
+      arrivalAt: string | null;
+      departureAt: string | null;
+      notes: string | null;
+      targetProfile: string[];
+    }[];
+  } | null;
+};
+
+/** Gesuchte Profile → Beschriftungen, in fester Reihenfolge der drei Merkmale. */
+export function targetProfileLabels(
+  tp: Record<string, string[]> | null | undefined,
+  label: (vocabulary: string, key: string) => string,
+): string[] {
+  if (!tp || typeof tp !== "object") return [];
+  const out: string[] = [];
+  for (const v of ["occupation_status", "career_level", "study_field"]) {
+    for (const k of Array.isArray(tp[v]) ? tp[v] : []) out.push(label(v, k));
+  }
+  return out;
+}
