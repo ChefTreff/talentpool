@@ -44,8 +44,8 @@ type Strings = Record<string, string>;
 
 /**
  * Die Sprachen, zwischen denen ein Speaker wählt. „Gemischt" (`mixed`) ist
- * raus (SPK-052, Konrad 24.09.: „wir entscheiden uns für eine Sprache");
- * Board und Datenbank kennen den Wert noch, siehe PR.
+ * raus (SPK-052, Konrad 24.09.: „wir entscheiden uns für eine Sprache") — seit
+ * v6_eine_sprache auch aus Constraint, Vokabular, Board und Partner-RPCs.
  */
 const SPRACHEN = ["de", "en"] as const;
 
