@@ -1,4 +1,5 @@
--- Vorschlag ohne Nummer · Welle 6 · Verkehrsmittel „Fernbus“ und „Wohnt in Hamburg“ stillgelegt (SPK-059)
+-- 0176 · Verkehrsmittel „Fernbus“ und „Wohnt in Hamburg“ stillgelegt (SPK-059)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924193425.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
