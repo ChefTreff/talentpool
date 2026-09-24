@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
-import { readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { migrationText } from "./migration-datei";
 import {
   cleanLanguages,
   EDITABLE_CONSENTS,
@@ -9,14 +9,7 @@ import {
   REQUIRED_CONSENTS,
 } from "@/app/(talent)/profil/felder";
 
-// Erst Vorschlag, dann unter der Server-Version angewendet — die Datei wird
-// über ihren Namen gefunden, wo auch immer sie gerade liegt.
-const DIR = new URL("../supabase/migrations/", import.meta.url);
-const datei = readdirSync(DIR).find((n) => n.endsWith("_v6_profilfelder.sql"));
-const migration = readFileSync(
-  new URL(datei ?? "vorschlag/v6_profilfelder.sql", DIR),
-  "utf8",
-);
+const migration = migrationText("v6_profilfelder");
 
 describe("Profilfelder (TAL-013)", () => {
   it("pflegt genau die Listen, die person_interest erlaubt", () => {

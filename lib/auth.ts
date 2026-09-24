@@ -12,11 +12,8 @@ import {
   type Area,
   type AreaKey,
 } from "@/lib/areas";
-import {
-  adminSection,
-  canEnterAdminSection,
-  type AdminSectionKey,
-} from "@/lib/admin-sections";
+import { adminSection, type AdminSectionKey } from "@/lib/admin-sections";
+import { mayEnterAdminSection } from "@/lib/admin-access";
 
 export type RoleAssignment = {
   role: string;
@@ -186,13 +183,16 @@ export async function requireStaff(pathname?: string): Promise<SessionContext> {
  * `tests/admin-sections.test.ts` prüft, dass **jede** Seite unter
  * `app/(admin)/admin/` dieses Gate zieht. Ein vergessenes Gate wäre nach der
  * Öffnung der Tür nicht mehr nur unschön, sondern offen.
+ *
+ * Seit ADM-053 kommen Konrads Ausnahmen aus `admin_section_override` dazu
+ * (`lib/admin-access.ts`): Person schlägt Rolle schlägt Vorgabe.
  */
 export async function requireAdminSection(
   section: AdminSectionKey,
   pathname?: string,
 ): Promise<SessionContext> {
   const ctx = await requireArea("admin", pathname ?? adminSection(section).path);
-  if (!canEnterAdminSection(section, ctx.roleNames)) notFound();
+  if (!(await mayEnterAdminSection(section, ctx.roleNames))) notFound();
   return ctx;
 }
 
@@ -202,7 +202,8 @@ export async function requireAnyAdminSection(
   pathname?: string,
 ): Promise<SessionContext> {
   const ctx = await requireArea("admin", pathname ?? adminSection(sections[0]).path);
-  if (!sections.some((s) => canEnterAdminSection(s, ctx.roleNames))) notFound();
+  const erlaubt = await Promise.all(sections.map((s) => mayEnterAdminSection(s, ctx.roleNames)));
+  if (!erlaubt.some(Boolean)) notFound();
   return ctx;
 }
 

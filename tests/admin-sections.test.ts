@@ -1,9 +1,11 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
+import { migrationText } from "./migration-datei";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import {
   ADMIN_SECTIONS,
+  EXTERNAL_ROLES,
   TEAM_ROLES,
   canEnterAdminSection,
   isTeamMember,
@@ -132,10 +134,54 @@ describe("Admin-Abschnitte: Rollen", () => {
     assert.equal(canEnterAdminSection("roles", partner), false);
   });
 
+  it("die Rollenliste hier und die in der Datenbank sind dieselbe", () => {
+    // Zwei Listen für „wer ist Team" laufen auseinander, und dann sieht jemand
+    // eine Seite, die ihm die Datenbank verweigert. Der Vorschlag für
+    // `team_role_keys()` steht in der Migration; hier wird er dagegengehalten.
+    const sql = migrationText("v6_rollenmodell_abschnitte");
+    // Nur das Array selbst lesen — `set search_path to 'public', 'extensions'`
+    // steht im selben Rumpf und wäre sonst zweimal „Rolle".
+    const block = sql.slice(sql.indexOf("create or replace function team_role_keys"));
+    const liste = block.slice(block.indexOf("select array["), block.indexOf("]::text[]"));
+    const inDb = [...liste.matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+    assert.deepEqual([...TEAM_ROLES].sort(), [...new Set(inDb)].sort());
+  });
+
+  it("die externen Rollen stehen in keinem Abschnitt", () => {
+    // `speaker_manager` sind die Bühnenleitungen von aussen (Konrad 24.09.),
+    // `volunteer_lead` führt Schichten, `checkin_operator` ist ein Tablet.
+    // Keine davon gehört in den Admin — und sie standen bis zum 24.09. in
+    // `team_role_keys()`, wären mit PORT1 also Teammitglieder geworden.
+    for (const extern of EXTERNAL_ROLES) {
+      assert.equal(isTeamMember([extern]), false, extern);
+      for (const s of ADMIN_SECTIONS) {
+        assert.equal(canEnterAdminSection(s.key, [extern]), false, `${s.key} / ${extern}`);
+      }
+    }
+  });
+
+  it("jeder Bereich hat eine Lead- und eine Team-Rolle", () => {
+    // Konrads Modell (24.09.). Speaker und Programm sind **ein** Bereich:
+    // Lead `area_lead_speaker`, Team `programme_team`.
+    const paare: [string, string][] = [
+      ["area_lead_talent", "talent_team"],
+      ["area_lead_speaker", "programme_team"],
+      ["area_lead_partner", "partner_team"],
+      ["area_lead_volunteers", "volunteers_team"],
+      ["area_lead_hackathon", "hackathon_team"],
+      ["area_lead_production", "production_team"],
+    ];
+    for (const [lead, team] of paare) {
+      assert.ok(TEAM_ROLES.includes(lead as never), lead);
+      assert.ok(TEAM_ROLES.includes(team as never), team);
+    }
+  });
+
   it("wer keine Teamrolle hat, ist kein Teammitglied", () => {
     assert.equal(isTeamMember([]), false);
     assert.equal(isTeamMember(["speaker"]), false);
     assert.equal(isTeamMember(["partner_contact", "volunteer"]), false);
+    assert.equal(isTeamMember(["speaker_manager"]), false);
     assert.equal(isTeamMember(["production_team"]), true);
     assert.equal(isTeamMember(["admin"]), true);
   });

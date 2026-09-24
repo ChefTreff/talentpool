@@ -6,9 +6,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { DeadlineCard } from "@/components/ui/DeadlineCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { FristMarke } from "@/components/ui/FristMarke";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
 import { getPartnerScope } from "../org";
@@ -48,9 +48,11 @@ export default async function PartnerHackathonPage() {
   const overview = (overviewJson ?? null) as PartnerOverview | null;
   const deliverables = (deliverableRows ?? []) as Deliverable[];
   const s = t.partnerHackathon;
+  // Europe/Berlin ausdrücklich: der Server rendert in UTC.
   const dateTime = new Intl.DateTimeFormat(t.meta.dateLocale, {
     dateStyle: "long",
     timeStyle: "short",
+    timeZone: "Europe/Berlin",
   });
 
   const gebucht = (overview?.products ?? []).filter((p) => p.format_key === "hackathon");
@@ -84,25 +86,24 @@ export default async function PartnerHackathonPage() {
               ohne sie kein Team etwas zu tun hat. */}
           {challenge && (
             <Card>
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="ct-h3 text-ink">{label(challenge)}</h2>
-                <Badge tone={tone(challenge)}>
-                  {t.partner[`deliverable_${challenge.status}` as keyof typeof t.partner] as string}
-                </Badge>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="ct-h3 text-ink">{label(challenge)}</h2>
+                  <Badge tone={tone(challenge)}>
+                    {t.partner[`deliverable_${challenge.status}` as keyof typeof t.partner] as string}
+                  </Badge>
+                </div>
+                {/* Frist im Kopf, rechts (QS-044). */}
+                {challenge.due_at && challenge.status !== "accepted" && (
+                  <FristMarke
+                    className="ml-auto"
+                    dueAt={challenge.due_at}
+                    dateText={dateTime.format(new Date(challenge.due_at))}
+                    t={{ label: s.challengeDue, days: t.partner.countdownDays, hours: t.partner.countdownHours, soon: t.partner.countdownSoon, passed: t.common.deadlinePassed, done: t.common.deadlineDone }}
+                  />
+                )}
               </div>
               {text(challenge) && <p className="ct-small mt-2 leading-6">{text(challenge)}</p>}
-              {challenge.due_at && (
-                <div className="mt-3">
-                  <DeadlineCard
-                    dueAt={challenge.due_at}
-                    label={s.challengeDue}
-                    dateText={dateTime.format(new Date(challenge.due_at))}
-                    days={t.partner.countdownDays}
-                    hours={t.partner.countdownHours}
-                    soon={t.partner.countdownSoon}
-                  />
-                </div>
-              )}
               {/* Ausgefüllt wird das Formular in der Checkliste — dort steht es
                   mit allen Feldern. Zwei Formulare für dieselbe Pflicht wären
                   zwei Stände derselben Antwort. */}
@@ -125,29 +126,28 @@ export default async function PartnerHackathonPage() {
           {/* Die Rückwand: eigener Upload für die Challenge Area (PART-033). */}
           {backdrop && (
             <Card>
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="ct-h3 text-ink">{label(backdrop)}</h2>
-                <Badge tone={tone(backdrop)}>
-                  {t.partner[`deliverable_${backdrop.status}` as keyof typeof t.partner] as string}
-                </Badge>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="ct-h3 text-ink">{label(backdrop)}</h2>
+                  <Badge tone={tone(backdrop)}>
+                    {t.partner[`deliverable_${backdrop.status}` as keyof typeof t.partner] as string}
+                  </Badge>
+                </div>
+                {/* Frist im Kopf, rechts (QS-044). */}
+                {backdrop.due_at && backdrop.status !== "accepted" && (
+                  <FristMarke
+                    className="ml-auto"
+                    dueAt={backdrop.due_at}
+                    dateText={dateTime.format(new Date(backdrop.due_at))}
+                    t={{ label: s.backdropDue, days: t.partner.countdownDays, hours: t.partner.countdownHours, soon: t.partner.countdownSoon, passed: t.common.deadlinePassed, done: t.common.deadlineDone }}
+                  />
+                )}
               </div>
               {text(backdrop) && <p className="ct-small mt-2 leading-6">{text(backdrop)}</p>}
               {/* Das Endformat steht als eigene Zeile, obwohl es auch in der
                   Beschreibung vorkommt: es ist die erste Zahl, nach der jemand
                   sucht, der die Datei bauen soll (Konrad 21.09.). */}
               <p className="ct-help mt-2">{s.backdropSize}</p>
-              {backdrop.due_at && (
-                <div className="mt-3">
-                  <DeadlineCard
-                    dueAt={backdrop.due_at}
-                    label={s.backdropDue}
-                    dateText={dateTime.format(new Date(backdrop.due_at))}
-                    days={t.partner.countdownDays}
-                    hours={t.partner.countdownHours}
-                    soon={t.partner.countdownSoon}
-                  />
-                </div>
-              )}
               <div className="mt-4">
                 <PflichtUpload
                   orgId={current.org_id}
