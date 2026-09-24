@@ -10,6 +10,7 @@ import { getPartnerScope } from "../org";
 import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
 import { Ausstattung } from "./Ausstattung";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
+import { FristMarke } from "@/components/ui/FristMarke";
 import { Hallenplan } from "./Hallenplan";
 import { Rueckwand } from "./Rueckwand";
 import type { BoothPackage, EditionFile, Exhibitor } from "./types";
@@ -131,10 +132,32 @@ export default async function MessestandPage() {
         </section>
 
         <section aria-labelledby="rueckwand">
-          <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
+          {/* Die Frist im Kopf des Abschnitts, rechts (QS-044). Europe/Berlin
+              ausdrücklich: die Seite rendert auf dem Server, und der läuft in UTC. */}
+          <div className="mb-2 flex flex-wrap items-end gap-3 border-b pb-2">
             <h2 id="rueckwand" className="ct-h2 scroll-mt-20 text-ink">
               {b.backTitle}
             </h2>
+            {dueAt && (
+              <FristMarke
+                className="ml-auto"
+                dueAt={dueAt}
+                dateText={new Intl.DateTimeFormat(t.meta.dateLocale, {
+                  dateStyle: "long",
+                  timeStyle: "short",
+                  timeZone: "Europe/Berlin",
+                }).format(new Date(dueAt))}
+                erledigt={backdrop?.status === "accepted"}
+                t={{
+                  label: b.dueOn,
+                  days: b.countdownDays,
+                  hours: b.countdownHours,
+                  soon: b.countdownSoon,
+                  passed: t.common.deadlinePassed,
+                  done: t.common.deadlineDone,
+                }}
+              />
+            )}
           </div>
           <Rueckwand
             orgId={current.org_id}

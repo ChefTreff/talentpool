@@ -1,5 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
+import { migrationText } from "./migration-datei";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import {
@@ -137,7 +138,7 @@ describe("Admin-Abschnitte: Rollen", () => {
     // Zwei Listen für „wer ist Team" laufen auseinander, und dann sieht jemand
     // eine Seite, die ihm die Datenbank verweigert. Der Vorschlag für
     // `team_role_keys()` steht in der Migration; hier wird er dagegengehalten.
-    const sql = readFileSync("supabase/migrations/vorschlag/v6_rollenmodell_abschnitte.sql", "utf8");
+    const sql = migrationText("v6_rollenmodell_abschnitte");
     // Nur das Array selbst lesen — `set search_path to 'public', 'extensions'`
     // steht im selben Rumpf und wäre sonst zweimal „Rolle".
     const block = sql.slice(sql.indexOf("create or replace function team_role_keys"));

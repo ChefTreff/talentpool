@@ -5,9 +5,9 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { DeadlineCard } from "@/components/ui/DeadlineCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { FristMarke } from "@/components/ui/FristMarke";
 import { getPartnerScope } from "../org";
 import { PflichtUpload } from "../PflichtUpload";
 import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
@@ -44,7 +44,13 @@ export default async function PartnerBrandingPage() {
   const overview = (overviewJson ?? null) as PartnerOverview | null;
   const deliverables = (deliverableRows ?? []) as Deliverable[];
   const s = t.partnerBranding;
-  const dateTime = new Intl.DateTimeFormat(t.meta.dateLocale, { dateStyle: "long", timeStyle: "short" });
+  // Europe/Berlin ausdrücklich: die Seite rendert auf dem Server, und der
+  // läuft in UTC — ohne Zeitzone stünde jede Frist eine Stunde zu früh da.
+  const dateTime = new Intl.DateTimeFormat(t.meta.dateLocale, {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: "Europe/Berlin",
+  });
 
   const gebucht = (overview?.products ?? []).filter((p) => p.format_key === "branding");
   const canEdit = overview ? canEditOnboarding(overview.roles, overview.team) : false;
@@ -80,31 +86,32 @@ export default async function PartnerBrandingPage() {
             const abgelaufen = d.due_at !== null && new Date(d.due_at) < new Date();
             return (
               <Card key={d.id}>
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="ct-h3 text-ink">
-                    {(locale === "en" ? d.label_en : d.label_de) ?? d.key}
-                  </h2>
-                  <Badge tone={d.status === "accepted" ? "success" : d.status === "rejected" ? "error" : "neutral"}>
-                    {t.partner[`deliverable_${d.status}` as keyof typeof t.partner] as string}
-                  </Badge>
+                {/* Die Frist steht im Kopf, rechts (QS-044) — solange sie etwas
+                    bedeutet: ist die Datei angenommen, sagt das Badge alles. */}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="ct-h3 text-ink">
+                      {(locale === "en" ? d.label_en : d.label_de) ?? d.key}
+                    </h2>
+                    <Badge tone={d.status === "accepted" ? "success" : d.status === "rejected" ? "error" : "neutral"}>
+                      {t.partner[`deliverable_${d.status}` as keyof typeof t.partner] as string}
+                    </Badge>
+                  </div>
+                  {d.due_at && d.status !== "accepted" && (
+                    <FristMarke
+                      className="ml-auto"
+                      dueAt={d.due_at}
+                      dateText={dateTime.format(new Date(d.due_at))}
+                      vorbei={abgelaufen}
+                      t={{ label: s.dueLabel, days: t.partner.countdownDays, hours: t.partner.countdownHours, soon: t.partner.countdownSoon, passed: t.common.deadlinePassed, done: t.common.deadlineDone }}
+                    />
+                  )}
                 </div>
                 {produkt && <p className="ct-help mt-1">{name(produkt)}</p>}
                 {(locale === "en" ? d.description_en : d.description_de) && (
                   <p className="ct-small mt-2 leading-6">
                     {locale === "en" ? d.description_en : d.description_de}
                   </p>
-                )}
-                {d.due_at && (
-                  <div className="mt-3">
-                    <DeadlineCard
-                      dueAt={d.due_at}
-                      label={s.dueLabel}
-                      dateText={dateTime.format(new Date(d.due_at))}
-                      days={t.partner.countdownDays}
-                      hours={t.partner.countdownHours}
-                      soon={t.partner.countdownSoon}
-                    />
-                  </div>
                 )}
                 <div className="mt-4">
                   <PflichtUpload
