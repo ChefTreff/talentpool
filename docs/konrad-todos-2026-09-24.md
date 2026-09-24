@@ -57,3 +57,25 @@ Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Secu
 | K-27 | Chatbase kündigen nach Go-live des eigenen Assistenten; PII im Wiki bereinigen; Notion-Wikis nach Import einfrieren; Volunteer-Wiki exportieren |
 | K-28 | Domain-Umzug Teil A Anfang Oktober (Runbook `domain-umzug.md`); PITR-Add-on im Härtungsfenster vor dem Go-live |
 | K-29 | Katalogpreise (Oktober) und Moods der Halle für die Shop-Bilder (PART-077) — nur Erinnerung |
+
+## Antworten Konrad (24.09.2026, abends) und was daraus folgt
+
+Datenschutz und Sicherheit macht Konrad in den nächsten Tagen; vorab entschieden:
+
+| Nr. | Antwort | Folge |
+|---|---|---|
+| K-01 | Seitengruppe | D11 entschieden → TAL-005/006 frei (Talent-Chat) |
+| K-02 | Luma-API-Hybrid, Luma Plus ist aktiv | D12 entschieden → TAL-007/008 frei; Konrad legt später den Luma-API-Schlüssel per `sh scripts/env-set.sh LUMA_API_KEY --no-local` ab (Anleitung folgt mit dem Baustein) |
+| K-03 | Dienstkonto, bitte Anleitung | Runbook `docs/runbooks/drive-service-konto.md` |
+| K-04 | A1–A10 ja, B1 nein, B2–B5 ja, C1 abgespeckt, C2 ja, C3 nur Hack, C4 nein, C5 → TAL-009; Fragen 1–5 beantwortet | `docs/talent-felder-vorschlag.md` §5; TAL-013 bauen; Pflichtfeld-Prüfung auf der finalen Checkliste |
+| K-05 | INV0 als Letztes, wenn das Sales-Team eingeladen ist | Status „zurückgestellt bis Sales-Einladung“ |
+| K-06/K-07/K-09 | Rollenmodell: je Bereich Lead und Team; Partner-Team-Rolle; Speaker und Programm ein Bereich (Lead Paulina, Team `programme_team`); externe Stage Leads (`speaker_manager`) **ohne** Admin-Zugang; Rollen per Mehrfachauswahl, Abschnitte je Rolle und je Person schaltbar | **ADM-053** (P1, Admin-Chat mit Speaker-Chat für PORT3) |
+| K-08 | Empfehlung folgen: leer lassen | erledigt |
+| K-10 | Sichtprüfung Speaker: 20 Punkte | SPK-048…067; global QS-042…044; Speaker-Leads-Übersicht LEAD-024 bestätigt; Talent/Partner/Stage Leads später |
+| K-11 | Weiterleitung funktioniert, darf bleiben; Admin-Feedback | ADM-054 (Unterseiten Produktion), QS-045 (Menü-Ebenen, Portalauswahl unten), QS-046 (Admin-Farbe Lila) |
+| K-13 | `CSP_ENFORCE` in Vercel gesetzt, nichts geprüft | **Stand 24.09. abends: der Header läuft weiter Report-Only** — die Variable greift erst mit einem Redeploy und nur, wenn sie in *Production* exakt `true` heißt. Nichts zu löschen. Vor dem Scharfschalten prüft die Architektur-Session die `[csp]`-Meldungen in den Vercel-Logs; steht auf der finalen Checkliste |
+| K-14 | Screenshot Rate Limits (E-Mails 30/h; Verifikationen, Anmeldungen 30 je 5 Min je IP) | **Empfehlung:** vor dem Go-live E-Mails ≥ 200/h, Anmeldungen und Verifikationen ≥ 100 je 5 Min — am Summit teilen sich hunderte Geräte eine IP; steht auf der finalen Checkliste |
+| K-15 | streichen, sofern kein Sicherheitsrisiko | kein Risiko (Spalten leer, Nachweis über Zeitpunkt, Fassung, User-Agent) → Migration durch die Architektur-Session nach der Pause |
+| K-17 | erledigt | — |
+| neu | Emilio-Feedback zum Hackathon (Granola-Notiz) | HACK-006, wird beim Start der Hackathon-Arbeiten ausgelesen |
+| offen | K-12, K-16, K-18…K-29 | in den nächsten Tagen (Konrad) |

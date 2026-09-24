@@ -93,3 +93,11 @@ Sieben der zehn Punkte sind optional und stehen im Profil. Das Onboarding bekomm
 ## 4 · Nach deiner Antwort
 
 Zeilen mit „ja“ → Migrationsvorschlag + Test + Oberfläche als ein PR (TAL-013); „später“ → neue Punkte in `docs/feedback/talent.md` mit Status `zurückgestellt`; „nein“ → Vermerk für das Entscheidungslog über die Architektur-Session.
+
+## 5 · Antworten Konrad (24.09.2026, abends) — verbindlich
+
+**Felder:** A1–A10 annehmen und umsetzen · B1 erstmal nicht nutzen · B2–B5 annehmen und umsetzen · C1 Skills in abgespeckter Form aufnehmen, nächstes Jahr erweitern · C2 aufnehmen · C3 nur beim Hackathon · C4 weiterhin nicht · C5 gehört zu TAL-009.
+
+**Fragen:** 1. Ja, in einem PR und dann wie vorgeschlagen (ein Migrationsvorschlag A3–A8, ein PR für Oberfläche und Onboarding). 2. Funktionsbereich: **Einfachauswahl**. 3. Pflicht/optional erstmal wie vorgeschlagen (alles aus A optional außer A1), wird später möglicherweise angepasst — **steht auf der finalen Checkliste vor Veröffentlichung** (`docs/abschluss-checkliste.md`). 4. Werte aus A5–A8 werden **nur im Rahmen von Bewerbungen** weitergegeben (mit `consent_share`, nie als Liste). 5. Das Arbeitsdokument vom 22.07. ist ein alter Arbeitsstand — nur Punkte mit Mehrwert herausziehen, sonst erledigt.
+
+Status TAL-013: entschieden → bauen (Talent-Chat, nach der Pause).
