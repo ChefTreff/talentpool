@@ -44,6 +44,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       label: nav.sections.participants,
       items: [
         ...eintrag("applications", "/admin/bewerbungen", nav.applications),
+        ...eintrag("nextUp", "/admin/next-up", nav.nextUp),
         ...eintrag("programme", "/admin/programm", nav.programme),
         // Das Geruest steht neben dem Programm, nicht unter System: wer
         // eine Buehne anlegt, kommt vom Board und will dorthin zurueck.
