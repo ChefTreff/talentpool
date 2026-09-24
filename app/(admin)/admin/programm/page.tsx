@@ -31,7 +31,7 @@ export default async function ProgrammPage({
     return (
       <>
         <PageHeader word={t.admin.words.programme} title={t.admin.programme.title} description={t.admin.programme.lead} />
-        <TableTabs basePath={PATH} />
+        <TableTabs basePath={PATH} withRelease />
         <EmptyState
           title={t.admin.programme.noEventTitle}
           description={t.admin.programme.noEventBody}
@@ -43,7 +43,7 @@ export default async function ProgrammPage({
   return (
     <>
       <PageHeader word={t.admin.words.programme} title={t.admin.programme.title} description={t.admin.programme.lead} />
-      <TableTabs basePath={PATH} />
+      <TableTabs basePath={PATH} withRelease />
       <Board
         basePath={PATH}
         canPublish={canPublishSessions(roleNames)}
