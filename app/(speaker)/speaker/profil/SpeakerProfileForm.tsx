@@ -38,8 +38,6 @@ type Draft = {
   bio_long_de: string;
 };
 
-const MIC_OPTIONS = ["headset", "handheld", "lavalier"] as const;
-
 export function SpeakerProfileForm({
   profile,
   t,
@@ -84,13 +82,6 @@ export function SpeakerProfileForm({
     x: socials.x ?? "",
     instagram: socials.instagram ?? "",
   });
-  const rider = (profile.tech_rider ?? {}) as Record<string, unknown>;
-  const [tech, setTech] = useState({
-    mic: typeof rider.mic === "string" ? rider.mic : "",
-    own_laptop: rider.own_laptop === true,
-    video: rider.video === true,
-    notes: typeof rider.notes === "string" ? rider.notes : "",
-  });
   const [consents, setConsents] = useState<Record<string, boolean>>(
     Object.fromEntries(SPEAKER_CONSENTS.map((c) => [c, profile.consents?.[c] === true])),
   );
@@ -123,12 +114,6 @@ export function SpeakerProfileForm({
           socials: Object.fromEntries(
             Object.entries(links).filter(([, v]) => v.trim() !== ""),
           ),
-          tech_rider: {
-            mic: tech.mic || null,
-            own_laptop: tech.own_laptop,
-            video: tech.video,
-            notes: tech.notes.trim() || null,
-          },
         }),
         t.saved,
       );
@@ -151,7 +136,6 @@ export function SpeakerProfileForm({
           { id: "auftritt", label: t.sectionAppearance },
           { id: "bio", label: t.sectionBio },
           { id: "socials", label: t.sectionSocials },
-          { id: "technik", label: t.sectionTech },
           { id: "kontakte", label: t.sectionContacts },
           { id: "consent", label: t.sectionConsent },
         ]}
@@ -306,54 +290,17 @@ export function SpeakerProfileForm({
         </div>
       </Card>
 
-      <Card id="technik" className="p-6">
-        <h2 className="ct-h2 mb-4 text-ink">{t.sectionTech}</h2>
-        <div className="flex flex-col gap-4">
-          <Field label={t.techMic} htmlFor="mic">
-            <Select
-              id="mic"
-              value={tech.mic}
-              placeholder={common.choose}
-              options={MIC_OPTIONS.map((m) => ({
-                value: m,
-                label: t[`techMic${m[0].toUpperCase()}${m.slice(1)}`] ?? m,
-              }))}
-              onChange={(e) => setTech((v) => ({ ...v, mic: e.target.value }))}
-            />
-          </Field>
-          <label className="flex items-center gap-2 ct-label">
-            <input
-              type="checkbox"
-              className="size-4"
-              checked={tech.own_laptop}
-              onChange={(e) => setTech((v) => ({ ...v, own_laptop: e.target.checked }))}
-            />
-            {t.techOwnLaptop}
-          </label>
-          <label className="flex items-center gap-2 ct-label">
-            <input
-              type="checkbox"
-              className="size-4"
-              checked={tech.video}
-              onChange={(e) => setTech((v) => ({ ...v, video: e.target.checked }))}
-            />
-            {t.techVideo}
-          </label>
-          <Field label={t.techNotes} htmlFor="tech_notes">
-            <Textarea
-              id="tech_notes"
-              rows={3}
-              value={tech.notes}
-              onChange={(e) => setTech((v) => ({ ...v, notes: e.target.value }))}
-            />
-          </Field>
-        </div>
-        <div className="mt-6">
-          <Button onClick={onSave} loading={pending} disabled={bioMissing}>
-            {common.save}
-          </Button>
-        </div>
-      </Card>
+      {/* Die Technik steht nicht mehr im Profil (SPK-040, SPK-067): was auf der
+          Bühne gebraucht wird, hängt am Auftritt, nicht am Menschen — unter
+          „Deine Session → Technik". Das Profil schickt den Rider auch nicht
+          mehr mit, sonst überschriebe jedes Speichern ihn mit leeren Werten. */}
+      {/* Der Speichern-Knopf stand bisher unten in der Technik-Karte, gilt aber
+          für das ganze Profil darüber — er bleibt, die Karte geht. */}
+      <div>
+        <Button onClick={onSave} loading={pending} disabled={bioMissing}>
+          {common.save}
+        </Button>
+      </div>
 
       <Card id="consent" className="p-6">
         <h2 className="ct-h2 mb-1 text-ink">{t.sectionConsent}</h2>
