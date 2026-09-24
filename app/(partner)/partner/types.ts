@@ -1,4 +1,5 @@
 import type { FileRules } from "@/lib/partner/file-rules";
+import type { ContactRow } from "@/components/partner/contacts";
 
 /** Zeile aus `my_partner_orgs()`. */
 export type PartnerOrg = {
@@ -129,18 +130,8 @@ export type PartnerDeadline = {
   description_en: string | null;
 };
 
-/** Zeile aus `partner_contacts()`. */
-export type PartnerContact = {
-  person_id: string;
-  first_name: string | null;
-  last_name: string | null;
-  title: string | null;
-  email: string | null;
-  contact_position: string | null;
-  roles: string[];
-  has_login: boolean;
-  invited_at: string | null;
-};
+/** Zeile aus `partner_contacts()` — dieselbe wie im Admin (`components/partner/contacts.ts`). */
+export type PartnerContact = ContactRow;
 
 /** Zeile aus `my_deliverables()`. */
 export type Deliverable = {
@@ -194,14 +185,8 @@ export type DeliverableAsset = {
  * Kontaktrollen (Entscheidung 1). `accounting` fehlt mit Absicht: die
  * Rechnungs-E-Mail ist kein Login, sie steht in `org_edition.invoice_email`.
  */
-export const CONTACT_ROLES = [
-  "primary_ops",
-  "additional",
-  "signing",
-  "event_app_member",
-] as const;
-
-export type ContactRole = (typeof CONTACT_ROLES)[number];
+// Rollen der Kontaktliste: eine Quelle für Partnerportal und Admin.
+export { CONTACT_ROLES, type ContactRole } from "@/components/partner/contacts";
 
 /** Rollen, die Stammdaten und Uploads ändern dürfen (Kontrakt B1–B4). */
 const EDITORS: readonly string[] = ["primary_ops", "additional", "signing"];
