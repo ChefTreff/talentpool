@@ -25,7 +25,13 @@ export function hasVivenuKey(): boolean {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function vv<T>(path: string, init?: RequestInit): Promise<T> {
+/**
+ * Ein Aufruf gegen die vivenu-API, mit Wiederholung bei 429 und 5xx.
+ *
+ * Seit SPK-068 auch ausserhalb dieser Datei gebraucht (`lib/vivenu/free-tickets.ts`) —
+ * ein zweiter Client daneben hätte Retry, Basis-URL und Schlüsselprüfung verdoppelt.
+ */
+export async function vv<T>(path: string, init?: RequestInit): Promise<T> {
   const key = process.env.VIVENU_API_KEY?.trim();
   if (!key) throw new Error("VIVENU_API_KEY fehlt (docs/zugangs-liste.md)");
   let last: VivenuError | null = null;

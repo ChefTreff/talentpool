@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import { confirmCompanion, declineCompanion } from "../actions";
+import { issueSpeakerTicket } from "./actions";
 
 type Strings = Record<string, string>;
 
@@ -58,6 +59,23 @@ export function TicketQueue({
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "short" });
   const note = (id: string) => notes[id] ?? "";
 
+  /**
+   * Ausstellen (SPK-068): legt das Freiticket bei vivenu an und traegt Barcode
+   * und Secret ein. Der Lauf ist idempotent — war das Ticket drueben schon da,
+   * meldet die Oberflaeche das ausdruecklich, statt einen Erfolg vorzutaeuschen.
+   */
+  function onIssue(id: string) {
+    startTransition(async () => {
+      const res = await issueSpeakerTicket(id);
+      if (!res.ok) {
+        toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+        return;
+      }
+      toast("success", res.bereitsVorhanden ? t.issueAlready : t.issued);
+      router.refresh();
+    });
+  }
+
   function run(fn: Promise<{ ok: boolean; key?: string }>, okText: string) {
     startTransition(async () => {
       const res = (await fn) as { ok: boolean; key?: string };
@@ -100,6 +118,9 @@ export function TicketQueue({
               <div className="ct-help">
                 {dateTime.format(new Date(x.requested_at))}
                 {x.issued && ` · ${t.issued}`}
+                {/* Die vivenu-Kennung gehoert sichtbar dazu: ohne sie laesst
+                    sich drueben nichts nachschlagen, wenn etwas klemmt. */}
+                {x.vivenu_ticket_id && <div className="font-mono">{x.vivenu_ticket_id}</div>}
               </div>
             </Td>
             <Td>
@@ -115,6 +136,15 @@ export function TicketQueue({
               )}
             </Td>
             <Td>
+              {/* Ausstellen: Speaker-Pass sobald angefragt, Begleitticket erst
+                  nach der Freigabe — dieselben Regeln wie `set_ticket_issued`. */}
+              {!x.issued &&
+                ((x.source === "speaker" && x.status === "requested") ||
+                  (x.source === "speaker_companion" && x.status === "approved")) && (
+                  <Button size="sm" disabled={pending} onClick={() => onIssue(x.id)}>
+                    {t.issue}
+                  </Button>
+                )}
               {x.source === "speaker_companion" && x.status === "requested" && (
                 <div className="flex flex-wrap gap-2">
                   <Button

@@ -19,6 +19,8 @@
  *   node --env-file=.env.local scripts/testdaten-konrad.mjs --apply
  *   node --env-file=.env.local scripts/testdaten-konrad.mjs --remove
  *   … --apply --nur=ticket,fotos   (nur diese Schritte, siehe `SCHRITTE`)
+ *   … --apply --nur=ticket-zurueck (SPK-068: Freiticket zurueck auf `requested`,
+ *                                   damit das Ausstellen im Admin pruefbar ist)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -644,8 +646,42 @@ async function formatApplication(me, ed, orgId) {
   });
 }
 
+/**
+ * SPK-068: Konrads Freiticket zurueck auf `requested`, damit er das Ausstellen
+ * im Admin **wirklich** durchklicken kann.
+ *
+ * Nimmt nur Testdaten zurueck: ein Barcode ohne unser Praefix ist ein echtes
+ * vivenu-Ticket und bleibt unberuehrt — sonst stuende ein gueltiges Ticket
+ * ploetzlich wieder auf „angefragt" und jemand stellte es ein zweites Mal aus.
+ * Secret und vivenu-Kennungen gehen mit zurueck, weil der naechste Lauf sie neu
+ * holt.
+ */
+async function ticketZurueck(me, ed) {
+  const { data: sp } = await admin.from("speaker_profile").select("id")
+    .eq("person_id", me.id).eq("edition_id", ed.id).maybeSingle();
+  if (!sp) return fail("Ticket zurueck", "kein Speaker-Profil");
+  const { data: t, error } = await admin.from("ticket")
+    .select("id, status, barcode, vivenu_ticket_id")
+    .eq("speaker_profile_id", sp.id).eq("source", "speaker").neq("status", "cancelled").maybeSingle();
+  if (error) return fail("Ticket zurueck", error);
+  if (!t) return fail("Ticket zurueck", "kein Freiticket gefunden");
+  if (t.barcode && !t.barcode.startsWith(PREFIX_CODE)) {
+    return note("Ticket zurueck", "echtes vivenu-Ticket, nicht angefasst");
+  }
+  if (t.status === "requested" && !t.barcode) return note("Ticket zurueck", "steht schon auf requested");
+  await write("Freiticket zurueck auf requested", async () => {
+    const zurueck = await admin.from("ticket").update({
+      status: "requested", barcode: null, vivenu_ticket_id: null,
+      vivenu_transaction_id: null, vivenu_customer_id: null, purchased_at: null,
+    }).eq("id", t.id);
+    if (zurueck.error) return zurueck;
+    // Ohne das bliebe ein Secret liegen, das zu keinem Ticket mehr gehoert.
+    return admin.from("ticket_secret").delete().eq("ticket_id", t.id);
+  });
+}
+
 /** Die Schritte, die `--nur` kennt. */
-const SCHRITTE = { ticket: speakerTicket, fotos: stagePhotos };
+const SCHRITTE = { ticket: speakerTicket, fotos: stagePhotos, "ticket-zurueck": ticketZurueck };
 
 async function teilschritte(me, ed, namen) {
   for (const name of namen) {
