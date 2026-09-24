@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-24 19:07 UTC · 97 Tabellen · 6 Views · 514 Funktionen
+> Stand: 2026-09-24 19:17 UTC · 98 Tabellen · 6 Views · 515 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -144,6 +144,7 @@ Eine Company Tour: Rundfahrt vom Sammelpunkt zu mehreren Partnern (Konrad, 18.09
 | `notes` | text |  |  |  | Interne Planungsnotiz. Kommt nicht ins Partner-Portal. |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `session_id` | uuid |  |  | `session.id` | Die Session, auf die sich Teilnehmende für diese Tour bewerben (TAL-003). Optional; ohne sie gibt es für die Tour keinen Bewerbungsweg im Portal. |
 
 ### `company_tour_stop`
 Eine Station einer Company Tour. Der Partner bucht den Stopp und beantwortet dazu die Fragen aus 2026 (Ansprechperson, Adresse, Zeitfenster, Snacks, Hinweise, gesuchte Profile, Fotografieren).
@@ -830,6 +831,16 @@ Verarbeitete HubSpot-Deals je Partner × Edition (Idempotenz des Ingests, Sweep-
 | `deal_name` | text |  |  |  |  |
 | `ingested_at` | timestamp with time zone | ja | `now()` |  |  |
 | `payload` | jsonb |  |  |  |  |
+
+### `partner_session_return`
+Jüngster Rückgabegrund der Programmleitung je Partner-Session (PART-083). Schreibt release_partner_session (Rückgabe: Upsert, Freigabe: löschen); lesen nur Definer-Funktionen — keine Grants, damit ihn Speaker der Session nicht über session lesen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `session_id` | uuid | PK |  | `session.id` |  |
+| `note` | text | ja |  |  |  |
+| `returned_at` | timestamp with time zone | ja | `now()` |  |  |
+| `returned_by` | uuid |  |  | `person.id` |  |
 
 ### `person`
 Eine natürliche Person = ein Datensatz. Login-Verknüpfung über auth_user_id.
@@ -2210,6 +2221,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `portal_videos_admin` | args: ? |
 | `presentation_window` | p_session_id: uuid |
 | `products_for_sync` | p_system: text |
+| `programme_format_details` | args: ? |
 | `programme_skeleton` | p_event_id: uuid |
 | `promote_shift_waitlist` | p_shift_id: uuid |
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |

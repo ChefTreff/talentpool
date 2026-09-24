@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Rückgabegrund der Programmleitung für den Partner (PART-083): partner_session_return, release_partner_session, partner_format_sessions
+-- 0172 · Rückgabegrund der Programmleitung für den Partner (PART-083)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924191722.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --

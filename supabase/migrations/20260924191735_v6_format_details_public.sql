@@ -1,4 +1,5 @@
--- 0000 · Format-Details für Teilnehmende (TAL-002/003): eine Bewerbung, vier Formate.
+-- 0173 · Format-Details für Teilnehmende (TAL-002/003)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924191735.
 --
 -- Anlass: TAL-002/003 (Konrad 17.09.2026, P2): Bewerbung für Masterclass, Company Tour,
 -- Side-Event und Interview Table **gleich aufgebaut**, mit den Format-Details (Zeit, Ort, Bild,
