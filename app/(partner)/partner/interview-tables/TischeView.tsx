@@ -13,7 +13,7 @@ import { useToast } from "@/components/ui/Toast";
 import { createFormatSession, deleteFormatSession, setInterviewPosting } from "../actions";
 import { EVENT_TZ, MAX_SLOTS, rechneSlots, type PartnerDay, type PartnerStage } from "../formate";
 import type { PartnerFormatSession } from "../talk/types";
-import { RueckgabeHinweis, SessionStatusBadge, type RueckgabeTexte } from "../Rueckgabe";
+import { RueckgabeHinweis, SessionStatusBadge, rueckgabeOffen, type RueckgabeTexte } from "../Rueckgabe";
 
 type Strings = Record<string, string>;
 type VokabularOption = { key: string; label: string };
@@ -246,7 +246,7 @@ export function TischeView({
                     </Button>
                   )}
                 </span>
-                {x.return_note && x.returned_at && x.publish_status !== "published" && (
+                {rueckgabeOffen(x) && (
                   <RueckgabeHinweis
                     className="basis-full"
                     note={x.return_note}

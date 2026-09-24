@@ -12,7 +12,7 @@ import { zonedTimeToInstant } from "@/lib/tz";
 import { createFormatSession, deleteFormatSession, updateFormatSession } from "../actions";
 import { EVENT_TZ, type PartnerDay, type PartnerStage } from "../formate";
 import type { PartnerFormatSession } from "../talk/types";
-import { RueckgabeHinweis, SessionStatusBadge, type RueckgabeTexte } from "../Rueckgabe";
+import { RueckgabeHinweis, SessionStatusBadge, rueckgabeOffen, type RueckgabeTexte } from "../Rueckgabe";
 
 type Strings = Record<string, string>;
 
@@ -183,7 +183,7 @@ export function SideEventView({
               {ort ? ` · ${ort}` : ""}
             </p>
             {x.publish_status !== "published" && <p className="ct-help mt-2">{t.needsRelease}</p>}
-            {x.return_note && x.returned_at && x.publish_status !== "published" && (
+            {rueckgabeOffen(x) && (
               <RueckgabeHinweis
                 className="mt-3"
                 note={x.return_note}

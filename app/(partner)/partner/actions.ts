@@ -557,3 +557,33 @@ export async function setLogoWhiteningConsent(input: {
   revalidatePath(PATH);
   return { ok: true, data: { granted_at: (data as string | null) ?? null } };
 }
+
+/** Nach einer Änderung an der Standbühne: Kalender, Tabelle und die Freigabeliste der Programmleitung. */
+function refreshStage() {
+  revalidatePath(`${PATH}/buehne`);
+  revalidatePath(`${PATH}/buehne/tabelle`);
+  revalidatePath("/admin/programm/freigabe");
+}
+
+/**
+ * „Veröffentlichen“ auf der Standbühne (PART-080): die **Anfrage** an die
+ * Programmleitung, keine Freigabe. `partner_request_publish` prüft Bühne, Recht
+ * und Pflichtfelder selbst (22023 `fields_required` mit den fehlenden Feldern)
+ * und setzt `review`; freigegeben wird weiter über `release_partner_session`.
+ */
+export async function requestStagePublish(sessionId: string): Promise<PartnerResult<{ status: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_request_publish", { p_session_id: sessionId });
+  if (error) return fail(error);
+  refreshStage();
+  return { ok: true, data: { status: String(data) } };
+}
+
+/** Anfrage zurücknehmen, solange die Programmleitung nicht freigegeben hat. */
+export async function withdrawStagePublish(sessionId: string): Promise<PartnerResult<{ status: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_withdraw_publish", { p_session_id: sessionId });
+  if (error) return fail(error);
+  refreshStage();
+  return { ok: true, data: { status: String(data) } };
+}
