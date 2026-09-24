@@ -939,7 +939,11 @@
     "sectionShuttle": "Shuttle",
     "sectionHotel": "Hotel & accommodation",
     "sectionSlot": "Your slot",
-    "sectionContent": "Title & description"
+    "sectionContent": "Title & description",
+    "consentGateTitle": "Your permissions, briefly",
+    "consentGateLead": "Before you start: tell us once what we may do with your content and your image. You can change this any time in your profile.",
+    "consentGateFreeChoice": "You do not have to tick anything. We ask once and record a no just as carefully — you can continue either way, but some features will not be available.",
+    "consentGateSubmit": "Save my choice"
   },
   "leads": {
     "title": "Speaker pipeline",
