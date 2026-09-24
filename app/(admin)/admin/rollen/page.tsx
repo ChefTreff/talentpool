@@ -60,7 +60,7 @@ export default async function RollenPage() {
 
   return (
     <>
-      <PageHeader title={t.admin.roles.title} description={t.admin.roles.lead} />
+      <PageHeader word={t.admin.words.roles} title={t.admin.roles.title} description={t.admin.roles.lead} />
       <RolesView
         roles={vgroup(vocab, "role")}
         scopes={{

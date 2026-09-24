@@ -50,7 +50,7 @@ export default async function LeadBoardPage({
   if (!board.currentEvent) {
     return (
       <>
-        <PageHeader title={t.leads.boardTitle} description={t.leads.boardLead} />
+        <PageHeader word={t.leads.wordProgramme} title={t.leads.boardTitle} description={t.leads.boardLead} />
         <TableTabs basePath={PATH} locale="de" />
         <EmptyState
           title={t.admin.programme.noEventTitle}
@@ -62,7 +62,7 @@ export default async function LeadBoardPage({
 
   return (
     <>
-      <PageHeader title={t.leads.boardTitle} description={t.leads.boardLead} />
+      <PageHeader word={t.leads.wordProgramme} title={t.leads.boardTitle} description={t.leads.boardLead} />
       <TableTabs basePath={PATH} locale="de" />
       <Board
         basePath={PATH}

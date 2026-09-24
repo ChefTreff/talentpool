@@ -30,7 +30,7 @@ export default async function ProgrammPage({
   if (!board.currentEvent) {
     return (
       <>
-        <PageHeader title={t.admin.programme.title} description={t.admin.programme.lead} />
+        <PageHeader word={t.admin.words.programme} title={t.admin.programme.title} description={t.admin.programme.lead} />
         <TableTabs basePath={PATH} />
         <EmptyState
           title={t.admin.programme.noEventTitle}
@@ -42,7 +42,7 @@ export default async function ProgrammPage({
 
   return (
     <>
-      <PageHeader title={t.admin.programme.title} description={t.admin.programme.lead} />
+      <PageHeader word={t.admin.words.programme} title={t.admin.programme.title} description={t.admin.programme.lead} />
       <TableTabs basePath={PATH} />
       <Board
         basePath={PATH}

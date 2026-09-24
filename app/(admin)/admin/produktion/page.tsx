@@ -33,7 +33,7 @@ export default async function ProduktionPage({
   if (!stage || !day) {
     return (
       <>
-        <PageHeader title={t.production.title} description={t.production.lead} />
+        <PageHeader word={t.admin.words.production} title={t.production.title} description={t.production.lead} />
         <ProductionTabs />
         <EmptyState title={t.production.noStage} description={t.production.noStageBody} />
       </>

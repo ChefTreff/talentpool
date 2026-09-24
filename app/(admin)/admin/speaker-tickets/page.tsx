@@ -16,7 +16,7 @@ export default async function AdminSpeakerTicketsPage() {
   if (error) {
     return (
       <>
-        <PageHeader title={t.admin.speakerTickets.title} description={t.admin.speakerTickets.lead} />
+        <PageHeader word={t.admin.words.speakerTickets} title={t.admin.speakerTickets.title} description={t.admin.speakerTickets.lead} />
         <EmptyState
           title={t.admin.speakerTickets.noAccessTitle}
           description={t.admin.speakerTickets.noAccessBody}
@@ -36,6 +36,7 @@ export default async function AdminSpeakerTicketsPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.speakerTickets}
         title={t.admin.speakerTickets.title}
         description={`${t.admin.speakerTickets.lead} · ${open} ${t.admin.speakerTickets.openCount}`}
       />

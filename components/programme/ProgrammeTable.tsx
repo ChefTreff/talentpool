@@ -10,7 +10,7 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
-import { searchPeople, setSessionSpeakers, setSlotStatus, upsertSession } from "./actions";
+import { searchBoardPeople, setSessionSpeakers, setSlotStatus, upsertSession } from "./actions";
 import { speakerName, SLOT_STATUS_ORDER, type BoardDay, type BoardLabels, type BoardSlot, type BoardStage } from "./types";
 
 type Strings = Record<string, string>;
@@ -434,7 +434,13 @@ function SpeakerCell({
                   setHits([]);
                   return;
                 }
-                startSearch(async () => setHits(await searchPeople(q)));
+                // Board-Suche statt `searchPeople` — die alte verlangt admin, ein
+                // Stage Lead bekam 42501 (LEAD-019/020).
+                startSearch(async () =>
+                  setHits(
+                    (await searchBoardPeople(row.event_id, q)).map(({ id, name }) => ({ id, name })),
+                  ),
+                );
               }}
             />
             {searching && <span className="ct-help">{t.searching}</span>}

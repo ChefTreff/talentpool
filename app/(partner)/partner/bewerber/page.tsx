@@ -37,7 +37,7 @@ export default async function PartnerApplicantsPage() {
 
   return (
     <>
-      <PageHeader title={t.partnerApplicants.title} description={t.partnerApplicants.lead} />
+      <PageHeader word={t.partner.wordTalent} title={t.partnerApplicants.title} description={t.partnerApplicants.lead} />
       {sessions.length === 0 ? (
         <EmptyState
           title={t.partnerApplicants.emptyTitle}

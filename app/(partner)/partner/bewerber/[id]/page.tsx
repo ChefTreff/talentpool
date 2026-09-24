@@ -65,7 +65,7 @@ export default async function PartnerApplicantsSessionPage({
   if (error) {
     return (
       <>
-        <PageHeader title={title} description={t.partnerApplicants.lead} />
+        <PageHeader word={t.partner.wordTalent} title={title} description={t.partnerApplicants.lead} />
         <EmptyState
           title={t.partnerApplicants.noRightsTitle}
           description={t.partnerApplicants.noRightsBody}
@@ -78,7 +78,7 @@ export default async function PartnerApplicantsSessionPage({
 
   return (
     <>
-      <PageHeader title={title} description={t.partnerApplicants.lead} />
+      <PageHeader word={t.partner.wordTalent} title={title} description={t.partnerApplicants.lead} />
       <Link href="/partner/bewerber" className="ct-link mb-4 inline-block">
         {t.partnerApplicants.backToSessions}
       </Link>

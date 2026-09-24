@@ -78,7 +78,7 @@ export default async function PersonDetail({
         ← {d.back}
       </Link>
       <div className="mt-2">
-        <PageHeader title={name} />
+        <PageHeader word={t.admin.words.persons} title={name} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

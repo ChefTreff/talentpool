@@ -77,6 +77,8 @@ export type BoardLabels = {
   language: Record<string, string>;
   accessMode: Record<string, string>;
   publishStatus: Record<string, string>;
+  /** Themenliste (`session_topic`, SPK-027) — dieselbe wie bei der Einreichung. */
+  topics: Record<string, string>;
 };
 
 /** Farbe im Board folgt dem Slot-Status (Datenmodell §Status-Maschinen). */

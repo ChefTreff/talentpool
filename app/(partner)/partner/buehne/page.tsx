@@ -56,7 +56,7 @@ export default async function PartnerStagePage({
   if (stages.length === 0) {
     return (
       <>
-        <PageHeader title={t.partnerStage.title} description={t.partnerStage.lead} />
+        <PageHeader word={t.partner.wordProgramme} title={t.partnerStage.title} description={t.partnerStage.lead} />
         <EmptyState
           title={t.partnerStage.emptyTitle}
           description={t.partnerStage.emptyBody}
@@ -76,7 +76,7 @@ export default async function PartnerStagePage({
   if (!board.currentEvent) {
     return (
       <>
-        <PageHeader title={t.partnerStage.title} description={t.partnerStage.lead} />
+        <PageHeader word={t.partner.wordProgramme} title={t.partnerStage.title} description={t.partnerStage.lead} />
         <EmptyState
           title={t.admin.programme.noEventTitle}
           description={t.admin.programme.noEventBody}
@@ -89,7 +89,7 @@ export default async function PartnerStagePage({
 
   return (
     <>
-      <PageHeader title={t.partnerStage.title} description={t.partnerStage.lead} />
+      <PageHeader word={t.partner.wordProgramme} title={t.partnerStage.title} description={t.partnerStage.lead} />
       <Card className="mb-6">
         <p className="ct-help">
           {t.partnerStage.ownStages}: <span className="font-semibold text-ink">{own}</span>

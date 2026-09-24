@@ -25,7 +25,7 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
 
   return (
     <>
-      <PageHeader title={s.title} description={s.lead} />
+      <PageHeader word={t.partner.wordEquipment} title={s.title} description={s.lead} />
       {/* Die Bestellungen gehören in den Shop, nicht ins Portalmenü — sie
           sind der zweite Blick auf dieselbe Sache (Konrad, 14.09.). Der
           Warenkorb steht bewusst **nicht** als dritter Reiter daneben: er ist

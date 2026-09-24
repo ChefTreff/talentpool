@@ -29,7 +29,7 @@ export default async function LoeschantraegePage({
 
   return (
     <div className="max-w-detail">
-      <PageHeader title={t.adminDeletions.title} description={t.adminDeletions.lead} />
+      <PageHeader word={t.admin.words.deletions} title={t.adminDeletions.title} description={t.adminDeletions.lead} />
       {error ? (
         <EmptyState title={t.adminDeletions.noAccessTitle} description={t.adminDeletions.noAccessBody} />
       ) : (

@@ -251,7 +251,7 @@ export function SideEventView({
 
       {canEdit && neuOffen && (
         <div className="rounded-ct-md border border-border bg-surface p-5">
-          <h2 className="ct-h3 text-ink">{t.addSideEvent}</h2>
+          <h2 className="ct-h2 text-ink">{t.addSideEvent}</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <Field label={t.titleLabel} htmlFor="neu-titel">
               <Input

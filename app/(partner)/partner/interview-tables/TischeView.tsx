@@ -211,7 +211,7 @@ export function TischeView({
     <div className="flex flex-col gap-6">
       {/* 1) Die Gespräche */}
       <section className="rounded-ct-md border border-border bg-surface p-5">
-        <h2 className="ct-h3 text-ink">{t.slotsTitle}</h2>
+        <h2 className="ct-h2 text-ink">{t.slotsTitle}</h2>
         <p className="ct-small mt-1 leading-6">{t.slotsLead}</p>
 
         {sessions.length === 0 ? (
@@ -306,7 +306,7 @@ export function TischeView({
 
       {/* 2) Die Ausschreibung */}
       <section className="rounded-ct-md border border-border bg-surface p-5">
-        <h2 className="ct-h3 text-ink">{t.postingTitle}</h2>
+        <h2 className="ct-h2 text-ink">{t.postingTitle}</h2>
         <p className="ct-small mt-1 leading-6">{t.postingLead}</p>
 
         <div className="mt-4 flex flex-col gap-4">
@@ -405,7 +405,7 @@ export function TischeView({
 
       {/* 3) Die Bewerbungen */}
       <section className="rounded-ct-md border border-border bg-surface p-5">
-        <h2 className="ct-h3 text-ink">{t.applicantsTitle}</h2>
+        <h2 className="ct-h2 text-ink">{t.applicantsTitle}</h2>
         <p className="ct-small mt-1 leading-6">{t.applicantsLead}</p>
         <p className="mt-3">
           <Link href="/partner/bewerber" className="ct-link">

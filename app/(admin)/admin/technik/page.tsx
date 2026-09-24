@@ -46,6 +46,7 @@ export default async function AdminTechPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.tech}
         title={t.admin.tech.title}
         description={`${t.admin.tech.lead} · ${open} ${t.admin.tech.openCount}`}
       />

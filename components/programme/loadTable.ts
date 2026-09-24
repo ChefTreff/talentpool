@@ -1,6 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadVocabMap, vlabel } from "@/lib/vocab";
+import { loadVocabMap, vgroup, vlabel } from "@/lib/vocab";
 import { getI18n } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n/shared";
 import type { BoardDay, BoardLabels, BoardSlot, BoardStage } from "./types";
@@ -41,6 +41,9 @@ function tableLabels(vocab: Awaited<ReturnType<typeof loadVocabMap>>): BoardLabe
     language: group("language", ["de", "en", "mixed"]),
     accessMode: group("access_mode", ["open", "registration", "application"]),
     publishStatus: group("publish_status", ["draft", "review", "published", "cancelled"]),
+    // Die Themen sind gepflegt, nicht festgeschrieben (SPK-027) — also die
+    // ganze Liste, wie sie im Vokabular steht.
+    topics: vgroup(vocab, "session_topic"),
   };
 }
 

@@ -23,7 +23,7 @@ export default async function AdminReceptionPage() {
 
   return (
     <>
-      <PageHeader title={t.admin.reception.title} description={t.admin.reception.lead} />
+      <PageHeader word={t.admin.words.reception} title={t.admin.reception.title} description={t.admin.reception.lead} />
       <ReceptionAdmin
         rows={(data ?? []) as ReceptionRow[]}
         dateLocale={t.meta.dateLocale}

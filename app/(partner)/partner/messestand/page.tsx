@@ -90,17 +90,17 @@ export default async function MessestandPage() {
 
   return (
     <>
-      <PageHeader title={b.title} description={b.lead} />
+      <PageHeader word={t.partner.wordPresence} title={b.title} description={b.lead} />
 
       <div className="flex flex-col gap-10">
         <Card>
-          <h2 className="ct-h3 text-ink">{b.introTitle}</h2>
+          <h2 className="ct-h2 text-ink">{b.introTitle}</h2>
           <p className="ct-small mt-1 leading-6">{b.introBody}</p>
         </Card>
 
         <section aria-labelledby="ausstattung">
           <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-            <h2 id="ausstattung" className="ct-h3 text-ink">
+            <h2 id="ausstattung" className="ct-h2 text-ink">
               {b.equipTitle}
             </h2>
           </div>
@@ -121,7 +121,7 @@ export default async function MessestandPage() {
 
         <section aria-labelledby="rueckwand">
           <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-            <h2 id="rueckwand" className="ct-h3 text-ink">
+            <h2 id="rueckwand" className="ct-h2 text-ink">
               {b.backTitle}
             </h2>
           </div>
@@ -141,7 +141,7 @@ export default async function MessestandPage() {
 
         <section aria-labelledby="hallenplan">
           <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-            <h2 id="hallenplan" className="ct-h3 text-ink">
+            <h2 id="hallenplan" className="ct-h2 text-ink">
               {b.planTitle}
             </h2>
           </div>

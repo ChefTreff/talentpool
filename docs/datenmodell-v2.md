@@ -81,6 +81,8 @@
 | Welle 6 · 0152 | **Welle 6 · Logo-Wand: Einwilligung zum Weißen, nur noch SVG oder EPS (PART-053)** (`20260924101126`, `v6_logo_druck_einwilligung`; Details im Migrationskopf) | — |
 | Welle 6 · 0153 | **Welle 6 · Tagesrahmen für Stage Leads (LEAD-016): create_slot/move_slot weisen speaker_manager außerhalb stage_day hart ab** (`20260924101335`, `v6_lead_tagesrahmen`; Details im Migrationskopf) | — |
 | Welle 6 · 0154 | **Welle 6 · Zusatztickets strukturiert (PART-070): shop_request.pass_type/quantity, eigene Mailvorlage, my_ticket_requests, ticket_requests_admin** (`20260924102901`, `v6_zusatztickets`; Details im Migrationskopf) | — |
+| Welle 6 · 0155 | **Welle 6 · Board-Suche für Stage Leads (LEAD-019/020): can_search_board, board_search_people, board_search_partners, board_session_refs** (`20260924103055`, `v6_board_suche`; Details im Migrationskopf) | — |
+| Welle 6 · 0156 | **Welle 6 · Partner am Slot ist der buchende (Korrektur zu 0155/#147): set_session_partner, board_session_refs liest partner_org_id** (`20260924103948`, `v6_session_partner`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

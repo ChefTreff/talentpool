@@ -21,7 +21,7 @@ export default async function UiKitPage() {
 
   return (
     <>
-      <PageHeader title={t.admin.ui.title} description={t.admin.ui.lead} />
+      <PageHeader word={t.admin.words.ui} title={t.admin.ui.title} description={t.admin.ui.lead} />
       <KitSchau t={t.kit} />
     </>
   );

@@ -88,7 +88,7 @@ export default async function ShopCataloguePage({
   return (
     <section aria-labelledby="h-catalogue">
       <div className="mb-3 flex flex-wrap items-baseline gap-2 border-b pb-2">
-        <h2 id="h-catalogue" className="ct-h3 text-ink">
+        <h2 id="h-catalogue" className="ct-h2 text-ink">
           {begriff ? s.searchResults : s.catalogue}
         </h2>
         <span className="ct-help ml-auto tabular-nums">{gezeigt.length}</span>

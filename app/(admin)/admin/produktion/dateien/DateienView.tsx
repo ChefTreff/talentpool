@@ -157,7 +157,7 @@ export function DateienView({
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <h2 className="ct-h3 text-ink">{t.addTitle}</h2>
+        <h2 className="ct-h2 text-ink">{t.addTitle}</h2>
         <p className="ct-small mt-1 leading-6">{t.addBody}</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-[200px_1fr_auto] sm:items-end">
           <Field label={t.kind} htmlFor="kind">

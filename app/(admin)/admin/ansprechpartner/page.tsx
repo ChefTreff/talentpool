@@ -29,7 +29,7 @@ export default async function AnsprechpartnerPage() {
 
   return (
     <>
-      <PageHeader title={t.contacts.adminTitle} description={t.contacts.adminLead} />
+      <PageHeader word={t.admin.words.contacts} title={t.contacts.adminTitle} description={t.contacts.adminLead} />
       <KontakteAdmin
         kontakte={(kontakte ?? []) as AdminKontakt[]}
         infos={(infos ?? []) as AdminInfo[]}

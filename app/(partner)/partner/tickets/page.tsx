@@ -77,7 +77,7 @@ export default async function PartnerTicketsPage() {
   return (
     <>
       {/* PART-069: Konrads Einleitung im Wortlaut. */}
-      <PageHeader title={s.title} description={s.lead} />
+      <PageHeader word={t.partner.wordAccess} title={s.title} description={s.lead} />
       {allocations.length === 0 ? (
         <EmptyState title={s.emptyTitle} description={s.emptyBody} />
       ) : (

@@ -77,6 +77,7 @@ export default async function QueuePage({
   return (
     <>
       <PageHeader
+        word={t.admin.words.applications}
         eyebrow={
           <Link href="/admin/bewerbungen" className="ct-link">
             {t.admin.applications.title}

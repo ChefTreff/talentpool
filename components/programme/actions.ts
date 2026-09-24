@@ -115,6 +115,8 @@ export type SessionInput = {
    * Org an — `upsert_session` setzt das nicht von selbst, es muss mit.
    */
   host_org_id?: string;
+  /** Themen aus `session_topic` (LEAD-019). */
+  tags?: string[];
 };
 
 /** Anlegen oder ändern. `upsert_session` macht ein Teilupdate über die Schlüssel. */
@@ -198,30 +200,6 @@ export async function setSessionSpeakers(
   return { ok: true, data: undefined };
 }
 
-/**
- * Personensuche für die Speaker-Zuordnung — über die RPC `search_people`
- * (Migration 0022). Sie prüft `is_staff()` selbst, maskiert die E-Mail für
- * Nicht-Admins und escaped die Eingabe; damit braucht das Board keinen
- * service_role-Client mehr.
- */
-export async function searchPeople(
-  query: string,
-): Promise<{ id: string; name: string }[]> {
-  const supabase = await client();
-  const { data, error } = await supabase.rpc("search_people", {
-    p_query: query,
-    p_limit: 10,
-  });
-  if (error) {
-    console.error("[programm] search_people:", error.message);
-    return [];
-  }
-  return ((data ?? []) as { id: string; display_name: string | null }[]).map((p) => ({
-    id: p.id,
-    name: p.display_name ?? "—",
-  }));
-}
-
 export type SessionDetail = {
   id: string;
   title_de: string | null;
@@ -237,7 +215,16 @@ export type SessionDetail = {
   confirm_by_hours: number | null;
   publish_status: string | null;
   slot_id: string | null;
+  host_org_id: string | null;
+  moderation_person_id: string | null;
+  tags: string[] | null;
   speakers: SessionSpeaker[];
+  /**
+   * Der Name des **buchenden** Partners — Leads dürfen `organization` nicht
+   * lesen. Die Moderation steht nicht hier, sondern als Speaker mit der Rolle
+   * `moderator` in `speakers`.
+   */
+  refs: { partner: { id: string; name: string | null } | null };
 };
 
 /** Details einer Session für den Editor. Lesen unter RLS, kein service_role. */
@@ -248,20 +235,93 @@ export async function loadSession(
   const { data, error } = await supabase
     .from("session")
     .select(
-      "id,title_de,title_en,description_de,description_en,format,language,access_mode,capacity,ticket_required,application_deadline,confirm_by_hours,publish_status,slot_id",
+      "id,title_de,title_en,description_de,description_en,format,language,access_mode,capacity,ticket_required,application_deadline,confirm_by_hours,publish_status,slot_id,host_org_id,moderation_person_id,tags",
     )
     .eq("id", sessionId)
     .maybeSingle();
   if (error || !data) return null;
 
-  const { data: speakers } = await supabase.rpc("session_speakers_public", {
-    p_session_id: sessionId,
-  });
+  const [{ data: speakers }, { data: refs }] = await Promise.all([
+    supabase.rpc("session_speakers_public", { p_session_id: sessionId }),
+    // Fehlt die Funktion noch (Migration nicht live) oder das Recht, bleiben
+    // die Namen leer — der Drawer zeigt dann die Kennung nicht, sondern nichts.
+    supabase.rpc("board_session_refs", { p_session_id: sessionId }),
+  ]);
 
   return {
-    ...(data as Omit<SessionDetail, "speakers">),
+    ...(data as Omit<SessionDetail, "speakers" | "refs">),
     speakers: Array.isArray(speakers) ? (speakers as SessionSpeaker[]) : [],
+    refs: (refs as SessionDetail["refs"] | null) ?? { partner: null },
   };
+}
+
+/**
+ * Speaker der Edition suchen — für Speaker und Moderation (LEAD-019/020).
+ *
+ * Über `board_search_people` statt `search_people`: die alte Suche verlangt
+ * admin, ein Stage Lead bekam 42501. Die neue findet nur Personen mit
+ * Speaker-Profil in der Edition und gibt keine Mailadresse heraus.
+ */
+export async function searchBoardPeople(
+  eventId: string,
+  query: string,
+): Promise<{ id: string; name: string; hint: string | null }[]> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("board_search_people", {
+    p_event_id: eventId,
+    p_query: query,
+    p_limit: 10,
+  });
+  if (error) {
+    console.error("[programm] board_search_people:", error.message);
+    return [];
+  }
+  return ((data ?? []) as { id: string; display_name: string | null; organization: string | null }[]).map(
+    (p) => ({ id: p.id, name: p.display_name ?? "—", hint: p.organization }),
+  );
+}
+
+/**
+ * Den **buchenden** Partner setzen oder abnehmen (Korrektur zu #147).
+ *
+ * `partner_org_id` = hat gebucht, auch beim Talk auf unserer Bühne;
+ * `host_org_id` = richtet aus und öffnet dem Partner die Bewerbersicht. Das
+ * Partnerfeld im Board meint das Erste.
+ */
+export async function setSessionPartner(
+  sessionId: string,
+  orgId: string | null,
+): Promise<ActionResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_session_partner", {
+    p_session_id: sessionId,
+    p_org_id: orgId,
+  });
+  if (error) return fail(error);
+  revalidateBoard();
+  return { ok: true, data: undefined };
+}
+
+/** Partner der Edition suchen (LEAD-019, LEAD-010/ADM-025). */
+export async function searchBoardPartners(
+  eventId: string,
+  query: string,
+): Promise<{ id: string; name: string; hint: string | null }[]> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("board_search_partners", {
+    p_event_id: eventId,
+    p_query: query,
+    p_limit: 10,
+  });
+  if (error) {
+    console.error("[programm] board_search_partners:", error.message);
+    return [];
+  }
+  return ((data ?? []) as { id: string; name: string | null }[]).map((o) => ({
+    id: o.id,
+    name: o.name ?? "—",
+    hint: null,
+  }));
 }
 
 export type CatalogQuestion = {
