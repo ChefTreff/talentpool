@@ -2,11 +2,9 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { adminSection, canEnterAdminSection } from "@/lib/admin-sections";
+import { migrationText } from "@/tests/migration-datei";
 
-const migration = readFileSync(
-  new URL("../supabase/migrations/vorschlag/v6_next_up.sql", import.meta.url),
-  "utf8",
-);
+const migration = migrationText("v6_next_up");
 
 describe("Next Up (TAL-006)", () => {
   it("Admin-Abschnitt und can_edit_next_up() nennen dieselben Rollen", () => {
