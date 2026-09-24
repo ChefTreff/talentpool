@@ -43,7 +43,8 @@ export type MySession = {
   /** Gesetzt, wenn die Assistenz zusieht: für wen sie gerade arbeitet. */
   on_behalf_of: { person_id: string; first_name: string | null; last_name: string | null } | null;
   /** Die Technik-Ansage des Speakers (A7.2). Feste Schlüssel, freie Werte. */
-  tech: Record<string, string> | null;
+  /** Technik-Ansage (`session.tech`): Text für Mikrofon und Anforderungen, `true` für die Häkchen. */
+  tech: Record<string, string | boolean> | null;
 };
 
 /**
@@ -63,9 +64,13 @@ export type MySession = {
  *
  * Das Mikrofon ist eine **Auswahl** (Konrad 21.09.), der Rest ein Kurztext.
  */
-export const TECH_FIELDS: { key: string; kind: "select" | "text"; vocab?: string }[] = [
+export const TECH_FIELDS: { key: string; kind: "select" | "text" | "checkbox"; vocab?: string }[] = [
   { key: "microphone", kind: "select", vocab: "speaker_microphone" },
   { key: "special_requirements", kind: "text" },
+  // Zwei Häkchen für die Regie (SPK-067, Konrad 24.09.: „die Infos sind
+  // wichtig"). Gespeichert wird nur das Ja, als echter Wahrheitswert.
+  { key: "own_laptop", kind: "checkbox" },
+  { key: "video_with_sound", kind: "checkbox" },
 ];
 
 /** Was `update_session_tech` je Feld annimmt. */

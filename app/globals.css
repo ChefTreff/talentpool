@@ -13,6 +13,11 @@
   --ct-navy-border: #1e3250;   /* Trennlinien auf Navy */
   --ct-on-navy: #f5f4f2;       /* Text auf Navy */
   --ct-on-navy-muted: #a0aab9; /* Hilfstext auf Navy */
+  /* Grund der Seitenleiste und Schrift auf ihrer hellen Pille (aktiver
+     Punkt). Navy in jedem Portal; im Admin umgestellt, siehe
+     `[data-shell-ton="admin"]` unten (QS-046). */
+  --ct-shell: var(--ct-navy);
+  --ct-shell-ink: var(--ct-navy);
 
   --ct-canvas: #f5f4f2;        /* Seitengrund (Off-White) */
   --ct-surface: #ffffff;       /* Karten, Eingabefelder */
@@ -156,6 +161,8 @@
 @theme inline {
   --color-navy: var(--ct-navy);
   --color-navy-border: var(--ct-navy-border);
+  --color-shell: var(--ct-shell);
+  --color-shell-ink: var(--ct-shell-ink);
   --color-on-navy: var(--ct-on-navy);
   --color-on-navy-muted: var(--ct-on-navy-muted);
 
@@ -228,6 +235,19 @@
 @layer base {
   * {
     border-color: var(--ct-border);
+  }
+
+  /* Der Admin im Kontrastton Lila statt Navy (QS-046, Konrad 24.09.: „man
+     erkennt nicht sofort, dass man im Admin ist"). Umgestellt werden nur
+     Variablen im Bereich der Leiste — jede Klasse darin (`text-on-navy-muted`,
+     `bg-on-navy/10` …) trägt so auf beiden Gründen, ohne dass eine Komponente
+     es wissen muss. Gemessen auf `accent-deep`: Schrift `on-navy` 6,21:1,
+     Hilfstext und Gruppenköpfe `accent-soft` 5,65:1 (das Grau von Navy käme
+     hier nur auf 2,9:1), aktive Pille `accent-deep` auf `on-navy` 6,21:1. */
+  [data-shell-ton="admin"] {
+    --ct-shell: var(--ct-accent-deep);
+    --ct-shell-ink: var(--ct-accent-deep);
+    --ct-on-navy-muted: var(--ct-accent-soft);
   }
 }
 

@@ -96,6 +96,10 @@ Die Marker sind Sechsecke auf einer durchgehenden Linie — waagerecht ab 640 px
 
 **Das Hero-Band steht auf jeder Startseite** (Konrad, 17.09.). Es traegt den Titel, deshalb steht darunter **kein** `PageHeader` mehr — zwei Ueberschriften uebereinander waren genau der Fehler, den es vermeidet. Leerzustaende (kein Profil, keine Organisation) behalten den schlichten Kopf: ein Marken-Band ueber einer Fehlmeldung ist Prunk.
 
+**Drei Ebenen in der Leiste** (QS-045, ab 24.09.2026, alle Portale): Gruppenköpfe als `.ct-eyebrow` in `text-accent-soft` mit Trennlinie darüber · Punkte in `text-on-navy`, unter einem Gruppenkopf eingerückt (`pl-4`) · der aktive Punkt als helle Pille (`bg-on-navy text-shell-ink`) · die Abschnitte der Seite als dritte Ebene, `.ct-help` mit Linie links. Köpfe und Punkte im selben Grau, wie bis dahin, las Konrad als „unübersichtlich".
+
+**Der Admin im Kontrastton Lila** (QS-046): Die Leiste trägt `data-shell-ton="admin"`, und `globals.css` stellt darin die Variablen um: Grund `--ct-shell` auf `accent-deep`, Hilfstext `--ct-on-navy-muted` auf `accent-soft` (das Grau von Navy käme dort nur auf 2,9:1). Keine Komponente muss davon wissen. Oben steht im Admin nur „Admin-Portal", die Portale stehen unten als offene Liste „Portale" mit Pfeil zurück, an der Stelle, an der in den Portalen der Weg in den Admin steht. **Was eine Rolle sieht, bleibt Sache von `lib/admin-sections.ts`** (Admin-Chat), die Shell ändert nur die Darstellung.
+
 ## Login, Welcome, Marketing-Moment
 
 Die einzigen Stellen, an denen die Marke laut auftritt:

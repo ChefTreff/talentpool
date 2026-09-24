@@ -14,7 +14,17 @@ import { useToast } from "@/components/ui/Toast";
 import { LogoWandEinwilligung } from "@/components/partner/LogoWandEinwilligung";
 import { ContactList } from "@/components/partner/ContactList";
 import {
+  BeschreibungFelder,
+  RechnungFelder,
+  UnternehmenFelder,
+  entwurfAus,
+  speicherDaten,
+  type EureDatenEntwurf,
+} from "@/components/partner/EureDaten";
+import {
   adminRemoveContact,
+  adminSaveOnboarding,
+  adminSetCustomerNumber,
   adminSetLogoWhiteningConsent,
   adminTransferPrimary,
   adminUpdateContact,
@@ -64,6 +74,8 @@ export function OrgDetail({
   t,
   roleLabels,
   contactTexts,
+  dataTexts,
+  industries,
   common,
   rpcMessages,
 }: {
@@ -81,6 +93,10 @@ export function OrgDetail({
   roleLabels: Record<string, string>;
   /** Texte der Kontaktliste — dieselben wie im Partnerportal, mit Admin-Hinweis. */
   contactTexts: Strings;
+  /** Feldtexte von „Eure Daten“ — dieselben wie im Partnerportal (`t.partner`). */
+  dataTexts: Strings;
+  /** Vokabular `industry` für das Feld Branche. */
+  industries: Record<string, string>;
   common: { cancel: string; none: string; save: string; close: string; required: string };
   rpcMessages: Record<string, string>;
 }) {
@@ -92,6 +108,10 @@ export function OrgDetail({
 
   const [status, setStatus] = useState(overview.edition?.onboarding_status ?? "none");
   const [passType, setPassType] = useState(overview.edition?.pass_type_choice ?? "");
+  // „Eure Daten“ mit denselben Feldern wie im Partnerportal (Regel vom 22.09.).
+  const [daten, setDaten] = useState<EureDatenEntwurf>(() => entwurfAus(overview));
+  const [kundennummer, setKundennummer] = useState(overview.org.customer_number ?? "");
+  const setDatenTeil = (part: Partial<EureDatenEntwurf>) => setDaten((d) => ({ ...d, ...part }));
   const [booth, setBooth] = useState({
     booth_number: overview.booth?.booth_number ?? "",
     booth_type: overview.booth?.booth_type ?? "",
@@ -295,6 +315,8 @@ export function OrgDetail({
 
         items={[
 
+          { id: "daten", label: t.dataTitle },
+
           { id: "stand", label: t.boothTitle },
 
           { id: "kontakte", label: t.contactsTitle },
@@ -307,6 +329,56 @@ export function OrgDetail({
 
       />
 
+
+      {/* PART-059/061: was der Partner unter „Eure Daten“ pflegt — hier sieht und
+          korrigiert es das Team, über dieselbe RPC. Dazu die Kundennummer, die nur
+          das Team setzt (der Partner sieht sie). */}
+      <Card id="daten">
+        <CardHeader title={t.dataTitle} description={t.dataLead} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t.customerNumberAdmin} htmlFor="d-kundennummer" hint={t.customerNumberAdminHint}>
+            <Input
+              id="d-kundennummer"
+              value={kundennummer}
+              autoComplete="off"
+              onChange={(e) => setKundennummer(e.target.value)}
+            />
+          </Field>
+          <div className="flex items-end">
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={pending || kundennummer.trim() === (overview.org.customer_number ?? "")}
+              onClick={() => run(adminSetCustomerNumber(orgId, kundennummer), t.customerNumberSaved)}
+            >
+              {t.customerNumberSave}
+            </Button>
+          </div>
+        </div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <UnternehmenFelder draft={daten} set={setDatenTeil} t={dataTexts} />
+        </div>
+        <div className="mt-6 flex flex-col gap-4">
+          <BeschreibungFelder
+            draft={daten}
+            set={setDatenTeil}
+            t={dataTexts}
+            industries={industries}
+            none={common.none}
+          />
+        </div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <RechnungFelder draft={daten} set={setDatenTeil} t={dataTexts} />
+        </div>
+        <div className="mt-6">
+          <Button
+            disabled={pending}
+            onClick={() => run(adminSaveOnboarding(orgId, editionId, speicherDaten(daten)), t.dataSaved)}
+          >
+            {t.dataSave}
+          </Button>
+        </div>
+      </Card>
 
       <Card id="stand">
         <CardHeader title={t.boothTitle} description={t.boothLead} />

@@ -24,6 +24,7 @@ const BUSINESS_KEYS = new Set([
   "confirmation_required",
   "outside_stage_day",
   "not_presentation",
+  "invalid_tech_value",
   "partner_not_in_edition",
   "partner_host_mismatch",
   "deadline_passed",
@@ -82,6 +83,9 @@ const BUSINESS_KEYS = new Set([
   "invalid_type",
   // Profilfelder mit Vokabular (TAL-013, Trigger person_vocab_guard)
   "invalid_vocab_value",
+  // „Next Up" (TAL-006)
+  "invalid_link_url",
+  "next_up_not_found",
   "too_many_questions",
   "invalid_time",
   "invalid_vocab",
@@ -224,6 +228,8 @@ const BUSINESS_KEYS = new Set([
   // Profil loeschen (Migration 0115)
   "already_requested",
   "invalid_action",
+  // Eure Daten: Kundennummer (Vorschlag v6_eure_daten, PART-059)
+  "customer_number_taken",
   // Partner-Kontakte bearbeiten (Vorschlag v6_kontakte_bearbeiten_cc, PART-062)
   "contact_not_editable",
   "email_in_use",

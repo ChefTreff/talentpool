@@ -149,6 +149,7 @@
     "answers_required": "Bitte das Formular ausfüllen.",
     "primary_exists": "Es gibt schon einen Hauptkontakt. Übertrage ihn, statt einen zweiten anzulegen.",
     "primary_required": "Ohne Hauptkontakt geht es nicht. Übertrage ihn zuerst.",
+    "customer_number_taken": "Diese Kundennummer hat schon eine andere Organisation.",
     "contact_not_editable": "Name und Adresse pflegt die Person selbst — sie hat sich schon angemeldet oder hatte schon ein Profil.",
     "email_in_use": "Zu dieser Adresse gibt es schon ein Profil. Kontakt löschen und die Adresse neu einladen — dann wird das bestehende Profil verknüpft.",
     "position_required": "Bitte eine Position angeben.",
@@ -246,7 +247,10 @@
     "partner_not_in_edition": "Diese Organisation ist in dieser Edition kein Partner.",
     "partner_host_mismatch": "Die Session wird schon von einem anderen Partner ausgerichtet — der buchende Partner muss derselbe sein.",
     "invalid_vocab_value": "Dieser Wert steht nicht (mehr) zur Auswahl. Bitte wähle einen anderen.",
-    "not_presentation": "Nur Präsentationen lassen sich teilen."
+    "not_presentation": "Nur Präsentationen lassen sich teilen.",
+    "invalid_tech_value": "Bei diesem Feld geht nur Ja oder Nein.",
+    "invalid_link_url": "Der Link muss mit https:// beginnen oder ein Portalpfad wie /summit sein.",
+    "next_up_not_found": "Diesen Hinweis gibt es nicht mehr."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -254,6 +258,7 @@
     "login": "Anmelden",
     "logout": "Abmelden",
     "myAreas": "Meine Bereiche",
+    "portals": "Portale",
     "skipToContent": "Zum Inhalt springen",
     "account": "Mein Konto"
   },
@@ -1060,7 +1065,12 @@
     "shareAsk": "Mit Teilnehmenden teilen …",
     "shareStop": "Nicht mehr teilen",
     "shareStateOn": "wird geteilt",
-    "shareStateOff": "wird nicht geteilt"
+    "shareStateOff": "wird nicht geteilt",
+    "tech_own_laptop": "Ich bringe meinen eigenen Laptop mit",
+    "tech_own_laptop_hint": "Dann planen wir einen Anschluss für dich ein. Ohne Häkchen zeigst du von unserem Rechner.",
+    "tech_video_with_sound": "Ich zeige Video mit Ton",
+    "tech_video_with_sound_hint": "Damit die Regie den Ton auf die Anlage legt.",
+    "techChecksLabel": "Was du mitbringst und zeigst"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -1288,9 +1298,8 @@
     "stepDescription": "Beschreibung",
     "stepDescriptionHint": "Für Website, Event-App und Programmheft. Zwei bis vier Sätze reichen.",
     "stepLogo": "Logo",
-    "stepLogoHint": "Vektordatei für Website, Event-App und Druck.",
+    "stepLogoHint": "Wir brauchen euer Logo zweimal: als Vektor für Druck und Bühne, als Bild für Web und App.",
     "stepInvoice": "Rechnungsdaten",
-    "stepInvoiceHint": "An diese Adresse geht später die Rechnung. Sie braucht keinen Login.",
     "stepContacts": "Kontakte",
     "stepContactsHint": "Jede Person bekommt einen eigenen Zugang.",
     "requiredLabel": "Pflichtfeld",
@@ -1301,6 +1310,17 @@
     "fieldZip": "PLZ",
     "fieldCity": "Ort",
     "fieldCountry": "Land",
+    "fieldAddressExtra": "Adresszusatz",
+    "fieldAddressExtraHint": "Gebäude, Etage, c/o — falls eure Post das braucht. Steht auf der Rechnung unter der Straße.",
+    "customerNumberLabel": "Kundennummer",
+    "customerNumberNone": "wird noch vergeben",
+    "customerNumberHint": "Vergibt ChefTreff; sie steht auf Angeboten und Rechnungen. Ändern kann sie nur unser Team.",
+    "fieldInvoiceNameHint": "Nur ausfüllen, wenn auf der Rechnung nicht „{name}“ stehen soll.",
+    "fieldInvoiceNameHintNoName": "Nur ausfüllen, wenn auf der Rechnung nicht euer Firmenname stehen soll.",
+    "logoCount": "{n} von {total} hochgeladen",
+    "logoUploadFormat": "{format}-Logo hochladen",
+    "logoReplaceFormat": "{format}-Logo ersetzen",
+    "logoPreviewAlt": "Vorschau {format}-Logo",
     "fieldWebsite": "Website",
     "fieldDescriptionDe": "Beschreibung (Deutsch)",
     "fieldDescriptionEn": "Beschreibung (Englisch)",
@@ -1309,7 +1329,7 @@
     "fieldIndustryHint": "Wonach euch Besucherinnen und Besucher in der Event-App filtern. Dieselben Branchen wie in Swapcard.",
     "fieldInvoiceEmail": "Rechnungs-E-Mail",
     "fieldInvoiceEmailHint": "Zum Beispiel rechnung@… — kein Login, nur für die Rechnung.",
-    "fieldInvoiceName": "Name auf der Rechnung",
+    "fieldInvoiceName": "Abweichende Firmierung auf der Rechnung",
     "fieldVatId": "USt-IdNr.",
     "fieldPoNumber": "Bestellnummer / PO",
     "fieldPoNumberHint": "Falls eure Buchhaltung eine braucht.",
@@ -1329,8 +1349,6 @@
     "submittedOn": "eingereicht",
     "reviewNote": "Rückmeldung",
     "logoNone": "Noch kein Logo hochgeladen.",
-    "logoUpload": "Logo hochladen",
-    "logoReplace": "Neue Fassung hochladen",
     "logoHint": "Erlaubt: {allowed}, höchstens {max}. Die Endung entscheidet.",
     "logoUploading": "Wird hochgeladen …",
     "logoDone": "Logo hochgeladen (Fassung {v})",
@@ -2168,6 +2186,14 @@
     "boothNotes": "Interne Notiz",
     "contactsTitle": "Kontakte",
     "contactsLead": "Wer für diese Organisation im Portal arbeitet.",
+    "dataTitle": "Daten des Partners",
+    "dataLead": "Was der Partner unter „Eure Daten“ pflegt. Das Team kann hier korrigieren — gespeichert wird dasselbe.",
+    "dataSave": "Daten speichern",
+    "dataSaved": "Daten gespeichert",
+    "customerNumberAdmin": "Kundennummer",
+    "customerNumberAdminHint": "Aus HubSpot. Der Partner sieht sie unter „Eure Daten“, ändern kann sie nur das Team.",
+    "customerNumberSave": "Kundennummer speichern",
+    "customerNumberSaved": "Kundennummer gespeichert",
     "contactsHint": "Jede Person bekommt einen eigenen Login — keine Sammelpostfächer. Der Hauptkontakt sieht und pflegt dieselbe Liste im Partnerportal.",
     "stageEditorAutomatic": "kommt mit der Buchung",
     "stageEditorAdminOnly": "nur Admins vergeben Rollen",
@@ -2414,7 +2440,8 @@
       "submissions": "Einreichungen",
       "regie": "Regie",
       "speakerTasks": "Speaker-Aufgaben",
-      "production": "Produktion"
+      "production": "Produktion",
+      "nextUp": "Next Up"
     },
     "overview": {
       "title": "Übersicht",
@@ -2990,7 +3017,8 @@
       "team": "Wir",
       "roles": "Rechte",
       "duplicates": "Bereinigung",
-      "deletions": "Datenschutz"
+      "deletions": "Datenschutz",
+      "nextUp": "Next Up"
     },
     "entries": {
       "programme": "Alle Bühnen und Tage auf einem Board.",
@@ -3432,7 +3460,10 @@
     "tech_presentation_media": "Präsentation",
     "tech_special_requirements": "Besonderes",
     "tech_furniture": "Mobiliar",
-    "colPeopleOnStage": "Personen auf der Bühne"
+    "colPeopleOnStage": "Personen auf der Bühne",
+    "tech_own_laptop": "Eigener Laptop",
+    "tech_video_with_sound": "Video mit Ton",
+    "techYes": "ja"
   },
   "wiki": {
     "title": "Wiki",
@@ -4527,12 +4558,45 @@
     "action": "Zum Summit 2027",
     "cardSummitWord": "Summit",
     "cardSummitBody": "Programm, Bewerbungen für Masterclasses, Company Tours, Interview Tables und Side-Events.",
-    "cardSummitAction": "Zum Summit"
+    "cardSummitAction": "Zum Summit",
+    "nextUpTitle": "Next Up",
+    "nextUpWord": "Demnächst",
+    "nextUpAction": "Mehr erfahren",
+    "volunteerTitle": "Du willst dabei sein?"
   },
   "talentSummit": {
     "groupLabel": "Summit 2027",
     "navLabel": "Übersicht",
     "eyebrow": "Summit 2027",
     "lead": "Hier findest du die Formate zum Bewerben und alles, woran du gerade dran bist."
+  },
+  "nextUpAdmin": {
+    "title": "Next Up",
+    "lead": "Hinweise auf kommende Events und Programme. Was aktiv ist und im Zeitfenster liegt, sieht jede angemeldete Person auf Home im Teilnehmer-Portal.",
+    "add": "Hinweis anlegen",
+    "edit": "Bearbeiten",
+    "empty": "Noch kein Hinweis",
+    "emptyBody": "Lege einen an, zum Beispiel für das nächste Bootcamp. Ohne Hinweise fehlt die Sektion auf Home.",
+    "stateLive": "Sichtbar",
+    "stateScheduled": "Geplant",
+    "stateExpired": "Abgelaufen",
+    "stateInactive": "Inaktiv",
+    "deleteTitle": "Hinweis löschen?",
+    "deleteBody": "Er verschwindet sofort von Home. Das lässt sich nicht rückgängig machen.",
+    "fieldTitleDe": "Titel (DE)",
+    "fieldTitleEn": "Titel (EN)",
+    "fieldWordDe": "Stichwort (DE)",
+    "fieldWordEn": "Stichwort (EN)",
+    "fieldWordHint": "Ein Wort über der Karte, zum Beispiel Bootcamp oder Community.",
+    "fieldTeaserDe": "Kurztext (DE)",
+    "fieldTeaserEn": "Kurztext (EN)",
+    "fieldLink": "Link",
+    "fieldLinkHint": "https://… oder ein Portalpfad wie /summit. Externe Links öffnen ein neues Fenster.",
+    "fieldStartsAt": "Datum",
+    "fieldStartsAtHint": "Optional; steht auf der Karte.",
+    "fieldSort": "Reihenfolge",
+    "fieldVisibleFrom": "Sichtbar ab",
+    "fieldVisibleUntil": "Sichtbar bis",
+    "fieldActive": "Aktiv"
   }
 }
