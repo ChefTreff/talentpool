@@ -5,11 +5,10 @@ import { toRpcFailure } from "@/lib/rpc-error";
 import {
   anfrageBauen,
   antwortOhneBlock,
-  eingabeOk,
   istAnlass,
   istKanal,
   postLesen,
-  type Nachricht,
+  verlaufAusBrowser,
 } from "@/lib/speaker/post-assistent";
 
 export const dynamic = "force-dynamic";
@@ -66,24 +65,10 @@ export async function POST(request: Request) {
   const veranstaltung =
     typeof event === "string" && event.trim() ? event.trim().slice(0, 200) : null;
 
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
-  }
-  const verlauf: Nachricht[] = [];
-  for (const m of messages) {
-    const rolle = (m as Nachricht)?.role;
-    const text = (m as Nachricht)?.content;
-    if (rolle !== "user" && rolle !== "assistant") {
-      return NextResponse.json({ error: "invalid_request" }, { status: 400 });
-    }
-    // Nur die Eingaben des Menschen werden auf Länge geprüft; was das Modell
-    // vorher gesagt hat, kommt aus derselben Quelle und ist ohnehin begrenzt.
-    if (rolle === "user" && !eingabeOk(text)) {
-      return NextResponse.json({ error: "invalid_request" }, { status: 400 });
-    }
-    verlauf.push({ role: rolle, content: String(text) });
-  }
-  if (verlauf[verlauf.length - 1]?.role !== "user") {
+  // Jeder Zug wird geprüft, auch der angebliche des Assistenten: der ganze
+  // Verlauf kommt aus dem Browser (siehe `verlaufAusBrowser`).
+  const verlauf = verlaufAusBrowser(messages);
+  if (!verlauf) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
