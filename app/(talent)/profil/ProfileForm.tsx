@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
+import type { ExtendedProfile, LanguageEntry } from "./felder";
 
 type Opt = { key: string; label: string };
 type Vocab = {
@@ -23,11 +24,27 @@ type Vocab = {
   interests: Opt[];
   interests_founder: Opt[];
   acquisition_channel: Opt[];
+  career_opportunities: Opt[];
+  summit_goal: Opt[];
+  skill: Opt[];
+  work_mode: Opt[];
+  job_openness: Opt[];
+  function_area: Opt[];
+  availability: Opt[];
+  mobility: Opt[];
+  spoken_language: Opt[];
+  language_level: Opt[];
   programsByField: Record<string, Opt[]>;
 };
 
 export type ProfileLabels = {
-  sections: Record<"personal" | "work" | "study" | "interests" | "channels", string>;
+  sections: Record<
+    "personal" | "work" | "study" | "interests" | "career" | "skills" | "channels",
+    string
+  >;
+  completeHint: string;
+  addLanguage: string;
+  removeLanguage: string;
   fields: Record<string, string>;
   hints: Record<string, string>;
   choose: string;
@@ -101,7 +118,24 @@ export function ProfileForm({
   function set<K extends keyof ProfileInput>(k: K, v: ProfileInput[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
-  function toggle(k: "interests" | "interests_founder" | "channels", val: string) {
+  function setExt<K extends keyof ExtendedProfile>(k: K, v: ExtendedProfile[K]) {
+    setForm((f) => (f.extended ? { ...f, extended: { ...f.extended, [k]: v } } : f));
+  }
+  function setLanguage(i: number, patch: Partial<LanguageEntry>) {
+    const list = (form.extended?.languages ?? []).map((l, j) => (j === i ? { ...l, ...patch } : l));
+    setExt("languages", list);
+  }
+  function toggle(
+    k:
+      | "interests"
+      | "interests_founder"
+      | "career_opportunities"
+      | "summit_goal"
+      | "skill"
+      | "work_mode"
+      | "channels",
+    val: string,
+  ) {
     setForm((f) => {
       const arr = f[k];
       return {
@@ -135,8 +169,12 @@ export function ProfileForm({
     });
   }
 
+  const ext = form.extended;
+  const usedLanguages = new Set((ext?.languages ?? []).map((l) => l.language));
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      <p className="ct-help">{t.completeHint}</p>
       <Section title={t.sections.personal}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.fields.firstName} htmlFor="first_name">
@@ -186,6 +224,14 @@ export function ProfileForm({
               id="country"
               value={form.country}
               onChange={(e) => set("country", e.target.value)}
+            />
+          </Field>
+          <Field label={t.fields.city} htmlFor="city">
+            <Input
+              id="city"
+              autoComplete="address-level2"
+              value={form.city}
+              onChange={(e) => set("city", e.target.value)}
             />
           </Field>
           <Field label={t.fields.phone} htmlFor="phone">
@@ -262,6 +308,27 @@ export function ProfileForm({
               onChange={(e) => set("employer_name", e.target.value)}
             />
           </Field>
+          {ext && (
+            <>
+              <Field label={t.fields.jobTitle} htmlFor="job_title">
+                <Input
+                  id="job_title"
+                  autoComplete="organization-title"
+                  value={ext.job_title}
+                  onChange={(e) => setExt("job_title", e.target.value)}
+                />
+              </Field>
+              <Field label={t.fields.functionArea} htmlFor="function_area" hint={t.hints.functionArea}>
+                <Select
+                  id="function_area"
+                  value={ext.function_area}
+                  placeholder={t.choose}
+                  options={opts(vocab.function_area)}
+                  onChange={(e) => setExt("function_area", e.target.value)}
+                />
+              </Field>
+            </>
+          )}
           <Field label={t.fields.startupPhase} htmlFor="startup_phase">
             <Select
               id="startup_phase"
@@ -295,6 +362,30 @@ export function ProfileForm({
               onChange={(e) => set("study_program", e.target.value)}
             />
           </Field>
+          {ext && (
+            <>
+              <Field
+                label={t.fields.studyProgramLabel}
+                htmlFor="study_program_label"
+                hint={t.hints.studyProgramLabel}
+              >
+                <Input
+                  id="study_program_label"
+                  value={ext.study_program_label}
+                  onChange={(e) => setExt("study_program_label", e.target.value)}
+                />
+              </Field>
+              <Field label={t.fields.graduationYear} htmlFor="graduation_year" hint={t.hints.graduationYear}>
+                <Input
+                  id="graduation_year"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={ext.graduation_year}
+                  onChange={(e) => setExt("graduation_year", e.target.value.replace(/\D/g, ""))}
+                />
+              </Field>
+            </>
+          )}
           <Field label={t.fields.university} htmlFor="university">
             <Input
               id="university"
@@ -329,7 +420,125 @@ export function ProfileForm({
           selected={form.interests_founder}
           onToggle={(k) => toggle("interests_founder", k)}
         />
+        {ext && (
+          <>
+            <p className="ct-label mb-2 mt-5">{t.fields.summitGoals}</p>
+            <CheckGroup
+              label={t.fields.summitGoals}
+              options={vocab.summit_goal}
+              selected={form.summit_goal}
+              onToggle={(k) => toggle("summit_goal", k)}
+            />
+          </>
+        )}
       </Section>
+
+      {ext && (
+        <Section title={t.sections.career}>
+          <p className="ct-help mb-4">{t.hints.career}</p>
+          <p className="ct-label mb-2">{t.fields.careerOpportunities}</p>
+          <CheckGroup
+            label={t.fields.careerOpportunities}
+            options={vocab.career_opportunities}
+            selected={form.career_opportunities}
+            onToggle={(k) => toggle("career_opportunities", k)}
+          />
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <Field label={t.fields.jobOpenness} htmlFor="job_openness">
+              <Select
+                id="job_openness"
+                value={ext.job_openness}
+                placeholder={t.choose}
+                options={opts(vocab.job_openness)}
+                onChange={(e) => setExt("job_openness", e.target.value)}
+              />
+            </Field>
+            <Field label={t.fields.availability} htmlFor="availability">
+              <Select
+                id="availability"
+                value={ext.availability}
+                placeholder={t.choose}
+                options={opts(vocab.availability)}
+                onChange={(e) => setExt("availability", e.target.value)}
+              />
+            </Field>
+            <Field label={t.fields.mobility} htmlFor="mobility">
+              <Select
+                id="mobility"
+                value={ext.mobility}
+                placeholder={t.choose}
+                options={opts(vocab.mobility)}
+                onChange={(e) => setExt("mobility", e.target.value)}
+              />
+            </Field>
+          </div>
+          <p className="ct-label mb-2 mt-5">{t.fields.workMode}</p>
+          <CheckGroup
+            label={t.fields.workMode}
+            options={vocab.work_mode}
+            selected={form.work_mode}
+            onToggle={(k) => toggle("work_mode", k)}
+          />
+        </Section>
+      )}
+
+      {ext && (
+        <Section title={t.sections.skills}>
+          <p className="ct-label mb-2">{t.fields.skills}</p>
+          <CheckGroup
+            label={t.fields.skills}
+            options={vocab.skill}
+            selected={form.skill}
+            onToggle={(k) => toggle("skill", k)}
+          />
+          <p className="ct-label mb-2 mt-5">{t.fields.languages}</p>
+          <div className="flex flex-col gap-3">
+            {ext.languages.map((l, i) => (
+              <div key={i} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                <Field label={t.fields.spokenLanguage} htmlFor={`lang-${i}`}>
+                  <Select
+                    id={`lang-${i}`}
+                    value={l.language}
+                    placeholder={t.choose}
+                    options={opts(
+                      vocab.spoken_language.filter((o) => o.key === l.language || !usedLanguages.has(o.key)),
+                    )}
+                    onChange={(e) => setLanguage(i, { language: e.target.value })}
+                  />
+                </Field>
+                <Field label={t.fields.languageLevel} htmlFor={`level-${i}`}>
+                  <Select
+                    id={`level-${i}`}
+                    value={l.level}
+                    placeholder={t.choose}
+                    options={opts(vocab.language_level)}
+                    onChange={(e) => setLanguage(i, { level: e.target.value })}
+                  />
+                </Field>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setExt("languages", ext.languages.filter((_, j) => j !== i))}
+                >
+                  {t.removeLanguage}
+                </Button>
+              </div>
+            ))}
+            {ext.languages.length < vocab.spoken_language.length && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="self-start"
+                onClick={() => setExt("languages", [...ext.languages, { language: "", level: "" }])}
+              >
+                {t.addLanguage}
+              </Button>
+            )}
+          </div>
+        </Section>
+      )}
 
       <Section title={t.sections.channels}>
         <CheckGroup

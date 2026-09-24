@@ -8,6 +8,9 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ProfileForm } from "./ProfileForm";
 import { PortraitUpload } from "./PortraitUpload";
 import { PORTRAIT_BUCKET, PORTRAIT_URL_SECONDS } from "./portraet";
+import { CvUpload } from "./CvUpload";
+import { ConsentForm } from "./ConsentForm";
+import { CV_BUCKET, EDITABLE_CONSENTS, REQUIRED_CONSENTS, type ExtendedProfile } from "./felder";
 import type { ProfileInput } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +38,7 @@ export default async function ProfilPage() {
   const { data: person } = await supabase
     .from("person")
     .select(
-      "first_name,last_name,birthdate,gender,nationality,country,preferred_language,phone,linkedin_url,occupation_status,work_experience,career_level,employer_type,employer_name,startup_phase,study_field,study_program,university,self_assessment",
+      "first_name,last_name,birthdate,gender,nationality,country,preferred_language,phone,linkedin_url,occupation_status,work_experience,career_level,employer_type,employer_name,startup_phase,study_field,study_program,university,self_assessment,city",
     )
     .maybeSingle();
 
@@ -48,6 +51,7 @@ export default async function ProfilPage() {
     { data: interests },
     { data: channels },
     { data: personId },
+    { data: consentRows },
   ] = await Promise.all([
     supabase
       .from("vocab_term")
@@ -57,6 +61,7 @@ export default async function ProfilPage() {
     supabase.from("person_interest").select("vocabulary,term_key"),
     supabase.from("person_acquisition_channel").select("term_key"),
     supabase.rpc("current_person_id"),
+    supabase.from("consent_current").select("consent_type,granted"),
   ]);
 
   // Eigene Abfrage statt Teil der Personenzeile oben: ohne die Spalte
@@ -77,11 +82,57 @@ export default async function ProfilPage() {
     photoUrl = signed?.signedUrl ?? null;
   }
 
+  // Die Felder aus TAL-013 (Migration v6_profilfelder). Schlägt die Abfrage
+  // fehl, ist die Migration noch nicht live: dann fehlen die neuen Abschnitte,
+  // und das Profil speichert wie bisher.
+  type ExtRow = {
+    job_title: string | null;
+    study_program_label: string | null;
+    job_openness: string | null;
+    function_area: string | null;
+    graduation_year: number | null;
+    availability: string | null;
+    mobility: string | null;
+    cv_path: string | null;
+  };
+  const [{ data: extRow, error: extErr }, { data: languageRows }] =
+    typeof personId === "string"
+      ? await Promise.all([
+          supabase
+            .from("person")
+            .select("job_title,study_program_label,job_openness,function_area,graduation_year,availability,mobility,cv_path")
+            .eq("id", personId)
+            .maybeSingle(),
+          supabase.from("person_language").select("language,level").eq("person_id", personId),
+        ])
+      : [{ data: null, error: null }, { data: null }];
+  const ext = extErr ? null : ((extRow ?? null) as ExtRow | null);
+
+  let cvUrl: string | null = null;
+  if (ext?.cv_path) {
+    const { data: signed } = await supabase.storage
+      .from(CV_BUCKET)
+      .createSignedUrl(ext.cv_path, PORTRAIT_URL_SECONDS);
+    cvUrl = signed?.signedUrl ?? null;
+  }
+
+  const consentMap = new Map(
+    ((consentRows ?? []) as { consent_type: string; granted: boolean }[]).map((c) => [
+      c.consent_type,
+      c.granted,
+    ]),
+  );
+
   const allTerms = (terms ?? []) as Term[];
   const byVocab = (v: string): Opt[] =>
     allTerms
       .filter((term) => term.vocabulary === v)
       .map((term) => ({ key: term.key, label: pickLabel(term, locale) }));
+
+  const consentLabelOf = (key: string) => {
+    const term = allTerms.find((x) => x.vocabulary === "consent_type" && x.key === key);
+    return term ? pickLabel(term, locale) : key;
+  };
 
   const programsByField: Record<string, Opt[]> = {};
   for (const term of allTerms) {
@@ -105,8 +156,23 @@ export default async function ProfilPage() {
     interests: byVocab("interests"),
     interests_founder: byVocab("interests_founder"),
     acquisition_channel: byVocab("acquisition_channel"),
+    career_opportunities: byVocab("career_opportunities"),
+    summit_goal: byVocab("summit_goal"),
+    skill: byVocab("skill"),
+    work_mode: byVocab("work_mode"),
+    job_openness: byVocab("job_openness"),
+    function_area: byVocab("function_area"),
+    availability: byVocab("availability"),
+    mobility: byVocab("mobility"),
+    spoken_language: byVocab("spoken_language"),
+    language_level: byVocab("language_level"),
     programsByField,
   };
+
+  const termsOf = (vocabulary: string) =>
+    ((interests ?? []) as { vocabulary: string; term_key: string }[])
+      .filter((i) => i.vocabulary === vocabulary)
+      .map((i) => i.term_key);
 
   const initial: ProfileInput = {
     first_name: person?.first_name ?? "",
@@ -128,13 +194,33 @@ export default async function ProfilPage() {
     study_program: person?.study_program ?? "",
     university: person?.university ?? "",
     self_assessment: person?.self_assessment ?? "",
+    city: person?.city ?? "",
     interests: (interests ?? [])
       .filter((i: { vocabulary: string }) => i.vocabulary === "interests")
       .map((i: { term_key: string }) => i.term_key),
     interests_founder: (interests ?? [])
       .filter((i: { vocabulary: string }) => i.vocabulary === "interests_founder")
       .map((i: { term_key: string }) => i.term_key),
+    career_opportunities: termsOf("career_opportunities"),
+    summit_goal: termsOf("summit_goal"),
+    skill: termsOf("skill"),
+    work_mode: termsOf("work_mode"),
     channels: (channels ?? []).map((c: { term_key: string }) => c.term_key),
+    extended: ext
+      ? ({
+          job_title: ext.job_title ?? "",
+          study_program_label: ext.study_program_label ?? "",
+          job_openness: ext.job_openness ?? "",
+          function_area: ext.function_area ?? "",
+          graduation_year: ext.graduation_year ? String(ext.graduation_year) : "",
+          availability: ext.availability ?? "",
+          mobility: ext.mobility ?? "",
+          languages: ((languageRows ?? []) as { language: string; level: string }[]).map((l) => ({
+            language: l.language,
+            level: l.level,
+          })),
+        } satisfies ExtendedProfile)
+      : null,
   };
 
   return (
@@ -159,6 +245,9 @@ export default async function ProfilPage() {
         initial={initial}
         t={{
           sections: t.profile.sections,
+          completeHint: t.profile.completeHint,
+          addLanguage: t.profile.addLanguage,
+          removeLanguage: t.profile.removeLanguage,
           fields: t.profile.fields,
           hints: t.profile.hints,
           choose: t.common.choose,
@@ -174,6 +263,35 @@ export default async function ProfilPage() {
           ],
         }}
       />
+
+      {ext && typeof personId === "string" && (
+        <div className="mt-4">
+          <CvUpload
+            personId={personId}
+            cvUrl={cvUrl}
+            t={t.profile.cv}
+            rpcMessages={t.rpc}
+          />
+        </div>
+      )}
+
+      <div className="mt-4">
+        <ConsentForm
+          editable={EDITABLE_CONSENTS.map((key) => ({
+            key,
+            label: consentLabelOf(key),
+            hint: t.profile.consents.hints[key],
+            granted: consentMap.get(key) === true,
+          }))}
+          required={REQUIRED_CONSENTS.map((key) => ({
+            key,
+            label: consentLabelOf(key),
+            granted: consentMap.get(key) === true,
+          }))}
+          t={t.profile.consents}
+          common={{ save: t.common.save, saving: t.common.saving, saved: t.common.saved }}
+        />
+      </div>
 
       {/* Am Fuss der Seite, ruhig und ohne Warnfarbe: der Weg soll zu finden
           sein, aber nicht neben „Speichern" um Aufmerksamkeit ringen. */}
