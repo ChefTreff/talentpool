@@ -3809,7 +3809,8 @@
     "unpublish_first": "Bitte zuerst zurückziehen, dann vom Slot lösen.",
     "upload_failed": "Das Hochladen hat nicht geklappt. Versuch es noch einmal.",
     "usage_unknown": "Für dieses Vokabular ist nicht hinterlegt, wo es benutzt wird — deshalb wird nicht gelöscht. Deaktivieren geht.",
-    "vivenu_failed": "vivenu hat das Ticket nicht angelegt. Einzelheiten stehen im Server-Log."
+    "vivenu_failed": "vivenu hat das Ticket nicht angelegt. Einzelheiten stehen im Server-Log.",
+    "vivenu_ticket_missing": "Zu dieser Zeile steht eine vivenu-Kennung, die es bei vivenu nicht gibt. Bitte im vivenu-Backend prüfen, bevor neu ausgestellt wird."
   },
   "speaker": {
     "accessActive": "angemeldet",

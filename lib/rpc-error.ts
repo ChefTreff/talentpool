@@ -81,6 +81,7 @@ const BUSINESS_KEYS = new Set([
   "ticket_type_missing",
   "holder_incomplete",
   "barcode_missing",
+  "vivenu_ticket_missing",
   "invalid_industry",
   "invalid_due_rule",
   "tour_not_found",

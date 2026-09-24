@@ -181,13 +181,14 @@ end $$;
 select * from t_res order by step;
 rollback;
 
--- Lauf 25.09.2026 gegen jqmqvgaiyjudkvtncijw (Probelauf, zurueckgerollt): 15/15 gruen.
+-- Lauf 25.09.2026 gegen jqmqvgaiyjudkvtncijw (Probelauf, zurueckgerollt): 16/16 gruen.
 --   01a abgewiesen 42501, 01b 1 Zeile im Servicekontext;
 --   02a P0002 ticket_not_found, 02b P0001 not_a_free_ticket;
 --   03a Inhaberin + Event + Typ, 03b genau 1 Zeile bei zwei Zuordnungen,
 --   03c '(keiner)' ohne aktive Zuordnung;
 --   04a 1 Zeile fuer das Profil, 04b 'speaker / ZZTEST-VIVENU-1 / ZZTEST-BARCODE-1',
---   04c Secret gesetzt; 05 'valid' (der Webhook war schneller, die Action laeuft durch);
+--   04c Secret gesetzt; 05 'valid' (der Webhook war schneller, die Action laeuft durch),
+--   05b 1 Audit-Eintrag `ticket.issued` mit via = webhook_first;
 --   06 fremder batch legt eigene Zeile an, Profil unberuehrt;
 --   07 1 Zeile (keine Verdopplung); 08 abgewiesen 42501.
 -- Vor der Korrektur waren 03b (zwei Zeilen), 04b (ohne vivenu-Kennung), 05
