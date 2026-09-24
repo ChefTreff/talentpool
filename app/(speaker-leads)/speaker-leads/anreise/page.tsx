@@ -26,7 +26,7 @@ export default async function LeadsTravelPage() {
 
   return (
     <>
-      <PageHeader title={t.travelList.title} description={t.travelList.leadLead} />
+      <PageHeader word={t.leads.wordJourney} title={t.travelList.title} description={t.travelList.leadLead} />
       <TravelList
         rows={(rows ?? []) as TravelRow[]}
         modes={vgroup(vocab, "travel_mode")}

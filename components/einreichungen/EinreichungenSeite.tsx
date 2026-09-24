@@ -40,6 +40,7 @@ export async function EinreichungenSeite() {
   return (
     <>
       <PageHeader
+        word={t.leads.wordSelection}
         title={t.leads.submissionsTitle}
         description={`${t.leads.submissionsLead} · ${submissions.length} ${t.leads.openCount}`}
       />

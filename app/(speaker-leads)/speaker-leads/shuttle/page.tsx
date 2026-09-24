@@ -43,7 +43,7 @@ export default async function LeadsShuttlePage() {
 
   return (
     <>
-      <PageHeader title={t.leads.shuttleTitle} description={t.leads.shuttleLead} />
+      <PageHeader word={t.leads.wordTransfer} title={t.leads.shuttleTitle} description={t.leads.shuttleLead} />
       <LeadShuttle
         rows={(rows ?? []) as ShuttleAdminRow[]}
         speakers={speakers}
