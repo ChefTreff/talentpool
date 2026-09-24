@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/Input";
 import { Select, type SelectOption } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
+import { SuchFeld } from "@/components/ui/SuchFeld";
 import { loadDetail, requeue } from "./actions";
 
 type Strings = Record<string, string>;
@@ -165,9 +166,8 @@ export function ProtokollView({
       <Card className="mb-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Field label={t.filterSearch} htmlFor="f-q" hint={t.filterSearchHint}>
-            <Input
+            <SuchFeld
               id="f-q"
-              type="search"
               defaultValue={params.get("q") ?? ""}
               onBlur={(e) => filtern("q", e.target.value.trim())}
               onKeyDown={(e) => {

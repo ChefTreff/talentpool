@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { PhotoCard } from "@/components/ui/PhotoCard";
 import { InfoList, type InfoEintrag } from "@/components/ui/InfoList";
+import { Fortschritt } from "@/components/ui/Fortschritt";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadEditionInfos, loadMyContacts } from "@/components/kontakt/load";
 import { Anfahrt } from "@/components/kontakt/Anfahrt";
@@ -322,12 +323,23 @@ export default async function PartnerDashboard() {
           <h2 id="aufgaben-fristen" className="ct-h2 text-ink">
             {t.partner.tasksSectionTitle}
           </h2>
-          <span className="ct-help tabular-nums">
-            {t.partner.checklistDone
-              .replace("{done}", String(o.checklist.done))
-              .replace("{total}", String(o.checklist.total))}
-            {o.checklist.overdue > 0 && ` · ${o.checklist.overdue} ${t.partner.statOverdue}`}
-          </span>
+          {/* Der Stand als gemeinsamer Balken mit Zahl (QS-038), rechts im Kopf
+              des Abschnitts; die überfälligen stehen als Wort dahinter. */}
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 sm:w-80">
+            <Fortschritt
+              className="min-w-0 flex-1"
+              wert={o.checklist.done}
+              gesamt={o.checklist.total}
+              label={t.partner.checklistDone
+                .replace("{done}", String(o.checklist.done))
+                .replace("{total}", String(o.checklist.total))}
+            />
+            {o.checklist.overdue > 0 && (
+              <span className="ct-help tabular-nums text-error-ink">
+                {o.checklist.overdue} {t.partner.statOverdue}
+              </span>
+            )}
+          </div>
         </div>
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">

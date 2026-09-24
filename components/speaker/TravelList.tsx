@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { cn } from "@/components/ui/cn";
+import { SuchFeld } from "@/components/ui/SuchFeld";
 
 type Strings = Record<string, string>;
 
@@ -134,8 +134,7 @@ export function TravelList({
           </label>
           <label className="flex flex-col gap-1 sm:col-span-2">
             <span className="ct-label text-ink">{t.filterSearch}</span>
-            <Input
-              type="search"
+            <SuchFeld
               value={suche}
               placeholder={t.filterSearchHint}
               onChange={(e) => setSuche(e.target.value)}

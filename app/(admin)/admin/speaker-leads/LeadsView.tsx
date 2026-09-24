@@ -9,10 +9,10 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Field } from "@/components/ui/Field";
-import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
+import { SuchFeld } from "@/components/ui/SuchFeld";
 import {
   assignSpeaker,
   findPeople,
@@ -240,7 +240,7 @@ export function LeadsView({
         <CardHeader title={t.addTitle} description={t.addHint} />
         <div className="flex flex-wrap items-end gap-3">
           <Field label={t.searchPerson} htmlFor="q" className="min-w-64 grow">
-            <Input
+            <SuchFeld
               id="q"
               value={suche}
               onChange={(e) => setSuche(e.target.value)}

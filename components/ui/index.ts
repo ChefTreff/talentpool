@@ -43,3 +43,5 @@ export { TicketCard } from "./TicketCard";
 export { Accordion, AccordionItem } from "./Accordion";
 export { DateRow, DateList } from "./DateRow";
 export { PortraitShape } from "./PortraitShape";
+export { SuchFeld } from "./SuchFeld";
+export { Fortschritt } from "./Fortschritt";
