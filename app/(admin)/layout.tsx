@@ -57,6 +57,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       items: [
         ...eintrag("applications", "/admin/bewerbungen", nav.applications),
         ...eintrag("nextUp", "/admin/next-up", nav.nextUp),
+        ...eintrag("communityEvents", "/admin/community-events", nav.communityEvents),
         ...eintrag("programme", "/admin/programm", nav.programme),
         // Das Geruest steht neben dem Programm, nicht unter System: wer
         // eine Buehne anlegt, kommt vom Board und will dorthin zurueck.

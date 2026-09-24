@@ -61,6 +61,7 @@ export type AdminSectionKey =
   | "overview"
   | "applications"
   | "nextUp"
+  | "communityEvents"
   | "programme"
   | "edition"
   | "speakers"
@@ -132,6 +133,9 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // „Next Up" auf Home im Teilnehmer-Portal (TAL-006): ein Marketing-Kanal.
   // Dieselbe Rollenliste prüft `can_edit_next_up()` in SQL.
   { key: "nextUp", path: "/admin/next-up", roles: ["marketing_team", "area_lead_talent"] },
+  // Community-Events aus Luma (TAL-008): Sicht, keine Pflege — gepflegt wird in
+  // Luma. Dieselbe Rollenliste prüft `can_view_community_events()` in SQL.
+  { key: "communityEvents", path: "/admin/community-events", roles: ["area_lead_talent", "talent_team", "marketing_team"] },
   { key: "programme", path: "/admin/programm", roles: ["programme_team", "area_lead_speaker", "area_lead_production"] },
   { key: "edition", path: "/admin/edition", roles: ["programme_team", "area_lead_production"] },
 
