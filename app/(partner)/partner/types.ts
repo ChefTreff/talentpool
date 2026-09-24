@@ -255,6 +255,21 @@ export type TicketAllocationRow = {
   codes_due_at: string | null;
 };
 
+/**
+ * Zeile aus `my_ticket_requests()` (PART-070): eine Zusatzanfrage des Partners.
+ * Anzahl und Typ kommen strukturiert — der Freitext bleibt beim Team.
+ */
+export type TicketRequestRow = {
+  id: string;
+  pass_type: string;
+  quantity: number;
+  /** `open` = das Team prüft; `answered`/`closed` = erledigt, `answer` sagt wie. */
+  status: "open" | "answered" | "closed";
+  answer: string | null;
+  created_at: string;
+  answered_at: string | null;
+};
+
 /** Zeile aus `partner_sessions()`. */
 export type PartnerSession = {
   id: string;
