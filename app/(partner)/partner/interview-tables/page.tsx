@@ -97,6 +97,11 @@ export default async function PartnerInterviewTablesPage() {
                   study_field: alsListe(profilFelder.study_field),
                 }}
                 statusLabel={vgroup(vocab, "publish_status")}
+                rueckgabe={{
+                  badge: t.partner.returnedBadge,
+                  title: t.partner.returnedTitle,
+                  next: t.partner.returnedNext,
+                }}
                 locale={locale}
                 t={s as unknown as Record<string, string>}
                 rpcMessages={t.rpc}

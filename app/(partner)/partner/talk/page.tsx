@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
+import { RueckgabeHinweis, SessionStatusBadge, type RueckgabeTexte } from "../Rueckgabe";
 import { canEditOnboarding, type PartnerOverview } from "../types";
 import { SpeakerHinzufuegen } from "./SpeakerHinzufuegen";
 import { SpeakerKarte } from "./SpeakerKarte";
@@ -57,6 +58,11 @@ export default async function PartnerTalkPage() {
   ]);
   const formatLabel = vgroup(vocab, "session_format");
   const statusLabel = vgroup(vocab, "publish_status");
+  const rueckgabe: RueckgabeTexte = {
+    badge: t.partner.returnedBadge,
+    title: t.partner.returnedTitle,
+    next: t.partner.returnedNext,
+  };
 
   const overview = (overviewJson ?? null) as PartnerOverview | null;
   const alleSessions = (sessionRows ?? []) as PartnerFormatSession[];
@@ -110,9 +116,12 @@ export default async function PartnerTalkPage() {
                   <h2 className="ct-h3 text-ink">{titel(x)}</h2>
                   <div className="flex flex-wrap gap-2">
                     <Badge>{formatLabel[x.format] ?? x.format}</Badge>
-                    <Badge tone={x.publish_status === "published" ? "success" : "neutral"}>
-                      {statusLabel[x.publish_status] ?? x.publish_status}
-                    </Badge>
+                    <SessionStatusBadge
+                      publishStatus={x.publish_status}
+                      returnNote={x.return_note}
+                      statusLabel={statusLabel}
+                      t={rueckgabe}
+                    />
                   </div>
                 </div>
 
@@ -131,6 +140,17 @@ export default async function PartnerTalkPage() {
                     <dd className="text-ink">{x.stage_name ?? s.stagePending}</dd>
                   </div>
                 </dl>
+
+                {/* PART-083: was die Programmleitung geändert haben möchte. */}
+                {x.return_note && x.returned_at && x.publish_status !== "published" && (
+                  <RueckgabeHinweis
+                    className="mt-4"
+                    note={x.return_note}
+                    returnedAt={x.returned_at}
+                    dateLocale={t.meta.dateLocale}
+                    t={rueckgabe}
+                  />
+                )}
 
                 <div className="mt-5 border-t border-border pt-4">
                   <h3 className="ct-label text-muted">{s.speakersLabel}</h3>

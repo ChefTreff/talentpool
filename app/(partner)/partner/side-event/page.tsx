@@ -85,6 +85,11 @@ export default async function PartnerSideEventPage() {
           canEdit={canEdit}
           frei={frei}
           statusLabel={vgroup(vocab, "publish_status")}
+          rueckgabe={{
+            badge: t.partner.returnedBadge,
+            title: t.partner.returnedTitle,
+            next: t.partner.returnedNext,
+          }}
           locale={locale}
           t={s as unknown as Record<string, string>}
           rpcMessages={t.rpc}
