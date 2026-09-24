@@ -37,6 +37,11 @@
 -- an; die harte Prüfung wäre ein Eingriff in eine zentrale Funktion, die auch
 -- die Partner-Bühne nutzt, und gehört in einen eigenen Schnitt.
 --
+-- **Für PORT3:** kommt für externe Bühnenleitungen eine eigene Rolle (etwa
+-- `stage_lead`, Hinweis der Architektur-Session vom 24.09.), muss
+-- `can_search_board` sie mit einschliessen — sonst sucht die externe
+-- Bühnenleitung wieder ins Leere.
+--
 -- Fehlerschlüssel: 42501 ohne Recht · 28000 ohne Login.
 
 set search_path = public, extensions;
