@@ -400,6 +400,22 @@
       "nationality": "z. B. deutsch",
       "country": "z. B. DE",
       "linkedin": "https://linkedin.com/in/…"
+    },
+    "portrait": {
+      "title": "Dein Porträt",
+      "lead": "Damit dich unser Team bei Bewerbungen und vor Ort erkennt. Das Gesicht sollte gut zu sehen sein.",
+      "none": "Noch kein Porträt hinterlegt.",
+      "upload": "Porträt auswählen",
+      "replace": "Porträt ersetzen",
+      "change": "Anderes Bild wählen",
+      "remove": "Porträt entfernen",
+      "uploading": "Wird hochgeladen …",
+      "done": "Porträt gespeichert.",
+      "removed": "Porträt entfernt.",
+      "tooBig": "Das Bild ist zu groß. Bis 5 MB geht.",
+      "wrongType": "Bitte ein Bild als JPG, PNG oder WebP.",
+      "failed": "Das Porträt konnte nicht hochgeladen werden.",
+      "rules": "JPG, PNG oder WebP, bis 5 MB."
     }
   },
   "programme": {

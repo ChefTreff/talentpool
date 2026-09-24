@@ -6,6 +6,8 @@ import { getI18n } from "@/lib/i18n";
 import { pickLabel } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ProfileForm } from "./ProfileForm";
+import { PortraitUpload } from "./PortraitUpload";
+import { PORTRAIT_BUCKET, PORTRAIT_URL_SECONDS } from "./portraet";
 import type { ProfileInput } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +43,12 @@ export default async function ProfilPage() {
     redirect("/onboarding");
   }
 
-  const [{ data: terms }, { data: interests }, { data: channels }] = await Promise.all([
+  const [
+    { data: terms },
+    { data: interests },
+    { data: channels },
+    { data: personId },
+  ] = await Promise.all([
     supabase
       .from("vocab_term")
       .select("vocabulary,key,label_de,label_en,parent_key")
@@ -49,7 +56,26 @@ export default async function ProfilPage() {
       .order("sort_order"),
     supabase.from("person_interest").select("vocabulary,term_key"),
     supabase.from("person_acquisition_channel").select("term_key"),
+    supabase.rpc("current_person_id"),
   ]);
+
+  // Eigene Abfrage statt Teil der Personenzeile oben: ohne die Spalte
+  // `photo_path` (Migration v6_person_portraet) liefert sie nur einen Fehler,
+  // und das Profil bleibt trotzdem benutzbar. Nach Id gefiltert, weil das Team
+  // per RLS mehr als die eigene Zeile sieht.
+  const { data: portrait } =
+    typeof personId === "string"
+      ? await supabase.from("person").select("photo_path").eq("id", personId).maybeSingle()
+      : { data: null };
+
+  const photoPath = (portrait as { photo_path: string | null } | null)?.photo_path ?? null;
+  let photoUrl: string | null = null;
+  if (photoPath) {
+    const { data: signed } = await supabase.storage
+      .from(PORTRAIT_BUCKET)
+      .createSignedUrl(photoPath, PORTRAIT_URL_SECONDS);
+    photoUrl = signed?.signedUrl ?? null;
+  }
 
   const allTerms = (terms ?? []) as Term[];
   const byVocab = (v: string): Opt[] =>
@@ -117,6 +143,17 @@ export default async function ProfilPage() {
         title={t.profile.title}
         description={`${t.profile.lead} ${t.profile.loggedInAs} ${user.email}.`}
       />
+      {typeof personId === "string" && (
+        <div className="mb-6">
+          <PortraitUpload
+            personId={personId}
+            name={person?.first_name ?? ""}
+            photoUrl={photoUrl}
+            t={t.profile.portrait}
+            rpcMessages={t.rpc}
+          />
+        </div>
+      )}
       <ProfileForm
         vocab={vocab}
         initial={initial}

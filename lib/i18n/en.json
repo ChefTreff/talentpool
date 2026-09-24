@@ -400,6 +400,22 @@
       "nationality": "e.g. German",
       "country": "e.g. DE",
       "linkedin": "https://linkedin.com/in/…"
+    },
+    "portrait": {
+      "title": "Your portrait",
+      "lead": "So our team recognises you in applications and on site. Your face should be clearly visible.",
+      "none": "No portrait yet.",
+      "upload": "Choose portrait",
+      "replace": "Replace portrait",
+      "change": "Choose another image",
+      "remove": "Remove portrait",
+      "uploading": "Uploading …",
+      "done": "Portrait saved.",
+      "removed": "Portrait removed.",
+      "tooBig": "The image is too large. Up to 5 MB works.",
+      "wrongType": "Please use a JPG, PNG or WebP image.",
+      "failed": "The portrait could not be uploaded.",
+      "rules": "JPG, PNG or WebP, up to 5 MB."
     }
   },
   "programme": {
