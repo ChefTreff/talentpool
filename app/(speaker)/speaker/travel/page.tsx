@@ -1,14 +1,14 @@
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadVocabMap, vgroup } from "@/lib/vocab";
-import { loadEventDays } from "@/lib/event-days";
+import { loadActiveKeys, loadVocabMap, vgroup } from "@/lib/vocab";
+import { loadSummit } from "@/lib/event-days";
+import { formatDay } from "@/lib/tz";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AbschnittsNavigation, Sektion } from "@/components/ui/Abschnitte";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Anfahrt } from "./Anfahrt";
 import { Anreise, type SpeakerTravel } from "./Anreise";
-import { DietCard } from "@/components/diet/DietCard";
 import { ShuttleView } from "./ShuttleView";
 import { TravelView } from "./TravelView";
 import type { SpeakerProfile } from "../types";
@@ -30,15 +30,15 @@ export default async function SpeakerTravelPage() {
     { data: optionRows },
     { data: bookingRows },
     { data: travelJson },
-    { data: dietJson },
     vocab,
+    reisemittel,
   ] = await Promise.all([
     supabase.rpc("my_speaker_profile"),
     supabase.rpc("hospitality_options"),
     supabase.rpc("my_hospitality"),
     supabase.rpc("my_speaker_travel"),
-    supabase.rpc("my_diet"),
     loadVocabMap(supabase, locale),
+    loadActiveKeys(supabase, "travel_mode"),
   ]);
   // Fahrten stehen seit 0119 in einer eigenen Tabelle, nicht mehr als
   // Kontingentbuchung — deshalb ein eigener Aufruf.
@@ -46,10 +46,6 @@ export default async function SpeakerTravelPage() {
 
   const profile = (profileJson ?? null) as SpeakerProfile | null;
   const travel = (travelJson ?? null) as SpeakerTravel | null;
-  const diet = (dietJson ?? null) as {
-    diet: string | null;
-    diet_note: string | null;
-  } | null;
 
   if (!profile) {
     return (
@@ -67,38 +63,33 @@ export default async function SpeakerTravelPage() {
     );
   }
 
-  // --- Shuttle: Zeitfenster und Vorbelegung (SPK-032, SPK-034) -------------
-  // Konrad: Abholungen nur vom Tag vor dem Summit bis zum letzten Tag, jeweils
-  // 9 bis 21 Uhr. Die Tage kommen aus der Edition statt aus dem Kalender im
-  // Kopf — 2028 verschiebt sich der Summit, die Regel nicht.
-  const tage = await loadEventDays(supabase, profile.edition_id);
-  const tagDavor = tage.length
-    ? new Date(
-        new Date(`${tage[0]}T00:00:00.000Z`).getTime() - 24 * 60 * 60 * 1000,
-      )
+  // --- Shuttle: Zeitfenster und Vorbelegung (SPK-032, SPK-034, SPK-061) -----
+  // Konrad am 24.09.: Fahrten vom Anreisetag bis zum letzten Summit-Tag, am
+  // Anreisetag ab 12 Uhr, sonst ab 9 Uhr, jeweils bis 21 Uhr. Der Anreisetag
+  // ist der Tag **vor dem Summit** (Do 15.04.), nicht der vor der Edition: die
+  // beginnt schon mit dem Hackathon am Donnerstag, und so war der Mittwoch in
+  // die Auswahl geraten. Die Tage kommen aus den Daten, nicht aus dem Kopf —
+  // 2028 verschiebt sich der Summit, die Regel nicht.
+  const summit = await loadSummit(supabase, profile.edition_id);
+  const ersterTag = summit.days[0] ?? null;
+  const letzterTag = summit.days[summit.days.length - 1] ?? null;
+  const anreisetag = ersterTag
+    ? new Date(new Date(`${ersterTag}T00:00:00.000Z`).getTime() - 24 * 60 * 60 * 1000)
         .toISOString()
         .slice(0, 10)
     : null;
-  const letzterTag = tage.length ? tage[tage.length - 1] : null;
-  const tagFormat = new Intl.DateTimeFormat(t.meta.dateLocale, {
-    dateStyle: "medium",
-  });
   const fenster =
-    tagDavor && letzterTag
+    anreisetag && letzterTag
       ? {
-          min: `${tagDavor}T09:00`,
+          min: `${anreisetag}T12:00`,
           max: `${letzterTag}T21:00`,
-          vonStunde: 9,
-          bisStunde: 21,
+          tage: [
+            { datum: anreisetag, von: 12, bis: 21 },
+            ...summit.days.map((d) => ({ datum: d, von: 9, bis: 21 })),
+          ],
           hint: t.speaker.shuttleWindowHint
-            .replace(
-              "{von}",
-              tagFormat.format(new Date(`${tagDavor}T00:00:00.000Z`)),
-            )
-            .replace(
-              "{bis}",
-              tagFormat.format(new Date(`${letzterTag}T00:00:00.000Z`)),
-            ),
+            .replace("{von}", formatDay(anreisetag, t.meta.dateLocale, { withYear: false }))
+            .replace("{bis}", formatDay(letzterTag, t.meta.dateLocale, { withYear: false })),
         }
       : undefined;
 
@@ -117,7 +108,7 @@ export default async function SpeakerTravelPage() {
   // `declined`: wer abgesagt hat, soll es zurücknehmen können, statt die
   // Sektion verschwinden zu sehen.
   //
-  // **Anreise, Ernährung und Shuttle bleiben für alle stehen.** Die brauchen
+  // **Anreise und Shuttle bleiben für alle stehen.** Die brauchen
   // wir von jedem Speaker — auch von dem, der mit dem eigenen Auto kommt und
   // kein Zimmer bekommt. Nur das Hotelangebot weckt Erwartungen, die wir für
   // diese Person nicht einlösen.
@@ -129,14 +120,12 @@ export default async function SpeakerTravelPage() {
   ]);
 
   // Die Übersicht führt nur, was auf dieser Seite auch steht (SPK-035, Muster
-  // QS-026): Ernährung und Hotel hängen an Bedingungen, ein Anker ins Leere
+  // QS-026): das Hotel hängt an Bedingungen, ein Anker ins Leere
   // wäre schlimmer als ein fehlender.
-  const zeigtDiet = !profile.is_assistant;
   const zeigtHotel = HOSPITALITY_ANSPRUCH.has(profile.hospitality_status);
   const abschnitte = [
     { id: "anfahrt", label: t.speaker.arrivalTitle },
     { id: "anreise", label: t.speaker.sectionArrival },
-    ...(zeigtDiet ? [{ id: "ernaehrung", label: t.diet.title }] : []),
     { id: "shuttle", label: t.speaker.sectionShuttle },
     ...(zeigtHotel ? [{ id: "hotel", label: t.speaker.sectionHotel }] : []),
   ];
@@ -165,30 +154,15 @@ export default async function SpeakerTravelPage() {
           travel={travel}
           isAssistant={profile.is_assistant}
           modes={vgroup(vocab, "travel_mode")}
+          angeboten={reisemittel}
           dateLocale={t.meta.dateLocale}
           t={t.speaker}
           common={{ save: t.common.save, choose: t.common.choose }}
           rpcMessages={t.rpc}
         />
         </Sektion>
-        {/* Die Ernährung gehört hierher und nicht ins Profil: sie wird fürs
-            Catering gebraucht, also dort, wo auch Hotel und Anreise stehen.
-            **Nicht für die Assistenz**: sie darf die Angabe nicht lesen, sähe
-            ein leeres Formular und würde beim Speichern eine hinterlegte
-            Allergie löschen. */}
-        {zeigtDiet && (
-          <Sektion id="ernaehrung">
-          <DietCard
-            diet={diet?.diet ?? null}
-            note={diet?.diet_note ?? null}
-            path="/speaker/travel"
-            options={vgroup(vocab, "diet")}
-            t={t.diet}
-            common={{ save: t.common.save, choose: t.common.choose }}
-            rpcMessages={t.rpc}
-          />
-          </Sektion>
-        )}
+        {/* Die Ernährung stand hier und steht seit SPK-056 im Profil: sie
+            gehört zur Person, nicht zur Reise (Konrad 24.09.). */}
       </div>
 
       {/* Shuttle vor den Kontingenten: eine Fahrt ist ein Auftrag mit Zeit und
@@ -213,7 +187,6 @@ export default async function SpeakerTravelPage() {
           isAssistant={profile.is_assistant}
           options={(optionRows ?? []) as HospitalityOption[]}
           bookings={(bookingRows ?? []) as HospitalityBooking[]}
-          tierLabels={vgroup(vocab, "hotel_tier")}
           locale={locale}
           dateLocale={t.meta.dateLocale}
           t={t.speaker}
