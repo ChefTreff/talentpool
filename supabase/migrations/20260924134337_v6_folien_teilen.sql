@@ -1,3 +1,5 @@
+-- 0160 · Welle 6 · Folien mit den Teilnehmenden teilen (SPK-055): set_slides_release mit NULL-sicherer Eigentümerprüfung, nur Präsentationen
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924134337.
 -- Vorschlag ohne Nummer · Welle 6 · Folien mit den Teilnehmenden teilen (SPK-055)
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
