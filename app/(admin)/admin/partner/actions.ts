@@ -354,7 +354,9 @@ export async function answerRequest(
     p_status: status,
   });
   if (error) return fail(error);
-  refresh("bestellungen");
+  // Zusatzticket-Anfragen werden seit PART-070 auf der Kontingente-Seite
+  // beantwortet — beide Seiten zeigen dieselbe Zeile.
+  refresh("bestellungen", "kontingente");
   return { ok: true, data: undefined };
 }
 

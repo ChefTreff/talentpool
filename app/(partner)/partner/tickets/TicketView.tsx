@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TicketCard } from "@/components/ui/TicketCard";
 import { DeadlineCard } from "@/components/ui/DeadlineCard";
@@ -11,8 +11,9 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { cn } from "@/components/ui/cn";
 import { requestTicketIncrease } from "../actions";
-import { REQUEST_PASS_TYPES, type TicketAllocationRow } from "../types";
+import { REQUEST_PASS_TYPES, type TicketAllocationRow, type TicketRequestRow } from "../types";
 
 type Strings = Record<string, string>;
 
@@ -22,11 +23,37 @@ const TONE: Record<string, BadgeTone> = {
   error: "warning",
 };
 
+const ANFRAGE_TONE: Record<string, BadgeTone> = {
+  open: "accent",
+  answered: "success",
+  closed: "neutral",
+};
+
+/**
+ * Spalten nach Anzahl der Kontingente (PART-068: „1–4 Sektionen nebeneinander,
+ * Breite passt sich der Anzahl an"). Als feste Klassen, nicht zusammengesetzt —
+ * Tailwind findet nur Klassen, die wörtlich im Code stehen. Auf schmalen
+ * Bildschirmen untereinander, sonst wird aus vier Karten Kleingedrucktes.
+ */
+const SPALTEN: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-1 md:grid-cols-2",
+  3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+  4: "grid-cols-1 md:grid-cols-2 xl:grid-cols-4",
+};
+
 export function TicketView({
   orgId,
   allocations,
+  requests,
   passTypes,
   canRequest,
+  shopUrl,
+  wikiHref,
+  dueAt,
+  dueText,
+  expiredText,
+  dueNote,
   dateLocale,
   t,
   common,
@@ -34,9 +61,29 @@ export function TicketView({
 }: {
   orgId: string;
   allocations: TicketAllocationRow[];
+  /** Eigene Zusatzanfragen aus `my_ticket_requests` (PART-070). */
+  requests: TicketRequestRow[];
   /** Beschriftungen aus dem Vokabular `ticket_type`. */
   passTypes: Record<string, string>;
   canRequest: boolean;
+  /**
+   * Der eine Ticketshop dieser Organisation (ein Undershop je Org und Edition,
+   * `lib/vivenu/allocations.ts`). `null`, solange die Codes noch nicht aktiv
+   * sind — dann gibt es keinen Knopf, der ins Leere führt.
+   */
+  shopUrl: string | null;
+  wikiHref: string;
+  dueAt: string | null;
+  /** Serverseitig formatiert, damit es auch ohne JavaScript dasteht. */
+  dueText: string | null;
+  /** Gesetzt, wenn die Frist verstrichen ist (vom Server bestimmt). */
+  expiredText: string | null;
+  /**
+   * Konrads Satz zur Frist (PART-071), mit dem Datum aus `deadline.ticket_codes`
+   * statt einem fest geschriebenen „31.03." — so stimmt er auch in der nächsten
+   * Edition. Nach Ablauf ein anderer Satz, keiner mehr im Imperativ.
+   */
+  dueNote: string | null;
   dateLocale: string;
   t: Strings;
   common: { cancel: string; none: string; choose: string };
@@ -50,10 +97,7 @@ export function TicketView({
   const [draft, setDraft] = useState({ passType: "partner", additional: "1", text: "" });
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
-  const dateTime = new Intl.DateTimeFormat(dateLocale, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const datum = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
   const passLabel = (key: string) => passTypes[key] ?? key;
 
   async function onCopy(code: string) {
@@ -92,31 +136,95 @@ export function TicketView({
     });
   }
 
-  const due = allocations.find((a) => a.codes_due_at)?.codes_due_at ?? null;
-
   return (
     <div className="flex flex-col gap-6">
-      {/* F9.2: Die Frist war eine Hilfstextzeile zwischen anderen — jetzt
-          steht sie gross und mit Restzeit. Wer Codes einlöst, entscheidet
-          danach, ob er es heute tut. */}
-      {due && (
+      {/* PART-067: drei Knöpfe oben, in Konrads Reihenfolge. Einer ist primär —
+          der Shop, denn deshalb kommt man auf diese Seite; Nachfragen und
+          Nachlesen sind der Ausnahmefall. „Secret Shop" ist weg: das Wort
+          stammt aus vivenu und sagt einem Partner nichts. */}
+      <div className="flex flex-wrap gap-2">
+        {canRequest && (
+          <Button variant="secondary" aria-expanded={asking} onClick={() => setAsking((v) => !v)}>
+            {t.requestTitle}
+          </Button>
+        )}
+        {shopUrl && (
+          <ButtonLink href={shopUrl} target="_blank" rel="noopener noreferrer">
+            {t.toShop}
+          </ButtonLink>
+        )}
+        <ButtonLink variant="ghost" href={wikiHref}>
+          {t.toWiki}
+        </ButtonLink>
+      </div>
+
+      {canRequest && asking && (
+        <Card>
+          <h2 className="ct-h3 mb-1 text-ink">{t.requestTitle}</h2>
+          <p className="ct-help mb-4">{t.requestHint}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={t.fieldPassType} htmlFor="r-pass">
+              <Select
+                id="r-pass"
+                value={draft.passType}
+                options={REQUEST_PASS_TYPES.map((p) => ({ value: p, label: passLabel(p) }))}
+                onChange={(e) => setDraft((d) => ({ ...d, passType: e.target.value }))}
+              />
+            </Field>
+            <Field label={t.fieldAdditional} htmlFor="r-count" hint={t.fieldAdditionalHint}>
+              <Input
+                id="r-count"
+                type="number"
+                min={1}
+                value={draft.additional}
+                onChange={(e) => setDraft((d) => ({ ...d, additional: e.target.value }))}
+              />
+            </Field>
+            <Field
+              label={t.fieldText}
+              htmlFor="r-text"
+              hint={t.fieldTextHint}
+              className="sm:col-span-2"
+            >
+              <Textarea
+                id="r-text"
+                rows={3}
+                value={draft.text}
+                onChange={(e) => setDraft((d) => ({ ...d, text: e.target.value }))}
+              />
+            </Field>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Button disabled={pending} onClick={onRequest}>
+              {t.requestSend}
+            </Button>
+            <Button variant="ghost" disabled={pending} onClick={() => setAsking(false)}>
+              {common.cancel}
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* PART-066: die Frist als grosse, laufende Zahl. */}
+      {dueAt && dueText && (
         <DeadlineCard
-          dueAt={due}
-          label={t.dueOn}
-          dateText={dateTime.format(new Date(due))}
+          prominent
+          dueAt={dueAt}
+          label={t.dueLabel}
+          dateText={dueText}
           days={t.countdownDays}
           hours={t.countdownHours}
           soon={t.countdownSoon}
+          unitDays={t.unitDays}
+          unitHours={t.unitHours}
+          unitHour={t.unitHour}
+          expired={expiredText}
+          note={dueNote ?? undefined}
         />
       )}
 
-      {/* Die Kontingente tragen jetzt die Ticket-Form aus dem Design-System
-          (Website-Block „Ticket Section"): Perforation, gestrichelte
-          Trennung, Zahl gross im Bauch. Vorher waren es schlichte Karten, auf
-          denen die Zahl kleiner stand als die Überschrift — man musste lesen,
-          um zu sehen, dass es um Tickets geht. Inhalt und Logik sind
-          unverändert. */}
-      <ul className="grid gap-6 lg:grid-cols-2">
+      {/* PART-068: Kontingente nebeneinander, bis zu vier. */}
+      <ul className={cn("grid gap-6", SPALTEN[Math.min(Math.max(allocations.length, 1), 4)])}>
         {allocations.map((a) => (
           <li key={a.id}>
             <TicketCard
@@ -130,39 +238,17 @@ export function TicketView({
                 </Badge>
               }
               footer={
-                a.status === "active" ? (
-                  <div className="flex flex-col gap-3">
-                    {a.coupon_code && (
-                      <div>
-                        <p className="ct-label text-ink">{t.code}</p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2">
-                          <code className="rounded-ct-sm border bg-surface-hover px-2 py-1 ct-small">
-                            {a.coupon_code}
-                          </code>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => onCopy(a.coupon_code!)}
-                          >
-                            {copied === a.coupon_code ? t.copied : t.copy}
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    {a.undershop_url && (
-                      <div>
-                        <p className="ct-label text-ink">{t.shopLink}</p>
-                        <a
-                          className="ct-link mt-1 inline-block break-all"
-                          href={a.undershop_url}
-                          target="_blank"
-                          rel="noreferrer noopener"
-                        >
-                          {a.undershop_url}
-                        </a>
-                      </div>
-                    )}
-                    <p className="ct-help">{t.howTo}</p>
+                a.status === "active" && a.coupon_code ? (
+                  <div>
+                    <p className="ct-label text-ink">{t.code}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <code className="break-all rounded-ct-sm border bg-surface-hover px-2 py-1 ct-small">
+                        {a.coupon_code}
+                      </code>
+                      <Button size="sm" variant="secondary" onClick={() => onCopy(a.coupon_code!)}>
+                        {copied === a.coupon_code ? t.copied : t.copy}
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   // `pending_vivenu` und `error` sehen für den Partner gleich
@@ -175,59 +261,60 @@ export function TicketView({
         ))}
       </ul>
 
-      {canRequest &&
-        (asking ? (
-          <Card>
-            <h2 className="ct-h3 mb-1 text-ink">{t.requestTitle}</h2>
-            <p className="ct-help mb-4">{t.requestHint}</p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t.fieldPassType} htmlFor="r-pass">
-                <Select
-                  id="r-pass"
-                  value={draft.passType}
-                  options={REQUEST_PASS_TYPES.map((p) => ({ value: p, label: passLabel(p) }))}
-                  onChange={(e) => setDraft((d) => ({ ...d, passType: e.target.value }))}
-                />
-              </Field>
-              <Field label={t.fieldAdditional} htmlFor="r-count" hint={t.fieldAdditionalHint}>
-                <Input
-                  id="r-count"
-                  type="number"
-                  min={1}
-                  value={draft.additional}
-                  onChange={(e) => setDraft((d) => ({ ...d, additional: e.target.value }))}
-                />
-              </Field>
-              <Field
-                label={t.fieldText}
-                htmlFor="r-text"
-                hint={t.fieldTextHint}
-                className="sm:col-span-2"
-              >
-                <Textarea
-                  id="r-text"
-                  rows={3}
-                  value={draft.text}
-                  onChange={(e) => setDraft((d) => ({ ...d, text: e.target.value }))}
-                />
-              </Field>
-            </div>
-            <div className="mt-6 flex flex-wrap gap-2">
-              <Button disabled={pending} onClick={onRequest}>
-                {t.requestSend}
-              </Button>
-              <Button variant="ghost" disabled={pending} onClick={() => setAsking(false)}>
-                {common.cancel}
-              </Button>
-            </div>
-          </Card>
-        ) : (
-          <div>
-            <Button variant="secondary" onClick={() => setAsking(true)}>
-              {t.requestTitle}
-            </Button>
-          </div>
-        ))}
+      {/* PART-070: was angefragt wurde und wie es steht. Nur mit Anfragen —
+          eine leere Sektion wäre eine Frage ohne Anlass. */}
+      {requests.length > 0 && (
+        <section>
+          <h2 className="ct-h3 text-ink">{t.extraTitle}</h2>
+          <p className="ct-help mt-1">{t.extraLead}</p>
+          <ul className="mt-3 flex flex-col gap-2">
+            {requests.map((r) => (
+              <li key={r.id} className="rounded-ct-md border border-border bg-surface px-4 py-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="ct-label text-ink">
+                    {t.extraLine
+                      .replace("{n}", String(r.quantity))
+                      .replace("{type}", passLabel(r.pass_type))}
+                  </span>
+                  <Badge tone={ANFRAGE_TONE[r.status] ?? "neutral"}>
+                    {t[`extra_${r.status}`] ?? r.status}
+                  </Badge>
+                </div>
+                <p className="ct-help mt-1">
+                  {t.extraAsked.replace("{date}", datum.format(new Date(r.created_at)))}
+                  {r.answered_at &&
+                    ` · ${t.extraAnswered.replace("{date}", datum.format(new Date(r.answered_at)))}`}
+                </p>
+                {r.answer && <p className="ct-small mt-2 leading-6">{r.answer}</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* PART-071: das Wesentliche aus dem Wiki direkt hier. Der zweite Schritt
+          nach dem Kauf — die Personalisierung — sorgt jedes Jahr für
+          Verwirrung; deshalb steht er als eigener, nummerierter Schritt da
+          und nicht als Nebensatz. Die Akkreditierungszeiten stehen bewusst
+          **nicht** hier: sie hängen an der Edition (Wochentage wechseln) und
+          gehören ins Wiki. */}
+      <section>
+        <h2 className="ct-h3 text-ink">{t.howTitle}</h2>
+        <ol className="mt-3 flex flex-col gap-3">
+          <li className="rounded-ct-md border border-border bg-surface px-4 py-3">
+            <p className="ct-label text-ink">{t.step1Title}</p>
+            <p className="ct-small mt-1 leading-6">{t.step1Body}</p>
+          </li>
+          <li className="rounded-ct-md border border-border bg-surface px-4 py-3">
+            <p className="ct-label text-ink">{t.step2Title}</p>
+            <p className="ct-small mt-1 leading-6">{t.step2Body}</p>
+          </li>
+        </ol>
+        <ul className="ct-small mt-4 flex list-disc flex-col gap-1 pl-5 leading-6">
+          <li>{t.ruleCodes}</li>
+          <li>{t.ruleOwnTicket}</li>
+        </ul>
+      </section>
     </div>
   );
 }

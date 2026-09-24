@@ -45,6 +45,22 @@ export type ReviewItem = {
   review_note: string | null;
 };
 
+/** Zeile aus `ticket_requests_admin()` (PART-070): eine Zusatzanfrage, offene zuerst. */
+export type AdminTicketRequest = {
+  id: string;
+  org_id: string;
+  org_name: string;
+  pass_type: string;
+  quantity: number;
+  /** Der Freitext der Anfrage, fuers Team (traegt den internen Schluessel). */
+  text: string;
+  status: "open" | "answered" | "closed";
+  answer: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  answered_at: string | null;
+};
+
 export type AdminAllocation = {
   id: string;
   org_id: string;
