@@ -83,6 +83,8 @@ export default async function AdminPartnerOrgPage({
       roleLabels={vgroup(vocab, "contact_role")}
       // Dieselben Texte wie im Partnerportal; nur der Hinweis oben spricht das Team an.
       contactTexts={{ ...t.partnerContacts, ownLoginHint: t.adminPartner.contactsHint }}
+      dataTexts={t.partner}
+      industries={vgroup(vocab, "industry")}
       common={{
         cancel: t.common.cancel,
         none: t.common.none,

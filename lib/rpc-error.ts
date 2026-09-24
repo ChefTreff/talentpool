@@ -221,6 +221,8 @@ const BUSINESS_KEYS = new Set([
   // Profil loeschen (Migration 0115)
   "already_requested",
   "invalid_action",
+  // Eure Daten: Kundennummer (Vorschlag v6_eure_daten, PART-059)
+  "customer_number_taken",
   // Partner-Kontakte bearbeiten (Vorschlag v6_kontakte_bearbeiten_cc, PART-062)
   "contact_not_editable",
   "email_in_use",
