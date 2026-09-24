@@ -27,6 +27,7 @@ export default async function VokabularPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.vocab}
         title={t.admin.vocab.title}
         description={`${terms.length} ${t.admin.vocab.count} ${vokabulare} ${t.admin.vocab.vocabularies}. ${t.adminVocab.lead}`}
       />

@@ -15,7 +15,7 @@ export default async function BoothsPage() {
 
   return (
     <>
-      <PageHeader title={t.production.boothTitle} description={t.production.boothLead} />
+      <PageHeader word={t.admin.words.production} title={t.production.boothTitle} description={t.production.boothLead} />
       <ProductionTabs />
       {!axes.editionId ? (
         <EmptyState title={t.production.emptyBooths} description={t.production.emptyBoothsBody} />

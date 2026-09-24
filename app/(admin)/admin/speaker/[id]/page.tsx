@@ -53,6 +53,7 @@ export default async function AdminSpeakerDetail({
         expenseMode: vgroup(vocab, "expense_mode"),
       }}
       dateLocale={t.meta.dateLocale}
+      word={t.admin.words.speakers}
       t={t.adminSpeaker}
       common={{
         cancel: t.common.cancel,

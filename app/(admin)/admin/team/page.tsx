@@ -37,6 +37,7 @@ export default async function AdminTeamPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.team}
         title={t.adminTeam.title}
         description={`${t.adminTeam.lead} · ${members.length} ${t.common.shown}`}
       />

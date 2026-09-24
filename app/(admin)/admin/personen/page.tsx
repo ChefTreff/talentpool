@@ -42,6 +42,7 @@ export default async function PersonenPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.persons}
         title={t.admin.persons.title}
         description={`${rows.length} ${t.common.shown}`}
       />

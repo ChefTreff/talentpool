@@ -32,7 +32,7 @@ export default async function AdminGrafikenPage() {
   if (error) {
     return (
       <>
-        <PageHeader title={t.adminGrafiken.title} description={t.adminGrafiken.lead} />
+        <PageHeader word={t.admin.words.graphics} title={t.adminGrafiken.title} description={t.adminGrafiken.lead} />
         <EmptyState title={t.adminGrafiken.noAccessTitle} description={t.adminGrafiken.noAccessBody} />
       </>
     );
@@ -47,7 +47,7 @@ export default async function AdminGrafikenPage() {
 
   return (
     <>
-      <PageHeader title={t.adminGrafiken.title} description={t.adminGrafiken.lead} />
+      <PageHeader word={t.admin.words.graphics} title={t.adminGrafiken.title} description={t.adminGrafiken.lead} />
       <GrafikenView
         sessions={(sessionRows ?? []) as SessionZeile[]}
         bilder={bilder.map((b) => ({ ...b, url: nachPfad.get(b.storage_path) ?? null }))}

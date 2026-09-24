@@ -30,6 +30,7 @@ export default async function AdminHospitalityPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.hospitality}
         title={t.admin.hospitality.title}
         description={`${t.admin.hospitality.lead} · ${waiting} ${t.admin.hospitality.onWaitlist}`}
       />

@@ -69,6 +69,7 @@ export function SpeakerDetailView({
   contacts,
   labels,
   dateLocale,
+  word,
   t,
   common,
   rpcMessages,
@@ -78,6 +79,8 @@ export function SpeakerDetailView({
   contacts: ContactOption[];
   labels: Record<string, Record<string, string>>;
   dateLocale: string;
+  /** Das kursive Wort des Abschnitts im Seitenkopf (QS-037). */
+  word: string;
   t: Strings;
   common: { cancel: string; choose: string; none: string; save: string };
   rpcMessages: Record<string, string>;
@@ -184,6 +187,7 @@ export function SpeakerDetailView({
   return (
     <>
       <PageHeader
+        word={word}
         title={name}
         description={[speaker.job_title, speaker.organization_name].filter(Boolean).join(" · ")}
         eyebrow={

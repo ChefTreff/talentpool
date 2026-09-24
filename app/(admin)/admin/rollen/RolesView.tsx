@@ -275,7 +275,7 @@ export function RolesView({
           </Card>
 
           <Card className="p-4">
-            <h2 className="ct-h3 mb-1 text-ink">{t.assignTitle}</h2>
+            <h2 className="ct-h2 mb-1 text-ink">{t.assignTitle}</h2>
             <p className="ct-help mb-4">{t.assignHint}</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t.role} htmlFor="role">

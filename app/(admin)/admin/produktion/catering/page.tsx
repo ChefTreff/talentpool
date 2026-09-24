@@ -30,7 +30,7 @@ export default async function ProductionCateringPage() {
 
   return (
     <>
-      <PageHeader title={t.catering.title} description={t.catering.productionLead} />
+      <PageHeader word={t.admin.words.production} title={t.catering.title} description={t.catering.productionLead} />
       <ProductionTabs />
       <CateringView
         summary={daten.summary}

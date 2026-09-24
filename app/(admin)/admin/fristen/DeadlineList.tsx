@@ -182,7 +182,7 @@ export function DeadlineList({
       )}
 
       <Card className="p-4">
-        <h2 className="ct-h3 mb-1 text-ink">{t.newTitle}</h2>
+        <h2 className="ct-h2 mb-1 text-ink">{t.newTitle}</h2>
         <p className="ct-help mb-4">{t.newHint}</p>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label={t.fieldEdition} htmlFor="d-edition">

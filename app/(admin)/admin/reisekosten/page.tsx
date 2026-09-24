@@ -23,7 +23,7 @@ export default async function AdminExpensesPage() {
   if (error) {
     return (
       <>
-        <PageHeader title={t.admin.expenses.title} description={t.admin.expenses.lead} />
+        <PageHeader word={t.admin.words.expenses} title={t.admin.expenses.title} description={t.admin.expenses.lead} />
         <EmptyState
           title={t.admin.expenses.noAccessTitle}
           description={t.admin.expenses.noAccessBody}
@@ -38,6 +38,7 @@ export default async function AdminExpensesPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.expenses}
         title={t.admin.expenses.title}
         description={`${t.admin.expenses.lead} · ${open} ${t.admin.expenses.openCount}`}
       />
