@@ -41,7 +41,7 @@ export default async function SpeakerSessionPage() {
   if (!profile) {
     return (
       <>
-        <PageHeader title={t.speaker.sessionTitle} description={t.speaker.sessionLead} />
+        <PageHeader word={t.speaker.wordStage} title={t.speaker.sessionTitle} description={t.speaker.sessionLead} />
         <EmptyState title={t.speaker.noProfileTitle} description={t.speaker.noProfileBody} />
       </>
     );
@@ -73,7 +73,7 @@ export default async function SpeakerSessionPage() {
 
   return (
     <div className="max-w-[900px]">
-      <PageHeader title={t.speaker.sessionTitle} description={t.speaker.sessionLead} />
+      <PageHeader word={t.speaker.wordStage} title={t.speaker.sessionTitle} description={t.speaker.sessionLead} />
 
       {/* Die Abschnitte der längsten Seite im Portal (SPK-043, Muster QS-026).
           Nur was auch da ist: ohne Session gibt es keine Anker. */}
@@ -127,7 +127,7 @@ export default async function SpeakerSessionPage() {
       )}
 
       <section aria-labelledby="hallenplan" className="mt-8 scroll-mt-20">
-        <h2 id="hallenplan" className="ct-h3 mb-3 text-ink">
+        <h2 id="hallenplan" className="ct-h2 mb-3 text-ink">
           {t.speaker.planTitle}
         </h2>
         <Card>

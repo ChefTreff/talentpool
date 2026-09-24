@@ -313,7 +313,7 @@ export function ExpenseWizard({
       {/* 1 · Pauschale oder Positionen */}
       {pauschale ? (
         <Card className="p-6">
-          <h2 className="ct-h3 mb-1 text-ink">{t.stepLumpSum}</h2>
+          <h2 className="ct-h2 mb-1 text-ink">{t.stepLumpSum}</h2>
           <p className="ct-small mt-2 leading-6">{t.lumpSumBody}</p>
           <p className="ct-display mt-3 text-ink">
             {new Intl.NumberFormat(dateLocale, { style: "currency", currency: "EUR" }).format(
@@ -323,7 +323,7 @@ export function ExpenseWizard({
         </Card>
       ) : (
       <Card className="p-6">
-        <h2 className="ct-h3 mb-1 text-ink">{t.stepPositions}</h2>
+        <h2 className="ct-h2 mb-1 text-ink">{t.stepPositions}</h2>
         <p className="ct-help mb-4">{t.positionsHint}</p>
 
         <ul className="flex flex-col gap-4">
@@ -429,7 +429,7 @@ export function ExpenseWizard({
 
       {/* 2 · Bankdaten — nur der Speaker, nie vorbefüllt */}
       <Card className="p-6">
-        <h2 className="ct-h3 mb-1 text-ink">{t.stepBank}</h2>
+        <h2 className="ct-h2 mb-1 text-ink">{t.stepBank}</h2>
         <p className="ct-help mb-4">{t.bankHint}</p>
 
         {/* Der Assistenz gibt `my_expense_claims()` keinen maskierten Wert —
@@ -494,7 +494,7 @@ export function ExpenseWizard({
 
       {/* 3 · Prüfen und freigeben */}
       <Card className="p-6">
-        <h2 className="ct-h3 mb-1 text-ink">{t.stepSubmit}</h2>
+        <h2 className="ct-h2 mb-1 text-ink">{t.stepSubmit}</h2>
         <p className="ct-help mb-4">{t.submitHint}</p>
         {/* Der Zustand stand hier als Schriftzeichen: „✓" oder „·" vor dem
             Text. Das ist kein gestalteter Zustand, und wer die Zeile vorlesen
@@ -572,7 +572,7 @@ function History({
   if (claims.length === 0) return null;
   return (
     <section aria-labelledby="h-history">
-      <h2 id="h-history" className="ct-h3 mb-3 text-ink">
+      <h2 id="h-history" className="ct-h2 mb-3 text-ink">
         {t.historyTitle}
       </h2>
       <ul className="flex flex-col gap-3">

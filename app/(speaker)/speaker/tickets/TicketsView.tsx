@@ -97,7 +97,7 @@ export function TicketsView({
           nicht wie eines aussehen. */}
       {own?.issued && own.barcode ? (
         <section>
-          <h2 className="ct-h3 mb-3 text-ink">{t.ownTicket}</h2>
+          <h2 className="ct-h2 mb-3 text-ink">{t.ownTicket}</h2>
           <TicketCard
             passType={own.pass_type ? (passTypes[own.pass_type] ?? own.pass_type) : t.ownTicket}
             title={
@@ -150,7 +150,7 @@ export function TicketsView({
         </section>
       ) : (
       <Card className="p-6">
-        <h2 className="ct-h3 mb-3 text-ink">{t.ownTicket}</h2>
+        <h2 className="ct-h2 mb-3 text-ink">{t.ownTicket}</h2>
 
         {!tickets.eligible ? (
           <>
@@ -189,7 +189,7 @@ export function TicketsView({
 
       {/* Begleitticket */}
       <Card className="p-6">
-        <h2 className="ct-h3 mb-1 text-ink">{t.companionTitle}</h2>
+        <h2 className="ct-h2 mb-1 text-ink">{t.companionTitle}</h2>
         <p className="ct-help mb-4">{t.companionLead}</p>
 
         {!tickets.eligible ? (

@@ -37,7 +37,7 @@ export default async function SpeakerExpensePage() {
   if (!profile || !eligibility) {
     return (
       <>
-        <PageHeader title={t.speaker.expenseTitle} description={t.speaker.expenseLead} />
+        <PageHeader word={t.speaker.wordRefund} title={t.speaker.expenseTitle} description={t.speaker.expenseLead} />
         <EmptyState title={t.speaker.noProfileTitle} description={t.speaker.noProfileBody} />
       </>
     );
@@ -51,7 +51,7 @@ export default async function SpeakerExpensePage() {
 
   return (
     <div className="max-w-text">
-      <PageHeader title={t.speaker.expenseTitle} description={t.speaker.expenseLead} />
+      <PageHeader word={t.speaker.wordRefund} title={t.speaker.expenseTitle} description={t.speaker.expenseLead} />
       {/* Die Seite fing ohne Erklärung an (SPK-041, Konrad 22.09.). Der Ablauf
           in drei Sätzen: was hochzuladen ist, wer danach schaut, und dass ein
           freigegebener Antrag feststeht. */}

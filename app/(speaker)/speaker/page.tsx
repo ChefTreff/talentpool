@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { NextStepBanner } from "@/components/ui/NextStepBanner";
 import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { PhotoCard } from "@/components/ui/PhotoCard";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
 import { ReceptionCard } from "./ReceptionCard";
@@ -57,7 +58,7 @@ export default async function SpeakerPage() {
   if (!profile) {
     return (
       <>
-        <PageHeader title={t.speaker.title} description={t.speaker.lead} />
+        <PageHeader word={t.speaker.wordStage} title={t.speaker.title} description={t.speaker.lead} />
         <EmptyState
           title={t.speaker.noProfileTitle}
           description={t.speaker.noProfileBody}
@@ -279,6 +280,18 @@ export default async function SpeakerPage() {
     .sort((a, b) => a.start.getTime() - b.start.getTime())
     .map((g) => g.termin);
 
+  // Die eine Aktion im Band (Talent-Muster, QS-037): der nächste offene
+  // Schritt, der eine Seite hat. Selbst abzuhakende Aufgaben haben keine —
+  // für sie ist die Checkliste darunter der Ort. Ist alles erledigt, führt
+  // das Band zur Session, dem Kern des Auftritts.
+  const naechste = aufgaben.find((a) => !a.erledigt && a.href);
+
+  // Die Begrüssung gilt der Person, die hier sitzt. Eine Assistenz arbeitet
+  // im Namen der Speakerin — ihr „Moin Anna" zu sagen wäre falsch, deshalb
+  // bleibt für sie der Name als Titel und das Banner darunter erklärt.
+  const vorname = person.first_name?.trim();
+  const gruss = !profile.is_assistant && vorname ? vorname : null;
+
   return (
     <div>
       {/* Hero-Band auf der Startseite, wie im Partner-Portal (Konrads
@@ -286,13 +299,26 @@ export default async function SpeakerPage() {
           Titel, deshalb steht hier kein `PageHeader` mehr — zwei
           Ueberschriften uebereinander waren der Fehler, den es vermeidet.
 
+          Seit QS-037 nach dem Vorbild der Talent-Startseite: Begruessung mit
+          dem einen Wort im Highlight-Pink und genau eine Aktion.
+
           Die Breitenbegrenzung ist weg: das Band braucht die volle Breite des
           Inhaltsbereichs, sonst sitzt es als Kasten in der Mitte. Der Rest
           der Seite steht ohnehin in Karten-Rastern, die selbst umbrechen. */}
       <HeroBand
         eyebrow={`${t.speaker.title}${profile.edition_name ? ` · ${profile.edition_name}` : ""}`}
-        title={speakerName || t.speaker.title}
+        title={gruss ? t.speaker.bandGreeting.replace("{name}", gruss) : speakerName || t.speaker.title}
+        highlight={gruss ? t.speaker.bandHighlight : undefined}
         lead={t.speaker.lead}
+        action={
+          naechste?.href ? (
+            <ButtonLink href={naechste.href}>
+              {t.speaker.bandNext.replace("{step}", naechste.titel)}
+            </ButtonLink>
+          ) : (
+            <ButtonLink href="/speaker/session">{t.speaker.bandToSession}</ButtonLink>
+          )
+        }
         aside={
           <BandStat
             value={`${fertigGesamt} / ${aufgaben.length}`}
@@ -322,8 +348,51 @@ export default async function SpeakerPage() {
         />
       )}
 
-      <section aria-labelledby="h-next" className="mb-8">
-        <h2 id="h-next" className="ct-h3 mb-3 text-ink">
+      {/* Die drei Einstiege (Talent-Muster, QS-037): Bildfläche, kursives
+          Schlüsselwort, ein Satz. Dasselbe Wort steht als Kopf auf der Seite,
+          zu der die Karte führt — man erkennt sie wieder. Die Bildflächen
+          sind der Platz für die Penno-Fotos (QS-027), bis dahin trägt sie
+          die Dreiecksform.
+
+          Warum diese drei: die Session ist der Kern, die Anreise das, was am
+          meisten Rückfragen erzeugt, und die Grafik das, was der Speakerin
+          etwas bringt, bevor sie auf der Bühne steht. Tickets, Profil und
+          Fotos stehen in der Checkliste oder kommen erst nach dem Summit. */}
+      <div className="mb-10 grid gap-6 sm:grid-cols-3">
+        <PhotoCard
+          word={t.speaker.wordStage}
+          title={t.speaker.sessionTitle}
+          description={t.speaker.entryStageBody}
+          action={
+            <ButtonLink href="/speaker/session" variant="secondary" size="sm">
+              {t.speaker.entryStageAction}
+            </ButtonLink>
+          }
+        />
+        <PhotoCard
+          word={t.speaker.wordJourney}
+          title={t.speaker.travelTitle}
+          description={t.speaker.entryJourneyBody}
+          action={
+            <ButtonLink href="/speaker/travel" variant="secondary" size="sm">
+              {t.speaker.entryJourneyAction}
+            </ButtonLink>
+          }
+        />
+        <PhotoCard
+          word={t.speaker.wordSpotlight}
+          title={t.speakerGraphic.title}
+          description={t.speaker.entrySpotlightBody}
+          action={
+            <ButtonLink href="/speaker/grafik" variant="secondary" size="sm">
+              {t.speaker.entrySpotlightAction}
+            </ButtonLink>
+          }
+        />
+      </div>
+
+      <section aria-labelledby="h-next" className="mb-10">
+        <h2 id="h-next" className="ct-h2 mb-4 text-ink">
           {t.speaker.checklistTitle}
         </h2>
         <Checkliste
@@ -345,8 +414,8 @@ export default async function SpeakerPage() {
           Speaker-Art und Pipeline-Status \u2014 beides interne Felder der
           Speaker-Leitung. Der Pipeline-Status ist eine Akquise-Information; ob
           der Auftritt steht, sagt die Session. */}
-      <section aria-labelledby="h-dates" className="mb-8">
-        <h2 id="h-dates" className="ct-h3 mb-3 text-ink">
+      <section aria-labelledby="h-dates" className="mb-10">
+        <h2 id="h-dates" className="ct-h2 mb-4 text-ink">
           {t.speaker.datesTitle}
         </h2>
         <Termine
@@ -370,7 +439,7 @@ export default async function SpeakerPage() {
       <div className="grid gap-3 sm:grid-cols-2">
         {kontakte.length === 0 && (
           <Card className="p-4 sm:col-span-2">
-            <h2 className="ct-h3 text-ink">{t.speaker.supportTitle}</h2>
+            <h2 className="ct-h2 text-ink">{t.speaker.supportTitle}</h2>
             <p className="ct-help mt-2">{t.speaker.supportBody}</p>
             <a
               className="ct-link mt-2 inline-block"

@@ -158,7 +158,7 @@ export function SpeakerProfileForm({
       />
 
       <Card id="person" className="p-6">
-        <h2 className="ct-h3 mb-4 text-ink">{t.sectionPerson}</h2>
+        <h2 className="ct-h2 mb-4 text-ink">{t.sectionPerson}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.fieldTitle} htmlFor="title" hint={t.fieldTitleHint}>
             <Input id="title" value={draft.title} onChange={(e) => set("title", e.target.value)} />
@@ -207,7 +207,7 @@ export function SpeakerProfileForm({
       </Card>
 
       <Card id="auftritt" className="p-6">
-        <h2 className="ct-h3 mb-4 text-ink">{t.sectionAppearance}</h2>
+        <h2 className="ct-h2 mb-4 text-ink">{t.sectionAppearance}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.fieldJobTitle} htmlFor="job_title">
             <Input
@@ -227,7 +227,7 @@ export function SpeakerProfileForm({
       </Card>
 
       <Card id="bio" className="p-6">
-        <h2 className="ct-h3 mb-4 text-ink">{t.sectionBio}</h2>
+        <h2 className="ct-h2 mb-4 text-ink">{t.sectionBio}</h2>
         <div className="flex flex-col gap-4">
           <Field
             label={t.fieldBioShortEn}
@@ -271,7 +271,7 @@ export function SpeakerProfileForm({
       </Card>
 
       <Card id="socials" className="p-6">
-        <h2 className="ct-h3 mb-4 text-ink">{t.sectionSocials}</h2>
+        <h2 className="ct-h2 mb-4 text-ink">{t.sectionSocials}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.fieldLinkedin} htmlFor="linkedin">
             <Input
@@ -307,7 +307,7 @@ export function SpeakerProfileForm({
       </Card>
 
       <Card id="technik" className="p-6">
-        <h2 className="ct-h3 mb-4 text-ink">{t.sectionTech}</h2>
+        <h2 className="ct-h2 mb-4 text-ink">{t.sectionTech}</h2>
         <div className="flex flex-col gap-4">
           <Field label={t.techMic} htmlFor="mic">
             <Select
@@ -356,7 +356,7 @@ export function SpeakerProfileForm({
       </Card>
 
       <Card id="consent" className="p-6">
-        <h2 className="ct-h3 mb-1 text-ink">{t.sectionConsent}</h2>
+        <h2 className="ct-h2 mb-1 text-ink">{t.sectionConsent}</h2>
         {readOnlyConsent && <p className="ct-help mb-3">{t.consentReadOnly}</p>}
         <div className="mt-3 flex flex-col gap-3">
           {SPEAKER_CONSENTS.map((key) => (

@@ -356,7 +356,7 @@ function SessionCard({
     // jeder Teilbereich eine eigene Karte mit eigener Überschrift und eigenem
     // Anker — die Grenze ist damit sichtbar und anspringbar (SPK-043).
     <div className="flex flex-col gap-6">
-    <Card id="slot" className="scroll-mt-20 p-6">
+    <Card id="slot" className="scroll-mt-20 border-accent p-6">
       <header>
         <div className="ct-help flex flex-wrap items-center gap-x-3">
           {session.start_at && session.end_at ? (
@@ -380,7 +380,7 @@ function SessionCard({
             </a>
           )}
         </div>
-        <h2 className="ct-h3 mt-1 text-ink">{finalTitle ?? t.untitled}</h2>
+        <h2 className="ct-h2 mt-1 text-ink">{finalTitle ?? t.untitled}</h2>
         <div className="mt-2 flex flex-wrap gap-2">
           {session.format && (
             <Badge>{labels.format[session.format] ?? session.format}</Badge>
@@ -404,7 +404,7 @@ function SessionCard({
     </Card>
 
     <Card id="inhalt" className="scroll-mt-20 p-6">
-      <h2 className="ct-h3 mb-4 text-ink">{t.sectionContent}</h2>
+      <h2 className="ct-h2 mb-4 text-ink">{t.sectionContent}</h2>
       {/* Eingereicht vs. final — nebeneinander, damit man den Unterschied sieht. */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
@@ -563,7 +563,7 @@ function SessionCard({
       {/* Präsentation */}
     <Card id="praesentation" className="scroll-mt-20 p-6">
       <div>
-        <h2 className="ct-h3 mb-1 text-ink">{t.presentationTitle}</h2>
+        <h2 className="ct-h2 mb-1 text-ink">{t.presentationTitle}</h2>
         <p className="ct-help">
           {due ? `${t.deadline}: ${dateTime.format(new Date(due))}` : t.deadlineUnknown}
           {lateNow && ` — ${t.deadlinePassedHint}`}
@@ -718,7 +718,7 @@ function TechSection({
 
   return (
     <Card id="technik" className="scroll-mt-20 p-6">
-      <h2 className="ct-h3 mb-1 text-ink">{t.techTitle}</h2>
+      <h2 className="ct-h2 mb-1 text-ink">{t.techTitle}</h2>
       <p className="ct-help">{t.techLead}</p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">

@@ -1,4 +1,4 @@
-# Design-Briefing — ChefTreff Portale (v0.7, Stand 17.09.2026)
+# Design-Briefing — ChefTreff Portale (v0.8, Stand 24.09.2026)
 
 > Verbindlich für alle Portale (Talent, Speaker, Speaker-Manager, Partner inkl. Messeshop, Hackathon, Volunteers, Initiativen, Admin).
 > Quellen: Figma „REBRANDING CHEFTREFF" — exportierte Frames A1 Farben (ChefTreff-Basis, Events), A2 Gradients, A3 Fonts, A4 Buttons, A6 Layout & Abstände, Hero-Highlight-Regel, Logos, Formen-SVGs; `ChefTreff_PartnerPortal_Design_v1.html`; Schriftordner.
@@ -142,3 +142,14 @@ Konrads Abnahme auf der Preview und seine acht Entscheidungen. Grundlage: `docs/
 8. **Fotos:** die Penno-Serie der Website ist freigegeben, unbeschränkte Nutzungsrechte bei ChefTreff. Bilder erscheinen in Hero-Band, Detail-Karten und Personen-Karten — sonst nirgends.
 
 **Rechtstexte:** Impressum und Datenschutz verweisen auf die Hauptwebsite (`chef-treff.de/impressum/`, `chef-treff.de/datenschutzerklärung/`), Ziel in neuem Tab. Offen bleibt als P1 auf Konrads Checkliste, ob die Erklärung der Website die Verarbeitung **im Portal** abdeckt (Magic-Link, Supabase, Vercel, Resend, Assistent, Speicherfristen) — `QS-018`.
+
+## v0.8 (24.09.2026) — Talent-Startseite als Vorbild (QS-037)
+
+Konrad, Feedback-Runde 24.09.: Die Startseite des Teilnehmer-Portals zeigt *„klare farbliche Hierarchien"*, nutzt die Schriften besser (*„bspw. die Italic Schrift"*) und setzt Platzhalter für Bilder — alle übrigen Portale werden danach umgestaltet, ein PR je Portal (Speaker, Partner, Speaker-Leads, Admin). Ausgeführt im Skill, `referenzen/muster.md` → „Das Talent-Muster".
+
+1. **Drei Farbstufen auf jeder Startseite:** Navy (Band) → Akzent (das kursive Wort, die Aktion) → Akzent-Soft (Bildflächen der Einstiege) → Weiss (die Arbeit).
+2. **Hero-Band mit Gruss, einem Highlight-Wort und genau einer Aktion** — dem nächsten offenen Schritt.
+3. **Drei Einstiege als `PhotoCard`** unter dem Band; ihre Bildflächen sind der Platz für die Penno-Fotos (Entscheidung 8 von v0.7 gilt weiter: Bilder nur in Band, Detail- und Personenkarten).
+4. **Laica im Seitenkopf** (`PageHeader word`): Das Portal übernimmt den Sektionskopf der Website jetzt vollständig. Bis v0.7 stand im Arbeitsbereich eine Versalienzeile statt Laica. Die Regel „ein Laica-Moment pro Screen" bleibt, das Wort ist dieser Moment.
+5. **`<h2>` ist `.ct-h2`**, auch in Karten; `.ct-h3` für Titel innerhalb eines Abschnitts, Meldungen, Dialoge. Eine Karte je Seite darf den Akzent-Umriss tragen.
+6. **`PhotoCard` liegt unter 640 px quer** (Bildfläche als Quadrat links), damit drei Einstiege auf dem Telefon nicht tausend Pixel vor der Arbeit stehen.
