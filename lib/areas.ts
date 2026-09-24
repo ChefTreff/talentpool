@@ -137,6 +137,10 @@ export function canEnterArea(area: Area, roles: readonly string[]): boolean {
  * übergreifend für Teilnehmende des Summits und anderer Formate. Es ist also
  * ein eigenes Portal neben den anderen, keine Notlösung für Leute ohne Rolle.
  *
+ * Seit 24.09.2026 (TAL-004) gilt das auch für die Shell: die Talent-Seiten
+ * stehen nie mehr innerhalb eines Fachbereichs, sondern immer unter dem
+ * eigenen Eintrag im Umschalter (`app/(talent)/layout.tsx`).
+ *
  * Die Ausnahme bleibt das Gerätekonto am Einlass: `isKioskOnly` öffnet weiter
  * nur `/checkin` (E8, Architektur-Session 14.09.).
  */
@@ -150,8 +154,8 @@ export const DEFAULT_AFTER_LOGIN = "/start";
 /**
  * Wohin nach dem Login, wenn kein Ziel mitkam (Feedback-Runde 1, Punkt 2:
  * „Login führt direkt in den einzigen Bereich"). Welche Bereiche zählen,
- * entscheidet `areasFor` — das Teilnehmer-Portal ist nur dabei, wenn es das
- * einzige ist.
+ * entscheidet `areasFor`; das Teilnehmer-Portal ist immer dabei, zählt für den
+ * Einstieg aber erst, wenn es keinen Fachbereich gibt.
  *
  * Wer Admin hat, landet dort: für das Team ist das der Arbeitsplatz, und die
  * Reihenfolge in `AREAS` würde sonst nach Zufall entscheiden — Konrad hat
