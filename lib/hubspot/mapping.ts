@@ -12,6 +12,11 @@ export const COMPANY_PROPERTIES = [
   "po_number", "sponsoring_level",
   // Bestandsaufnahme 11.09.2026: so heißen die Eigenschaften im ChefTreff-Portal wirklich (Runbook HubSpot-Ingest, „Zuordnung“)
   "fls_booth_type", "fls_partner_type", "ct_company_type", "purchase_ordner", "invoice_contact",
+  // Kundennummer (ADM-057, Konrad 24.09.2026): **`company_id`**, im Portal
+  // „Übergreifende Kundennummer (Company ID)", Typ Text. Die zweite Kandidatin
+  // `cheftreff_id_unternehmen` („synchronisiert mit Sevdesk und AirTable", Typ
+  // Zahl) gilt ausdrücklich **nicht**.
+  "company_id",
 ] as const;
 export const CONTACT_PROPERTIES = ["email", "firstname", "lastname", "jobtitle"] as const;
 export const LINE_ITEM_PROPERTIES = ["name", "hs_sku", "quantity", "price"] as const;
@@ -164,6 +169,7 @@ export function buildIngestPayload(r: HubspotRecords): IngestPayload {
       vat_id: clean(c.vat_id),
       po_number: clean(c.po_number) ?? clean(c.purchase_ordner),
       sponsoring_level: clean(c.sponsoring_level) ?? levelFromBoothType(c.fls_booth_type),
+      customer_number: clean(c.company_id),
     },
     contacts,
     line_items: r.lineItems.map((li) => ({

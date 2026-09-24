@@ -29,6 +29,7 @@ export type IngestPayload = {
     vat_id: string | null;
     po_number: string | null;
     sponsoring_level: string | null;
+    customer_number: string | null;
   };
   contacts: {
     id: string;
