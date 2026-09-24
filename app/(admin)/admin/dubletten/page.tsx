@@ -35,6 +35,7 @@ export default async function DublettenPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.duplicates}
         title={t.admin.duplicates.title}
         description={`${rows.length} ${t.admin.duplicates.candidates}. ${t.admin.duplicates.lead}`}
       />

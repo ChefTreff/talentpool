@@ -25,7 +25,7 @@ export default async function AdminVideosPage() {
 
   return (
     <>
-      <PageHeader title={t.videos.title} description={t.videos.lead} />
+      <PageHeader word={t.admin.words.videos} title={t.videos.title} description={t.videos.lead} />
       <VideoAdmin
         videos={(videos ?? []) as AdminVideo[]}
         editions={(editions ?? []) as { id: string; slug: string; name: string }[]}

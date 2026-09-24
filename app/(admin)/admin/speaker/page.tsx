@@ -28,6 +28,7 @@ export default async function AdminSpeakerPage() {
   return (
     <>
       <PageHeader
+        word={t.admin.words.speakers}
         title={t.adminSpeaker.title}
         description={`${t.adminSpeaker.lead} · ${speakers.length} ${t.common.shown}`}
       />

@@ -30,7 +30,7 @@ export default async function EditionFilesPage() {
 
   return (
     <>
-      <PageHeader title={t.productionFiles.title} description={t.productionFiles.lead} />
+      <PageHeader word={t.admin.words.production} title={t.productionFiles.title} description={t.productionFiles.lead} />
       <ProductionTabs />
       {!axes.editionId ? (
         <EmptyState

@@ -24,7 +24,7 @@ export default async function AdminTravelPage() {
 
   return (
     <>
-      <PageHeader title={t.travelList.title} description={t.travelList.adminLead} />
+      <PageHeader word={t.admin.words.travel} title={t.travelList.title} description={t.travelList.adminLead} />
       <TravelList
         rows={(rows ?? []) as TravelRow[]}
         modes={vgroup(vocab, "travel_mode")}

@@ -38,7 +38,7 @@ export async function volunteerAdminShell(pathname: string): Promise<
 
   const frame = (title: string, description: string, children: ReactNode) => (
     <>
-      <PageHeader title={title} description={description} />
+      <PageHeader word={t.admin.words.volunteers} title={title} description={description} />
       <SectionTabs items={items} label={t.adminVolunteers.title} />
       {children}
     </>
@@ -49,7 +49,7 @@ export async function volunteerAdminShell(pathname: string): Promise<
       ok: false,
       view: (
         <>
-          <PageHeader title={t.adminVolunteers.title} description={t.adminVolunteers.lead} />
+          <PageHeader word={t.admin.words.volunteers} title={t.adminVolunteers.title} description={t.adminVolunteers.lead} />
           <EmptyState
             title={t.adminVolunteers.noAccessTitle}
             description={t.adminVolunteers.noAccessBody}

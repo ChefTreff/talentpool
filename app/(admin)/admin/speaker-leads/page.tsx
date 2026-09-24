@@ -40,7 +40,7 @@ export default async function SpeakerLeadsAdminPage() {
 
   return (
     <>
-      <PageHeader title={t.adminSpeakerLeads.title} description={t.adminSpeakerLeads.lead} />
+      <PageHeader word={t.admin.words.speakerLeads} title={t.adminSpeakerLeads.title} description={t.adminSpeakerLeads.lead} />
       <LeadsView
         leads={(leads ?? []) as LeadRow[]}
         unassigned={(unassigned ?? []) as UnassignedRow[]}

@@ -32,7 +32,7 @@ export default async function AdminWikiPage({
 
   return (
     <>
-      <PageHeader title={t.wiki.adminTitle} description={t.wiki.adminLead} />
+      <PageHeader word={t.admin.words.wiki} title={t.wiki.adminTitle} description={t.wiki.adminLead} />
       <WikiAdmin
         articles={articles}
         editions={(editionRows ?? []) as { id: string; slug: string; name: string }[]}

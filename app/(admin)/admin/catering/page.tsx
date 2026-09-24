@@ -31,7 +31,7 @@ export default async function AdminCateringPage() {
 
   return (
     <>
-      <PageHeader title={t.catering.title} description={t.catering.adminLead} />
+      <PageHeader word={t.admin.words.catering} title={t.catering.title} description={t.catering.adminLead} />
       <CateringView
         summary={daten.summary}
         notes={daten.notes}

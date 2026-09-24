@@ -24,7 +24,7 @@ export default async function MailVorlagenPage() {
 
   return (
     <>
-      <PageHeader title={t.adminMailTemplates.title} description={t.adminMailTemplates.lead} />
+      <PageHeader word={t.admin.words.mail} title={t.adminMailTemplates.title} description={t.adminMailTemplates.lead} />
       <MailTabs label={t.adminMailTemplates.title} log={t.adminMailTemplates.tabLog} templates={t.adminMailTemplates.tabTemplates} />
       {error ? (
         <EmptyState
