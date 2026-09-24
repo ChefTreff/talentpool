@@ -236,6 +236,8 @@ const BUSINESS_KEYS = new Set([
   "invalid_action",
   // Eure Daten: Kundennummer (Vorschlag v6_eure_daten, PART-059)
   "customer_number_taken",
+  // Standbühne: Zeitfenster für Partner (Vorschlag v6_standbuehne_regeln, PART-079)
+  "outside_partner_window",
   // Partner-Kontakte bearbeiten (Vorschlag v6_kontakte_bearbeiten_cc, PART-062)
   "contact_not_editable",
   "email_in_use",

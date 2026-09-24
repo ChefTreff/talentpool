@@ -3753,6 +3753,7 @@
     "org_edition_not_found": "Für diese Organisation gibt es die Edition nicht.",
     "org_not_found": "Diese Organisation gibt es nicht.",
     "out_of_stock": "Davon ist nicht mehr genug da.",
+    "outside_partner_window": "Außerhalb eures Zeitfensters: Auf der Standbühne beginnt ein Slot frühestens 90 Minuten nach Öffnung und endet spätestens um 19:00",
     "outside_stage_day": "Das liegt außerhalb der Öffnungszeiten dieser Bühne an diesem Tag",
     "partner_host_mismatch": "Die Session wird schon von einem anderen Partner ausgerichtet — der buchende Partner muss derselbe sein.",
     "partner_not_in_edition": "Diese Organisation ist in dieser Edition kein Partner.",
