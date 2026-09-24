@@ -113,7 +113,7 @@ export function PortraitUpload({
 
   return (
     <Card id="portraet">
-      <h2 className="ct-h3 mb-1 text-ink">{t.title}</h2>
+      <h2 className="ct-h2 mb-1 text-ink">{t.title}</h2>
       <p className="ct-help mb-4">{t.lead}</p>
 
       <div className="flex flex-wrap items-center gap-6">

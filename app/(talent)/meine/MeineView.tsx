@@ -148,7 +148,7 @@ export function MeineView({
   return (
     <div className="flex flex-col gap-8">
       <section aria-labelledby="h-applications">
-        <h2 id="h-applications" className="ct-h3 mb-3 text-ink">
+        <h2 id="h-applications" className="ct-h2 mb-3 text-ink">
           {t.applications}
         </h2>
         {applications.length === 0 ? (
@@ -183,7 +183,7 @@ export function MeineView({
       </section>
 
       <section aria-labelledby="h-registrations">
-        <h2 id="h-registrations" className="ct-h3 mb-3 text-ink">
+        <h2 id="h-registrations" className="ct-h2 mb-3 text-ink">
           {t.registrations}
         </h2>
         {registrations.length === 0 ? (

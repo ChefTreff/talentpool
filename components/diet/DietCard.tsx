@@ -69,7 +69,7 @@ export function DietCard({
 
   return (
     <Card>
-      <h2 className="ct-h3 text-ink">{t.title}</h2>
+      <h2 className="ct-h2 text-ink">{t.title}</h2>
       <p className="ct-small mt-1 leading-6">{t.body}</p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">

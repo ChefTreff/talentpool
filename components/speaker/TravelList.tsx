@@ -173,7 +173,7 @@ export function TravelList({
       ) : (
         <Card className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] border-collapse">
+            <table className="w-full min-w-225 border-collapse">
               <thead>
                 <tr className="border-b">
                   <th scope="col" className="ct-label px-4 py-2.5 text-left text-muted">{t.colPerson}</th>

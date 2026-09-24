@@ -19,7 +19,7 @@ export default async function Home() {
       <AppHeader />
       {/* Marken-Moment: Navy-Grund, Highlight-Wort in ExtraBold Italic + Akzent. */}
       <main id="content" className="flex flex-1 flex-col bg-navy text-on-navy">
-        <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col justify-center gap-8 px-6 py-24">
+        <div className="mx-auto flex w-full max-w-text flex-1 flex-col justify-center gap-8 px-6 py-24">
           <div>
             <p className="ct-eyebrow text-on-navy-muted">{t.home.eyebrow}</p>
             <h1 className="ct-display mt-3">

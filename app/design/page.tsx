@@ -29,7 +29,7 @@ export default async function DesignSystemPage() {
     <>
       <AppHeader />
       <main id="content" className="flex-1">
-        <div className="mx-auto w-full max-w-[1200px] px-4 pt-8 sm:px-6">
+        <div className="mx-auto w-full max-w-content px-4 pt-8 sm:px-6">
           <PageHeader title={t.kit.title} description={t.kit.lead} />
         </div>
         <KitSchau t={t.kit} />

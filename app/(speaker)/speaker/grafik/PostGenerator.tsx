@@ -121,7 +121,7 @@ export function PostGenerator({
   if (sessions.length === 0) {
     return (
       <Card className="p-6">
-        <h2 className="ct-h3 mb-1 text-ink">{t.genTitle}</h2>
+        <h2 className="ct-h2 mb-1 text-ink">{t.genTitle}</h2>
         <p className="ct-help">{t.genNoSession}</p>
       </Card>
     );
@@ -130,7 +130,7 @@ export function PostGenerator({
   if (!offen) {
     return (
       <Card className="p-6">
-        <h2 className="ct-h3 mb-1 text-ink">{t.genTitle}</h2>
+        <h2 className="ct-h2 mb-1 text-ink">{t.genTitle}</h2>
         <p className="ct-help">{t.genTeaser}</p>
         <Button className="mt-3" variant="secondary" size="sm" onClick={() => setOffen(true)}>
           {t.genOpen}
@@ -142,7 +142,7 @@ export function PostGenerator({
   return (
     <Card className="p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="ct-h3 text-ink">{t.genTitle}</h2>
+        <h2 className="ct-h2 text-ink">{t.genTitle}</h2>
         <Button variant="ghost" size="sm" onClick={() => setOffen(false)}>
           {t.genClose}
         </Button>

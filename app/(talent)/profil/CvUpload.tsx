@@ -109,7 +109,7 @@ export function CvUpload({
 
   return (
     <Card id="lebenslauf">
-      <h2 className="ct-h3 mb-1 text-ink">{t.title}</h2>
+      <h2 className="ct-h2 mb-1 text-ink">{t.title}</h2>
       <p className="ct-help mb-4">{t.lead}</p>
       <div className="flex flex-col gap-2">
         {cvUrl ? (

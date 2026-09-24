@@ -51,7 +51,7 @@ export function CateringView({
     <div className="flex flex-col gap-6">
       {showCoverage && coverage.length > 0 && (
         <Card>
-          <h2 className="ct-h3 text-ink">{t.coverageTitle}</h2>
+          <h2 className="ct-h2 text-ink">{t.coverageTitle}</h2>
           <p className="ct-small mt-1 leading-6">{t.coverageBody}</p>
           <ul className="mt-3 flex flex-wrap gap-6">
             {coverage.map((c) => (
@@ -76,7 +76,7 @@ export function CateringView({
         return (
           <section key={gruppe} aria-labelledby={`g-${gruppe}`}>
             <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-              <h2 id={`g-${gruppe}`} className="ct-h3 text-ink">
+              <h2 id={`g-${gruppe}`} className="ct-h2 text-ink">
                 {audienceLabels[gruppe] ?? gruppe}
               </h2>
               <span className="ct-help ml-auto tabular-nums">
@@ -110,7 +110,7 @@ export function CateringView({
 
       <section aria-labelledby="hinweise">
         <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-          <h2 id="hinweise" className="ct-h3 text-ink">
+          <h2 id="hinweise" className="ct-h2 text-ink">
             {t.notesTitle}
           </h2>
           <span className="ct-help ml-auto tabular-nums">{notes.length}</span>
@@ -128,7 +128,7 @@ export function CateringView({
                   key={`${n.audience}-${i}`}
                   className="flex flex-wrap items-baseline gap-3 border-b px-4 py-2.5 last:border-b-0"
                 >
-                  <span className="ct-help w-[110px] shrink-0">
+                  <span className="ct-help w-28 shrink-0">
                     {audienceLabels[n.audience] ?? n.audience}
                   </span>
                   <span className="ct-small min-w-0 flex-1 text-ink">{n.note}</span>

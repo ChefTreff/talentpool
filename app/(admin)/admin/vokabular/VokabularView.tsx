@@ -117,7 +117,7 @@ export function VokabularView({
   return (
     <>
       <div className="mb-4 flex flex-wrap items-end gap-3">
-        <div className="w-[280px]">
+        <div className="w-70">
           <Field label={t.filterVocabulary} htmlFor="f-voc">
             <Select
               id="f-voc"
