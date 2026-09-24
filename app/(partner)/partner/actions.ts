@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { requireArea } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
+import type { UpdateContactInput } from "@/components/partner/contacts";
 import { ORG_COOKIE } from "./org";
 
 /**
@@ -140,6 +141,10 @@ export async function upsertContact(input: {
   position?: string | null;
 }): Promise<PartnerResult<{ person_id: string }>> {
   const supabase = await client();
+  // Beim Einladen ist jedes Feld Pflicht (PART-062). Die RPC nimmt auch weniger —
+  // sie dient ebenso dem HubSpot-Ingest —, deshalb steht die Regel hier.
+  if (!input.firstName.trim() || !input.lastName.trim()) return { ok: false, key: "name_required" };
+  if (!input.position?.trim()) return { ok: false, key: "position_required" };
   const { data, error } = await supabase.rpc("upsert_partner_contact", {
     p_org_id: input.orgId,
     p_email: input.email,
@@ -153,16 +158,20 @@ export async function upsertContact(input: {
   return { ok: true, data: { person_id: data as string } };
 }
 
-export async function setContactRoles(
-  orgId: string,
-  personId: string,
-  roles: string[],
-): Promise<PartnerResult> {
+/**
+ * Kontakt bearbeiten (PART-062): Position und Rollen immer, Name und Adresse nur
+ * bei selbst angelegten Personen vor dem ersten Login — das prüft die RPC.
+ */
+export async function updateContact(input: UpdateContactInput): Promise<PartnerResult> {
   const supabase = await client();
-  const { error } = await supabase.rpc("set_contact_roles", {
-    p_org_id: orgId,
-    p_person_id: personId,
-    p_roles: roles,
+  const { error } = await supabase.rpc("update_partner_contact", {
+    p_org_id: input.orgId,
+    p_person_id: input.personId,
+    p_position: input.position,
+    p_first_name: input.firstName,
+    p_last_name: input.lastName,
+    p_email: input.email,
+    p_roles: input.roles,
   });
   if (error) return fail(error);
   refresh();

@@ -1,6 +1,7 @@
 import "server-only";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n/shared";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { ccPersonIds } from "./cc";
 import { sendViaResend } from "./client";
 import { portalUrl } from "./portal-url";
 import { fillVars, markdownToHtml, markdownToText, wrapHtml, type MailVars } from "./render";
@@ -18,9 +19,10 @@ export type QueueRunResult = {
 type QueuedRow = {
   id: number;
   to_email: string;
+  person_id: string | null;
   template_key: string | null;
   locale: string | null;
-  meta: { vars?: Record<string, unknown>; attempts?: number } | null;
+  meta: { vars?: Record<string, unknown>; attempts?: number; cc_person_ids?: unknown } | null;
 };
 
 const BATCH = 50;
@@ -32,7 +34,9 @@ const MAX_ATTEMPTS = 3;
  * Wer eine Mail bekommt und mit welchen Variablen, hat die Datenbank schon entschieden
  * (Trigger auf application/decision_release/registration, Migration 0020). Hier passiert
  * nur Rendern und Versand. Regeln:
- * - Suppression wird unmittelbar vor dem Versand erneut geprüft — fail-closed.
+ * - Suppression wird unmittelbar vor dem Versand erneut geprüft — fail-closed, auch für die
+ *   Kopie: `meta.cc_person_ids` (CC-Kontakte der Partner, PART-063) wird erst hier über
+ *   `mail_cc_recipients` zu Adressen, ohne gelöschte Personen und gesperrte Adressen.
  * - Resend bekommt je Zeile einen Idempotenz-Schlüssel; ein doppelter Lauf erzeugt keine doppelte Mail.
  * - Ohne `RESEND_API_KEY` (außer lokal) oder ohne Portal-URL bleibt die Warteschlange stehen:
  *   nichts geht verloren, nichts wird fälschlich als gesendet markiert.
@@ -50,7 +54,7 @@ export async function processMailQueue(): Promise<QueueRunResult> {
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from("mail_log")
-    .select("id,to_email,template_key,locale,meta")
+    .select("id,to_email,person_id,template_key,locale,meta")
     .eq("status", "queued")
     .order("queued_at")
     .limit(BATCH);
@@ -97,6 +101,19 @@ async function deliver(
     return "suppressed";
   }
 
+  // Kopie (PART-063): Personen erst jetzt zu Adressen auflösen — die Funktion lässt gelöschte
+  // Personen und gesperrte Adressen weg. Scheitert die Abfrage, bleibt die Mail liegen (fail-closed).
+  let cc: string[] = [];
+  const ccIds = ccPersonIds(row.meta, row.person_id);
+  if (ccIds.length > 0) {
+    const { data: ccRows, error: ccErr } = await admin.rpc("mail_cc_recipients", { p_person_ids: ccIds });
+    if (ccErr) return fail("Kopie-Empfänger nicht auflösbar — nicht gesendet");
+    const empfaenger = row.to_email.toLowerCase();
+    cc = ((ccRows ?? []) as { email: string }[])
+      .map((r) => r.email.toLowerCase())
+      .filter((adresse) => adresse !== empfaenger);
+  }
+
   const template = await loadTemplate(admin, row.template_key, locale);
   if (!template) return fail(`Mail-Vorlage "${row.template_key}" (${locale}) nicht gefunden`);
 
@@ -112,7 +129,9 @@ async function deliver(
 
   if (!process.env.RESEND_API_KEY) {
     // Nur lokal möglich (siehe oben): loggen statt senden, als Dry-Run markiert.
-    console.info(`[mail:dev] ${row.template_key}/${locale} → ${row.to_email}\n  Betreff: ${subject}`);
+    console.info(
+      `[mail:dev] ${row.template_key}/${locale} → ${row.to_email}${cc.length ? ` (cc ${cc.join(", ")})` : ""}\n  Betreff: ${subject}`,
+    );
     await finish({
       status: "sent",
       subject,
@@ -127,6 +146,7 @@ async function deliver(
   const res = await sendViaResend({
     from: senderAddress(),
     to: row.to_email,
+    cc,
     subject,
     html,
     text,

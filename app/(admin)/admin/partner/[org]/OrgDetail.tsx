@@ -12,8 +12,12 @@ import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import { LogoWandEinwilligung } from "@/components/partner/LogoWandEinwilligung";
+import { ContactList } from "@/components/partner/ContactList";
 import {
+  adminRemoveContact,
   adminSetLogoWhiteningConsent,
+  adminTransferPrimary,
+  adminUpdateContact,
   adminUpsertContact,
   grantStageEditor,
   revokeStageEditor,
@@ -58,6 +62,8 @@ export function OrgDetail({
   locale,
   dateLocale,
   t,
+  roleLabels,
+  contactTexts,
   common,
   rpcMessages,
 }: {
@@ -71,7 +77,11 @@ export function OrgDetail({
   locale: string;
   dateLocale: string;
   t: Strings;
-  common: { cancel: string; none: string; save: string };
+  /** Bezeichnungen aus dem Vokabular `contact_role`. */
+  roleLabels: Record<string, string>;
+  /** Texte der Kontaktliste — dieselben wie im Partnerportal, mit Admin-Hinweis. */
+  contactTexts: Strings;
+  common: { cancel: string; none: string; save: string; close: string; required: string };
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
@@ -82,7 +92,6 @@ export function OrgDetail({
 
   const [status, setStatus] = useState(overview.edition?.onboarding_status ?? "none");
   const [passType, setPassType] = useState(overview.edition?.pass_type_choice ?? "");
-  const [contact, setContact] = useState({ email: "", first: "", last: "", position: "", role: "additional" });
   const [booth, setBooth] = useState({
     booth_number: overview.booth?.booth_number ?? "",
     booth_type: overview.booth?.booth_type ?? "",
@@ -103,6 +112,36 @@ export function OrgDetail({
   });
   const label = (d: AdminDeliverable) =>
     (locale === "en" ? d.label_en : d.label_de) ?? d.label_de ?? d.key;
+
+  /**
+   * Bühnen-Editor je Kontakt (nur Admins vergeben Rollen). Der Hauptkontakt
+   * bekommt die Rolle mit der Buchung automatisch (Trigger, Migration 0058) —
+   * dort ist nichts zu vergeben.
+   */
+  const stageEditorCell = (c: AdminContact) => {
+    const assignment = stageRoles[c.person_id];
+    if (c.roles.includes("primary_ops")) return <span className="ct-help">{t.stageEditorAutomatic}</span>;
+    if (!isAdmin) return <span className="ct-help">{t.stageEditorAdminOnly}</span>;
+    return assignment?.active ? (
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled={pending}
+        onClick={() => run(revokeStageEditor(assignment.id, orgId), t.saved)}
+      >
+        {t.stageEditorRevoke}
+      </Button>
+    ) : (
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled={pending || !editionId}
+        onClick={() => run(grantStageEditor(c.person_id, orgId, editionId as string), t.saved)}
+      >
+        {t.stageEditorGrant}
+      </Button>
+    );
+  };
 
   function run(action: Promise<{ ok: boolean; key?: string; detail?: string }>, okText: string) {
     startTransition(async () => {
@@ -331,146 +370,33 @@ export function OrgDetail({
 
       <Card id="kontakte">
         <CardHeader title={t.contactsTitle} description={`${t.contactsLead} · ${contacts.length}`} />
-        <Table>
-          <Thead>
-            <Th>{t.colName}</Th>
-            <Th>{t.colEmail}</Th>
-            <Th>{t.colRoles}</Th>
-            <Th>{t.colStageEditor}</Th>
-          </Thead>
-          <Tbody>
-            {contacts.map((c) => {
-              const primary = (c.roles ?? []).includes("primary_ops");
-              const assignment = stageRoles[c.person_id];
-              return (
-                <Tr key={c.person_id}>
-                  <Td>
-                    <span className="ct-label text-ink">
-                      {[c.first_name, c.last_name].filter(Boolean).join(" ") || common.none}
-                    </span>
-                    {c.contact_position && <div className="ct-help">{c.contact_position}</div>}
-                  </Td>
-                  <Td className="text-muted">{c.email ?? common.none}</Td>
-                  <Td className="text-muted">
-                    {(c.roles ?? []).map((r) => t[`contactRole_${r}`] ?? r).join(", ") || "—"}
-                    {!c.has_login && (
-                      <div className="ct-help">{t.noLoginYet}</div>
-                    )}
-                  </Td>
-                  <Td>
-                    {primary ? (
-                      // Der Hauptkontakt bekommt die Rolle mit der Buchung
-                      // automatisch (Trigger, Migration 0058) — hier ist
-                      // nichts zu vergeben.
-                      <span className="ct-help">{t.stageEditorAutomatic}</span>
-                    ) : !isAdmin ? (
-                      <span className="ct-help">{t.stageEditorAdminOnly}</span>
-                    ) : assignment?.active ? (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={pending}
-                        onClick={() => run(revokeStageEditor(assignment.id, orgId), t.saved)}
-                      >
-                        {t.stageEditorRevoke}
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={pending || !editionId}
-                        onClick={() =>
-                          run(grantStageEditor(c.person_id, orgId, editionId as string), t.saved)
-                        }
-                      >
-                        {t.stageEditorGrant}
-                      </Button>
-                    )}
-                  </Td>
-                </Tr>
-              );
-            })}
-          </Tbody>
-        </Table>
-
-        {/*
-          Kontakt zuordnen (F5): `upsert_partner_contact` legt die Person über
-          die Mailadresse an oder findet sie, setzt die Mitgliedschaft und
-          verschickt die Einladung. Ein zweiter Hauptkontakt wird abgelehnt
-          (P0001 `primary_exists`) — deshalb steht das auch dabei.
-        */}
-        <div className="mt-6 border-t pt-4">
-          <h3 className="ct-h3 text-ink">{t.addContactTitle}</h3>
-          <p className="ct-help mt-1">{t.addContactLead}</p>
-          <div className="mt-3 grid gap-3 md:grid-cols-5">
-            <Field label={t.colEmail} htmlFor="c-email">
-              <Input
-                id="c-email"
-                type="email"
-                value={contact.email}
-                onChange={(e) => setContact((c) => ({ ...c, email: e.target.value }))}
-              />
-            </Field>
-            <Field label={t.firstName} htmlFor="c-first">
-              <Input
-                id="c-first"
-                value={contact.first}
-                onChange={(e) => setContact((c) => ({ ...c, first: e.target.value }))}
-              />
-            </Field>
-            <Field label={t.lastName} htmlFor="c-last">
-              <Input
-                id="c-last"
-                value={contact.last}
-                onChange={(e) => setContact((c) => ({ ...c, last: e.target.value }))}
-              />
-            </Field>
-            <Field label={t.contactPosition} htmlFor="c-pos">
-              <Input
-                id="c-pos"
-                value={contact.position}
-                onChange={(e) => setContact((c) => ({ ...c, position: e.target.value }))}
-              />
-            </Field>
-            <Field label={t.colRoles} htmlFor="c-role">
-              <Select
-                id="c-role"
-                value={contact.role}
-                options={["primary_ops", "additional", "signing", "event_app_member"].map((r) => ({
-                  value: r,
-                  label: t[`contactRole_${r}`] ?? r,
-                }))}
-                onChange={(e) => setContact((c) => ({ ...c, role: e.target.value }))}
-              />
-            </Field>
-          </div>
-          <div className="mt-3">
-            <Button
-              size="sm"
-              disabled={
-                pending || !contact.email.trim() || !contact.first.trim() || !contact.last.trim()
-              }
-              onClick={() =>
-                run(
-                  adminUpsertContact({
-                    orgId,
-                    email: contact.email.trim(),
-                    firstName: contact.first.trim(),
-                    lastName: contact.last.trim(),
-                    roles: [contact.role],
-                    position: contact.position,
-                  }).then((res) => {
-                    if (res.ok) setContact({ email: "", first: "", last: "", position: "", role: "additional" });
-                    return res;
-                  }),
-                  t.contactAdded,
-                )
-              }
-            >
-              {t.addContact}
-            </Button>
-          </div>
-        </div>
+        {/* Dieselbe Liste wie im Partnerportal (Regel vom 22.09.): einladen,
+            bearbeiten, löschen, Hauptkontakt übertragen — über dieselben RPCs.
+            Nur die Spalte „Bühnen-Editor" gibt es hier zusätzlich. */}
+        <ContactList
+          orgId={orgId}
+          contacts={contacts}
+          canManage
+          roleLabels={roleLabels}
+          actions={{
+            invite: adminUpsertContact,
+            update: adminUpdateContact,
+            remove: adminRemoveContact,
+            transferPrimary: adminTransferPrimary,
+          }}
+          extraColumn={{ header: t.colStageEditor, cell: stageEditorCell }}
+          showLegend={false}
+          dateLocale={dateLocale}
+          t={contactTexts}
+          common={{
+            save: common.save,
+            cancel: common.cancel,
+            none: common.none,
+            close: common.close,
+            required: common.required,
+          }}
+          rpcMessages={rpcMessages}
+        />
       </Card>
 
       <Card>
