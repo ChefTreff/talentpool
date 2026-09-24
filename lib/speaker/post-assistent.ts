@@ -9,10 +9,20 @@
  *
  * Reines Modul, ohne Netz — deshalb prüfbar (`tests/post-assistent.test.ts`).
  */
-import { MAX_EINGABE_ZEICHEN, MAX_ZUEGE, type Nachricht } from "@/lib/speaker/titel-assistent";
+import { verlaufKuerzen, type Nachricht } from "@/lib/speaker/titel-assistent";
 
+// Prüfen, Kürzen und die Grenzen gibt es **einmal**, beim Titel-Assistenten.
+// Zwei Kopien waren genau der Fehler, den der Review gefunden hat: beide
+// prüften nur die Züge des Menschen.
 export type { Nachricht } from "@/lib/speaker/titel-assistent";
-export { MAX_EINGABE_ZEICHEN, MAX_ZUEGE } from "@/lib/speaker/titel-assistent";
+export {
+  MAX_ANTWORT_ZEICHEN,
+  MAX_EINGABE_ZEICHEN,
+  MAX_ZUEGE,
+  eingabeOk,
+  verlaufAusBrowser,
+  verlaufKuerzen,
+} from "@/lib/speaker/titel-assistent";
 
 /** Die drei Anlässe — dieselben wie bei den Vorlagen, damit nichts auseinanderläuft. */
 export const ANLAESSE = ["announce", "live", "recap"] as const;
@@ -141,15 +151,6 @@ export function systemText(
   return zeilen.filter((z) => z !== "").join("\n");
 }
 
-export function verlaufKuerzen(nachrichten: Nachricht[], max = MAX_ZUEGE): Nachricht[] {
-  return nachrichten.length <= max ? nachrichten : nachrichten.slice(-max);
-}
-
-export function eingabeOk(text: unknown): text is string {
-  return (
-    typeof text === "string" && text.trim().length > 0 && text.length <= MAX_EINGABE_ZEICHEN
-  );
-}
 
 /**
  * Was ans Modell geht — **ohne Personenbezug**.
