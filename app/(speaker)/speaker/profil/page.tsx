@@ -1,6 +1,7 @@
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PhotoUpload } from "./PhotoUpload";
@@ -48,9 +49,24 @@ export default async function SpeakerProfilPage() {
   return (
     <div className="max-w-text">
       <PageHeader word={t.speaker.wordBio} title={t.speaker.profileTitle} description={t.speaker.profileLead} />
+      {/* Die Übersicht steht über dem Foto (SPK-065): sie ist der erste Anker der
+          Seite und führt auch zum Foto (QS-026, QS-042). Die Ids gehören zu den
+          Karten im Formular. */}
+      <AbschnittsNavigation
+        label={t.speaker.sectionsLabel}
+        items={[
+          { id: "foto", label: t.speaker.photoTitle },
+          { id: "person", label: t.speaker.sectionPerson },
+          { id: "auftritt", label: t.speaker.sectionAppearance },
+          { id: "bio", label: t.speaker.sectionBio },
+          { id: "socials", label: t.speaker.sectionSocials },
+          { id: "kontakte", label: t.speaker.sectionContacts },
+          { id: "consent", label: t.speaker.sectionConsent },
+        ]}
+      />
       {/* Das Foto steht vor dem Formular: es ist der Schritt, den die
           Startseite als offen führt, und der kürzeste Weg zum Erfolgserlebnis. */}
-      <div className="mb-6">
+      <div id="foto" className="mb-6 scroll-mt-20">
         <PhotoUpload
           profileId={profile.id}
           editionId={profile.edition_id}

@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -26,7 +25,6 @@ type Draft = {
   first_name: string;
   last_name: string;
   title: string;
-  pronouns: string;
   linkedin_url: string;
   phone_e164: string;
   preferred_language: string;
@@ -65,7 +63,6 @@ export function SpeakerProfileForm({
     first_name: p.first_name ?? "",
     last_name: p.last_name ?? "",
     title: p.title ?? "",
-    pronouns: p.pronouns ?? "",
     linkedin_url: p.linkedin_url ?? "",
     phone_e164: p.phone_e164 ?? "",
     preferred_language: p.preferred_language ?? "en",
@@ -128,32 +125,9 @@ export function SpeakerProfileForm({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Das laengste Formular im Speaker-Portal (QS-026). */}
-      <AbschnittsNavigation
-        label={t.sectionsLabel}
-        items={[
-          { id: "person", label: t.sectionPerson },
-          { id: "auftritt", label: t.sectionAppearance },
-          { id: "bio", label: t.sectionBio },
-          { id: "socials", label: t.sectionSocials },
-          { id: "kontakte", label: t.sectionContacts },
-          { id: "consent", label: t.sectionConsent },
-        ]}
-      />
-
       <Card id="person" className="p-6">
         <h2 className="ct-h2 mb-4 text-ink">{t.sectionPerson}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t.fieldTitle} htmlFor="title" hint={t.fieldTitleHint}>
-            <Input id="title" value={draft.title} onChange={(e) => set("title", e.target.value)} />
-          </Field>
-          <Field label={t.fieldPronouns} htmlFor="pronouns" hint={t.fieldPronounsHint}>
-            <Input
-              id="pronouns"
-              value={draft.pronouns}
-              onChange={(e) => set("pronouns", e.target.value)}
-            />
-          </Field>
           <Field label={t.fieldFirstName} htmlFor="first_name">
             <Input
               id="first_name"
@@ -167,6 +141,9 @@ export function SpeakerProfileForm({
               value={draft.last_name}
               onChange={(e) => set("last_name", e.target.value)}
             />
+          </Field>
+          <Field label={t.fieldTitle} htmlFor="title" hint={t.fieldTitleHint}>
+            <Input id="title" value={draft.title} onChange={(e) => set("title", e.target.value)} />
           </Field>
           <Field label={t.fieldPhone} htmlFor="phone" hint={t.fieldPhoneHint}>
             <Input

@@ -34,3 +34,36 @@ export async function loadEventDays(
 
   return [...new Set(tage)].sort();
 }
+
+/**
+ * Der Summit einer Edition: Name und Tage der Unterveranstaltung mit
+ * `format_tag = 'summit'` (SPK-048).
+ *
+ * Für Speaker ist der Summit Freitag und Samstag. Die Edition hat mehr Tage —
+ * der Hackathon beginnt am Donnerstag —, und ihr Name ist das Kürzel „FLS27".
+ * Übersicht und Kalendereintrag nehmen deshalb die Unterveranstaltung. Fehlt
+ * sie oder hat sie keine Tage, bleibt es bei allen Tagen der Edition, und
+ * `name` ist `null` — dann nimmt die Seite den Namen der Edition.
+ *
+ * Anreise, Hotel und Shuttle rechnen weiter mit `loadEventDays`: dort zählt
+ * der Donnerstag mit.
+ */
+export async function loadSummit(
+  supabase: SupabaseClient,
+  editionId: string,
+): Promise<{ name: string | null; days: string[] }> {
+  const { data } = await supabase
+    .from("event")
+    .select("name, start_date, event_day(day_date)")
+    .eq("edition_id", editionId)
+    .eq("format_tag", "summit")
+    .order("start_date")
+    .limit(1)
+    .maybeSingle();
+  const summit = data as { name: string | null; event_day: { day_date: string }[] | null } | null;
+  const tage = [...new Set((summit?.event_day ?? []).map((d) => d.day_date))].sort();
+  if (!summit || tage.length === 0) {
+    return { name: null, days: await loadEventDays(supabase, editionId) };
+  }
+  return { name: summit.name, days: tage };
+}

@@ -30,8 +30,14 @@ export function DateRow({
   overdue,
   className,
 }: {
-  /** Das Datum, fertig formatiert. Kurzform: „22. Sept." */
-  date: string;
+  /**
+   * Das Datum, fertig formatiert. Kurzform: „22. Sept."
+   *
+   * Mehrere Tage als Liste: dann steht jeder in einer eigenen Zeile und bricht
+   * in sich nicht um (SPK-048: „Daten in zwei Zeilen ohne Umbruch"). Aneinander
+   * gehängt liefen zwei Tage in der festen Spalte über drei Zeilen.
+   */
+  date: string | string[];
   /** Kleine Zeile unter dem Datum: Restzeit, Uhrzeit, „ganztägig". */
   note?: ReactNode;
   title: string;
@@ -68,7 +74,17 @@ export function DateRow({
             overdue ? "border-error-ink text-error-ink" : "border-accent text-accent-strong",
           )}
         >
-          {date}
+          {Array.isArray(date) ? (
+            <span className="flex flex-col items-center">
+              {date.map((d) => (
+                <span key={d} className="whitespace-nowrap">
+                  {d}
+                </span>
+              ))}
+            </span>
+          ) : (
+            date
+          )}
         </span>
         {note && (
           <span

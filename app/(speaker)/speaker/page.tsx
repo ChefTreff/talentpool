@@ -2,7 +2,7 @@ import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatDay, formatRange } from "@/lib/tz";
-import { loadEventDays } from "@/lib/event-days";
+import { loadSummit } from "@/lib/event-days";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -73,7 +73,7 @@ export default async function SpeakerPage() {
 
   // Die Veranstaltungstage stehen an der Edition. Der Helfer liegt in
   // `lib/event-days.ts`, weil die Kalenderroute dieselbe Liste braucht.
-  const eventDays = await loadEventDays(supabase, profile.edition_id);
+  const summit = await loadSummit(supabase, profile.edition_id);
 
   // Der eigene Slot fuer die Terminliste (SPK-026).
   const { data: sessionRows } = await supabase.rpc("my_sessions");
@@ -185,18 +185,20 @@ export default async function SpeakerPage() {
   });
   const gesammelt: { start: Date; termin: Termin }[] = [];
 
-  if (eventDays.length > 0) {
-    const start = new Date(`${eventDays[0]}T00:00:00.000Z`);
-    const ende = new Date(`${eventDays[eventDays.length - 1]}T00:00:00.000Z`);
-    const titel = profile.edition_name ?? t.speakerCalendar.editionFallback;
+  // Der Summit, nicht die Edition (SPK-048): Freitag und Samstag, voller
+  // Name. Jeder Tag steht in einer eigenen Zeile und ohne Jahr, sonst bricht
+  // die schmale Datumsspalte um — das Jahr steht im Namen.
+  if (summit.days.length > 0) {
+    const tage = summit.days;
+    const start = new Date(`${tage[0]}T00:00:00.000Z`);
+    const ende = new Date(`${tage[tage.length - 1]}T00:00:00.000Z`);
+    const titel = summit.name ?? profile.edition_name ?? t.speakerCalendar.editionFallback;
     const daten = { titel, start, ende, ganztaegig: true };
     gesammelt.push({
       start,
       termin: {
         key: "edition",
-        datum: eventDays
-          .map((d) => formatDay(d, t.meta.dateLocale))
-          .join(" \u00b7 "),
+        datum: tage.map((d) => formatDay(d, t.meta.dateLocale, { withYear: false })),
         titel,
         kalender: daten,
         ics: "/api/speaker/kalender?edition=1",

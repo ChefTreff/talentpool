@@ -1,5 +1,5 @@
 import { requireArea } from "@/lib/auth";
-import { loadEventDays } from "@/lib/event-days";
+import { loadSummit } from "@/lib/event-days";
 import { getI18n } from "@/lib/i18n";
 import { icsCalendar, icsFileName, type IcsEvent } from "@/lib/ics";
 import { portalUrl } from "@/lib/mail/portal-url";
@@ -59,17 +59,20 @@ export async function GET(request: Request) {
 
   const events: IcsEvent[] = [];
 
-  // Der Summit selbst: ein ganztaegiger Termin ueber alle Veranstaltungstage
-  // (SPK-026). Er steht vor Slot und Reception, weil er der Rahmen ist.
+  // Der Summit selbst: ein ganztaegiger Termin ueber seine Tage (SPK-026) —
+  // Freitag und Samstag, nicht der Hackathon-Donnerstag der Edition, und mit
+  // vollem Namen statt des Kuerzels (SPK-048). Er steht vor Slot und
+  // Reception, weil er der Rahmen ist.
   if (!nurSession && !nurReception && profile) {
-    const tage = await loadEventDays(supabase, profile.edition_id);
+    const summit = await loadSummit(supabase, profile.edition_id);
+    const tage = summit.days;
     if (tage.length > 0) {
       events.push({
         uid: `edition-${profile.edition_id}@${host}`,
         start: new Date(`${tage[0]}T00:00:00.000Z`),
         end: new Date(`${tage[tage.length - 1]}T00:00:00.000Z`),
         allDay: true,
-        summary: profile.edition_name ?? t.speakerCalendar.editionFallback,
+        summary: summit.name ?? profile.edition_name ?? t.speakerCalendar.editionFallback,
         description: mitLink(t.speakerCalendar.editionNote, basis, "/speaker"),
         url: basis ? `${basis}/speaker` : null,
       });
