@@ -1,0 +1,31 @@
+{
+  "entries": [
+    {
+      "id": "evt-vergangen", "platform": "luma", "calendar_id": "cal-test", "name": "Community Night August",
+      "start_at": "2026-08-20T17:00:00.000Z", "end_at": "2026-08-20T20:00:00.000Z", "timezone": "Europe/Berlin",
+      "url": "https://luma.com/aug26", "visibility": "public", "registration_open": false,
+      "geo_address_json": { "city": "Hamburg" }, "tags": [], "submitted_by": null
+    },
+    {
+      "id": "evt-oktober", "platform": "luma", "calendar_id": "cal-test", "name": "Community Night Oktober",
+      "start_at": "2026-10-15T16:30:00.000Z", "end_at": "2026-10-15T20:00:00.000Z", "timezone": "Europe/Berlin",
+      "url": "2erm65d4", "cover_url": "https://images.lumacdn.com/cover.jpg", "visibility": "public",
+      "registration_open": true, "require_approval": false, "waitlist_status": "enabled", "spots_remaining": 0,
+      "geo_address_json": { "city": null, "city_state": "Hamburg, HH" }, "tags": [], "submitted_by": null
+    },
+    {
+      "id": "evt-privat", "platform": "luma", "calendar_id": "cal-test", "name": "Team-Dinner",
+      "start_at": "2026-10-01T18:00:00.000Z", "end_at": "2026-10-01T21:00:00.000Z", "timezone": "Europe/Berlin",
+      "url": "https://luma.com/privat", "visibility": "private", "tags": [], "submitted_by": null
+    },
+    {
+      "id": "evt-november", "platform": "luma", "calendar_id": "cal-test", "name": "Founders Breakfast",
+      "start_at": "2026-11-05T07:30:00.000Z", "end_at": "2026-11-05T09:30:00.000Z", "timezone": "Europe/Berlin",
+      "url": "https://luma.com/breakfast", "visibility": "members-only", "registration_open": true,
+      "require_approval": true, "spots_remaining": 12, "geo_address_json": { "city": "München" },
+      "tags": [], "submitted_by": null
+    }
+  ],
+  "has_more": true,
+  "next_cursor": "seite-2"
+}
