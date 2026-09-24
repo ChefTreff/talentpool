@@ -11,6 +11,20 @@ begin
   select * into v_sp from speaker_profile where id = v_t.speaker_profile_id;
   if auth.uid() is not null and not is_speaker_team(v_sp.edition_id) then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_t.source not in ('speaker', 'speaker_companion') then raise exception 'not_a_free_ticket' using errcode = 'P0001', detail = v_t.source; end if;
+  -- SPK-068: Der Webhook `ticket.created` kann schneller sein als die
+  -- Server-Action und das Ticket bereits auf `valid` gesetzt haben. Traegt die
+  -- Zeile dieselbe vivenu-Kennung, ist nichts mehr zu tun — ein Fehler hier
+  -- hiesse: das Ticket existiert bei vivenu, die Oberflaeche meldet aber einen
+  -- Fehlschlag, und der naechste Klick legte ein zweites an. Schuetzt zugleich
+  -- gegen den Doppelklick.
+  if v_t.vivenu_ticket_id is not null and v_t.vivenu_ticket_id = btrim(coalesce(p_vivenu_ticket_id, '')) then
+    -- Still zurueckkehren, aber nicht spurlos: die Admin-Aktion hat stattgefunden
+    -- und gehoert ins Audit-Log, auch wenn der Webhook die Zeile schon gefuellt hat.
+    perform log_audit('ticket.issued', 'ticket', p_ticket_id::text, jsonb_build_object('status', v_t.status),
+                      jsonb_build_object('status', v_t.status, 'source', v_t.source,
+                                         'vivenu_ticket_id', v_t.vivenu_ticket_id, 'via', 'webhook_first'));
+    return;
+  end if;
   if v_t.source = 'speaker' and v_t.status <> 'requested' then raise exception 'not_pending' using errcode = 'P0001', detail = v_t.status; end if;
   if v_t.source = 'speaker_companion' and v_t.status <> 'approved' then raise exception 'not_approved' using errcode = 'P0001', detail = v_t.status; end if;
   if nullif(btrim(coalesce(p_barcode, '')), '') is null or nullif(btrim(coalesce(p_vivenu_ticket_id, '')), '') is null then

@@ -101,6 +101,7 @@
 | Welle 6 · 0172 | **Rückgabegrund der Programmleitung für den Partner (PART-083)** (`20260924191722`, `v6_rueckgabegrund`; Details im Migrationskopf) | — |
 | Welle 6 · 0173 | **Format-Details für Teilnehmende (TAL-002/003)** (`20260924191735`, `v6_format_details_public`; Details im Migrationskopf) | — |
 | Welle 6 · 0174 | **Status der Session-Inhalte für Speaker (SPK-050)** (`20260924191954`, `v6_session_inhalt_status`; Details im Migrationskopf) | — |
+| Welle 6 · 0175 | **Speaker-Ticket ausstellen: Lesefunktion und Wettlaufschutz (SPK-068)** (`20260924192658`, `v6_speaker_ticket_ausstellen`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

@@ -1,4 +1,5 @@
--- SPK-068 · Speaker-Ticket ausstellen: Lesefunktion und Wettlaufschutz
+-- 0175 · Speaker-Ticket ausstellen: Lesefunktion und Wettlaufschutz (SPK-068)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924192658.
 -- (Nummer vergibt die Architektur-Session.)
 --
 -- Konrad will Freitickets fuer Speaker aus dem Admin ausstellen koennen. Die

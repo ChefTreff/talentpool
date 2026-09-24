@@ -38,7 +38,22 @@ begin
   v_updated := nullif(p_data->>'updatedAt', '')::timestamptz;
 
   select * into v_existing from ticket where vivenu_ticket_id = p_data->>'_id';
-  if found then
+  -- SPK-068: Freitickets, die **wir** anlegen, tragen unsere Ticket-Kennung als
+  -- `batch` (vivenu `POST /api/tickets/free`, Feld `batchId`). Der Webhook
+  -- `ticket.created` kommt dafuer oft an, **bevor** die Server-Action
+  -- `set_ticket_issued` die vivenu-Kennung bei uns eingetragen hat. Ohne diesen
+  -- zweiten Weg faende der Ingest nichts, legte eine **zweite** Zeile an
+  -- (`source = 'vivenu'`) — und `set_ticket_issued` scheiterte danach am
+  -- eindeutigen Index `ticket_vivenu_ticket_id_key` (23505), nachdem das Ticket
+  -- bei vivenu bereits existiert. Ein zweiter Klick haette dann ein zweites
+  -- Ticket erzeugt.
+  if not found and nullif(p_data->>'batch', '') ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
+    select * into v_existing from ticket
+     where id = (p_data->>'batch')::uuid
+       and source in ('speaker', 'speaker_companion')
+       and vivenu_ticket_id is null;
+  end if;
+  if v_existing.id is not null then
     if v_updated is not null and v_existing.vivenu_updated_at is not null
        and v_updated < v_existing.vivenu_updated_at then
       return jsonb_build_object('ticket_id', v_existing.id, 'outcome', 'stale',
@@ -47,6 +62,11 @@ begin
     end if;
     update ticket set
       event_id = v_event,
+      -- Ueber `batch` gefunden heisst: die Kennung steht bei uns noch **nicht**.
+      -- Ohne diese Zeile bliebe sie leer, der naechste Webhook fiele wieder auf
+      -- den `batch`-Weg zurueck und `set_ticket_issued` fände nie ein Ticket,
+      -- das schon ausgestellt ist.
+      vivenu_ticket_id = coalesce(nullif(p_data->>'_id', ''), vivenu_ticket_id),
       ticket_type_map_id = coalesce(v_map.id, ticket_type_map_id),
       vivenu_ticket_type_id = coalesce(v_type, vivenu_ticket_type_id),
       vivenu_undershop_id = coalesce(v_shop, vivenu_undershop_id),
