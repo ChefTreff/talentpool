@@ -23,7 +23,14 @@ export type InvoiceCandidate = {
   address_zip: string | null;
   address_city: string | null;
   address_country: string | null;
+  /** Adresszusatz (Gebäude, Etage, c/o) — PART-059, steht unter der Straße. */
+  address_extra: string | null;
   invoice_email: string | null;
+  /**
+   * Abweichende Firmierung auf der Rechnung (PART-061): **ersetzt** den
+   * Firmennamen, leer heisst Firmenname. Bis dahin stand der Wert als Zeile
+   * über dem Firmennamen („z. B. Abteilung“).
+   */
   invoice_name: string | null;
   vat_id: string | null;
   po_number: string | null;
@@ -40,9 +47,14 @@ export function euro(cents: number): number {
   return Math.round(cents) / 100;
 }
 
-/** Adressblock wie er auf der Rechnung steht; Rechnungsname (z. B. Abteilung) vor dem Firmennamen. */
+/**
+ * Adressblock wie er auf der Rechnung steht: die abweichende Firmierung statt
+ * des Firmennamens, falls gesetzt (PART-061), der Adresszusatz unter der
+ * Straße (PART-059).
+ */
 export function invoiceAddress(c: InvoiceCandidate): string {
-  return [c.invoice_name, c.legal_name ?? c.communication_name, c.address_street, [c.address_zip, c.address_city].filter(Boolean).join(" "), c.address_country]
+  const name = c.invoice_name?.trim() || c.legal_name || c.communication_name;
+  return [name, c.address_street, c.address_extra, [c.address_zip, c.address_city].filter(Boolean).join(" "), c.address_country]
     .map((v) => (v ?? "").toString().trim())
     .filter((v) => v !== "")
     .join("\n");

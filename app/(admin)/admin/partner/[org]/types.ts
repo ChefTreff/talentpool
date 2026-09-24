@@ -9,6 +9,18 @@ export type OverviewPayload = {
     type: string | null;
     website: string | null;
     partner_category: string | null;
+    description_de: string | null;
+    description_en: string | null;
+    industry: string | null;
+    /** Kundennummer aus HubSpot (PART-059) — pflegt nur das Team. */
+    customer_number: string | null;
+    address: {
+      street: string | null;
+      zip: string | null;
+      city: string | null;
+      country: string | null;
+      extra: string | null;
+    };
   };
   team: boolean;
   edition: {

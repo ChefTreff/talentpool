@@ -1,3 +1,41 @@
+-- 0163 · Welle 6 · Laptop und Video mit Ton in der Technik (SPK-067): session_tech_keys, update_session_tech als Wahrheitswert
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924140426.
+-- Vorschlag ohne Nummer · Welle 6 · Laptop und Video mit Ton in der Technik (SPK-067)
+--
+-- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
+-- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
+--
+-- Anlass: Konrad am 24.09. — unter Session → Technik die Felder „Ich bringe
+-- meinen eigenen Laptop mit" und „Ich zeige Video mit Ton" ergänzen, „die Infos
+-- sind wichtig" (Regie).
+--
+-- `session.tech` nimmt nur Schlüssel aus `session_tech_keys()` an; zwei neue
+-- kommen dazu. **Als Wahrheitswert, nicht als Text:** `update_session_tech`
+-- las jeden Wert als Text (`value #>> '{}'`), ein Häkchen wäre als `"true"`
+-- gespeichert worden. Jetzt `true`, und nur das Ja — ein Nein fällt heraus wie
+-- ein leeres Feld.
+--
+-- **Die Regie bekommt die Felder ohne Umbau**: `regie_view` gibt `session.tech`
+-- als Ganzes heraus. Ihre Anzeige rechnete aber mit Text (`v.trim()`) und wäre
+-- an einem Wahrheitswert gescheitert — die Oberfläche wächst im selben PR mit.
+--
+-- Beide Funktionen aus `supabase/snapshot/functions/`.
+--
+-- Fehlerschlüssel: zusätzlich 22023 `invalid_tech_value`.
+
+set search_path = public, extensions;
+
+-- ---- session_tech_keys
+create or replace function session_tech_keys()
+ RETURNS text[]
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'extensions'
+AS $$
+  select array['microphone', 'special_requirements', 'own_laptop', 'video_with_sound']::text[]
+$$;
+
+-- ---- update_session_tech
 create or replace function update_session_tech(p_session_id uuid, p_tech jsonb)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -88,3 +126,5 @@ begin
 
   return v_neu;
 end $$;
+
+select harden_definer_functions();

@@ -30,7 +30,7 @@ export type RegieCue = {
    * dieselbe Aussage und keines wäre die Wahrheit. Cues ohne Session (Doors
    * open, Puffer) tragen ein leeres Objekt.
    */
-  tech: Record<string, string> | null;
+  tech: Record<string, string | boolean> | null;
 };
 
 export type OpenSlot = {
