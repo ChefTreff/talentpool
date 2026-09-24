@@ -124,6 +124,14 @@ export default async function PartnerChecklistPage() {
             canEdit={canEditOnboarding(overview.roles, overview.team)}
             locale={locale}
             dateLocale={t.meta.dateLocale}
+            fristTexte={{
+              label: t.partnerChecklist.deadlineLabel,
+              days: t.partner.countdownDays,
+              hours: t.partner.countdownHours,
+              soon: t.partner.countdownSoon,
+              passed: t.common.deadlinePassed,
+              done: t.common.deadlineDone,
+            }}
             t={t.partnerChecklist}
             rpcMessages={t.rpc}
           />

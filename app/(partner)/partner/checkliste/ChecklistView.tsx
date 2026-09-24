@@ -16,10 +16,10 @@ import { Card } from "@/components/ui/Card";
 import { CheckMark } from "@/components/ui/CheckMark";
 import { Field } from "@/components/ui/Field";
 import { FileButton } from "@/components/ui/FileButton";
+import { FristMarke, type FristTexte } from "@/components/ui/FristMarke";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
-import { cn } from "@/components/ui/cn";
 import { orderLunchPackage, registerPartnerAsset, submitDeliverable } from "../actions";
 import { safeFileName, BUCKET } from "../upload";
 import type { AnswerField, Deliverable, DeliverableAsset, PartnerOverview } from "../types";
@@ -51,6 +51,7 @@ export function ChecklistView({
   booth,
   canEdit,
   variant = "gruppen",
+  fristTexte,
   locale,
   dateLocale,
   t,
@@ -66,6 +67,8 @@ export function ChecklistView({
    * übergebenen Aufgaben ohne Köpfe — für die Übersicht (PART-056).
    */
   variant?: "gruppen" | "naechste";
+  /** Wörter der Fristmarke (Deadline, noch n Tage, vorbei, erledigt) — wie an den Abschnittsköpfen. */
+  fristTexte: FristTexte;
   locale: Locale;
   dateLocale: string;
   t: Strings;
@@ -278,24 +281,21 @@ export function ChecklistView({
 
   /**
    * Die Frist als Markierung (PART-064: „farblich hervorheben und als Deadline
-   * markieren“): Fläche und Wort, nicht nur Farbe. Erledigtes braucht keine
-   * Hervorhebung mehr — dort steht nur das Datum.
+   * markieren“) — dieselbe `FristMarke` wie an den Abschnittsköpfen, in
+   * Zeilenhöhe: offen, bald (unter sieben Tagen), vorbei, erledigt, jeweils
+   * mit Farbe und Wort.
    */
-  const frist = (d: Deliverable, overdue: boolean, erledigt: boolean) => {
-    if (!d.due_at) return null;
-    const datum = dateOnly.format(new Date(d.due_at));
-    if (erledigt) return <span className="ct-small tabular-nums text-muted">{datum}</span>;
-    return (
-      <span
-        className={cn(
-          "inline-flex rounded-ct-sm px-2 py-0.5 ct-label tabular-nums",
-          overdue ? "bg-error-soft text-error-ink" : "bg-warning-soft text-warning-ink",
-        )}
-      >
-        {(overdue ? t.deadlineOverdueChip : t.deadlineChip).replace("{date}", datum)}
-      </span>
-    );
-  };
+  const frist = (d: Deliverable, overdue: boolean, erledigt: boolean) =>
+    d.due_at ? (
+      <FristMarke
+        kompakt
+        dueAt={d.due_at}
+        dateText={dateOnly.format(new Date(d.due_at))}
+        vorbei={overdue}
+        erledigt={erledigt}
+        t={fristTexte}
+      />
+    ) : null;
 
   const zaehler = (group: ChecklistGroup) => (
     <span className="ct-help ml-auto tabular-nums">
