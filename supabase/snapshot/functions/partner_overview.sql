@@ -16,8 +16,11 @@ begin
     'org', jsonb_build_object('id', v_o.id, 'legal_name', v_o.legal_name, 'communication_name', v_o.communication_name, 'type', v_o.type,
                               'website', v_o.website, 'description_de', v_o.description_de, 'description_en', v_o.description_en,
                               'logo_dark', v_o.logo_dark, 'logo_light', v_o.logo_light,
-                              'address', jsonb_build_object('street', v_o.address_street, 'zip', v_o.address_zip, 'city', v_o.address_city, 'country', v_o.address_country),
-                              'partner_category', v_o.partner_category, 'industry', v_o.industry),
+                              'address', jsonb_build_object('street', v_o.address_street, 'zip', v_o.address_zip, 'city', v_o.address_city, 'country', v_o.address_country,
+                                                         'extra', v_o.address_extra),
+                              'partner_category', v_o.partner_category, 'industry', v_o.industry,
+                              -- PART-059: sichtbar für alle Kontakte der Organisation, schreiben darf sie nur das Team.
+                              'customer_number', v_o.customer_number),
     'roles', to_jsonb(v_roles),
     'team', is_partner_team(),
     'edition', case when v_oe.id is null then null else jsonb_build_object(

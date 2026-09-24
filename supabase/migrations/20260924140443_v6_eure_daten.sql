@@ -1,3 +1,5 @@
+-- 0164 · Welle 6 · Eure Daten (PART-059/061): organization.address_extra und customer_number, set_org_customer_number, partner_overview, shop_invoice_candidates
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924140443.
 -- Vorschlag · Welle 6 · Eure Daten (PART-059/061): organization.address_extra und customer_number, update_partner_onboarding, set_org_customer_number, partner_overview, shop_invoice_candidates
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.

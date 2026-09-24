@@ -1,3 +1,5 @@
+-- 0163 · Welle 6 · Laptop und Video mit Ton in der Technik (SPK-067): session_tech_keys, update_session_tech als Wahrheitswert
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924140426.
 -- Vorschlag ohne Nummer · Welle 6 · Laptop und Video mit Ton in der Technik (SPK-067)
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und

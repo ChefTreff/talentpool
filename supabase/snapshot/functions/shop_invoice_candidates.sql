@@ -1,5 +1,5 @@
 create or replace function shop_invoice_candidates(p_edition_id uuid)
- RETURNS TABLE(org_id uuid, legal_name text, communication_name text, address_street text, address_zip text, address_city text, address_country text, invoice_email text, invoice_name text, vat_id text, po_number text, sevdesk_contact_id text, order_ids uuid[], order_nos text[], positions jsonb, net_cents bigint, vat_cents bigint, gross_cents bigint)
+ RETURNS TABLE(org_id uuid, legal_name text, communication_name text, address_street text, address_zip text, address_city text, address_country text, invoice_email text, invoice_name text, vat_id text, po_number text, sevdesk_contact_id text, order_ids uuid[], order_nos text[], positions jsonb, net_cents bigint, vat_cents bigint, gross_cents bigint, address_extra text)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -32,7 +32,9 @@ begin
               from lines l where l.ord_org = org.id),
            (select coalesce(sum(l.line_net), 0)::bigint from lines l where l.ord_org = org.id),
            (select coalesce(sum(round(l.line_net * l.line_vat / 100)), 0)::bigint from lines l where l.ord_org = org.id),
-           (select coalesce(sum(l.line_net) + sum(round(l.line_net * l.line_vat / 100)), 0)::bigint from lines l where l.ord_org = org.id)
+           (select coalesce(sum(l.line_net) + sum(round(l.line_net * l.line_vat / 100)), 0)::bigint from lines l where l.ord_org = org.id),
+           -- PART-059: der Adresszusatz gehört auf die Rechnung.
+           org.address_extra
     from organization org
     join org_edition oe on oe.org_id = org.id and oe.edition_id = p_edition_id
     where exists (select 1 from orders ord where ord.ord_org = org.id)

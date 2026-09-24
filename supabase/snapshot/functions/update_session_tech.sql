@@ -30,6 +30,20 @@ begin
     if not (v_key = any (session_tech_keys())) then
       raise exception 'invalid_tech_key' using errcode = '22023', detail = v_key;
     end if;
+    -- Zwei Häkchen (SPK-067): eigener Laptop, Video mit Ton. Gespeichert wird
+    -- ein echter Wahrheitswert, und zwar nur das Ja — ein Nein fällt heraus wie
+    -- ein leeres Feld, sonst stünde in der Regie „Laptop: nein" als Angabe da.
+    -- Als Text gespeichert hiesse `"true"`, und die Regie hätte es als Wort
+    -- angezeigt.
+    if v_key in ('own_laptop', 'video_with_sound') then
+      if v_val is not null and v_val not in ('true', 'false') then
+        raise exception 'invalid_tech_value' using errcode = '22023', detail = v_key;
+      end if;
+      if v_val = 'true' then
+        v_neu := v_neu || jsonb_build_object(v_key, true);
+      end if;
+      continue;
+    end if;
     v_val := nullif(btrim(coalesce(v_val, '')), '');
     if v_val is not null and length(v_val) > 500 then
       raise exception 'tech_too_long' using errcode = '22023', detail = v_key;
