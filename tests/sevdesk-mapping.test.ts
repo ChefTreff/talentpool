@@ -4,7 +4,8 @@ import { buildInvoicePayload, euro, invoiceAddress, type InvoiceCandidate } from
 
 const candidate: InvoiceCandidate = {
   org_id: "org-1", legal_name: "Rechnung A GmbH", communication_name: "RechA", address_street: "Weg 1", address_zip: "20095", address_city: "Hamburg", address_country: "DE",
-  invoice_email: "buchhaltung@recha.example", invoice_name: "Abteilung Events", vat_id: "DE123", po_number: "PO-77", sevdesk_contact_id: null,
+  address_extra: "3. OG, Haus B",
+  invoice_email: "buchhaltung@recha.example", invoice_name: "Rechnung A Holding GmbH", vat_id: "DE123", po_number: "PO-77", sevdesk_contact_id: null,
   order_ids: ["o1", "o2"], order_nos: ["MS-2026-0001", "MS-2026-0002"],
   positions: [
     { sku: "I-11329", name: "Gitterbox", unit: "piece", qty: "3", price_net_cents: 31500, vat_rate: "7", net_cents: 94500 },
@@ -17,7 +18,15 @@ describe("SevDesk-Entwurf aus Shop-Bestellungen", () => {
   it("rechnet Cent in Euro und baut den Adressblock", () => {
     assert.equal(euro(31500), 315);
     assert.equal(euro(3549), 35.49);
-    assert.equal(invoiceAddress(candidate), "Abteilung Events\nRechnung A GmbH\nWeg 1\n20095 Hamburg\nDE");
+    // Abweichende Firmierung ersetzt den Firmennamen (PART-061), der Zusatz steht unter der Straße (PART-059).
+    assert.equal(invoiceAddress(candidate), "Rechnung A Holding GmbH\nWeg 1\n3. OG, Haus B\n20095 Hamburg\nDE");
+  });
+
+  it("nimmt ohne abweichende Firmierung den Firmennamen, ohne Zusatz keine Leerzeile", () => {
+    assert.equal(
+      invoiceAddress({ ...candidate, invoice_name: "  ", address_extra: null }),
+      "Rechnung A GmbH\nWeg 1\n20095 Hamburg\nDE",
+    );
   });
 
   it("baut einen Entwurf (Status 100) mit allen Positionen, Steuersatz und Bestellnummern", () => {

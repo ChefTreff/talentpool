@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/shared";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -13,14 +13,21 @@ import {
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Field } from "@/components/ui/Field";
 import { FileButton } from "@/components/ui/FileButton";
-import { Input, Textarea } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { StepBar } from "@/components/ui/StepBar";
+import { cn } from "@/components/ui/cn";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { useToast } from "@/components/ui/Toast";
 import { LogoWandEinwilligung } from "@/components/partner/LogoWandEinwilligung";
+import {
+  BeschreibungFelder,
+  KundennummerInfo,
+  RechnungFelder,
+  UnternehmenFelder,
+  entwurfAus,
+  speicherDaten,
+  type EureDatenEntwurf,
+} from "@/components/partner/EureDaten";
 import {
   registerPartnerAsset,
   saveOnboarding,
@@ -31,47 +38,21 @@ import { BUCKET, safeFileName } from "../upload";
 import {
   canEditOnboarding,
   type Deliverable,
+  type DeliverableAsset,
   type PartnerOverview,
 } from "../types";
 
 type Strings = Record<string, string>;
 
-type Draft = {
-  legal_name: string;
-  communication_name: string;
-  address_street: string;
-  address_zip: string;
-  address_city: string;
-  address_country: string;
-  website: string;
-  industry: string;
-  description_de: string;
-  description_en: string;
-  invoice_email: string;
-  invoice_name: string;
-  vat_id: string;
-  po_number: string;
-  pass_type_choice: string;
-};
+/** Aktuelle Fassung einer Logo-Pflicht, falls es eine gibt. */
+function aktuelleFassung(d: Deliverable): DeliverableAsset | null {
+  return d.assets.find((a) => a.status !== "rejected") ?? d.assets[0] ?? null;
+}
 
-function draftFrom(o: PartnerOverview): Draft {
-  return {
-    legal_name: o.org.legal_name ?? "",
-    communication_name: o.org.communication_name ?? "",
-    address_street: o.org.address.street ?? "",
-    address_zip: o.org.address.zip ?? "",
-    address_city: o.org.address.city ?? "",
-    address_country: o.org.address.country ?? "",
-    website: o.org.website ?? "",
-    industry: o.org.industry ?? "",
-    description_de: o.edition.description_de ?? "",
-    description_en: o.edition.description_en ?? "",
-    invoice_email: o.edition.invoice_email ?? "",
-    invoice_name: o.edition.invoice_name ?? "",
-    vat_id: o.edition.vat_id ?? "",
-    po_number: o.edition.po_number ?? "",
-    pass_type_choice: o.edition.pass_type_choice ?? "",
-  };
+/** SVG und PNG zeigt der Browser; EPS nicht — dort bleibt es beim Dateinamen. */
+function vorschaubar(a: DeliverableAsset): boolean {
+  const mime = (a.mime ?? "").toLowerCase();
+  return mime === "image/svg+xml" || mime === "image/png" || /\.(svg|png)$/i.test(a.filename ?? a.storage_path);
 }
 
 export function OnboardingWizard({
@@ -104,19 +85,41 @@ export function OnboardingWizard({
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState<string | null>(null);
   const [step, setStep] = useState(0);
-  const [draft, setDraft] = useState<Draft>(() => draftFrom(overview));
+  const [draft, setDraft] = useState<EureDatenEntwurf>(() => entwurfAus(overview));
+  const [vorschau, setVorschau] = useState<Record<string, string>>({});
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, {
     dateStyle: "medium",
     timeStyle: "short",
   });
-  const set = (part: Partial<Draft>) => setDraft((d) => ({ ...d, ...part }));
+  const set = (part: Partial<EureDatenEntwurf>) => setDraft((d) => ({ ...d, ...part }));
 
-  /** Aktuelle Fassung einer Logo-Pflicht, falls es eine gibt. */
-  const currentOf = (d: Deliverable) =>
-    d.assets.find((a) => a.status !== "rejected") ?? d.assets[0] ?? null;
-  const allLogosThere = logos.length > 0 && logos.every((d) => currentOf(d) !== null);
+  const allLogosThere = logos.length > 0 && logos.every((d) => aktuelleFassung(d) !== null);
+  const logosDa = logos.filter((d) => aktuelleFassung(d) !== null).length;
+
+  // PART-060: Vorschau auf Schachbrett — nur so sieht man, ob ein PNG freigestellt
+  // ist. Die Dateien liegen privat; die Leseadresse gilt zehn Minuten.
+  const vorschauZiele = useMemo(
+    () => logos.map(aktuelleFassung).filter((a): a is DeliverableAsset => a !== null && vorschaubar(a)),
+    [logos],
+  );
+  useEffect(() => {
+    if (vorschauZiele.length === 0) return;
+    let aktiv = true;
+    const supabase = createSupabaseBrowserClient();
+    void Promise.all(
+      vorschauZiele.map(async (a) => {
+        const { data } = await supabase.storage.from(BUCKET).createSignedUrl(a.storage_path, 600);
+        return [a.id, data?.signedUrl ?? ""] as const;
+      }),
+    ).then((paare) => {
+      if (aktiv) setVorschau(Object.fromEntries(paare.filter(([, url]) => url !== "")));
+    });
+    return () => {
+      aktiv = false;
+    };
+  }, [vorschauZiele]);
 
   // Der Haken kommt aus dem Inhalt, nicht aus der Position — dieselben Regeln
   // wie in `MissingHint`, damit Anzeige und Hinweis nicht auseinanderlaufen.
@@ -155,7 +158,7 @@ export function OnboardingWizard({
 
   function onSave(next?: number) {
     startTransition(async () => {
-      const res = await saveOnboarding(orgId, { ...draft });
+      const res = await saveOnboarding(orgId, speicherDaten(draft));
       if (!res.ok) {
         toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
         return;
@@ -257,70 +260,8 @@ export function OnboardingWizard({
           <h2 className="ct-h2 mb-1 text-ink">{t.stepCompany}</h2>
           <p className="ct-help mb-4">{t.stepCompanyHint}</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t.fieldLegalName} htmlFor="legal_name" required requiredLabel={t.requiredLabel}>
-              <Input
-                id="legal_name"
-                value={draft.legal_name}
-                onChange={(e) => set({ legal_name: e.target.value })}
-              />
-            </Field>
-            <Field
-              label={t.fieldCommunicationName}
-              htmlFor="communication_name"
-              hint={t.fieldCommunicationNameHint}
-              required
-              requiredLabel={t.requiredLabel}
-            >
-              <Input
-                id="communication_name"
-                value={draft.communication_name}
-                onChange={(e) => set({ communication_name: e.target.value })}
-              />
-            </Field>
-            <Field
-              label={t.fieldStreet}
-              htmlFor="address_street"
-              required
-              requiredLabel={t.requiredLabel}
-              className="sm:col-span-2"
-            >
-              <Input
-                id="address_street"
-                value={draft.address_street}
-                onChange={(e) => set({ address_street: e.target.value })}
-              />
-            </Field>
-            <Field label={t.fieldZip} htmlFor="address_zip" required requiredLabel={t.requiredLabel}>
-              <Input
-                id="address_zip"
-                value={draft.address_zip}
-                onChange={(e) => set({ address_zip: e.target.value })}
-              />
-            </Field>
-            <Field label={t.fieldCity} htmlFor="address_city" required requiredLabel={t.requiredLabel}>
-              <Input
-                id="address_city"
-                value={draft.address_city}
-                onChange={(e) => set({ address_city: e.target.value })}
-              />
-            </Field>
-            <Field label={t.fieldCountry} htmlFor="address_country">
-              <Input
-                id="address_country"
-                value={draft.address_country}
-                onChange={(e) => set({ address_country: e.target.value })}
-              />
-            </Field>
-            <Field label={t.fieldWebsite} htmlFor="website">
-              <Input
-                id="website"
-                type="url"
-                inputMode="url"
-                placeholder="https://"
-                value={draft.website}
-                onChange={(e) => set({ website: e.target.value })}
-              />
-            </Field>
+            <KundennummerInfo value={overview.org.customer_number ?? null} t={t} />
+            <UnternehmenFelder draft={draft} set={set} t={t} />
           </div>
           <div className="mt-6 flex gap-2">
             <Button disabled={pending} onClick={() => onSave(1)}>
@@ -338,38 +279,7 @@ export function OnboardingWizard({
           <h2 className="ct-h2 mb-1 text-ink">{t.stepDescription}</h2>
           <p className="ct-help mb-4">{t.stepDescriptionHint}</p>
           <div className="flex flex-col gap-4">
-            <Field
-              label={t.fieldDescriptionDe}
-              htmlFor="description_de"
-              required
-              requiredLabel={t.requiredLabel}
-            >
-              <Textarea
-                id="description_de"
-                rows={5}
-                value={draft.description_de}
-                onChange={(e) => set({ description_de: e.target.value })}
-              />
-            </Field>
-            <Field label={t.fieldDescriptionEn} htmlFor="description_en" hint={t.fieldDescriptionEnHint}>
-              <Textarea
-                id="description_en"
-                rows={5}
-                value={draft.description_en}
-                onChange={(e) => set({ description_en: e.target.value })}
-              />
-            </Field>
-            {/* Die Branche steht bei der Beschreibung, weil beides dasselbe tut:
-                den Stand im Programm und in der Event-App auffindbar machen. */}
-            <Field label={t.fieldIndustry} htmlFor="industry" hint={t.fieldIndustryHint}>
-              <Select
-                id="industry"
-                value={draft.industry}
-                placeholder={common.none}
-                options={Object.entries(industries).map(([value, label]) => ({ value, label }))}
-                onChange={(e) => set({ industry: e.target.value })}
-              />
-            </Field>
+            <BeschreibungFelder draft={draft} set={set} t={t} industries={industries} none={common.none} />
           </div>
           <div className="mt-6 flex gap-2">
             <Button variant="secondary" disabled={pending} onClick={() => setStep(0)}>
@@ -384,78 +294,126 @@ export function OnboardingWizard({
 
       {step === 2 && (
         <Card>
-          <h2 className="ct-h2 mb-1 text-ink">{t.stepLogo}</h2>
+          {/* PART-060 nach dem Vorschlag des Design-Chats (docs/design-vorschlaege-2026-09-24.md §2):
+              H2 „Logo“ → je Datei eine gleichrangige Kachel mit H3 → Text. Die Zahl im Kopf
+              sagt, dass es zwei sind, bevor man die Kacheln liest. */}
+          <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="ct-h2 text-ink">{t.stepLogo}</h2>
+            {logos.length > 0 && (
+              <p className="ct-help tabular-nums">
+                {t.logoCount.replace("{n}", String(logosDa)).replace("{total}", String(logos.length))}
+              </p>
+            )}
+          </div>
           <p className="ct-help mb-4">{t.stepLogoHint}</p>
 
           {logos.length === 0 ? (
             <p className="ct-help">{t.logoMissingDeliverable}</p>
           ) : (
             <div className="flex flex-col gap-6">
-              {logos.map((logo) => {
-                const current = currentOf(logo);
-                const rules: FileRules = logo.file_rules;
-                return (
-                  <section key={logo.id}>
-                    <h3 className="ct-label text-ink">
-                      {(locale === "en" ? logo.label_en : logo.label_de) ?? logo.key}
-                    </h3>
-                    <p className="ct-help mb-3">
-                      {(locale === "en" ? logo.description_en : logo.description_de) ?? ""}
-                    </p>
-
-                    {current ? (
-                      <div className="mb-3 rounded-ct-md border p-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => onDownloadLogo(current.storage_path)}
-                            className="ct-link text-left"
-                          >
-                            {current.filename ?? current.storage_path.split("/").pop()}
-                          </button>
-                          <span className="ct-help">v{current.version}</span>
-                          <Badge
-                            tone={
-                              logo.status === "accepted"
-                                ? "success"
-                                : logo.status === "rejected"
-                                  ? "error"
-                                  : "accent"
-                            }
-                          >
-                            {t[`deliverable_${logo.status}`] ?? logo.status}
-                          </Badge>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {logos.map((logo) => {
+                  const current = aktuelleFassung(logo);
+                  const rules: FileRules = logo.file_rules;
+                  // Das Formatzeichen kommt aus den Dateiregeln, nicht aus dem Text — ein
+                  // weiteres Format bekommt so von selbst sein Zeichen.
+                  const format = (rules?.ext?.[0] ?? logo.key).toUpperCase();
+                  const url = current ? vorschau[current.id] : undefined;
+                  const titel = (locale === "en" ? logo.label_en : logo.label_de) ?? logo.key;
+                  return (
+                    <section
+                      key={logo.id}
+                      aria-labelledby={`logo-${logo.id}`}
+                      className={cn(
+                        "flex flex-col gap-3 rounded-ct-md border p-4",
+                        // Was fehlt, sieht anders aus: gestrichelt und mit Satz — Form und Text,
+                        // nicht nur Farbe.
+                        current ? "border-border" : "border-dashed border-border-strong",
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span
+                          aria-hidden
+                          className="ct-h2 flex size-14 shrink-0 items-center justify-center rounded-ct-md bg-accent-soft text-accent-deep"
+                        >
+                          {format}
+                        </span>
+                        <div>
+                          <h3 id={`logo-${logo.id}`} className="ct-h3 text-ink">
+                            {titel}
+                          </h3>
+                          <p className="ct-help">
+                            {(locale === "en" ? logo.description_en : logo.description_de) ?? ""}
+                          </p>
                         </div>
-                        {logo.submitted_at && (
-                          <p className="ct-help mt-1">
-                            {t.submittedOn} {dateTime.format(new Date(logo.submitted_at))}
-                          </p>
-                        )}
-                        {logo.review_note && (
-                          <p className="ct-help mt-1 text-error-ink">
-                            {t.reviewNote}: {logo.review_note}
-                          </p>
-                        )}
                       </div>
-                    ) : (
-                      <p className="ct-help mb-3">{t.logoNone}</p>
-                    )}
 
-                    <FileButton
-                      uploadLabel={common.upload}
-                      changeLabel={common.chooseOtherFile}
-                      label={current ? t.logoReplace : t.logoUpload}
-                      accept={acceptAttribute(rules)}
-                      disabled={uploading !== null || pending}
-                      hint={t.logoHint
-                        .replace("{allowed}", (rules?.ext ?? []).map((e) => `.${e}`).join(", "))
-                        .replace("{max}", formatBytes(rules?.max_bytes ?? 0))}
-                      onFile={(file) => void onLogo(logo, file)}
-                    />
-                    {uploading === logo.key && <p className="ct-help mt-2">{t.logoUploading}</p>}
-                  </section>
-                );
-              })}
+                      {current ? (
+                        <>
+                          {url && (
+                            <div className="flex h-28 items-center justify-center rounded-ct-sm border bg-pattern-transparent p-3">
+                              {/* eslint-disable-next-line @next/next/no-img-element -- Signierte Storage-Adresse, keine feste Größe. */}
+                              <img
+                                src={url}
+                                alt={t.logoPreviewAlt.replace("{format}", format)}
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            </div>
+                          )}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => onDownloadLogo(current.storage_path)}
+                              className="ct-link break-all text-left"
+                            >
+                              {current.filename ?? current.storage_path.split("/").pop()}
+                            </button>
+                            <span className="ct-help">v{current.version}</span>
+                            <Badge
+                              tone={
+                                logo.status === "accepted"
+                                  ? "success"
+                                  : logo.status === "rejected"
+                                    ? "error"
+                                    : "accent"
+                              }
+                            >
+                              {t[`deliverable_${logo.status}`] ?? logo.status}
+                            </Badge>
+                          </div>
+                          {logo.submitted_at && (
+                            <p className="ct-help">
+                              {t.submittedOn} {dateTime.format(new Date(logo.submitted_at))}
+                            </p>
+                          )}
+                          {logo.review_note && (
+                            <p className="ct-help text-error-ink">
+                              {t.reviewNote}: {logo.review_note}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="ct-small text-muted">{t.logoNone}</p>
+                      )}
+
+                      <div className="mt-auto">
+                        <FileButton
+                          uploadLabel={common.upload}
+                          changeLabel={common.chooseOtherFile}
+                          label={(current ? t.logoReplaceFormat : t.logoUploadFormat).replace("{format}", format)}
+                          accept={acceptAttribute(rules)}
+                          disabled={uploading !== null || pending}
+                          hint={t.logoHint
+                            .replace("{allowed}", (rules?.ext ?? []).map((x) => `.${x}`).join(", "))
+                            .replace("{max}", formatBytes(rules?.max_bytes ?? 0))}
+                          onFile={(file) => void onLogo(logo, file)}
+                        />
+                        {uploading === logo.key && <p className="ct-help mt-2">{t.logoUploading}</p>}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
 
               {/* Die Erlaubnis steht **beim Logo**, nicht in den Stammdaten: hier
                   entscheidet der Partner ohnehin über seine Marke, und er soll wissen,
@@ -487,45 +445,11 @@ export function OnboardingWizard({
 
       {step === 3 && (
         <Card>
-          <h2 className="ct-h2 mb-1 text-ink">{t.stepInvoice}</h2>
-          <p className="ct-help mb-4">{t.stepInvoiceHint}</p>
+          {/* PART-061: der Satz unter der Überschrift („braucht keinen Login“) war ein
+              Hinweis für uns, nicht für den Partner — er ist weg. */}
+          <h2 className="ct-h2 mb-4 text-ink">{t.stepInvoice}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              label={t.fieldInvoiceEmail}
-              htmlFor="invoice_email"
-              hint={t.fieldInvoiceEmailHint}
-              required
-              requiredLabel={t.requiredLabel}
-            >
-              <Input
-                id="invoice_email"
-                type="email"
-                inputMode="email"
-                value={draft.invoice_email}
-                onChange={(e) => set({ invoice_email: e.target.value })}
-              />
-            </Field>
-            <Field label={t.fieldInvoiceName} htmlFor="invoice_name">
-              <Input
-                id="invoice_name"
-                value={draft.invoice_name}
-                onChange={(e) => set({ invoice_name: e.target.value })}
-              />
-            </Field>
-            <Field label={t.fieldVatId} htmlFor="vat_id">
-              <Input
-                id="vat_id"
-                value={draft.vat_id}
-                onChange={(e) => set({ vat_id: e.target.value })}
-              />
-            </Field>
-            <Field label={t.fieldPoNumber} htmlFor="po_number" hint={t.fieldPoNumberHint}>
-              <Input
-                id="po_number"
-                value={draft.po_number}
-                onChange={(e) => set({ po_number: e.target.value })}
-              />
-            </Field>
+            <RechnungFelder draft={draft} set={set} t={t} />
           </div>
           <div className="mt-6 flex gap-2">
             <Button variant="secondary" disabled={pending} onClick={() => setStep(2)}>
@@ -567,7 +491,7 @@ function MissingHint({
   hasLogo,
   t,
 }: {
-  draft: Draft;
+  draft: EureDatenEntwurf;
   hasLogo: boolean;
   t: Strings;
 }) {

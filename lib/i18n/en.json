@@ -149,6 +149,7 @@
     "answers_required": "Please fill in the form.",
     "primary_exists": "There already is a main contact. Transfer it instead of adding a second one.",
     "primary_required": "There has to be a main contact. Transfer it first.",
+    "customer_number_taken": "Another organisation already has this customer number.",
     "contact_not_editable": "The person maintains their name and address themselves — they have signed in or already had a profile.",
     "email_in_use": "This address already belongs to a profile. Delete the contact and invite the address instead — the existing profile will be linked.",
     "position_required": "Please enter a position.",
@@ -246,7 +247,10 @@
     "partner_not_in_edition": "This organisation is not a partner in this edition.",
     "partner_host_mismatch": "The session is already hosted by another partner — the booking partner has to be the same one.",
     "invalid_vocab_value": "This value is no longer available. Please choose another one.",
-    "not_presentation": "Only presentations can be shared."
+    "not_presentation": "Only presentations can be shared.",
+    "invalid_tech_value": "This field only takes yes or no.",
+    "invalid_link_url": "The link must start with https:// or be a portal path such as /summit.",
+    "next_up_not_found": "This item no longer exists."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -254,6 +258,7 @@
     "login": "Sign in",
     "logout": "Sign out",
     "myAreas": "My areas",
+    "portals": "Portals",
     "skipToContent": "Skip to content",
     "account": "My account"
   },
@@ -1060,7 +1065,12 @@
     "shareAsk": "Share with participants …",
     "shareStop": "Stop sharing",
     "shareStateOn": "shared",
-    "shareStateOff": "not shared"
+    "shareStateOff": "not shared",
+    "tech_own_laptop": "I am bringing my own laptop",
+    "tech_own_laptop_hint": "Then we plan a connection for you. Without the tick you present from our computer.",
+    "tech_video_with_sound": "I am showing video with sound",
+    "tech_video_with_sound_hint": "So the control room routes the sound to the PA.",
+    "techChecksLabel": "What you bring and show"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -1287,9 +1297,8 @@
     "stepDescription": "Description",
     "stepDescriptionHint": "For the website, the event app and the programme. Two to four sentences are enough.",
     "stepLogo": "Logo",
-    "stepLogoHint": "Vector file for website, event app and print.",
+    "stepLogoHint": "We need your logo twice: as a vector for print and stage, as an image for web and the app.",
     "stepInvoice": "Invoicing details",
-    "stepInvoiceHint": "This is where the invoice will go later. It needs no login.",
     "stepContacts": "Contacts",
     "stepContactsHint": "Every person gets their own access.",
     "requiredLabel": "required",
@@ -1300,6 +1309,17 @@
     "fieldZip": "Postcode",
     "fieldCity": "City",
     "fieldCountry": "Country",
+    "fieldAddressExtra": "Address line 2",
+    "fieldAddressExtraHint": "Building, floor, c/o — if your mail needs it. Printed on the invoice below the street.",
+    "customerNumberLabel": "Customer number",
+    "customerNumberNone": "not assigned yet",
+    "customerNumberHint": "Assigned by ChefTreff; it appears on quotes and invoices. Only our team can change it.",
+    "fieldInvoiceNameHint": "Only fill in if the invoice should not say “{name}”.",
+    "fieldInvoiceNameHintNoName": "Only fill in if the invoice should not show your company name.",
+    "logoCount": "{n} of {total} uploaded",
+    "logoUploadFormat": "Upload {format} logo",
+    "logoReplaceFormat": "Replace {format} logo",
+    "logoPreviewAlt": "{format} logo preview",
     "fieldWebsite": "Website",
     "fieldDescriptionDe": "Description (German)",
     "fieldDescriptionEn": "Description (English)",
@@ -1308,7 +1328,7 @@
     "fieldIndustryHint": "How visitors filter for you in the event app. The same industries as in Swapcard.",
     "fieldInvoiceEmail": "Invoice email",
     "fieldInvoiceEmailHint": "For example invoices@… — no login, invoices only.",
-    "fieldInvoiceName": "Name on the invoice",
+    "fieldInvoiceName": "Different company name on the invoice",
     "fieldVatId": "VAT ID",
     "fieldPoNumber": "Purchase order / PO",
     "fieldPoNumberHint": "If your finance team needs one.",
@@ -1328,8 +1348,6 @@
     "submittedOn": "submitted",
     "reviewNote": "Feedback",
     "logoNone": "No logo uploaded yet.",
-    "logoUpload": "Upload logo",
-    "logoReplace": "Upload a new version",
     "logoHint": "Allowed: {allowed}, at most {max}. The file extension decides.",
     "logoUploading": "Uploading …",
     "logoDone": "Logo uploaded (version {v})",
@@ -2160,6 +2178,14 @@
     "boothNotes": "Internal note",
     "contactsTitle": "Contacts",
     "contactsLead": "Who works in the portal for this organisation.",
+    "dataTitle": "Partner details",
+    "dataLead": "What the partner maintains under “Your details”. The team can correct it here — the same data is saved.",
+    "dataSave": "Save details",
+    "dataSaved": "Details saved",
+    "customerNumberAdmin": "Customer number",
+    "customerNumberAdminHint": "From HubSpot. The partner sees it under “Your details”; only the team can change it.",
+    "customerNumberSave": "Save customer number",
+    "customerNumberSaved": "Customer number saved",
     "contactsHint": "Everyone gets their own login — no shared mailboxes. The primary contact sees and maintains the same list in the partner portal.",
     "stageEditorAutomatic": "comes with the booking",
     "stageEditorAdminOnly": "only admins grant roles",
@@ -2406,7 +2432,8 @@
       "submissions": "Submissions",
       "regie": "Show flow",
       "speakerTasks": "Speaker tasks",
-      "production": "Production"
+      "production": "Production",
+      "nextUp": "Next Up"
     },
     "overview": {
       "title": "Overview",
@@ -2982,7 +3009,8 @@
       "team": "Us",
       "roles": "Permissions",
       "duplicates": "Clean-up",
-      "deletions": "Privacy"
+      "deletions": "Privacy",
+      "nextUp": "Next up"
     },
     "entries": {
       "programme": "All stages and days on one board.",
@@ -3424,7 +3452,10 @@
     "tech_presentation_media": "Presentation",
     "tech_special_requirements": "Special",
     "tech_furniture": "Furniture",
-    "colPeopleOnStage": "People on stage"
+    "colPeopleOnStage": "People on stage",
+    "tech_own_laptop": "Own laptop",
+    "tech_video_with_sound": "Video with sound",
+    "techYes": "yes"
   },
   "wiki": {
     "title": "Wiki",
@@ -4519,7 +4550,11 @@
     "action": "Go to Summit 2027",
     "cardSummitWord": "Summit",
     "cardSummitBody": "Programme and applications for masterclasses, company tours, interview tables and side events.",
-    "cardSummitAction": "Go to the summit"
+    "cardSummitAction": "Go to the summit",
+    "nextUpTitle": "Next up",
+    "nextUpWord": "Coming up",
+    "nextUpAction": "Learn more",
+    "volunteerTitle": "Want to be part of it?"
   },
   "talentSummit": {
     "groupLabel": "Summit 2027",
@@ -4539,5 +4574,34 @@
     "unavailable": "Not available right now",
     "untitled": "Session",
     "usageNote": "These slides are for you personally. Please don't pass them on or publish them — the rights remain with the speakers."
+  },
+  "nextUpAdmin": {
+    "title": "Next up",
+    "lead": "Pointers to upcoming events and programmes. Whatever is active and within its time window is shown to every signed-in person on Home in the participant portal.",
+    "add": "Add item",
+    "edit": "Edit",
+    "empty": "No items yet",
+    "emptyBody": "Add one, for example for the next bootcamp. Without items the section is hidden on Home.",
+    "stateLive": "Visible",
+    "stateScheduled": "Scheduled",
+    "stateExpired": "Expired",
+    "stateInactive": "Inactive",
+    "deleteTitle": "Delete item?",
+    "deleteBody": "It disappears from Home immediately. This cannot be undone.",
+    "fieldTitleDe": "Title (DE)",
+    "fieldTitleEn": "Title (EN)",
+    "fieldWordDe": "Keyword (DE)",
+    "fieldWordEn": "Keyword (EN)",
+    "fieldWordHint": "One word above the card, for example Bootcamp or Community.",
+    "fieldTeaserDe": "Short text (DE)",
+    "fieldTeaserEn": "Short text (EN)",
+    "fieldLink": "Link",
+    "fieldLinkHint": "https://… or a portal path such as /summit. External links open a new window.",
+    "fieldStartsAt": "Date",
+    "fieldStartsAtHint": "Optional; shown on the card.",
+    "fieldSort": "Order",
+    "fieldVisibleFrom": "Visible from",
+    "fieldVisibleUntil": "Visible until",
+    "fieldActive": "Active"
   }
 }

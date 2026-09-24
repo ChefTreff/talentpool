@@ -28,6 +28,8 @@ begin
     address_zip        = case when p_data ? 'address_zip' then nullif(btrim(p_data->>'address_zip'), '') else address_zip end,
     address_city       = case when p_data ? 'address_city' then nullif(btrim(p_data->>'address_city'), '') else address_city end,
     address_country    = case when p_data ? 'address_country' then nullif(btrim(p_data->>'address_country'), '') else address_country end,
+    -- PART-059: Adresszusatz. Die Kundennummer steht bewusst nicht hier — die pflegt nur das Team.
+    address_extra      = case when p_data ? 'address_extra' then nullif(btrim(p_data->>'address_extra'), '') else address_extra end,
     website            = case when p_data ? 'website' then nullif(btrim(p_data->>'website'), '') else website end,
     description_de     = case when p_data ? 'description_de' then nullif(btrim(p_data->>'description_de'), '') else description_de end,
     description_en     = case when p_data ? 'description_en' then nullif(btrim(p_data->>'description_en'), '') else description_en end,

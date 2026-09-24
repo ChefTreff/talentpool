@@ -36,18 +36,27 @@ export function SidebarNav({
   const pathname = usePathname();
   const abschnitte = useSeitenAbschnitte(pathname);
 
+  // Drei Ebenen, jede an Farbe **und** Form erkennbar (QS-045, Konrad 24.09.:
+  // „Ebenen hervorheben"): Gruppenköpfe als Versalienzeile im hellen Lila mit
+  // Trennlinie darüber, Punkte in voller Schrift und eingerückt, der aktive
+  // Punkt als helle Pille; die Abschnitte der Seite als dritte, kleinste Ebene
+  // mit Linie links. Vorher standen Köpfe und Punkte im selben Grau und
+  // unterschieden sich nur in der Grösse.
   return (
-    <nav aria-label={label} className="flex flex-col gap-5">
+    <nav aria-label={label} className="flex flex-col gap-4">
       {groups
         .filter((g) => g.items.length > 0)
         .map((group, i) => (
           // Der Index als Schlüssel: zwei Gruppen dürfen dieselbe (auch leere)
           // Überschrift tragen, die Reihenfolge steht fest.
-          <div key={`${group.label}-${i}`}>
+          <div
+            key={`${group.label}-${i}`}
+            className={cn(i > 0 && group.label !== "" && "border-t border-on-navy/15 pt-4")}
+          >
             {/* Ein Bereich mit nur einer Liste braucht keine Überschrift über
                 der Liste — der Bereichsname steht schon oben links. */}
             {group.label !== "" && (
-              <h2 className="ct-eyebrow mb-2 px-2.5 text-on-navy-muted">{group.label}</h2>
+              <h2 className="ct-eyebrow mb-2 px-2.5 text-accent-soft">{group.label}</h2>
             )}
             <ul className="flex flex-col gap-0.5">
               {group.items.map((item) => {
@@ -61,10 +70,9 @@ export function SidebarNav({
                       href={item.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "block rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors",
-                        active
-                          ? "bg-on-navy/15 text-on-navy"
-                          : "text-on-navy-muted hover:bg-on-navy/10 hover:text-on-navy",
+                        "block rounded-ct-sm py-1.5 pr-2.5 ct-label transition-colors",
+                        group.label !== "" ? "pl-4" : "pl-2.5",
+                        active ? "bg-on-navy text-shell-ink" : "text-on-navy hover:bg-on-navy/10",
                       )}
                     >
                       {item.label}

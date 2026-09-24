@@ -38,10 +38,14 @@ export type PartnerOverview = {
       zip: string | null;
       city: string | null;
       country: string | null;
+      /** Adresszusatz (Gebäude, Etage, c/o) — PART-059. */
+      extra: string | null;
     };
     partner_category: string | null;
     /** Vokabular `industry` (0138): Branche, geht als `type` an Swapcard. */
     industry: string | null;
+    /** Kundennummer aus HubSpot (PART-059): der Partner sieht sie, das Team pflegt sie. */
+    customer_number: string | null;
   };
   roles: string[];
   team: boolean;
