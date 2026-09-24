@@ -4526,5 +4526,18 @@
     "navLabel": "Übersicht",
     "eyebrow": "Summit 2027",
     "lead": "Hier findest du die Formate zum Bewerben und alles, woran du gerade dran bist."
+  },
+  "talentSlides": {
+    "navLabel": "Folien",
+    "word": "Nachlese",
+    "title": "Folien nach dem Summit",
+    "lead": "Die Präsentationen, die Speaker für Teilnehmende freigegeben haben — erreichbar nach ihrer Session.",
+    "emptyTitle": "Noch keine Folien",
+    "emptyBody": "Folien erscheinen hier nach der jeweiligen Session, sobald der Speaker sie freigibt. Sehen kannst du sie mit einem Ticket dieser Edition.",
+    "emptyAction": "Zum Programm",
+    "download": "Herunterladen",
+    "unavailable": "Gerade nicht abrufbar",
+    "untitled": "Session",
+    "usageNote": "Die Folien sind für dich persönlich. Bitte gib sie nicht weiter und veröffentliche sie nicht — die Rechte liegen bei den Speakern."
   }
 }
