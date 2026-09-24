@@ -11,7 +11,6 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { PhotoCard } from "@/components/ui/PhotoCard";
-import { DateRow, DateList } from "@/components/ui/DateRow";
 import { InfoList, type InfoEintrag } from "@/components/ui/InfoList";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadEditionInfos, loadMyContacts } from "@/components/kontakt/load";
@@ -19,36 +18,30 @@ import { Anfahrt } from "@/components/kontakt/Anfahrt";
 import { OnboardingNudge } from "./OnboardingNudge";
 import { visibleNavKeys } from "./nav";
 import { getPartnerScope } from "./org";
-import { canEditOnboarding, orgLabel, type PartnerOverview } from "./types";
+import { FristenListe, fristTitel, fristenAuswahl } from "./fristen";
+import { ChecklistView } from "./checkliste/ChecklistView";
+import { canEditOnboarding, orgLabel, type Deliverable, type PartnerOverview } from "./types";
 
 export const dynamic = "force-dynamic";
 
 const PARTNER_MAILBOX = "partner@chef-treff.de";
 
 /**
- * Die nächsten vier Fristen, überfällige zuerst — sie sind der Grund, aus dem
- * man diese Seite morgens öffnet.
- *
- * Ausserhalb der Komponente, weil `Date.now()` im Rumpf einer Komponente
- * unrein ist (`react-hooks/purity`): das Ergebnis hängt vom Zeitpunkt des
- * Renderns ab. Die Seite ist `force-dynamic`, rendert also je Aufruf neu —
- * hier ist der Zeitbezug gewollt und steht deshalb an einer Stelle, an der
- * man ihn sieht.
+ * Die nächsten offenen Aufgaben für die Übersicht (PART-056): was noch zu tun
+ * ist (offen, zurückgewiesen, überfällig), Zurückgewiesenes und Überfälliges
+ * zuerst, dann nach Frist, ohne Frist zuletzt.
  */
-function fristenAuswahl(deadlines: PartnerOverview["deadlines"]) {
-  const jetzt = Date.now();
-  const mitFrist = deadlines.filter((d) => d.due_at);
-  const ueberfaellig = mitFrist
-    .filter((d) => new Date(d.due_at!).getTime() <= jetzt)
-    .sort((a, b) => b.due_at!.localeCompare(a.due_at!));
-  const kommend = mitFrist
-    .filter((d) => new Date(d.due_at!).getTime() > jetzt)
-    .sort((a, b) => a.due_at!.localeCompare(b.due_at!));
-  return {
-    fristen: [...ueberfaellig, ...kommend].slice(0, 4),
-    naechste: kommend[0] ?? null,
-    jetzt,
-  };
+function naechsteOffene(deliverables: Deliverable[], anzahl: number): Deliverable[] {
+  const rang = (d: Deliverable) => (d.status === "rejected" ? 0 : d.status === "overdue" ? 1 : 2);
+  return deliverables
+    .filter((d) => d.status === "open" || d.status === "rejected" || d.status === "overdue")
+    .sort(
+      (a, b) =>
+        rang(a) - rang(b) ||
+        (a.due_at ?? "9999").localeCompare(b.due_at ?? "9999") ||
+        a.sort - b.sort,
+    )
+    .slice(0, anzahl);
 }
 
 /**
@@ -96,8 +89,13 @@ export default async function PartnerDashboard() {
   }
 
   const supabase = await createSupabaseServerClient();
-  const [{ data: overviewJson }, vocab, kontakte, infos] = await Promise.all([
+  const [{ data: overviewJson }, { data: deliverableRows }, vocab, kontakte, infos] = await Promise.all([
     supabase.rpc("partner_overview", {
+      p_org_id: current.org_id,
+      p_edition_id: current.edition_id,
+    }),
+    // PART-056: die nächsten Aufgaben stehen hier schon, abhakbar.
+    supabase.rpc("my_deliverables", {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
     }),
@@ -121,10 +119,9 @@ export default async function PartnerDashboard() {
     day: "numeric",
     month: "short",
   });
+  const naechsteAufgaben = naechsteOffene((deliverableRows ?? []) as Deliverable[], 5);
   const productName = (p: { name_de: string | null; name_en: string | null }) =>
     (locale === "en" ? p.name_en : p.name_de) ?? p.name_de ?? p.name_en ?? "—";
-  const deadlineLabel = (d: { label_de: string | null; label_en: string | null; key: string }) =>
-    (locale === "en" ? d.label_en : d.label_de) ?? d.label_de ?? d.key;
 
   const zeiten: InfoEintrag[] = infos
     .map((i) => ({
@@ -148,7 +145,7 @@ export default async function PartnerDashboard() {
   const onboardingOffen = status !== "filled" && status !== "call_done";
   const darfOnboarding = canEditOnboarding(o.roles, o.team);
 
-  const { fristen, naechste, jetzt } = fristenAuswahl(o.deadlines);
+  const { fristen, naechste, jetzt } = fristenAuswahl(o.deadlines, 4);
   /**
    * Das Lunch-Paket ist ein Angebot, kein Muss (PART-049). Der Hinweis steht
    * hier, solange seine Frist läuft — ist sie vorbei, hilft er niemandem mehr.
@@ -264,7 +261,7 @@ export default async function PartnerDashboard() {
           <BandStat
             value={naechste ? kurzDatum.format(new Date(naechste.due_at!)) : "—"}
             label={t.partner.bandStatLabel}
-            hint={naechste ? deadlineLabel(naechste) : t.partner.bandStatNone}
+            hint={naechste ? fristTitel(naechste, locale) : t.partner.bandStatNone}
           />
         }
       />
@@ -316,96 +313,92 @@ export default async function PartnerDashboard() {
         <StatCard label={t.partner.statContacts} value={o.contacts_count} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Fristen als Zeilen mit Datumsspalte — überfällige zuerst und mit
-            Balken. Vorher standen sie als Absatz mit Datum darin, und man
-            sah nicht, was brennt (Termin-Zeile, `319:692`). */}
-        <Card className="p-0">
-          <div className="flex items-center justify-between gap-4 border-b px-4 py-3">
-            <h2 className="ct-h2 text-ink">{t.partner.deadlinesTitle}</h2>
-            <Link href="/partner/checkliste" className="ct-link ct-small">
-              {t.partner.deadlinesAll}
-            </Link>
-          </div>
-          {fristen.length === 0 ? (
-            <p className="ct-help px-4 py-6">{t.partner.deadlinesNone}</p>
-          ) : (
-            <DateList>
-              {fristen.map((d) => {
-                const spaet = new Date(d.due_at!).getTime() <= jetzt;
-                return (
-                  <DateRow
-                    key={d.key}
-                    date={kurzDatum.format(new Date(d.due_at!))}
-                    note={spaet ? t.partner.deadlineOverdue : undefined}
-                    overdue={spaet}
-                    title={deadlineLabel(d)}
-                    subtitle={
-                      (locale === "en" ? d.description_en : d.description_de) ?? undefined
-                    }
-                  />
-                );
-              })}
-            </DateList>
-          )}
-        </Card>
-
-        <Card>
-          <h2 className="ct-h2 text-ink">{t.partner.checklistTitle}</h2>
-          <p className="ct-help mt-1">
+      {/* PART-056/057: „Eure Pflichten“ und „Fristen“ in einem Abschnitt. Links die
+          nächsten offenen Aufgaben — dieselbe Liste wie auf der Checkliste, also
+          gleich hier abhakbar —, rechts die Fristen; „Alle Fristen“ führt zu
+          ihrem Abschnitt auf der Checkliste, wo sie jetzt auch stehen. */}
+      <section aria-labelledby="aufgaben-fristen" className="mb-8">
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="aufgaben-fristen" className="ct-h2 text-ink">
+            {t.partner.tasksSectionTitle}
+          </h2>
+          <span className="ct-help tabular-nums">
             {t.partner.checklistDone
               .replace("{done}", String(o.checklist.done))
               .replace("{total}", String(o.checklist.total))}
-          </p>
-          <div
-            className="mt-3 h-2 w-full overflow-hidden rounded-ct-sm bg-surface-hover"
-            role="img"
-            aria-label={t.partner.checklistDone
-              .replace("{done}", String(o.checklist.done))
-              .replace("{total}", String(o.checklist.total))}
-          >
-            <div
-              className="h-full bg-accent"
-              style={{
-                width: `${o.checklist.total > 0 ? Math.round((o.checklist.done / o.checklist.total) * 100) : 0}%`,
-              }}
-            />
+            {o.checklist.overdue > 0 && ` · ${o.checklist.overdue} ${t.partner.statOverdue}`}
+          </span>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <h3 className="ct-h3 mb-2 text-ink">{t.partner.nextTasksTitle}</h3>
+            {naechsteAufgaben.length === 0 ? (
+              <Card>
+                <p className="ct-help">
+                  {o.checklist.total > 0 ? t.partner.nextTasksNone : t.partnerChecklist.emptyBody}
+                </p>
+              </Card>
+            ) : (
+              <ChecklistView
+                orgId={current.org_id}
+                editionId={current.edition_id}
+                groups={[{ sku: null, label: t.partner.nextTasksTitle, items: naechsteAufgaben }]}
+                booth={o.booth}
+                canEdit={darfOnboarding}
+                variant="naechste"
+                locale={locale}
+                dateLocale={t.meta.dateLocale}
+                fristTexte={{
+                  label: t.partnerChecklist.deadlineLabel,
+                  days: t.partner.countdownDays,
+                  hours: t.partner.countdownHours,
+                  soon: t.partner.countdownSoon,
+                  passed: t.common.deadlinePassed,
+                  done: t.common.deadlineDone,
+                }}
+                t={t.partnerChecklist}
+                rpcMessages={t.rpc}
+              />
+            )}
+            <Link href="/partner/checkliste" className="ct-link mt-3 inline-block">
+              {t.partner.nextTasksAll}
+            </Link>
+            {/* PART-049: Das Lunch-Paket soll jeder Partner sehen, ohne dafür in
+                den Messeshop zu gehen — solange es offen ist und nicht ohnehin
+                unter den nächsten Aufgaben steht. */}
+            {lunchOffen && !naechsteAufgaben.some((d) => d.key === "lunch_package") && (
+              <div className="mt-4 border-t border-border pt-3">
+                <h4 className="ct-label text-ink">{t.partner.lunchCardTitle}</h4>
+                <p className="ct-help mt-1">{t.partner.lunchCardBody}</p>
+                <Link href="/partner/checkliste" className="ct-link mt-2 inline-block">
+                  {t.partner.lunchCardAction}
+                </Link>
+              </div>
+            )}
           </div>
-          <dl className="ct-help mt-3 flex flex-wrap gap-x-4 gap-y-1">
-            <div className="flex gap-1">
-              <dt className="font-semibold">{t.partner.statOpen}:</dt>
-              <dd className="tabular-nums">{o.checklist.open}</dd>
-            </div>
-            {o.checklist.rejected > 0 && (
-              <div className="flex gap-1">
-                <dt className="font-semibold">{t.partner.statRejected}:</dt>
-                <dd className="tabular-nums">{o.checklist.rejected}</dd>
-              </div>
-            )}
-            {o.checklist.overdue > 0 && (
-              <div className="flex gap-1 text-error-ink">
-                <dt className="font-semibold">{t.partner.statOverdue}:</dt>
-                <dd className="tabular-nums">{o.checklist.overdue}</dd>
-              </div>
-            )}
-          </dl>
-          <Link href="/partner/checkliste" className="ct-link mt-3 inline-block">
-            {t.partner.checklistOpen}
-          </Link>
-          {/* PART-049: Das Lunch-Paket soll jeder Partner sehen, ohne dafür in
-              den Messeshop zu gehen. Es steht hier, solange es offen ist —
-              danach verschwindet der Hinweis von selbst. */}
-          {lunchOffen && (
-            <div className="mt-4 border-t border-border pt-3">
-              <h3 className="ct-label text-ink">{t.partner.lunchCardTitle}</h3>
-              <p className="ct-help mt-1">{t.partner.lunchCardBody}</p>
-              <Link href="/partner/checkliste" className="ct-link mt-2 inline-block">
-                {t.partner.lunchCardAction}
-              </Link>
-            </div>
-          )}
-        </Card>
+          <div>
+            <h3 className="ct-h3 mb-2 text-ink">{t.partner.deadlinesTitle}</h3>
+            <Card className="p-0">
+              {fristen.length === 0 ? (
+                <p className="ct-help px-4 py-6">{t.partner.deadlinesNone}</p>
+              ) : (
+                <FristenListe
+                  fristen={fristen}
+                  jetzt={jetzt}
+                  locale={locale}
+                  dateLocale={t.meta.dateLocale}
+                  overdueLabel={t.partner.deadlineOverdue}
+                />
+              )}
+            </Card>
+            <Link href="/partner/checkliste#fristen" className="ct-link mt-3 inline-block">
+              {t.partner.deadlinesAll}
+            </Link>
+          </div>
+        </div>
+      </section>
 
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <h2 className="ct-h2 text-ink">{t.partner.productsTitle}</h2>
           <ul className="mt-2 flex flex-col gap-1">
