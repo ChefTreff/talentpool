@@ -235,4 +235,10 @@ describe("Shell des Teilnehmer-Portals (TAL-004)", () => {
     assert.doesNotMatch(src, /area=\{home/);
     assert.doesNotMatch(src, /getMyAreas/);
   });
+
+  it("führt Home und die Seitengruppe Summit (TAL-005, D11)", () => {
+    assert.match(src, /href: "\/start"/);
+    assert.match(src, /label: t\.talentSummit\.groupLabel/);
+    assert.match(src, /href: "\/summit"/);
+  });
 });

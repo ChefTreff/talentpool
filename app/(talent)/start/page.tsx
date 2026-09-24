@@ -3,30 +3,25 @@ import { requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ButtonLink } from "@/components/ui/Button";
-import { HeroBand, BandStat } from "@/components/ui/HeroBand";
+import { HeroBand } from "@/components/ui/HeroBand";
 import { PhotoCard } from "@/components/ui/PhotoCard";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Die Startseite des Teilnehmer-Portals — eine **Menüseite**: was kann ich
- * hier tun, und wo fange ich an (Konrad, 22.09.2026).
+ * „Home" — die allgemeine Startseite des Teilnehmer-Portals (TAL-005, D11,
+ * Konrad 24.09.2026).
  *
- * Bis dahin begann das Portal auf `/profil` (Entscheidung F8.4, „keine eigene
- * Übersicht"). Das hiess: Wer sich anmeldete, landete in einem Formular und
- * musste raten, dass es daneben noch Programm und Anmeldungen gibt. Jedes
- * andere Portal hat eine Übersicht; dieses hatte als einziges keine.
+ * Das Portal ist das Front-End des Talent-CRM und gilt übergreifend, nicht
+ * nur für den Summit. Deshalb beginnt es nicht mehr auf der Summit-Seite
+ * (die heißt jetzt `/summit` und steht in der Seitengruppe „Summit 2027"),
+ * sondern hier: wer bin ich, was gibt es, wo geht es weiter. Weitere Formate
+ * (Community-Events, Bootcamp) kommen als eigene Gruppen dazu, „Next Up" und
+ * die Volunteer-Kachel mit TAL-006.
  *
- * Die drei Wege stehen als `PhotoCard` — der Baustein aus dem Detail-Block
- * der Website, gemacht für „Dinge, die man einmal liest und dann nicht mehr".
- * Genau das ist eine Menüseite. Als Zeilenliste wäre sie richtig, wenn es
- * zehn Einträge wären; bei dreien ist die Kartenform die, die einlädt.
- *
- * **Dieselbe Weiche wie `/profil`:** Wer das Onboarding nicht hinter sich
- * hat, wird dorthin geschickt. Eine Menüseite mit vier Wegen, von denen drei
- * erst nach dem Onboarding etwas zeigen, wäre eine Sackgasse mit Aussicht.
+ * **Dieselbe Weiche wie `/profil`:** ohne Onboarding geht es dorthin.
  */
-export default async function TalentStartPage() {
+export default async function TalentHomePage() {
   const user = await requireUser("/start");
   const { t } = await getI18n();
 
@@ -42,20 +37,6 @@ export default async function TalentStartPage() {
     redirect("/onboarding");
   }
 
-  // Woran man gerade dran ist. **Dieselben Quellen wie `/meine`**, nicht
-  // eigene Abfragen: `my_applications()` maskiert Entscheidungen bis zur
-  // Freigabe, und `registration` ist die Tabelle dahinter. Hier etwas
-  // Eigenes zu zählen hiesse, dass Übersicht und Detailseite verschiedene
-  // Zahlen zeigen können.
-  const [{ data: bewerbungen }, { count: anmeldungen }] = await Promise.all([
-    supabase.rpc("my_applications"),
-    supabase
-      .from("registration")
-      .select("id", { count: "exact", head: true })
-      .not("session_id", "is", null),
-  ]);
-  const laufend = ((bewerbungen as unknown[] | null)?.length ?? 0) + (anmeldungen ?? 0);
-
   const vorname = person.first_name.trim();
 
   return (
@@ -64,35 +45,18 @@ export default async function TalentStartPage() {
         eyebrow={t.areas.talent.portal}
         title={t.talentStart.greeting.replace("{name}", vorname)}
         highlight={t.talentStart.greetingHighlight}
-        lead={t.talentStart.lead}
-        action={<ButtonLink href="/programm">{t.talentStart.action}</ButtonLink>}
-        aside={
-          <BandStat
-            value={String(laufend)}
-            label={t.talentStart.statLabel}
-            hint={laufend > 0 ? t.talentStart.statHint : t.talentStart.statNone}
-          />
-        }
+        lead={t.talentHome.lead}
+        action={<ButtonLink href="/summit">{t.talentHome.action}</ButtonLink>}
       />
 
-      <div className="grid gap-6 sm:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2">
         <PhotoCard
-          word={t.talentStart.cardProgrammeWord}
-          title={t.programme.title}
-          description={t.talentStart.cardProgrammeBody}
+          word={t.talentHome.cardSummitWord}
+          title={t.talentSummit.groupLabel}
+          description={t.talentHome.cardSummitBody}
           action={
-            <ButtonLink href="/programm" variant="secondary" size="sm">
-              {t.talentStart.cardProgrammeAction}
-            </ButtonLink>
-          }
-        />
-        <PhotoCard
-          word={t.talentStart.cardMineWord}
-          title={t.participation.title}
-          description={t.talentStart.cardMineBody}
-          action={
-            <ButtonLink href="/meine" variant="secondary" size="sm">
-              {t.talentStart.cardMineAction}
+            <ButtonLink href="/summit" variant="secondary" size="sm">
+              {t.talentHome.cardSummitAction}
             </ButtonLink>
           }
         />
