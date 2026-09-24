@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { migrationText } from "./migration-datei";
+import { migrationText } from "@/tests/migration-datei";
 import {
   cleanLanguages,
   EDITABLE_CONSENTS,
