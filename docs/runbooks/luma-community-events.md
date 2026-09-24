@@ -12,7 +12,7 @@ Stand: 24.09.2026 · Talent-Chat · Entscheidung **D12: Hybrid über die Luma-AP
 
 ## Baustufen
 1. **Adapter mit Trockenlauf und Fixtures** (dieser Stand): `lib/luma/` — `core.ts` (Client, testbar), `client.ts` (Server-Einstieg mit Schlüssel), `mapping.ts` (reine Abbildung), `types.ts`. Tests: `tests/luma.test.ts` mit `tests/fixtures/luma/*.json`. Probe gegen den echten Kalender: `scripts/luma-probe.mjs` (nur lesend).
-2. **Events-Seite und Anmeldung** (TAL-007): Liste und Event-Seite im Portal, Knopf „Anmelden" → `addGuests({ live: true })`; Teilnahme-Tabelle als Migrationsvorschlag.
+2. **Events-Seite und Anmeldung** (TAL-007): `/events` (Liste) und `/events/[id]` (Event-Seite), Knopf „Mit meinem Profil anmelden" → `addGuests({ live: true })`, danach `luma_sync_event` + `luma_sync_registration` (Migrationsvorschlag `v6_luma_events`: `event` mit `format_tag = community`, `external_ref` system `luma`, `registration` mit `source = luma`). Schreibt erst mit `LUMA_WRITE_ENABLED=true`; nur Events aus `LUMA_CALENDAR_ID`.
 3. **Rücklauf** (TAL-007/008): Cron gleicht Gäste je Event ab (`listGuests`) und schreibt die Teilnahme ins Profil; Admin-Sicht „Community-Events" (Zuordnung und Sicht statt Pflege).
 
 ## API (gelesen am 24.09.2026 aus `https://public-api.luma.com/openapi.json`)
