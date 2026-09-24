@@ -59,6 +59,7 @@ type Stats = {
 export function Board({
   basePath,
   canPublish = true,
+  editableStageIds,
   hostOrgId,
   events,
   currentEventId,
@@ -82,6 +83,23 @@ export function Board({
    * die Oberfläche bietet den Knopf nur an, wo er auch greifen kann.
    */
   canPublish?: boolean;
+  /**
+   * Welche Bühnen in **dieser Sicht** bearbeitbar sind (LEAD-016).
+   *
+   * `undefined` heisst: keine Einschränkung durch die Sicht — dann entscheidet
+   * allein `can_edit` je Zeile, wie im Admin-Programm.
+   *
+   * Konrad, 24.09.: er konnte auf jeder Bühne Slots anlegen und verschieben.
+   * Die Datenbank war dicht (`create_slot` prüft `can_edit_stage`, `move_slot`
+   * die Zielbühne) — er sah alles, **weil er admin ist**. Genau das ist der
+   * Fehler: eine Bühnensicht muss der Rolle des Portals folgen, nicht der
+   * stärksten Rolle der Person. Wer im Partner-Portal auf seine Bühne schaut,
+   * arbeitet dort als Partner, auch wenn er nebenbei Admin ist.
+   *
+   * Die Liste **verengt** nur. Sie ist keine Rechtegrenze — die steht in den
+   * RPCs und bleibt dort.
+   */
+  editableStageIds?: readonly string[];
   /** Gastgebende Org für neu angelegte Sessions (Partner-Bühne). */
   hostOrgId?: string;
   events: { id: string; slug: string; name: string }[];
@@ -114,6 +132,18 @@ export function Board({
   const gridRef = useRef<HTMLDivElement>(null);
 
   const day = days.find((d) => d.id === currentDayId) ?? null;
+
+  /**
+   * Darf in dieser Sicht auf dieser Bühne gearbeitet werden?
+   *
+   * Eine Stelle, vier Verwendungen: Karte ziehbar, Spalte als Ziel, Doppelklick
+   * legt an, Kopfzeile beschriftet. Vier eigene Vergleiche wären vier Stellen,
+   * an denen die Sicht auseinanderläuft.
+   */
+  const bearbeitbar = useCallback(
+    (stageId: string) => !editableStageIds || editableStageIds.includes(stageId),
+    [editableStageIds],
+  );
   const dateLocale = locale === "en" ? "en-GB" : "de-DE";
 
   const sensors = useSensors(
@@ -290,6 +320,10 @@ export function Board({
     const overId = String(event.over?.id ?? "");
     if (!overId.startsWith("stage:") || !day) return;
     const stageId = overId.slice("stage:".length);
+    // Auf einer fremden Bühne wird nichts abgelegt — auch nicht aus dem
+    // Backlog, wo sonst ein Slot auf einer Bühne entstünde, die man hier gar
+    // nicht bearbeiten darf.
+    if (!bearbeitbar(stageId)) return;
     const startMin = minutesFromDrop(event);
     if (startMin === null) return;
 
@@ -359,7 +393,7 @@ export function Board({
 
   /** Doppelklick auf freie Fläche legt einen leeren Slot an. */
   function onColumnDoubleClick(stage: BoardStage, e: React.MouseEvent<HTMLDivElement>) {
-    if (!day) return;
+    if (!day || !bearbeitbar(stage.id)) return;
     if ((e.target as HTMLElement).closest("[data-slot-card]")) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const startMin = minutesFromOffset(e.clientY - rect.top, windowStart, windowEnd);
@@ -482,7 +516,13 @@ export function Board({
                 const st = statsByStage.get(s.id);
                 return (
                   <div key={s.id} className="border-l px-3 py-2">
-                    <div className="ct-label text-ink">{s.name}</div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="ct-label text-ink">{s.name}</span>
+                      {/* Nur Farbe zu ändern reichte nicht: der Unterschied
+                          muss auch da sein, wo Farben nicht unterschieden
+                          werden (Design-Regel 4). */}
+                      {!bearbeitbar(s.id) && <Badge>{t.stageReadOnly}</Badge>}
+                    </div>
                     <div className="ct-help">
                       {st
                         ? `${st.slots_used}${st.slot_quota ? ` / ${st.slot_quota}` : ""} ${t.slotsUsed}`
@@ -520,6 +560,7 @@ export function Board({
                 <StageColumn
                   key={stage.id}
                   stage={stage}
+                  editable={bearbeitbar(stage.id)}
                   windowStart={windowStart}
                   hourMarks={hourMarks}
                   onDoubleClick={(e) => onColumnDoubleClick(stage, e)}
@@ -528,6 +569,7 @@ export function Board({
                     <SlotCard
                       key={slot.slot_id}
                       slot={slot}
+                      editable={bearbeitbar(slot.stage_id)}
                       timezone={timezone}
                       windowStart={windowStart}
                       labels={labels}
@@ -611,23 +653,34 @@ export function Board({
 
 function StageColumn({
   stage,
+  editable,
   windowStart,
   hourMarks,
   onDoubleClick,
   children,
 }: {
   stage: BoardStage;
+  /** Nur in dieser Sicht (LEAD-016) — die Rechtegrenze steht in den RPCs. */
+  editable: boolean;
   windowStart: number;
   hourMarks: number[];
   onDoubleClick: (e: React.MouseEvent<HTMLDivElement>) => void;
   children: React.ReactNode;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: `stage:${stage.id}` });
+  // `disabled` statt „kein Droppable": so bleibt die Spalte im selben Raster
+  // und die Karten darin sichtbar — nur als Ziel taugt sie nicht mehr.
+  const { setNodeRef, isOver } = useDroppable({ id: `stage:${stage.id}`, disabled: !editable });
   return (
     <div
       ref={setNodeRef}
       onDoubleClick={onDoubleClick}
-      className={cn("relative border-l", isOver && "bg-accent-soft/40")}
+      className={cn(
+        "relative border-l",
+        isOver && editable && "bg-accent-soft/40",
+        // Ruhiger Grund, nicht ausgegraut: die fremde Bühne ist weiter zum
+        // Lesen da — man plant schliesslich um sie herum.
+        !editable && "bg-canvas",
+      )}
     >
       {hourMarks.map((m) => (
         <div
@@ -643,6 +696,7 @@ function StageColumn({
 
 function SlotCard({
   slot,
+  editable,
   timezone,
   windowStart,
   labels,
@@ -652,6 +706,13 @@ function SlotCard({
   onResize,
 }: {
   slot: BoardSlot;
+  /**
+   * Ob die Sicht diese Bühne bearbeiten lässt (LEAD-016). Zusammen mit
+   * `slot.can_edit` — **beides** muss gelten. `can_edit` kommt aus der
+   * Datenbank und bleibt die Wahrheit; das hier ist die engere Frage, ob es
+   * in **diesem** Portal auch angeboten wird.
+   */
+  editable: boolean;
   timezone: string;
   windowStart: number;
   labels: BoardLabels;
@@ -660,10 +721,14 @@ function SlotCard({
   onOpen: () => void;
   onResize: (deltaPx: number) => void;
 }) {
+  // Beides muss gelten: `can_edit` aus der Datenbank und die Sichtregel des
+  // Portals (LEAD-016). Einmal ausgerechnet, viermal benutzt.
+  const ziehbar = slot.can_edit && editable;
+
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: slot.slot_id,
     data: { kind: "slot", slot },
-    disabled: !slot.can_edit,
+    disabled: !ziehbar,
   });
 
   const startMin = minutesOfDay(slot.start_at, timezone);
@@ -702,7 +767,7 @@ function SlotCard({
         SLOT_STATUS_STYLE[slot.slot_status] ?? SLOT_STATUS_STYLE.open,
         isDragging && "opacity-40",
         resizing && "ring-2 ring-accent",
-        slot.can_edit ? "cursor-grab" : "cursor-default",
+        ziehbar ? "cursor-grab" : "cursor-default",
       )}
     >
       {/* `attributes` nur, wenn wirklich gezogen werden darf: sonst kündigt
@@ -710,7 +775,7 @@ function SlotCard({
           Bühnen nicht gibt. Rolle, Fokus und Enter stehen darunter, das Öffnen
           bleibt also möglich. */}
       <div
-        {...(slot.can_edit ? { ...listeners, ...attributes } : {})}
+        {...(ziehbar ? { ...listeners, ...attributes } : {})}
         onClick={onOpen}
         role="button"
         tabIndex={0}
@@ -737,7 +802,7 @@ function SlotCard({
           </div>
         )}
       </div>
-      {slot.can_edit && (
+      {ziehbar && (
         <div
           onPointerDown={startResize}
           role="separator"
