@@ -23,6 +23,7 @@ export type RpcFailure = {
 const BUSINESS_KEYS = new Set([
   "confirmation_required",
   "outside_stage_day",
+  "not_presentation",
   "partner_not_in_edition",
   "partner_host_mismatch",
   "deadline_passed",
@@ -79,6 +80,8 @@ const BUSINESS_KEYS = new Set([
   "tour_not_found",
   "stop_not_found",
   "invalid_type",
+  // Profilfelder mit Vokabular (TAL-013, Trigger person_vocab_guard)
+  "invalid_vocab_value",
   "too_many_questions",
   "invalid_time",
   "invalid_vocab",

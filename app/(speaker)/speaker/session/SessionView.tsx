@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { saveSpeakerConsents } from "../actions";
+import { FolienTeilenDialog } from "./FolienTeilenDialog";
 import { formatRange } from "@/lib/tz";
 import type { Locale } from "@/lib/i18n/shared";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -14,6 +16,8 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/Modal";
+import { KalenderKnoepfe } from "@/components/ui/KalenderKnoepfe";
+import { FristMarke } from "@/components/ui/FristMarke";
 import {
   deleteAsset,
   registerAsset,
@@ -77,7 +81,15 @@ export function SessionView({
   t: Strings;
   /** Texte des Titel-Assistenten (SPK-012) — eigener Block, `t` bleibt flach. */
   assistant: Strings;
-  common: { cancel: string; choose: string; none: string; required: string; save: string };
+  common: {
+    cancel: string;
+    choose: string;
+    none: string;
+    required: string;
+    save: string;
+    deadlinePassed: string;
+    deadlineDone: string;
+  };
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
@@ -86,6 +98,8 @@ export function SessionView({
   const [uploading, setUploading] = useState<string | null>(null);
   /** Welche Folien gerade zum Entfernen anstehen (SPK-028). */
   const [loeschen, setLoeschen] = useState<SpeakerAsset | null>(null);
+  /** Welche Folien gerade gefragt werden, ob sie geteilt werden (SPK-055). */
+  const [teilen, setTeilen] = useState<{ assetId: string; dateiname: string } | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, {
@@ -142,6 +156,11 @@ export function SessionView({
           ? `${t.uploadDone} · ${t.uploadLate}`
           : `${t.uploadDone} (v${res.data.version})`,
       );
+      // Direkt nach dem Upload fragen, nicht irgendwann (SPK-055): jetzt ist
+      // die Datei im Kopf. Die Assistenz fragen wir nicht — teilen darf nur
+      // die Speakerin (`set_slides_release`), und eine Frage, deren Antwort
+      // abgewiesen würde, ist keine.
+      if (!isAssistant && res.data.id) setTeilen({ assetId: res.data.id, dateiname: file.name });
       router.refresh();
     } finally {
       setUploading(null);
@@ -178,6 +197,29 @@ export function SessionView({
       }
       setLoeschen(null);
       toast("success", t.slidesDeleted);
+      router.refresh();
+    });
+  }
+
+  /** „Ja, teilen" im Dialog — die Einwilligung zuerst, wenn sie noch fehlt. */
+  function onTeilenJa() {
+    if (!teilen) return;
+    const assetId = teilen.assetId;
+    startTransition(async () => {
+      if (!slidesConsent) {
+        const c = await saveSpeakerConsents({ slides_publication: true });
+        if (!c.ok) {
+          toast("error", message(c.key));
+          return;
+        }
+      }
+      const res = await setSlidesRelease(assetId, true);
+      if (!res.ok) {
+        toast("error", message(res.key));
+        return;
+      }
+      setTeilen(null);
+      toast("success", t.shareDone);
       router.refresh();
     });
   }
@@ -243,11 +285,31 @@ export function SessionView({
           onUpload={onUpload}
           onDownload={onDownload}
           onSlides={onSlides}
+          onShare={(a) =>
+            setTeilen({ assetId: a.id, dateiname: a.filename ?? a.storage_path.split("/").pop() ?? "" })
+          }
           onDelete={setLoeschen}
           onSubmitted={() => router.refresh()}
           toast={toast}
         />
       ))}
+
+      {teilen && (
+        <FolienTeilenDialog
+          dateiname={teilen.dateiname}
+          pending={pending}
+          onJa={onTeilenJa}
+          onNein={() => setTeilen(null)}
+          t={{
+            title: t.shareTitle,
+            body: t.shareBody,
+            who: t.shareWho,
+            undo: t.shareUndo,
+            yes: t.shareYes,
+            no: t.shareNo,
+          }}
+        />
+      )}
 
       {loeschen && (
         <ConfirmDialog
@@ -283,6 +345,7 @@ function SessionCard({
   onUpload,
   onDownload,
   onSlides,
+  onShare,
   onDelete,
   onSubmitted,
   toast,
@@ -300,11 +363,21 @@ function SessionCard({
   t: Strings;
   /** Texte des Titel-Assistenten — eigener Block, damit `t` flach bleibt. */
   assistant: Strings;
-  common: { cancel: string; choose: string; none: string; required: string; save: string };
+  common: {
+    cancel: string;
+    choose: string;
+    none: string;
+    required: string;
+    save: string;
+    deadlinePassed: string;
+    deadlineDone: string;
+  };
   message: (key: string) => string;
   onUpload: (session: MySession, file: File) => void;
   onDownload: (asset: SpeakerAsset) => void;
   onSlides: (asset: SpeakerAsset, release: boolean) => void;
+  /** Die Teilen-Frage für eine vorhandene Datei öffnen (SPK-055). */
+  onShare: (asset: SpeakerAsset) => void;
   onDelete: (asset: SpeakerAsset) => void;
   onSubmitted: () => void;
   toast: (tone: "success" | "error", text: string) => void;
@@ -369,15 +442,22 @@ function SessionCard({
           {session.stage_name && <span>· {session.stage_name}</span>}
           {session.room && <span>· {session.room}</span>}
           {/* Der Termin zum Mitnehmen (SPK-014). Nur mit Slot — ohne Zeit gibt
-              es nichts einzutragen. Ein einfacher Link, kein Knopf: die Seite
-              hat ihre primäre Aktion schon im Einreichen. */}
+              es nichts einzutragen. Seit QS-043 dieselben drei Zeichen wie auf
+              der Übersicht; vorher stand hier nur der Apple-Weg als Textlink.
+              Zeichen statt Knopf: die Seite hat ihre primäre Aktion schon im
+              Einreichen. */}
           {session.start_at && (
-            <a
-              className="ct-link"
-              href={`/api/speaker/kalender?session=${session.session_id}`}
-            >
-              {t.calendarAdd}
-            </a>
+            <KalenderKnoepfe
+              beschriftung="sichtbar"
+              termin={{
+                titel: finalTitle ?? t.untitled,
+                start: new Date(session.start_at),
+                ende: session.end_at ? new Date(session.end_at) : null,
+                ort: [session.stage_name, session.room].filter(Boolean).join(", ") || null,
+              }}
+              ics={`/api/speaker/kalender?session=${session.session_id}`}
+              t={{ add: t.calendarAdd, google: t.calGoogle, outlook: t.calOutlook, apple: t.calApple }}
+            />
           )}
         </div>
         <h2 className="ct-h2 mt-1 text-ink">{finalTitle ?? t.untitled}</h2>
@@ -563,12 +643,35 @@ function SessionCard({
       {/* Präsentation */}
     <Card id="praesentation" className="scroll-mt-20 p-6">
       <div>
-        <h2 className="ct-h2 mb-1 text-ink">{t.presentationTitle}</h2>
-        <p className="ct-help">
-          {due ? `${t.deadline}: ${dateTime.format(new Date(due))}` : t.deadlineUnknown}
+        {/* Die Frist gehört in den Kopf des Abschnitts, rechts neben den Titel
+            (QS-044, Konrad 24.09.: „deutlich größer, farblich hervorgehoben,
+            rechtsbündig in der Zeile des Sektionskopfs"). Vorher stand sie als
+            graue Hilfezeile darunter. */}
+        <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
+          <h2 className="ct-h2 text-ink">{t.presentationTitle}</h2>
+          {due && (
+            <FristMarke
+              className="ml-auto"
+              dueAt={due}
+              dateText={dateTime.format(new Date(due))}
+              vorbei={lateNow}
+              erledigt={assets.length > 0}
+              t={{
+                label: t.deadline,
+                days: t.dueDays,
+                hours: t.dueHours,
+                soon: t.dueSoon,
+                passed: common.deadlinePassed,
+                done: common.deadlineDone,
+              }}
+            />
+          )}
+        </div>
+        {!due && <p className="ct-help">{t.deadlineUnknown}</p>}
+        <p className="ct-help mt-1">
+          {t.uploadHint}
           {lateNow && ` — ${t.deadlinePassedHint}`}
         </p>
-        <p className="ct-help mt-1">{t.uploadHint}</p>
 
         {/* Der gemeinsame Baustein statt eines rohen Dateifelds (QS-025) —
             genau die Stelle, an der es Konrad aufgefallen ist. Als Knopf
@@ -602,23 +705,29 @@ function SessionCard({
                     <Badge tone={TECH_TONE[a.tech_check_status] ?? "neutral"}>
                       {t[`tech_${a.tech_check_status}`] ?? a.tech_check_status}
                     </Badge>
-                    {a.slides_release && <Badge tone="accent">{t.slidesReleased}</Badge>}
+                    {a.is_current && (
+                      <Badge tone={a.slides_release ? "accent" : "neutral"}>
+                        {a.slides_release ? t.shareStateOn : t.shareStateOff}
+                      </Badge>
+                    )}
                   </div>
                   {a.tech_check_note && <p className="ct-help mt-1">{a.tech_check_note}</p>}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Summit Slides entscheidet nur der Speaker, nicht die Assistenz. */}
+                  {/* Teilen entscheidet nur die Speakerin, nicht die Assistenz
+                      (SPK-055). Statt einer Checkbox mit unklarem Namen steht
+                      hier, was passiert — und ein Knopf, der es ändert. Die
+                      Frage öffnet denselben Dialog wie nach dem Upload. */}
                   {!isAssistant && a.is_current && (
-                    <label className="flex items-center gap-2 ct-help">
-                      <input
-                        type="checkbox"
-                        className="size-4"
-                        checked={a.slides_release}
-                        disabled={pending || (!slidesConsent && !a.slides_release)}
-                        onChange={(e) => onSlides(a, e.target.checked)}
-                      />
-                      {t.slidesRelease}
-                    </label>
+                    a.slides_release ? (
+                      <Button size="sm" variant="ghost" disabled={pending} onClick={() => onSlides(a, false)}>
+                        {t.shareStop}
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="secondary" disabled={pending} onClick={() => onShare(a)}>
+                        {t.shareAsk}
+                      </Button>
+                    )
                   )}
                   <Button size="sm" variant="secondary" onClick={() => onDownload(a)}>
                     {t.download}

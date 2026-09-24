@@ -7,7 +7,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { PhotoCard } from "@/components/ui/PhotoCard";
 import { StatCard } from "@/components/ui/Card";
-import { einstiegeFuer } from "./einstiege";
+import { einstiegeMitAusnahmen } from "./einstiege.server";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +47,7 @@ export default async function AdminDashboard() {
   const woerter: Record<string, string> = t.admin.words;
   const saetze: Record<string, string> = t.admin.entries;
   // Die drei Einstiege nach Rolle (QS-037) — Auswahl und Begründung in ./einstiege.ts.
-  const einstiege = einstiegeFuer(roleNames);
+  const einstiege = await einstiegeMitAusnahmen(roleNames);
 
   return (
     <>

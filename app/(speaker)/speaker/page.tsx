@@ -3,7 +3,6 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatDay, formatRange } from "@/lib/tz";
 import { loadEventDays } from "@/lib/event-days";
-import { googleKalenderUrl, outlookKalenderUrl } from "@/lib/kalender-links";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -199,8 +198,7 @@ export default async function SpeakerPage() {
           .map((d) => formatDay(d, t.meta.dateLocale))
           .join(" \u00b7 "),
         titel,
-        google: googleKalenderUrl(daten),
-        outlook: outlookKalenderUrl(daten),
+        kalender: daten,
         ics: "/api/speaker/kalender?edition=1",
       },
     });
@@ -237,8 +235,7 @@ export default async function SpeakerPage() {
           : undefined,
         titel: `${t.speaker.dateSlotLabel}: ${titel}`,
         ort,
-        google: googleKalenderUrl(daten),
-        outlook: outlookKalenderUrl(daten),
+        kalender: daten,
         ics: `/api/speaker/kalender?session=${sitzung.session_id}`,
       },
     });
@@ -269,8 +266,7 @@ export default async function SpeakerPage() {
             }).format(start),
         titel,
         ort,
-        google: googleKalenderUrl(daten),
-        outlook: outlookKalenderUrl(daten),
+        kalender: daten,
         ics: `/api/speaker/kalender?reception=${r.id}`,
       },
     });
@@ -462,6 +458,12 @@ export default async function SpeakerPage() {
               locale={locale}
               dateLocale={t.meta.dateLocale}
               t={t.speakerReception}
+              kalender={{
+                add: t.speakerReception.calendarAdd,
+                google: t.speaker.calGoogle,
+                outlook: t.speaker.calOutlook,
+                apple: t.speaker.calApple,
+              }}
               common={{ save: t.common.save }}
               rpcMessages={t.rpc}
             />

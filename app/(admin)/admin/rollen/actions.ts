@@ -143,3 +143,63 @@ export async function revokeRole(assignmentId: string): Promise<RoleResult> {
   revalidatePath(PATH);
   return { ok: true, data: undefined };
 }
+
+// === Abschnitte je Rolle und je Person schalten (ADM-053) ====================
+
+export type SectionOverrideRow = {
+  id: string;
+  section: string;
+  role: string | null;
+  person_id: string | null;
+  person_name: string | null;
+  allowed: boolean;
+  note: string | null;
+  updated_at: string;
+};
+
+/** Alle Ausnahmen zur Abschnitts-Vorgabe. Nur `admin`. */
+export async function sectionOverrides(): Promise<RoleResult<SectionOverrideRow[]>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("admin_section_overrides");
+  if (error) return fail(error);
+  return { ok: true, data: (data ?? []) as SectionOverrideRow[] };
+}
+
+/**
+ * Einen Abschnitt für eine Rolle **oder** eine Person an- oder ausschalten.
+ *
+ * Genau eine der beiden Kennungen: beides zugleich wäre eine dritte Bedeutung,
+ * die niemand erklären kann — die RPC weist es mit `invalid_target` ab.
+ */
+export async function setSectionOverride(input: {
+  section: string;
+  allowed: boolean;
+  role?: string | null;
+  personId?: string | null;
+  note?: string | null;
+}): Promise<RoleResult<{ id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("set_admin_section_override", {
+    p_section: input.section,
+    p_allowed: input.allowed,
+    p_role: input.role || null,
+    p_person_id: input.personId || null,
+    p_note: input.note?.trim() ? input.note.trim() : null,
+  });
+  if (error) return fail(error);
+  revalidatePath(PATH);
+  // Die Seitenleiste hängt an derselben Antwort — ohne das bliebe sie bis zum
+  // nächsten harten Laden stehen.
+  revalidatePath("/admin", "layout");
+  return { ok: true, data: { id: data as string } };
+}
+
+/** Ausnahme entfernen — danach gilt wieder die Vorgabe aus `lib/admin-sections.ts`. */
+export async function removeSectionOverride(id: string): Promise<RoleResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("delete_admin_section_override", { p_id: id });
+  if (error) return fail(error);
+  revalidatePath(PATH);
+  revalidatePath("/admin", "layout");
+  return { ok: true, data: undefined };
+}

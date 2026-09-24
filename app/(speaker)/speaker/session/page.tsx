@@ -122,6 +122,8 @@ export default async function SpeakerSessionPage() {
             none: t.common.none,
             required: t.common.required,
             save: t.common.save,
+            deadlinePassed: t.common.deadlinePassed,
+            deadlineDone: t.common.deadlineDone,
           }}
           rpcMessages={t.rpc}
         />
