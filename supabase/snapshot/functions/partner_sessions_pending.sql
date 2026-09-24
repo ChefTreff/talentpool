@@ -5,7 +5,12 @@ create or replace function partner_sessions_pending(p_edition_id uuid DEFAULT NU
  SET search_path TO 'public', 'extensions'
 AS $$
 begin
-  if not (is_partner_team() or is_programme_editor(null)) then
+  -- `is_programme_editor(null)` war immer false: die Funktion sucht
+  -- `where ev.id = p_event_id`, und mit NULL trifft das nie. Also mit der
+  -- Edition prüfen, die ohnehin übergeben wird. Ohne Edition bleibt es beim
+  -- Partner-Team — für eine Liste über alles gibt es keinen Scope zu prüfen.
+  if not coalesce(is_partner_team()
+                  or (p_edition_id is not null and is_programme_editor(p_edition_id)), false) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   return query

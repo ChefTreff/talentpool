@@ -83,6 +83,7 @@
 | Welle 6 · 0154 | **Welle 6 · Zusatztickets strukturiert (PART-070): shop_request.pass_type/quantity, eigene Mailvorlage, my_ticket_requests, ticket_requests_admin** (`20260924102901`, `v6_zusatztickets`; Details im Migrationskopf) | — |
 | Welle 6 · 0155 | **Welle 6 · Board-Suche für Stage Leads (LEAD-019/020): can_search_board, board_search_people, board_search_partners, board_session_refs** (`20260924103055`, `v6_board_suche`; Details im Migrationskopf) | — |
 | Welle 6 · 0156 | **Welle 6 · Partner am Slot ist der buchende (Korrektur zu 0155/#147): set_session_partner, board_session_refs liest partner_org_id** (`20260924103948`, `v6_session_partner`; Details im Migrationskopf) | — |
+| Welle 6 · 0157 | **Welle 6 · Freigabe durch die Programmleitung (LEAD-022): partner_sessions_pending/release_partner_session prüfen is_programme_editor mit der richtigen Veranstaltung** (`20260924105441`, `v6_freigabe_programmleitung`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

@@ -1,4 +1,5 @@
--- Vorschlag ohne Nummer · Welle 6 · Freigabe durch die Programmleitung (LEAD-022)
+-- 0157 · Welle 6 · Freigabe durch die Programmleitung (LEAD-022): partner_sessions_pending/release_partner_session prüfen is_programme_editor mit der richtigen Veranstaltung
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924105441.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.

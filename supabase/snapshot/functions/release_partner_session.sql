@@ -6,11 +6,14 @@ create or replace function release_partner_session(p_session_id uuid, p_approved
 AS $$
 declare v_se session; v_fehlt text[];
 begin
-  if not (is_partner_team() or is_programme_editor(null)) then
-    raise exception 'not allowed' using errcode = '42501';
-  end if;
   select * into v_se from session where id = p_session_id;
   if not found then raise exception 'session_not_found' using errcode = 'P0002'; end if;
+  -- Erst laden, dann prüfen: das Recht hängt an der Veranstaltung der Session.
+  -- Vorher stand hier `is_programme_editor(null)` — immer false, die
+  -- Programmleitung war ausgesperrt (LEAD-022).
+  if not coalesce(is_partner_team() or is_programme_editor(v_se.event_id), false) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
   if v_se.partner_org_id is null then
     raise exception 'not_editable' using errcode = 'P0001', detail = 'not_a_partner_session';
   end if;
