@@ -128,7 +128,8 @@ export async function deleteAsset(assetId: string): Promise<SessionResult> {
  */
 export async function saveSessionTech(
   sessionId: string,
-  tech: Record<string, string>,
+  /** Text für Mikrofon und Anforderungen, Wahrheitswerte für die Häkchen (SPK-067). */
+  tech: Record<string, string | boolean>,
 ): Promise<SessionResult> {
   const supabase = await client();
   const { error } = await supabase.rpc("update_session_tech", {

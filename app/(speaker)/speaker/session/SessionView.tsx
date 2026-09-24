@@ -693,21 +693,35 @@ function TechSection({
   toast: (tone: "success" | "error", text: string) => void;
 }) {
   const [pending, start] = useTransition();
+  // Text und Häkchen getrennt (SPK-067): ein Häkchen ist ein Wahrheitswert,
+  // kein Wort — als Text gespeichert stünde in der Regie „true".
+  const textFelder = TECH_FIELDS.filter((f) => f.kind !== "checkbox");
+  const hakenFelder = TECH_FIELDS.filter((f) => f.kind === "checkbox");
+  const textVon = (key: string) => {
+    const v = session.tech?.[key];
+    return typeof v === "string" ? v : "";
+  };
   const [tech, setTech] = useState<Record<string, string>>(() =>
-    Object.fromEntries(TECH_FIELDS.map((f) => [f.key, session.tech?.[f.key] ?? ""])),
+    Object.fromEntries(textFelder.map((f) => [f.key, textVon(f.key)])),
+  );
+  const [haken, setHaken] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(hakenFelder.map((f) => [f.key, session.tech?.[f.key] === true])),
   );
 
-  const zuLang = TECH_FIELDS.some((f) => (tech[f.key] ?? "").length > MAX_TECH_CHARS);
-  const geaendert = TECH_FIELDS.some(
-    (f) => (tech[f.key] ?? "").trim() !== (session.tech?.[f.key] ?? ""),
-  );
+  const zuLang = textFelder.some((f) => (tech[f.key] ?? "").length > MAX_TECH_CHARS);
+  const geaendert =
+    textFelder.some((f) => (tech[f.key] ?? "").trim() !== textVon(f.key)) ||
+    hakenFelder.some((f) => haken[f.key] !== (session.tech?.[f.key] === true));
 
   function onSave() {
     start(async () => {
-      const res = await saveSessionTech(
-        session.session_id,
-        Object.fromEntries(TECH_FIELDS.map((f) => [f.key, (tech[f.key] ?? "").trim()])),
-      );
+      // Alle Felder zusammen: `update_session_tech` ersetzt die Angaben ganz,
+      // ein fehlender Schlüssel wäre danach weg. Ein abgewähltes Häkchen geht
+      // als `false` mit und fällt dort heraus — so lässt es sich zurücknehmen.
+      const res = await saveSessionTech(session.session_id, {
+        ...Object.fromEntries(textFelder.map((f) => [f.key, (tech[f.key] ?? "").trim()])),
+        ...Object.fromEntries(hakenFelder.map((f) => [f.key, haken[f.key] === true])),
+      });
       if (!res.ok) {
         toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
         return;
@@ -722,7 +736,7 @@ function TechSection({
       <p className="ct-help">{t.techLead}</p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {TECH_FIELDS.map((f) => {
+        {textFelder.map((f) => {
           const id = `${session.session_id}-${f.key}`;
           const wert = tech[f.key] ?? "";
           const ueber = wert.length > MAX_TECH_CHARS;
@@ -758,6 +772,26 @@ function TechSection({
           );
         })}
       </div>
+
+      <fieldset className="mt-4 flex flex-col gap-3">
+        <legend className="sr-only">{t.techChecksLabel}</legend>
+        {hakenFelder.map((f) => (
+          <label key={f.key} className="flex items-start gap-2 ct-small">
+            <input
+              type="checkbox"
+              className="mt-1 size-4"
+              checked={haken[f.key] === true}
+              onChange={(e) => setHaken((v) => ({ ...v, [f.key]: e.target.checked }))}
+            />
+            <span>
+              {t[`tech_${f.key}`] ?? f.key}
+              {t[`tech_${f.key}_hint`] && (
+                <span className="ct-help block">{t[`tech_${f.key}_hint`]}</span>
+              )}
+            </span>
+          </label>
+        ))}
+      </fieldset>
 
       <Button className="mt-4" disabled={!geaendert || zuLang} loading={pending} onClick={onSave}>
         {common.save}

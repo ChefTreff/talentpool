@@ -241,7 +241,8 @@
     "tour_not_found": "Diese Company Tour gibt es nicht.",
     "outside_stage_day": "Das liegt außerhalb der Öffnungszeiten dieser Bühne an diesem Tag",
     "partner_not_in_edition": "Diese Organisation ist in dieser Edition kein Partner.",
-    "partner_host_mismatch": "Die Session wird schon von einem anderen Partner ausgerichtet — der buchende Partner muss derselbe sein."
+    "partner_host_mismatch": "Die Session wird schon von einem anderen Partner ausgerichtet — der buchende Partner muss derselbe sein.",
+    "invalid_tech_value": "Bei diesem Feld geht nur Ja oder Nein."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -987,7 +988,12 @@
     "consentGateTitle": "Kurz deine Einwilligungen",
     "consentGateLead": "Bevor es losgeht: Sag uns einmal, was wir mit deinen Inhalten und deinem Bild tun dürfen. Ändern kannst du das jederzeit in deinem Profil.",
     "consentGateFreeChoice": "Du musst nichts ankreuzen. Wir fragen nur einmal und halten auch ein Nein fest — ohne Häkchen geht es genauso weiter, manche Funktionen stehen dann aber nicht zur Verfügung.",
-    "consentGateSubmit": "Entscheidung speichern"
+    "consentGateSubmit": "Entscheidung speichern",
+    "tech_own_laptop": "Ich bringe meinen eigenen Laptop mit",
+    "tech_own_laptop_hint": "Dann planen wir einen Anschluss für dich ein. Ohne Häkchen zeigst du von unserem Rechner.",
+    "tech_video_with_sound": "Ich zeige Video mit Ton",
+    "tech_video_with_sound_hint": "Damit die Regie den Ton auf die Anlage legt.",
+    "techChecksLabel": "Was du mitbringst und zeigst"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -3332,7 +3338,10 @@
     "tech_presentation_media": "Präsentation",
     "tech_special_requirements": "Besonderes",
     "tech_furniture": "Mobiliar",
-    "colPeopleOnStage": "Personen auf der Bühne"
+    "colPeopleOnStage": "Personen auf der Bühne",
+    "tech_own_laptop": "Eigener Laptop",
+    "tech_video_with_sound": "Video mit Ton",
+    "techYes": "ja"
   },
   "wiki": {
     "title": "Wiki",

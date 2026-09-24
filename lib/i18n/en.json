@@ -241,7 +241,8 @@
     "tour_not_found": "No such company tour.",
     "outside_stage_day": "That is outside this stage's opening hours on this day",
     "partner_not_in_edition": "This organisation is not a partner in this edition.",
-    "partner_host_mismatch": "The session is already hosted by another partner — the booking partner has to be the same one."
+    "partner_host_mismatch": "The session is already hosted by another partner — the booking partner has to be the same one.",
+    "invalid_tech_value": "This field only takes yes or no."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -987,7 +988,12 @@
     "consentGateTitle": "Your permissions, briefly",
     "consentGateLead": "Before you start: tell us once what we may do with your content and your image. You can change this any time in your profile.",
     "consentGateFreeChoice": "You do not have to tick anything. We ask once and record a no just as carefully — you can continue either way, but some features will not be available.",
-    "consentGateSubmit": "Save my choice"
+    "consentGateSubmit": "Save my choice",
+    "tech_own_laptop": "I am bringing my own laptop",
+    "tech_own_laptop_hint": "Then we plan a connection for you. Without the tick you present from our computer.",
+    "tech_video_with_sound": "I am showing video with sound",
+    "tech_video_with_sound_hint": "So the control room routes the sound to the PA.",
+    "techChecksLabel": "What you bring and show"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -3332,7 +3338,10 @@
     "tech_presentation_media": "Presentation",
     "tech_special_requirements": "Special",
     "tech_furniture": "Furniture",
-    "colPeopleOnStage": "People on stage"
+    "colPeopleOnStage": "People on stage",
+    "tech_own_laptop": "Own laptop",
+    "tech_video_with_sound": "Video with sound",
+    "techYes": "yes"
   },
   "wiki": {
     "title": "Wiki",
