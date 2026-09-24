@@ -40,7 +40,8 @@
     "no": "No",
     "upload": "Upload",
     "chooseOtherFile": "Choose another file",
-    "newTab": "opens in a new window"
+    "newTab": "opens in a new window",
+    "onThisPage": "On this page"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",
