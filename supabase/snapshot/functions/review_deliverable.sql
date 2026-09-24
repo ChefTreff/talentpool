@@ -4,7 +4,7 @@ create or replace function review_deliverable(p_deliverable_id uuid, p_accepted 
  SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
 AS $$
-declare v_d deliverable; v_oe org_edition; v_t deliverable_template; v_org_name text; v_primary uuid; v_locale text; r record;
+declare v_d deliverable; v_oe org_edition; v_t deliverable_template; v_org_name text; v_primary uuid; v_locale text; r record; v_mail bigint;
 begin
   if not is_partner_team() then raise exception 'not allowed' using errcode = '42501'; end if;
   select * into v_d from deliverable where id = p_deliverable_id for update;
@@ -23,9 +23,11 @@ begin
     select om.person_id into v_primary from org_membership om where om.org_id = v_oe.org_id and om.roles @> '{primary_ops}';
     for r in select distinct x as pid from unnest(array_remove(array[v_d.submitted_by, v_primary], null)) x loop
       select coalesce(p.preferred_language, 'de') into v_locale from person p where p.id = r.pid;
-      perform queue_mail('partner_deliverable_rejected', r.pid,
+      v_mail := queue_mail('partner_deliverable_rejected', r.pid,
                          jsonb_build_object('org_name', v_org_name, 'deliverable', case when v_locale = 'en' then v_t.label_en else v_t.label_de end, 'note', btrim(p_note)),
                          'deliverable', p_deliverable_id);
+      -- CC-Kontakte in Kopie, genau an einer Mail: der an den Hauptkontakt, sonst der an die handelnde Person (PART-063).
+      if r.pid = coalesce(v_primary, v_d.submitted_by) then perform partner_mail_cc(v_mail, v_oe.org_id); end if;
     end loop;
   end if;
   perform log_audit(case when p_accepted then 'partner.deliverable_accept' else 'partner.deliverable_reject' end, 'organization', v_oe.org_id::text,

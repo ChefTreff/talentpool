@@ -5,6 +5,7 @@ create or replace function partner_contact_upsert_internal(p_org_id uuid, p_emai
  SET search_path TO 'public', 'extensions'
 AS $$
 declare v_email citext; v_pid uuid; v_mid uuid; v_role text; v_org_name text; v_new boolean := false;
+        v_person_neu boolean := false;
 begin
   if p_roles is null or cardinality(p_roles) = 0 then raise exception 'roles_required' using errcode = '22023'; end if;
   foreach v_role in array p_roles loop
@@ -18,14 +19,16 @@ begin
     insert into person (first_name, last_name, source_first, tier)
     values (nullif(btrim(coalesce(p_first_name, '')), ''), nullif(btrim(coalesce(p_last_name, '')), ''), coalesce(p_source, 'partner_portal'), 'lead') returning id into v_pid;
     insert into person_email (person_id, email, is_primary, verified) values (v_pid, v_email, true, false);
+    -- Nur eine Person, die es ohne diese Organisation nicht gaebe, darf sie spaeter pflegen (PART-062).
+    v_person_neu := true;
   end if;
   if 'primary_ops' = any(p_roles) and exists (select 1 from org_membership om where om.org_id = p_org_id and om.person_id <> v_pid and om.roles @> '{primary_ops}') then
     raise exception 'primary_exists' using errcode = 'P0001';
   end if;
   select id into v_mid from org_membership where org_id = p_org_id and person_id = v_pid;
   if v_mid is null then
-    insert into org_membership (person_id, org_id, roles, contact_position, invited_at)
-    values (v_pid, p_org_id, p_roles, nullif(btrim(coalesce(p_position, '')), ''), now()) returning id into v_mid;
+    insert into org_membership (person_id, org_id, roles, contact_position, invited_at, partner_editable_until_login)
+    values (v_pid, p_org_id, p_roles, nullif(btrim(coalesce(p_position, '')), ''), now(), v_person_neu) returning id into v_mid;
     v_new := true;
   else
     update org_membership set roles = p_roles, contact_position = coalesce(nullif(btrim(coalesce(p_position, '')), ''), contact_position) where id = v_mid;

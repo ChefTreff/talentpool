@@ -1,3 +1,5 @@
+-- 0159 · Welle 6 · Kontakte bearbeiten und CC-Kontakt (PART-062/063): update_partner_contact, partner_mail_cc, mail_cc_recipients, Kopie an fünf Partner-Mails
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924133947.
 -- Vorschlag · Welle 6 · Kontakte bearbeiten und CC-Kontakt (PART-062/063): org_membership.partner_editable_until_login, partner_contacts.editable, update_partner_contact, partner_mail_cc, mail_cc_recipients, Kopie an den fünf Partner-Mails, Rollenbezeichnungen
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.

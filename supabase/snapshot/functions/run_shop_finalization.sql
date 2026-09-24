@@ -4,7 +4,7 @@ create or replace function run_shop_finalization()
  SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
 AS $$
-declare r record; v_completed integer := 0; v_cancelled integer := 0; v_primary uuid; m record; v_locale text; v_org_name text; v_lines_de text; v_lines_en text; v_tot record;
+declare r record; v_completed integer := 0; v_cancelled integer := 0; v_primary uuid; m record; v_locale text; v_org_name text; v_lines_de text; v_lines_en text; v_tot record; v_mail bigint;
 begin
   for r in
     select o.*, oe.org_id, oe.edition_id
@@ -37,10 +37,12 @@ begin
     select om.person_id into v_primary from org_membership om where om.org_id = r.org_id and om.roles @> '{primary_ops}';
     for m in select distinct x as pid from unnest(array_remove(array[r.confirmed_by, v_primary], null)) x loop
       select coalesce(p.preferred_language, 'de') into v_locale from person p where p.id = m.pid;
-      perform queue_mail('shop_order_completed', m.pid,
+      v_mail := queue_mail('shop_order_completed', m.pid,
                          jsonb_build_object('org_name', v_org_name, 'order_no', r.order_no, 'phase', r.phase,
                                             'lines', case when v_locale = 'en' then v_lines_en else v_lines_de end, 'total_net', fmt_cents(v_tot.net_cents::integer, v_locale)),
                          'shop_order', r.id);
+      -- CC-Kontakte in Kopie, genau an einer Mail: der an den Hauptkontakt, sonst der an die handelnde Person (PART-063).
+      if m.pid = coalesce(v_primary, r.confirmed_by) then perform partner_mail_cc(v_mail, r.org_id); end if;
     end loop;
   end loop;
   if v_completed > 0 or v_cancelled > 0 then
