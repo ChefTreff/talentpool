@@ -21,6 +21,7 @@ import { FristMarke } from "./FristMarke";
 import { Fortschritt } from "./Fortschritt";
 import { KalenderKnoepfe } from "./KalenderKnoepfe";
 import { SuchFeld } from "./SuchFeld";
+import { MehrfachAuswahl } from "./MehrfachAuswahl";
 import { PortalFooter } from "@/components/layout/PortalFooter";
 
 export type KitTexte = Record<string, string>;
@@ -39,6 +40,7 @@ export type KitTexte = Record<string, string>;
  */
 export function KitSchau({ t }: { t: KitTexte }) {
   const [schritt, setSchritt] = useState(1);
+  const [themen, setThemen] = useState<string[]>([]);
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6">
@@ -228,6 +230,17 @@ export function KitSchau({ t }: { t: KitTexte }) {
         <Card>
           <Field label={t.searchLabel} htmlFor="kit-suche">
             <SuchFeld id="kit-suche" placeholder={t.searchPlaceholder} />
+          </Field>
+          {/* SPK-051: Mehrfachauswahl mit Suche statt vieler Kästchen. */}
+          <Field label={t.multiLabel} htmlFor="kit-mehrfach" className="mt-6">
+            <MehrfachAuswahl
+              id="kit-mehrfach"
+              options={t.multiOptions.split(" · ").map((label, i) => ({ value: `thema-${i}`, label }))}
+              value={themen}
+              onChange={setThemen}
+              placeholder={t.multiPlaceholder}
+              t={{ remove: t.multiRemove, noHits: t.multiNoHits }}
+            />
           </Field>
           <Fortschritt className="mt-6" wert={3} gesamt={8} label={t.progressLabel} />
           <div className="mt-6 flex flex-wrap items-center gap-6">
