@@ -640,3 +640,9 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **#187 (Admin, ADM-057 Kundennummer):** Gate grün @ 11361f8 (451 Tests), Probelauf 8/8, `fn-diff` nur `ingest_partner_deal`; Konflikt mit `main` nach #186 (`docs/feedback/speaker.md`), Auflösung läuft.
 - **K-30b erledigt (Konrad, 24.09. Nacht):** `LUMA_WRITE_ENABLED=true` gesetzt — die Events-Seite schreibt Anmeldungen nach Luma, der stündliche Abgleich schreibt Teilnahmen ins Profil. Talent-Chat löst den Abgleich einmal von Hand aus und prüft `integration.sync_job`.
 
+## 2026-09-24 — Pause (zweites Sitzungslimit): Stand, offene Punkte, Fortsetzung
+- **Konrad:** „Sitzungslimit gleich wieder erreicht … einmal alle begonnenen Tasks beenden, sauber dokumentieren, du führst alle PRs und offenen Themen noch zu Ende … wenn abgeschlossen, dann ist Pause.“ Speaker, Partner und Admin angewiesen (laufenden Baustein abschließen, Zwischenstand auf dem Branch mit Vermerk im Backlog, nichts Neues); Talent war beim Setzen von `LUMA_WRITE_ENABLED` nicht mehr erreichbar, Design pausiert seit #180.
+- **Stand:** Migrationen 0169–0176 live (0177 folgt mit #187 in dieser Sitzung), gemergt #177–#186, Snapshot 548, `main` grün. Tabelle „Pause 24.09. spät“ oben in `docs/chat-startpakete.md` mit Stand und Fortsetzung je Chat.
+- **Offen bei Konrad:** K-31 (Tour ↔ Session), K-32 (PART-081, vier Fragen), K-33 (vivenu-Sandbox-Schlüssel für den Speaker-Ticket-Test), nächste Klickrunde (danach CSP-Logs und `CSP_ENFORCE=true`).
+- **Offen bei der Architektur-Session (nach der Pause):** Luma-Abgleich-Protokoll nach dem ersten scharfen Cron-Lauf (stündlich :20) in `integration.sync_job` prüfen — der Talent-Chat war offline, die Prüfung übernimmt die Architektur-Session lesend; Security-Check Teil 2; Luma-Registrierung von der Events-Seite mit Konrads Profil testen.
+

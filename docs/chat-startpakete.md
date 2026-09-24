@@ -4,7 +4,20 @@
 
 > Konrads Entscheidung vom 17.09.: fünf Build-Chats nach Datenverbund plus ein Design-Chat, dazu die Architektur-/Security-Session (`talentpool-a9`, arbeitet nur für `main`). Höchstens **zwei bis drei Chats gleichzeitig aktiv** — das Wochenkontingent gilt für alle Sessions gemeinsam, und Konrads Review-Zeit ist der Engpass. Ein ruhender Chat verliert nichts: sein Gedächtnis ist das Backlog in `docs/feedback/`.
 
-> **Aktuell gilt der Abschnitt „Freigabe nach der Pause 24.09.“ direkt darunter** (Fortsetzung in bestehenden Chats). „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+> **Aktuell gilt die Tabelle „Pause 24.09. spät“ direkt darunter** (Fortsetzung in bestehenden Chats); „Freigabe nach der Pause 24.09. (Nacht)“ sind die Texte vom Abend. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+
+## Pause 24.09. spät (zweites Sitzungslimit) — Stand und Fortsetzung je Chat
+
+Alle Chats wurden angewiesen, den laufenden Baustein abzuschließen und nichts Neues zu beginnen. Bei der Rückkehr reicht je Chat eine Zeile („Weiter nach der Pause vom 24.09. spät, siehe docs/chat-startpakete.md“); die Aufträge stehen unverändert im Arbeitsauftrag („Freigabe nach der Pause vom 24.09.“) und im Entscheidungslog ab „2026-09-24 — Nacht“.
+
+| Chat | Stand bei der Pause | Weiter nach der Pause |
+|---|---|---|
+| Talent & Hackathon | TAL-008/015/002/003 gebaut (#177–#179, #185), Luma schreibt seit K-30b; Chat war beim Setzen offline | Abgleich-Protokoll `integration.sync_job` (system `luma`) prüfen, TAL-007 auf gebaut; dann Konzepte TAL-009…011 erst nach Konrads Runde |
+| Speaker-Domäne | SPK-049…062 gebaut (#184, #186; 0174, 0176); SPK-052-Schnitt begonnen | SPK-052-Schnitt zu Ende (Constraint ohne `mixed`, DEMO-Sessions auf `de`, Board, Partner-RPCs, Filter), QS-048, dann LEAD-028/031, Board-Rest |
+| Partner | PART-083 gebaut (#181, 0172), PART-081 als Vorschlag (#182) | K-32 (Konrads Antwort) → PART-081 bauen; PART-078…080 |
+| Admin & Schnittstellen | SPK-068 gebaut (#183, 0175), ADM-057 (#187) | PORT1b nach ADM-056; vivenu-Kettenprüfung nach K-33 (Sandbox-Schlüssel); QS-036/EA3, ADM-054, ADM-052, F4 |
+| Design | QS-047 gebaut (#180), Statuskorrekturen übernommen | wartet auf Konrads Feedback-Runde |
+| Architektur-Session | 0169–0177 live, Vorfall `db.sh test` gehärtet | CSP-Logs nach Konrads Klickrunde → `CSP_ENFORCE=true`; Security-Check Teil 2 (Rollenkonten als SQL-Tests); K-31/K-32/K-33 verteilen |
 
 ## Freigabe nach der Pause 24.09. (Nacht) — Fortsetzungstexte (Konrad kopiert den Block in den laufenden Chat)
 
