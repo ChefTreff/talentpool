@@ -22,6 +22,7 @@ export type RpcFailure = {
 /** Schlüssel, die P0001 über `message` transportiert (Datenmodell §Fehlercodes). */
 const BUSINESS_KEYS = new Set([
   "confirmation_required",
+  "outside_stage_day",
   "deadline_passed",
   "not_eligible",
   "not_released",

@@ -67,15 +67,16 @@ export default async function LeadBoardPage({
       <Board
         basePath={PATH}
         canPublish={canPublishSessions(roleNames)}
-        // Die Zeitplanung ist hier zum Lesen da (LEAD-016). Ein Lead betreut
-        // Speaker, er verschiebt keine Slots — und wer nebenbei Admin ist,
-        // soll das im Admin-Programm tun, nicht aus Versehen hier. Die leere
-        // Liste sagt das ausdrücklich; `undefined` hiesse „keine Regel".
+        // Bearbeitbar ist die **eigene** Bühne (LEAD-016) — die, auf der der
+        // Lead `speaker_manager` mit Stage-Scope ist; genau dort lässt ihn
+        // `can_edit_stage` auch schreiben. Wer nebenbei Admin ist, bekommt hier
+        // trotzdem nur seine Bühnen: die Sicht folgt der Rolle des Portals.
         //
-        // Betroffen ist nur der Zeitplan: Ziehen, Dauer ändern, anlegen. Was
-        // ein Lead wirklich tut — Status, Moderation, Themen, Speaker —, steht
-        // im Drawer und bleibt unberührt.
-        editableStageIds={[]}
+        // Konrad, 24.09.: „Die Speaker Leads dürfen die Slots ihrer Bühne im
+        // Rahmen des Tages (also Startzeit und Endzeit fest) bearbeiten." Den
+        // Rahmen hält die Datenbank (`outside_stage_day`), nicht diese Seite —
+        // eine zweite Kopie der Regel hier liefe irgendwann auseinander.
+        editableStageIds={scope.stages.map((s) => s.id)}
         events={board.events}
         currentEventId={board.currentEvent.id}
         currentEventSlug={board.currentEvent.slug}

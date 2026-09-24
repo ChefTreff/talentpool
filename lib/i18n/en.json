@@ -234,7 +234,8 @@
     "too_many_questions": "More than two of your own questions per format are not supported.",
     "invalid_type": "No such question type.",
     "stop_not_found": "No such tour stop.",
-    "tour_not_found": "No such company tour."
+    "tour_not_found": "No such company tour.",
+    "outside_stage_day": "That is outside this stage's opening hours on this day"
   },
   "nav": {
     "brand": "ChefTreff",
