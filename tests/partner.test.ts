@@ -325,6 +325,9 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     { code: "P0001", message: "email_in_use", key: "email_in_use" },
     { code: "22023", message: "position_required", key: "position_required" },
     { code: "22023", message: "name_required", key: "name_required" },
+    // Eure Daten (PART-059)
+    { code: "P0001", message: "customer_number_taken", key: "customer_number_taken" },
+    { code: "22023", message: "too_long", key: "too_long" },
   ];
 
   for (const c of CASES) {

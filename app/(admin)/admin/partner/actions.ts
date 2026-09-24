@@ -104,6 +104,38 @@ export async function saveBooth(
 }
 
 /**
+ * „Eure Daten“ korrigieren — dieselbe RPC wie im Partnerportal
+ * (`update_partner_onboarding`, `partner_can_edit` lässt das Partner-Team zu).
+ */
+export async function adminSaveOnboarding(
+  orgId: string,
+  editionId: string | null,
+  data: Record<string, string>,
+): Promise<AdminResult<{ onboarding_status: string }>> {
+  const supabase = await client();
+  const { data: res, error } = await supabase.rpc("update_partner_onboarding", {
+    p_org_id: orgId,
+    p_data: data,
+    p_edition_id: editionId,
+  });
+  if (error) return fail(error);
+  refresh(orgId);
+  return { ok: true, data: (res ?? { onboarding_status: "invited" }) as { onboarding_status: string } };
+}
+
+/** Kundennummer (PART-059): nur das Team; der Partner sieht sie nur. */
+export async function adminSetCustomerNumber(orgId: string, customerNumber: string): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_org_customer_number", {
+    p_org_id: orgId,
+    p_customer_number: customerNumber,
+  });
+  if (error) return fail(error);
+  refresh(orgId);
+  return { ok: true, data: undefined };
+}
+
+/**
  * Kontakte pflegt das Team über dieselben RPCs und dieselbe Liste wie der
  * Partner selbst (`components/partner/ContactList.tsx`, Regel vom 22.09.).
  */
