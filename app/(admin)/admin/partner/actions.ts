@@ -540,3 +540,31 @@ export async function saveProductComponent(
   refresh("produkte");
   return { ok: true, data: undefined };
 }
+
+/**
+ * Erlaubnis, das Logo für die Foto-Wand weiß zu drucken (PART-053).
+ *
+ * **Derselbe Weg wie im Partner-Portal**, Regel vom 22.09.: was ein Portal
+ * kann, muss der Admin auch können. Die RPC ist dieselbe und unterscheidet
+ * selbst — `partner_can_edit` lässt das Partner-Team durch. Eigen ist hier nur
+ * der Zugangsschutz der Route: `requireArea("admin")` statt `"partner"`. Das
+ * ist keine zweite Logik, sondern die Tür vor demselben Raum.
+ *
+ * Gebraucht wird der Weg, wenn ein Partner die Erlaubnis am Telefon oder per
+ * Mail gibt — ohne ihn müsste das Team ihn bitten, sich dafür einzuloggen.
+ */
+export async function adminSetLogoWhiteningConsent(input: {
+  orgId: string;
+  granted: boolean;
+  editionId?: string | null;
+}): Promise<AdminResult<{ granted_at: string | null }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("set_logo_whitening_consent", {
+    p_org_id: input.orgId,
+    p_granted: input.granted,
+    p_edition_id: input.editionId ?? null,
+  });
+  if (error) return fail(error);
+  refresh(input.orgId);
+  return { ok: true, data: { granted_at: (data as string | null) ?? null } };
+}

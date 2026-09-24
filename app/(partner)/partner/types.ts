@@ -58,6 +58,8 @@ export type PartnerOverview = {
     po_number: string | null;
     pass_type_choice: string | null;
     sponsoring_level: string | null;
+    /** Erlaubnis, das Logo fuer die Foto-Wand weiss zu drucken (PART-053). null = nein. */
+    logo_whitening_consent_at: string | null;
   };
   contacts_count: number;
   products: PartnerProduct[];
