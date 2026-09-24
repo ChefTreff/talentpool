@@ -8,6 +8,7 @@ import { ProductionTabs } from "./shell";
 import { AxisPicker } from "@/components/regie/AxisPicker";
 import { RegieTable } from "@/components/regie/RegieTable";
 import { loadAxes, loadRegie } from "./load";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +62,7 @@ export default async function ProduktionPage({
       {/* Derselbe Ausdruck wie im Lead-Portal — die Produktion nimmt ihn mit
           an den Tag. */}
       <p className="mb-4 flex flex-wrap gap-4">
-        <Link className="ct-link ct-small" href={`/regie/druck?buehne=${stage.id}&tag=${day.id}`} target="_blank">
+        <Link className="ct-link ct-small" href={`/regie/druck?buehne=${stage.id}&tag=${day.id}`} {...neuesFenster}>
           {t.leads.regiePrint}
         </Link>
         <Link className="ct-link ct-small" href={`/regie/csv?buehne=${stage.id}&tag=${day.id}`}>

@@ -15,6 +15,7 @@
  */
 import type { ReactNode } from "react";
 import { parseMarkdown, type Inline } from "./markdown-parse";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 function render(parts: Inline[], keyPrefix: string): ReactNode[] {
   return parts.map((p, i) => {
@@ -22,7 +23,7 @@ function render(parts: Inline[], keyPrefix: string): ReactNode[] {
     switch (p.kind) {
       case "link":
         return (
-          <a key={key} className="ct-link" href={p.href} target="_blank" rel="noopener noreferrer">
+          <a key={key} className="ct-link" href={p.href} {...neuesFenster}>
             {p.text}
           </a>
         );

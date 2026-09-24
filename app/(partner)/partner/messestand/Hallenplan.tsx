@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { EditionFile, Exhibitor } from "./types";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
 
@@ -67,7 +68,7 @@ export function Hallenplan({
             <p className="ct-small leading-6">{plan.filename}</p>
           )}
           <div className="mt-3">
-            <ButtonLink href={planUrl} target="_blank" rel="noreferrer noopener" variant="secondary">
+            <ButtonLink href={planUrl} {...neuesFenster} variant="secondary">
               {t.planOpen}
             </ButtonLink>
           </div>

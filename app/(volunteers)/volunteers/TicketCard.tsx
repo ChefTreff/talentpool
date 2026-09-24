@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { TicketCard as KitTicketCard } from "@/components/ui/TicketCard";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
 
@@ -86,7 +87,11 @@ export function TicketCard({
               {copied ? t.copied : t.copy}
             </Button>
           </div>
-          {shopUrl && <ButtonLink href={shopUrl}>{t.ticketRedeem}</ButtonLink>}
+          {shopUrl && (
+            <ButtonLink href={shopUrl} {...neuesFenster}>
+              {t.ticketRedeem}
+            </ButtonLink>
+          )}
           <p className="ct-help">{t.ticketHint}</p>
         </div>
       }

@@ -1,5 +1,6 @@
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 /**
  * Wo die Veranstaltung stattfindet.
@@ -37,7 +38,7 @@ export function Anfahrt({
         <p className="ct-label text-ink">{venue}</p>
         <p className="ct-help mt-0.5">{address}</p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <ButtonLink href={maps} variant="secondary" size="sm" target="_blank" rel="noreferrer noopener">
+          <ButtonLink href={maps} variant="secondary" size="sm" {...neuesFenster}>
             {mapsLabel}
           </ButtonLink>
           <a className="ct-link ct-small" href={wikiHref}>

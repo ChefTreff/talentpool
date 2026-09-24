@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { sharpSans, sharpSansItalic, laica } from "@/lib/fonts";
 import { getI18n } from "@/lib/i18n";
 import { ToastProvider } from "@/components/ui/Toast";
+import { NEUES_FENSTER_ID } from "@/components/ui/neues-fenster";
 import "./globals.css";
 
 /** Auch der Tab-Titel folgt der Sprachwahl. */
@@ -29,6 +30,13 @@ export default async function RootLayout({
         >
           {t.nav.skipToContent}
         </a>
+        {/* Die Ansage für jeden Link, der ein neues Fenster öffnet (QS-034):
+            einmal hier, jeder solche Link verweist mit `aria-describedby`
+            darauf (`components/ui/neues-fenster.ts`). `hidden` blendet ihn
+            aus, als Beschreibung wird er trotzdem vorgelesen. */}
+        <p id={NEUES_FENSTER_ID} hidden>
+          {t.common.newTab}
+        </p>
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { AxisPicker } from "./AxisPicker";
 import { RegieTable } from "./RegieTable";
 import { loadRegieAxes, loadRegieCues } from "./load";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 /**
  * Die Regie-Tabelle als **eine** Seite für zwei Wege.
@@ -54,7 +55,7 @@ export async function RegieSeite({ buehne, tag }: { buehne?: string; tag?: strin
       {/* Der Ausdruck ist das Ziel der Übung: Techniker und Stage Hands
           bekommen ihn auf Papier, nicht als Link. */}
       <p className="mb-4 flex flex-wrap gap-4">
-        <Link className="ct-link ct-small" href={`/regie/druck${query}`} target="_blank">
+        <Link className="ct-link ct-small" href={`/regie/druck${query}`} {...neuesFenster}>
           {t.leads.regiePrint}
         </Link>
         <Link className="ct-link ct-small" href={`/regie/csv${query}`}>

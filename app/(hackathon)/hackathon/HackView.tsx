@@ -10,6 +10,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { applyHackathon, createTeam, joinTeam, leaveTeam, submitProject } from "./actions";
 import type { MyHack } from "./types";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
 
@@ -178,7 +179,7 @@ export function HackView({
       {discordUrl && (
         <Card>
           <CardHeader title={t.discord} description={t.discordHint} />
-          <a className="ct-link" href={discordUrl} target="_blank" rel="noopener noreferrer">
+          <a className="ct-link" href={discordUrl} {...neuesFenster}>
             {discordUrl}
           </a>
         </Card>
