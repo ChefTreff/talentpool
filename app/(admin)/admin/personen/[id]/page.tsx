@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Badge } from "@/components/ui/Badge";
 import { Anrede } from "./Anrede";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 export const dynamic = "force-dynamic";
 
@@ -108,8 +109,7 @@ export default async function PersonDetail({
                 person.linkedin_url ? (
                   <a
                     href={person.linkedin_url}
-                    target="_blank"
-                    rel="noreferrer"
+                    {...neuesFenster}
                     className="ct-link"
                   >
                     {d.linkedinProfile}

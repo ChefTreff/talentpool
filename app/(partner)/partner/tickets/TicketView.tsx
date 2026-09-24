@@ -14,6 +14,7 @@ import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
 import { requestTicketIncrease } from "../actions";
 import { REQUEST_PASS_TYPES, type TicketAllocationRow, type TicketRequestRow } from "../types";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
 
@@ -149,7 +150,7 @@ export function TicketView({
           </Button>
         )}
         {shopUrl && (
-          <ButtonLink href={shopUrl} target="_blank" rel="noopener noreferrer">
+          <ButtonLink href={shopUrl} {...neuesFenster}>
             {t.toShop}
           </ButtonLink>
         )}
