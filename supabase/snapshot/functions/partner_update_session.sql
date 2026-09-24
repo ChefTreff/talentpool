@@ -17,8 +17,12 @@ begin
   if v_bad is not null then
     raise exception 'not_editable' using errcode = 'P0001', detail = v_bad;
   end if;
-  if p_fields ? 'language' and (p_fields->>'language') not in ('de','en','mixed') then
-    raise exception 'invalid_language' using errcode = '22023', detail = p_fields->>'language';
+  -- Eine Sprache je Session (SPK-052). `coalesce`, weil `NULL not in (…)` NULL
+  -- ist und das `if` durchliesse — `{"language": null}` schrieb sonst NULL in eine
+  -- Pflichtspalte und endete in 23502 statt in einer Meldung (Lehre aus 0118).
+  if p_fields ? 'language' and coalesce((p_fields->>'language') not in ('de','en'), true) then
+    -- `detail` darf nicht NULL sein (22004) — gerade beim Wert NULL, um den es hier geht.
+    raise exception 'invalid_language' using errcode = '22023', detail = coalesce(p_fields->>'language', 'null');
   end if;
 
   v_details := case when p_fields ? 'format_details'

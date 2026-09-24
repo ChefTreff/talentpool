@@ -1,4 +1,5 @@
--- Vorschlag ohne Nummer · Welle 6 · Eine Sprache je Session: „Gemischt“ fällt weg (SPK-052)
+-- 0178 · Eine Sprache je Session: „Gemischt“ fällt weg (SPK-052)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924194015.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.

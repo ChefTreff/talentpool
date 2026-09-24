@@ -12,7 +12,8 @@ declare
 begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   if not is_speaker_side_of(p_session_id) then raise exception 'not allowed' using errcode = '42501'; end if;
-  if v_lang is not null and v_lang not in ('de', 'en', 'mixed') then raise exception 'invalid_language' using errcode = '22023'; end if;
+  -- Eine Sprache je Session (SPK-052): „Gemischt“ gibt es nicht mehr.
+  if v_lang is not null and v_lang not in ('de', 'en') then raise exception 'invalid_language' using errcode = '22023'; end if;
   if nullif(btrim(coalesce(p_data->>'title', '')), '') is null then raise exception 'title_required' using errcode = '22023'; end if;
 
   v_topics := coalesce(
