@@ -1,4 +1,5 @@
--- 00NN · Admin-Sicht „Community-Events" (TAL-008, D12 Hybrid).
+-- 0169 · Admin-Sicht Community-Events (TAL-008, D12)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924185858.
 --
 -- Anlass: TAL-008 (Konrad 24.09.2026) — Sektion „Community-Events" im Admin; bei Luma-Hybrid
 -- „Zuordnung und Sicht statt Pflege": Events werden in Luma gepflegt, das Portal zeigt, wer aus
