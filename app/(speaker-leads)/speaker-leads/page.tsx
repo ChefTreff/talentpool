@@ -37,6 +37,7 @@ export default async function SpeakerLeadsPage() {
   return (
     <>
       <PageHeader
+        word={t.leads.wordLineup}
         title={t.leads.title}
         description={`${t.leads.lead} · ${speakers.length} ${t.common.shown}`}
       />

@@ -314,6 +314,11 @@ Wer im Namen eines anderen arbeitet (Assistenz), wird nicht mit dessen Vornamen 
 | Speaker | Reisekosten | Erstattung / Refund |
 | Speaker | Deine Bilder | Erinnerungen / Memories |
 | Speaker | Profil | Steckbrief / Bio |
+| Speaker-Leads | Pipeline | Line-up / Line-up |
+| Speaker-Leads | An- und Abreise | Unterwegs / Journey |
+| Speaker-Leads | Shuttle | Transfer / Transfer |
+| Speaker-Leads | Programm-Board (auch Tabelle) | Programm / Programme |
+| Speaker-Leads, Admin | Einreichungen (`components/einreichungen`) | Auswahl / Selection |
 | alle | Wiki (`components/wiki/WikiPage`) | Wissen / Know-how |
 | Talent | Einstiege | Entdecken · Überblick · Profil |
 

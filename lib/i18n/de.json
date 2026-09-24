@@ -986,6 +986,11 @@
   "leads": {
     "title": "Speaker-Pipeline",
     "lead": "Deine Speaker im eigenen Bereich",
+    "wordLineup": "Line-up",
+    "wordJourney": "Unterwegs",
+    "wordTransfer": "Transfer",
+    "wordProgramme": "Programm",
+    "wordSelection": "Auswahl",
     "emptyScopeTitle": "Kein Bereich zugewiesen",
     "emptyScopeBody": "Für dich ist noch keine Bühne, kein Tag und keine Edition hinterlegt. Das Speaker-Team weist den Bereich zu.",
     "allStatuses": "Alle",

@@ -37,7 +37,7 @@ export default async function LeadProgrammeTablePage({
 
   return (
     <>
-      <PageHeader title={t.leads.boardTitle} description={t.leads.boardLead} />
+      <PageHeader word={t.leads.wordProgramme} title={t.leads.boardTitle} description={t.leads.boardLead} />
       <TableTabs basePath={BASE} locale="de" />
       {!data.currentEvent ? (
         <EmptyState

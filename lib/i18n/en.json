@@ -986,6 +986,11 @@
   "leads": {
     "title": "Speaker pipeline",
     "lead": "Your speakers in your own scope",
+    "wordLineup": "Line-up",
+    "wordJourney": "Journey",
+    "wordTransfer": "Transfer",
+    "wordProgramme": "Programme",
+    "wordSelection": "Selection",
     "emptyScopeTitle": "No scope assigned",
     "emptyScopeBody": "No stage, day or edition is assigned to you yet. The speaker team assigns the scope.",
     "allStatuses": "All",
