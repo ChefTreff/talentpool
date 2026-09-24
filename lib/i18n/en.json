@@ -2794,6 +2794,29 @@
       "field_rsvp_deadline": "RSVP deadline",
       "field_description_de": "Description (German)",
       "field_description_en": "Description (English)"
+    },
+    "programmeRelease": {
+      "tab": "Release",
+      "partnerTitle": "Booth stages",
+      "partnerLead": "What partners have entered on their booth stages and is waiting for release. Releasing publishes the session; returning sets it back to draft.",
+      "partnerEmpty": "Nothing open on the booth stages",
+      "partnerEmptyBody": "As soon as a partner enters a session, it appears here.",
+      "stagesTitle": "Main stages",
+      "stagesLead": "Sessions with a slot that are not published yet — whoever entered them.",
+      "stagesEmpty": "Everything is published",
+      "stagesEmptyBody": "Nothing on the main stages is waiting for release right now.",
+      "release": "Release",
+      "released": "Released",
+      "returnIt": "Return",
+      "returned": "Returned",
+      "returnTitle": "Return",
+      "returnLead": "The reason is recorded. The partner portal does not show it yet — tell the partner directly until that is added.",
+      "reason": "Reason",
+      "cancel": "Cancel",
+      "openBoard": "Open in board",
+      "noSpeaker": "no speaker",
+      "noSpeakerHint": "Publishing needs at least one speaker.",
+      "untitled": "Untitled"
     }
   },
   "adminMailTemplates": {

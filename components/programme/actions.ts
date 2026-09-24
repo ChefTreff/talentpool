@@ -160,6 +160,32 @@ export async function publishSession(sessionId: string): Promise<ActionResult> {
   return { ok: true, data: undefined };
 }
 
+/**
+ * Eine Session einer Standbühne freigeben oder mit Grund zurückgeben
+ * (LEAD-022, PART-050).
+ *
+ * `release_partner_session` gab es seit PART-050, aber keine Oberfläche rief
+ * sie auf — Partner-Sessions blieben in `review` liegen. Die Funktion prüft
+ * selbst, was für die Freigabe fehlt (`fields_required` mit den Feldern im
+ * Detail), und verlangt beim Zurückgeben einen Grund.
+ */
+export async function releasePartnerSession(
+  sessionId: string,
+  approved: boolean,
+  note: string | null,
+): Promise<ActionResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("release_partner_session", {
+    p_session_id: sessionId,
+    p_approved: approved,
+    p_note: note,
+  });
+  if (error) return fail(error);
+  revalidateBoard();
+  revalidatePath("/admin/programm/freigabe");
+  return { ok: true, data: undefined };
+}
+
 export async function unpublishSession(
   sessionId: string,
   reason?: string,
