@@ -247,6 +247,11 @@ begin
   -- Fehlschlag, und der naechste Klick legte ein zweites an. Schuetzt zugleich
   -- gegen den Doppelklick.
   if v_t.vivenu_ticket_id is not null and v_t.vivenu_ticket_id = btrim(coalesce(p_vivenu_ticket_id, '')) then
+    -- Still zurueckkehren, aber nicht spurlos: die Admin-Aktion hat stattgefunden
+    -- und gehoert ins Audit-Log, auch wenn der Webhook die Zeile schon gefuellt hat.
+    perform log_audit('ticket.issued', 'ticket', p_ticket_id::text, jsonb_build_object('status', v_t.status),
+                      jsonb_build_object('status', v_t.status, 'source', v_t.source,
+                                         'vivenu_ticket_id', v_t.vivenu_ticket_id, 'via', 'webhook_first'));
     return;
   end if;
   if v_t.source = 'speaker' and v_t.status <> 'requested' then raise exception 'not_pending' using errcode = 'P0001', detail = v_t.status; end if;

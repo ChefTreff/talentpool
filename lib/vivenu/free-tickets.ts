@@ -95,6 +95,24 @@ export async function createFreeTicket(
 }
 
 /**
+ * Ein Ticket ueber seine vivenu-Kennung lesen (`GET /tickets/{id}`).
+ *
+ * Der Weg fuer ein Ticket, das **nicht** ueber unseren `batchId` entstanden ist
+ * — im vivenu-Dashboard ausgestellt und per Webhook bei uns gelandet. Fuer das
+ * findet `findFreeTicketByBatch` nichts; ein Anlegen legte ein **zweites**
+ * Ticket bei vivenu an. Deshalb liest die Action solche Tickets nur.
+ */
+export async function ladeTicket(vivenuTicketId: string): Promise<VivenuFreeTicket | null> {
+  try {
+    const ticket = await vv<VivenuFreeTicket>(`/tickets/${encodeURIComponent(vivenuTicketId)}`);
+    return ticket?._id ? ticket : null;
+  } catch (fehler) {
+    if (fehler instanceof VivenuError && fehler.status === 404) return null;
+    throw fehler;
+  }
+}
+
+/**
  * Das Secret nachladen, falls die Anlage-Antwort keines mitgibt.
  *
  * vivenu (11.09.2026): Ticket-Secrets aus `GET /api/transactions/{id}/tickets`

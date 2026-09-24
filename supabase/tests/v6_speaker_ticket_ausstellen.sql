@@ -13,7 +13,9 @@
 --   05 danach laeuft `set_ticket_issued` **durch**, obwohl der Webhook das Ticket
 --      schon auf `valid` gesetzt hat: dieselbe vivenu-Kennung heisst „nichts mehr
 --      zu tun". Ohne das meldete die Oberflaeche einen Fehlschlag, obwohl das
---      Ticket bei vivenu existiert — und der naechste Klick legte ein zweites an;
+--      Ticket bei vivenu existiert — und der naechste Klick legte ein zweites an.
+--      Still heisst nicht spurlos: die Admin-Aktion steht mit `via = webhook_first`
+--      im Audit-Log (05b);
 --   06 ein `batch`, der zu keinem offenen Freiticket gehoert, legt wie bisher
 --      eine eigene Zeile an — der neue Weg darf keine fremden Tickets kapern;
 --   07 ein Ticket, das **schon** eine vivenu-Kennung hat, wird ueber diese
@@ -124,6 +126,11 @@ begin
     insert into t_res values ('05_ausgestellt', v_txt);
   exception when others then
     insert into t_res values ('05_ausgestellt', 'FEHLER ' || sqlstate || ' ' || sqlerrm); end;
+  -- 05b Der stille Rueckweg ist nicht spurlos: die Admin-Aktion steht im Audit-Log.
+  select count(*) into v_n from audit_log a
+   where a.action = 'ticket.issued' and a.object_type = 'ticket' and a.object_id = v_ticket::text
+     and a.after->>'via' = 'webhook_first';
+  insert into t_res values ('05b_audit_wettlauf', v_n::text || ' Eintrag');
 
   -- 06 ein fremder `batch` kapert nichts
   perform ingest_vivenu_ticket(jsonb_build_object(

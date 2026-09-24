@@ -6,7 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { toRpcFailure } from "@/lib/rpc-error";
 import { hasVivenuKey } from "@/lib/vivenu/client";
-import { createFreeTicket, ticketSecretNachladen } from "@/lib/vivenu/free-tickets";
+import { createFreeTicket, ladeTicket, ticketSecretNachladen } from "@/lib/vivenu/free-tickets";
 
 export type IssueResult =
   | { ok: true; vivenuTicketId: string; bereitsVorhanden: boolean }
@@ -60,14 +60,20 @@ export async function issueSpeakerTicket(ticketId: string): Promise<IssueResult>
   const zeile = ((data ?? []) as IssueRow[])[0];
   if (!zeile) return { ok: false, key: "ticket_not_found" };
 
+  // **Steht schon eine vivenu-Kennung, wird nie angelegt.** Die Idempotenz über
+  // `batchId` greift nur für Tickets, die wir selbst angelegt haben. Ein Ticket
+  // aus dem vivenu-Dashboard, das über den Webhook zu uns kam, trägt unseren
+  // `batchId` nicht: `findFreeTicketByBatch` fände nichts, `POST /tickets/free`
+  // legte ein **zweites** Ticket an, und `set_ticket_issued` wiese danach mit
+  // `not_pending` ab — genau der Zustand, den dieser Weg vermeiden soll. Hier
+  // also nur lesen und das Secret nachtragen.
+  if (zeile.vivenu_ticket_id) return sekretNachtragen(ticketId, zeile.vivenu_ticket_id);
+
   // Die Statusregeln stehen in `set_ticket_issued`; hier dieselbe Frage, nur
   // früher — damit kein vivenu-Ticket entsteht, das wir nicht eintragen dürfen.
   const dran =
     (zeile.source === "speaker" && zeile.status === "requested") ||
-    (zeile.source === "speaker_companion" && zeile.status === "approved") ||
-    // Schon ausgestellt: der Lauf darf trotzdem durch (Secret nachtragen), aber
-    // er legt nichts Neues an — das erledigt die Idempotenz unten.
-    Boolean(zeile.vivenu_ticket_id);
+    (zeile.source === "speaker_companion" && zeile.status === "approved");
   if (!dran) {
     return { ok: false, key: zeile.source === "speaker" ? "not_pending" : "not_approved", detail: zeile.status };
   }
@@ -144,4 +150,35 @@ export async function issueSpeakerTicket(ticketId: string): Promise<IssueResult>
 
   revalidatePath("/admin/speaker-tickets");
   return { ok: true, vivenuTicketId, bereitsVorhanden };
+}
+
+/**
+ * Bereits ausgestelltes Ticket: **nur lesen**, Secret nachtragen.
+ *
+ * Nützlich bleibt der Lauf, weil `set_ticket_secret` beim Ausstellen scheitern
+ * kann, ohne das Ticket zu kippen (der Wallet-Knopf bliebe dann ohne Ziel).
+ * Findet vivenu die Kennung nicht, ist das ein Befund und keine Kleinigkeit:
+ * unsere Zeile behauptet ein Ticket, das dort nicht existiert.
+ */
+async function sekretNachtragen(ticketId: string, vivenuTicketId: string): Promise<IssueResult> {
+  let secret: string | null = null;
+  try {
+    const ticket = await ladeTicket(vivenuTicketId);
+    if (!ticket) return { ok: false, key: "vivenu_ticket_missing", detail: vivenuTicketId };
+    secret = typeof ticket.secret === "string" && ticket.secret.trim() !== "" ? ticket.secret.trim() : null;
+    if (!secret && typeof ticket.transactionId === "string" && ticket.transactionId !== "") {
+      secret = await ticketSecretNachladen(ticket.transactionId, vivenuTicketId);
+    }
+  } catch (fehler) {
+    const text = fehler instanceof Error ? fehler.message : String(fehler);
+    console.error("[speaker-tickets] vivenu (bereits ausgestellt):", text);
+    return { ok: false, key: "vivenu_failed", detail: text.slice(0, 200) };
+  }
+  if (secret) {
+    const admin = createSupabaseAdminClient();
+    const { error } = await admin.rpc("set_ticket_secret", { p_ticket_id: ticketId, p_secret: secret });
+    if (error) console.error("[speaker-tickets] set_ticket_secret:", error.message);
+  }
+  revalidatePath("/admin/speaker-tickets");
+  return { ok: true, vivenuTicketId, bereitsVorhanden: true };
 }
