@@ -17,6 +17,7 @@ import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { KalenderKnoepfe } from "@/components/ui/KalenderKnoepfe";
+import { MehrfachAuswahl } from "@/components/ui/MehrfachAuswahl";
 import { FristMarke } from "@/components/ui/FristMarke";
 import {
   deleteAsset,
@@ -26,6 +27,7 @@ import {
   submitSessionContent,
 } from "./actions";
 import { TitelAssistent } from "./TitelAssistent";
+import { INHALT_TONE, inhaltsStatus } from "./inhalt-status";
 import {
   BUCKET,
   MAX_TECH_CHARS,
@@ -40,12 +42,13 @@ import {
 
 type Strings = Record<string, string>;
 
-const SUBMISSION_TONE: Record<string, BadgeTone> = {
-  submitted: "accent",
-  approved: "success",
-  rejected: "error",
-  superseded: "neutral",
-};
+/**
+ * Die Sprachen, zwischen denen ein Speaker wählt. „Gemischt" (`mixed`) ist
+ * raus (SPK-052, Konrad 24.09.: „wir entscheiden uns für eine Sprache");
+ * Board und Datenbank kennen den Wert noch, siehe PR.
+ */
+const SPRACHEN = ["de", "en"] as const;
+
 const TECH_TONE: Record<string, BadgeTone> = {
   pending: "neutral",
   checked: "success",
@@ -113,7 +116,7 @@ export function SessionView({
    * Storage-Policy prüft ihn, und `register_speaker_asset` prüft ihn noch
    * einmal. Erst nach beidem steht die Datei in der Liste.
    */
-  async function onUpload(session: MySession, file: File) {
+  async function onUpload(session: MySession, file: File, { zumAbschnitt = false } = {}) {
     if (file.size > MAX_UPLOAD_BYTES) {
       toast("error", t.uploadTooBig);
       return;
@@ -156,6 +159,11 @@ export function SessionView({
           ? `${t.uploadDone} · ${t.uploadLate}`
           : `${t.uploadDone} (v${res.data.version})`,
       );
+      // Vom oberen Knopf aus zum Abschnitt „Präsentation" springen (SPK-054):
+      // erst dort sieht man die neue Fassung und dass man sie noch teilen,
+      // ersetzen oder entfernen kann. Ein Sprung, kein Scrollen mit
+      // Bewegung — die Seite bewegt sich nur als Rückmeldung (Design-Regel 6).
+      if (zumAbschnitt) document.getElementById("praesentation")?.scrollIntoView({ block: "start" });
       // Direkt nach dem Upload fragen, nicht irgendwann (SPK-055): jetzt ist
       // die Datei im Kopf. Die Assistenz fragen wir nicht — teilen darf nur
       // die Speakerin (`set_slides_release`), und eine Frage, deren Antwort
@@ -249,7 +257,10 @@ export function SessionView({
       {einzige && (
         <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
           <div className="min-w-0">
-            <p className="ct-label text-ink">{t.presentationTitle}</p>
+            {/* In der Rolle der Abschnittsüberschriften (SPK-049: „fett, damit
+                man es besser sieht") — vorher stand es als Feldbeschriftung da
+                und ging neben dem Knopf unter. */}
+            <h2 className="ct-h2 text-ink">{t.presentationTitle}</h2>
             <p className="ct-help mt-1">{t.uploadHint}</p>
           </div>
           <FileButton
@@ -258,7 +269,7 @@ export function SessionView({
             changeLabel={t.uploadChange}
             accept=".pdf,.ppt,.pptx,.key"
             disabled={uploading === einzige.session_id}
-            onFile={(file) => onUpload(einzige, file)}
+            onFile={(file) => onUpload(einzige, file, { zumAbschnitt: true })}
           />
         </Card>
       )}
@@ -393,11 +404,36 @@ function SessionCard({
     session.description_de ??
     session.description_en;
 
+  const inhalt = inhaltsStatus(
+    { publish_status: session.publish_status, hatFinal: Boolean(finalTitle) },
+    submission,
+  );
+  // Gezeigt wird die Fassung im Programm, sobald es eine gibt; sonst die
+  // Einreichung. Themen stehen nur an der Einreichung — an der Session selbst
+  // gibt `my_sessions` keine heraus.
+  const ausEinreichung = !finalTitle && submission !== null;
+  const gezeigt = {
+    title: (ausEinreichung ? submission?.title : finalTitle) ?? t.untitled,
+    description: ausEinreichung ? (submission?.description ?? null) : (finalDescription ?? null),
+    topics:
+      submission && (ausEinreichung || submission.status === "approved") ? (submission.topics ?? []) : [],
+    language: ausEinreichung ? (submission?.language ?? null) : (session.language ?? null),
+  };
+  // Das Datum am Status: wann eingereicht bzw. wann das Team entschieden hat.
+  const statusDatum =
+    inhalt === "submitted" || inhalt === "change_submitted"
+      ? (submission?.created_at ?? null)
+      : inhalt === "approved" || inhalt === "change_published" || inhalt === "rejected"
+        ? (submission?.reviewed_at ?? submission?.created_at ?? null)
+        : null;
+
   const [draft, setDraft] = useState({
     title: submission?.title ?? finalTitle ?? "",
     description: submission?.description ?? finalDescription ?? "",
     topics: submission?.topics ?? [],
-    language: submission?.language ?? session.language ?? "",
+    // „Gemischt" gibt es für Speaker nicht mehr (SPK-052): steht es noch an der
+    // Session, beginnt das Feld leer, und man wählt eine der beiden Sprachen.
+    language: [submission?.language, session.language].find((l) => l === "de" || l === "en") ?? "",
     notes: submission?.notes ?? "",
   });
 
@@ -485,62 +521,70 @@ function SessionCard({
 
     <Card id="inhalt" className="scroll-mt-20 p-6">
       <h2 className="ct-h2 mb-4 text-ink">{t.sectionContent}</h2>
-      {/* Eingereicht vs. final — nebeneinander, damit man den Unterschied sieht. */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <h3 className="ct-label mb-1 text-ink">{t.submitted}</h3>
-          {submission ? (
-            <>
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <Badge tone={SUBMISSION_TONE[submission.status] ?? "neutral"}>
-                  {t[`submission_${submission.status}`] ?? submission.status}
-                </Badge>
-                <span className="ct-help tabular-nums">
-                  {dateTime.format(new Date(submission.created_at))}
-                </span>
-              </div>
-              <p className="font-semibold">{submission.title}</p>
-              {submission.description && (
-                <p className="ct-help mt-1 whitespace-pre-line">{submission.description}</p>
+      {/* Was gilt, mit Status (SPK-050). Vorher standen „Eingereicht" und
+          „Final im Programm" nebeneinander — und wer nie etwas eingereicht hatte,
+          las „Noch nichts eingereicht", obwohl das Team die Inhalte längst
+          eingetragen und veröffentlicht hatte. Jetzt: eine Fassung, ein Status,
+          und eine offene Änderung darunter, solange das Team sie prüft. */}
+      <div className="flex flex-col gap-3">
+        {inhalt === "none" ? (
+          <p className="ct-help">{t.nothingSubmitted}</p>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone={INHALT_TONE[inhalt]}>{t[`contentStatus_${inhalt}`] ?? inhalt}</Badge>
+              {statusDatum && (
+                <span className="ct-help tabular-nums">{dateTime.format(new Date(statusDatum))}</span>
               )}
-              {submission.topics && submission.topics.length > 0 && (
+            </div>
+            <p className="ct-help">{t[`contentHint_${inhalt}`]}</p>
+            <div>
+              <p className="font-semibold">{gezeigt.title}</p>
+              {gezeigt.description && (
+                <p className="ct-help mt-1 whitespace-pre-line">{gezeigt.description}</p>
+              )}
+              {gezeigt.topics.length > 0 && (
                 <p className="ct-help mt-1">
-                  {submission.topics.map((k) => labels.topics?.[k] ?? k).join(" · ")}
+                  {gezeigt.topics.map((k) => labels.topics?.[k] ?? k).join(" · ")}
                 </p>
               )}
-              {submission.review_note && (
-                <p className="ct-help mt-2">
-                  {t.reviewNote}: {submission.review_note}
-                </p>
+              {gezeigt.language && (
+                <p className="ct-help mt-1">{labels.language[gezeigt.language] ?? gezeigt.language}</p>
               )}
-            </>
-          ) : (
-            <p className="ct-help">{t.nothingSubmitted}</p>
-          )}
-        </div>
-        <div>
-          <h3 className="ct-label mb-1 text-ink">{t.finalVersion}</h3>
-          {finalTitle ? (
-            <>
-              <p className="font-semibold">{finalTitle}</p>
-              {finalDescription && (
-                <p className="ct-help mt-1 whitespace-pre-line">{finalDescription}</p>
-              )}
-              {session.language && (
-                <p className="ct-help mt-1">
-                  {labels.language[session.language] ?? session.language}
-                </p>
-              )}
-            </>
-          ) : (
-            <p className="ct-help">{t.noFinalYet}</p>
-          )}
-        </div>
+            </div>
+          </>
+        )}
+        {submission && inhalt === "change_submitted" && finalTitle && (
+          <div className="rounded-ct-md border border-accent p-4">
+            <p className="ct-label text-ink">{t.pendingChange}</p>
+            <p className="ct-help tabular-nums">
+              {t.pendingChangeMeta.replace("{date}", dateTime.format(new Date(submission.created_at)))}
+            </p>
+            <p className="mt-2 font-semibold">{submission.title}</p>
+            {submission.description && (
+              <p className="ct-help mt-1 whitespace-pre-line">{submission.description}</p>
+            )}
+            {submission.topics && submission.topics.length > 0 && (
+              <p className="ct-help mt-1">
+                {submission.topics.map((k) => labels.topics?.[k] ?? k).join(" · ")}
+              </p>
+            )}
+          </div>
+        )}
+        {submission?.status === "rejected" && submission.review_note && (
+          <p className="ct-help">
+            {t.reviewNote}: {submission.review_note}
+          </p>
+        )}
       </div>
 
       {/* Einreichen */}
       <div className="mt-6 border-t pt-4">
-        <h3 className="ct-label mb-3 text-ink">{t.submitTitle}</h3>
+        <h3 className="ct-label mb-3 text-ink">
+          {/* „Änderung", sobald etwas im Programm steht — eine zweite Fassung
+              der eigenen, noch offenen Einreichung ist noch keine. */}
+          {finalTitle ? t.submitChangeTitle : t.submitTitle}
+        </h3>
         <div className="flex flex-col gap-4">
           <Field
             label={t.fieldSessionTitle}
@@ -566,39 +610,32 @@ function SessionCard({
             {/* Mehrfachauswahl statt Freitext (SPK-027, Konrad 21.09.). Die
                 Liste ist dieselbe, die wir für die Talks setzen; sie steht im
                 Vokabular `session_topic` und wird im Admin gepflegt.
-                Kästchen statt einer Mehrfachliste: siebzehn Einträge in einem
-                `<select multiple>` sind auf dem Telefon nicht zu bedienen,
-                und was ausgewählt ist, sieht man dort auch nicht. */}
-            <fieldset className="sm:col-span-2">
-              <legend className="ct-label text-ink">{t.fieldTopics}</legend>
-              <p className="ct-help mt-1">{t.fieldTopicsHint}</p>
-              <div className="mt-2 grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3">
-                {Object.entries(labels.topics ?? {}).map(([key, label]) => (
-                  <label key={key} className="flex min-h-11 items-center gap-2 ct-small text-ink">
-                    <input
-                      type="checkbox"
-                      className="size-4 shrink-0"
-                      checked={draft.topics.includes(key)}
-                      onChange={(e) =>
-                        setDraft((d) => ({
-                          ...d,
-                          topics: e.target.checked
-                            ? [...d.topics, key]
-                            : d.topics.filter((k) => k !== key),
-                        }))
-                      }
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+                Als Auswahl mit Suche statt siebzehn Kästchen auf einmal
+                (SPK-051, Konrad 24.09.: die Kacheln „erschlagen"): sichtbar
+                ist, was gewählt ist; die Liste klappt erst im Feld auf. */}
+            <div className="sm:col-span-2">
+              <Field
+                label={t.fieldTopics}
+                htmlFor={`topics-${session.session_id}`}
+                hint={t.fieldTopicsHint}
+              >
+                <MehrfachAuswahl
+                  id={`topics-${session.session_id}`}
+                  options={Object.entries(labels.topics ?? {}).map(([value, label]) => ({ value, label }))}
+                  value={draft.topics}
+                  onChange={(topics) => setDraft((d) => ({ ...d, topics }))}
+                  placeholder={t.topicsPlaceholder}
+                  describedBy={`topics-${session.session_id}-hint`}
+                  t={{ remove: t.topicsRemove, noHits: t.topicsNoHits }}
+                />
+              </Field>
+            </div>
             <Field label={t.fieldSessionLanguage} htmlFor={`lang-${session.session_id}`}>
               <Select
                 id={`lang-${session.session_id}`}
                 value={draft.language}
                 placeholder={common.choose}
-                options={["de", "en", "mixed"].map((v) => ({
+                options={SPRACHEN.map((v) => ({
                   value: v,
                   label: labels.language[v] ?? v,
                 }))}
@@ -606,10 +643,11 @@ function SessionCard({
               />
             </Field>
           </div>
+          {/* Ein Kurztext, keine Textfläche (SPK-053): hier steht ein Hinweis,
+              kein zweiter Beschreibungstext. */}
           <Field label={t.fieldNotes} htmlFor={`notes-${session.session_id}`} hint={t.fieldNotesHint}>
-            <Textarea
+            <Input
               id={`notes-${session.session_id}`}
-              rows={2}
               value={draft.notes}
               onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
             />

@@ -10,6 +10,12 @@ export type SessionSubmission = {
   review_note: string | null;
   created_at: string;
   reviewed_at: string | null;
+  /**
+   * Ob vor dieser Einreichung schon eine übernommen wurde — dann ist sie eine
+   * Änderung (SPK-050, Vorschlag v6_session_inhalt_status). Fehlt, solange die
+   * Migration nicht live ist.
+   */
+  is_change?: boolean;
 };
 
 export type CoSpeaker = {

@@ -45,4 +45,5 @@ export { Accordion, AccordionItem } from "./Accordion";
 export { DateRow, DateList } from "./DateRow";
 export { PortraitShape } from "./PortraitShape";
 export { SuchFeld } from "./SuchFeld";
+export { MehrfachAuswahl, type AuswahlOption } from "./MehrfachAuswahl";
 export { Fortschritt } from "./Fortschritt";
