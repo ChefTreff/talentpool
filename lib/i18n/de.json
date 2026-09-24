@@ -4360,7 +4360,6 @@
   "talentStart": {
     "greeting": "Moin {name},",
     "greetingHighlight": "willkommen",
-    "lead": "Hier findest du das Programm, deine Anmeldungen und dein Profil.",
     "action": "Programm ansehen",
     "statLabel": "Bewerbungen und Anmeldungen",
     "statHint": "laufen gerade",
@@ -4374,8 +4373,7 @@
     "cardProfileWord": "Profil",
     "cardProfileBody": "Deine Daten pflegst du einmal — sie gelten für alle Formate und für das Matching.",
     "cardProfileAction": "Profil öffnen",
-    "loggedInAs": "Angemeldet als",
-    "navLabel": "Übersicht"
+    "loggedInAs": "Angemeldet als"
   },
   "adminSpeakerTasks": {
     "title": "Speaker-Aufgaben",
@@ -4422,5 +4420,19 @@
     "badgeMissing": "Zustimmung fehlt",
     "saving": "Wird gespeichert …",
     "cancel": "Abbrechen"
+  },
+  "talentHome": {
+    "navLabel": "Home",
+    "lead": "Dein Zugang zu allem bei ChefTreff: Summit, Community und Programme — mit einem Profil.",
+    "action": "Zum Summit 2027",
+    "cardSummitWord": "Summit",
+    "cardSummitBody": "Programm, Bewerbungen für Masterclasses, Company Tours, Interview Tables und Side-Events.",
+    "cardSummitAction": "Zum Summit"
+  },
+  "talentSummit": {
+    "groupLabel": "Summit 2027",
+    "navLabel": "Übersicht",
+    "eyebrow": "Summit 2027",
+    "lead": "Hier findest du die Formate zum Bewerben und alles, woran du gerade dran bist."
   }
 }

@@ -4360,7 +4360,6 @@
   "talentStart": {
     "greeting": "Hi {name},",
     "greetingHighlight": "welcome",
-    "lead": "Here you find the programme, your registrations and your profile.",
     "action": "View programme",
     "statLabel": "Applications and registrations",
     "statHint": "currently running",
@@ -4374,8 +4373,7 @@
     "cardProfileWord": "Profile",
     "cardProfileBody": "You keep your data once — it applies to every format and to matching.",
     "cardProfileAction": "Open profile",
-    "loggedInAs": "Signed in as",
-    "navLabel": "Overview"
+    "loggedInAs": "Signed in as"
   },
   "adminSpeakerTasks": {
     "title": "Speaker tasks",
@@ -4422,5 +4420,19 @@
     "badgeMissing": "Consent missing",
     "saving": "Saving …",
     "cancel": "Cancel"
+  },
+  "talentHome": {
+    "navLabel": "Home",
+    "lead": "Your access to everything at ChefTreff: summit, community and programmes — with one profile.",
+    "action": "Go to Summit 2027",
+    "cardSummitWord": "Summit",
+    "cardSummitBody": "Programme and applications for masterclasses, company tours, interview tables and side events.",
+    "cardSummitAction": "Go to the summit"
+  },
+  "talentSummit": {
+    "groupLabel": "Summit 2027",
+    "navLabel": "Overview",
+    "eyebrow": "Summit 2027",
+    "lead": "Find the formats you can apply for and everything you're currently involved in."
   }
 }

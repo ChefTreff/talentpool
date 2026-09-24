@@ -24,18 +24,31 @@ export const dynamic = "force-dynamic";
  * Bereichs"). Das ist aufgehoben: das Teilnehmer-Portal ist das Front-End des
  * Talent-CRM und steht als eigener Eintrag im Umschalter neben den anderen.
  * Der Einstieg nach dem Login bleibt im Fachbereich (`landingPathFor`).
+ *
+ * **Seit 24.09.2026 zwei Ebenen** (TAL-005, D11): „Home" (`/start`) ist die
+ * allgemeine Startseite, der Summit ist eine Seitengruppe mit eigener
+ * Startseite (`/summit`).
  */
 export default async function TalentLayout({ children }: { children: ReactNode }) {
   await requireArea("talent");
   const { t } = await getI18n();
 
-  const mine: SidebarGroup = {
+  // D11 (Konrad 24.09.): Seitengruppen statt Unterportal. Oben das
+  // allgemeine „Home" und das Profil, darunter je Format eine Gruppe — zuerst
+  // der Summit; Community-Events und Bootcamp folgen als eigene Gruppen.
+  const allgemein: SidebarGroup = {
     label: "",
     items: [
-      { href: "/start", label: t.talentStart.navLabel },
+      { href: "/start", label: t.talentHome.navLabel },
+      { href: "/profil", label: t.profile.title },
+    ],
+  };
+  const summit: SidebarGroup = {
+    label: t.talentSummit.groupLabel,
+    items: [
+      { href: "/summit", label: t.talentSummit.navLabel },
       { href: "/programm", label: t.programme.title },
       { href: "/meine", label: t.participation.title },
-      { href: "/profil", label: t.profile.title },
     ],
   };
 
@@ -44,7 +57,7 @@ export default async function TalentLayout({ children }: { children: ReactNode }
       area="talent"
       label={t.areas.talent.portal}
       rootHref="/start"
-      groups={[mine]}
+      groups={[allgemein, summit]}
     >
       {children}
     </SidebarShell>
