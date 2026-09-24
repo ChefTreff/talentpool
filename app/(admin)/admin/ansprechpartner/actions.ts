@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { toRpcFailure } from "@/lib/rpc-error";
@@ -11,6 +12,10 @@ const BUCKET = "contact-photos";
 export type Ergebnis = { ok: true; id?: string } | { ok: false; key: string };
 
 async function ruf(name: string, args: Record<string, unknown>): Promise<Ergebnis> {
+  // Siehe Videos: der Schutz hing an der Tür, und die steht seit PORT1 dem
+  // ganzen Team offen. Die RPCs prüfen weiterhin selbst — das hier ist die
+  // zweite Schranke, nicht die einzige.
+  await requireAdminSection("contacts");
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc(name, args);
   if (error) return { ok: false, key: toRpcFailure(error).key };
@@ -71,6 +76,10 @@ export async function createPhotoUploadUrl(
   contactId: string,
   contentType: string,
 ): Promise<{ ok: true; path: string; token: string } | { ok: false; key: string }> {
+  // Diese Action geht am Helfer `ruf` vorbei (sie ruft keine RPC, sondern den
+  // Storage) und braucht das Gate deshalb selbst. Die Datenbankprüfung
+  // `can_edit_edition_contacts()` weiter unten bleibt — sie ist die, die zählt.
+  await requireAdminSection("contacts");
   // Nur die drei Bildtypen des Buckets — alles andere wird hier abgewiesen und
   // nicht als „jpg“ umetikettiert (Review 14.09.).
   const ENDUNG: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };

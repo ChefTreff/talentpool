@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
@@ -24,13 +24,13 @@ function fail(error: unknown): { ok: false; key: string; detail?: string } {
   return { ok: false, key: f.key, detail: f.detail };
 }
 
-const PATHS = ["/produktion", "/produktion/staende", "/produktion/bestellungen"] as const;
+const PATHS = ["/admin/produktion", "/admin/produktion/staende", "/admin/produktion/bestellungen"] as const;
 function revalidateAll() {
   for (const p of PATHS) revalidatePath(p);
 }
 
 async function client() {
-  await requireArea("produktion", PATHS[0]);
+  await requireAdminSection("production", PATHS[0]);
   return createSupabaseServerClient();
 }
 

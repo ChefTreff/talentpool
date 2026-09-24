@@ -23,3 +23,4 @@ Regeln für alle Runbooks:
 - `sicherheits-header.md` — Sicherheits-Header und Content-Security-Policy (Report-Only → scharf über `CSP_ENFORCE`), Prüfbefehl, Regeln für Code.
 - `sanity-partner-logos.md` — Partner-Logos als `portalPartnerLogo` nach Sanity (Trockenlauf Standard, Schutzregeln, Studio-Schema für das Web-Team).
 - `produktabgleich.md` — Produktstamm nach HubSpot und SevDesk (Trockenlauf Pflicht, Dublettenschutz über die Artikelnummer, Bestandsaufnahme 21.09.2026).
+- `admin-abschnitte.md` — wer sieht welchen Abschnitt unter `/admin` (PORT1): die eine Quelle, das Gate je Seite, der Test, der kein Gate vergessen lässt.

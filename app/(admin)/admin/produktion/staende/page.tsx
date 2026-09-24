@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -9,7 +9,7 @@ import { loadAxes, loadBooths } from "../load";
 export const dynamic = "force-dynamic";
 
 export default async function BoothsPage() {
-  await requireArea("produktion", "/produktion/staende");
+  await requireAdminSection("production", "/admin/produktion/staende");
   const { locale, t } = await getI18n("de");
   const axes = await loadAxes();
 

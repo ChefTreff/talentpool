@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
@@ -19,7 +19,7 @@ export default async function AdminWikiPage({
 }: {
   searchParams: Promise<{ zielgruppe?: string }>;
 }) {
-  await requireArea("admin", "/admin/wiki");
+  await requireAdminSection("wiki", "/admin/wiki");
   const { locale, t } = await getI18n();
   const { zielgruppe } = await searchParams;
   const supabase = await createSupabaseServerClient();

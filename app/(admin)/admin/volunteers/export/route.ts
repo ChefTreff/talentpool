@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { csvCellMinimal } from "@/lib/csv";
 import type { ShiftRow, VolunteerDay, VolunteerRow } from "../types";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 /**
  * Bewerbungen und Schichtplan als CSV — nur für das Volunteer-Team.
  *
- * Gate zweimal: `requireArea("admin")` hält Fremde von der Route fern,
+ * Gate zweimal: `requireAdminSection("volunteers")` hält Fremde von der Route fern,
  * `is_volunteer_team()` entscheidet über die Daten.
  *
  * Kein Geburtsdatum in der Datei: für die Planung genügt, dass die Prüfung
@@ -26,7 +26,7 @@ function csv(rows: (string | number | null)[][]): string {
 }
 
 export async function GET() {
-  await requireArea("admin", "/admin/volunteers");
+  await requireAdminSection("volunteers", "/admin/volunteers");
   const supabase = await createSupabaseServerClient();
   const { data: team } = await supabase.rpc("is_volunteer_team");
   if (!team) return NextResponse.json({ error: "forbidden" }, { status: 403 });

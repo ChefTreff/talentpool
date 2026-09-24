@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -19,7 +19,7 @@ export default async function SupplierOrdersPage({
 }: {
   searchParams: Promise<{ dienstleister?: string }>;
 }) {
-  await requireArea("produktion", "/produktion/bestellungen");
+  await requireAdminSection("production", "/admin/produktion/bestellungen");
   const { locale, t } = await getI18n("de");
   const { dienstleister } = await searchParams;
   const axes = await loadAxes();

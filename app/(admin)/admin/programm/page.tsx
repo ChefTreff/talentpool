@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -19,7 +19,7 @@ export default async function ProgrammPage({
   // Gate je Seite, nicht nur im Layout. Die Board-RPCs prüfen zusätzlich
   // can_edit_slot()/can_edit_session() — ein Speaker-Manager darf hier lesen,
   // aber nur im eigenen Scope schreiben.
-  const { roleNames } = await requireArea("admin", PATH);
+  const { roleNames } = await requireAdminSection("programme", PATH);
   const { t } = await getI18n();
   const { event, tag } = await searchParams;
 

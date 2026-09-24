@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
@@ -30,7 +30,7 @@ export default async function PersonDetail({
   const { id } = await params;
   // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
   // nicht neu. Muss vor createSupabaseAdminClient() stehen.
-  await requireArea("admin", `/admin/personen/${id}`);
+  await requireAdminSection("persons", `/admin/personen/${id}`);
   const admin = createSupabaseAdminClient();
   const { locale, t } = await getI18n();
   const f = t.profile.fields;

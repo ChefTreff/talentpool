@@ -27,10 +27,23 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     const onPortalHost = [{ type: "host" as const, value: "portal.chef-treff.de" }];
-    return TEAM_PORTAL_PATHS.flatMap((p) => [
-      { source: `/${p}`, has: onPortalHost, destination: `https://team.chef-treff.de/${p}`, permanent: false },
-      { source: `/${p}/:path*`, has: onPortalHost, destination: `https://team.chef-treff.de/${p}/:path*`, permanent: false },
-    ]);
+    return [
+      ...TEAM_PORTAL_PATHS.flatMap((p) => [
+        { source: `/${p}`, has: onPortalHost, destination: `https://team.chef-treff.de/${p}`, permanent: false },
+        { source: `/${p}/:path*`, has: onPortalHost, destination: `https://team.chef-treff.de/${p}/:path*`, permanent: false },
+      ]),
+      // PORT2 (Konrad, 22.09.2026): das Produktionsportal ist ein Abschnitt des
+      // Admin-Bereichs geworden. Die alten Adressen stehen in verschickten Mails,
+      // in Lesezeichen und in Notizen — sie führen weiter ans Ziel.
+      //
+      // Hier und nicht in einer Seite, die `redirect()` ruft: die Umleitung
+      // greift **vor** jeder Rollenprüfung. Wer nicht angemeldet ist, landet
+      // damit auf dem Login mit dem **neuen** Ziel und nach der Anmeldung dort,
+      // statt auf einer 404 zu stranden, weil der alte Bereich nicht mehr
+      // existiert. `permanent: false`, solange die Umstellung frisch ist.
+      { source: "/produktion", destination: "/admin/produktion", permanent: false },
+      { source: "/produktion/:path*", destination: "/admin/produktion/:path*", permanent: false },
+    ];
   },
 };
 

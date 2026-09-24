@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -15,11 +15,11 @@ export const maxDuration = 300;
  * fragt und nicht erst morgen. Der nächtliche Lauf hängt am Cron
  * (`/api/cron/mail`) und braucht diese Route nicht.
  *
- * Die Rolle prüft `requireArea("admin")` **vor** dem Admin-Client, und die
+ * Die Rolle prüft `requireAdminSection("partner")` **vor** dem Admin-Client, und die
  * Zielliste prüft `is_partner_team()` noch einmal in der Datenbank.
  */
 export async function POST() {
-  const ctx = await requireArea("admin", "/admin/partner/integrationen");
+  const ctx = await requireAdminSection("partner", "/admin/partner/integrationen");
   const supabase = await createSupabaseServerClient();
   const admin = createSupabaseAdminClient();
 

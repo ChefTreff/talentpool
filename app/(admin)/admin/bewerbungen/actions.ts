@@ -1,14 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
 /**
  * Bewerbungs-Queue. Alle drei Wege sind RPCs mit dem Session-Client:
  * `decide_application` prüft `can_decide_session()`, `release_decisions` und
- * `promote_waitlist` prüfen die Rolle selbst. `requireArea("admin")` davor
+ * `promote_waitlist` prüfen die Rolle selbst. `requireAdminSection("applications")` davor
  * hält Nicht-Team von der Route fern — die fachliche Prüfung bleibt in der DB.
  */
 const PATH = "/admin/bewerbungen";
@@ -24,7 +24,7 @@ function fail(error: unknown): { ok: false; key: string; detail?: string } {
 }
 
 async function client(sessionId?: string) {
-  await requireArea("admin", sessionId ? `${PATH}/${sessionId}` : PATH);
+  await requireAdminSection("applications", sessionId ? `${PATH}/${sessionId}` : PATH);
   return createSupabaseServerClient();
 }
 

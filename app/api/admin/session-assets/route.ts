@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
@@ -38,7 +38,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * im Code noch einmal nachgebaut werden.
  */
 export async function POST(request: Request) {
-  await requireArea("admin", "/admin/grafiken");
+  await requireAdminSection("graphics", "/admin/grafiken");
   const supabase = await createSupabaseServerClient();
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
@@ -137,7 +137,7 @@ async function eintragen(
 
 /** Hart löschen — die RPC lässt nur Admin durch und gibt den Pfad zurück. */
 export async function DELETE(request: Request) {
-  await requireArea("admin", "/admin/grafiken");
+  await requireAdminSection("graphics", "/admin/grafiken");
   const supabase = await createSupabaseServerClient();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id") ?? "";

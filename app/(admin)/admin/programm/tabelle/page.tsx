@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -19,7 +19,7 @@ export default async function ProgrammeTablePage({
 }: {
   searchParams: Promise<{ event?: string }>;
 }) {
-  await requireArea("admin", `${BASE}/tabelle`);
+  await requireAdminSection("programme", `${BASE}/tabelle`);
   const { t } = await getI18n();
   const { event } = await searchParams;
   const data = await loadProgrammeTable({ eventSlug: event });

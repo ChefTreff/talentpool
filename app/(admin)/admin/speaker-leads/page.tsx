@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
  * diese Person eigentlich betreut. Diese Seite stellt beides nebeneinander.
  */
 export default async function SpeakerLeadsAdminPage() {
-  await requireArea("admin", "/admin/speaker-leads");
+  await requireAdminSection("speakerLeads", "/admin/speaker-leads");
   const { locale, t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 

@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -19,7 +19,7 @@ export default async function LoeschantraegePage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
-  await requireArea("admin", "/admin/loeschantraege");
+  await requireAdminSection("deletions", "/admin/loeschantraege");
   const { t } = await getI18n("de");
   const { status } = await searchParams;
   const gewaehlt = status === "all" ? null : (status ?? "pending");

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { HeroBand } from "@/components/ui/HeroBand";
@@ -20,7 +20,7 @@ export default async function ProduktionPage({
 }: {
   searchParams: Promise<{ buehne?: string; tag?: string }>;
 }) {
-  await requireArea("produktion", "/produktion");
+  await requireAdminSection("production", "/admin/produktion");
   const { locale, t } = await getI18n("de");
   const { buehne, tag } = await searchParams;
   const axes = await loadAxes();

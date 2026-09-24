@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -49,7 +49,7 @@ export default async function MailPage({
     q?: string; status?: string; vorlage?: string; von?: string; bis?: string; seite?: string;
   }>;
 }) {
-  const ctx = await requireArea("admin", "/admin/mail");
+  const ctx = await requireAdminSection("mail", "/admin/mail");
   const { t } = await getI18n("de");
   const sp = await searchParams;
   const seite = Math.max(1, Number(sp.seite ?? "1") || 1);

@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -8,7 +8,7 @@ import { TicketQueue, type AdminTicket } from "./TicketQueue";
 export const dynamic = "force-dynamic";
 
 export default async function AdminSpeakerTicketsPage() {
-  await requireArea("admin", "/admin/speaker-tickets");
+  await requireAdminSection("speakerTickets", "/admin/speaker-tickets");
   const { t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 

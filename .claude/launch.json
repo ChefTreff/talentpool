@@ -83,6 +83,15 @@
       "port": 3008
     },
     {
+      "name": "worktree-admin",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": [
+        "-c",
+        "source \"$HOME/.zshenv\" && W=\"$(git worktree list --porcelain | awk '/^worktree /{w=$2} /^branch refs\\/heads\\/admin\\//{print w; exit}')\"; [ -n \"$W\" ] || { echo \"Kein Worktree mit Branch admin/… gefunden\" >&2; exit 1; }; cd \"$W\" && exec npm run dev -- --port 3010"
+      ],
+      "port": 3010
+    },
+    {
       "name": "worktree-welle-6",
       "runtimeExecutable": "/bin/zsh",
       "runtimeArgs": [

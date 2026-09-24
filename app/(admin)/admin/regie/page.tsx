@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { RegieSeite } from "@/components/regie/RegieSeite";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ export default async function AdminRegiePage({
 }: {
   searchParams: Promise<{ buehne?: string; tag?: string }>;
 }) {
-  await requireArea("admin", PATH);
+  await requireAdminSection("regie", PATH);
   const { buehne, tag } = await searchParams;
   return <RegieSeite buehne={buehne} tag={tag} />;
 }

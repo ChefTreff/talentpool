@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -40,7 +40,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * dass er mit der Edition beginnt, und die Rolle ein zweites Mal.
  */
 export async function POST(request: Request) {
-  await requireArea("produktion", "/produktion/dateien");
+  await requireAdminSection("production", "/admin/produktion/dateien");
   const supabase = await createSupabaseServerClient();
   const [{ data: produktion }, { data: staff }] = await Promise.all([
     supabase.rpc("is_production_team"),
@@ -146,7 +146,7 @@ async function eintragen(
 
 /** Eintrag **und** Datei entfernen. */
 export async function DELETE(request: Request) {
-  await requireArea("produktion", "/produktion/dateien");
+  await requireAdminSection("production", "/admin/produktion/dateien");
   const supabase = await createSupabaseServerClient();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");

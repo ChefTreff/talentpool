@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -30,7 +30,7 @@ export default async function QueuePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await requireArea("admin", `/admin/bewerbungen/${id}`);
+  await requireAdminSection("applications", `/admin/bewerbungen/${id}`);
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 

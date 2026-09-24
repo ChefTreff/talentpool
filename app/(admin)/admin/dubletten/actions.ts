@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -11,7 +11,7 @@ export async function setDuplicateStatus(
   id: string,
   status: DupStatus,
 ): Promise<{ ok: boolean; error?: string }> {
-  const { user } = await requireArea("admin");
+  const { user } = await requireAdminSection("duplicates");
   const admin = createSupabaseAdminClient();
 
   const { data: before } = await admin
