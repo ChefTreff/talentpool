@@ -76,7 +76,7 @@ describe("PORT2: die alten Produktions-Adressen führen weiter", () => {
     // dem Login mit dem neuen Ziel landet und nicht auf einer 404 — ein
     // Seiten-`redirect()` im alten Bereich könnte das nicht leisten, weil es den
     // Bereich voraussetzt, den es nicht mehr gibt.
-    const { default: config } = await import("../next.config.ts");
+    const { default: config } = await import("@/next.config");
     const rules = await config.redirects!();
     const wurzel = rules.find((r) => r.source === "/produktion");
     const unter = rules.find((r) => r.source === "/produktion/:path*");
