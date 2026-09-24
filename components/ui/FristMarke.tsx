@@ -50,6 +50,10 @@ const BALD_MS = 7 * 24 * 3_600_000;
  * Die grosse, laufende Zahl der Ticketseite (`DeadlineCard prominent`,
  * PART-066) bleibt: dort ist die Frist das Thema der Seite, nicht ein Detail
  * eines Abschnitts.
+ *
+ * **`kompakt`** (PART-064): dieselben Stände, Farben und Wörter in Zeilenhöhe —
+ * für Listen wie die Checkliste, in denen jede Zeile ihre eigene Frist trägt.
+ * Ein Datum in `.ct-h2` wäre dort grösser als die Aufgabe selbst.
  */
 export function FristMarke({
   dueAt,
@@ -57,6 +61,7 @@ export function FristMarke({
   t,
   vorbei,
   erledigt,
+  kompakt = false,
   className,
 }: {
   dueAt: string;
@@ -66,6 +71,8 @@ export function FristMarke({
   /** Vom Server bestimmt; gewinnt über die Uhr im Browser. */
   vorbei?: boolean;
   erledigt?: boolean;
+  /** Zeilenhöhe statt Abschnittskopf: Wort und Datum nebeneinander, Datum in `.ct-label`. */
+  kompakt?: boolean;
   className?: string;
 }) {
   const jetzt = useJetzt();
@@ -91,6 +98,24 @@ export function FristMarke({
             : rest < 48 * 3_600_000
               ? t.hours.replace("{n}", String(Math.floor(rest / 3_600_000)))
               : t.days.replace("{n}", String(Math.floor(rest / (24 * 3_600_000))));
+
+  if (kompakt) {
+    return (
+      <span
+        className={cn(
+          "inline-flex shrink-0 flex-wrap items-baseline gap-x-1.5 rounded-ct-sm px-2 py-0.5",
+          TON[stand],
+          className,
+        )}
+      >
+        <span className="ct-eyebrow">
+          {t.label}
+          {zusatz && <> · {zusatz}</>}
+        </span>
+        <span className="ct-label tabular-nums">{dateText}</span>
+      </span>
+    );
+  }
 
   return (
     <div
