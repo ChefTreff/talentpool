@@ -93,6 +93,8 @@
 | Welle 6 · 0164 | **Welle 6 · Eure Daten (PART-059/061): organization.address_extra und customer_number, set_org_customer_number, partner_overview, shop_invoice_candidates** (`20260924140443`, `v6_eure_daten`; Details im Migrationskopf) | — |
 | Welle 6 · 0165 | **Welle 6 · Next Up im Teilnehmer-Portal (TAL-006): next_up_item, next_up_items, Pflege im Admin-Abschnitt nextUp** (`20260924140714`, `v6_next_up`; Details im Migrationskopf) | — |
 | Welle 6 · 0166 | **Welle 6 · Folien nach dem Summit für Teilnehmende (TAL-001): my_session_slides (Ticket der Edition, veröffentlicht, Slot vorbei, freigegeben)** (`20260924141539`, `v6_folien_teilnehmende`; Details im Migrationskopf) | — |
+| Welle 6 · 0167 | **Welle 6 · Belege im Dateibereich einordnen (PART-065): my_partner_documents (Angebot, Rechnung, Messeshop-Rechnung)** (`20260924142604`, `v6_partner_belege`; Details im Migrationskopf) | — |
+| Welle 6 · 0168 | **Welle 6 · Community-Events aus Luma (TAL-007 Stufe 2, D12): luma_sync_event, luma_sync_registration (nur Server), my_community_registrations** (`20260924142616`, `v6_luma_events`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

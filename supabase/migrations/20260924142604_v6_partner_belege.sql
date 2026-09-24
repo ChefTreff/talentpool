@@ -1,3 +1,5 @@
+-- 0167 · Welle 6 · Belege im Dateibereich einordnen (PART-065): my_partner_documents (Angebot, Rechnung, Messeshop-Rechnung)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924142604.
 -- Vorschlag · Welle 6 · Belege im Dateibereich einordnen (PART-065): my_partner_documents
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.

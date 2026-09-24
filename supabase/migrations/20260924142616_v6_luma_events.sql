@@ -1,3 +1,5 @@
+-- 0168 · Welle 6 · Community-Events aus Luma (TAL-007 Stufe 2, D12): luma_sync_event, luma_sync_registration (nur Server), my_community_registrations
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924142616.
 -- 00NN · Community-Events aus Luma im Profil (TAL-007 Stufe 2/3, D12 Hybrid).
 --
 -- Anlass: D12 (Konrad 24.09.2026): die Events-Seite im Portal liest den Luma-Kalender, die
