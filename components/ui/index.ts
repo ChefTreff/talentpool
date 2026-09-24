@@ -40,6 +40,7 @@ export type { BarStep } from "./StepBar";
 export { PersonCard } from "./PersonCard";
 export { PhotoCard } from "./PhotoCard";
 export { TicketCard } from "./TicketCard";
+export { QrCode } from "./QrCode";
 export { Accordion, AccordionItem } from "./Accordion";
 export { DateRow, DateList } from "./DateRow";
 export { PortraitShape } from "./PortraitShape";

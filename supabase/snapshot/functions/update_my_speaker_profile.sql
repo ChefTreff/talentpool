@@ -64,7 +64,6 @@ begin
     first_name         = case when p_data ? 'first_name'         then nullif(btrim(p_data->>'first_name'), '')         else first_name end,
     last_name          = case when p_data ? 'last_name'          then nullif(btrim(p_data->>'last_name'), '')          else last_name end,
     title              = case when p_data ? 'title'              then nullif(btrim(p_data->>'title'), '')              else title end,
-    pronouns           = case when p_data ? 'pronouns'           then nullif(btrim(p_data->>'pronouns'), '')           else pronouns end,
     linkedin_url       = case when p_data ? 'linkedin_url'       then nullif(btrim(p_data->>'linkedin_url'), '')       else linkedin_url end,
     phone_e164         = case when p_data ? 'phone_e164'         then nullif(btrim(p_data->>'phone_e164'), '')         else phone_e164 end,
     preferred_language = case when p_data ? 'preferred_language' and p_data->>'preferred_language' in ('de', 'en') then p_data->>'preferred_language' else preferred_language end

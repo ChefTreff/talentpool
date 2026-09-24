@@ -13,7 +13,7 @@ Stand: 24.09.2026 · Talent-Chat · Entscheidung **D12: Hybrid über die Luma-AP
 ## Baustufen
 1. **Adapter mit Trockenlauf und Fixtures** (dieser Stand): `lib/luma/` — `core.ts` (Client, testbar), `client.ts` (Server-Einstieg mit Schlüssel), `mapping.ts` (reine Abbildung), `types.ts`. Tests: `tests/luma.test.ts` mit `tests/fixtures/luma/*.json`. Probe gegen den echten Kalender: `scripts/luma-probe.mjs` (nur lesend).
 2. **Events-Seite und Anmeldung** (TAL-007): `/events` (Liste) und `/events/[id]` (Event-Seite), Knopf „Mit meinem Profil anmelden" → `addGuests({ live: true })`, danach `luma_sync_event` + `luma_sync_registration` (Migrationsvorschlag `v6_luma_events`: `event` mit `format_tag = community`, `external_ref` system `luma`, `registration` mit `source = luma`). Schreibt erst mit `LUMA_WRITE_ENABLED=true`; nur Events aus `LUMA_CALENDAR_ID`.
-3. **Rücklauf** (TAL-007/008): Cron gleicht Gäste je Event ab (`listGuests`) und schreibt die Teilnahme ins Profil; Admin-Sicht „Community-Events" (Zuordnung und Sicht statt Pflege).
+3. **Rücklauf und Admin-Sicht** (TAL-007/008): Cron `/api/cron/luma-sync` (stündlich, `vercel.json`) gleicht Events der letzten 60 Tage und alle kommenden ab, je Event die Gäste → `luma_sync_event` / `luma_sync_registration` (`lib/luma/sync.ts`, idempotent, nur `LUMA_CALENDAR_ID`). **Schreibt erst mit `LUMA_WRITE_ENABLED=true`**, vorher Trockenlauf mit Zählern. Protokoll in `integration.sync_job` (system `luma`, job_type `luma.guests`). Admin `/admin/community-events` (Abschnitt `communityEvents`: Talent-Leitung, Talent-Team, Marketing): Events mit Zählern, je Event die Teilnehmenden mit Name und Status — keine Kontaktdaten (Migrationsvorschlag `v6_community_events_admin`).
 
 ## API (gelesen am 24.09.2026 aus `https://public-api.luma.com/openapi.json`)
 | Zweck | Aufruf |
@@ -31,6 +31,9 @@ Stand: 24.09.2026 · Talent-Chat · Entscheidung **D12: Hybrid über die Luma-AP
 
 ## Zugang
 `LUMA_API_KEY` (sensibel) und `LUMA_CALENDAR_ID` (Konfiguration), siehe `docs/zugangs-liste.md`. Konrad setzt beide mit `sh scripts/env-set.sh`.
+
+## Probe 25.09.2026
+`403 /v1/users/get-self` — „Your calendar must have an active Luma Plus plan to make API requests.“ Der Schlüssel wird erkannt, der zugehörige Kalender hat aber kein aktives Luma Plus (oder der Schlüssel stammt aus einem anderen Kalender). Konrad prüft Plus auf `cal-B49jJXx8bsvPDo0` und erzeugt den Schlüssel dort neu; `LUMA_WRITE_ENABLED` bleibt aus.
 
 ## Erster echter Lauf
 ```bash

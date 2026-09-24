@@ -48,7 +48,7 @@ begin
        from person a where a.id = v_sp.assistant_person_id) end,
     'person', jsonb_build_object(
        'id', v_p.id, 'first_name', v_p.first_name, 'last_name', v_p.last_name, 'title', v_p.title,
-       'pronouns', v_p.pronouns, 'linkedin_url', v_p.linkedin_url,
+       'linkedin_url', v_p.linkedin_url,
        'preferred_language', v_p.preferred_language, 'phone_e164', v_p.phone_e164,
        'email', (select pe.email::text from person_email pe where pe.person_id = v_p.id and pe.is_primary)),
     'photo_asset_id', v_sp.photo_asset_id,
