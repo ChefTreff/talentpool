@@ -15,6 +15,7 @@ Auftrag (Konrad, 22.09.2026): „Wir überprüfen einmal, welche Felder wir habe
 | F7 | Hinweis | Bucket `edition-files` ist für **alle angemeldeten** Personen lesbar (Hallenplan, gewollt). Der zweite Hallenplan nur für Speaker (PROD-009) braucht deshalb eine Pfad- oder Bucket-Trennung, sonst sehen ihn auch Partner. | an Produktion/Admin mit PROD-009 |
 | F8 | Hinweis | `anon` darf 13 reine Hilfsfunktionen ausführen (`email_hash`, `fmt_cents`, `iban_valid`, `is_u35`, `export_privacy_notice`, `team_role_keys` …) — keine Definer, kein Datenzugriff. | unkritisch, dokumentiert |
 | F9 | Hinweis | Assistenten (Titel, Post) prüften nur Nutzer-Züge auf Länge; Assistant-Züge aus dem Browser waren ungekappt (Kostenrisiko, 10 Aufrufe je Person und Stunde). | **behoben** mit #142 (`verlaufAusBrowser`, 4000 Zeichen je Assistant-Zug) |
+| F10 | hoch | **Partner lesen Entwürfe anderer Partner.** `is_programme_reader()` schließt `standbuehne_editor` und `speaker_manager` ein; die Policy `session_read` lässt damit jede Person mit Standbühnen-Rolle **alle** Sessions lesen, auch unveröffentlichte Entwürfe fremder Partner (Titel, Beschreibung, `format_details` mit Stellenangaben). Befund des Partner-Chats am 24.09., live bestätigt (2 Rollenzuweisungen `standbuehne_editor`, Scope org). | Leserolle nur intern; Externe lesen veröffentlichte, eigene und die Sessions der eigenen Bühnen — Backlog LEAD-032 (P1), erster Baustein des Speaker-Chats nach der Pause; Test mit Vorbedingung. |
 
 ## 2 · Datenbank (Ergebnis der Prüfung)
 
