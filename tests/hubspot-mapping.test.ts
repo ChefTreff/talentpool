@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { assignPrimaryIfSingle, buildIngestPayload, emailOrNull, levelFromBoothType, orgTypeFromHubspot, partnerCategoryFromHubspot, roleFromLabel, rolesForContact, toCents, toQty } from "@/lib/hubspot/mapping";
+import { COMPANY_PROPERTIES, assignPrimaryIfSingle, buildIngestPayload, emailOrNull, levelFromBoothType, orgTypeFromHubspot, partnerCategoryFromHubspot, roleFromLabel, rolesForContact, toCents, toQty } from "@/lib/hubspot/mapping";
 
 describe("Kontaktrollen aus HubSpot-Labels", () => {
   it("erkennt die vier Rollen und Buchhaltung in DE und EN", () => {
@@ -108,5 +108,32 @@ describe("Zuordnung der ChefTreff-Eigenschaften (Bestandsaufnahme 11.09.)", () =
     });
     assert.equal(explicit.company.sponsoring_level, "Premium");
     assert.equal(explicit.company.invoice_email, null);
+  });
+});
+
+describe("Kundennummer aus HubSpot (ADM-057)", () => {
+  it("liest `company_id` und nicht die zweite Kandidatin", () => {
+    // Konrad, 24.09.2026: es gilt `company_id` („Übergreifende Kundennummer
+    // (Company ID)"), nicht `cheftreff_id_unternehmen`. Der Test hält die
+    // Entscheidung fest — beide Eigenschaften gibt es, und sie sehen sich ähnlich.
+    assert.equal(COMPANY_PROPERTIES.includes("company_id"), true);
+    assert.equal((COMPANY_PROPERTIES as readonly string[]).includes("cheftreff_id_unternehmen"), false);
+    const p = buildIngestPayload({
+      deal: { id: "1", properties: { dealname: "D", pipeline: "p", dealstage: "s" } },
+      company: { id: "9", properties: { name: "Muster GmbH", company_id: " C-12345 ", cheftreff_id_unternehmen: "998877" } },
+      contacts: [], lineItems: [], owner: null, portalId: null,
+    });
+    assert.equal(p.company.customer_number, "C-12345");
+  });
+
+  it("ohne Nummer bleibt das Feld leer statt zu einer leeren Zeichenkette zu werden", () => {
+    // `null` heißt für `ingest_partner_deal`: nichts zu schreiben. Eine leere
+    // Zeichenkette liefe in den Teilindex und wäre nach der ersten Firma belegt.
+    const p = buildIngestPayload({
+      deal: { id: "1", properties: { dealname: "D", pipeline: "p", dealstage: "s" } },
+      company: { id: "9", properties: { name: "Muster GmbH", company_id: "   " } },
+      contacts: [], lineItems: [], owner: null, portalId: null,
+    });
+    assert.equal(p.company.customer_number, null);
   });
 });
