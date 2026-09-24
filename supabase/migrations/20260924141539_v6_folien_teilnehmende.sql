@@ -1,3 +1,5 @@
+-- 0166 · Welle 6 · Folien nach dem Summit für Teilnehmende (TAL-001): my_session_slides (Ticket der Edition, veröffentlicht, Slot vorbei, freigegeben)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924141539.
 -- 00NN · Folien nach dem Summit für Teilnehmende (TAL-001): Leserolle my_session_slides().
 --
 -- Anlass: TAL-001 (P1 seit 24.09.2026), Kontrakt des Speaker-Chats zu SPK-055 (0160
