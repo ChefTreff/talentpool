@@ -70,7 +70,14 @@ const commands = {
   },
   async test(client) {
     if (!a1) fail("Testdatei angeben");
-    printResults(await client.query(readFileSync(a1, "utf8")));
+    // Schutz (Vorfall 24.09.2026): `test` führt die Datei roh aus — ohne eigenen Transaktionsrahmen.
+    // Eine Migrationsdatei an dieser Stelle wird sofort angewendet und committet. Deshalb nur
+    // Testdateien aus supabase/tests/ mit eigenem begin/rollback; Probelauf einer Migration = dry-run.
+    if (a2) fail("`test` nimmt genau eine Datei (die Testdatei). Migration + Test prüfen: `db.sh dry-run <migration.sql> <test.sql>`");
+    if (!/(^|\/)supabase\/tests\/[^/]+\.sql$/.test(a1)) fail(`Nur Testdateien aus supabase/tests/ (bekommen: ${a1}). Probelauf einer Migration: dry-run`);
+    const src = readFileSync(a1, "utf8");
+    if (!/^\s*begin;\s*$/m.test(src) || !/^\s*rollback;\s*$/m.test(src)) fail("Die Testdatei muss begin; und rollback; selbst mitbringen — sonst würde sie committet");
+    printResults(await client.query(src));
   },
   async "dry-run"(client) {
     if (!a1) fail("Migrationsdatei angeben");

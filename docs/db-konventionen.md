@@ -2,6 +2,9 @@
 
 Gilt für jede Session, die Migrationen schreibt — ab Welle 4 auch die Build-Session (Entscheidung 11.09.2026). **Angewendet** wird eine Migration ausschließlich von der Architektur-/Security-Session (`sh scripts/db.sh dry-run <migration> <test>` als Probelauf in einer Transaktion, dann `sh scripts/db.sh apply <migration> <name>` per psql direkt aus der Datei — die Migration wird nicht als Text durch den Chat gereicht, früher Supabase-MCP `apply_migration`; Datei danach auf die Server-Version umbenannt, Eintrag im Entscheidungslog). Die Prüfung vor dem Anwenden folgt genau dieser Liste.
 
+> **`db.sh test` nimmt genau eine Testdatei aus `supabase/tests/` mit eigenem `begin;`/`rollback;`** (seit 24.09.2026 erzwungen). Eine Migrationsdatei dort würde roh ausgeführt und sofort committet — so kam am 24.09. ein Vorschlag dreimal ungeplant live. Probelauf einer Migration heißt immer `db.sh dry-run <migration.sql> <test.sql>`; eine Ausgabe ohne „PROBELAUF OK — alles zurückgerollt“ war kein Probelauf.
+
+
 ## 1 · Migrationsdatei
 - Eine Migration = ein Thema. Dateiname vorläufig `supabase/migrations/2026MMDD2359NN_<thema>.sql`; die Architektur-Session ersetzt den Zeitstempel durch die Server-Version. Bis dahin liegt die Datei unter `supabase/migrations/vorschlag/` — `scripts/gate-pr.sh` bricht ab, wenn ein Platzhalter-Zeitstempel (`…2359NN_`) außerhalb von `vorschlag/` getrackt ist (er sähe sonst aus wie angewendet).
 - Kopf: `-- 00NN · <Titel>: Zweck, Anlass (PR/Fund/Entscheidung), Abweichungen`. Erste Zeile Code: `set search_path = public, extensions;`. Letzte Zeile: `select harden_definer_functions();` (entzieht anon das EXECUTE auf SECURITY-DEFINER-Funktionen, pinnt `search_path`).
