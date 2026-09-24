@@ -63,11 +63,17 @@ export function ShuttleView({
   /** Vorbelegung einer neuen Fahrt aus der hinterlegten An- und Abreise. */
   vorschlag?: Record<string, string>;
   /**
-   * Erlaubtes Zeitfenster für die Abholung (SPK-034). `min`/`max` begrenzen
-   * die Tage am Feld, `vonStunde`/`bisStunde` die Uhrzeit beim Absenden —
+   * Erlaubtes Zeitfenster für die Abholung (SPK-034, SPK-061). `min`/`max`
+   * begrenzen die Tage am Feld, `tage` die Uhrzeit je Tag beim Absenden —
    * der Browser prüft die Stunde nicht mit.
    */
-  fenster?: { min: string; max: string; vonStunde: number; bisStunde: number; hint: string };
+  fenster?: {
+    min: string;
+    max: string;
+    /** Je erlaubtem Tag die Stunden: am Anreisetag ab 12, sonst ab 9, bis 21 (SPK-061). */
+    tage: { datum: string; von: number; bis: number }[];
+    hint: string;
+  };
   isAssistant: boolean;
   dateLocale: string;
   t: Strings;
@@ -104,9 +110,12 @@ export function ShuttleView({
    */
   function zeitAusserhalb(wert: string): boolean {
     if (!fenster || !wert) return false;
+    // Je Tag ein eigenes Fenster: am Anreisetag erst ab Mittag.
+    const tag = fenster.tage.find((f) => f.datum === wert.slice(0, 10));
+    if (!tag) return true;
     const stunde = Number(wert.slice(11, 13));
     if (!Number.isFinite(stunde)) return false;
-    return stunde < fenster.vonStunde || stunde >= fenster.bisStunde;
+    return stunde < tag.von || stunde >= tag.bis;
   }
 
   function onSubmit() {

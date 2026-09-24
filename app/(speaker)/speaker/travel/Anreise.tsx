@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
@@ -43,6 +43,7 @@ export function Anreise({
   travel,
   isAssistant,
   modes,
+  angeboten,
   dateLocale,
   t,
   common,
@@ -51,6 +52,8 @@ export function Anreise({
   travel: SpeakerTravel | null;
   isAssistant: boolean;
   modes: Record<string, string>;
+  /** Aktive Schlüssel aus `travel_mode` — nur sie stehen zur Wahl. */
+  angeboten: Set<string>;
   dateLocale: string;
   t: Strings;
   common: { save: string; choose: string };
@@ -59,24 +62,31 @@ export function Anreise({
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
+  // Ein stillgelegtes Verkehrsmittel beginnt leer (SPK-059, siehe `optionen`).
+  const modus = (m: string | null | undefined) => (m && angeboten.has(m) ? m : "");
   const [form, setForm] = useState({
     arrival_date: travel?.arrival_date ?? "",
     arrival_time: (travel?.arrival_time ?? "").slice(0, 5),
-    arrival_mode: travel?.arrival_mode ?? "",
+    arrival_mode: modus(travel?.arrival_mode),
     arrival_ref: travel?.arrival_ref ?? "",
     departure_date: travel?.departure_date ?? "",
     departure_time: (travel?.departure_time ?? "").slice(0, 5),
-    departure_mode: travel?.departure_mode ?? "",
+    departure_mode: modus(travel?.departure_mode),
     departure_ref: travel?.departure_ref ?? "",
-    needs_pickup: travel?.needs_pickup ?? false,
-    needs_dropoff: travel?.needs_dropoff ?? false,
     note: travel?.note ?? "",
   });
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const set = (k: keyof typeof form, v: string | boolean) =>
     setForm((f) => ({ ...f, [k]: v }));
-  const options = Object.entries(modes).map(([value, label]) => ({ value, label }));
+  // Nur, was noch angeboten wird (SPK-059: „Fernbus" und „Wohnt in Hamburg"
+  // sind raus). Die Datenbank nimmt auch nur aktive Werte an
+  // (`check_travel_mode` → `is_vocab_key`): ein stillgelegter Wert liesse sich
+  // nicht speichern. Deshalb beginnt das Feld dann leer (siehe `modus`), und
+  // man wählt neu — statt beim Speichern an `invalid_travel_mode` zu scheitern.
+  const optionen = Object.entries(modes)
+    .filter(([value]) => angeboten.has(value))
+    .map(([value, label]) => ({ value, label }));
 
   function onSave() {
     startTransition(async () => {
@@ -102,116 +112,100 @@ export function Anreise({
       <p className="ct-small mt-1 leading-6">{t.travelBody2}</p>
       {isAssistant && <p className="ct-help mt-1">{t.travelAssistantHint}</p>}
 
-      <div className="mt-5 grid gap-6 sm:grid-cols-2">
-        <fieldset className="flex flex-col gap-3">
+      {/* Kompakt (SPK-057, Konrad 24.09.: „zu gross für eine nicht zwingende
+          Info"): je Richtung eine Zeile mit Datum, Uhrzeit, Verkehrsmittel und
+          Nummer. Die Ortszeit steht in der Beschriftung statt in einem
+          Hinweis darunter — die Hinweise machten jedes Feld doppelt so hoch. */}
+      <div className="mt-5 flex flex-col gap-5">
+        <fieldset>
           <legend className="ct-label text-ink">{t.arrival}</legend>
-          <Field label={t.date} htmlFor="an-datum">
-            <Input
-              id="an-datum"
-              type="date"
-              value={form.arrival_date}
-              onChange={(e) => set("arrival_date", e.target.value)}
-            />
-          </Field>
-          <Field label={t.time} htmlFor="an-zeit" hint={t.timeHint}>
-            <Input
-              id="an-zeit"
-              type="time"
-              value={form.arrival_time}
-              onChange={(e) => set("arrival_time", e.target.value)}
-            />
-          </Field>
-          <Field label={t.mode} htmlFor="an-mittel">
-            <Select
-              id="an-mittel"
-              value={form.arrival_mode}
-              placeholder={common.choose}
-              options={options}
-              onChange={(e) => set("arrival_mode", e.target.value)}
-            />
-          </Field>
-          <Field label={t.ref} htmlFor="an-nr" hint={t.refHint}>
-            <Input
-              id="an-nr"
-              value={form.arrival_ref}
-              onChange={(e) => set("arrival_ref", e.target.value)}
-            />
-          </Field>
+          <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Field label={t.date} htmlFor="an-datum">
+              <Input
+                id="an-datum"
+                type="date"
+                value={form.arrival_date}
+                onChange={(e) => set("arrival_date", e.target.value)}
+              />
+            </Field>
+            <Field label={t.timeLocal} htmlFor="an-zeit">
+              <Input
+                id="an-zeit"
+                type="time"
+                value={form.arrival_time}
+                onChange={(e) => set("arrival_time", e.target.value)}
+              />
+            </Field>
+            <Field label={t.mode} htmlFor="an-mittel">
+              <Select
+                id="an-mittel"
+                value={form.arrival_mode}
+                placeholder={common.choose}
+                options={optionen}
+                onChange={(e) => set("arrival_mode", e.target.value)}
+              />
+            </Field>
+            <Field label={t.refOptional} htmlFor="an-nr">
+              <Input
+                id="an-nr"
+                value={form.arrival_ref}
+                onChange={(e) => set("arrival_ref", e.target.value)}
+              />
+            </Field>
+          </div>
         </fieldset>
-
-        <fieldset className="flex flex-col gap-3">
+        <fieldset>
           <legend className="ct-label text-ink">{t.departure}</legend>
-          <Field label={t.date} htmlFor="ab-datum">
-            <Input
-              id="ab-datum"
-              type="date"
-              value={form.departure_date}
-              onChange={(e) => set("departure_date", e.target.value)}
-            />
-          </Field>
-          {/* Dieselben Hinweise wie bei der Anreise: ohne sie stehen die
-              Felder der beiden Spalten versetzt (SPK-032, Konrad 21.09.). */}
-          <Field label={t.time} htmlFor="ab-zeit" hint={t.timeHint}>
-            <Input
-              id="ab-zeit"
-              type="time"
-              value={form.departure_time}
-              onChange={(e) => set("departure_time", e.target.value)}
-            />
-          </Field>
-          <Field label={t.mode} htmlFor="ab-mittel">
-            <Select
-              id="ab-mittel"
-              value={form.departure_mode}
-              placeholder={common.choose}
-              options={options}
-              onChange={(e) => set("departure_mode", e.target.value)}
-            />
-          </Field>
-          <Field label={t.ref} htmlFor="ab-nr" hint={t.refHint}>
-            <Input
-              id="ab-nr"
-              value={form.departure_ref}
-              onChange={(e) => set("departure_ref", e.target.value)}
-            />
-          </Field>
+          <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Field label={t.date} htmlFor="ab-datum">
+              <Input
+                id="ab-datum"
+                type="date"
+                value={form.departure_date}
+                onChange={(e) => set("departure_date", e.target.value)}
+              />
+            </Field>
+            <Field label={t.timeLocal} htmlFor="ab-zeit">
+              <Input
+                id="ab-zeit"
+                type="time"
+                value={form.departure_time}
+                onChange={(e) => set("departure_time", e.target.value)}
+              />
+            </Field>
+            <Field label={t.mode} htmlFor="ab-mittel">
+              <Select
+                id="ab-mittel"
+                value={form.departure_mode}
+                placeholder={common.choose}
+                options={optionen}
+                onChange={(e) => set("departure_mode", e.target.value)}
+              />
+            </Field>
+            <Field label={t.refOptional} htmlFor="ab-nr">
+              <Input
+                id="ab-nr"
+                value={form.departure_ref}
+                onChange={(e) => set("departure_ref", e.target.value)}
+              />
+            </Field>
+          </div>
         </fieldset>
       </div>
 
-      <div className="mt-5 flex flex-col gap-2">
-        <label className="flex items-start gap-2">
-          <input
-            type="checkbox"
-            className="mt-0.5 h-5 w-5"
-            checked={form.needs_pickup}
-            onChange={(e) => set("needs_pickup", e.target.checked)}
-          />
-          <span className="ct-small">{t.pickup}</span>
-        </label>
-        <label className="flex items-start gap-2">
-          <input
-            type="checkbox"
-            className="mt-0.5 h-5 w-5"
-            checked={form.needs_dropoff}
-            onChange={(e) => set("needs_dropoff", e.target.checked)}
-          />
-          <span className="ct-small">{t.dropoff}</span>
-        </label>
+      {/* Eine Frage statt zweier Haken (SPK-058, ersetzt diesen Teil von
+          SPK-032): „abgeholt werden" und „weggebracht werden" lösten nichts
+          aus — eine Fahrt entsteht erst als Shuttle-Buchung, mit Telefonnummer
+          und Adressen. Also die Frage und der Weg dorthin. */}
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-ct-md bg-accent-soft px-4 py-3">
+        <div className="min-w-0 flex-1 basis-64">
+          <p className="ct-label text-accent-deep">{t.shuttleQuestion}</p>
+          <p className="ct-small text-ink">{t.shuttleQuestionBody}</p>
+        </div>
+        <ButtonLink href="#shuttle" variant="secondary" size="sm">
+          {t.shuttleQuestionAction}
+        </ButtonLink>
       </div>
-
-      {/* Ein Wunsch ist noch keine Fahrt (SPK-032, Konrad 21.09.: „das ist ja
-          im Grunde eine Shuttle-Fahrt"). Automatisch eine anzulegen wäre
-          bequem und falsch: ohne Telefonnummer und Adressen stünde eine halbe
-          Buchung auf der Liste, die das Shuttle-Unternehmen bekommt. Also der
-          Weg dorthin — mit dem, was wir schon wissen, vorausgefüllt. */}
-      {(form.needs_pickup || form.needs_dropoff) && (
-        <p className="ct-help mt-3">
-          {t.pickupShuttleHint}{" "}
-          <a className="ct-link" href="#shuttle">
-            {t.pickupShuttleLink}
-          </a>
-        </p>
-      )}
 
       <Field className="mt-4" label={t.travelNote} htmlFor="reise-notiz" hint={t.travelNoteHint}>
         {/* Kurztext statt Textfeld (SPK-032): ein Satz reicht, und ein

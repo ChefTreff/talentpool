@@ -10,6 +10,7 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
+import { addDays, dayInZone, formatDay } from "@/lib/tz";
 import { saveSpeakerConsents } from "../actions";
 import { bookHospitality, cancelHospitality } from "./actions";
 import {
@@ -27,11 +28,67 @@ const STATUS_TONE: Record<string, BadgeTone> = {
   cancelled: "neutral",
 };
 
+/** Der Summit ist in Hamburg; die Kontingente tragen keine eigene Zone. */
+const ORTSZEIT = "Europe/Berlin";
+
+/**
+ * Welche Tage ein Hotelkontingent zulässt (SPK-060, Konrad 24.09.: „nur
+ * Donnerstag 15.04. bis Sonntag 18.04.2027 (Check-out) wählbar").
+ *
+ * Aus dem Fenster des Kontingents, nicht fest im Code: `window_from` ist der
+ * früheste Check-in (15.04., 15 Uhr), `window_to` der späteste Check-out
+ * (18.04., 11 Uhr). Angereist wird also bis zum Tag vor dem letzten,
+ * abgereist frühestens am Tag nach dem ersten. Die Anreise hat eine Uhrzeit;
+ * die Grenze gilt für den Tag, nicht für die Stunde — wer mittags ankommt,
+ * soll das sagen können. Was nicht hineinpasst, gehört unter „Besonderheiten".
+ */
+function hotelGrenzen(o: { window_from: string | null; window_to: string | null }) {
+  if (!o.window_from || !o.window_to) return null;
+  const erster = dayInZone(o.window_from, ORTSZEIT);
+  const letzter = dayInZone(o.window_to, ORTSZEIT);
+  return {
+    erster,
+    letzter,
+    check_in: { min: `${erster}T00:00`, max: `${addDays(letzter, -1)}T23:59` },
+    check_out: { min: addDays(erster, 1), max: letzter },
+  };
+}
+
+/** Das Zeichen zur Art des Angebots (SPK-062: „mehr Gestaltung — Bild oder Icon"). */
+function ArtZeichen({ kind }: { kind: string }) {
+  return (
+    <span
+      aria-hidden
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-ct-md bg-accent-soft text-accent-deep"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        className="h-6 w-6"
+        focusable="false"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {kind === "hotel" ? (
+          // Bett: Kopfteil, Liegefläche, Kissen
+          <path d="M3 18v-9m0 5h18v4m0-4v-2a3 3 0 0 0-3-3h-7v5M6.5 11.5a1.5 1.5 0 1 0 0-.01" />
+        ) : kind === "shuttle" ? (
+          // Bus von vorn
+          <path d="M6 17h12M6 17v2m12-2v2M5 5h14v12H5zM5 11h14M8 14h.01M16 14h.01" />
+        ) : (
+          <path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z" />
+        )}
+      </svg>
+    </span>
+  );
+}
+
 export function TravelView({
   isAssistant,
   options,
   bookings,
-  tierLabels,
   locale,
   dateLocale,
   t,
@@ -41,7 +98,6 @@ export function TravelView({
   isAssistant: boolean;
   options: HospitalityOption[];
   bookings: HospitalityBooking[];
-  tierLabels: Record<string, string>;
   locale: Locale;
   dateLocale: string;
   t: Strings;
@@ -61,6 +117,8 @@ export function TravelView({
   const [openForm, setOpenForm] = useState<string | null>(null);
   const [details, setDetails] = useState<Record<string, string>>({});
   const [guests, setGuests] = useState("1");
+  /** Datum ausserhalb des Kontingents (SPK-060) — am Feld, nicht als Toast. */
+  const [datumsFehler, setDatumsFehler] = useState<{ feld: string; text: string } | null>(null);
   const [askCancel, setAskCancel] = useState<HospitalityBooking | null>(null);
   // SPK-017: die Einwilligung wird **nach** dem Klick auf „Buchen" gefragt,
   // nicht davor. Vorher fehlte der Knopf ganz, solange sie fehlte — man drückte
@@ -100,6 +158,20 @@ export function TravelView({
 
   function onBook(option: HospitalityOption) {
     const count = Number(guests) || 1;
+    // Der Browser hält `min`/`max` nur in der Auswahl ein — getippt geht mehr.
+    // Deshalb hier noch einmal, mit derselben Regel (SPK-060).
+    const grenzen = option.kind === "hotel" ? hotelGrenzen(option) : null;
+    const feld = grenzen ? hotelFensterFehler(grenzen, details) : null;
+    if (grenzen && feld) {
+      setDatumsFehler({
+        feld,
+        text: t.hotelDatesInvalid
+          .replace("{von}", formatDay(grenzen.erster, dateLocale))
+          .replace("{bis}", formatDay(grenzen.letzter, dateLocale)),
+      });
+      return;
+    }
+    setDatumsFehler(null);
     startTransition(async () => {
       const res = await bookHospitality(option.quota_id, details, count);
       if (!res.ok) {
@@ -204,9 +276,6 @@ export function TravelView({
                       <Badge tone={STATUS_TONE[b.status] ?? "neutral"}>
                         {t[`hospitality_${b.status}`] ?? b.status}
                       </Badge>
-                      {b.kind === "hotel" && b.tier && (
-                        <Badge>{tierLabels[b.tier] ?? b.tier}</Badge>
-                      )}
                       <span className="ct-help">
                         {t.guests}: {b.guests}
                       </span>
@@ -256,6 +325,7 @@ export function TravelView({
               const booked = o.my_booking != null;
               const full = o.free <= 0;
               const isOpen = openForm === o.quota_id;
+              const grenzen = o.kind === "hotel" ? hotelGrenzen(o) : null;
               // Fehlt nur die Einwilligung, bleibt der Knopf da und fragt sie
               // ab (SPK-017). Alle anderen Gründe — Status, Absage — sind
               // nichts, was ein Klick ändern könnte; dort gibt es keinen Knopf.
@@ -264,13 +334,14 @@ export function TravelView({
               return (
                 <Card as="li" key={o.quota_id} className="p-4">
                   <div className="flex flex-wrap items-start justify-between gap-4">
+                    <ArtZeichen kind={o.kind} />
                     <div className="min-w-0 flex-1">
                       <p className="ct-label text-ink">{label(o)}</p>
                       <div className="ct-help mt-1 flex flex-wrap items-center gap-x-3">
                         <span>{t[`kind_${o.kind}`] ?? o.kind}</span>
-                        {o.kind === "hotel" && o.tier && (
-                          <span>· {tierLabels[o.tier] ?? o.tier}</span>
-                        )}
+                        {/* Die Stufe („Standard (Radisson Blu Dammtor)") steht
+                            nicht mehr hier (SPK-062): sie ist ein internes Feld
+                            und wiederholt nur den Namen des Hotels. */}
                         {o.location && <span>· {o.location}</span>}
                         {o.window_from && o.window_to && (
                           <span className="tabular-nums">
@@ -288,12 +359,10 @@ export function TravelView({
                             : o.description_de}
                         </p>
                       )}
-                      {/* Kapazität offen zeigen (R10), damit niemand rät. */}
-                      <p className="ct-help mt-1">
-                        {full
-                          ? t.optionFull
-                          : `${t.free}: ${o.free} ${t.of} ${o.capacity}`}
-                      </p>
+                      {/* Nur noch „ausgebucht" (SPK-062): wie viele Plätze frei
+                          sind, ist eine Zahl fürs Team — für den Speaker zählt,
+                          ob er buchen kann oder auf die Warteliste kommt. */}
+                      {full && <p className="ct-help mt-1">{t.optionFull}</p>}
                     </div>
                     {booked ? (
                       <Badge
@@ -314,6 +383,7 @@ export function TravelView({
                               return;
                             }
                             setOpenForm(isOpen ? null : o.quota_id);
+                            setDatumsFehler(null);
                             setDetails({});
                             setGuests("1");
                           }}
@@ -331,6 +401,13 @@ export function TravelView({
                   {isOpen && !booked && (
                     <div className="mt-4 border-t pt-4">
                       {full && <p className="ct-help mb-3">{t.waitlistHint}</p>}
+                      {grenzen && (
+                        <p className="ct-help mb-3">
+                          {t.hotelDatesHint
+                            .replace("{von}", formatDay(grenzen.erster, dateLocale))
+                            .replace("{bis}", formatDay(grenzen.letzter, dateLocale))}
+                        </p>
+                      )}
                       <div className="grid gap-4 sm:grid-cols-2">
                         {(DETAIL_FIELDS[o.kind] ?? []).map((f) => (
                           <Field
@@ -340,6 +417,7 @@ export function TravelView({
                             className={
                               f.kind === "area" ? "sm:col-span-2" : undefined
                             }
+                            error={datumsFehler?.feld === f.key ? datumsFehler.text : undefined}
                           >
                             {f.kind === "check" ? (
                               // Ein Haken steht als "true" im JSON, nicht als
@@ -382,12 +460,16 @@ export function TravelView({
                                       : "text"
                                 }
                                 value={details[f.key] ?? ""}
-                                onChange={(e) =>
+                                min={grenzeVon(grenzen, f.key)}
+                                max={grenzeBis(grenzen, f.key)}
+                                invalid={datumsFehler?.feld === f.key}
+                                onChange={(e) => {
+                                  if (datumsFehler?.feld === f.key) setDatumsFehler(null);
                                   setDetails((d) => ({
                                     ...d,
                                     [f.key]: e.target.value,
-                                  }))
-                                }
+                                  }));
+                                }}
                               />
                             )}
                           </Field>
@@ -525,4 +607,35 @@ function EmptyOptions({ t }: { t: Strings }) {
       <p className="ct-help">{t.noOptions}</p>
     </div>
   );
+}
+
+type Grenzen = ReturnType<typeof hotelGrenzen>;
+
+function grenzeVon(g: Grenzen, key: string): string | undefined {
+  if (!g) return undefined;
+  return key === "check_in" ? g.check_in.min : key === "check_out" ? g.check_out.min : undefined;
+}
+
+function grenzeBis(g: Grenzen, key: string): string | undefined {
+  if (!g) return undefined;
+  return key === "check_in" ? g.check_in.max : key === "check_out" ? g.check_out.max : undefined;
+}
+
+/**
+ * Welches Datum passt nicht ins Kontingent — die Anreise, die Abreise oder
+ * keins (`null`)? Auch eine Abreise vor oder am Tag der Anreise gilt als
+ * falsche Abreise. Leere Felder lässt die Prüfung durch: ob sie Pflicht sind,
+ * entscheidet die Buchung selbst, nicht diese Grenze.
+ */
+function hotelFensterFehler(
+  g: NonNullable<Grenzen>,
+  details: Record<string, string>,
+): "check_in" | "check_out" | null {
+  const an = (details.check_in ?? "").slice(0, 10);
+  const ab = details.check_out ?? "";
+  // Kalendertage als JJJJ-MM-TT lassen sich als Zeichenketten vergleichen.
+  if (an && (an < g.check_in.min.slice(0, 10) || an > g.check_in.max.slice(0, 10))) return "check_in";
+  if (ab && (ab < g.check_out.min || ab > g.check_out.max)) return "check_out";
+  if (an && ab && ab <= an) return "check_out";
+  return null;
 }

@@ -111,3 +111,26 @@ export function parseClock(value: string | null | undefined): number | null {
   if (!m) return null;
   return Number(m[1]) * 60 + Number(m[2]);
 }
+
+/**
+ * Der Kalendertag („2027-04-15") eines Zeitpunkts in einer Zone.
+ *
+ * Für Grenzen an `date`-Feldern aus echten Zeitpunkten: das Hotelkontingent
+ * beginnt am 15.04. um 15 Uhr in Hamburg, also 13 Uhr UTC — `slice(0, 10)` auf
+ * dem ISO-String läge bei einem Beginn kurz nach Mitternacht einen Tag daneben.
+ */
+export function dayInZone(iso: string, timeZone: string): string {
+  // `en-CA` schreibt das Datum als JJJJ-MM-TT, genau wie ein `date`-Feld.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(iso));
+}
+
+/** Tage auf einen Kalendertag („2027-04-15") rechnen, ohne Zone. */
+export function addDays(day: string, n: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+}
