@@ -6,6 +6,7 @@ import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { GrafikMaske } from "./GrafikMaske";
+import { PostGenerator } from "./PostGenerator";
 import { POST_VORLAGEN, fuellen, type GefuellterPost } from "./posts";
 import type { MySession } from "../session/types";
 import type { SpeakerProfile } from "../types";
@@ -79,6 +80,24 @@ export default async function SpeakerGrafikPage() {
         vorschlag={dateiname(profile?.person.first_name ?? null, profile?.person.last_name ?? null)}
         t={t.speakerGraphic}
       />
+
+      {/* Der Generator steht **vor** den Vorlagen: wer etwas Eigenes sagen
+          will, soll nicht erst an drei fertigen Texten vorbeiscrollen. Wer
+          nur schnell etwas braucht, findet die Vorlagen direkt darunter. */}
+      <section aria-labelledby="h-generator" className="mt-10 max-w-[900px]">
+        <h2 id="h-generator" className="sr-only">
+          {t.speakerGraphic.genTitle}
+        </h2>
+        <PostGenerator
+          sessions={vorlagenJeSession.map(({ session, titel }) => ({
+            id: session.session_id,
+            titel,
+            event: session.event_name ?? null,
+          }))}
+          language={locale === "de" ? "de" : "en"}
+          t={t.speakerGraphic}
+        />
+      </section>
 
       <section aria-labelledby="h-posts" className="mt-10 max-w-[900px]">
         <h2 id="h-posts" className="ct-h3 mb-1 text-ink">
