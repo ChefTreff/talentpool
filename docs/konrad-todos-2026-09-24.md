@@ -79,3 +79,4 @@ Datenschutz und Sicherheit macht Konrad in den nächsten Tagen; vorab entschiede
 | K-17 | erledigt | — |
 | neu | Emilio-Feedback zum Hackathon (Granola-Notiz) | HACK-006, wird beim Start der Hackathon-Arbeiten ausgelesen |
 | offen | K-12, K-16, K-18…K-29 | in den nächsten Tagen (Konrad) |
+| K-30 | **Luma-Zugang** anlegen (TAL-007, D12): `sh scripts/env-set.sh LUMA_API_KEY` (Wert aus Luma → Kalender → Einstellungen → API, Luma Plus) und `sh scripts/env-set.sh LUMA_CALENDAR_ID --config` (Kalender-ID, vermutlich `cal-B49jJXx8bsvPDo0`). Danach prüft der Talent-Chat mit `node --env-file=.env.local scripts/luma-probe.mjs` (nur lesend). | neu 24.09. (Talent-Chat, #170) |
