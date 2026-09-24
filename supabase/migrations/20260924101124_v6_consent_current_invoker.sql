@@ -1,4 +1,5 @@
 -- 0150 · consent_current mit security_invoker (Sicherheitsbefund Security-Check, 24.09.2026)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924101124.
 --
 -- Befund (Architektur-Session, 24.09.2026): Die Sicht `consent_current` war die einzige Sicht ohne
 -- `security_invoker`. Sie lief damit mit den Rechten ihres Eigentümers, und die RLS-Policy
