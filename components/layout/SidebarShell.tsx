@@ -25,6 +25,11 @@ export type { SidebarGroup, SidebarItem } from "./SidebarNav";
  * als Portal neben den anderen, sondern darunter als eigener Weg (F8.6): er
  * ist die Verwaltung hinter den Portalen, kein Portal.
  *
+ * **Im Admin dreht sich das um** (QS-045, QS-046, Konrad 24.09.): die Leiste
+ * steht im Kontrastton Lila statt Navy — man sieht sofort, dass man in der
+ * Verwaltung ist —, oben steht nur der Name, und die Portale stehen unten als
+ * Liste, an der Stelle, an der in den Portalen der Weg in den Admin steht.
+ *
  * Rechts oben sitzt das **globale Profilmenü** (F8.5). „Mein Profil" hängt
  * deshalb nicht mehr in der Bereichsnavigation — es führte aus dem
  * Volunteer-Portal ins Speaker-Portal, was niemand erwartet.
@@ -92,8 +97,12 @@ export async function SidebarShell({
   // entscheidet weiterhin `is_staff()` in SQL.
   const portale = areas
     .filter((a) => a.key !== "admin" && a.key !== "checkin")
-    .map((a) => ({ key: a.key, path: a.path, name: t.areas[a.key].name }));
+    .map((a) => ({ key: a.key, path: a.path, name: t.areas[a.key].name, portal: t.areas[a.key].portal }));
   const admin = areas.find((a) => a.key === "admin");
+  // Im Admin sieht die Leiste anders aus und die Portale stehen unten (QS-045,
+  // QS-046). Gesteuert wird nur die Darstellung; welche Abschnitte jemand
+  // sieht, entscheidet weiter `lib/admin-sections.ts`.
+  const imAdmin = area === "admin";
 
   const name = ctx.firstName?.trim() || ctx.user?.email?.split("@")[0] || t.nav.account;
 
@@ -110,13 +119,23 @@ export async function SidebarShell({
 
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
-      <aside className="bg-navy text-on-navy lg:sticky lg:top-0 lg:h-dvh lg:w-sidebar lg:shrink-0 lg:overflow-y-auto">
+      <aside
+        data-shell-ton={imAdmin ? "admin" : undefined}
+        className="bg-shell text-on-navy lg:sticky lg:top-0 lg:h-dvh lg:w-sidebar lg:shrink-0 lg:overflow-y-auto"
+      >
         <div className="flex h-full flex-col gap-5 px-4 py-5">
           <Link href={rootHref} className="block rounded-ct-sm px-2 py-1 text-on-navy">
             <Logo />
           </Link>
 
-          <PortalSwitcher areas={portale} current={area} label={t.nav.myAreas} />
+          {/* Im Admin steht oben nur, wo man ist. Die Auswahl der Portale sass
+              hier und zeigte den Namen des ersten Portals, als wäre man dort
+              (Konrad 24.09.) — sie steht im Admin jetzt unten als „Portale". */}
+          {imAdmin ? (
+            <p className="px-2 py-1.5 ct-label text-on-navy">{t.areas.admin.portal}</p>
+          ) : (
+            <PortalSwitcher areas={portale} current={area} label={t.nav.myAreas} />
+          )}
 
           {header}
           <div className="flex-1">
@@ -128,7 +147,31 @@ export async function SidebarShell({
               Portalauswahl (F8.6). Er ist kein Portal neben den anderen,
               sondern die Verwaltung dahinter — deshalb unten, mit Abstand
               und eigener Form. */}
-          {admin && (
+          {/* Im Admin: der Weg zurück in die Portale, an der Stelle, an der sonst
+              der Weg in den Admin steht (QS-045). Offen als Liste, nicht als
+              Menü — unten in der Leiste ginge ein Menü über den Rand hinaus. */}
+          {imAdmin && portale.length > 0 && (
+            <nav aria-label={t.nav.portals} className="border-t border-on-navy/15 pt-4">
+              <h2 className="ct-eyebrow mb-2 px-2.5 text-accent-soft">{t.nav.portals}</h2>
+              <ul className="flex flex-col gap-0.5">
+                {portale.map((p) => (
+                  <li key={p.key}>
+                    <Link
+                      href={p.path}
+                      className="flex min-h-11 items-center gap-2 rounded-ct-sm px-2.5 ct-label text-on-navy transition-colors hover:bg-on-navy/10"
+                    >
+                      <svg viewBox="0 0 16 16" className="h-4 w-4 shrink-0" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M13 8H3m0 0 4-4M3 8l4 4" />
+                      </svg>
+                      {p.portal}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
+
+          {admin && !imAdmin && (
             <Link
               href={`${admin.path}?von=${area}`}
               className="flex min-h-11 items-center gap-2 rounded-ct-sm border border-on-navy/25 px-3 py-2 ct-label text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy"
