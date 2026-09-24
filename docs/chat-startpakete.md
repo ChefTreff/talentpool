@@ -8,7 +8,7 @@
 
 ## Freigabe nach der Pause 24.09. (Nacht) — Fortsetzungstexte (Konrad kopiert den Block in den laufenden Chat)
 
-Speaker-Domäne und Talent & Hackathon haben ihren Text per Nachricht von der Architektur-Session bekommen (zugestellt, beide arbeiten); **Admin & Schnittstellen, Partner und Design** waren nicht erreichbar — Konrad kopiert diese drei Blöcke in die laufenden Chats. Grundlage: `docs/arbeitsauftrag-welle-6.md` Abschnitt „Freigabe nach der Pause vom 24.09.“ und `docs/entscheidungen.md` ab „2026-09-24 — Nacht“.
+Speaker-Domäne, Talent & Hackathon und Design haben denselben Text per Nachricht von der Architektur-Session bekommen; **Admin & Schnittstellen und Partner** waren nicht erreichbar — ihre Blöcke stehen zuerst. Grundlage: `docs/arbeitsauftrag-welle-6.md` Abschnitt „Freigabe nach der Pause vom 24.09.“ und `docs/entscheidungen.md` ab „2026-09-24 — Nacht“.
 
 ### FLS27 · Admin & Schnittstellen (Fortsetzung)
 ```
@@ -43,7 +43,7 @@ Weiter nach der Pause: SPK-068 baut der Admin-Chat komplett — /admin/speaker-t
 Weiter nach der Pause: zuerst die Luma-Lese-Probe, dann TAL-008 fertig, TAL-015, TAL-002/003. Konrad hat LUMA_API_KEY und LUMA_CALENDAR_ID gesetzt (Vercel und lokal, auch in deinem Worktree). 1. node --env-file=.env.local scripts/luma-probe.mjs im Worktree; Ergebnis (grün oder Fehler, ohne Schlüsselwerte) an „FLS27 System (Plan)“ — erst danach setzt Konrad LUMA_WRITE_ENABLED (K-30b), bis dahin schreibt nichts nach Luma. 2. TAL-008 auf talent/tal-008-community-admin (WIP 72b362c) fertigstellen: Admin-Abschnitt „Community-Events“ mit requireAdminSection und Eintrag in lib/admin-sections.ts (Rollen laut Rollenmodell 0162, Vorschlag in der PR), Luma-Rücklauf per Cron server-only und nur bei LUMA_WRITE_ENABLED schreibend, Migration als Vorschlag mit Test. 3. TAL-015 Ticket-Seite in der Summit-Gruppe (QR und Pass-Typ; Muster /speaker/tickets; my_ticket_wallet_link ist personengebunden). 4. TAL-002/003 Bewerbung je Format gleich aufgebaut (Interview Tables, Side-Events). HACK-006 ruht. Regeln unverändert; nach dem QS-047-Merge des Design-Chats main ziehen und Wörterbuch-Konflikte mit node scripts/i18n-zusammenfuehren.mjs lösen.
 ```
 
-### FLS27 · Design (Fortsetzung — Chat war offline, Konrad kopiert)
+### FLS27 · Design (Fortsetzung — per Nachricht zugestellt)
 ```
 QS-047 ist entschieden: A + C aus deinem Vorschlag, B nicht — bitte jetzt bauen, die Stunde ohne offene PRs ist der ruhige Zeitpunkt. Auflagen: (1) Sortierung ohne Locale, reiner Codepunkt-Vergleich; (2) Test prüft Sortierung, Dubletten im Rohtext, identische Schlüsselmenge DE/EN und Formatierung, im PR zusätzlich der Beleg, dass Schlüsselmenge und Texte vor und nach dem Umsortieren gleich sind und das Skript idempotent ist; (3) eine Zeile in AGENTS.md Build-Checkliste Punkt 6 darfst du ergänzen (neue Schlüssel → node scripts/i18n-sortieren.mjs vor dem Push; Konflikte → node scripts/i18n-zusammenfuehren.mjs); (4) Merge-Treiber optional, nur beschrieben; (5) ein PR nur mit Skripten, Test, AGENTS-Zeile und dem einmaligen Sortieren, keine inhaltliche Änderung. „PR #N fertig“ an „FLS27 System (Plan)“ — Merge sofort, dann informiert die Architektur-Session die anderen Chats. Im selben PR: QS-038 (#169), QS-013 (#172), QS-037 Partner (#151) auf gebaut. Danach Pause bis zu Konrads nächster Feedback-Runde.
 ```
