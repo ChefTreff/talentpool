@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { partnerAdminShell } from "../shell";
 import { OrgDetail } from "./OrgDetail";
 import type {
@@ -37,10 +38,11 @@ export default async function AdminPartnerOrgPage({
     );
   }
 
-  const [{ data: contacts }, { data: deliverables }, { data: deals }] = await Promise.all([
+  const [{ data: contacts }, { data: deliverables }, { data: deals }, vocab] = await Promise.all([
     supabase.rpc("partner_contacts", { p_org_id: org }),
     supabase.rpc("my_deliverables", { p_org_id: org }),
     supabase.rpc("partner_deals", { p_org_id: org }),
+    loadVocabMap(supabase, locale),
   ]);
 
   const contactRows = (contacts ?? []) as AdminContact[];
@@ -78,7 +80,16 @@ export default async function AdminPartnerOrgPage({
       locale={locale}
       dateLocale={t.meta.dateLocale}
       t={t.adminPartner}
-      common={{ cancel: t.common.cancel, none: t.common.none, save: t.common.save }}
+      roleLabels={vgroup(vocab, "contact_role")}
+      // Dieselben Texte wie im Partnerportal; nur der Hinweis oben spricht das Team an.
+      contactTexts={{ ...t.partnerContacts, ownLoginHint: t.adminPartner.contactsHint }}
+      common={{
+        cancel: t.common.cancel,
+        none: t.common.none,
+        save: t.common.save,
+        close: t.common.close,
+        required: t.common.required,
+      }}
       rpcMessages={t.rpc}
     />,
   );

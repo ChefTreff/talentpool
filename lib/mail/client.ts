@@ -11,6 +11,8 @@ export type ResendResult =
 export async function sendViaResend(input: {
   from: string;
   to: string;
+  /** Kopie — sichtbar für alle Empfänger (CC-Kontakte der Partner, PART-063). */
+  cc?: string[];
   subject: string;
   html: string;
   text: string;
@@ -36,6 +38,7 @@ export async function sendViaResend(input: {
       body: JSON.stringify({
         from: input.from,
         to: [input.to],
+        ...(input.cc?.length ? { cc: input.cc } : {}),
         subject: input.subject,
         html: input.html,
         text: input.text,

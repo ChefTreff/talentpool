@@ -1,5 +1,5 @@
 create or replace function partner_contacts(p_org_id uuid)
- RETURNS TABLE(person_id uuid, first_name text, last_name text, title text, email text, contact_position text, roles text[], has_login boolean, invited_at timestamp with time zone)
+ RETURNS TABLE(person_id uuid, first_name text, last_name text, title text, email text, contact_position text, roles text[], has_login boolean, invited_at timestamp with time zone, editable boolean)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -9,7 +9,9 @@ begin
   return query
     select p.id, p.first_name, p.last_name, p.title,
            (select pe.email::text from person_email pe where pe.person_id = p.id and pe.is_primary),
-           om.contact_position, om.roles, (p.auth_user_id is not null), om.invited_at
+           om.contact_position, om.roles, (p.auth_user_id is not null), om.invited_at,
+           -- Name und Adresse pflegt die Organisation nur bei selbst angelegten Personen bis zum ersten Login.
+           (om.partner_editable_until_login and p.auth_user_id is null)
     from org_membership om join person p on p.id = om.person_id
     where om.org_id = p_org_id and p.deleted_at is null
     order by ('primary_ops' = any(om.roles)) desc, p.last_name nulls last, p.first_name nulls last;

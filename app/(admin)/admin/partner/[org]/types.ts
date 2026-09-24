@@ -1,3 +1,5 @@
+import type { ContactRow } from "@/components/partner/contacts";
+
 /** Was `partner_overview` für eine Organisation zurückgibt (Ausschnitt für B9). */
 export type OverviewPayload = {
   org: {
@@ -59,17 +61,8 @@ export type OverviewPayload = {
   has_stage: boolean;
 };
 
-export type AdminContact = {
-  person_id: string;
-  first_name: string | null;
-  last_name: string | null;
-  title: string | null;
-  email: string | null;
-  contact_position: string | null;
-  roles: string[] | null;
-  has_login: boolean;
-  invited_at: string | null;
-};
+/** Zeile aus `partner_contacts()` — dieselbe wie im Partnerportal. */
+export type AdminContact = ContactRow;
 
 export type AdminDeal = {
   hubspot_deal_id: string;

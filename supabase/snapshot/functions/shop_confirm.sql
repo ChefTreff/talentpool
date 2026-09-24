@@ -5,7 +5,7 @@ create or replace function shop_confirm(p_order_id uuid, p_note text DEFAULT NUL
  SET search_path TO 'public', 'extensions'
 AS $$
 declare v_me uuid := current_person_id(); v_o shop_order; v_org uuid; v_oe org_edition; v_phase jsonb; v_org_name text; v_primary uuid; r record; v_locale text;
-        v_lines_de text; v_lines_en text; v_tot record; v_tz text; v_bad record; v_po text;
+        v_lines_de text; v_lines_en text; v_tot record; v_tz text; v_bad record; v_po text; v_mail bigint;
 begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_o from shop_order where id = p_order_id for update;
@@ -52,12 +52,14 @@ begin
   select om.person_id into v_primary from org_membership om where om.org_id = v_org and om.roles @> '{primary_ops}';
   for r in select distinct x as pid from unnest(array_remove(array[v_me, v_primary], null)) x loop
     select coalesce(p.preferred_language, 'de') into v_locale from person p where p.id = r.pid;
-    perform queue_mail('shop_order_confirmed', r.pid,
+    v_mail := queue_mail('shop_order_confirmed', r.pid,
                        jsonb_build_object('org_name', v_org_name, 'order_no', v_o.order_no, 'phase', v_o.phase,
                                           'lines', case when v_locale = 'en' then v_lines_en else v_lines_de end,
                                           'total_net', fmt_cents(v_tot.net_cents::integer, v_locale),
                                           'ends_at', mail_fmt_ts((v_phase->>'ends_at')::timestamptz, coalesce(v_tz, 'Europe/Berlin'), v_locale)),
                        'shop_order', p_order_id);
+    -- CC-Kontakte in Kopie, genau an einer Mail: der an den Hauptkontakt, sonst der an die handelnde Person (PART-063).
+    if r.pid = coalesce(v_primary, v_me) then perform partner_mail_cc(v_mail, v_org); end if;
   end loop;
   perform log_audit('shop.confirm', 'shop_order', p_order_id::text, jsonb_build_object('status', v_o.status),
                     jsonb_build_object('order_no', v_o.order_no, 'net_cents', v_tot.net_cents, 'po_number', v_po));

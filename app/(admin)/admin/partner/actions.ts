@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
+import type { UpdateContactInput } from "@/components/partner/contacts";
 import type { DryRunResult } from "./types";
 
 /**
@@ -102,7 +103,10 @@ export async function saveBooth(
   return { ok: true, data: undefined };
 }
 
-/** Kontakte pflegt das Team über dieselben RPCs wie der Partner selbst. */
+/**
+ * Kontakte pflegt das Team über dieselben RPCs und dieselbe Liste wie der
+ * Partner selbst (`components/partner/ContactList.tsx`, Regel vom 22.09.).
+ */
 export async function adminUpsertContact(input: {
   orgId: string;
   email: string;
@@ -112,6 +116,9 @@ export async function adminUpsertContact(input: {
   position?: string | null;
 }): Promise<AdminResult<{ person_id: string }>> {
   const supabase = await client();
+  // Jedes Feld Pflicht wie im Partnerportal (PART-062).
+  if (!input.firstName.trim() || !input.lastName.trim()) return { ok: false, key: "name_required" };
+  if (!input.position?.trim()) return { ok: false, key: "position_required" };
   const { data, error } = await supabase.rpc("upsert_partner_contact", {
     p_org_id: input.orgId,
     p_email: input.email,
@@ -125,16 +132,39 @@ export async function adminUpsertContact(input: {
   return { ok: true, data: { person_id: data as string } };
 }
 
-export async function adminSetContactRoles(
-  orgId: string,
-  personId: string,
-  roles: string[],
-): Promise<AdminResult> {
+export async function adminUpdateContact(input: UpdateContactInput): Promise<AdminResult> {
   const supabase = await client();
-  const { error } = await supabase.rpc("set_contact_roles", {
+  const { error } = await supabase.rpc("update_partner_contact", {
+    p_org_id: input.orgId,
+    p_person_id: input.personId,
+    p_position: input.position,
+    p_first_name: input.firstName,
+    p_last_name: input.lastName,
+    p_email: input.email,
+    p_roles: input.roles,
+  });
+  if (error) return fail(error);
+  refresh(input.orgId);
+  return { ok: true, data: undefined };
+}
+
+export async function adminTransferPrimary(orgId: string, personId: string): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("transfer_primary_contact", {
     p_org_id: orgId,
     p_person_id: personId,
-    p_roles: roles,
+  });
+  if (error) return fail(error);
+  refresh(orgId);
+  return { ok: true, data: undefined };
+}
+
+/** Mitgliedschaft und Zugang enden; die Person bleibt (Löschen gehört zu „Profil löschen"). */
+export async function adminRemoveContact(orgId: string, personId: string): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("remove_partner_contact", {
+    p_org_id: orgId,
+    p_person_id: personId,
   });
   if (error) return fail(error);
   refresh(orgId);

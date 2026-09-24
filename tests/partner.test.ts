@@ -5,6 +5,8 @@ import { visibleNavKeys, type NavInput } from "@/app/(partner)/partner/nav";
 import type { PartnerProduct } from "@/app/(partner)/partner/types";
 import { toRpcFailure } from "@/lib/rpc-error";
 import { canPublishSessions } from "@/components/programme/permissions";
+import { CONTACT_ROLES, toggleContactRole } from "@/components/partner/contacts";
+import { ccPersonIds } from "@/lib/mail/cc";
 import de from "@/lib/i18n/de.json" with { type: "json" };
 import en from "@/lib/i18n/en.json" with { type: "json" };
 
@@ -318,6 +320,11 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     { code: "P0002", message: "edition_not_found", key: "edition_not_found" },
     { code: "P0002", message: "template_not_found", key: "template_not_found" },
     { code: "P0002", message: "sync_error_not_found", key: "sync_error_not_found" },
+    // Kontakte bearbeiten (PART-062)
+    { code: "P0001", message: "contact_not_editable", key: "contact_not_editable" },
+    { code: "P0001", message: "email_in_use", key: "email_in_use" },
+    { code: "22023", message: "position_required", key: "position_required" },
+    { code: "22023", message: "name_required", key: "name_required" },
   ];
 
   for (const c of CASES) {
@@ -382,5 +389,45 @@ describe("Messestand im Menü (F10)", () => {
 
   it("fehlt, wenn es weder Standfläche noch Stand gibt", () => {
     assert.ok(!nav({ products: [product({ category: "tickets" })] }).includes("booth"));
+  });
+});
+
+describe("Rollen der Kontaktliste (PART-062/063)", () => {
+  it("bietet den CC-Kontakt an und hat für jede Rolle eine Erklärung", () => {
+    assert.ok((CONTACT_ROLES as readonly string[]).includes("cc"));
+    for (const r of CONTACT_ROLES) {
+      assert.ok(de.partnerContacts[`roleHelp_${r}` as keyof typeof de.partnerContacts], `DE fehlt: ${r}`);
+      assert.ok(en.partnerContacts[`roleHelp_${r}` as keyof typeof en.partnerContacts], `EN fehlt: ${r}`);
+    }
+  });
+
+  it("schliesst CC und operative Rollen gegenseitig aus", () => {
+    assert.deepEqual(toggleContactRole(["additional", "signing"], "cc"), ["signing", "cc"]);
+    assert.deepEqual(toggleContactRole(["cc"], "additional"), ["additional"]);
+    assert.deepEqual(toggleContactRole(["cc"], "primary_ops"), ["primary_ops"]);
+  });
+
+  it("lässt andere Rollen stehen und nimmt eine gesetzte wieder weg", () => {
+    assert.deepEqual(toggleContactRole(["cc"], "event_app_member"), ["cc", "event_app_member"]);
+    assert.deepEqual(toggleContactRole(["cc", "accounting"], "cc"), ["accounting"]);
+  });
+});
+
+describe("Kopie einer Mail: Personen statt Adressen (PART-063)", () => {
+  const A = "0a1b2c3d-0000-4000-8000-00000000000a";
+  const B = "0a1b2c3d-0000-4000-8000-00000000000b";
+
+  it("liest die Personen aus meta.cc_person_ids", () => {
+    assert.deepEqual(ccPersonIds({ cc_person_ids: [A] }, B), [A]);
+  });
+
+  it("lässt den Empfänger selbst, Doppelte und Nicht-Kennungen weg", () => {
+    assert.deepEqual(ccPersonIds({ cc_person_ids: [A, A.toUpperCase(), B, "lead@firma.de", 42] }, B), [A]);
+  });
+
+  it("gibt ohne Liste nichts zurück — auch nicht für alte Adresslisten", () => {
+    assert.deepEqual(ccPersonIds(null, A), []);
+    assert.deepEqual(ccPersonIds({ vars: {} }, A), []);
+    assert.deepEqual(ccPersonIds({ cc: ["lead@firma.de"] }, A), []);
   });
 });

@@ -5,6 +5,7 @@ create or replace function send_partner_reminders()
  SET search_path TO 'public', 'extensions'
 AS $$
 declare r record; m record; v_n integer := 0; v_items_de text; v_items_en text; v_count integer; v_org_name text;
+        v_mail bigint; v_primary uuid; v_cc_offen boolean;
 begin
   for r in
     select oe.id as oe_id, oe.org_id, coalesce(e.timezone, 'Europe/Berlin') as tz
@@ -28,14 +29,22 @@ begin
       into v_count, v_items_de, v_items_en
     from partner_digest_items(r.oe_id) i;
     select coalesce(o.communication_name, o.legal_name) into v_org_name from organization o where o.id = r.org_id;
+    -- Der Digest geht an alle operativen Kontakte; die Kopie haengt an genau einem davon (PART-063).
+    select om.person_id into v_primary from org_membership om join person p on p.id = om.person_id and p.deleted_at is null
+     where om.org_id = r.org_id and om.roles @> '{primary_ops}';
+    v_cc_offen := true;
     for m in
       select distinct om.person_id, coalesce(p.preferred_language, 'de') as locale
       from org_membership om join person p on p.id = om.person_id
       where om.org_id = r.org_id and om.roles && '{primary_ops,additional}'::text[] and p.deleted_at is null
     loop
-      perform queue_mail('partner_reminder_digest', m.person_id,
+      v_mail := queue_mail('partner_reminder_digest', m.person_id,
                          jsonb_build_object('org_name', v_org_name, 'count', v_count, 'items', case when m.locale = 'en' then v_items_en else v_items_de end),
                          'org_edition', r.oe_id);
+      if v_cc_offen and v_mail is not null and (v_primary is null or m.person_id = v_primary) then
+        perform partner_mail_cc(v_mail, r.org_id);
+        v_cc_offen := false;
+      end if;
     end loop;
     v_n := v_n + 1;
   end loop;

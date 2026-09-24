@@ -4,7 +4,7 @@ create or replace function submit_deliverable(p_deliverable_id uuid, p_asset_ids
  SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
 AS $$
-declare v_me uuid := current_person_id(); v_d deliverable; v_oe org_edition; v_t deliverable_template; v_org_name text; v_primary uuid; v_locale text; r record; f jsonb;
+declare v_me uuid := current_person_id(); v_d deliverable; v_oe org_edition; v_t deliverable_template; v_org_name text; v_primary uuid; v_locale text; r record; f jsonb; v_mail bigint;
 begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_d from deliverable where id = p_deliverable_id for update;
@@ -39,9 +39,11 @@ begin
   select om.person_id into v_primary from org_membership om where om.org_id = v_oe.org_id and om.roles @> '{primary_ops}';
   for r in select distinct x as pid from unnest(array_remove(array[v_me, v_primary], null)) x loop
     select coalesce(p.preferred_language, 'de') into v_locale from person p where p.id = r.pid;
-    perform queue_mail('partner_deliverable_received', r.pid,
+    v_mail := queue_mail('partner_deliverable_received', r.pid,
                        jsonb_build_object('org_name', v_org_name, 'deliverable', case when v_locale = 'en' then v_t.label_en else v_t.label_de end),
                        'deliverable', p_deliverable_id);
+    -- CC-Kontakte in Kopie, genau an einer Mail: der an den Hauptkontakt, sonst der an die handelnde Person (PART-063).
+    if r.pid = coalesce(v_primary, v_me) then perform partner_mail_cc(v_mail, v_oe.org_id); end if;
   end loop;
   perform log_audit('partner.deliverable_submit', 'organization', v_oe.org_id::text, null, jsonb_build_object('deliverable_id', p_deliverable_id, 'key', v_d.key, 'assets', cardinality(coalesce(p_asset_ids, '{}'))));
 end $$;
