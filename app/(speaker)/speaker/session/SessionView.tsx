@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { saveSpeakerConsents } from "../actions";
+import { FolienTeilenDialog } from "./FolienTeilenDialog";
 import { formatRange } from "@/lib/tz";
 import type { Locale } from "@/lib/i18n/shared";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -86,6 +88,8 @@ export function SessionView({
   const [uploading, setUploading] = useState<string | null>(null);
   /** Welche Folien gerade zum Entfernen anstehen (SPK-028). */
   const [loeschen, setLoeschen] = useState<SpeakerAsset | null>(null);
+  /** Welche Folien gerade gefragt werden, ob sie geteilt werden (SPK-055). */
+  const [teilen, setTeilen] = useState<{ assetId: string; dateiname: string } | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, {
@@ -142,6 +146,11 @@ export function SessionView({
           ? `${t.uploadDone} · ${t.uploadLate}`
           : `${t.uploadDone} (v${res.data.version})`,
       );
+      // Direkt nach dem Upload fragen, nicht irgendwann (SPK-055): jetzt ist
+      // die Datei im Kopf. Die Assistenz fragen wir nicht — teilen darf nur
+      // die Speakerin (`set_slides_release`), und eine Frage, deren Antwort
+      // abgewiesen würde, ist keine.
+      if (!isAssistant && res.data.id) setTeilen({ assetId: res.data.id, dateiname: file.name });
       router.refresh();
     } finally {
       setUploading(null);
@@ -178,6 +187,29 @@ export function SessionView({
       }
       setLoeschen(null);
       toast("success", t.slidesDeleted);
+      router.refresh();
+    });
+  }
+
+  /** „Ja, teilen" im Dialog — die Einwilligung zuerst, wenn sie noch fehlt. */
+  function onTeilenJa() {
+    if (!teilen) return;
+    const assetId = teilen.assetId;
+    startTransition(async () => {
+      if (!slidesConsent) {
+        const c = await saveSpeakerConsents({ slides_publication: true });
+        if (!c.ok) {
+          toast("error", message(c.key));
+          return;
+        }
+      }
+      const res = await setSlidesRelease(assetId, true);
+      if (!res.ok) {
+        toast("error", message(res.key));
+        return;
+      }
+      setTeilen(null);
+      toast("success", t.shareDone);
       router.refresh();
     });
   }
@@ -243,11 +275,31 @@ export function SessionView({
           onUpload={onUpload}
           onDownload={onDownload}
           onSlides={onSlides}
+          onShare={(a) =>
+            setTeilen({ assetId: a.id, dateiname: a.filename ?? a.storage_path.split("/").pop() ?? "" })
+          }
           onDelete={setLoeschen}
           onSubmitted={() => router.refresh()}
           toast={toast}
         />
       ))}
+
+      {teilen && (
+        <FolienTeilenDialog
+          dateiname={teilen.dateiname}
+          pending={pending}
+          onJa={onTeilenJa}
+          onNein={() => setTeilen(null)}
+          t={{
+            title: t.shareTitle,
+            body: t.shareBody,
+            who: t.shareWho,
+            undo: t.shareUndo,
+            yes: t.shareYes,
+            no: t.shareNo,
+          }}
+        />
+      )}
 
       {loeschen && (
         <ConfirmDialog
@@ -283,6 +335,7 @@ function SessionCard({
   onUpload,
   onDownload,
   onSlides,
+  onShare,
   onDelete,
   onSubmitted,
   toast,
@@ -305,6 +358,8 @@ function SessionCard({
   onUpload: (session: MySession, file: File) => void;
   onDownload: (asset: SpeakerAsset) => void;
   onSlides: (asset: SpeakerAsset, release: boolean) => void;
+  /** Die Teilen-Frage für eine vorhandene Datei öffnen (SPK-055). */
+  onShare: (asset: SpeakerAsset) => void;
   onDelete: (asset: SpeakerAsset) => void;
   onSubmitted: () => void;
   toast: (tone: "success" | "error", text: string) => void;
@@ -602,23 +657,29 @@ function SessionCard({
                     <Badge tone={TECH_TONE[a.tech_check_status] ?? "neutral"}>
                       {t[`tech_${a.tech_check_status}`] ?? a.tech_check_status}
                     </Badge>
-                    {a.slides_release && <Badge tone="accent">{t.slidesReleased}</Badge>}
+                    {a.is_current && (
+                      <Badge tone={a.slides_release ? "accent" : "neutral"}>
+                        {a.slides_release ? t.shareStateOn : t.shareStateOff}
+                      </Badge>
+                    )}
                   </div>
                   {a.tech_check_note && <p className="ct-help mt-1">{a.tech_check_note}</p>}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Summit Slides entscheidet nur der Speaker, nicht die Assistenz. */}
+                  {/* Teilen entscheidet nur die Speakerin, nicht die Assistenz
+                      (SPK-055). Statt einer Checkbox mit unklarem Namen steht
+                      hier, was passiert — und ein Knopf, der es ändert. Die
+                      Frage öffnet denselben Dialog wie nach dem Upload. */}
                   {!isAssistant && a.is_current && (
-                    <label className="flex items-center gap-2 ct-help">
-                      <input
-                        type="checkbox"
-                        className="size-4"
-                        checked={a.slides_release}
-                        disabled={pending || (!slidesConsent && !a.slides_release)}
-                        onChange={(e) => onSlides(a, e.target.checked)}
-                      />
-                      {t.slidesRelease}
-                    </label>
+                    a.slides_release ? (
+                      <Button size="sm" variant="ghost" disabled={pending} onClick={() => onSlides(a, false)}>
+                        {t.shareStop}
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="secondary" disabled={pending} onClick={() => onShare(a)}>
+                        {t.shareAsk}
+                      </Button>
+                    )
                   )}
                   <Button size="sm" variant="secondary" onClick={() => onDownload(a)}>
                     {t.download}
