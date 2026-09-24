@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
-import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { migrationText } from "./migration-datei";
 import {
   cleanLanguages,
   EDITABLE_CONSENTS,
@@ -9,10 +9,7 @@ import {
   REQUIRED_CONSENTS,
 } from "@/app/(talent)/profil/felder";
 
-const migration = readFileSync(
-  new URL("../supabase/migrations/vorschlag/v6_profilfelder.sql", import.meta.url),
-  "utf8",
-);
+const migration = migrationText("v6_profilfelder");
 
 describe("Profilfelder (TAL-013)", () => {
   it("pflegt genau die Listen, die person_interest erlaubt", () => {
