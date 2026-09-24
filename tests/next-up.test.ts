@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { migrationText } from "@/tests/migration-datei";
 import { adminSection, canEnterAdminSection } from "@/lib/admin-sections";
-import { migrationText } from "@/tests/migration-datei";
 
 const migration = migrationText("v6_next_up");
 
