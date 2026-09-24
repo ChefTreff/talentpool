@@ -49,3 +49,59 @@ Stand: 2026-09-17 · Pflege: die zuständige Build-Session; Konrad liest hier de
 | SPK-043 | 21.09. | /speaker/session | **Beim Abgleich der Runde vom 21.09. nachgetragen — dieser Punkt fehlte in der Liste.** Konrad: „Ist aktuell noch sehr unübersichtlich. Da müssen wir später nochmal rein, wenn Design durch ist. Aber ich möchte klarere Abgrenzungen der einzelnen Teilbereiche der Seite.“ → die Seite trägt Slot, Einreichung, Präsentation, Technik und Hallenplan hintereinander weg; die Abschnitte brauchen sichtbare Grenzen. Wartet bewusst auf das Design-System und auf QS-026 (Sektionsübersicht), damit hier kein zweites Muster entsteht. **QS-026 ist da (23.09.), also gebaut:** aus einer Karte mit Trennlinien und `h3` werden fünf Karten mit eigener Überschrift und eigenem Anker (Slot, Titel & Beschreibung, Präsentation, Technik, Hallenplan), dazu die Abschnittsübersicht oben. Die Feinheiten des Designs kommen weiter aus dem Design-Chat | P2 | gebaut (#129) | Konrad 21.09. |
 | SPK-044 | 22.09. | /speaker/onboarding | **Einwilligung „Weitergabe an die Event-App" wird nicht gebraucht — erledigt durch Entscheidung.** Konrad, 22.09.: „Es braucht keine Einwilligung für das Profil in der Event-App, das wird automatisch mit der Zusage gegeben, also einfach immer übertragen." Der Speaker-Lauf (EA2) hängt damit an `speaker_profile.confirmed_at`; ein `consent_type = 'event_app'` im Speaker-Onboarding entfällt. Für **Teilnehmende** (EA4) bleibt die Einwilligung Bedingung — dort gibt es keine Zusage; das liegt bei den Chats für Bewerbung und Ticketkauf | — | erledigt (Entscheidung) | Konrad 21.09. und 22.09. |
 | SPK-045 | 23.09. | /speaker (Termine) | Die Termine auf der Übersicht stehen heute mit Titel und Zeit da, aber ohne eigene Beschreibung — Titel und Ort baut die Seite aus den Daten zusammen, im Kalendereintrag steht deshalb kein Wort darüber, worum es geht → **Konrad gibt die einzelnen Termine inhaltlich selbst vor** (Titel, Beschreibung, Ort, ggf. Hinweise), dann tragen `.ics` und die Google-/Microsoft-Links diesen Text. Konrad, 23.09.: „dass ich die einzelnen Kalendertermine inkl. Beschreibung etc. einmal vorgebe, machen wir ganz am Ende, bitte aber dokumentieren.“ Gehört gepflegt wie die Fristen: je Edition im Admin, mit DE und EN. Bis dahin bleibt der heutige, aus den Daten gebaute Text stehen | P3 | zurückgestellt (auf Konrads Ansage ganz am Ende) | Konrad 23.09. |
+| SPK-046 | 23.09. | Website (Sanity) | Die Website bekommt heute nur **Partner-Logos** automatisch (Welle 3 A11, Migration 0062) — die **Speaker werden von Hand gepflegt** → Speaker genauso automatisch nach Sanity übertragen. Konrad, 23.09.: „extrem wichtige Funktion … Wir müssen auch die Speaker dort automatisch hochladen.“ **Grösseres Vorhaben, ausserhalb des laufenden Feedback-Laufs**, Ziel **vor dem 01.11.2026**. **Abweichung vom Masterplan** („Website: Programm über Swapcard-Embed; Sanity erhält nur Partner-Logos“, §Integrationen und Entscheidungslog 11.09.) — braucht einen Eintrag im Entscheidungslog und eine Abstimmung mit dem Website-Team, bevor gebaut wird. Umfang und offene Fragen im Abschnitt unter der Tabelle | P1 | offen (an den Plan-Chat; Masterplan-Abweichung) | Konrad 23.09. |
+
+## SPK-046 · Speaker automatisch nach Sanity (23.09.2026)
+
+Eigener Abschnitt, weil der Punkt nicht in den laufenden Feedback-Lauf gehört: er ist eine **Integration**, keine
+Oberfläche, und er hat eine **externe Abhängigkeit** — das Website-Team muss das Studio-Schema erweitern. Deshalb
+zählt das Datum: bis zum **01.11.2026** fertig heisst, der Kontrakt muss deutlich früher hinausgehen.
+
+### Was es schon gibt
+
+Der Partner-Weg ist gebaut und kann als Vorlage dienen, nicht als Kopie:
+
+- `lib/sanity/client.ts`, `mapping.ts`, `publish.ts`; Route `POST /api/admin/sanity/partner-logos` mit Trockenlauf;
+  `scripts/sanity-dryrun.mjs`; Runbook `docs/runbooks/sanity-partner-logos.md`.
+- Migration **0062**: `set_external_ref` / `list_external_refs` (System `sanity`) merkt sich je Objekt die
+  Dokument-ID und die veröffentlichte Fassung — so ersetzt eine erneute Freigabe das Dokument, statt ein zweites
+  anzulegen.
+- Feste Dokument-ID `portalPartnerLogo-<org_id>`, **Bindestrich statt Punkt** (ein Punkt gilt in Sanity als Pfad,
+  und Dokumente in Pfaden liest die statisch gebaute Website nicht). Veröffentlicht wird direkt, nie unter `drafts.`.
+- Geschrieben wird **nur der eigene Dokumenttyp**, nie ein fremdes Dokument (Entscheidungslog 11.09., Schutz der
+  Website-Baustelle).
+
+### Was beim Speaker anders ist — und vorab entschieden gehört
+
+**1. Es sind Personendaten, kein Firmenlogo.** Ein Logo darf auf die Website, sobald es freigegeben ist. Ein Foto und
+eine Biografie dürfen es erst, wenn **die Person eingewilligt hat**. Das Tor muss deshalb zweiteilig sein: die
+Einwilligung `photo_video` (und je nach Umfang `speaker_release`) **und** die Freigabe durch das Team. Fehlt eines,
+geht nichts hinaus. Ohne dieses Tor wäre die Übertragung eine Veröffentlichung ohne Erlaubnis.
+
+**2. Zurücknehmen ist Pflicht, nicht Kür.** Eine Einwilligung kann widerrufen werden, und ein Speaker kann absagen.
+Dann muss das Sanity-Dokument **gelöscht** werden, nicht nur nicht mehr aktualisiert. Beim Partner-Logo gibt es das
+nicht — dort bleibt ein Dokument einfach stehen. Das ist der grösste Unterschied im Bau: es braucht einen Weg
+*hinaus*, und er muss automatisch gehen, nicht nur über einen Knopf, den jemand drückt.
+
+**3. Das Foto liegt in einem privaten Bucket.** Partner-Logos liegen in `partner-logos`, öffentlich lesbar. Speaker-
+Fotos liegen privat. Zwei Wege sind denkbar: das Bild in Sanitys eigenen Asset-Speicher hochladen, oder ein
+öffentlicher Bucket nur für freigegebene Speaker-Fotos. Der erste Weg ist sauberer (die Website hat alles an einer
+Stelle), der zweite billiger. **Entscheidung gehört in den Plan.**
+
+**4. Welche Felder.** Vorschlag: Name, Jobtitel, Organisation, Kurzbio DE/EN, Foto, Socials. **Nicht** die Session —
+das Programm läuft laut Masterplan über den Swapcard-Embed, und zwei Quellen für dieselbe Auskunft laufen
+auseinander.
+
+**5. Dokument-ID und Edition.** `portalSpeaker-<speaker_profile_id>` bindet an die Edition; eine Speakerin, die 2028
+wiederkommt, bekäme ein zweites Dokument. Das ist vermutlich richtig (die Website zeigt einen Jahrgang), muss aber
+gesagt sein, bevor die ID steht — sie lässt sich später nicht ändern, ohne alte Dokumente liegen zu lassen.
+
+**6. Auslöser.** Beim Partner ist es die Freigabe im Review. Beim Speaker gibt es mehrere Momente, an denen sich
+etwas ändert (Profil, Foto, Bestätigung, Absage, Widerruf). Ein Sweep über alle freigegebenen Speaker ist robuster
+als ein Trigger je Feld — und er räumt zurückgezogene Dokumente gleich mit weg.
+
+### Reihenfolge
+
+1. Entscheidungslog-Eintrag (Abweichung vom Masterplan) — Architektur-Session.
+2. Kontrakt an das Website-Team: Dokumenttyp, Felder, ID-Muster, Bildweg. Das ist der lange Weg, deshalb zuerst.
+3. Dann erst bauen: Mapping, Publish, Sweep, Rücknahme, Trockenlauf wie beim Partner-Weg.
