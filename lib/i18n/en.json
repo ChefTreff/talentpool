@@ -404,9 +404,9 @@
   },
   "programme": {
     "title": "Programme",
-    "lead": "Everything that is published. Apply and register right here.",
-    "emptyTitle": "No programme published yet",
-    "emptyBody": "Sessions appear here as soon as the programme team releases them.",
+    "lead": "Masterclasses, company tours, interview tables and side events. Apply and register right here.",
+    "emptyTitle": "No formats open for applications yet",
+    "emptyBody": "As soon as masterclasses, company tours, interview tables or side events are released, they will appear here.",
     "day": "Day",
     "allDays": "All days",
     "stage": "Stage",
@@ -444,7 +444,11 @@
     "no": "No",
     "collisionTitle": "Overlapping bookings",
     "collisionBody": "You already hold a confirmed spot at the same time. Confirming here withdraws the other one.",
-    "collisionReplace": "Confirm here, release the other"
+    "collisionReplace": "Confirm here, release the other",
+    "eventAppTitle": "You'll find the full programme in the event app",
+    "eventAppBody": "Keynotes, panels and all stages are listed there. Here you apply for the formats with limited places.",
+    "eventAppIos": "App Store",
+    "eventAppAndroid": "Google Play"
   },
   "participation": {
     "title": "My participation",

@@ -404,9 +404,9 @@
   },
   "programme": {
     "title": "Programm",
-    "lead": "Alles, was veröffentlicht ist. Bewerben und Anmelden direkt hier.",
-    "emptyTitle": "Noch kein Programm veröffentlicht",
-    "emptyBody": "Sobald das Programm-Team Sessions freigibt, erscheinen sie hier.",
+    "lead": "Masterclasses, Company Tours, Interview Tables und Side-Events. Bewerben und Anmelden direkt hier.",
+    "emptyTitle": "Noch keine Formate zum Bewerben",
+    "emptyBody": "Sobald Masterclasses, Company Tours, Interview Tables oder Side-Events freigegeben sind, erscheinen sie hier.",
     "day": "Tag",
     "allDays": "Alle Tage",
     "stage": "Bühne",
@@ -444,7 +444,11 @@
     "no": "Nein",
     "collisionTitle": "Terminüberschneidung",
     "collisionBody": "Du hast zur selben Zeit schon einen bestätigten Platz. Wenn du hier bestätigst, wird der andere zurückgezogen.",
-    "collisionReplace": "Hier bestätigen, anderen freigeben"
+    "collisionReplace": "Hier bestätigen, anderen freigeben",
+    "eventAppTitle": "Das vollständige Programm findest du in der Event-App",
+    "eventAppBody": "Keynotes, Panels und alle Bühnen stehen dort. Hier bewirbst du dich für die Formate mit begrenzten Plätzen.",
+    "eventAppIos": "App Store",
+    "eventAppAndroid": "Google Play"
   },
   "participation": {
     "title": "Meine Teilnahme",
