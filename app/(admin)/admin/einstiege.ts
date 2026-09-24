@@ -38,10 +38,11 @@ export const EINSTIEGE: readonly Einstieg[] = [
 ];
 
 /**
- * Die ersten drei Einstiege, die diese Rollen öffnen dürfen. Die Rechte
- * entscheidet `canEnterAdminSection` — dieselbe Prüfung wie die Seitenleiste
- * und das Gate der Seite: eine Karte zu einem Abschnitt, der danach mit 404
- * antwortet, wäre schlimmer als keine.
+ * Die ersten drei Einstiege, die diese Rollen öffnen dürfen — **nach der
+ * Vorgabe**, ohne Konrads Ausnahmen aus der Datenbank.
+ *
+ * Diese Datei bleibt bewusst frei von Server-Abhängigkeiten, damit der Test sie
+ * laden kann; die Fassung mit Ausnahmen steht in `einstiege.server.ts`.
  */
 export function einstiegeFuer(roleNames: readonly string[]): Einstieg[] {
   return EINSTIEGE.filter((e) => canEnterAdminSection(e.key, roleNames)).slice(0, 3);

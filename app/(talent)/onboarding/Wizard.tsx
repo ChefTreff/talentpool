@@ -23,6 +23,9 @@ function stepIsValid(step: WizardStep, data: WizardData): boolean {
   if (step === "basics") {
     return data.first_name.trim() !== "" && data.last_name.trim() !== "";
   }
+  // Berufserfahrung gehört zur Talent-Schwelle (Entscheidung 08.09.) und ist
+  // seit TAL-013 das einzige Pflichtfeld dieses Schritts.
+  if (step === "work") return data.work_experience !== "";
   if (step === "consent") {
     return data.consents.terms === true && data.consents.privacy === true;
   }
@@ -41,6 +44,7 @@ export function Wizard({
   initial: WizardData;
   vocab: {
     occupation_status: Opt[];
+    work_experience: Opt[];
     career_level: Opt[];
     study_field: Opt[];
     interests: Opt[];
@@ -190,6 +194,16 @@ export function Wizard({
                   placeholder={common.choose}
                   options={opt(vocab.occupation_status)}
                   onChange={(e) => set("occupation_status", e.target.value)}
+                />
+              </Field>
+              <Field label={t.workExperience} htmlFor="work_experience" required requiredLabel={common.required}>
+                <Select
+                  id="work_experience"
+                  value={data.work_experience}
+                  placeholder={common.choose}
+                  options={opt(vocab.work_experience)}
+                  onChange={(e) => set("work_experience", e.target.value)}
+                  required
                 />
               </Field>
               <Field label={t.careerLevel} htmlFor="career_level">

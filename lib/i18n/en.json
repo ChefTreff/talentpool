@@ -41,14 +41,17 @@
     "upload": "Upload",
     "chooseOtherFile": "Choose another file",
     "newTab": "opens in a new window",
-    "onThisPage": "On this page"
+    "onThisPage": "On this page",
+    "deadlinePassed": "passed",
+    "deadlineDone": "done"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",
     "no_person": "There is no profile for this login.",
     "invalid_email": "That is not a valid email address.",
     "save_failed": "Could not save.",
-    "missing_site_url": "Without NEXT_PUBLIC_SITE_URL the portal cannot put links into emails."
+    "missing_site_url": "Without NEXT_PUBLIC_SITE_URL the portal cannot put links into emails.",
+    "invalid_year": "Please enter the graduation year with four digits, for example 2027."
   },
   "rpc": {
     "not_allowed": "You don't have permission for that.",
@@ -242,6 +245,7 @@
     "outside_stage_day": "That is outside this stage's opening hours on this day",
     "partner_not_in_edition": "This organisation is not a partner in this edition.",
     "partner_host_mismatch": "The session is already hosted by another partner — the booking partner has to be the same one.",
+    "invalid_vocab_value": "This value is no longer available. Please choose another one.",
     "not_presentation": "Only presentations can be shared.",
     "invalid_tech_value": "This field only takes yes or no."
   },
@@ -348,7 +352,7 @@
     "stepInterests": "Interests",
     "stepConsent": "Consent",
     "basicsHint": "Your name and language end up on your badge and in our emails.",
-    "optionalHint": "All optional — it helps us suggest the right things.",
+    "optionalHint": "We only need your work experience; everything else is optional and helps us suggest the right offers.",
     "interestsHint": "Pick what interests you. It shapes what we suggest.",
     "consentHint": "We need the first two to register you at all.",
     "firstName": "First name",
@@ -369,7 +373,8 @@
     "skip": "Skip",
     "finish": "Done",
     "done": "Profile created — welcome!",
-    "stepOf": "Step {n} of {total}"
+    "stepOf": "Step {n} of {total}",
+    "workExperience": "Work experience"
   },
   "profile": {
     "title": "My profile",
@@ -380,7 +385,9 @@
       "work": "Status & work",
       "study": "Studies",
       "interests": "Interests",
-      "channels": "How did you hear about ChefTreff?"
+      "channels": "How did you hear about ChefTreff?",
+      "career": "Career & wishes",
+      "skills": "Skills & languages"
     },
     "fields": {
       "firstName": "First name",
@@ -403,12 +410,31 @@
       "university": "University",
       "selfAssessment": "Academic self-assessment",
       "topics": "Topics",
-      "founderTopics": "Founder topics"
+      "founderTopics": "Founder topics",
+      "city": "City",
+      "jobTitle": "Position",
+      "functionArea": "Functional area",
+      "studyProgramLabel": "Exact name of your degree programme",
+      "graduationYear": "Graduation year",
+      "summitGoals": "What do you want to achieve at the summit?",
+      "careerOpportunities": "What are you looking for?",
+      "jobOpenness": "Open to job offers?",
+      "availability": "Available from",
+      "mobility": "Willing to relocate",
+      "workMode": "Way of working",
+      "skills": "Your strengths",
+      "languages": "Languages",
+      "spokenLanguage": "Language",
+      "languageLevel": "Level"
     },
     "hints": {
       "nationality": "e.g. German",
       "country": "e.g. DE",
-      "linkedin": "https://linkedin.com/in/…"
+      "linkedin": "https://linkedin.com/in/…",
+      "functionArea": "Where do you mainly work?",
+      "studyProgramLabel": "As it appears on your certificate.",
+      "graduationYear": "Planned or achieved, for example 2027.",
+      "career": "Partners only see these details when you apply with them and agree to share."
     },
     "portrait": {
       "title": "Your portrait",
@@ -425,6 +451,41 @@
       "wrongType": "Please use a JPG, PNG or WebP image.",
       "failed": "The portrait could not be uploaded.",
       "rules": "JPG, PNG or WebP, up to 5 MB."
+    },
+    "completeHint": "Everything here is optional. The more complete your profile, the better the offers we show you.",
+    "addLanguage": "Add language",
+    "removeLanguage": "Remove",
+    "cv": {
+      "title": "Your CV",
+      "lead": "Partners only see it when you apply with them and agree to share.",
+      "none": "No CV yet.",
+      "current": "On file:",
+      "open": "Open CV",
+      "upload": "Choose PDF",
+      "replace": "Replace CV",
+      "change": "Choose another file",
+      "remove": "Remove CV",
+      "uploading": "Uploading …",
+      "done": "CV saved.",
+      "removed": "CV removed.",
+      "tooBig": "The file is too large. Up to 10 MB works.",
+      "wrongType": "Please upload a PDF.",
+      "failed": "The CV could not be uploaded.",
+      "rules": "PDF, up to 10 MB."
+    },
+    "consents": {
+      "title": "Data and consents",
+      "lead": "You can give or withdraw any optional consent here at any time.",
+      "requiredTitle": "Required to take part",
+      "given": "Given",
+      "missing": "Missing",
+      "requiredHint": "We need these two for your account. If you want to withdraw them, delete your profile via the link below.",
+      "failed": "Your consents could not be saved.",
+      "hints": {
+        "newsletter": "News about the summit, community events and programmes by email.",
+        "photo_video": "We may use photos and videos showing you for reports and social media.",
+        "share_with_partner": "Partners may find you for suitable offers based on your profile. We only use this once that search exists; for applications we still ask each time."
+      }
     }
   },
   "programme": {
@@ -2504,6 +2565,22 @@
       "revoked": "Role revoked",
       "assignTitle": "Grant a role",
       "assignHint": "The same role in the same scope is extended rather than duplicated.",
+      "roleMultiHint": "Several roles at once \u2014 all with the same scope.",
+      "overrideTitle": "Switch sections",
+      "overrideHint": "Exceptions to the default: what a role or a person may see in the admin area. Without an entry the default applies. The admin role always sees everything.",
+      "overrideSection": "Section",
+      "overrideTarget": "Applies to",
+      "overrideTargetRole": "a role",
+      "overrideTargetPerson": "this person",
+      "overridePersonHint": "For a personal exception, search for a person above first.",
+      "overrideAllowed": "Visible",
+      "overrideOn": "on",
+      "overrideOff": "off",
+      "overrideDefault": "Without an exception these open the section: {roles}",
+      "overrideDefaultAdminOnly": "admin only",
+      "overrideSaved": "Exception saved",
+      "overrideRemove": "Remove",
+      "overrideRemoved": "Exception removed",
       "assign": "Grant role",
       "assigned": "Role granted",
       "role": "Role",
@@ -2593,7 +2670,10 @@
       "salutationEn": "English",
       "salutationSaved": "Salutation saved",
       "useSuggestion": "Use suggestion: {v}",
-      "sectionsLabel": "On this page"
+      "sectionsLabel": "On this page",
+      "career": "Career & wishes",
+      "cv": "CV",
+      "cvOpen": "Open"
     },
     "vocab": {
       "title": "Vocabulary",
@@ -4381,7 +4461,6 @@
   "talentStart": {
     "greeting": "Hi {name},",
     "greetingHighlight": "welcome",
-    "lead": "Here you find the programme, your registrations and your profile.",
     "action": "View programme",
     "statLabel": "Applications and registrations",
     "statHint": "currently running",
@@ -4395,8 +4474,7 @@
     "cardProfileWord": "Profile",
     "cardProfileBody": "You keep your data once — it applies to every format and to matching.",
     "cardProfileAction": "Open profile",
-    "loggedInAs": "Signed in as",
-    "navLabel": "Overview"
+    "loggedInAs": "Signed in as"
   },
   "adminSpeakerTasks": {
     "title": "Speaker tasks",
@@ -4443,5 +4521,19 @@
     "badgeMissing": "Consent missing",
     "saving": "Saving …",
     "cancel": "Cancel"
+  },
+  "talentHome": {
+    "navLabel": "Home",
+    "lead": "Your access to everything at ChefTreff: summit, community and programmes — with one profile.",
+    "action": "Go to Summit 2027",
+    "cardSummitWord": "Summit",
+    "cardSummitBody": "Programme and applications for masterclasses, company tours, interview tables and side events.",
+    "cardSummitAction": "Go to the summit"
+  },
+  "talentSummit": {
+    "groupLabel": "Summit 2027",
+    "navLabel": "Overview",
+    "eyebrow": "Summit 2027",
+    "lead": "Find the formats you can apply for and everything you're currently involved in."
   }
 }

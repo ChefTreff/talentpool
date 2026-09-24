@@ -29,7 +29,7 @@ export default async function OnboardingPage() {
       supabase
         .from("person")
         .select(
-          "first_name,last_name,preferred_language,city,country,occupation_status,career_level,employer_name,study_field,university",
+          "first_name,last_name,preferred_language,city,country,occupation_status,work_experience,career_level,employer_name,study_field,university",
         )
         .maybeSingle(),
       supabase
@@ -38,6 +38,7 @@ export default async function OnboardingPage() {
         .eq("active", true)
         .in("vocabulary", [
           "occupation_status",
+          "work_experience",
           "career_level",
           "study_field",
           "interests",
@@ -82,6 +83,7 @@ export default async function OnboardingPage() {
     city: person?.city ?? "",
     country: person?.country ?? "",
     occupation_status: person?.occupation_status ?? "",
+    work_experience: person?.work_experience ?? "",
     career_level: person?.career_level ?? "",
     employer_name: person?.employer_name ?? "",
     study_field: person?.study_field ?? "",
@@ -113,6 +115,7 @@ export default async function OnboardingPage() {
         initial={initial}
         vocab={{
           occupation_status: byVocab("occupation_status"),
+          work_experience: byVocab("work_experience"),
           career_level: byVocab("career_level"),
           study_field: byVocab("study_field"),
           interests: byVocab("interests"),

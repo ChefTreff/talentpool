@@ -17,24 +17,50 @@ Seit dem 22.09.2026 gilt **Admin zuerst**: alle Team-Funktionen liegen unter `/a
 
 **Fail closed.** Wer die Rollen vergisst, sperrt den Abschnitt auf `admin` — der Fehler, den man bemerkt, statt des Fehlers, den niemand bemerkt.
 
+## Ausnahmen: Abschnitte je Rolle und je Person (ADM-053)
+
+Die Tabelle unten ist die **Vorgabe**. Konrad kann davon abweichen, ohne dass jemand Code anfasst: unter *Rollen* steht „Abschnitte schalten".
+
+* **Person schlägt Rolle, Rolle schlägt Vorgabe.** Haben zwei Rollen einer Person widersprüchliche Ausnahmen, gewinnt das Öffnen — dieselbe Regel wie bei der Vorgabe.
+* **`admin` sieht immer alles** und bekommt gar keine Ausnahmen geliefert. Sonst könnte Konrad sich mit einem Klick den Weg zurück zum Rollen-Bereich abschalten; die RPC weist `role = 'admin'` deshalb ab.
+* Gespeichert in `admin_section_override` (eine Zeile je Abschnitt × Ziel), geschrieben nur über `set_admin_section_override` / `delete_admin_section_override`, beides mit Protokoll. Gelesen über `my_admin_section_overrides()` — einmal je Anfrage, Navigation und Gate teilen sich die Antwort (`lib/admin-access.ts`).
+
+**Eine Ausnahme öffnet die Seite, nicht die Datenbank.** Wer einen Abschnitt für eine Rolle anschaltet, deren RPC ihn nicht kennt, sieht die Seite und bekommt darin 42501. Das aufzulösen ist Auflage PORT1b (Admin-RPCs je Abschnitt öffnen).
+
+## Rollenmodell (Konrad, 24.09.2026)
+
+Je Bereich eine **Lead-** und eine **Team-Rolle**, beide intern:
+
+| Bereich | Leitung | Team |
+|---|---|---|
+| Talent | `area_lead_talent` | `talent_team` |
+| **Speaker und Programm** (ein Bereich) | `area_lead_speaker` (Programmleitung) | `programme_team` |
+| Partner (mit Initiativen) | `area_lead_partner` | `partner_team` |
+| Volunteers | `area_lead_volunteers`, `volunteers_team` | `volunteers_team` |
+| Hackathon | `area_lead_hackathon` | `hackathon_team` |
+| Produktion | `area_lead_production` | `production_team` |
+| Marketing | — | `marketing_team` |
+
+**Extern und ohne Admin-Zugang:** `speaker_manager` (Bühnenleitungen, arbeiten in `/speaker-leads/*`), `volunteer_lead` (Schichtleitung im Volunteer-Portal), `checkin_operator` (Gerätekonto am Einlass). Alle drei standen bis zum 24.09.2026 in `team_role_keys()` und wären mit PORT1 Teammitglieder geworden.
+
 ## Was die Rollen heute öffnen
 
 | Abschnitt | zusätzlich zu `admin` |
 |---|---|
 | Übersicht, Bausteinkatalog | alle Teamrollen |
-| Bewerbungen | `area_lead_talent`, `programme_team` |
+| Bewerbungen | `area_lead_talent`, `talent_team`, `programme_team` |
 | Programm, Gerüst | `programme_team`, `area_lead_speaker`, `area_lead_production` |
-| Speaker, Aufgaben | `area_lead_speaker`, `speaker_manager`, `programme_team` |
+| Speaker, Aufgaben | `area_lead_speaker`, `programme_team` |
 | Speaker-Leads, Einreichungen | `area_lead_speaker`, `programme_team` |
-| Tickets, Reisekosten, Hotels, Reception | `area_lead_speaker`, `speaker_manager` |
+| Tickets, Reisekosten, Hotels, Reception | `area_lead_speaker`, `programme_team` |
 | Anreise | dazu `area_lead_production` |
 | Regie, Technik | `area_lead_production`, `production_team` (Technik auch `area_lead_speaker`) |
 | Grafiken, Videos | `marketing_team`, `area_lead_speaker` |
-| Partner, Initiativen | `area_lead_partner` |
-| Volunteers | `area_lead_volunteers` |
+| Partner, Initiativen | `area_lead_partner`, `partner_team` |
+| Volunteers | `area_lead_volunteers`, `volunteers_team` |
 | Catering | Produktion, Volunteers, Speaker |
 | **Produktion** | `production_team`, `area_lead_production` |
-| Ansprechpartner, Fristen, Wiki | alle Bereichsleitungen (Wiki auch Marketing) |
+| Ansprechpartner, Fristen, Wiki | **alle** internen Rollen, Leitung und Team |
 | Vokabular, Mail | nur `admin` |
 | **Verwaltung**: Personen, Team, Rollen, Dubletten, Löschanträge | **nur `admin`** |
 

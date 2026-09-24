@@ -19,6 +19,9 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // F4: Next schickt sonst `X-Powered-By: Next.js` mit jeder Antwort und sagt
+  // damit Fremden, womit sie es zu tun haben. Kostenlos abzustellen.
+  poweredByHeader: false,
   // Worktrees haben eine eigene package-lock.json; ohne diese Angabe rät Turbopack
   // die Workspace-Wurzel und wählt den Haupt-Checkout.
   turbopack: { root: path.resolve(process.cwd()) },
