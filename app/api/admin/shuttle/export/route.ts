@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { csvCell } from "@/lib/csv";
 import { SHUTTLE_EXPORT_COLUMNS, type ShuttleAdminRow } from "@/components/shuttle/types";
@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const format = url.searchParams.get("format") === "xlsx" ? "xlsx" : "csv";
-  await requireArea("admin", `/api/admin/shuttle/export${url.search}`);
+  await requireAdminSection("travel", `/api/admin/shuttle/export${url.search}`);
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("shuttle_bookings_admin", {

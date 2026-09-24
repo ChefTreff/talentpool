@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
@@ -23,7 +23,7 @@ function fail(error: unknown): { ok: false; key: string; detail?: string } {
 }
 
 async function client() {
-  await requireArea("admin", PATH);
+  await requireAdminSection("speakerLeads", PATH);
   return createSupabaseServerClient();
 }
 

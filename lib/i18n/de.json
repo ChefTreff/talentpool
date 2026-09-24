@@ -234,7 +234,8 @@
     "too_many_questions": "Mehr als zwei eigene Fragen je Format sind nicht vorgesehen.",
     "invalid_type": "Diese Art von Frage gibt es nicht.",
     "stop_not_found": "Diesen Tour-Stopp gibt es nicht.",
-    "tour_not_found": "Diese Company Tour gibt es nicht."
+    "tour_not_found": "Diese Company Tour gibt es nicht.",
+    "outside_stage_day": "Das liegt außerhalb der Öffnungszeiten dieser Bühne an diesem Tag"
   },
   "nav": {
     "brand": "ChefTreff",
@@ -2251,7 +2252,8 @@
         "partner": "Partner",
         "volunteers": "Volunteers",
         "system": "System",
-        "crossCutting": "Übergreifend"
+        "crossCutting": "Übergreifend",
+        "production": "Produktion"
       },
       "partnerCare": "Betreuung & Messeshop",
       "volunteersWork": "Bewerbungen & Schichten",
@@ -2269,7 +2271,8 @@
       "reception": "Reception",
       "submissions": "Einreichungen",
       "regie": "Regie",
-      "speakerTasks": "Speaker-Aufgaben"
+      "speakerTasks": "Speaker-Aufgaben",
+      "production": "Produktion"
     },
     "overview": {
       "title": "Übersicht",

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
@@ -10,7 +10,7 @@ const PFAD = "/admin/initiativen";
 export type Ergebnis = { ok: true; n?: number } | { ok: false; key: string; detail?: string };
 
 async function ruf(name: string, args: Record<string, unknown>): Promise<Ergebnis> {
-  await requireArea("admin", PFAD);
+  await requireAdminSection("initiatives", PFAD);
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc(name, args);
   if (error) {

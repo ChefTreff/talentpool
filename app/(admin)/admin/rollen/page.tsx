@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  * Lesepolicy, gesucht wird über `search_organizations` (Migration 0024).
  */
 export default async function RollenPage() {
-  await requireArea("admin", "/admin/rollen");
+  await requireAdminSection("roles", "/admin/rollen");
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 

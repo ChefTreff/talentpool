@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
@@ -20,7 +20,7 @@ export async function resolveRequest(
   action: "delete" | "reject",
   note: string,
 ): Promise<Ergebnis> {
-  await requireArea("admin", PFAD);
+  await requireAdminSection("deletions", PFAD);
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("resolve_deletion_request", {
     p_id: id,

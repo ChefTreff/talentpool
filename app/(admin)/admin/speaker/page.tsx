@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
  * Programmleitung schliesst das jeden ein.
  */
 export default async function AdminSpeakerPage() {
-  await requireArea("admin", "/admin/speaker");
+  await requireAdminSection("speakers", "/admin/speaker");
   const { locale, t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 

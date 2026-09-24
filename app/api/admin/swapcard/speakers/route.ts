@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { istTrockenlauf } from "@/lib/products/dry-run";
@@ -12,7 +12,7 @@ export const maxDuration = 300;
 /**
  * EA2: bestätigte Speaker als Personen mit Speaker-Pass nach Swapcard.
  *
- * Body: `{ editionId?, dryRun? (Vorgabe true) }`. Gate `requireArea("admin")`
+ * Body: `{ editionId?, dryRun? (Vorgabe true) }`. Gate `requireAdminSection("speakers")`
  * plus Rollenprüfung in der Datenbank; die Liste selbst prüft noch einmal.
  *
  * **Grundlage ist die Zusage** (Konrad, 22.09.2026): das Profil in der Event-App
@@ -21,7 +21,7 @@ export const maxDuration = 300;
  * damit niemand unbemerkt fehlt. Das Profilfoto geht als öffentliche Kopie mit.
  */
 export async function POST(request: Request) {
-  await requireArea("admin", "/admin/partner/integrationen");
+  await requireAdminSection("speakers", "/admin/partner/integrationen");
   const supabase = await createSupabaseServerClient();
   const { data: team } = await supabase.rpc("is_partner_team");
   const { data: speakerTeam } = await supabase.rpc("is_speaker_team", { p_edition_id: null });

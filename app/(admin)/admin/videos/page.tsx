@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  * tauscht das Video überall, wo dieser Schlüssel steht.
  */
 export default async function AdminVideosPage() {
-  await requireArea("admin", "/admin/videos");
+  await requireAdminSection("videos", "/admin/videos");
   const { t } = await getI18n();
   const supabase = await createSupabaseServerClient();
   const [{ data: videos }, { data: editions }] = await Promise.all([

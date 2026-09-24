@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { StatCard } from "@/components/ui/Card";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminDashboard() {
   // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
   // nicht neu. Muss vor createSupabaseAdminClient() stehen.
-  await requireArea("admin", "/admin");
+  await requireAdminSection("overview", "/admin");
   const admin = createSupabaseAdminClient();
   const { t } = await getI18n();
 

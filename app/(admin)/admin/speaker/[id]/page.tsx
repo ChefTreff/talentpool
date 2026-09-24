@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -23,7 +23,7 @@ export default async function AdminSpeakerDetail({
   const { id } = await params;
   // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
   // nicht neu.
-  await requireArea("admin", `/admin/speaker/${id}`);
+  await requireAdminSection("speakers", `/admin/speaker/${id}`);
   const { locale, t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 

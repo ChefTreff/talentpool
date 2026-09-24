@@ -1,14 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
 /**
  * Volunteer-Admin. Alles über die Team-RPCs aus A1 mit dem Session-Client;
  * sie prüfen `is_volunteer_team()` selbst (Admin, `area_lead_volunteers`,
- * `volunteer_lead`). `requireArea("admin")` davor hält Fremde von der Route
+ * `volunteer_lead`). `requireAdminSection("volunteers")` davor hält Fremde von der Route
  * fern, mehr nicht — wer nicht zum Volunteer-Team gehört, bekommt 42501 und
  * die Seite sagt, woran es liegt.
  */
@@ -25,7 +25,7 @@ function fail(error: unknown): { ok: false; key: string; detail?: string } {
 }
 
 async function client() {
-  await requireArea("admin", PATH);
+  await requireAdminSection("volunteers", PATH);
   return createSupabaseServerClient();
 }
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -21,12 +21,12 @@ const SYSTEME: SyncSystem[] = ["hubspot", "sevdesk"];
  * führt zum Trockenlauf, nie zum Schreiben. Wer drückt, steht im Protokoll.
  * (Konrad, 21.09.2026: vor jedem Anlegen in SevDesk wird gefragt.)
  *
- * Die Rolle prüft `requireArea("admin")` **vor** dem Admin-Client, und die
+ * Die Rolle prüft `requireAdminSection("partner")` **vor** dem Admin-Client, und die
  * RPCs prüfen `is_partner_team()` noch einmal in der Datenbank. Der
  * `service_role`-Client fasst nur Protokoll und Fremdschlüssel an.
  */
 export async function POST(request: Request) {
-  const ctx = await requireArea("admin", "/admin/partner/integrationen");
+  const ctx = await requireAdminSection("partner", "/admin/partner/integrationen");
 
   const body = (await request.json().catch(() => ({}))) as { system?: string; dryRun?: boolean; skus?: unknown };
   const dryRun = istTrockenlauf(body);

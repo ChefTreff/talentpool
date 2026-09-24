@@ -12,6 +12,11 @@ import {
   type Area,
   type AreaKey,
 } from "@/lib/areas";
+import {
+  adminSection,
+  canEnterAdminSection,
+  type AdminSectionKey,
+} from "@/lib/admin-sections";
 
 export type RoleAssignment = {
   role: string;
@@ -165,6 +170,40 @@ export async function requireAnyArea(
 /** Team-Zugriff = Admin-Bereich. Team heisst seit 0107: aktive Rolle `admin`. */
 export async function requireStaff(pathname?: string): Promise<SessionContext> {
   return requireArea("admin", pathname);
+}
+
+/**
+ * Das Gate eines **Admin-Abschnitts** (PORT1, Konrad 22.09.2026).
+ *
+ * Seit „Admin zuerst" lässt die Tür (`requireArea("admin")`) jede Teamrolle ein
+ * — sonst bräuchte ein Produktionsmitglied ein zweites Portal. Der Schutz sitzt
+ * deshalb **eine Ebene tiefer**: jede Seite und jede Action nennt ihren
+ * Abschnitt, und `lib/admin-sections.ts` sagt, welche Rolle ihn öffnet.
+ *
+ * Wer eingeloggt ist, den Abschnitt aber nicht öffnen darf, bekommt 404 und
+ * nicht 403: dass es die Seite gibt, ist für ihn keine Information.
+ *
+ * `tests/admin-sections.test.ts` prüft, dass **jede** Seite unter
+ * `app/(admin)/admin/` dieses Gate zieht. Ein vergessenes Gate wäre nach der
+ * Öffnung der Tür nicht mehr nur unschön, sondern offen.
+ */
+export async function requireAdminSection(
+  section: AdminSectionKey,
+  pathname?: string,
+): Promise<SessionContext> {
+  const ctx = await requireArea("admin", pathname ?? adminSection(section).path);
+  if (!canEnterAdminSection(section, ctx.roleNames)) notFound();
+  return ctx;
+}
+
+/** Wie `requireAdminSection`, aber für Seiten, die mehreren Abschnitten dienen. */
+export async function requireAnyAdminSection(
+  sections: readonly AdminSectionKey[],
+  pathname?: string,
+): Promise<SessionContext> {
+  const ctx = await requireArea("admin", pathname ?? adminSection(sections[0]).path);
+  if (!sections.some((s) => canEnterAdminSection(s, ctx.roleNames))) notFound();
+  return ctx;
 }
 
 /** Für den Bereichs-Umschalter: nur Bereiche, für die eine Rolle vorliegt. */

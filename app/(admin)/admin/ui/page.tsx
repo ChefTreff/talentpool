@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { KitSchau } from "@/components/ui/KitSchau";
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function UiKitPage() {
   // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation nicht neu.
-  await requireArea("admin", "/admin/ui");
+  await requireAdminSection("ui", "/admin/ui");
   const { t } = await getI18n();
 
   return (

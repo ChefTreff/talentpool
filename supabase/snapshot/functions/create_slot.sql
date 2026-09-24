@@ -8,6 +8,7 @@ declare
   v_stage stage%rowtype;
   v_tz    text;
   v_day   event_day%rowtype;
+  v_sd    stage_day%rowtype;
   v_id    uuid;
 begin
   if not can_edit_stage(p_stage_id) then
@@ -22,6 +23,16 @@ begin
     where event_id = v_stage.event_id and day_date = (p_start at time zone v_tz)::date;
   if not found then
     raise exception 'no event day for % on this stage', p_start using errcode = '22023';
+  end if;
+
+  -- Tagesrahmen (LEAD-016): für Stage Leads hart, für das Programm-Team eine
+  -- Warnung wie bisher. Ohne Rahmen keine Grenze (siehe Kopf).
+  select * into v_sd from stage_day where stage_id = p_stage_id and event_day_id = v_day.id;
+  if found and stage_frame_binds(p_stage_id) and (
+       (v_sd.open_from is not null and (p_start at time zone v_tz)::time < v_sd.open_from)
+    or (v_sd.open_to   is not null and (p_end   at time zone v_tz)::time > v_sd.open_to)) then
+    raise exception 'outside_stage_day' using errcode = 'P0001',
+      detail = coalesce(to_char(v_sd.open_from, 'HH24:MI'), '') || '–' || coalesce(to_char(v_sd.open_to, 'HH24:MI'), '');
   end if;
   insert into slot (stage_id, event_day_id, start_at, end_at, slot_type, source_ref, created_by, updated_by)
     values (p_stage_id, v_day.id, p_start, p_end, p_slot_type, p_source_ref, current_person_id(), current_person_id())

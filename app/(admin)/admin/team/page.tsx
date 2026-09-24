@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  * den Admin-Bereich über eine andere Rolle betritt, sieht hier nichts.
  */
 export default async function AdminTeamPage() {
-  await requireArea("admin", "/admin/team");
+  await requireAdminSection("team", "/admin/team");
   const { locale, t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 

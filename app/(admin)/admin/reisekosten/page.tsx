@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -9,7 +9,7 @@ import { ExpenseQueue, type QueueClaim } from "./ExpenseQueue";
 export const dynamic = "force-dynamic";
 
 export default async function AdminExpensesPage() {
-  await requireArea("admin", "/admin/reisekosten");
+  await requireAdminSection("expenses", "/admin/reisekosten");
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 

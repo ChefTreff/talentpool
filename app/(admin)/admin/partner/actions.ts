@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 import type { DryRunResult } from "./types";
@@ -29,7 +29,7 @@ function fail(error: unknown): { ok: false; key: string; detail?: string } {
 }
 
 async function client() {
-  await requireArea("admin", PATH);
+  await requireAdminSection("partner", PATH);
   return createSupabaseServerClient();
 }
 
@@ -429,7 +429,7 @@ async function selfUrl(path: string): Promise<string> {
  * Authorization-Header — das Geheimnis bleibt hier, der Browser sieht es nie.
  */
 export async function reprocessDeal(dealId: string): Promise<AdminResult<{ status: number }>> {
-  await requireArea("admin", PATH);
+  await requireAdminSection("partner", PATH);
   const secret = process.env.CRON_SECRET;
   if (!secret) return { ok: false, key: "config_missing", detail: "CRON_SECRET" };
   const res = await fetch(
@@ -443,7 +443,7 @@ export async function reprocessDeal(dealId: string): Promise<AdminResult<{ statu
 
 /** Ein Kontingent sofort nach vivenu schieben — gleiche Mechanik. */
 export async function syncAllocation(id: string): Promise<AdminResult<{ status: number }>> {
-  await requireArea("admin", PATH);
+  await requireAdminSection("partner", PATH);
   const secret = process.env.CRON_SECRET;
   if (!secret) return { ok: false, key: "config_missing", detail: "CRON_SECRET" };
   const res = await fetch(
@@ -497,7 +497,7 @@ export async function runShopInvoices(input: {
   dryRun: boolean;
   orgId?: string | null;
 }): Promise<AdminResult<DryRunResult>> {
-  await requireArea("admin", PATH);
+  await requireAdminSection("partner", PATH);
   const res = await postAdminRoute("/api/admin/sevdesk/shop-invoices", input);
   refresh("bestellungen");
   return res;
@@ -508,7 +508,7 @@ export async function runSwapcardExhibitors(input: {
   dryRun: boolean;
   orgId?: string | null;
 }): Promise<AdminResult<DryRunResult>> {
-  await requireArea("admin", PATH);
+  await requireAdminSection("partner", PATH);
   const res = await postAdminRoute("/api/admin/swapcard/exhibitors", input);
   refresh("integrationen");
   return res;

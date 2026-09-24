@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
  * Leistungen, offene Pflichten.
  */
 export default async function InitiativenPage() {
-  await requireArea("admin", "/admin/initiativen");
+  await requireAdminSection("initiatives", "/admin/initiativen");
   const { t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 

@@ -28,7 +28,7 @@ export function AxisPicker({
   const go = (key: string, value: string) => {
     const next = new URLSearchParams(params.toString());
     next.set(key, value);
-    router.push(`/produktion?${next.toString()}`);
+    router.push(`/admin/produktion?${next.toString()}`);
   };
 
   return (

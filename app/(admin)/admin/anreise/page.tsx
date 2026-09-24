@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  * Bereichsleitung jeden einschliesst.
  */
 export default async function AdminTravelPage() {
-  await requireArea("admin", "/admin/anreise");
+  await requireAdminSection("travel", "/admin/anreise");
   const { locale, t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { publishPartnerLogos } from "@/lib/sanity/publish";
@@ -9,11 +9,11 @@ export const maxDuration = 60;
 
 /**
  * Welle 3 A11: freigegebene Partner-Logos als `portalPartnerLogo` nach Sanity — ausgelöst vom Partner-Team im Admin (B9).
- * Body: { editionId?: string, dryRun?: boolean (Default true), orgId?: string }. Gate `requireArea("admin")` plus `is_partner_team()`;
+ * Body: { editionId?: string, dryRun?: boolean (Default true), orgId?: string }. Gate `requireAdminSection("partner")` plus `is_partner_team()`;
  * Daten mit service_role nach der Prüfung. Ohne `dryRun: false` wird nichts nach Sanity geschrieben (die API prüft mit dryRun=true).
  */
 export async function POST(request: Request) {
-  await requireArea("admin", "/admin/partner");
+  await requireAdminSection("partner", "/admin/partner");
   const supabase = await createSupabaseServerClient();
   const { data: team } = await supabase.rpc("is_partner_team");
   if (!team) return NextResponse.json({ error: "forbidden" }, { status: 403 });

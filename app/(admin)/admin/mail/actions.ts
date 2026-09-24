@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { resolveLocale } from "@/lib/i18n";
 import { sendTemplate, type MailStatus } from "@/lib/mail";
@@ -21,7 +21,7 @@ export type TestMailResult = {
 
 /** Testmail aus dem Dashboard. Rollenprüfung zuerst, dann erst der Versand. */
 export async function sendTestMail(to: string): Promise<TestMailResult> {
-  const { firstName } = await requireArea("admin", "/admin/mail");
+  const { firstName } = await requireAdminSection("mail", "/admin/mail");
 
   const address = to.trim();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address)) {
@@ -64,7 +64,7 @@ function fail(error: unknown): { ok: false; key: string; detail?: string } {
 
 /** Eine Zeile mit allem — die eingesetzten Variablen sind personenbezogen. */
 export async function loadDetail(id: number): Promise<LogResult<Record<string, unknown>>> {
-  await requireArea("admin", "/admin/mail");
+  await requireAdminSection("mail", "/admin/mail");
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("mail_log_detail", { p_id: id });
   if (error) return fail(error);
@@ -80,7 +80,7 @@ export async function loadDetail(id: number): Promise<LogResult<Record<string, u
  * Wege, auf denen Mails das Haus verlassen, und nur einer wäre geprüft.
  */
 export async function requeue(id: number): Promise<LogResult<number>> {
-  await requireArea("admin", "/admin/mail");
+  await requireAdminSection("mail", "/admin/mail");
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("requeue_mail", { p_log_id: id });
   if (error) return fail(error);

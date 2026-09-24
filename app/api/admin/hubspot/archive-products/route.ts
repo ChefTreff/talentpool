@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { istTrockenlauf } from "@/lib/products/dry-run";
@@ -26,7 +26,7 @@ export const maxDuration = 120;
  * archiviert man nicht auf Zuruf, sondern nach Durchsicht.
  */
 export async function POST(request: Request) {
-  const ctx = await requireArea("admin", "/admin/partner/integrationen");
+  const ctx = await requireAdminSection("partner", "/admin/partner/integrationen");
   const supabase = await createSupabaseServerClient();
   const { data: team } = await supabase.rpc("is_partner_team");
   if (!team) return NextResponse.json({ error: "forbidden" }, { status: 403 });

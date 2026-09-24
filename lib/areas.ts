@@ -5,6 +5,8 @@
  * Diese Datei ist bewusst frei von Server-Abhängigkeiten: `proxy.ts` (Login-Gate)
  * und `lib/auth.ts` (Rollenprüfung) teilen sie sich.
  */
+import { TEAM_ROLES } from "@/lib/admin-sections";
+
 export const AREA_KEYS = [
   "talent",
   "speaker",
@@ -12,7 +14,6 @@ export const AREA_KEYS = [
   "partner",
   "volunteers",
   "hackathon",
-  "produktion",
   "admin",
   "checkin",
 ] as const;
@@ -72,17 +73,17 @@ export const AREAS: readonly Area[] = [
     roles: ["hackathon_participant", "hackathon_partner"],
     leadRole: "area_lead_hackathon",
   },
-  {
-    key: "produktion",
-    path: "/produktion",
-    roles: ["production_team"],
-    leadRole: "area_lead_production",
-  },
-  // Der Admin-Bereich hängt an der Rolle, nicht mehr an der Liste `staff_user`
-  // (Migration 0107, Konrad 15.09.: „soll am Ende begrenzt werden über eine
-  // Rolle. Ggf. wird es noch weitere Personen geben"). Vergeben wird sie in
-  // `/admin/team`; in SQL bedeutet `is_staff()` seither dasselbe.
-  { key: "admin", path: "/admin", roles: ["admin"] },
+  // Seit „Admin zuerst" (Konrad, 22.09.2026) ist `/admin` der **einzige**
+  // Einstieg fürs Team: das Produktionsportal ist hierher gezogen (PORT2), neue
+  // Team-Funktionen entstehen gar nicht mehr woanders (PORT5). Die Tür lässt
+  // deshalb jede Teamrolle ein — was jemand dahinter sieht, entscheidet
+  // `lib/admin-sections.ts` je Abschnitt, und zwar für Navigation und Seite aus
+  // derselben Quelle. Eine Tür, die enger ist als die Funktionen dahinter, wäre
+  // kein Schutz, sondern ein zweites Portal durch die Hintertür.
+  //
+  // Die Rolle `admin` bleibt der Vollzugriff; in SQL heisst sie weiter
+  // `is_staff()` (Migration 0107).
+  { key: "admin", path: "/admin", roles: TEAM_ROLES.filter((r) => r !== "admin") },
   // Das Kiosk am Einlass. Eigener Bereich ohne Menü und ohne Umschalter — ein
   // Gerät im Vollbild am Eingang, sonst nichts (Arbeitsauftrag B4, E8).
   { key: "checkin", path: "/checkin", roles: ["checkin_operator"] },

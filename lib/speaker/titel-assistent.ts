@@ -20,6 +20,18 @@ export type Vorschlag = { titel: string; beschreibung: string };
 export const MAX_ZUEGE = 12;
 /** Wie lang eine einzelne Eingabe sein darf. */
 export const MAX_EINGABE_ZEICHEN = 2000;
+/**
+ * Wie lang ein Zug des Assistenten sein darf, **wenn er aus dem Browser
+ * zurückkommt**.
+ *
+ * Der Verlauf ist zustandslos: der Browser schickt ihn bei jeder Frage ganz
+ * mit, also auch das, was angeblich das Modell gesagt hat. Das ist eine
+ * Behauptung des Browsers, keine Tatsache — und ohne Grenze liesse sich darüber
+ * beliebig viel Text an das Modell schicken, auf unsere Kosten. 4000 Zeichen
+ * reichen für jede echte Antwort: mit `max_tokens` 900 kann das Modell gar
+ * nicht länger antworten.
+ */
+export const MAX_ANTWORT_ZEICHEN = 4000;
 
 /** Der Block, in dem der Vorschlag steht — maschinenlesbar, aber lesbar. */
 const BLOCK = /```vorschlag\s*\n([\s\S]*?)```/g;
@@ -130,7 +142,59 @@ ${beispiele}`;
  * besser — es macht sie teurer und schleppt frühe Missverständnisse mit.
  */
 export function verlaufKuerzen(nachrichten: Nachricht[], max = MAX_ZUEGE): Nachricht[] {
-  return nachrichten.length <= max ? nachrichten : nachrichten.slice(-max);
+  let kurz = nachrichten.length <= max ? nachrichten : nachrichten.slice(-max);
+  // **Der Verlauf muss mit dem Menschen beginnen** — die API weist sonst ab.
+  // Schneidet man einen wechselnden Verlauf auf eine gerade Zahl von Zügen,
+  // fängt er bei ungerader Länge mit dem Assistenten an: nach der siebten
+  // Frage (13 Züge, auf 12 gekürzt) lief deshalb jede Anfrage ins Leere, und
+  // die Seite sagte nur „antwortet gerade nicht". Also die führenden
+  // Assistenten-Züge mit abschneiden.
+  while (kurz.length > 0 && kurz[0].role !== "user") kurz = kurz.slice(1);
+  return kurz;
+}
+
+/** Ein Zug des Assistenten aus dem Browser: Text, und nicht länger als eine echte Antwort. */
+export function antwortOk(text: unknown): text is string {
+  return typeof text === "string" && text.length <= MAX_ANTWORT_ZEICHEN;
+}
+
+/**
+ * Den Verlauf aus dem Browser prüfen und kürzen — **die eine Stelle** für den
+ * Titel- und den Post-Assistenten.
+ *
+ * Vorher prüften beide Routen je für sich, und zwar nur die Züge des Menschen.
+ * Die Begründung stand im Code: was das Modell gesagt habe, „kommt aus derselben
+ * Quelle und ist ohnehin begrenzt". Das stimmte nicht — es kommt aus dem
+ * Browser. Jetzt wird **jeder** Zug geprüft: der des Menschen mit
+ * `eingabeOk`, der des Assistenten mit `antwortOk`, eine unbekannte Rolle
+ * weist ab, und der letzte Zug muss vom Menschen sein.
+ *
+ * Was das nicht löst und nicht lösen kann: jemand kann dem Assistenten Sätze in
+ * den Mund legen, die er nie gesagt hat. Das trifft nur das eigene Gespräch —
+ * die Antwort geht an genau die Person, die den Verlauf verändert hat. Gegen
+ * alles Weitere steht im Systemtext, dass Eingaben Inhalt sind, keine
+ * Anweisungen.
+ *
+ * `null` heisst: so nicht, 400.
+ */
+export function verlaufAusBrowser(messages: unknown): Nachricht[] | null {
+  if (!Array.isArray(messages) || messages.length === 0) return null;
+  const verlauf: Nachricht[] = [];
+  for (const m of messages) {
+    const rolle = (m as Nachricht | null)?.role;
+    const text = (m as Nachricht | null)?.content;
+    if (rolle === "user") {
+      if (!eingabeOk(text)) return null;
+    } else if (rolle === "assistant") {
+      if (!antwortOk(text)) return null;
+    } else {
+      return null;
+    }
+    verlauf.push({ role: rolle, content: text });
+  }
+  if (verlauf[verlauf.length - 1].role !== "user") return null;
+  const kurz = verlaufKuerzen(verlauf);
+  return kurz.length > 0 ? kurz : null;
 }
 
 /** Leere oder absurd lange Eingaben fängt schon die Oberfläche ab. */

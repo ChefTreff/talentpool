@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 import { fillVars, markdownToHtml } from "@/lib/mail/render";
@@ -23,7 +23,7 @@ function fail(error: unknown): { ok: false; key: string; detail?: string } {
 }
 
 async function client() {
-  await requireArea("admin", PATH);
+  await requireAdminSection("mail", PATH);
   return createSupabaseServerClient();
 }
 
@@ -87,7 +87,7 @@ export async function previewTemplate(
   body: string,
   vars: Record<string, string>,
 ): Promise<VorlageResult<{ subject: string; html: string }>> {
-  await requireArea("admin", PATH);
+  await requireAdminSection("mail", PATH);
   return {
     ok: true,
     data: {

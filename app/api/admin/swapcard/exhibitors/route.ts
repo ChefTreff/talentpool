@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { syncExhibitors } from "@/lib/event-app/sync";
@@ -11,11 +11,11 @@ export const maxDuration = 60;
 
 /**
  * Welle 3 A12: Aussteller einer Edition in die Event-App (Swapcard) übertragen — ausgelöst vom Partner-Team im Admin (B9).
- * Body: { editionId?: string, dryRun?: boolean (Default true), orgId?: string }. Gate `requireArea("admin")` plus `is_partner_team()`; die Daten
+ * Body: { editionId?: string, dryRun?: boolean (Default true), orgId?: string }. Gate `requireAdminSection("partner")` plus `is_partner_team()`; die Daten
  * kommen aus `event_app_exhibitors()` mit service_role nach der Prüfung. Ohne `dryRun: false` wird nichts nach Swapcard geschrieben.
  */
 export async function POST(request: Request) {
-  await requireArea("admin", "/admin/partner");
+  await requireAdminSection("partner", "/admin/partner");
   const supabase = await createSupabaseServerClient();
   const { data: team } = await supabase.rpc("is_partner_team");
   if (!team) return NextResponse.json({ error: "forbidden" }, { status: 403 });

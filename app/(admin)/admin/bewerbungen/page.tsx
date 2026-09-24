@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
  * `can_decide_session`). Kein service_role, kein Tabellenzugriff.
  */
 export default async function BewerbungenPage() {
-  await requireArea("admin", "/admin/bewerbungen");
+  await requireAdminSection("applications", "/admin/bewerbungen");
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 

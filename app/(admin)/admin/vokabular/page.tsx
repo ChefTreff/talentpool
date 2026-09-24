@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  * aus der Datenbank, und die Rechteprüfung gehört dorthin, wo die Daten sind.
  */
 export default async function VokabularPage() {
-  await requireArea("admin", "/admin/vokabular");
+  await requireAdminSection("vocab", "/admin/vokabular");
   const { t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 

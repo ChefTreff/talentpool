@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
@@ -17,7 +17,7 @@ export async function saveSalutation(
   de: string,
   en: string,
 ): Promise<SalutationResult> {
-  await requireArea("admin", `/admin/personen/${personId}`);
+  await requireAdminSection("persons", `/admin/personen/${personId}`);
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("set_person_salutation", {
     p_person_id: personId,

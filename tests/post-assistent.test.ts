@@ -69,13 +69,18 @@ test("istAnlass und istKanal lassen nur Bekanntes durch", () => {
   assert.equal(istAnlass(null), false);
 });
 
-test("verlaufKuerzen behält die letzten Züge", () => {
+test("verlaufKuerzen behält die letzten Züge und beginnt mit dem Menschen", () => {
+  // Dieser Test verlangte zuerst genau MAX_ZUEGE Züge — und schrieb damit den
+  // Fehler fest: 15 Züge auf 12 gekürzt beginnen mit dem Assistenten, und die
+  // API weist einen solchen Verlauf ab. Richtig ist: höchstens MAX_ZUEGE, der
+  // erste vom Menschen, der letzte bleibt.
   const lang: Nachricht[] = Array.from({ length: MAX_ZUEGE + 3 }, (_, i) => ({
     role: i % 2 === 0 ? "user" : "assistant",
     content: String(i),
   }));
   const kurz = verlaufKuerzen(lang);
-  assert.equal(kurz.length, MAX_ZUEGE);
+  assert.ok(kurz.length <= MAX_ZUEGE);
+  assert.equal(kurz[0].role, "user");
   assert.equal(kurz[kurz.length - 1].content, String(lang.length - 1));
 });
 

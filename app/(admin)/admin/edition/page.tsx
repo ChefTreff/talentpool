@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  * der Seite ist also nicht die einzige Grenze, sondern die äussere.
  */
 export default async function AdminEditionPage() {
-  await requireArea("admin", "/admin/edition");
+  await requireAdminSection("edition", "/admin/edition");
   const { t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 
