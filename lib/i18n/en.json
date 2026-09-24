@@ -2368,7 +2368,18 @@
       "questionRequired": "Required question",
       "questionsSaved": "Questions saved",
       "awaitingRelease": "Published by the programme team",
-      "stageReadOnly": "read only"
+      "stageReadOnly": "read only",
+      "stage": "Stage",
+      "topics": "Topics",
+      "moderation": "Moderation",
+      "moderationHint": "Who hosts the slot. Searches among this edition's speakers.",
+      "partner": "Partner",
+      "partnerHint": "For sponsored slots: the partner who booked it. Searches among this edition's partners.",
+      "remove": "Remove",
+      "noHits": "Nothing found. The search starts at two letters and looks at names and organisations.",
+      "saveToApply": "Topics, moderation and partner are applied with “Save”.",
+      "appMissing": "Still missing for the event app:",
+      "appSlot": "Slot (stage and time)"
     },
     "applications": {
       "title": "Applications",

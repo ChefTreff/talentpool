@@ -2368,7 +2368,18 @@
       "questionRequired": "Pflichtfrage",
       "questionsSaved": "Fragen gespeichert",
       "awaitingRelease": "Veröffentlichung durch das Programm-Team",
-      "stageReadOnly": "nur lesen"
+      "stageReadOnly": "nur lesen",
+      "stage": "Bühne",
+      "topics": "Themen",
+      "moderation": "Moderation",
+      "moderationHint": "Wer durch den Slot führt. Gesucht wird unter den Speakern dieser Edition.",
+      "partner": "Partner",
+      "partnerHint": "Bei gesponserten Slots: der Partner, der den Slot gebucht hat. Gesucht wird unter den Partnern dieser Edition.",
+      "remove": "Entfernen",
+      "noHits": "Nichts gefunden. Gesucht wird ab zwei Buchstaben, im Namen und in der Organisation.",
+      "saveToApply": "Themen, Moderation und Partner werden mit „Speichern“ übernommen.",
+      "appMissing": "Für die Event-App fehlt noch:",
+      "appSlot": "Slot (Bühne und Zeit)"
     },
     "applications": {
       "title": "Bewerbungen",

@@ -16,7 +16,8 @@ import {
   loadSessionQuestions,
   setSessionQuestions,
   publishSession,
-  searchPeople,
+  searchBoardPartners,
+  searchBoardPeople,
   setSessionSpeakers,
   setSlotStatus,
   unpublishSession,
@@ -26,6 +27,7 @@ import {
   type SessionDetail,
 } from "./actions";
 import { SLOT_STATUS_ORDER, speakerName, type BoardLabels, type SessionSpeaker } from "./types";
+import { SuchAuswahl } from "./SuchAuswahl";
 import type { ProgrammeStrings } from "./Board";
 
 type Draft = {
@@ -40,6 +42,8 @@ type Draft = {
   ticket_required: boolean;
   application_deadline: string;
   confirm_by_hours: string;
+  /** Themen aus `session_topic` (LEAD-019). */
+  tags: string[];
 };
 
 const EMPTY: Draft = {
@@ -54,6 +58,16 @@ const EMPTY: Draft = {
   ticket_required: true,
   application_deadline: "",
   confirm_by_hours: "72",
+  tags: [],
+};
+
+/** Was der Drawer vom Slot wissen muss, ohne ihn selbst zu laden (LEAD-019). */
+export type SlotInfo = {
+  stageName: string;
+  /** Tag und Uhrzeit, fertig formatiert. */
+  when: string;
+  status: string;
+  slotType: string;
 };
 
 /** Reihenfolge lückenlos halten — `set_session_questions` übernimmt sie 1:1. */
@@ -76,6 +90,7 @@ export function SessionDrawer({
   slotId,
   canPublish = true,
   hostOrgId,
+  slotInfo,
   labels,
   locale,
   t,
@@ -91,6 +106,8 @@ export function SessionDrawer({
   canPublish?: boolean;
   /** Gastgebende Org für neu angelegte Sessions (Partner-Bühne). */
   hostOrgId?: string;
+  /** Bühne, Zeit und Status des Slots — oben sichtbar statt versteckt (LEAD-019). */
+  slotInfo?: SlotInfo | null;
   labels: BoardLabels;
   locale: "de" | "en";
   t: ProgrammeStrings;
@@ -103,6 +120,9 @@ export function SessionDrawer({
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [speakers, setSpeakers] = useState<SessionSpeaker[]>([]);
+  const [moderation, setModeration] = useState<{ id: string; name: string | null } | null>(null);
+  const [partner, setPartner] = useState<{ id: string; name: string | null } | null>(null);
+  const [status, setStatus] = useState(slotInfo?.status ?? "open");
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<{ id: string; name: string }[]>([]);
   const [catalog, setCatalog] = useState<CatalogQuestion[]>([]);
@@ -114,6 +134,22 @@ export function SessionDrawer({
   const [id, setId] = useState<string | null>(sessionId);
 
   const message = (key: string) => rpcMessages[key] ?? key;
+
+  // Was Swapcard für eine Session braucht (Legacy-Inventar, Planning: Titel und
+  // Beschreibung zweisprachig, Zeit, Ort, Speaker, Aussteller, Tracks). Die
+  // Übertragung selbst baut EA3; hier steht nur, was noch fehlt, damit es
+  // nicht erst beim Export auffällt (LEAD-019, QS-036).
+  const OHNE_SPEAKER = new Set(["break", "networking", "reception"]);
+  const fehltFuerApp = [
+    !draft.title_de.trim() && t.titleDe,
+    !draft.title_en.trim() && t.titleEn,
+    !draft.description_de.trim() && t.descriptionDe,
+    !draft.description_en.trim() && t.descriptionEn,
+    !slotId && t.appSlot,
+    !OHNE_SPEAKER.has(draft.format) && speakers.length === 0 && t.speakers,
+    slotInfo?.slotType === "partner_block" && !partner && !hostOrgId && t.partner,
+    draft.tags.length === 0 && t.topics,
+  ].filter(Boolean) as string[];
 
   function report(res: ActionResult<unknown>, okText: string): boolean {
     if (res.ok) {
@@ -144,7 +180,10 @@ export function SessionDrawer({
         ticket_required: d.ticket_required,
         application_deadline: toLocalInput(d.application_deadline),
         confirm_by_hours: d.confirm_by_hours != null ? String(d.confirm_by_hours) : "72",
+        tags: d.tags ?? [],
       });
+      setModeration(d.refs.moderation);
+      setPartner(d.refs.partner);
     });
     return () => {
       alive = false;
@@ -180,10 +219,10 @@ export function SessionDrawer({
         setHits([]);
         return;
       }
-      searchPeople(term).then(setHits);
+      searchBoardPeople(eventId, term).then((h) => setHits(h.map(({ id, name }) => ({ id, name }))));
     }, 250);
     return () => clearTimeout(handle);
-  }, [query]);
+  }, [query, eventId]);
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {
     setDraft((d) => ({ ...d, [key]: value }));
@@ -219,10 +258,17 @@ export function SessionDrawer({
           ? new Date(draft.application_deadline).toISOString()
           : "",
         confirm_by_hours: draft.confirm_by_hours,
-        // Nur beim Anlegen: `upsert_session` setzt die Gastgeberin nicht von
-        // selbst, und ohne sie fände der Partner seine Session später nicht
-        // unter „Bewerber" wieder.
-        ...(!id && hostOrgId ? { host_org_id: hostOrgId } : {}),
+        tags: draft.tags,
+        moderation_person_id: moderation?.id ?? "",
+        // Auf der Partner-Bühne steht die Gastgeberin fest und wird nur beim
+        // Anlegen gesetzt — `upsert_session` weist `host_org_id` für einen
+        // Bühnen-Editor ab. Im Board des Teams und der Leads wird der Partner
+        // dagegen per Suche gewählt (LEAD-019) und geht immer mit.
+        ...(hostOrgId
+          ? !id
+            ? { host_org_id: hostOrgId }
+            : {}
+          : { host_org_id: partner?.id ?? "" }),
       });
       if (!res.ok) {
         toast("error", message(res.key));
@@ -348,6 +394,42 @@ export function SessionDrawer({
       }
     >
       <div className="flex flex-col gap-4">
+        {/* Bühne, Zeit und Status oben (LEAD-019). Der Status stand ganz unten
+            als fünf gleich aussehende Knöpfe — welcher gilt, sah man nicht.
+            Die Bühne ist gesetzt, weil der Slot auf ihr liegt; sie steht hier,
+            damit man sieht, worauf man gerade schaut. */}
+        {slotId && slotInfo && (
+          <div className="grid gap-3 rounded-ct-md border bg-canvas p-3 sm:grid-cols-2">
+            <div>
+              <p className="ct-help">{t.stage}</p>
+              <p className="ct-label text-ink">{slotInfo.stageName}</p>
+              <p className="ct-help tabular-nums">{slotInfo.when}</p>
+            </div>
+            <Field label={t.slotStatus} htmlFor="slot_status">
+              <Select
+                id="slot_status"
+                value={status}
+                disabled={pending}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  const vorher = status;
+                  setStatus(next);
+                  startTransition(async () => {
+                    if (!report(await setSlotStatus(slotId, next), t.statusSaved)) setStatus(vorher);
+                  });
+                }}
+                options={SLOT_STATUS_ORDER.map((st) => ({ value: st, label: labels.slotStatus[st] ?? st }))}
+              />
+            </Field>
+          </div>
+        )}
+
+        {id && fehltFuerApp.length > 0 && (
+          <p className="rounded-ct-md border border-warning-soft bg-warning-soft px-3 py-2 ct-small">
+            <span className="ct-label">{t.appMissing}</span> {fehltFuerApp.join(" · ")}
+          </p>
+        )}
+
         {detail && (
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={isPublished ? "success" : "neutral"}>
@@ -461,6 +543,62 @@ export function SessionDrawer({
           {t.ticketRequired}
         </label>
 
+        {/* Themen als Mehrfachauswahl (LEAD-019) — dieselbe Liste wie bei der
+            Einreichung (SPK-027), damit Board und Speaker-Portal dieselben
+            Wörter benutzen. */}
+        {Object.keys(labels.topics).length > 0 && (
+          <fieldset className="flex flex-col gap-2">
+            <legend className="ct-label mb-1 text-ink">{t.topics}</legend>
+            <div className="grid gap-x-4 gap-y-2 sm:grid-cols-2">
+              {Object.entries(labels.topics).map(([key, label]) => (
+                <label key={key} className="flex items-start gap-2 ct-small">
+                  <input
+                    type="checkbox"
+                    className="mt-1 size-4"
+                    checked={draft.tags.includes(key)}
+                    onChange={(e) =>
+                      set(
+                        "tags",
+                        e.target.checked
+                          ? [...draft.tags, key]
+                          : draft.tags.filter((k) => k !== key),
+                      )
+                    }
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SuchAuswahl
+            id="moderation"
+            label={t.moderation}
+            hint={t.moderationHint}
+            value={moderation}
+            disabled={pending}
+            suchen={(q) => searchBoardPeople(eventId, q)}
+            onChange={(h) => setModeration(h ? { id: h.id, name: h.name } : null)}
+            t={{ remove: t.remove, noHits: t.noHits }}
+          />
+          {/* Auf der Partner-Bühne steht die Gastgeberin fest. */}
+          {!hostOrgId && (
+            <SuchAuswahl
+              id="partner"
+              label={t.partner}
+              hint={t.partnerHint}
+              value={partner}
+              disabled={pending}
+              suchen={(q) => searchBoardPartners(eventId, q)}
+              onChange={(h) => setPartner(h ? { id: h.id, name: h.name } : null)}
+              t={{ remove: t.remove, noHits: t.noHits }}
+            />
+          )}
+        </div>
+        <p className="ct-help -mt-2">{t.saveToApply}</p>
+
         {/* Speaker */}
         <section className="border-t pt-4">
           <h3 className="ct-h3 mb-2">{t.speakers}</h3>
@@ -485,7 +623,10 @@ export function SessionDrawer({
               ))}
             </ul>
           )}
-          <Field label={t.addSpeaker} htmlFor="speaker_search" hint={t.addSpeakerHint}>
+          {/* Ohne gespeicherte Session gibt es nichts, woran ein Speaker hängen
+              könnte. Vorher war das Feld dann einfach grau — und das hiess im
+              Board „die Suche funktioniert nicht" (LEAD-020). */}
+          <Field label={t.addSpeaker} htmlFor="speaker_search" hint={id ? t.addSpeakerHint : t.saveFirst}>
             <Input
               id="speaker_search"
               value={query}
@@ -574,29 +715,6 @@ export function SessionDrawer({
           </section>
         )}
 
-        {/* Slot-Status */}
-        {slotId && (
-          <section className="border-t pt-4">
-            <h3 className="ct-h3 mb-2">{t.slotStatus}</h3>
-            <div className="flex flex-wrap gap-2">
-              {SLOT_STATUS_ORDER.map((s) => (
-                <Button
-                  key={s}
-                  size="sm"
-                  variant="secondary"
-                  disabled={pending}
-                  onClick={() =>
-                    startTransition(async () =>
-                      void report(await setSlotStatus(slotId, s), t.statusSaved),
-                    )
-                  }
-                >
-                  {labels.slotStatus[s]}
-                </Button>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
     </Drawer>
   );
