@@ -29,6 +29,12 @@ const PAARE = [
   ["Platzhalter auf Karte", "#8A94A6", "#FFFFFF", 4.5],
   ["Akzenttext auf Karte", "#6262DC", "#FFFFFF", 4.5],
   ["Akzenttext auf Grund", "#6262DC", "#F5F4F2", 4.5],
+  // Das kursive Schlüsselwort (PageHeader `word`, PhotoCard) steht in
+  // `accent-strong` auf dem Seitengrund — nicht im Akzent selbst, der dort
+  // knapp unter der Schwelle liegt (QS-037, 24.09.2026).
+  ["Schlüsselwort (accent-strong) auf Grund", "#5B5BD9", "#F5F4F2", 4.5],
+  ["Schlüsselwort (accent-strong) auf Karte", "#5B5BD9", "#FFFFFF", 4.5],
+  ["Akzent-Umriss (Slot-Karte) auf Grund", "#6262DC", "#F5F4F2", 3],
   ["Weiß auf Akzentfläche", "#FFFFFF", "#6262DC", 4.5],
   ["Off-White auf Akzentfläche", "#F5F4F2", "#6262DC", 4.5],
   ["Akzent als Rand/Fokus auf Karte", "#6262DC", "#FFFFFF", 3.0],
