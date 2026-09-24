@@ -18,6 +18,7 @@ import {
   publishSession,
   searchBoardPartners,
   searchBoardPeople,
+  setSessionPartner,
   setSessionSpeakers,
   setSlotStatus,
   unpublishSession,
@@ -120,8 +121,15 @@ export function SessionDrawer({
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [speakers, setSpeakers] = useState<SessionSpeaker[]>([]);
-  const [moderation, setModeration] = useState<{ id: string; name: string | null } | null>(null);
   const [partner, setPartner] = useState<{ id: string; name: string | null } | null>(null);
+  // Die Moderation ist ein Eintrag in `session_speaker` mit der Rolle
+  // `moderator` — so steht es im Masterplan, und so fliesst sie in die
+  // Speakerliste und später nach Swapcard. Die Spalte
+  // `session.moderation_person_id`, in die #147 schrieb, liest niemand.
+  const moderator = speakers.find((sp) => sp.role === "moderator") ?? null;
+  const moderation = moderator
+    ? { id: moderator.person_id, name: speakerName(moderator) }
+    : null;
   const [status, setStatus] = useState(slotInfo?.status ?? "open");
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<{ id: string; name: string }[]>([]);
@@ -182,7 +190,6 @@ export function SessionDrawer({
         confirm_by_hours: d.confirm_by_hours != null ? String(d.confirm_by_hours) : "72",
         tags: d.tags ?? [],
       });
-      setModeration(d.refs.moderation);
       setPartner(d.refs.partner);
     });
     return () => {
@@ -259,16 +266,12 @@ export function SessionDrawer({
           : "",
         confirm_by_hours: draft.confirm_by_hours,
         tags: draft.tags,
-        moderation_person_id: moderation?.id ?? "",
-        // Auf der Partner-Bühne steht die Gastgeberin fest und wird nur beim
-        // Anlegen gesetzt — `upsert_session` weist `host_org_id` für einen
-        // Bühnen-Editor ab. Im Board des Teams und der Leads wird der Partner
-        // dagegen per Suche gewählt (LEAD-019) und geht immer mit.
-        ...(hostOrgId
-          ? !id
-            ? { host_org_id: hostOrgId }
-            : {}
-          : { host_org_id: partner?.id ?? "" }),
+        // Nur beim Anlegen auf der Partner-Bühne: `upsert_session` setzt die
+        // Gastgeberin nicht von selbst, und ohne sie fände der Partner seine
+        // Session später nicht unter „Bewerber" wieder. **Das Partnerfeld im
+        // Board schreibt `host_org_id` nicht** — es meint den buchenden
+        // Partner und geht unten über `setSessionPartner` (Korrektur zu #147).
+        ...(!id && hostOrgId ? { host_org_id: hostOrgId } : {}),
       });
       if (!res.ok) {
         toast("error", message(res.key));
@@ -276,6 +279,16 @@ export function SessionDrawer({
       }
       const newId = res.data.sessionId;
       setId(newId);
+      // Der **buchende** Partner (`partner_org_id`) hat seinen eigenen
+      // Schreibweg — nur wenn er sich geändert hat, und nie auf der
+      // Partner-Bühne, wo er feststeht.
+      if (!hostOrgId && (partner?.id ?? null) !== (detail?.refs.partner?.id ?? null)) {
+        const gesetzt = await setSessionPartner(newId, partner?.id ?? null);
+        if (!gesetzt.ok) {
+          toast("error", message(gesetzt.key));
+          return;
+        }
+      }
       // Neu angelegt und aus einem leeren Slot heraus geöffnet: gleich anhängen.
       if (!id && slotId) {
         const attached = await attachSession(newId, slotId);
@@ -580,7 +593,30 @@ export function SessionDrawer({
             value={moderation}
             disabled={pending}
             suchen={(q) => searchBoardPeople(eventId, q)}
-            onChange={(h) => setModeration(h ? { id: h.id, name: h.name } : null)}
+            onChange={(h) => {
+              if (!id) {
+                toast("error", t.saveFirst);
+                return;
+              }
+              const ohne = speakers.filter((sp) => sp.role !== "moderator");
+              const [first, ...rest] = (h?.name ?? "").split(" ");
+              // Wer schon als Speaker dabei ist und nun moderiert, wechselt die
+              // Rolle — doppelt eintragen liesse die Datenbank ohnehin nicht zu.
+              const next: SessionSpeaker[] = h
+                ? [
+                    ...ohne.filter((sp) => sp.person_id !== h.id),
+                    {
+                      person_id: h.id,
+                      role: "moderator",
+                      first_name: first ?? h.name,
+                      last_name: rest.join(" ") || null,
+                      employer_name: null,
+                      confirmed: false,
+                    },
+                  ]
+                : ohne;
+              persistSpeakers(next);
+            }}
             t={{ remove: t.remove, noHits: t.noHits }}
           />
           {/* Auf der Partner-Bühne steht die Gastgeberin fest. */}
@@ -606,7 +642,7 @@ export function SessionDrawer({
             <p className="ct-help">{t.noSpeakers}</p>
           ) : (
             <ul className="mb-3 flex flex-wrap gap-2">
-              {speakers.map((s) => (
+              {speakers.filter((sp) => sp.role !== "moderator").map((s) => (
                 <li key={s.person_id}>
                   <span className="inline-flex items-center gap-2 rounded-ct-md border bg-surface px-2.5 py-1.5 ct-small">
                     {speakerName(s)}
