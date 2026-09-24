@@ -60,7 +60,8 @@ function boardLabels(vocab: Awaited<ReturnType<typeof loadVocabMap>>): BoardLabe
       "talk", "pitch_battle", "award", "opening", "closing", "masterclass",
       "company_tour", "workshop", "networking", "reception", "side_event", "break",
     ]),
-    language: group("language", ["de", "en", "mixed"]),
+    // Eine Sprache je Session (SPK-052): „Gemischt" gibt es nicht mehr.
+    language: group("language", ["de", "en"]),
     accessMode: group("access_mode", ["open", "registration", "application"]),
     publishStatus: group("publish_status", ["draft", "review", "published", "cancelled"]),
     // Die Themen sind gepflegt, nicht festgeschrieben (SPK-027) — also die

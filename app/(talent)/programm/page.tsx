@@ -214,7 +214,8 @@ export default async function ProgrammPage() {
       ]),
     ),
     language: Object.fromEntries(
-      ["de", "en", "mixed"].map((k) => [k, vlabel(vocab, "language", k)]),
+      // Eine Sprache je Session (SPK-052): „Gemischt" gibt es nicht mehr.
+      ["de", "en"].map((k) => [k, vlabel(vocab, "language", k)]),
     ),
     accessMode: Object.fromEntries(
       ["open", "registration", "application"].map((k) => [
