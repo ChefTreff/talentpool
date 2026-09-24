@@ -5,6 +5,8 @@
 --      hier eine gewöhnliche Rechnung (Vorbedingung: die fremde Referenz existiert);
 --   03 Uploads (hier das Logo) stehen nicht in der Belegliste;
 --   04 fremde Organisation ⇒ 42501; 05 `anon` gesperrt.
+-- Probelauf Bau-Chat 24.09.2026 auf main 917b39f (`sh scripts/db.sh dry-run`, fn-diff: neue Funktion):
+-- **5/5 grün**, zurückgerollt.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
