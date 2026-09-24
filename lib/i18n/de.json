@@ -248,7 +248,9 @@
     "partner_host_mismatch": "Die Session wird schon von einem anderen Partner ausgerichtet — der buchende Partner muss derselbe sein.",
     "invalid_vocab_value": "Dieser Wert steht nicht (mehr) zur Auswahl. Bitte wähle einen anderen.",
     "not_presentation": "Nur Präsentationen lassen sich teilen.",
-    "invalid_tech_value": "Bei diesem Feld geht nur Ja oder Nein."
+    "invalid_tech_value": "Bei diesem Feld geht nur Ja oder Nein.",
+    "invalid_link_url": "Der Link muss mit https:// beginnen oder ein Portalpfad wie /summit sein.",
+    "next_up_not_found": "Diesen Hinweis gibt es nicht mehr."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -2429,7 +2431,8 @@
       "submissions": "Einreichungen",
       "regie": "Regie",
       "speakerTasks": "Speaker-Aufgaben",
-      "production": "Produktion"
+      "production": "Produktion",
+      "nextUp": "Next Up"
     },
     "overview": {
       "title": "Übersicht",
@@ -3005,7 +3008,8 @@
       "team": "Wir",
       "roles": "Rechte",
       "duplicates": "Bereinigung",
-      "deletions": "Datenschutz"
+      "deletions": "Datenschutz",
+      "nextUp": "Next Up"
     },
     "entries": {
       "programme": "Alle Bühnen und Tage auf einem Board.",
@@ -4545,12 +4549,45 @@
     "action": "Zum Summit 2027",
     "cardSummitWord": "Summit",
     "cardSummitBody": "Programm, Bewerbungen für Masterclasses, Company Tours, Interview Tables und Side-Events.",
-    "cardSummitAction": "Zum Summit"
+    "cardSummitAction": "Zum Summit",
+    "nextUpTitle": "Next Up",
+    "nextUpWord": "Demnächst",
+    "nextUpAction": "Mehr erfahren",
+    "volunteerTitle": "Du willst dabei sein?"
   },
   "talentSummit": {
     "groupLabel": "Summit 2027",
     "navLabel": "Übersicht",
     "eyebrow": "Summit 2027",
     "lead": "Hier findest du die Formate zum Bewerben und alles, woran du gerade dran bist."
+  },
+  "nextUpAdmin": {
+    "title": "Next Up",
+    "lead": "Hinweise auf kommende Events und Programme. Was aktiv ist und im Zeitfenster liegt, sieht jede angemeldete Person auf Home im Teilnehmer-Portal.",
+    "add": "Hinweis anlegen",
+    "edit": "Bearbeiten",
+    "empty": "Noch kein Hinweis",
+    "emptyBody": "Lege einen an, zum Beispiel für das nächste Bootcamp. Ohne Hinweise fehlt die Sektion auf Home.",
+    "stateLive": "Sichtbar",
+    "stateScheduled": "Geplant",
+    "stateExpired": "Abgelaufen",
+    "stateInactive": "Inaktiv",
+    "deleteTitle": "Hinweis löschen?",
+    "deleteBody": "Er verschwindet sofort von Home. Das lässt sich nicht rückgängig machen.",
+    "fieldTitleDe": "Titel (DE)",
+    "fieldTitleEn": "Titel (EN)",
+    "fieldWordDe": "Stichwort (DE)",
+    "fieldWordEn": "Stichwort (EN)",
+    "fieldWordHint": "Ein Wort über der Karte, zum Beispiel Bootcamp oder Community.",
+    "fieldTeaserDe": "Kurztext (DE)",
+    "fieldTeaserEn": "Kurztext (EN)",
+    "fieldLink": "Link",
+    "fieldLinkHint": "https://… oder ein Portalpfad wie /summit. Externe Links öffnen ein neues Fenster.",
+    "fieldStartsAt": "Datum",
+    "fieldStartsAtHint": "Optional; steht auf der Karte.",
+    "fieldSort": "Reihenfolge",
+    "fieldVisibleFrom": "Sichtbar ab",
+    "fieldVisibleUntil": "Sichtbar bis",
+    "fieldActive": "Aktiv"
   }
 }

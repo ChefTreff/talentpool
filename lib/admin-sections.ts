@@ -60,6 +60,7 @@ export const EXTERNAL_ROLES = ["speaker_manager", "volunteer_lead", "checkin_ope
 export type AdminSectionKey =
   | "overview"
   | "applications"
+  | "nextUp"
   | "programme"
   | "edition"
   | "speakers"
@@ -128,6 +129,9 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
 
   // Teilnehmende und Programm
   { key: "applications", path: "/admin/bewerbungen", roles: ["area_lead_talent", "talent_team", "programme_team"] },
+  // „Next Up" auf Home im Teilnehmer-Portal (TAL-006): ein Marketing-Kanal.
+  // Dieselbe Rollenliste prüft `can_edit_next_up()` in SQL.
+  { key: "nextUp", path: "/admin/next-up", roles: ["marketing_team", "area_lead_talent"] },
   { key: "programme", path: "/admin/programm", roles: ["programme_team", "area_lead_speaker", "area_lead_production"] },
   { key: "edition", path: "/admin/edition", roles: ["programme_team", "area_lead_production"] },
 
