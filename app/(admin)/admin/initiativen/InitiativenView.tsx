@@ -94,7 +94,7 @@ export function InitiativenView({
                   {i.source !== "hubspot" && ` · ${t.sourcePortal}`}
                 </p>
               </div>
-              <div className="w-[200px]">
+              <div className="w-50">
                 <Select
                   aria-label={t.stage}
                   placeholder={t.noStage}

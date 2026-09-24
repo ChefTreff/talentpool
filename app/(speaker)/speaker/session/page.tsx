@@ -73,7 +73,7 @@ export default async function SpeakerSessionPage() {
     : null;
 
   return (
-    <div className="max-w-[900px]">
+    <div className="max-w-detail">
       <PageHeader word={t.speaker.wordStage} title={t.speaker.sessionTitle} description={t.speaker.sessionLead} />
 
       {/* Die Abschnitte der längsten Seite im Portal (SPK-043, Muster QS-026).

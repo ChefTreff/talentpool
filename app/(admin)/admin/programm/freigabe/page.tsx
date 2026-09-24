@@ -43,7 +43,7 @@ export default async function ProgrammeReleasePage({
   if (!data.currentEvent) {
     return (
       <>
-        <PageHeader title={t.admin.programme.title} description={t.admin.programme.lead} />
+        <PageHeader word={t.admin.words.programme} title={t.admin.programme.title} description={t.admin.programme.lead} />
         <TableTabs basePath={BASE} withRelease />
         <EmptyState title={t.admin.programme.noEventTitle} description={t.admin.programme.noEventBody} />
       </>
@@ -100,7 +100,7 @@ export default async function ProgrammeReleasePage({
 
   return (
     <>
-      <PageHeader title={t.admin.programme.title} description={t.admin.programme.lead} />
+      <PageHeader word={t.admin.words.programme} title={t.admin.programme.title} description={t.admin.programme.lead} />
       <TableTabs basePath={BASE} withRelease />
       <FreigabeListe
         partner={partner}
