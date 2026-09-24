@@ -86,3 +86,4 @@ Datenschutz und Sicherheit macht Konrad in den nächsten Tagen; vorab entschiede
 - **ADM-057 / #164:** Kundennummer = HubSpot-Eigenschaft `company_id` („Übergreifende Kundennummer (Company ID)“) → Übernahme in den Ingest beim Admin-Chat.
 - **SPK-068 vorziehen (P1 sofort):** Speaker-Ticket ausstellen — Konrad will es testen; Kette vivenu → Portal → Swapcard muss funktionieren.
 - **K-30 Befehle** (Repo-Ordner, Werte werden unsichtbar abgefragt): `sh scripts/env-set.sh LUMA_API_KEY` (sensibel, geht nach Vercel und lokal in `.env.local`) · `sh scripts/env-set.sh LUMA_CALENDAR_ID --config` · später `sh scripts/env-set.sh LUMA_WRITE_ENABLED --config` mit `true`, erst nach grüner Lese-Probe.
+- **K-30 erledigt (24.09. Nacht):** `LUMA_API_KEY` und `LUMA_CALENDAR_ID` sind gesetzt (Vercel und lokal). K-30b (`LUMA_WRITE_ENABLED`) wartet auf die grüne Lese-Probe des Talent-Chats — die Architektur-Session sagt Konrad Bescheid.
