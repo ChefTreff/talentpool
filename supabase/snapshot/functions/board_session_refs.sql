@@ -11,9 +11,6 @@ begin
   if not found then raise exception 'session_not_found' using errcode = 'P0002'; end if;
   if not can_search_board(v_se.event_id) then raise exception 'not allowed' using errcode = '42501'; end if;
   return jsonb_build_object(
-    'moderation', (select jsonb_build_object('id', p.id, 'name',
-                     nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), ''))
-                     from person p where p.id = v_se.moderation_person_id),
     'partner', (select jsonb_build_object('id', o.id, 'name', coalesce(o.communication_name, o.legal_name))
-                  from organization o where o.id = v_se.host_org_id));
+                  from organization o where o.id = v_se.partner_org_id));
 end $$;

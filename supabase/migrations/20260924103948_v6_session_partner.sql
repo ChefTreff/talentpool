@@ -1,4 +1,5 @@
--- Vorschlag ohne Nummer · Welle 6 · Buchender Partner am Slot (Korrektur zu 0155, LEAD-019)
+-- 0156 · Welle 6 · Partner am Slot ist der buchende (Korrektur zu 0155/#147): set_session_partner, board_session_refs liest partner_org_id
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924103948.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
