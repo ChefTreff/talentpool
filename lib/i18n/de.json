@@ -4694,6 +4694,22 @@
     "status_attended": "Teilgenommen",
     "status_no_show": "Nicht erschienen"
   },
+  "talentTickets": {
+    "navLabel": "Tickets",
+    "word": "Zugang",
+    "title": "Deine Tickets",
+    "lead": "Dein Ticket für den Summit mit QR-Code für den Einlass.",
+    "emptyTitle": "Noch kein Ticket",
+    "emptyBody": "Sobald du ein Ticket gekauft oder bekommen hast und es auf dich personalisiert ist, erscheint es hier.",
+    "ticket": "Ticket",
+    "pending": "Wird gerade ausgestellt. Sobald es fertig ist, steht hier dein QR-Code.",
+    "valid": "Gültig",
+    "checkedIn": "Eingecheckt",
+    "qrAlt": "QR-Code deines Tickets",
+    "qrHint": "Am Einlass scannen lassen. Der Code gilt nur für dich — bitte nicht weitergeben.",
+    "walletAdd": "Zur Wallet hinzufügen",
+    "walletHint": "Öffnet dein Ticket bei vivenu — dort liegen die Knöpfe für Apple und Google Wallet."
+  },
   "communityEventsAdmin": {
     "word": "Community",
     "title": "Community-Events",
