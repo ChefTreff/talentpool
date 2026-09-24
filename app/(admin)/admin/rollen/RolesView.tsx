@@ -20,7 +20,9 @@ import {
   type FoundOrganization,
   type FoundPerson,
   type RoleRow,
+  type SectionOverrideRow,
 } from "./actions";
+import { SectionOverrides } from "./SectionOverrides";
 
 type Strings = Record<string, string>;
 type Option = { value: string; label: string };
@@ -43,6 +45,9 @@ const SCOPE_TYPES = Object.keys(SCOPE_FIELD);
 export function RolesView({
   roles,
   scopes,
+  overrides,
+  sections,
+  vorgabe,
   dateLocale,
   t,
   common,
@@ -50,6 +55,10 @@ export function RolesView({
 }: {
   roles: Record<string, string>;
   scopes: Record<string, Option[]>;
+  /** Ausnahmen zur Abschnitts-Vorgabe (ADM-053). */
+  overrides: SectionOverrideRow[];
+  sections: { key: string; label: string }[];
+  vorgabe: Record<string, readonly string[]>;
   dateLocale: string;
   t: Strings;
   common: { cancel: string; choose: string; inactive: string; none: string; save: string };
@@ -64,7 +73,10 @@ export function RolesView({
   const [assignments, setAssignments] = useState<RoleRow[]>([]);
   const [askRevoke, setAskRevoke] = useState<RoleRow | null>(null);
 
-  const [role, setRole] = useState("");
+  // Mehrfachauswahl (ADM-053, Konrad 24.09.): ein Teammitglied bekommt in der
+  // Regel mehrere Rollen auf einmal — Bereichsleitung **und** Team, oder zwei
+  // Bereiche. Jede einzeln zu vergeben waren vier Klicks je Rolle.
+  const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set());
   const [scopeType, setScopeType] = useState("global");
   const [scopeValue, setScopeValue] = useState("");
   const [validTo, setValidTo] = useState("");
@@ -139,24 +151,33 @@ export function RolesView({
   }
 
   function onAssign() {
-    if (!person || !role) return;
+    if (!person || selectedRoles.size === 0) return;
     startTransition(async () => {
-      const res = await assignRole({
-        personId: person.id,
-        role,
-        scopeType,
-        scopeId: needs === "scope" ? scopeValue : needs === "org" ? (org?.id ?? null) : null,
-        editionId: needs === "edition" ? scopeValue : null,
-        portal: needs === "portal" ? scopeValue : null,
-        validTo: validTo ? new Date(validTo).toISOString() : null,
-        note,
-      });
-      if (!res.ok) {
-        toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+      // Nacheinander, nicht parallel: `assign_role` schreibt ein Protokoll je
+      // Zuweisung, und bei einem Fehler soll erkennbar sein, welche Rolle ihn
+      // ausgelöst hat.
+      const fehler: string[] = [];
+      for (const r of selectedRoles) {
+        const res = await assignRole({
+          personId: person.id,
+          role: r,
+          scopeType,
+          scopeId: needs === "scope" ? scopeValue : needs === "org" ? (org?.id ?? null) : null,
+          editionId: needs === "edition" ? scopeValue : null,
+          portal: needs === "portal" ? scopeValue : null,
+          validTo: validTo ? new Date(validTo).toISOString() : null,
+          note,
+        });
+        if (!res.ok) fehler.push(`${roles[r] ?? r}: ${message(res.key)}${res.detail ? ` (${res.detail})` : ""}`);
+      }
+      if (fehler.length > 0) {
+        // Was durchging, bleibt vergeben — die Liste unten zeigt den Stand.
+        toast("error", fehler.join(" · "));
+        reload();
         return;
       }
       toast("success", t.assigned);
-      setRole("");
+      setSelectedRoles(new Set());
       setScopeValue("");
       setOrg(null);
       setOrgQuery("");
@@ -182,8 +203,16 @@ export function RolesView({
 
   const scopeOptions = needs === "none" || needs === "org" ? [] : (scopes[scopeType] ?? []);
   const canAssign =
-    Boolean(role) &&
+    selectedRoles.size > 0 &&
     (needs === "none" || (needs === "org" ? Boolean(org) : Boolean(scopeValue)));
+
+  const toggleRole = (key: string) =>
+    setSelectedRoles((vorher) => {
+      const naechste = new Set(vorher);
+      if (naechste.has(key)) naechste.delete(key);
+      else naechste.add(key);
+      return naechste;
+    });
 
   return (
     <div className="flex flex-col gap-6">
@@ -278,15 +307,26 @@ export function RolesView({
             <h2 className="ct-h2 mb-1 text-ink">{t.assignTitle}</h2>
             <p className="ct-help mb-4">{t.assignHint}</p>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t.role} htmlFor="role">
-                <Select
-                  id="role"
-                  value={role}
-                  placeholder={common.choose}
-                  options={Object.entries(roles).map(([value, label]) => ({ value, label }))}
-                  onChange={(e) => setRole(e.target.value)}
-                />
-              </Field>
+              {/* Mehrfachauswahl statt Einzelliste: ein Teammitglied bekommt
+                  meist Bereichsleitung **und** Team auf einmal. Alle gewählten
+                  Rollen gehen mit demselben Geltungsbereich hinaus. */}
+              <fieldset className="sm:col-span-2">
+                <legend className="ct-label mb-1 text-ink">{t.role}</legend>
+                <p className="ct-help mb-2">{t.roleMultiHint}</p>
+                <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {Object.entries(roles).map(([value, label]) => (
+                    <label key={value} className="ct-help flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedRoles.has(value)}
+                        disabled={pending}
+                        onChange={() => toggleRole(value)}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
               <Field label={t.scope} htmlFor="scope-type">
                 <Select
                   id="scope-type"
@@ -381,6 +421,20 @@ export function RolesView({
           </Card>
         </>
       )}
+
+      {/* Abschnitte schalten (ADM-053). Steht ausserhalb des Personen-Zweigs:
+          Rollen-Ausnahmen gelten ohne gewählte Person, persönliche brauchen sie
+          — der Editor sagt das selbst. */}
+      <SectionOverrides
+        overrides={overrides}
+        sections={sections}
+        vorgabe={vorgabe}
+        roles={roles}
+        person={person}
+        t={t}
+        common={{ choose: common.choose, none: common.none, save: common.save }}
+        rpcMessages={rpcMessages}
+      />
 
       {askRevoke && (
         <ConfirmDialog

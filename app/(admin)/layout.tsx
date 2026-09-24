@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { requireArea } from "@/lib/auth";
-import { canEnterAdminSection, type AdminSectionKey } from "@/lib/admin-sections";
+import { ADMIN_SECTIONS, type AdminSectionKey } from "@/lib/admin-sections";
+import { mayEnterAdminSection } from "@/lib/admin-access";
 import { getI18n } from "@/lib/i18n";
 import { SidebarShell, type SidebarGroup } from "@/components/layout/SidebarShell";
 
@@ -34,9 +35,20 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const { t } = await getI18n();
   const nav = t.admin.nav;
 
-  /** Ein Punkt der Leiste, der nur erscheint, wenn die Rolle den Abschnitt öffnet. */
+  // Einmal fragen statt je Punkt: die Ausnahmen liegen nach dem ersten Aufruf
+  // im Anfrage-Cache, aber die Prüfung ist asynchron und lässt sich in der
+  // Liste unten nicht abwarten.
+  const offen = new Set<AdminSectionKey>(
+    (
+      await Promise.all(
+        ADMIN_SECTIONS.map(async (s) => ((await mayEnterAdminSection(s.key, roleNames)) ? s.key : null)),
+      )
+    ).filter((k): k is AdminSectionKey => k !== null),
+  );
+
+  /** Ein Punkt der Leiste, der nur erscheint, wenn der Abschnitt offen ist. */
   const eintrag = (section: AdminSectionKey, href: string, label: string) =>
-    canEnterAdminSection(section, roleNames) ? [{ href, label }] : [];
+    offen.has(section) ? [{ href, label }] : [];
 
   const alleGruppen: SidebarGroup[] = [
     { label: "", items: eintrag("overview", "/admin", nav.overview) },
