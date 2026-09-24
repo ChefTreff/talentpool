@@ -80,14 +80,21 @@ export function formatRange(startIso: string, endIso: string, timeZone: string):
   return `${formatTime(startIso, timeZone)} – ${formatTime(endIso, timeZone)}`;
 }
 
-/** „Fr., 16.04.2027" in der gewünschten Sprache. */
-export function formatDay(dayDate: string, dateLocale: string): string {
+/**
+ * „Fr., 16.04.2027" in der gewünschten Sprache; mit `withYear: false`
+ * „Fr., 16.04." — für eine schmale Spalte, in der das Jahr schon im Titel steht.
+ */
+export function formatDay(
+  dayDate: string,
+  dateLocale: string,
+  { withYear = true }: { withYear?: boolean } = {},
+): string {
   const [year, month, day] = dayDate.split("-").map(Number);
   return new Intl.DateTimeFormat(dateLocale, {
     weekday: "short",
     day: "2-digit",
     month: "2-digit",
-    year: "numeric",
+    ...(withYear ? { year: "numeric" as const } : {}),
     timeZone: "UTC",
   }).format(Date.UTC(year, month - 1, day));
 }

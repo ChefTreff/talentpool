@@ -616,8 +616,6 @@
     "fieldTitleHint": "For example Dr or Prof.",
     "fieldFirstName": "First name",
     "fieldLastName": "Last name",
-    "fieldPronouns": "Pronouns",
-    "fieldPronounsHint": "Shown next to your name if you want.",
     "fieldJobTitle": "Job title",
     "fieldOrganization": "Organisation",
     "fieldPhone": "Phone",
@@ -4411,7 +4409,7 @@
     "ownsData": "Maintains their own",
     "ownsDataBody": "This person maintains their details in the speaker portal themselves. If something is missing, talk to them — we do not edit other people's profiles.",
     "noRoleYet": "Position and company are still missing.",
-    "privateFields": "Phone number, pronouns, assistant and technical requirements are maintained by the speaker — those are their details, not yours.",
+    "privateFields": "Phone number, assistant and technical requirements are maintained by the speaker — those are their details, not yours.",
     "programmeHint": "The programme team agrees the title and description of the programme slot directly with your speaker."
   },
   "partnerSideEvent": {

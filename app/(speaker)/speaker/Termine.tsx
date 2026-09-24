@@ -5,8 +5,8 @@ import { KalenderKnoepfe } from "@/components/ui/KalenderKnoepfe";
 /** Ein Termin, fertig formatiert und mit den drei Wegen in den Kalender. */
 export type Termin = {
   key: string;
-  /** Datum, fertig formatiert — die Liste rechnet nicht mehr. */
-  datum: string;
+  /** Datum, fertig formatiert — die Liste rechnet nicht mehr. Mehrere Tage als Liste: je Tag eine Zeile. */
+  datum: string | string[];
   /** Uhrzeit oder Spanne, wenn der Termin eine hat. */
   zeit?: string;
   titel: string;

@@ -616,8 +616,6 @@
     "fieldTitleHint": "Zum Beispiel Dr. oder Prof.",
     "fieldFirstName": "Vorname",
     "fieldLastName": "Nachname",
-    "fieldPronouns": "Pronomen",
-    "fieldPronounsHint": "Erscheint auf Wunsch neben deinem Namen.",
     "fieldJobTitle": "Job-Titel",
     "fieldOrganization": "Organisation",
     "fieldPhone": "Telefon",
@@ -4411,7 +4409,7 @@
     "ownsData": "Pflegt selbst",
     "ownsDataBody": "Diese Person pflegt ihre Angaben im Speaker-Portal selbst. Wenn etwas fehlt, sprecht sie an — wir ändern fremde Profile nicht.",
     "noRoleYet": "Position und Unternehmen fehlen noch.",
-    "privateFields": "Telefonnummer, Pronomen, Assistenz und Technikbedarf pflegt die Speakerin selbst — das sind ihre Angaben, nicht eure.",
+    "privateFields": "Telefonnummer, Assistenz und Technikbedarf pflegt die Speakerin selbst — das sind ihre Angaben, nicht eure.",
     "programmeHint": "Titel und Beschreibung des Programmpunkts stimmt das Programm-Team direkt mit eurer Speakerin ab."
   },
   "partnerSideEvent": {

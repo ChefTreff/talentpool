@@ -7,7 +7,6 @@ export type SpeakerPerson = {
   first_name: string | null;
   last_name: string | null;
   title: string | null;
-  pronouns: string | null;
   photo_url: string | null;
   linkedin_url: string | null;
   preferred_language: string | null;
