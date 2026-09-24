@@ -1,6 +1,6 @@
 # HubSpot-Einbindungen — Bestandsaufnahme für die Entscheidung HubSpot → Close
 
-Stand: 24.09.2026 (Architektur-Session, nur aufgenommen, nichts geändert). Anlass: Konrad prüft den Umzug des CRM von HubSpot zu Close (Entscheidung Ende der Woche ab 28.09.). Quelle: Code auf `main` (cba4e87), Runbook `docs/runbooks/hubspot-ingest.md`, Zugangs-Liste, Schema.
+Stand: 24.09.2026 (Architektur-Session, nur aufgenommen, nichts geändert). **Entscheidung Konrad, 24.09.2026 abends: Close kommt nicht, HubSpot bleibt.** Abschnitt 6 bleibt als Dokumentation der Prüfung stehen; die offenen HubSpot-Punkte (INV0, Deal-Ingest scharf schalten, Labels) laufen weiter. Anlass: Konrad prüft den Umzug des CRM von HubSpot zu Close (Entscheidung Ende der Woche ab 28.09.). Quelle: Code auf `main` (cba4e87), Runbook `docs/runbooks/hubspot-ingest.md`, Zugangs-Liste, Schema.
 
 ## 1 · Überblick
 
