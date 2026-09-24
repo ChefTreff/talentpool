@@ -538,7 +538,19 @@
     "eventAppTitle": "You'll find the full programme in the event app",
     "eventAppBody": "Keynotes, panels and all stages are listed there. Here you apply for the formats with limited places.",
     "eventAppIos": "App Store",
-    "eventAppAndroid": "Google Play"
+    "eventAppAndroid": "Google Play",
+    "detailHost": "Host",
+    "detailLocation": "Location",
+    "detailMeetingPoint": "Meeting point",
+    "detailTourTime": "Tour",
+    "detailJob": "Position",
+    "detailJobLink": "Job posting",
+    "detailInterviewMode": "Conversation",
+    "detailInterviewSingle": "One-on-one",
+    "detailInterviewGroup": "Group conversation",
+    "detailTarget": "Looking for",
+    "detailStops": "Stops",
+    "detailStopTbd": "Stop to be announced"
   },
   "participation": {
     "title": "My participation",

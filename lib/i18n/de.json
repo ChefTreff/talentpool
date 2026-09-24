@@ -538,7 +538,19 @@
     "eventAppTitle": "Das vollständige Programm findest du in der Event-App",
     "eventAppBody": "Keynotes, Panels und alle Bühnen stehen dort. Hier bewirbst du dich für die Formate mit begrenzten Plätzen.",
     "eventAppIos": "App Store",
-    "eventAppAndroid": "Google Play"
+    "eventAppAndroid": "Google Play",
+    "detailHost": "Gastgeber",
+    "detailLocation": "Ort",
+    "detailMeetingPoint": "Treffpunkt",
+    "detailTourTime": "Tour",
+    "detailJob": "Stelle",
+    "detailJobLink": "Ausschreibung",
+    "detailInterviewMode": "Gespräch",
+    "detailInterviewSingle": "Einzelgespräch",
+    "detailInterviewGroup": "Gruppengespräch",
+    "detailTarget": "Gesucht",
+    "detailStops": "Stationen",
+    "detailStopTbd": "Station folgt"
   },
   "participation": {
     "title": "Meine Teilnahme",

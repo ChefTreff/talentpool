@@ -16,6 +16,8 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
+import { FormatDetailsBlock } from "./FormatDetailsBlock";
+import type { FormatDetails } from "./types";
 import {
   applyToSession,
   cancelRegistration,
@@ -55,6 +57,7 @@ export function ProgrammeView({
   applications,
   registrations,
   questions,
+  details = {},
   timezones,
   labels,
   locale,
@@ -68,6 +71,8 @@ export function ProgrammeView({
   applications: MyApplication[];
   registrations: { session_id: string; status: string }[];
   questions: SessionQuestion[];
+  /** Format-Details je Session (TAL-002/003); leer, solange die Migration fehlt. */
+  details?: Record<string, FormatDetails>;
   timezones: Record<string, string>;
   labels: ProgrammeLabels;
   locale: Locale;
@@ -303,7 +308,11 @@ export function ProgrammeView({
                   note={s.end_at ? `${common.until} ${formatTime(s.end_at, tz(s))}` : undefined}
                   title={title(s)}
                   onTitleClick={() => setOpenId(s.session_id)}
-                  subtitle={[s.stage_name, s.room].filter(Boolean).join(" · ") || undefined}
+                  subtitle={
+                    [details[s.session_id]?.hostName, details[s.session_id]?.location ?? s.stage_name, s.room]
+                      .filter(Boolean)
+                      .join(" · ") || undefined
+                  }
                   status={
                     <div className="flex flex-wrap gap-2">
                       {s.format && <Badge>{labels.format[s.format] ?? s.format}</Badge>}
@@ -413,6 +422,14 @@ export function ProgrammeView({
               </p>
             )}
             {openSession.ticket_required && <p className="ct-help">{t.ticketNote}</p>}
+            {details[openSession.session_id] && (
+              <FormatDetailsBlock
+                d={details[openSession.session_id]}
+                dateLocale={dateLocale}
+                timeZone={tz(openSession)}
+                t={t}
+              />
+            )}
           </div>
         </Drawer>
       )}
