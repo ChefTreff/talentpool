@@ -2201,7 +2201,8 @@
         "partner": "Partner",
         "volunteers": "Volunteers",
         "system": "System",
-        "crossCutting": "Übergreifend"
+        "crossCutting": "Übergreifend",
+        "production": "Produktion"
       },
       "partnerCare": "Betreuung & Messeshop",
       "volunteersWork": "Bewerbungen & Schichten",
@@ -2219,7 +2220,8 @@
       "reception": "Reception",
       "submissions": "Einreichungen",
       "regie": "Regie",
-      "speakerTasks": "Speaker-Aufgaben"
+      "speakerTasks": "Speaker-Aufgaben",
+      "production": "Produktion"
     },
     "overview": {
       "title": "Übersicht",

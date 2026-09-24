@@ -1,6 +1,6 @@
 import "server-only";
 import type { ReactNode } from "react";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -11,7 +11,7 @@ import { SectionTabs } from "@/components/layout/SectionTabs";
  * Gemeinsamer Rahmen aller Partner-Admin-Seiten: Gate, Reiter und die eine
  * Frage, die vor allem steht — gehört diese Person zum Partner-Team?
  *
- * `requireArea("admin")` lässt jedes Team-Mitglied herein; die RPCs verlangen
+ * `requireAdminSection("partner")` lässt jedes Team-Mitglied herein; die RPCs verlangen
  * aber `is_partner_team()` (Admin oder `area_lead_partner`). Wer das nicht
  * ist, bekäme sonst auf jeder Seite leere Tabellen statt einer Auskunft.
  */
@@ -27,7 +27,7 @@ export async function partnerAdminShell(pathname: string): Promise<
     }
   | { ok: false; view: ReactNode }
 > {
-  const { roleNames } = await requireArea("admin", pathname);
+  const { roleNames } = await requireAdminSection("partner", pathname);
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
   const { data: team } = await supabase.rpc("is_partner_team");

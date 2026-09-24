@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -11,7 +11,7 @@ import type { ShuttleAdminRow } from "@/components/shuttle/types";
 export const dynamic = "force-dynamic";
 
 export default async function AdminHospitalityPage() {
-  await requireArea("admin", "/admin/hospitality");
+  await requireAdminSection("hospitality", "/admin/hospitality");
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 

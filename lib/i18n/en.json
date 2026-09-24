@@ -2201,7 +2201,8 @@
         "partner": "Partners",
         "volunteers": "Volunteers",
         "system": "System",
-        "crossCutting": "Across the event"
+        "crossCutting": "Across the event",
+        "production": "Production"
       },
       "partnerCare": "Support & trade-show shop",
       "volunteersWork": "Applications & shifts",
@@ -2219,7 +2220,8 @@
       "reception": "Reception",
       "submissions": "Submissions",
       "regie": "Show flow",
-      "speakerTasks": "Speaker tasks"
+      "speakerTasks": "Speaker tasks",
+      "production": "Production"
     },
     "overview": {
       "title": "Overview",

@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { EinreichungenSeite } from "@/components/einreichungen/EinreichungenSeite";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +10,6 @@ export const dynamic = "force-dynamic";
  * weiterhin die Datenbank.
  */
 export default async function AdminSubmissionsPage() {
-  await requireArea("admin", "/admin/einreichungen");
+  await requireAdminSection("submissions", "/admin/einreichungen");
   return <EinreichungenSeite />;
 }

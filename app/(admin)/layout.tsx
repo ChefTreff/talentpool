@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { requireArea } from "@/lib/auth";
+import { canEnterAdminSection, type AdminSectionKey } from "@/lib/admin-sections";
 import { getI18n } from "@/lib/i18n";
 import { SidebarShell, type SidebarGroup } from "@/components/layout/SidebarShell";
 
@@ -20,24 +21,33 @@ export const dynamic = "force-dynamic";
  * hieße, dieselben Links zweimal zu pflegen; die Seitenleiste nennt deshalb
  * das Ziel und nicht jede Abzweigung.
  *
- * Hackathon und Produktion haben noch keine Admin-Seite — ihre Abschnitte
- * kommen mit PR 25 und PR 28 dazu.
+ * Seit PORT1 (Konrad, 22.09.2026) betritt **jede Teamrolle** den Bereich; die
+ * Leiste zeigt dann nur die Abschnitte, die diese Rolle öffnet. Sichtbarkeit und
+ * Zugang kommen aus derselben Quelle (`lib/admin-sections.ts`) — eine Navigation,
+ * die auf etwas zeigt, das hinterher 404 gibt, ist schlimmer als keine.
+ *
+ * Die Produktion ist mit PORT2 hierher gezogen (`/admin/produktion`); ihre
+ * Reiter bleiben in der Seite, wie bei Partner und Volunteers.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  await requireArea("admin");
+  const { roleNames } = await requireArea("admin");
   const { t } = await getI18n();
   const nav = t.admin.nav;
 
-  const groups: SidebarGroup[] = [
-    { label: "", items: [{ href: "/admin", label: nav.overview }] },
+  /** Ein Punkt der Leiste, der nur erscheint, wenn die Rolle den Abschnitt öffnet. */
+  const eintrag = (section: AdminSectionKey, href: string, label: string) =>
+    canEnterAdminSection(section, roleNames) ? [{ href, label }] : [];
+
+  const alleGruppen: SidebarGroup[] = [
+    { label: "", items: eintrag("overview", "/admin", nav.overview) },
     {
       label: nav.sections.participants,
       items: [
-        { href: "/admin/bewerbungen", label: nav.applications },
-        { href: "/admin/programm", label: nav.programme },
+        ...eintrag("applications", "/admin/bewerbungen", nav.applications),
+        ...eintrag("programme", "/admin/programm", nav.programme),
         // Das Geruest steht neben dem Programm, nicht unter System: wer
         // eine Buehne anlegt, kommt vom Board und will dorthin zurueck.
-        { href: "/admin/edition", label: nav.edition },
+        ...eintrag("edition", "/admin/edition", nav.edition),
       ],
     },
     {
@@ -45,61 +55,72 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       items: [
         // Der Einstieg in die Domäne steht oben: von hier aus geht es zu jedem
         // einzelnen Speaker, die Listen darunter beantworten Einzelfragen.
-        { href: "/admin/speaker", label: nav.speakers },
-        { href: "/admin/speaker/aufgaben", label: nav.speakerTasks },
-        { href: "/admin/speaker-leads", label: nav.speakerLeads },
-        { href: "/admin/speaker-tickets", label: nav.speakerTickets },
-        { href: "/admin/reisekosten", label: nav.expenses },
-        { href: "/admin/hospitality", label: nav.hospitality },
-        { href: "/admin/reception", label: nav.reception },
-        { href: "/admin/anreise", label: nav.travel },
+        ...eintrag("speakers", "/admin/speaker", nav.speakers),
+        ...eintrag("speakers", "/admin/speaker/aufgaben", nav.speakerTasks),
+        ...eintrag("speakerLeads", "/admin/speaker-leads", nav.speakerLeads),
+        ...eintrag("speakerTickets", "/admin/speaker-tickets", nav.speakerTickets),
+        ...eintrag("expenses", "/admin/reisekosten", nav.expenses),
+        ...eintrag("hospitality", "/admin/hospitality", nav.hospitality),
+        ...eintrag("reception", "/admin/reception", nav.reception),
+        ...eintrag("travel", "/admin/anreise", nav.travel),
         // Beides hing bisher nur im Lead-Portal. Seit der Regel
         // „Admin-Vollständigkeit" (22.09.) gibt es jeden Team-Weg auch hier —
         // dieselbe Seite, nur ein anderes Bereichsgate.
-        { href: "/admin/einreichungen", label: nav.submissions },
-        { href: "/admin/regie", label: nav.regie },
-        { href: "/admin/technik", label: nav.tech },
-        { href: "/admin/grafiken", label: nav.graphics },
+        ...eintrag("submissions", "/admin/einreichungen", nav.submissions),
+        ...eintrag("regie", "/admin/regie", nav.regie),
+        ...eintrag("tech", "/admin/technik", nav.tech),
+        ...eintrag("graphics", "/admin/grafiken", nav.graphics),
       ],
     },
     {
       label: nav.sections.partner,
       items: [
-        { href: "/admin/partner", label: nav.partnerCare },
-        { href: "/admin/initiativen", label: nav.initiatives },
+        ...eintrag("partner", "/admin/partner", nav.partnerCare),
+        ...eintrag("initiatives", "/admin/initiativen", nav.initiatives),
       ],
     },
     {
       label: nav.sections.volunteers,
-      items: [{ href: "/admin/volunteers", label: nav.volunteersWork }],
+      items: eintrag("volunteers", "/admin/volunteers", nav.volunteersWork),
+    },
+    // Produktion (PORT2): war bis zum 22.09.2026 ein eigenes Portal unter
+    // `/produktion`. Die Reiter Regie, Stände, Bestellungen, Catering und
+    // Dateien bleiben in der Seite.
+    {
+      label: nav.sections.production,
+      items: eintrag("production", "/admin/produktion", nav.production),
     },
     // Catering steht für sich: es betrifft Speaker **und** Volunteers, und die
     // Zahlen sind bewusst ohne Personenbezug (Migration 0100).
     {
       label: nav.sections.crossCutting,
-      items: [{ href: "/admin/catering", label: nav.catering }],
+      items: eintrag("catering", "/admin/catering", nav.catering),
     },
     {
       label: nav.sections.system,
       items: [
-        { href: "/admin/personen", label: nav.persons },
+        ...eintrag("persons", "/admin/personen", nav.persons),
         // Das Team zuerst: „wer gehoert dazu" ist die Frage, mit der man
         // herkommt; die Rollenverwaltung darunter ist das Werkzeug fuer
         // jede einzelne Zuweisung, auch ausserhalb des Teams.
-        { href: "/admin/team", label: nav.team },
-        { href: "/admin/rollen", label: nav.roles },
-        { href: "/admin/fristen", label: nav.deadlines },
-        { href: "/admin/ansprechpartner", label: nav.contacts },
-        { href: "/admin/vokabular", label: nav.vocab },
-        { href: "/admin/dubletten", label: nav.duplicates },
-        { href: "/admin/loeschantraege", label: nav.deletions },
-        { href: "/admin/mail", label: nav.mail },
-        { href: "/admin/wiki", label: nav.wiki },
-        { href: "/admin/videos", label: nav.videos },
-        { href: "/admin/ui", label: nav.ui },
+        ...eintrag("team", "/admin/team", nav.team),
+        ...eintrag("roles", "/admin/rollen", nav.roles),
+        ...eintrag("deadlines", "/admin/fristen", nav.deadlines),
+        ...eintrag("contacts", "/admin/ansprechpartner", nav.contacts),
+        ...eintrag("vocab", "/admin/vokabular", nav.vocab),
+        ...eintrag("duplicates", "/admin/dubletten", nav.duplicates),
+        ...eintrag("deletions", "/admin/loeschantraege", nav.deletions),
+        ...eintrag("mail", "/admin/mail", nav.mail),
+        ...eintrag("wiki", "/admin/wiki", nav.wiki),
+        ...eintrag("videos", "/admin/videos", nav.videos),
+        ...eintrag("ui", "/admin/ui", nav.ui),
       ],
     },
   ];
+
+  // Eine Gruppe ohne sichtbaren Punkt verschwindet mit — sonst stünde bei einem
+  // Produktionsmitglied eine leere Überschrift „Speaker" in der Leiste.
+  const groups = alleGruppen.filter((g) => g.items.length > 0);
 
   return (
     <SidebarShell area="admin" label={t.areas.admin.portal} rootHref="/admin" groups={groups}>

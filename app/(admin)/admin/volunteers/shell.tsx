@@ -1,6 +1,6 @@
 import "server-only";
 import type { ReactNode } from "react";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -11,7 +11,7 @@ import { SectionTabs } from "@/components/layout/SectionTabs";
  * Rahmen des Volunteer-Admins: Gate, Reiter und die Frage davor — gehört
  * diese Person zum Volunteer-Team?
  *
- * `requireArea("admin")` lässt jedes Team-Mitglied herein; die RPCs verlangen
+ * `requireAdminSection("volunteers")` lässt jedes Team-Mitglied herein; die RPCs verlangen
  * `is_volunteer_team()`. Ohne diese Prüfung stünden hier nur leere Tabellen
  * statt einer Auskunft.
  */
@@ -25,7 +25,7 @@ export async function volunteerAdminShell(pathname: string): Promise<
     }
   | { ok: false; view: ReactNode }
 > {
-  await requireArea("admin", pathname);
+  await requireAdminSection("volunteers", pathname);
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
   const { data: team } = await supabase.rpc("is_volunteer_team");

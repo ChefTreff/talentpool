@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  * im Speaker-Portal.
  */
 export default async function AdminReceptionPage() {
-  await requireArea("admin", "/admin/reception");
+  await requireAdminSection("reception", "/admin/reception");
   const { t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 

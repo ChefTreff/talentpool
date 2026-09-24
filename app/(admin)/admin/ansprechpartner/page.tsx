@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
  * Partner bzw. Speaker. Die Seite prüft das nicht selbst nach.
  */
 export default async function AnsprechpartnerPage() {
-  await requireArea("admin", "/admin/ansprechpartner");
+  await requireAdminSection("contacts", "/admin/ansprechpartner");
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 import { buildInvoicePdf, type InvoiceClaim } from "@/lib/expenses/invoice-pdf";
@@ -38,7 +38,7 @@ function fail(error: unknown, where: string): { ok: false; key: string; detail?:
 }
 
 async function client(path: string) {
-  await requireArea("admin", path);
+  await requireAdminSection("overview", path);
   return createSupabaseServerClient();
 }
 

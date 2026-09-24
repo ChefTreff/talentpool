@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -8,7 +8,7 @@ import { DeadlineList, type DeadlineRow } from "./DeadlineList";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDeadlinesPage() {
-  await requireArea("admin", "/admin/fristen");
+  await requireAdminSection("deadlines", "/admin/fristen");
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 

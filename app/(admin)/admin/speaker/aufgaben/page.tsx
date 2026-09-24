@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
  * Checkliste und gehört nicht hierher.
  */
 export default async function AdminSpeakerTasksPage() {
-  await requireArea("admin", "/admin/speaker/aufgaben");
+  await requireAdminSection("speakers", "/admin/speaker/aufgaben");
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 

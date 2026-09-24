@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  * keinen Fehler.
  */
 export default async function MailVorlagenPage() {
-  await requireArea("admin", "/admin/mail/vorlagen");
+  await requireAdminSection("mail", "/admin/mail/vorlagen");
   const { t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 

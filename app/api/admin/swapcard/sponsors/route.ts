@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -27,7 +27,7 @@ export const maxDuration = 300;
  * Liste ins Audit-Log. Ohne ausdrückliche Kennungen wird nichts entfernt.
  */
 export async function POST(request: Request) {
-  const ctx = await requireArea("admin", "/admin/partner/integrationen");
+  const ctx = await requireAdminSection("partner", "/admin/partner/integrationen");
   const supabase = await createSupabaseServerClient();
   const { data: team } = await supabase.rpc("is_partner_team");
   if (!team) return NextResponse.json({ error: "forbidden" }, { status: 403 });

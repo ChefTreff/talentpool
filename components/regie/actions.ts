@@ -43,12 +43,12 @@ export type CueInput = {
 
 /** Beide Ansichten neu laden — sie zeigen dieselben Zeilen. */
 function refresh() {
-  revalidatePath("/produktion");
+  revalidatePath("/admin/produktion");
   revalidatePath("/speaker-leads/regie");
 }
 
 export async function saveCue(input: CueInput): Promise<RegieResult<{ id: string }>> {
-  await requireUser("/produktion");
+  await requireUser("/admin/produktion");
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("upsert_regie_cue", { p_data: input });
   if (error) return fail(error);
@@ -57,7 +57,7 @@ export async function saveCue(input: CueInput): Promise<RegieResult<{ id: string
 }
 
 export async function deleteCue(id: string): Promise<RegieResult> {
-  await requireUser("/produktion");
+  await requireUser("/admin/produktion");
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("delete_regie_cue", { p_id: id });
   if (error) return fail(error);

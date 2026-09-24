@@ -71,7 +71,8 @@ describe("Einstieg nach dem Login (F1)", () => {
     assert.equal(landingPathFor(areasFor(["speaker"])), "/speaker");
     assert.equal(landingPathFor(areasFor(["partner_contact"])), "/partner");
     assert.equal(landingPathFor(areasFor(["volunteer"])), "/volunteers");
-    assert.equal(landingPathFor(areasFor(["production_team"])), "/produktion");
+    // Produktion seit PORT2: kein eigenes Portal mehr, der Einstieg ist /admin.
+    assert.equal(landingPathFor(areasFor(["production_team"])), "/admin");
   });
 
   it("bleibt beim Teilnehmer-Portal, wenn es der einzige Bereich ist", () => {
@@ -125,7 +126,7 @@ describe("Bereiche zählen (F8.3: Auswahl im Menü)", () => {
     // Seit 0107 macht die Rolle `admin` das Team aus, nicht mehr `is_staff()`.
     assert.deepEqual(
       areasFor(["speaker_manager", "admin"]).map((a) => a.key),
-      ["talent", "speaker", "speaker-leads", "partner", "volunteers", "hackathon", "produktion", "admin", "checkin"],
+      ["talent", "speaker", "speaker-leads", "partner", "volunteers", "hackathon", "admin", "checkin"],
     );
   });
 
@@ -156,15 +157,16 @@ describe("Kiosk am Einlass (B4/E8)", () => {
     // das am Eingang herumsteht.
     assert.equal(opensAny(["talent"], kiosk), false);
     assert.equal(opensAny(["admin"], kiosk), false);
-    assert.equal(opensAny(["produktion"], kiosk), false);
     assert.equal(opensAny(["speaker"], kiosk), false);
   });
 
   it("nimmt niemandem etwas weg, der die Rolle zusätzlich hat", () => {
     // Team, das am Eingang aushilft: Kiosk **und** die eigenen Bereiche.
+    // Seit PORT2 ist die Produktion ein Abschnitt des Admin-Bereichs, kein
+    // eigenes Portal — „die eigenen Bereiche" heisst für sie jetzt `/admin`.
     const dazu = ["checkin_operator", "production_team"];
     assert.equal(opensAny(["checkin"], dazu), true);
-    assert.equal(opensAny(["produktion"], dazu), true);
+    assert.equal(opensAny(["admin"], dazu), true);
     assert.equal(opensAny(["talent"], dazu), true);
   });
 

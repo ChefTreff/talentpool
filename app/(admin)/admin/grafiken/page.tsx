@@ -1,4 +1,4 @@
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -18,7 +18,7 @@ const URL_GUELTIG_SEKUNDEN = 60 * 30;
  * sind kurzlebig und gehören nicht in eine Tabelle, die man später exportiert.
  */
 export default async function AdminGrafikenPage() {
-  await requireArea("admin", "/admin/grafiken");
+  await requireAdminSection("graphics", "/admin/grafiken");
   const { t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 

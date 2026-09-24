@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireArea } from "@/lib/auth";
+import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createShopInvoiceDrafts } from "@/lib/sevdesk/shop-invoices";
@@ -9,11 +9,11 @@ export const maxDuration = 60;
 
 /**
  * Welle 3 A10: Rechnungsentwürfe in SevDesk aus abgeschlossenen Shop-Bestellungen — ausgelöst vom Partner-Team im Admin (B9) nach dem Summit.
- * Body: { editionId, dryRun?: boolean (Default true), orgId?: string }. Gate `requireArea("admin")` plus `is_partner_team()`; die Kandidaten- und
+ * Body: { editionId, dryRun?: boolean (Default true), orgId?: string }. Gate `requireAdminSection("partner")` plus `is_partner_team()`; die Kandidaten- und
  * Referenz-RPCs laufen mit dem Session-Client, service_role nur für das Sync-Protokoll. Ohne `dryRun: false` wird nichts nach SevDesk geschrieben.
  */
 export async function POST(request: Request) {
-  await requireArea("admin", "/admin/partner");
+  await requireAdminSection("partner", "/admin/partner");
   const supabase = await createSupabaseServerClient();
   const { data: team } = await supabase.rpc("is_partner_team");
   if (!team) return NextResponse.json({ error: "forbidden" }, { status: 403 });
