@@ -27,6 +27,8 @@ export { EmbedGate } from "./EmbedGate";
 export { CheckMark } from "./CheckMark";
 export { Countdown } from "./Countdown";
 export { DeadlineCard } from "./DeadlineCard";
+export { FristMarke } from "./FristMarke";
+export type { FristTexte } from "./FristMarke";
 
 /* --- Design-System v2: Bausteine aus den Website-Blöcken (17.09.2026) -----
    Herkunft und Übersetzung je Baustein:

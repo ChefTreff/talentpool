@@ -41,7 +41,9 @@
     "upload": "Hochladen",
     "chooseOtherFile": "Andere Datei",
     "newTab": "öffnet ein neues Fenster",
-    "onThisPage": "Auf dieser Seite"
+    "onThisPage": "Auf dieser Seite",
+    "deadlinePassed": "vorbei",
+    "deadlineDone": "erledigt"
   },
   "messages": {
     "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",
