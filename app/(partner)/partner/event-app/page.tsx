@@ -66,10 +66,10 @@ export default async function EventAppPage() {
 
   return (
     <>
-      <PageHeader title={s.title} description={s.lead} />
+      <PageHeader word={t.partner.wordVisibility} title={s.title} description={s.lead} />
 
       <Card className="mb-8">
-        <h2 className="ct-h3 text-ink">{s.appTitle}</h2>
+        <h2 className="ct-h2 text-ink">{s.appTitle}</h2>
         <p className="ct-small mt-1 leading-6">{s.appBody}</p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <ButtonLink href={APP_URL} target="_blank" rel="noreferrer noopener">
@@ -86,7 +86,7 @@ export default async function EventAppPage() {
           die Liste zeigt, wer ihn hat, und der Weg zum Ändern führt dorthin,
           wo Kontakte ohnehin gepflegt werden. */}
       <Card className="mb-8">
-        <h2 className="ct-h3 text-ink">{s.membersTitle}</h2>
+        <h2 className="ct-h2 text-ink">{s.membersTitle}</h2>
         <p className="ct-small mt-1 leading-6">{s.membersBody}</p>
         {appMembers.length === 0 ? (
           <p className="ct-help mt-3">{s.membersEmpty}</p>

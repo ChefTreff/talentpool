@@ -61,7 +61,7 @@ export default async function PartnerSideEventPage() {
 
   return (
     <>
-      <PageHeader title={s.title} description={s.lead} />
+      <PageHeader word={t.partner.wordInvitation} title={s.title} description={s.lead} />
 
       {gebucht === 0 ? (
         <EmptyState

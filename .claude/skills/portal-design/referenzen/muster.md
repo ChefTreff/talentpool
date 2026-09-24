@@ -316,6 +316,22 @@ Wer im Namen eines anderen arbeitet (Assistenz), wird nicht mit dessen Vornamen 
 | Speaker | Reisekosten | Erstattung / Refund |
 | Speaker | Deine Bilder | Erinnerungen / Memories |
 | Speaker | Profil | Steckbrief / Bio |
+| Partner | Startseite (Leerzustand) | Partnerschaft / Partnership |
+| Partner | Eure Daten | Unternehmen / Company |
+| Partner | Kontakte | Team / Team |
+| Partner | Checkliste | Vorbereitung / Preparation |
+| Partner | Dateien | Material / Material |
+| Partner | Tickets | Zugang / Access |
+| Partner | Event-App | Sichtbarkeit / Visibility |
+| Partner | Messestand | Präsenz / Presence |
+| Partner | Messeshop (alle Reiter) | Ausstattung / Equipment |
+| Partner | Bewerber | Talente / Talent |
+| Partner | Hackathon | Challenge / Challenge |
+| Partner | Branding | Marke / Brand |
+| Partner | Euer Talk | Bühne / Stage |
+| Partner | Side-Event | Einladung / Invitation |
+| Partner | Interview Tables | Gespräche / Conversations |
+| Partner | Standbühne | Programm / Programme |
 | Speaker-Leads | Pipeline | Line-up / Line-up |
 | Speaker-Leads | An- und Abreise | Unterwegs / Journey |
 | Speaker-Leads | Shuttle | Transfer / Transfer |

@@ -66,6 +66,7 @@ export default async function PartnerChecklistPage() {
   return (
     <>
       <PageHeader
+        word={t.partner.wordPreparation}
         title={t.partnerChecklist.title}
         description={`${t.partnerChecklist.lead} · ${t.partner.checklistDone
           .replace("{done}", String(c.done))

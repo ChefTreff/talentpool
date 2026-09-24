@@ -1,5 +1,6 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { requireArea } from "@/lib/auth";
+import { getSessionContext, requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
@@ -9,13 +10,14 @@ import { Card, StatCard } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { HeroBand, BandStat } from "@/components/ui/HeroBand";
-import { NextStepBanner } from "@/components/ui/NextStepBanner";
+import { PhotoCard } from "@/components/ui/PhotoCard";
 import { DateRow, DateList } from "@/components/ui/DateRow";
 import { InfoList, type InfoEintrag } from "@/components/ui/InfoList";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadEditionInfos, loadMyContacts } from "@/components/kontakt/load";
 import { Anfahrt } from "@/components/kontakt/Anfahrt";
 import { OnboardingNudge } from "./OnboardingNudge";
+import { visibleNavKeys } from "./nav";
 import { getPartnerScope } from "./org";
 import { canEditOnboarding, orgLabel, type PartnerOverview } from "./types";
 
@@ -54,14 +56,20 @@ function fristenAuswahl(deadlines: PartnerOverview["deadlines"]) {
  * (`referenzen/muster.md`).
  *
  * Sie beantwortet vier Fragen in dieser Reihenfolge: wo bin ich, was ist zu
- * tun, wie steht es, wen frage ich. Deshalb das `HeroBand` oben (wo),
- * darunter genau ein `NextStepBanner` (was), dann die Kennzahlen (wie), dann
- * Fristen und Ansprechpartner (wen).
+ * tun, wie steht es, wen frage ich. Deshalb das `HeroBand` oben (wo, und mit
+ * seiner einen Aktion auch: was), darunter die drei Einstiege, dann die
+ * Kennzahlen (wie), dann Fristen und Ansprechpartner (wen).
  *
- * Der Titel im Band ist der **Name der Organisation**, kein Werbespruch. Die
- * Highlight-Regel der Marke („ein Wort in Pink") gilt für Login und Welcome;
- * ein Firmenname mit einem eingefärbten Wort darin wäre Unfug. Die Marke
- * kommt hier aus Fläche, Formen und Typografie.
+ * **Seit QS-037 nach dem Vorbild der Talent-Startseite** (Konrad, 24.09.):
+ * Gruss mit einem Highlight-Wort, der nächste Schritt als einzige Aktion im
+ * Band, drei Einstiege mit Bildfläche. Der nächste Schritt stand vorher in
+ * einem eigenen `NextStepBanner` unter dem Band — zwei Akzentflächen mit
+ * zwei Aktionen übereinander, und das Band hatte keine. Jetzt sagt das Band
+ * im Satz, wie es steht, und führt mit dem Knopf dorthin.
+ *
+ * Der Name der Organisation steht in der Zeile über dem Gruss, nicht als
+ * Titel: ein Firmenname mit einem eingefärbten Wort darin wäre Unfug, und
+ * begrüsst wird die Person, die hier arbeitet.
  */
 export default async function PartnerDashboard() {
   await requireArea("partner", "/partner");
@@ -73,7 +81,7 @@ export default async function PartnerDashboard() {
   if (!current) {
     return (
       <>
-        <PageHeader title={t.partner.title} description={t.partner.lead} />
+        <PageHeader word={t.partner.wordPartnership} title={t.partner.title} description={t.partner.lead} />
         <EmptyState
           title={t.partner.noOrgTitle}
           description={t.partner.noOrgBody}
@@ -102,7 +110,7 @@ export default async function PartnerDashboard() {
   if (!o) {
     return (
       <>
-        <PageHeader title={t.partner.title} description={t.partner.lead} />
+        <PageHeader word={t.partner.wordPartnership} title={t.partner.title} description={t.partner.lead} />
         <EmptyState title={t.partner.noOrgTitle} description={t.partner.noOrgBody} />
       </>
     );
@@ -150,6 +158,87 @@ export default async function PartnerDashboard() {
     (d) => d.key === "lunch_package" && d.due_at && new Date(d.due_at) > new Date(),
   );
 
+  // Begrüsst wird die Person, die hier arbeitet — `session_context()` kennt
+  // ihren Vornamen, ohne dass die Seite eine eigene Abfrage braucht.
+  const vorname = (await getSessionContext()).firstName?.trim() || null;
+
+  // Das Band sagt im Satz, wie es steht, und führt mit **einem** Knopf zum
+  // nächsten Schritt. Fehlen die Stammdaten, ist das der Schritt — die
+  // Checkliste hängt daran. Ist alles erledigt, braucht es keinen Knopf: der
+  // Satz ist die Nachricht.
+  const band: { lead: string; action?: ReactNode } =
+    onboardingOffen && darfOnboarding
+      ? {
+          lead: t.partner.bandOnboarding,
+          action: (
+            <ButtonLink href="/partner/onboarding">{t.partner.nextStepOnboardingAction}</ButtonLink>
+          ),
+        }
+      : o.checklist.open > 0
+        ? {
+            lead: `${t.partner.nextStepOpen
+              .replace("{open}", String(o.checklist.open))
+              .replace("{total}", String(o.checklist.total))}${
+              o.checklist.overdue > 0
+                ? ` — ${t.partner.nextStepOverdue.replace("{overdue}", String(o.checklist.overdue))}`
+                : ""
+            }.`,
+            action: <ButtonLink href="/partner/checkliste">{t.partner.nextStepAction}</ButtonLink>,
+          }
+        : { lead: o.checklist.total > 0 ? t.partner.nextStepDoneHint : t.partner.bandLead };
+
+  // Die drei Einstiege: Tickets, wenn es welche gibt, sonst das eigene Team;
+  // die Event-App gilt für jeden; der Messeshop, wenn ein Stand dazugehört,
+  // sonst das Wiki.
+  const sichtbar = new Set(
+    visibleNavKeys({
+      products: o.products,
+      sessions_count: o.sessions_count,
+      has_stage: o.has_stage,
+      has_booth: o.booth != null,
+      has_allocations: o.ticket_allocations.length > 0,
+    }),
+  );
+  const einstiege = [
+    sichtbar.has("tickets")
+      ? {
+          href: "/partner/tickets",
+          word: t.partner.wordAccess,
+          title: t.partnerTickets.title,
+          body: t.partner.entryTicketsBody,
+          action: t.partner.entryTicketsAction,
+        }
+      : {
+          href: "/partner/kontakte",
+          word: t.partner.wordTeam,
+          title: t.partnerContacts.title,
+          body: t.partner.entryTeamBody,
+          action: t.partner.entryTeamAction,
+        },
+    {
+      href: "/partner/event-app",
+      word: t.partner.wordVisibility,
+      title: t.partnerEventApp.title,
+      body: t.partner.entryEventAppBody,
+      action: t.partner.entryEventAppAction,
+    },
+    sichtbar.has("shop")
+      ? {
+          href: "/partner/shop",
+          word: t.partner.wordEquipment,
+          title: t.partnerShop.title,
+          body: t.partner.entryShopBody,
+          action: t.partner.entryShopAction,
+        }
+      : {
+          href: "/partner/wiki",
+          word: t.wiki.word,
+          title: t.partner.navWiki,
+          body: t.partner.entryWikiBody,
+          action: t.partner.entryWikiAction,
+        },
+  ];
+
   return (
     <>
       {/* Einmal, nicht bei jedem Besuch (F12.2, korrigiert nach Konrads
@@ -166,9 +255,11 @@ export default async function PartnerDashboard() {
       )}
 
       <HeroBand
-        eyebrow={`${t.partner.bandEyebrow}${current.edition_name ? ` · ${current.edition_name}` : ""}`}
-        title={orgLabel(o.org)}
-        lead={t.partner.bandLead}
+        eyebrow={`${orgLabel(o.org)}${current.edition_name ? ` · ${current.edition_name}` : ""}`}
+        title={vorname ? t.partner.bandGreeting.replace("{name}", vorname) : orgLabel(o.org)}
+        highlight={vorname ? t.partner.bandHighlight : undefined}
+        lead={band.lead}
+        action={band.action}
         aside={
           <BandStat
             value={naechste ? kurzDatum.format(new Date(naechste.due_at!)) : "—"}
@@ -178,45 +269,25 @@ export default async function PartnerDashboard() {
         }
       />
 
-      {/* Genau **ein** nächster Schritt. Fehlen die Stammdaten, ist das der
-          Schritt — die Checkliste kann warten, sie hängt daran. */}
-      {onboardingOffen && darfOnboarding ? (
-        <NextStepBanner
-          label={t.partner.nextStepLabel}
-          title={t.partner.nextStepOnboarding}
-          hint={t.partner.nextStepOnboardingHint}
-          action={
-            <ButtonLink href="/partner/onboarding" variant="onAccent">
-              {t.partner.nextStepOnboardingAction}
-            </ButtonLink>
-          }
-        />
-      ) : o.checklist.open > 0 ? (
-        <NextStepBanner
-          label={t.partner.nextStepLabel}
-          title={t.partner.nextStepOpen
-            .replace("{open}", String(o.checklist.open))
-            .replace("{total}", String(o.checklist.total))}
-          hint={
-            o.checklist.overdue > 0
-              ? t.partner.nextStepOverdue.replace("{overdue}", String(o.checklist.overdue))
-              : undefined
-          }
-          action={
-            <ButtonLink href="/partner/checkliste" variant="onAccent">
-              {t.partner.nextStepAction}
-            </ButtonLink>
-          }
-        />
-      ) : (
-        o.checklist.total > 0 && (
-          <NextStepBanner
-            label={t.partner.nextStepLabel}
-            title={t.partner.nextStepDone}
-            hint={t.partner.nextStepDoneHint}
+      {/* Die drei Einstiege (Talent-Muster, QS-037). Welche es sind, folgt
+          aus dem, was dieser Partner sieht — dieselbe Regel wie das Menü
+          (`visibleNavKeys`): eine Karte zu einer Seite, die es für ihn nicht
+          gibt, wäre ein Versprechen ins Leere. */}
+      <div className="mb-10 grid gap-6 sm:grid-cols-3">
+        {einstiege.map((e) => (
+          <PhotoCard
+            key={e.href}
+            word={e.word}
+            title={e.title}
+            description={e.body}
+            action={
+              <ButtonLink href={e.href} variant="secondary" size="sm">
+                {e.action}
+              </ButtonLink>
+            }
           />
-        )
-      )}
+        ))}
+      </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
@@ -251,7 +322,7 @@ export default async function PartnerDashboard() {
             sah nicht, was brennt (Termin-Zeile, `319:692`). */}
         <Card className="p-0">
           <div className="flex items-center justify-between gap-4 border-b px-4 py-3">
-            <h2 className="ct-h3 text-ink">{t.partner.deadlinesTitle}</h2>
+            <h2 className="ct-h2 text-ink">{t.partner.deadlinesTitle}</h2>
             <Link href="/partner/checkliste" className="ct-link ct-small">
               {t.partner.deadlinesAll}
             </Link>
@@ -280,7 +351,7 @@ export default async function PartnerDashboard() {
         </Card>
 
         <Card>
-          <h2 className="ct-h3 text-ink">{t.partner.checklistTitle}</h2>
+          <h2 className="ct-h2 text-ink">{t.partner.checklistTitle}</h2>
           <p className="ct-help mt-1">
             {t.partner.checklistDone
               .replace("{done}", String(o.checklist.done))
@@ -336,7 +407,7 @@ export default async function PartnerDashboard() {
         </Card>
 
         <Card>
-          <h2 className="ct-h3 text-ink">{t.partner.productsTitle}</h2>
+          <h2 className="ct-h2 text-ink">{t.partner.productsTitle}</h2>
           <ul className="mt-2 flex flex-col gap-1">
             {o.products.map((p) => (
               <li key={p.sku} className="flex flex-wrap items-baseline gap-2">
@@ -350,7 +421,7 @@ export default async function PartnerDashboard() {
         </Card>
 
         <Card>
-          <h2 className="ct-h3 text-ink">{t.partner.supportTitle}</h2>
+          <h2 className="ct-h2 text-ink">{t.partner.supportTitle}</h2>
           <p className="ct-help mt-1">{t.partner.supportBody}</p>
           <a className="ct-link mt-2 inline-block" href={`mailto:${PARTNER_MAILBOX}`}>
             {PARTNER_MAILBOX}
@@ -372,7 +443,7 @@ export default async function PartnerDashboard() {
 
         {zeiten.length > 0 && (
           <section className="flex flex-col gap-3">
-            <h2 className="ct-h3">{t.partner.timesTitle}</h2>
+            <h2 className="ct-h2">{t.partner.timesTitle}</h2>
             <Card>
               <InfoList items={zeiten} />
               <p className="ct-help mt-4">

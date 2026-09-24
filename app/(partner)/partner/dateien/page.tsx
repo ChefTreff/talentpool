@@ -49,6 +49,7 @@ export default async function PartnerFilesPage() {
   return (
     <>
       <PageHeader
+        word={t.partner.wordMaterial}
         title={t.partnerFiles.title}
         description={`${t.partnerFiles.lead} · ${files.length}`}
       />

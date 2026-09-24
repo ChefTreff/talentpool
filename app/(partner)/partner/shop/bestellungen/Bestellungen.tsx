@@ -75,7 +75,7 @@ export function Bestellungen({
   return (
     <section aria-labelledby="h-orders">
       <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-        <h2 id="h-orders" className="ct-h3 text-ink">
+        <h2 id="h-orders" className="ct-h2 text-ink">
           {t.orders}
         </h2>
         <span className="ct-help ml-auto tabular-nums">{orders.length}</span>
