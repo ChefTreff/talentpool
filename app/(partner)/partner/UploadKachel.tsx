@@ -9,7 +9,7 @@ import { FileButton } from "@/components/ui/FileButton";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
 import { registerPartnerAsset, submitDeliverable } from "./actions";
-import { BUCKET, safeFileName } from "./upload";
+import { BUCKET, uploadDeliverableFile } from "./upload";
 import type { Deliverable, DeliverableAsset } from "./types";
 
 /**
@@ -74,9 +74,10 @@ export type UploadTexte = {
 
 /**
  * Hochladen und einreichen: Dateiregeln im Browser (damit niemand 20 MB
- * hochlädt, um dann abgewiesen zu werden), Upload in den privaten Bucket,
- * `register_partner_asset` (prüft Pfad, Objekt und Regeln noch einmal — darauf
- * allein ist Verlass), dann `submit_deliverable`.
+ * hochlädt, um dann abgewiesen zu werden), dann der gemeinsame Kern
+ * `uploadDeliverableFile` (`upload.ts`: privater Bucket, `register_partner_asset`
+ * — prüft Pfad, Objekt und Regeln noch einmal, darauf allein ist Verlass —,
+ * `submit_deliverable`). Diese Hülle hält nur Zustand und Meldungen.
  */
 export function usePflichtUpload({
   orgId,
@@ -110,39 +111,23 @@ export function usePflichtUpload({
     }
     setLaedt(d.id);
     try {
-      const supabase = createSupabaseBrowserClient();
-      // Die Art im Pfad ist der Schlüssel der Pflicht — dieselbe Regel prüft die
-      // Storage-Policy und danach `register_partner_asset` noch einmal.
-      const path = `${editionId}/${orgId}/${d.key}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
-      const up = await supabase.storage.from(BUCKET).upload(path, file, {
-        contentType: file.type || undefined,
-        upsert: false,
-      });
-      if (up.error) {
-        toast("error", `${texte.failed} (${up.error.message})`);
-        return;
-      }
-      const reg = await registerPartnerAsset({
+      const res = await uploadDeliverableFile({
+        supabase: createSupabaseBrowserClient(),
+        registerAsset: registerPartnerAsset,
+        submit: submitDeliverable,
         orgId,
-        kind: d.key,
-        storagePath: path,
-        filename: file.name,
-        mime: file.type || null,
-        sizeBytes: file.size,
+        editionId,
         deliverableId: d.id,
+        kind: d.key,
+        file,
       });
-      if (!reg.ok) {
-        // Die Datei bleibt verwaist im Bucket; sie hier zu löschen wäre der
-        // zweite Fehlerfall. Lieber melden und aufräumen lassen.
-        toast("error", message(reg.key, reg.detail));
+      if (!res.ok) {
+        // Scheitert die RPC, bleibt die Datei verwaist im Bucket; sie hier zu
+        // löschen wäre der zweite Fehlerfall. Lieber melden und aufräumen lassen.
+        toast("error", res.stage === "storage" ? `${texte.failed} (${res.message})` : message(res.key, res.detail));
         return;
       }
-      const sub = await submitDeliverable(d.id, [reg.data.id]);
-      if (!sub.ok) {
-        toast("error", message(sub.key, sub.detail));
-        return;
-      }
-      toast("success", texte.done.replace("{v}", String(reg.data.version)));
+      toast("success", texte.done.replace("{v}", String(res.version)));
       router.refresh();
     } finally {
       setLaedt(null);
