@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { toRpcFailure } from "@/lib/rpc-error";
 
 export type ProfileInput = {
   first_name: string;
@@ -127,6 +128,22 @@ export async function saveProfile(input: ProfileInput): Promise<SaveProfileResul
     if (error) return { ok: false, message: "save_failed", detail: error.message };
   }
 
+  revalidatePath("/profil");
+  return { ok: true };
+}
+
+/**
+ * Porträt setzen oder entfernen (TAL-012). Die Datei liegt zu diesem Zeitpunkt
+ * schon im Bucket — der Browser lädt sie direkt hoch, die Storage-Policy prüft
+ * den Pfad. `set_my_photo` prüft ihn noch einmal, setzt `person.photo_path`
+ * und meldet das bisherige Bild zum Wegräumen an.
+ */
+export async function setMyPortrait(
+  path: string | null,
+): Promise<{ ok: true } | { ok: false; key: string }> {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("set_my_photo", { p_path: path });
+  if (error) return { ok: false, key: toRpcFailure(error).key };
   revalidatePath("/profil");
   return { ok: true };
 }

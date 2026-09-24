@@ -20,13 +20,16 @@ import { Select } from "@/components/ui/Select";
 import { StepBar } from "@/components/ui/StepBar";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { useToast } from "@/components/ui/Toast";
+import { LogoWandEinwilligung } from "@/components/partner/LogoWandEinwilligung";
 import {
   registerPartnerAsset,
   saveOnboarding,
+  setLogoWhiteningConsent,
   submitDeliverable,
 } from "../actions";
 import { BUCKET, safeFileName } from "../upload";
 import {
+  canEditOnboarding,
   type Deliverable,
   type PartnerOverview,
 } from "../types";
@@ -146,6 +149,9 @@ export function OnboardingWizard({
   );
 
   const done = overview.edition.onboarding_status !== "invited";
+  // Aus der Uebersicht statt als eigenes Prop: so kann die Anzeige nicht von dem
+  // abweichen, was die Datenbank ohnehin entscheidet.
+  const canEdit = canEditOnboarding(overview.roles, overview.team);
 
   function onSave(next?: number) {
     startTransition(async () => {
@@ -450,6 +456,21 @@ export function OnboardingWizard({
                   </section>
                 );
               })}
+
+              {/* Die Erlaubnis steht **beim Logo**, nicht in den Stammdaten: hier
+                  entscheidet der Partner ohnehin über seine Marke, und er soll wissen,
+                  was mit der Datei passiert, bevor er sie hochlädt (PART-053). */}
+              <LogoWandEinwilligung
+                grantedAt={overview.edition.logo_whitening_consent_at ?? null}
+                canEdit={canEdit}
+                onSet={async (granted) => {
+                  const res = await setLogoWhiteningConsent({ orgId, granted, editionId });
+                  return res.ok ? { ok: true } : { ok: false, key: res.key };
+                }}
+                dateLocale={dateLocale}
+                t={t.logoWall as unknown as Record<string, string>}
+                rpcMessages={rpcMessages}
+              />
             </div>
           )}
 

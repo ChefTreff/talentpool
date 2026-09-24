@@ -400,6 +400,22 @@
       "nationality": "e.g. German",
       "country": "e.g. DE",
       "linkedin": "https://linkedin.com/in/…"
+    },
+    "portrait": {
+      "title": "Your portrait",
+      "lead": "So our team recognises you in applications and on site. Your face should be clearly visible.",
+      "none": "No portrait yet.",
+      "upload": "Choose portrait",
+      "replace": "Replace portrait",
+      "change": "Choose another image",
+      "remove": "Remove portrait",
+      "uploading": "Uploading …",
+      "done": "Portrait saved.",
+      "removed": "Portrait removed.",
+      "tooBig": "The image is too large. Up to 5 MB works.",
+      "wrongType": "Please use a JPG, PNG or WebP image.",
+      "failed": "The portrait could not be uploaded.",
+      "rules": "JPG, PNG or WebP, up to 5 MB."
     }
   },
   "programme": {
@@ -2076,7 +2092,9 @@
     "productSyncResult": "{created} created · {updated} updated · {failed} failed",
     "productSyncSkipped": "{n} skipped — {reason}",
     "productSyncFailed": "The sync did not run. Details are in the server log.",
-    "sectionsLabel": "On this page"
+    "sectionsLabel": "On this page",
+    "logoWallTitle": "Logo on the photo wall",
+    "logoWallLead": "Whether this partner has agreed to their logo being whitened. If they give consent by phone or email, you can record it here — the same path as in the partner portal."
   },
   "adminVolunteers": {
     "title": "Volunteers",
@@ -4202,5 +4220,20 @@
     "delete": "Delete",
     "deleted": "Deleted",
     "deleteConfirm": "Delete task “{key}” for good?"
+  },
+  "logoWall": {
+    "title": "Logo on the photo wall",
+    "explain": "At the summit there is a large wall people take photos in front of. All partner logos appear on it in **solid white** — that is what makes the wall work as a whole, but it changes how your brand is shown. We need your consent for that.",
+    "consequence": "Without your consent we will not print your logo on the wall. We continue to use it unchanged for the website, event app and programme.",
+    "grant": "We agree",
+    "granted": "Thank you — your logo goes on the wall.",
+    "grantedOn": "Agreed on {date}.",
+    "revoke": "Withdraw consent",
+    "confirmRevoke": "Yes, withdraw",
+    "revoked": "Withdrawn. Your logo will not go on the wall.",
+    "badgeGranted": "Agreed",
+    "badgeMissing": "Consent missing",
+    "saving": "Saving …",
+    "cancel": "Cancel"
   }
 }
