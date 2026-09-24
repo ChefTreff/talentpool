@@ -1,4 +1,5 @@
 import { strict as assert } from "node:assert";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { AREAS, areasFor, canEnterArea, landingPathFor, safeNextPath, type AreaKey } from "@/lib/areas";
 
@@ -201,5 +202,35 @@ describe("Portalauswahl in der Seitenleiste (F8.6)", () => {
 
   it("lässt die echten Portale unangetastet", () => {
     assert.deepEqual(portale(["speaker"]), ["talent", "speaker"]);
+  });
+
+  it("führt das Teilnehmer-Portal für jede Person mit Fachbereich (TAL-004)", () => {
+    // Konrad 24.09.: „unser wichtigstes Portal" — es steht immer als eigener
+    // Eintrag im Umschalter, nie nur als Anhang eines Fachbereichs.
+    for (const roles of [
+      ["speaker"],
+      ["speaker_assistant"],
+      ["speaker_manager"],
+      ["partner_contact"],
+      ["volunteer_lead"],
+      ["production_team"],
+      ["area_lead_speaker"],
+      ["admin"],
+    ]) {
+      assert.equal(portale(roles)[0], "talent", roles.join(","));
+    }
+  });
+});
+
+describe("Shell des Teilnehmer-Portals (TAL-004)", () => {
+  // Das Layout ist eine Server-Komponente mit Session; geprüft wird deshalb
+  // der Quelltext: es rendert immer die eigene Shell und fragt nicht mehr
+  // nach einem Fachbereich, in dessen Shell es sich einhängen könnte.
+  const src = readFileSync(new URL("../app/(talent)/layout.tsx", import.meta.url), "utf8");
+
+  it("rendert die Shell immer als Teilnehmer-Portal", () => {
+    assert.match(src, /area="talent"/);
+    assert.doesNotMatch(src, /area=\{home/);
+    assert.doesNotMatch(src, /getMyAreas/);
   });
 });

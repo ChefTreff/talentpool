@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { getMyAreas, requireArea } from "@/lib/auth";
+import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { SidebarShell, type SidebarGroup } from "@/components/layout/SidebarShell";
 
@@ -16,20 +16,21 @@ export const dynamic = "force-dynamic";
  * gibt. Das korrigiert die Entscheidung F8.4 („keine eigene Übersicht"), die
  * aus einer Zeit stammt, in der es die Übersicht noch nicht gab.
  *
- * Wer einen Fachbereich hat, sieht diese Seiten als Teil **seines** Portals:
- * oben steht weiter „CHEFTREFF SPEAKER-PORTAL", und der erste Punkt führt
- * dorthin zurück. So gibt es auf dem Weg zum Profil keine Spur eines fremden
- * Bereichs (Feedback-Runde 1, Punkt 2; Konrads Entscheidung 13.09.).
+ * **Seit 24.09.2026 immer ein eigenes Portal** (TAL-004, Konrad: „unser
+ * wichtigstes Portal, das darf nicht sein"). Vorher zeigte das Layout diese
+ * Seiten für Personen mit Fachbereich in dessen Shell — oben blieb
+ * „Speaker-Portal" ausgewählt, der erste Punkt führte dorthin zurück
+ * (Entscheidung 13.09., Runde 1, Punkt 2: „keine Spur eines fremden
+ * Bereichs"). Das ist aufgehoben: das Teilnehmer-Portal ist das Front-End des
+ * Talent-CRM und steht als eigener Eintrag im Umschalter neben den anderen.
+ * Der Einstieg nach dem Login bleibt im Fachbereich (`landingPathFor`).
  */
 export default async function TalentLayout({ children }: { children: ReactNode }) {
   await requireArea("talent");
   const { t } = await getI18n();
-  const areas = await getMyAreas();
-  // `areasFor` liefert das Teilnehmer-Portal nur, wenn es das einzige ist.
-  const home = areas.find((a) => a.key !== "talent") ?? null;
 
   const mine: SidebarGroup = {
-    label: home ? t.nav.account : "",
+    label: "",
     items: [
       { href: "/start", label: t.talentStart.navLabel },
       { href: "/programm", label: t.programme.title },
@@ -38,28 +39,12 @@ export default async function TalentLayout({ children }: { children: ReactNode }
     ],
   };
 
-  if (!home) {
-    return (
-      <SidebarShell
-        area="talent"
-        label={t.areas.talent.portal}
-        rootHref="/start"
-        groups={[mine]}
-      >
-        {children}
-      </SidebarShell>
-    );
-  }
-
   return (
     <SidebarShell
-      area={home.key}
-      label={t.areas[home.key].portal}
-      rootHref={home.path}
-      groups={[
-        { label: "", items: [{ href: home.path, label: t.areas[home.key].portal }] },
-        mine,
-      ]}
+      area="talent"
+      label={t.areas.talent.portal}
+      rootHref="/start"
+      groups={[mine]}
     >
       {children}
     </SidebarShell>
