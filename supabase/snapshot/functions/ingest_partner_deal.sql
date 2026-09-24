@@ -13,6 +13,7 @@ declare
   v_deal_id text := nullif(btrim(coalesce(v_deal->>'id', '')), ''); v_company_id text := nullif(btrim(coalesce(v_co->>'id', '')), '');
   v_invoice text := nullif(lower(btrim(coalesce(v_co->>'invoice_email', ''))), ''); v_acc_email text;
   v_err_id bigint; v_owner_pid uuid; v_notified integer := 0; v_vars jsonb; v_valid_to timestamptz; v_grant text;
+  v_cust text := nullif(btrim(coalesce(v_co->>'customer_number', '')), ''); v_cust_alt text;
 begin
   if auth.uid() is not null then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_deal_id is null then raise exception 'deal_id_required' using errcode = '22023'; end if;
@@ -48,7 +49,19 @@ begin
   end loop;
   if v_primaries = 0 then v_errors := array_append(v_errors, 'primary_contact_missing');
   elsif v_primaries > 1 then v_errors := array_append(v_errors, 'primary_contact_multiple'); end if;
-  if v_company_id is not null then select o.id into v_org_id from organization o where o.hubspot_id = v_company_id; end if;
+  if v_company_id is not null then
+    select o.id, o.customer_number into v_org_id, v_cust_alt from organization o where o.hubspot_id = v_company_id;
+  end if;
+  -- ADM-057 Kundennummer (HubSpot `company_id`, Konrad 24.09.2026): sie ist ueber
+  -- alle Organisationen eindeutig (Teilindex `organization_customer_number_key`).
+  -- Haengt sie schon an einer **anderen** Firma, ist das kein technischer Fehler,
+  -- sondern ein Tippfehler in HubSpot, der spaeter Belege falsch zuordnet — also
+  -- ins Gate, mit der Nummer im Text, damit Sales sie ohne Nachfrage findet.
+  -- Stichprobe 25.09.2026: 3542 Firmen, 35 Nummern an mehr als einer Firma.
+  if v_cust is not null and exists (select 1 from organization o
+        where o.customer_number = v_cust and (v_org_id is null or o.id <> v_org_id)) then
+    v_errors := array_append(v_errors, 'customer_number_taken:' || v_cust);
+  end if;
   if v_org_id is not null and v_primary_email is not null then
     select pe.email::text into v_existing_primary from org_membership om join person_email pe on pe.person_id = om.person_id and pe.is_primary
      where om.org_id = v_org_id and om.roles @> '{primary_ops}' limit 1;
@@ -99,6 +112,21 @@ begin
     where id = v_org_id;
   end if;
 
+  -- Nur ergaenzen, nie ueberschreiben — wie die uebrigen Firmendaten. Steht bei
+  -- uns schon eine Nummer, gewinnt sie; das Auseinanderlaufen steht im Audit.
+  -- Der eigene Satz mit Abfangen ist der Wettlauf zwischen Webhook und Sweep:
+  -- die Gate-Pruefung oben liest vor dem Schreiben, ein zweiter Ingest kann
+  -- dieselbe Nummer dazwischen festgeschrieben haben. Dann bricht dieser Lauf
+  -- ab, die Datenbank bleibt unberuehrt, und der naechste Durchgang faellt
+  -- regulaer ins Gate — mit Fehlerdatensatz und Mail an den Deal-Owner.
+  if v_cust is not null then
+    begin
+      update organization set customer_number = v_cust where id = v_org_id and customer_number is null;
+    exception when unique_violation then
+      raise exception 'customer_number_taken' using errcode = 'P0001', detail = v_cust;
+    end;
+  end if;
+
   v_valid_to := edition_valid_to(v_ed.id);
   insert into org_edition (org_id, edition_id, onboarding_status, invited_at, invoice_email, invoice_name, vat_id, po_number, sponsoring_level, hubspot_deal_id)
   values (v_org_id, v_ed.id, 'invited', now(), v_invoice::citext, nullif(btrim(coalesce(v_co->>'invoice_name', '')), ''),
@@ -144,7 +172,11 @@ begin
   end loop;
 
   perform log_audit('partner.ingest', 'organization', v_org_id::text, null,
-                    jsonb_build_object('deal_id', v_deal_id, 'org_edition_id', v_oe_id, 'new_org', v_new_org, 'contacts', v_n_contacts, 'products', v_n_products, 'allocations', v_n_alloc, 'roles', v_n_roles));
+                    jsonb_build_object('deal_id', v_deal_id, 'org_edition_id', v_oe_id, 'new_org', v_new_org, 'contacts', v_n_contacts, 'products', v_n_products, 'allocations', v_n_alloc, 'roles', v_n_roles,
+                                       'customer_number', coalesce(v_cust_alt, v_cust),
+                                       -- Behalten heisst nicht verschweigen: weicht HubSpot von
+                                       -- unserer Nummer ab, steht das hier und nicht nur im Kopf.
+                                       'customer_number_conflict', v_cust_alt is not null and v_cust is not null and v_cust_alt <> v_cust));
   return jsonb_build_object('ok', true, 'already', false, 'org_id', v_org_id, 'org_edition_id', v_oe_id, 'new_org', v_new_org, 'contacts', v_n_contacts, 'products', v_n_products,
                             'allocations', v_n_alloc, 'roles', v_n_roles, 'deliverables', (select count(*) from deliverable d where d.org_edition_id = v_oe_id and d.status <> 'not_required'));
 end $$;

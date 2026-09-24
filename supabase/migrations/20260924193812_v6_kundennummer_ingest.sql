@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Kundennummer aus HubSpot uebernehmen (ADM-057): ingest_partner_deal
+-- 0177 · Kundennummer aus HubSpot übernehmen (ADM-057)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924193812.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --
