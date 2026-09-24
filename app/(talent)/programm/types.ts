@@ -79,3 +79,20 @@ export type ProgrammeLabels = {
   accessMode: Record<string, string>;
   applicationStatus: Record<string, string>;
 };
+
+/**
+ * Die Formate, für die man sich im Portal bewirbt (TAL-014, Konrad 24.09.).
+ * Nur sie stehen im Teilnehmer-Programm; das vollständige Programm zeigt die
+ * Event-App. Die Tage ergeben sich aus diesen Formaten — Company Tours am
+ * Donnerstag, der Samstag fehlt zu Recht.
+ */
+export const APPLICATION_FORMATS = [
+  "masterclass",
+  "company_tour",
+  "interview_table",
+  "side_event",
+] as const;
+
+export function isApplicationFormat(format: string | null | undefined): boolean {
+  return (APPLICATION_FORMATS as readonly string[]).includes(format ?? "");
+}

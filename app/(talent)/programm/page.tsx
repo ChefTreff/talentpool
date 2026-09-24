@@ -4,7 +4,11 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Card } from "@/components/ui/Card";
+import { ButtonLink } from "@/components/ui/Button";
+import { EVENT_APP_STORE_LINKS } from "@/lib/event-app/store-links";
 import { ProgrammeView } from "./ProgrammeView";
+import { isApplicationFormat } from "./types";
 import type {
   MyApplication,
   ProgrammeSession,
@@ -49,7 +53,11 @@ export default async function ProgrammPage() {
     loadVocabMap(supabase, locale),
   ]);
 
-  const sessions = (sessionRows ?? []) as ProgrammeSession[];
+  // Nur Formate mit Bewerbung (TAL-014). Keynotes, Panels und Talks stehen in
+  // der Event-App; das Portal ist der Bewerbungsort, nicht der Programmplan.
+  const sessions = ((sessionRows ?? []) as ProgrammeSession[]).filter((s) =>
+    isApplicationFormat(s.format),
+  );
 
   type RawQuestion = {
     id: string;
@@ -147,10 +155,41 @@ export default async function ProgrammPage() {
     ),
   };
 
+  // Hinweis auf das vollständige Programm — auch im Leerzustand, dort erst recht.
+  const eventApp = (
+    <Card className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="ct-label">{t.programme.eventAppTitle}</p>
+        <p className="ct-help">{t.programme.eventAppBody}</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <ButtonLink
+          variant="secondary"
+          size="sm"
+          href={EVENT_APP_STORE_LINKS.appStore}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t.programme.eventAppIos}
+        </ButtonLink>
+        <ButtonLink
+          variant="secondary"
+          size="sm"
+          href={EVENT_APP_STORE_LINKS.googlePlay}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t.programme.eventAppAndroid}
+        </ButtonLink>
+      </div>
+    </Card>
+  );
+
   if (sessions.length === 0) {
     return (
       <>
         <PageHeader title={t.programme.title} description={t.programme.lead} />
+        {eventApp}
         <EmptyState title={t.programme.emptyTitle} description={t.programme.emptyBody} />
       </>
     );
@@ -159,6 +198,7 @@ export default async function ProgrammPage() {
   return (
     <>
       <PageHeader title={t.programme.title} description={t.programme.lead} />
+      {eventApp}
       <ProgrammeView
         sessions={sessions}
         days={days}
