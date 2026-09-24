@@ -4691,5 +4691,21 @@
     "status_no_response": "Invited",
     "status_attended": "Attended",
     "status_no_show": "No show"
+  },
+  "talentTickets": {
+    "navLabel": "Tickets",
+    "word": "Access",
+    "title": "Your tickets",
+    "lead": "Your summit ticket with the QR code for entry.",
+    "emptyTitle": "No ticket yet",
+    "emptyBody": "As soon as you've bought or received a ticket and it's personalised to you, it appears here.",
+    "ticket": "Ticket",
+    "pending": "Being issued. Once it's ready, your QR code appears here.",
+    "valid": "Valid",
+    "checkedIn": "Checked in",
+    "qrAlt": "QR code of your ticket",
+    "qrHint": "Have it scanned at the entrance. The code is only valid for you — please don't share it.",
+    "walletAdd": "Add to wallet",
+    "walletHint": "Opens your ticket at vivenu — that's where the Apple and Google Wallet buttons are."
   }
 }
