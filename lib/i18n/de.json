@@ -2293,7 +2293,8 @@
       "questionsHint": "Aus dem Fragenkatalog. Änderungen werden sofort gespeichert.",
       "questionRequired": "Pflichtfrage",
       "questionsSaved": "Fragen gespeichert",
-      "awaitingRelease": "Veröffentlichung durch das Programm-Team"
+      "awaitingRelease": "Veröffentlichung durch das Programm-Team",
+      "stageReadOnly": "nur lesen"
     },
     "applications": {
       "title": "Bewerbungen",

@@ -2293,7 +2293,8 @@
       "questionsHint": "From the question catalogue. Changes save immediately.",
       "questionRequired": "Required question",
       "questionsSaved": "Questions saved",
-      "awaitingRelease": "Published by the programme team"
+      "awaitingRelease": "Published by the programme team",
+      "stageReadOnly": "read only"
     },
     "applications": {
       "title": "Applications",

@@ -67,6 +67,15 @@ export default async function LeadBoardPage({
       <Board
         basePath={PATH}
         canPublish={canPublishSessions(roleNames)}
+        // Die Zeitplanung ist hier zum Lesen da (LEAD-016). Ein Lead betreut
+        // Speaker, er verschiebt keine Slots — und wer nebenbei Admin ist,
+        // soll das im Admin-Programm tun, nicht aus Versehen hier. Die leere
+        // Liste sagt das ausdrücklich; `undefined` hiesse „keine Regel".
+        //
+        // Betroffen ist nur der Zeitplan: Ziehen, Dauer ändern, anlegen. Was
+        // ein Lead wirklich tut — Status, Moderation, Themen, Speaker —, steht
+        // im Drawer und bleibt unberührt.
+        editableStageIds={[]}
         events={board.events}
         currentEventId={board.currentEvent.id}
         currentEventSlug={board.currentEvent.slug}

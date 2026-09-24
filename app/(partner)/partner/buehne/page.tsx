@@ -100,6 +100,9 @@ export default async function PartnerStagePage({
       <Board
         basePath={PATH}
         canPublish={canPublishSessions(roleNames)}
+        // Hier wird als Partner gearbeitet, nicht als das, was die Person
+        // sonst noch ist (LEAD-016).
+        editableStageIds={stages.map((st) => st.stage_id)}
         hostOrgId={current.org_id}
         events={board.events}
         currentEventId={board.currentEvent.id}
