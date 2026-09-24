@@ -5,7 +5,8 @@
 --   03 Adresse korrigieren, solange die Einladung wartet: Person, Adresse und die **wartende**
 --      Einladung ziehen um (eine Zeile, neue Adresse, neuer Vorname) — Vorbedingung: vorher gab
 --      es genau eine wartende Einladung;
---   04 ist die Einladung schon verschickt, entsteht eine neue an die neue Adresse;
+--   04 ist die Einladung schon verschickt, entsteht eine neue an die neue Adresse, und
+--      `invited_at` rückt nach (Vorbedingung: vorher lag es drei Tage zurück);
 --   05 bei einer vorhandenen Person weist ein Namenswechsel ab (`contact_not_editable`), die
 --      Position geht, und unveränderte Werte mitzuschicken ist kein Fehler;
 --   06 nach dem ersten Login pflegt die Person selbst — Vorbedingung: vorher hatte sie das Recht;
@@ -20,7 +21,9 @@
 --   13 fremde Organisation 42501; `anon` darf `update_partner_contact` nicht, `authenticated`
 --      darf weder `partner_mail_cc` noch `mail_cc_recipients`, der Versand (`service_role`) darf
 --      `mail_cc_recipients` — sonst bliebe jede Mail mit Kopie liegen; 14 die Rollenbezeichnungen
---      stehen im Vokabular.
+--      stehen im Vokabular; 15 das Audit nennt die geänderten Felder, aber keine Adresse.
+-- Probelauf Bau-Chat 24.09.2026 nach Merge von origin/main (38c182d), `sh scripts/db.sh dry-run`,
+-- fn-diff gegen live ohne unerklärte Zeile: **22/22 grün**, zurückgerollt.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -30,7 +33,7 @@ declare
   v_tag text := substr(md5(random()::text), 1, 10);
   v_m_neu text; v_m_neu2 text; v_m_neu3 text; v_m_x text; v_m_bestand text; v_m_cc text; v_m_ccop text;
   v_n integer; v_n2 integer; v_txt text; v_txt2 text; v_b boolean; v_j jsonb; v_del uuid; v_tpl uuid;
-  v_sent bigint;
+  v_sent bigint; v_n3 integer;
 begin
   v_m_neu     := 'zz-neu-' || v_tag || '@example.org';
   v_m_neu2    := 'zz-neu2-' || v_tag || '@example.org';
@@ -95,16 +98,18 @@ begin
          when v_n2 = 1 and v_sent = 1 and v_b then 'Person, Adresse und wartende Einladung umgezogen (richtig)'
          else 'unerwartet: ' || v_n2 || ' Einladungen, ' || v_sent || ' passend, Person ' || coalesce(v_b::text, 'null') end);
 
-  -- 04 Schon verschickt: neue Einladung
+  -- 04 Schon verschickt: neue Einladung, invited_at rückt nach
   update mail_log set status = 'sent', sent_at = now()
    where template_key = 'partner_contact_invite' and person_id = v_neu
    returning id into v_sent;
+  update org_membership set invited_at = now() - interval '3 days' where org_id = v_org and person_id = v_neu;
   perform update_partner_contact(v_org, v_neu, 'Einkauf', null, null, v_m_neu3, null);
   select count(*)::integer, count(*) filter (where status = 'queued' and to_email = v_m_neu3::citext)::integer
     into v_n, v_n2 from mail_log where template_key = 'partner_contact_invite' and person_id = v_neu;
+  select om.invited_at = now() into v_b from org_membership om where om.org_id = v_org and om.person_id = v_neu;
   insert into t_res values ('04_neue_einladung',
-    case when v_n = 2 and v_n2 = 1 then 'alte bleibt verschickt, neue wartet an die neue Adresse (richtig)'
-         else 'unerwartet: ' || v_n || ' gesamt, ' || v_n2 || ' wartend' end);
+    case when v_n = 2 and v_n2 = 1 and v_b then 'alte bleibt verschickt, neue wartet an die neue Adresse, invited_at neu (richtig)'
+         else 'unerwartet: ' || v_n || ' gesamt, ' || v_n2 || ' wartend, invited_at neu ' || coalesce(v_b::text, 'null') end);
 
   -- 05 Vorhandene Person: Name nein, Position ja, unveränderte Werte kein Fehler
   begin
@@ -237,6 +242,19 @@ begin
     case when v_n = 0 then 'VORBEDINGUNG: keine Einladung — Schritt belegt nichts'
          when v_n2 = 0 then v_n || ' Einladungen, keine mit Kopie (richtig)'
          else 'ALLOWED (BUG): ' || v_n2 || ' Einladungen mit Kopie' end);
+
+  -- 15 Audit: welche Felder, keine Adresse (die Änderung aus 03 nennt Vorname, Nachname, Adresse)
+  select count(*)::integer,
+         count(*) filter (where a.after->'fields' @> '["first_name", "last_name", "email"]'::jsonb)::integer
+    into v_n, v_n2 from audit_log a
+   where a.action = 'partner.contact_update' and a.object_id = v_org::text and a.after->>'person_id' = v_neu::text;
+  select count(*)::integer into v_n3 from audit_log a
+   where a.action = 'partner.contact_update' and a.object_id = v_org::text
+     and (coalesce(a.after::text, '') || coalesce(a.before::text, '')) ilike '%@example.org%';
+  insert into t_res values ('15_audit_ohne_adresse',
+    case when v_n = 0 then 'VORBEDINGUNG: kein Audit-Eintrag — Schritt belegt nichts'
+         when v_n2 >= 1 and v_n3 = 0 then v_n || ' Einträge, Felder genannt, keine Adresse (richtig)'
+         else 'unerwartet: ' || v_n || ' Einträge, ' || v_n2 || ' mit Feldern, ' || v_n3 || ' mit Adresse' end);
 
   -- 12 An eine schon verschickte Mail hängt nichts an
   select partner_mail_cc(v_sent, v_org) into v_n;
