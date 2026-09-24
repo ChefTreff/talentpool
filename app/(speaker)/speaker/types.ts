@@ -75,6 +75,12 @@ export type SpeakerProfile = {
     kind: string | null;
     consent_at: string | null;
   } | null;
+  /**
+   * Alle Kontakte aus `speaker_contact` (0148) — Assistenz, Agentur, Office in
+   * einer Liste. Löst `contact` und `assistant` ab; die beiden bleiben, bis
+   * eine spätere Migration die alten Spalten entfernt.
+   */
+  contacts: SpeakerContact[];
   person: SpeakerPerson;
   consents: Record<string, boolean>;
   next_steps: NextSteps;
@@ -149,10 +155,46 @@ export type MyReception = {
   my_note: string | null;
 };
 
-/** Die Felder des Kontakts ohne Portalzugang, in der Reihenfolge des Formulars. */
-export const KONTAKT_FELDER = [
-  { key: "contact_first_name", kind: "text" },
-  { key: "contact_last_name", kind: "text" },
-  { key: "contact_email", kind: "email" },
-  { key: "contact_phone", kind: "tel" },
-] as const;
+/**
+ * Welche Aufgabe der Checkliste an welcher Frist hängt (SPK-024).
+ *
+ * Gepflegt wird die Frist im Admin unter „Fristen"; hier steht nur, welcher
+ * Schlüssel zu welchem Schritt gehört. Was hier fehlt, hat schlicht keine
+ * Frist — dann zeigt die Liste auch keine.
+ */
+export const FRIST_KEY: Record<string, string> = {
+  presentation: "presentation_upload",
+};
+
+/**
+ * Eine Aufgabe aus `speaker_task` samt eigenem Haken (`my_speaker_tasks`,
+ * 0149) — die Punkte, die das Portal nicht selbst beobachten kann.
+ */
+export type SpeakerTask = {
+  id: string;
+  key: string;
+  label_de: string;
+  label_en: string;
+  description_de: string | null;
+  description_en: string | null;
+  /** Schlüssel einer Frist aus `deadline`, oder `null`. */
+  deadline_key: string | null;
+  done_at: string | null;
+};
+
+/**
+ * Ein Kontakt einer Speakerin (`speaker_contact`, 0148) — Assistenz, Agentur,
+ * Office. `has_access` sagt, ob die Person sich anmelden darf.
+ */
+export type SpeakerContact = {
+  id: string;
+  kind: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  phone: string | null;
+  has_access: boolean;
+  consent_at: string | null;
+  /** Ob die eingeladene Person schon ein Konto hat. */
+  signed_in: boolean | null;
+};

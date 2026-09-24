@@ -18,7 +18,7 @@ begin
     from session_speaker ss
     join speaker_profile sp on sp.person_id = ss.person_id
    where ss.session_id = p_session_id
-     and (ss.person_id = v_me or sp.assistant_person_id = v_me)
+     and (ss.person_id = v_me or is_speaker_assistant(sp.id, v_me))
    limit 1;
   if v_person is null then raise exception 'not allowed' using errcode = '42501'; end if;
 
@@ -34,6 +34,11 @@ begin
     if v_val is not null and length(v_val) > 500 then
       raise exception 'tech_too_long' using errcode = '22023', detail = v_key;
     end if;
+    -- Das Mikrofon ist seit dem 22.09. eine Auswahl, kein Freitext mehr.
+    if v_key = 'microphone' and v_val is not null
+       and not is_vocab_key('speaker_microphone', v_val) then
+      raise exception 'invalid_microphone' using errcode = '22023', detail = v_val;
+    end if;
     -- Leere Felder fallen heraus, statt als "" zu bleiben: sonst steht später
     -- in der Regie eine leere Zeile, die wie eine Angabe aussieht.
     if v_val is not null then
@@ -44,13 +49,11 @@ begin
   select s.tech into v_alt from session s where s.id = p_session_id;
 
   -- Vorbelegung aus dem Rider, aber nur beim **ersten** Mal und nur für
-  -- Schlüssel, die die Eingabe nicht selbst setzt.
+  -- Schlüssel, die die Eingabe nicht selbst setzt. Das Mikrofon ist hier
+  -- bewusst raus (siehe Kopf).
   if coalesce(v_alt, '{}'::jsonb) = '{}'::jsonb then
     select sp.tech_rider into v_rider from speaker_profile sp where sp.person_id = v_person limit 1;
     if v_rider is not null and jsonb_typeof(v_rider) = 'object' then
-      if not (v_neu ? 'microphone') and nullif(btrim(coalesce(v_rider->>'mic', '')), '') is not null then
-        v_neu := v_neu || jsonb_build_object('microphone', btrim(v_rider->>'mic'));
-      end if;
       if not (v_neu ? 'special_requirements')
          and nullif(btrim(coalesce(v_rider->>'notes', '')), '') is not null then
         v_neu := v_neu || jsonb_build_object('special_requirements', btrim(v_rider->>'notes'));
@@ -62,8 +65,7 @@ begin
 
   -- Nur die **Schlüssel** ins Protokoll, nicht die Werte: was ein Speaker an
   -- besonderen Anforderungen schreibt, kann persönlich sein (dieselbe Regel wie
-  -- bei der Ernährung, 0100 — das Protokoll hält fest, *dass* jemand etwas
-  -- gespeichert hat, nicht *was*).
+  -- bei der Ernährung, 0100).
   perform log_audit('speaker.session_tech', 'session', p_session_id::text,
     jsonb_build_object('keys', (select coalesce(array_agg(k), array[]::text[])
                                   from jsonb_object_keys(coalesce(v_alt, '{}'::jsonb)) k)),

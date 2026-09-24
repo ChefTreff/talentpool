@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -14,14 +15,16 @@ import { useToast } from "@/components/ui/Toast";
 import {
   approveTravelCosts,
   handoverSpeaker,
-  inviteAssistant,
   inviteSpeaker,
-  removeAssistant,
+  removeSpeakerContact,
   saveSpeaker,
+  saveSpeakerContact,
   setContacts,
+  setExpenseMode,
   setPipeline,
   type AdminResult,
 } from "../actions";
+import { KontakteCard } from "@/components/speaker/KontakteCard";
 import { RIDER_FLAGS, SOCIAL_KEYS, type ContactOption, type SpeakerDetail, type SpeakerManager } from "../types";
 
 type Strings = Record<string, string>;
@@ -89,9 +92,6 @@ export function SpeakerDetailView({
   const [owner, setOwner] = useState(speaker.owner_person_id ?? "");
   const [lead, setLead] = useState(speaker.lead_contact_id ?? "");
   const [buddy, setBuddy] = useState(speaker.buddy_contact_id ?? "");
-  const [assistEmail, setAssistEmail] = useState("");
-  const [assistFirst, setAssistFirst] = useState("");
-  const [assistLast, setAssistLast] = useState("");
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const datum = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
@@ -193,6 +193,23 @@ export function SpeakerDetailView({
         }
       />
 
+      {/* Die Seite ist die laengste der Anwendung — zehn Karten untereinander,
+          und man scrollt blind (QS-026). Die Abschnitte stehen hier einmal;
+          dieselbe Liste spiegelt die Seitenleiste. */}
+      <AbschnittsNavigation
+        label={t.sectionsLabel}
+        items={[
+          { id: "status", label: t.pipelineTitle },
+          { id: "betreuung", label: t.careTitle },
+          { id: "stammdaten", label: t.basicsTitle },
+          { id: "bio", label: t.bioTitle },
+          { id: "links", label: t.linksTitle },
+          { id: "hospitality", label: t.hospitalityTitle },
+          { id: "reise", label: t.travelTitle },
+          { id: "sessions", label: t.sessionsTitle },
+        ]}
+      />
+
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone={TONE[speaker.pipeline_status] ?? "neutral"}>
@@ -226,7 +243,7 @@ export function SpeakerDetailView({
           </h2>
           <p className="ct-help mb-3">{t.sectionActionsHint}</p>
           <div className="flex flex-col gap-4">
-        <Card>
+        <Card id="status">
           <CardHeader title={t.pipelineTitle} description={t.pipelineHint} />
           <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
             <Field label={t.pipelineTitle} htmlFor="status">
@@ -278,7 +295,7 @@ export function SpeakerDetailView({
           )}
         </Card>
 
-        <Card>
+        <Card id="betreuung">
           <CardHeader title={t.careTitle} description={t.careHint} />
           <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
             <Field label={t.owner} htmlFor="owner" className="sm:col-span-2">
@@ -345,55 +362,19 @@ export function SpeakerDetailView({
             </Button>
           </div>
 
+          {/* Assistenz, Agentur und Office in einer Liste (SPK-040, 0148).
+              Dieselbe Karte wie im Speaker-Portal — „Admin-Vollständigkeit":
+              was das Team dort sieht, kann es hier auch pflegen. */}
           <div className="mt-5 border-t pt-4">
-            <p className="ct-label text-ink">{t.assistant}</p>
-            {speaker.assistant_name ? (
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <Badge tone="accent">{speaker.assistant_name}</Badge>
-                <Button
-                  variant="ghost"
-                  disabled={pending}
-                  onClick={() =>
-                    startTransition(async () =>
-                      report(await removeAssistant(speaker.id), t.assistantRemoved),
-                    )
-                  }
-                >
-                  {t.removeAssistant}
-                </Button>
-              </div>
-            ) : (
-              <div className="mt-2 grid gap-3 sm:grid-cols-4 sm:items-end">
-                <Field label={t.assistantEmail} htmlFor="ae" className="sm:col-span-2">
-                  <Input
-                    id="ae"
-                    type="email"
-                    value={assistEmail}
-                    onChange={(e) => setAssistEmail(e.target.value)}
-                  />
-                </Field>
-                <Field label={t.firstName} htmlFor="af">
-                  <Input id="af" value={assistFirst} onChange={(e) => setAssistFirst(e.target.value)} />
-                </Field>
-                <Field label={t.lastName} htmlFor="al">
-                  <Input id="al" value={assistLast} onChange={(e) => setAssistLast(e.target.value)} />
-                </Field>
-                <Button
-                  variant="secondary"
-                  disabled={pending || assistEmail.trim() === ""}
-                  onClick={() =>
-                    startTransition(async () =>
-                      report(
-                        await inviteAssistant(speaker.id, assistEmail, assistFirst, assistLast),
-                        t.assistantInvited,
-                      ),
-                    )
-                  }
-                >
-                  {t.inviteAssistant}
-                </Button>
-              </div>
-            )}
+            <KontakteCard
+              kontakte={speaker.speaker_contacts ?? []}
+              readOnly={false}
+              profileId={speaker.id}
+              aktionen={{ save: saveSpeakerContact, remove: removeSpeakerContact }}
+              t={t}
+              common={common}
+              message={message}
+            />
           </div>
         </Card>
 
@@ -411,7 +392,7 @@ export function SpeakerDetailView({
             </h2>
             <p className="ct-help">{t.sectionDraftHint}</p>
           </div>
-        <Card>
+        <Card id="stammdaten">
           <CardHeader title={t.basicsTitle} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.speakerType} htmlFor="typ">
@@ -450,7 +431,7 @@ export function SpeakerDetailView({
           </div>
         </Card>
 
-        <Card>
+        <Card id="bio">
           <CardHeader title={t.bioTitle} description={t.bioHint} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.bioShortDe} htmlFor="bsd">
@@ -468,7 +449,7 @@ export function SpeakerDetailView({
           </div>
         </Card>
 
-        <Card>
+        <Card id="links">
           <CardHeader title={t.linksTitle} />
           <div className="grid gap-4 sm:grid-cols-3">
             {SOCIAL_KEYS.map((k) => (
@@ -500,7 +481,7 @@ export function SpeakerDetailView({
           </div>
         </Card>
 
-        <Card>
+        <Card id="hospitality">
           <CardHeader title={t.hospitalityTitle} description={t.hospitalityHint} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.passType} htmlFor="pass">
@@ -554,6 +535,16 @@ export function SpeakerDetailView({
               {speaker.travel_costs_approved_at === null ? t.approve : t.revokeApproval}
             </Button>
           </div>
+          <Abrechnungsart
+            speaker={speaker}
+            labels={labels.expenseMode}
+            pending={pending}
+            onSave={(mode, cents) =>
+              startTransition(async () => report(await setExpenseMode(speaker.id, mode, cents), t.saved))
+            }
+            t={t}
+            common={common}
+          />
         </Card>
 
         {speaker.internal_notes_visible ? (
@@ -596,7 +587,7 @@ export function SpeakerDetailView({
             </h2>
             <p className="ct-help">{t.sectionReadonlyHint}</p>
           </div>
-        <Card>
+        <Card id="reise">
           <CardHeader title={t.travelTitle} description={t.travelHint} />
           {speaker.travel ? (
             <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
@@ -610,7 +601,7 @@ export function SpeakerDetailView({
           )}
         </Card>
 
-        <Card>
+        <Card id="sessions">
           <CardHeader title={t.sessionsTitle} />
           {speaker.sessions.length === 0 ? (
             <p className="ct-small text-muted">{t.noSessions}</p>
@@ -702,4 +693,82 @@ function reise(
   ]
     .filter(Boolean)
     .join(" · ");
+}
+
+/**
+ * Pauschale oder Übernahme per Beleg (SPK-042).
+ *
+ * Konrad, 22.09.: „So haben wir zwei Arten von Deals. Entweder eine feste
+ * Summe, die pauschal abgerechnet wird … oder die Übernahme per Beleg."
+ *
+ * Steht bewusst **nicht** im gemeinsamen Speichern-Balken: die Art zu wechseln
+ * sperrt drüben die Belegerfassung, das ist keine Nebenwirkung eines Klicks auf
+ * „Speichern" weiter unten. Der Betrag wird in Euro eingegeben und hier einmal
+ * in Cent umgerechnet — gerechnet wird überall sonst nur noch in Cent.
+ */
+function Abrechnungsart({
+  speaker,
+  labels,
+  pending,
+  onSave,
+  t,
+  common,
+}: {
+  speaker: SpeakerDetail;
+  labels: Record<string, string>;
+  pending: boolean;
+  onSave: (mode: string, cents: number | null) => void;
+  t: Strings;
+  common: { save: string };
+}) {
+  const [mode, setMode] = useState(speaker.expense_mode);
+  const [betrag, setBetrag] = useState(
+    speaker.expense_lump_sum_cents === null ? "" : (speaker.expense_lump_sum_cents / 100).toFixed(2),
+  );
+
+  // Komma wie Punkt: wer „1200,50" tippt, meint denselben Betrag wie mit Punkt.
+  const cents = (() => {
+    const n = Number(betrag.replace(",", ".").replace(/\s/g, ""));
+    if (!betrag.trim() || !Number.isFinite(n) || n < 0) return null;
+    return Math.round(n * 100);
+  })();
+  const fehlt = mode === "lump_sum" && cents === null;
+  const geaendert =
+    mode !== speaker.expense_mode ||
+    (mode === "lump_sum" && cents !== speaker.expense_lump_sum_cents);
+
+  return (
+    <div className="mt-4 border-t pt-4">
+      <p className="ct-label text-ink">{t.expenseModeTitle}</p>
+      <p className="ct-help mb-3">{t.expenseModeHint}</p>
+      <div className="flex flex-wrap items-end gap-3">
+        <Field label={t.expenseModeTitle} htmlFor="em">
+          <Select
+            id="em"
+            value={mode}
+            onChange={(e) => setMode(e.target.value as SpeakerDetail["expense_mode"])}
+            options={Object.entries(labels).map(([value, label]) => ({ value, label }))}
+          />
+        </Field>
+        {mode === "lump_sum" && (
+          <Field label={t.expenseAmount} htmlFor="ec" error={fehlt ? t.expenseAmountInvalid : undefined}>
+            <Input
+              id="ec"
+              inputMode="decimal"
+              value={betrag}
+              onChange={(e) => setBetrag(e.target.value)}
+            />
+          </Field>
+        )}
+        <Button
+          className="mb-1"
+          variant="secondary"
+          disabled={pending || fehlt || !geaendert}
+          onClick={() => onSave(mode, mode === "lump_sum" ? cents : null)}
+        >
+          {common.save}
+        </Button>
+      </div>
+    </div>
+  );
 }

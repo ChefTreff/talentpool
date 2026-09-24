@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
-import { Input, Textarea } from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { saveTravel } from "./actions";
@@ -22,6 +22,8 @@ export type SpeakerTravel = {
   departure_mode: string | null;
   departure_ref: string | null;
   needs_pickup: boolean;
+  /** Wunsch, zur Abreise gebracht zu werden (SPK-032). */
+  needs_dropoff: boolean;
   note: string | null;
   updated_at: string | null;
 };
@@ -67,6 +69,7 @@ export function Anreise({
     departure_mode: travel?.departure_mode ?? "",
     departure_ref: travel?.departure_ref ?? "",
     needs_pickup: travel?.needs_pickup ?? false,
+    needs_dropoff: travel?.needs_dropoff ?? false,
     note: travel?.note ?? "",
   });
 
@@ -146,7 +149,9 @@ export function Anreise({
               onChange={(e) => set("departure_date", e.target.value)}
             />
           </Field>
-          <Field label={t.time} htmlFor="ab-zeit">
+          {/* Dieselben Hinweise wie bei der Anreise: ohne sie stehen die
+              Felder der beiden Spalten versetzt (SPK-032, Konrad 21.09.). */}
+          <Field label={t.time} htmlFor="ab-zeit" hint={t.timeHint}>
             <Input
               id="ab-zeit"
               type="time"
@@ -163,7 +168,7 @@ export function Anreise({
               onChange={(e) => set("departure_mode", e.target.value)}
             />
           </Field>
-          <Field label={t.ref} htmlFor="ab-nr">
+          <Field label={t.ref} htmlFor="ab-nr" hint={t.refHint}>
             <Input
               id="ab-nr"
               value={form.departure_ref}
@@ -173,20 +178,47 @@ export function Anreise({
         </fieldset>
       </div>
 
-      <label className="mt-5 flex items-start gap-2">
-        <input
-          type="checkbox"
-          className="mt-0.5 h-5 w-5"
-          checked={form.needs_pickup}
-          onChange={(e) => set("needs_pickup", e.target.checked)}
-        />
-        <span className="ct-small">{t.pickup}</span>
-      </label>
+      <div className="mt-5 flex flex-col gap-2">
+        <label className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-5 w-5"
+            checked={form.needs_pickup}
+            onChange={(e) => set("needs_pickup", e.target.checked)}
+          />
+          <span className="ct-small">{t.pickup}</span>
+        </label>
+        <label className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-5 w-5"
+            checked={form.needs_dropoff}
+            onChange={(e) => set("needs_dropoff", e.target.checked)}
+          />
+          <span className="ct-small">{t.dropoff}</span>
+        </label>
+      </div>
+
+      {/* Ein Wunsch ist noch keine Fahrt (SPK-032, Konrad 21.09.: „das ist ja
+          im Grunde eine Shuttle-Fahrt"). Automatisch eine anzulegen wäre
+          bequem und falsch: ohne Telefonnummer und Adressen stünde eine halbe
+          Buchung auf der Liste, die das Shuttle-Unternehmen bekommt. Also der
+          Weg dorthin — mit dem, was wir schon wissen, vorausgefüllt. */}
+      {(form.needs_pickup || form.needs_dropoff) && (
+        <p className="ct-help mt-3">
+          {t.pickupShuttleHint}{" "}
+          <a className="ct-link" href="#shuttle">
+            {t.pickupShuttleLink}
+          </a>
+        </p>
+      )}
 
       <Field className="mt-4" label={t.travelNote} htmlFor="reise-notiz" hint={t.travelNoteHint}>
-        <Textarea
+        {/* Kurztext statt Textfeld (SPK-032): ein Satz reicht, und ein
+            grosses Feld sah neben den schmalen Datumsfeldern aus wie der
+            Hauptgegenstand der Seite. */}
+        <Input
           id="reise-notiz"
-          rows={2}
           value={form.note}
           onChange={(e) => set("note", e.target.value)}
         />

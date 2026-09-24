@@ -9,7 +9,7 @@ declare
 begin
   select pe.email::text,
          coalesce(case when p.preferred_language in ('de', 'en') then p.preferred_language end,
-                  case when exists (select 1 from speaker_profile sp where sp.person_id = p.id or sp.assistant_person_id = p.id) then 'en' else 'de' end),
+                  case when exists (select 1 from speaker_profile sp where sp.person_id = p.id or is_speaker_assistant(sp.id, p.id)) then 'en' else 'de' end),
          coalesce(p.first_name, '')
     into v_email, v_locale, v_first
   from person p join person_email pe on pe.person_id = p.id and pe.is_primary

@@ -46,12 +46,18 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         // Der Einstieg in die Domäne steht oben: von hier aus geht es zu jedem
         // einzelnen Speaker, die Listen darunter beantworten Einzelfragen.
         { href: "/admin/speaker", label: nav.speakers },
+        { href: "/admin/speaker/aufgaben", label: nav.speakerTasks },
         { href: "/admin/speaker-leads", label: nav.speakerLeads },
         { href: "/admin/speaker-tickets", label: nav.speakerTickets },
         { href: "/admin/reisekosten", label: nav.expenses },
         { href: "/admin/hospitality", label: nav.hospitality },
         { href: "/admin/reception", label: nav.reception },
         { href: "/admin/anreise", label: nav.travel },
+        // Beides hing bisher nur im Lead-Portal. Seit der Regel
+        // „Admin-Vollständigkeit" (22.09.) gibt es jeden Team-Weg auch hier —
+        // dieselbe Seite, nur ein anderes Bereichsgate.
+        { href: "/admin/einreichungen", label: nav.submissions },
+        { href: "/admin/regie", label: nav.regie },
         { href: "/admin/technik", label: nav.tech },
         { href: "/admin/grafiken", label: nav.graphics },
       ],

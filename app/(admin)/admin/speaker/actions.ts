@@ -99,6 +99,28 @@ export async function approveTravelCosts(
   return { ok: true, data: undefined };
 }
 
+/**
+ * Pauschale oder Übernahme per Beleg (SPK-042).
+ *
+ * Der Betrag kommt **in Cent** herein; das Umrechnen aus dem Eurofeld passiert
+ * einmal in der Oberfläche, nicht hier und nicht in der Datenbank.
+ */
+export async function setExpenseMode(
+  profileId: string,
+  mode: string,
+  amountCents: number | null,
+): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_expense_mode", {
+    p_profile_id: profileId,
+    p_mode: mode,
+    p_amount_cents: amountCents,
+  });
+  if (error) return fail(error);
+  refresh(profileId);
+  return { ok: true, data: undefined };
+}
+
 /** Ansprechpartner je Speaker; `null` fällt auf den Standard der Edition zurück. */
 export async function setContacts(
   profileId: string,
@@ -148,5 +170,51 @@ export async function removeAssistant(profileId: string): Promise<AdminResult> {
   const { error } = await supabase.rpc("remove_assistant", { p_profile_id: profileId });
   if (error) return fail(error);
   refresh(profileId);
+  return { ok: true, data: undefined };
+}
+
+// === Aufgaben zum Selbst-Abhaken (SPK-024, 0149) ============================
+
+/** Aufgabe anlegen oder ändern; schlüsselt auf Edition + `key`. */
+export async function saveSpeakerTask(data: Record<string, unknown>): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("upsert_speaker_task", { p_data: data });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/aufgaben`);
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Aufgabe löschen. Die RPC weist das ab, sobald jemand sie abgehakt hat
+ * (`task_has_ticks`) — dann bleibt nur das Stilllegen, und die Haken bleiben
+ * nachlesbar.
+ */
+export async function deleteSpeakerTask(taskId: string): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("delete_speaker_task", { p_task_id: taskId });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/aufgaben`);
+  return { ok: true, data: undefined };
+}
+
+// === Kontakte: Assistenz, Agentur, Office in einer Liste (SPK-040, 0148) ====
+
+/** Kontakt anlegen oder ändern — dieselbe RPC wie im Speaker-Portal. */
+export async function saveSpeakerContact(
+  data: Record<string, unknown>,
+): Promise<AdminResult<string>> {
+  const supabase = await client();
+  const { data: id, error } = await supabase.rpc("upsert_speaker_contact", { p_data: data });
+  if (error) return fail(error);
+  refresh(String(data.profile_id ?? ""));
+  return { ok: true, data: id as string };
+}
+
+/** Kontakt entfernen; ein Zugang geht damit auch. */
+export async function removeSpeakerContact(contactId: string): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("remove_speaker_contact", { p_contact_id: contactId });
+  if (error) return fail(error);
+  revalidatePath(PATH, "layout");
   return { ok: true, data: undefined };
 }

@@ -175,3 +175,50 @@ export async function setReceptionRsvp(
   refresh();
   return { ok: true, data: undefined };
 }
+
+/**
+ * Einen selbst abhakbaren Punkt der Checkliste setzen oder wieder wegnehmen
+ * (SPK-024, 0149).
+ *
+ * Anders als beim Reception-RSVP darf die **Assistenz** hier mitmachen: sie
+ * füllt die Seiten ohnehin aus, und „Beim Hotel gemeldet" ist genau so eine
+ * Erledigung, die sie erledigt. Die RPC prüft das noch einmal selbst.
+ */
+export async function setSpeakerTaskTick(
+  taskId: string,
+  done: boolean,
+): Promise<SpeakerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_speaker_task_tick", {
+    p_task_id: taskId,
+    p_done: done,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
+
+// === Kontakte: Assistenz, Agentur, Office in einer Liste (SPK-040, 0148) ====
+
+/**
+ * Kontakt anlegen oder ändern. Mit `has_access` wird daraus ein Zugang: die
+ * RPC legt die Person an, vergibt die Rolle und verschickt die Einladung.
+ */
+export async function saveSpeakerContact(
+  data: Record<string, unknown>,
+): Promise<SpeakerResult<string>> {
+  const supabase = await client();
+  const { data: id, error } = await supabase.rpc("upsert_speaker_contact", { p_data: data });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: id as string };
+}
+
+/** Kontakt entfernen; ein Zugang geht damit auch. */
+export async function removeSpeakerContact(contactId: string): Promise<SpeakerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("remove_speaker_contact", { p_contact_id: contactId });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}

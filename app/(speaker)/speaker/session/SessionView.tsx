@@ -6,13 +6,21 @@ import { formatRange } from "@/lib/tz";
 import type { Locale } from "@/lib/i18n/shared";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { FileButton } from "@/components/ui/FileButton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
-import { registerAsset, saveSessionTech, setSlidesRelease, submitSessionContent } from "./actions";
+import { ConfirmDialog } from "@/components/ui/Modal";
+import {
+  deleteAsset,
+  registerAsset,
+  saveSessionTech,
+  setSlidesRelease,
+  submitSessionContent,
+} from "./actions";
 import { TitelAssistent } from "./TitelAssistent";
 import {
   BUCKET,
@@ -76,6 +84,8 @@ export function SessionView({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState<string | null>(null);
+  /** Welche Folien gerade zum Entfernen anstehen (SPK-028). */
+  const [loeschen, setLoeschen] = useState<SpeakerAsset | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, {
@@ -150,6 +160,28 @@ export function SessionView({
     window.open(data.signedUrl, "_blank", "noopener");
   }
 
+  /**
+   * Folien entfernen (SPK-028, Konrad 21.09.: „Außerdem sollte man Slides
+   * wieder löschen könnne").
+   *
+   * Mit Rückfrage: eine hochgeladene Präsentation ist Arbeit, und ein
+   * versehentlicher Klick liesse sich nicht zurücknehmen. Die Datenbank lässt
+   * die vorige Fassung nachrücken — wer Version 3 entfernt, steht danach mit
+   * Version 2 da und nicht ohne Präsentation.
+   */
+  function onDelete(asset: SpeakerAsset) {
+    startTransition(async () => {
+      const res = await deleteAsset(asset.id);
+      if (!res.ok) {
+        toast("error", message(res.key));
+        return;
+      }
+      setLoeschen(null);
+      toast("success", t.slidesDeleted);
+      router.refresh();
+    });
+  }
+
   function onSlides(asset: SpeakerAsset, release: boolean) {
     startTransition(async () => {
       const res = await setSlidesRelease(asset.id, release);
@@ -162,8 +194,33 @@ export function SessionView({
     });
   }
 
+  // Der Upload noch einmal ganz oben (SPK-028, Konrad 21.09.: „Ich würde gern
+  // den Button für den Upload der Präsentation nochmal oben zeigen").
+  //
+  // **Nur bei genau einer Session.** Wer zwei Auftritte hat, müsste bei einem
+  // Knopf ohne Überschrift raten, für welchen er gilt — dann ist der Knopf im
+  // jeweiligen Abschnitt der ehrlichere Weg.
+  const einzige = sessions.length === 1 ? sessions[0] : null;
+
   return (
     <div className="flex flex-col gap-6">
+      {einzige && (
+        <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+          <div className="min-w-0">
+            <p className="ct-label text-ink">{t.presentationTitle}</p>
+            <p className="ct-help mt-1">{t.uploadHint}</p>
+          </div>
+          <FileButton
+            label={t.uploadChoose}
+            uploadLabel={t.uploadAction}
+            changeLabel={t.uploadChange}
+            accept=".pdf,.ppt,.pptx,.key"
+            disabled={uploading === einzige.session_id}
+            onFile={(file) => onUpload(einzige, file)}
+          />
+        </Card>
+      )}
+
       {sessions.map((session) => (
         <SessionCard
           key={session.session_id}
@@ -186,10 +243,24 @@ export function SessionView({
           onUpload={onUpload}
           onDownload={onDownload}
           onSlides={onSlides}
+          onDelete={setLoeschen}
           onSubmitted={() => router.refresh()}
           toast={toast}
         />
       ))}
+
+      {loeschen && (
+        <ConfirmDialog
+          title={t.deleteSlidesTitle}
+          body={t.deleteSlidesBody}
+          detail={`${loeschen.filename ?? loeschen.storage_path.split("/").pop()} · v${loeschen.version}`}
+          confirmLabel={t.deleteSlides}
+          cancelLabel={common.cancel}
+          pending={pending}
+          onCancel={() => setLoeschen(null)}
+          onConfirm={() => onDelete(loeschen)}
+        />
+      )}
     </div>
   );
 }
@@ -212,6 +283,7 @@ function SessionCard({
   onUpload,
   onDownload,
   onSlides,
+  onDelete,
   onSubmitted,
   toast,
 }: {
@@ -233,6 +305,7 @@ function SessionCard({
   onUpload: (session: MySession, file: File) => void;
   onDownload: (asset: SpeakerAsset) => void;
   onSlides: (asset: SpeakerAsset, release: boolean) => void;
+  onDelete: (asset: SpeakerAsset) => void;
   onSubmitted: () => void;
   toast: (tone: "success" | "error", text: string) => void;
 }) {
@@ -250,7 +323,7 @@ function SessionCard({
   const [draft, setDraft] = useState({
     title: submission?.title ?? finalTitle ?? "",
     description: submission?.description ?? finalDescription ?? "",
-    topics: (submission?.topics ?? []).join(", "),
+    topics: submission?.topics ?? [],
     language: submission?.language ?? session.language ?? "",
     notes: submission?.notes ?? "",
   });
@@ -263,10 +336,7 @@ function SessionCard({
       const res = await submitSessionContent(session.session_id, {
         title: draft.title,
         description: draft.description,
-        topics: draft.topics
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        topics: draft.topics,
         language: draft.language,
         notes: draft.notes,
       });
@@ -280,8 +350,14 @@ function SessionCard({
   }
 
   return (
-    <Card className="p-6">
-      <header className="mb-4">
+    // Konrad, 21.09.: „Ist aktuell noch sehr unübersichtlich … ich möchte
+    // klarere Abgrenzungen der einzelnen Teilbereiche der Seite." Vorher stand
+    // alles in **einer** Karte, getrennt nur durch Linien und `h3`. Jetzt trägt
+    // jeder Teilbereich eine eigene Karte mit eigener Überschrift und eigenem
+    // Anker — die Grenze ist damit sichtbar und anspringbar (SPK-043).
+    <div className="flex flex-col gap-6">
+    <Card id="slot" className="scroll-mt-20 p-6">
+      <header>
         <div className="ct-help flex flex-wrap items-center gap-x-3">
           {session.start_at && session.end_at ? (
             <span className="tabular-nums">
@@ -325,9 +401,12 @@ function SessionCard({
           </p>
         )}
       </header>
+    </Card>
 
+    <Card id="inhalt" className="scroll-mt-20 p-6">
+      <h2 className="ct-h3 mb-4 text-ink">{t.sectionContent}</h2>
       {/* Eingereicht vs. final — nebeneinander, damit man den Unterschied sieht. */}
-      <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <h3 className="ct-label mb-1 text-ink">{t.submitted}</h3>
           {submission ? (
@@ -345,7 +424,9 @@ function SessionCard({
                 <p className="ct-help mt-1 whitespace-pre-line">{submission.description}</p>
               )}
               {submission.topics && submission.topics.length > 0 && (
-                <p className="ct-help mt-1">{submission.topics.join(" · ")}</p>
+                <p className="ct-help mt-1">
+                  {submission.topics.map((k) => labels.topics?.[k] ?? k).join(" · ")}
+                </p>
               )}
               {submission.review_note && (
                 <p className="ct-help mt-2">
@@ -402,17 +483,36 @@ function SessionCard({
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              label={t.fieldTopics}
-              htmlFor={`topics-${session.session_id}`}
-              hint={t.fieldTopicsHint}
-            >
-              <Input
-                id={`topics-${session.session_id}`}
-                value={draft.topics}
-                onChange={(e) => setDraft((d) => ({ ...d, topics: e.target.value }))}
-              />
-            </Field>
+            {/* Mehrfachauswahl statt Freitext (SPK-027, Konrad 21.09.). Die
+                Liste ist dieselbe, die wir für die Talks setzen; sie steht im
+                Vokabular `session_topic` und wird im Admin gepflegt.
+                Kästchen statt einer Mehrfachliste: siebzehn Einträge in einem
+                `<select multiple>` sind auf dem Telefon nicht zu bedienen,
+                und was ausgewählt ist, sieht man dort auch nicht. */}
+            <fieldset className="sm:col-span-2">
+              <legend className="ct-label text-ink">{t.fieldTopics}</legend>
+              <p className="ct-help mt-1">{t.fieldTopicsHint}</p>
+              <div className="mt-2 grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3">
+                {Object.entries(labels.topics ?? {}).map(([key, label]) => (
+                  <label key={key} className="flex min-h-11 items-center gap-2 ct-small text-ink">
+                    <input
+                      type="checkbox"
+                      className="size-4 shrink-0"
+                      checked={draft.topics.includes(key)}
+                      onChange={(e) =>
+                        setDraft((d) => ({
+                          ...d,
+                          topics: e.target.checked
+                            ? [...d.topics, key]
+                            : d.topics.filter((k) => k !== key),
+                        }))
+                      }
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <Field label={t.fieldSessionLanguage} htmlFor={`lang-${session.session_id}`}>
               <Select
                 id={`lang-${session.session_id}`}
@@ -458,30 +558,31 @@ function SessionCard({
         />
       </div>
 
+    </Card>
+
       {/* Präsentation */}
-      <div className="mt-6 border-t pt-4">
-        <h3 className="ct-label mb-1 text-ink">{t.presentationTitle}</h3>
+    <Card id="praesentation" className="scroll-mt-20 p-6">
+      <div>
+        <h2 className="ct-h3 mb-1 text-ink">{t.presentationTitle}</h2>
         <p className="ct-help">
           {due ? `${t.deadline}: ${dateTime.format(new Date(due))}` : t.deadlineUnknown}
           {lateNow && ` — ${t.deadlinePassedHint}`}
         </p>
         <p className="ct-help mt-1">{t.uploadHint}</p>
 
-        <label className="mt-3 inline-flex items-center gap-2">
-          <input
-            type="file"
-            accept=".pdf,.ppt,.pptx,.key"
-            disabled={uploading}
-            className="ct-small"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              // Zurücksetzen, damit dieselbe Datei erneut gewählt werden kann.
-              e.target.value = "";
-              if (file) onUpload(session, file);
-            }}
-          />
-          {uploading && <span className="ct-help">{t.uploading}</span>}
-        </label>
+        {/* Der gemeinsame Baustein statt eines rohen Dateifelds (QS-025) —
+            genau die Stelle, an der es Konrad aufgefallen ist. Als Knopf
+            erkennbar, und Hochladen ist ein eigener Schritt. */}
+        <FileButton
+          className="mt-3"
+          label={t.uploadChoose}
+          uploadLabel={t.uploadAction}
+          changeLabel={t.uploadChange}
+          accept=".pdf,.ppt,.pptx,.key"
+          disabled={uploading}
+          onFile={(file) => onUpload(session, file)}
+        />
+        {uploading && <p className="ct-help mt-1">{t.uploading}</p>}
 
         {assets.length > 0 && (
           <ul className="mt-4 flex flex-col gap-2">
@@ -522,6 +623,18 @@ function SessionCard({
                   <Button size="sm" variant="secondary" onClick={() => onDownload(a)}>
                     {t.download}
                   </Button>
+                  {/* Die Assistenz lädt hoch, entfernt aber nicht: was weg
+                      ist, ist weg, und das entscheidet die Speakerin. */}
+                  {!isAssistant && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => onDelete(a)}
+                    >
+                      {t.deleteSlides}
+                    </Button>
+                  )}
                 </div>
               </li>
             ))}
@@ -535,22 +648,29 @@ function SessionCard({
       {/* Technik (SPK-018). Sie steht **unter dem Slot**, nicht im Profil:
           was auf der Bühne gebraucht wird, hängt am Auftritt, nicht am
           Menschen. `speaker_profile.tech_rider` bleibt nur Vorbelegung. */}
+    </Card>
+
       <TechSection
         session={session}
+        labels={labels}
         t={t}
         common={common}
         message={message}
         toast={toast}
       />
-    </Card>
+    </div>
   );
 }
 
 /**
  * Die Technik-Ansage des Speakers.
  *
- * Fünf feste Felder, alle Freitext (Konrads Entscheidung vom 17.09.). Was hier
- * steht, ist die **Ansage**; was die Regie daraus disponiert, steht im
+ * Seit dem 23.09. **zwei** Felder (SPK-029): das gewünschte Mikrofon als
+ * Auswahl und ein Kurztext für alles Weitere. „Personen auf der Bühne",
+ * „Präsentation und Medien" und „Mobiliar" sind raus — das weiß der Speaker
+ * nicht, das disponieren die Stage Leads im Regieplan (LEAD-012).
+ *
+ * Was hier steht, ist die **Ansage**; was die Regie daraus macht, steht im
  * Regieplan und wird hier nicht angezeigt — sonst wüsste niemand mehr, welche
  * der beiden Angaben gilt.
  *
@@ -559,12 +679,14 @@ function SessionCard({
  */
 function TechSection({
   session,
+  labels,
   t,
   common,
   message,
   toast,
 }: {
   session: MySession;
+  labels: Record<string, Record<string, string>>;
   t: Strings;
   common: { cancel: string; choose: string; none: string; required: string; save: string };
   message: (key: string) => string;
@@ -595,8 +717,8 @@ function TechSection({
   }
 
   return (
-    <div className="mt-6 border-t pt-4">
-      <h3 className="ct-label mb-1 text-ink">{t.techTitle}</h3>
+    <Card id="technik" className="scroll-mt-20 p-6">
+      <h2 className="ct-h3 mb-1 text-ink">{t.techTitle}</h2>
       <p className="ct-help">{t.techLead}</p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -610,13 +732,19 @@ function TechSection({
               label={t[`tech_${f.key}`] ?? f.key}
               htmlFor={id}
               hint={ueber ? t.techTooLong : t[`tech_${f.key}_hint`]}
-              className={f.lines === 2 ? "sm:col-span-2" : undefined}
+              className={f.kind === "text" ? "sm:col-span-2" : undefined}
             >
-              {f.lines === 2 ? (
-                <Textarea
+              {f.kind === "select" ? (
+                // Zwei sinnvolle Antworten, also eine Auswahl statt Freitext
+                // (SPK-029). Was die Regie tatsächlich stellt, trägt sie
+                // daneben in ihre eigene Zeile ein.
+                <Select
                   id={id}
-                  rows={2}
                   value={wert}
+                  placeholder={common.choose}
+                  options={Object.entries(
+                    (labels[f.vocab ?? ""] ?? {}) as Record<string, string>,
+                  ).map(([value, label]) => ({ value, label }))}
                   onChange={(e) => setTech((v) => ({ ...v, [f.key]: e.target.value }))}
                 />
               ) : (
@@ -634,6 +762,6 @@ function TechSection({
       <Button className="mt-4" disabled={!geaendert || zuLang} loading={pending} onClick={onSave}>
         {common.save}
       </Button>
-    </div>
+    </Card>
   );
 }

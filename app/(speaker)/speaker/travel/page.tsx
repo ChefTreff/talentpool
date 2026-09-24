@@ -2,14 +2,21 @@ import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import { loadEventDays } from "@/lib/event-days";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { AbschnittsNavigation, Sektion } from "@/components/ui/Abschnitte";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Anfahrt } from "./Anfahrt";
 import { Anreise, type SpeakerTravel } from "./Anreise";
 import { DietCard } from "@/components/diet/DietCard";
 import { ShuttleView } from "./ShuttleView";
 import { TravelView } from "./TravelView";
 import type { SpeakerProfile } from "../types";
-import type { HospitalityBooking, HospitalityOption, ShuttleBooking } from "./types";
+import type {
+  HospitalityBooking,
+  HospitalityOption,
+  ShuttleBooking,
+} from "./types";
 
 export const dynamic = "force-dynamic";
 
@@ -39,24 +46,119 @@ export default async function SpeakerTravelPage() {
 
   const profile = (profileJson ?? null) as SpeakerProfile | null;
   const travel = (travelJson ?? null) as SpeakerTravel | null;
-  const diet = (dietJson ?? null) as { diet: string | null; diet_note: string | null } | null;
+  const diet = (dietJson ?? null) as {
+    diet: string | null;
+    diet_note: string | null;
+  } | null;
 
   if (!profile) {
     return (
       <>
-        <PageHeader title={t.speaker.travelTitle} description={t.speaker.travelLead} />
-        <EmptyState title={t.speaker.noProfileTitle} description={t.speaker.noProfileBody} />
+        <PageHeader
+          title={t.speaker.travelTitle}
+          description={t.speaker.travelLead}
+        />
+        <EmptyState
+          title={t.speaker.noProfileTitle}
+          description={t.speaker.noProfileBody}
+        />
       </>
     );
   }
 
+  // --- Shuttle: Zeitfenster und Vorbelegung (SPK-032, SPK-034) -------------
+  // Konrad: Abholungen nur vom Tag vor dem Summit bis zum letzten Tag, jeweils
+  // 9 bis 21 Uhr. Die Tage kommen aus der Edition statt aus dem Kalender im
+  // Kopf — 2028 verschiebt sich der Summit, die Regel nicht.
+  const tage = await loadEventDays(supabase, profile.edition_id);
+  const tagDavor = tage.length
+    ? new Date(
+        new Date(`${tage[0]}T00:00:00.000Z`).getTime() - 24 * 60 * 60 * 1000,
+      )
+        .toISOString()
+        .slice(0, 10)
+    : null;
+  const letzterTag = tage.length ? tage[tage.length - 1] : null;
+  const tagFormat = new Intl.DateTimeFormat(t.meta.dateLocale, {
+    dateStyle: "medium",
+  });
+  const fenster =
+    tagDavor && letzterTag
+      ? {
+          min: `${tagDavor}T09:00`,
+          max: `${letzterTag}T21:00`,
+          vonStunde: 9,
+          bisStunde: 21,
+          hint: t.speaker.shuttleWindowHint
+            .replace(
+              "{von}",
+              tagFormat.format(new Date(`${tagDavor}T00:00:00.000Z`)),
+            )
+            .replace(
+              "{bis}",
+              tagFormat.format(new Date(`${letzterTag}T00:00:00.000Z`)),
+            ),
+        }
+      : undefined;
+
+  // Was aus der Anreise schon bekannt ist, steht im Fahrtformular drin.
+  const vorschlag: Record<string, string> = {};
+  const name = [profile.person.first_name, profile.person.last_name]
+    .filter(Boolean)
+    .join(" ");
+  if (name) vorschlag.passenger_name = name;
+  if (travel?.arrival_date) {
+    vorschlag.pickup_at = `${travel.arrival_date}T${(travel.arrival_time ?? "09:00").slice(0, 5)}`;
+  }
+
+  // Hotel und Kontingente nur für die, die welche bekommen (SPK-031). Die
+  // Liste der Stati ist dieselbe wie in `hospitality_block_reason`, plus
+  // `declined`: wer abgesagt hat, soll es zurücknehmen können, statt die
+  // Sektion verschwinden zu sehen.
+  //
+  // **Anreise, Ernährung und Shuttle bleiben für alle stehen.** Die brauchen
+  // wir von jedem Speaker — auch von dem, der mit dem eigenen Auto kommt und
+  // kein Zimmer bekommt. Nur das Hotelangebot weckt Erwartungen, die wir für
+  // diese Person nicht einlösen.
+  const HOSPITALITY_ANSPRUCH = new Set([
+    "eligible",
+    "requested",
+    "booked",
+    "declined",
+  ]);
+
+  // Die Übersicht führt nur, was auf dieser Seite auch steht (SPK-035, Muster
+  // QS-026): Ernährung und Hotel hängen an Bedingungen, ein Anker ins Leere
+  // wäre schlimmer als ein fehlender.
+  const zeigtDiet = !profile.is_assistant;
+  const zeigtHotel = HOSPITALITY_ANSPRUCH.has(profile.hospitality_status);
+  const abschnitte = [
+    { id: "anfahrt", label: t.speaker.arrivalTitle },
+    { id: "anreise", label: t.speaker.sectionArrival },
+    ...(zeigtDiet ? [{ id: "ernaehrung", label: t.diet.title }] : []),
+    { id: "shuttle", label: t.speaker.sectionShuttle },
+    ...(zeigtHotel ? [{ id: "hotel", label: t.speaker.sectionHotel }] : []),
+  ];
+
   return (
     <div className="max-w-[900px]">
-      <PageHeader title={t.speaker.travelTitle} description={t.speaker.travelLead} />
+      <PageHeader
+        title={t.speaker.travelTitle}
+        description={t.speaker.travelLead}
+      />
+
+      <AbschnittsNavigation label={t.speaker.sectionsLabel} items={abschnitte} />
+
+      {/* Die Anfahrt zuerst: sie gilt für jeden, der kommt — auch für die
+          ohne Zimmer. Vorher stand sie unten und steckte im Hotelteil. */}
+      <Sektion id="anfahrt" className="mb-6">
+        <Anfahrt t={t.speaker} />
+      </Sektion>
 
       <div className="mb-6 flex flex-col gap-6">
         {/* An-/Abreise zuerst: sie steht am Anfang der Reise und entscheidet,
             ob ein Hotel überhaupt gebraucht wird. */}
+        <Sektion id="anreise">
         <Anreise
           travel={travel}
           isAssistant={profile.is_assistant}
@@ -66,12 +168,14 @@ export default async function SpeakerTravelPage() {
           common={{ save: t.common.save, choose: t.common.choose }}
           rpcMessages={t.rpc}
         />
+        </Sektion>
         {/* Die Ernährung gehört hierher und nicht ins Profil: sie wird fürs
             Catering gebraucht, also dort, wo auch Hotel und Anreise stehen.
             **Nicht für die Assistenz**: sie darf die Angabe nicht lesen, sähe
             ein leeres Formular und würde beim Speichern eine hinterlegte
             Allergie löschen. */}
-        {!profile.is_assistant && (
+        {zeigtDiet && (
+          <Sektion id="ernaehrung">
           <DietCard
             diet={diet?.diet ?? null}
             note={diet?.diet_note ?? null}
@@ -81,14 +185,17 @@ export default async function SpeakerTravelPage() {
             common={{ save: t.common.save, choose: t.common.choose }}
             rpcMessages={t.rpc}
           />
+          </Sektion>
         )}
       </div>
 
       {/* Shuttle vor den Kontingenten: eine Fahrt ist ein Auftrag mit Zeit und
           Ziel, kein Platz in einem Topf. Wer hierher kommt, sucht meistens sie. */}
-      <div className="mb-6">
+      <Sektion id="shuttle" className="mb-6">
         <ShuttleView
           profileId={profile.id}
+          vorschlag={vorschlag}
+          fenster={fenster}
           bookings={(shuttleRows ?? []) as ShuttleBooking[]}
           isAssistant={profile.is_assistant}
           dateLocale={t.meta.dateLocale}
@@ -96,24 +203,30 @@ export default async function SpeakerTravelPage() {
           common={{ cancel: t.common.cancel, save: t.common.save }}
           rpcMessages={t.rpc}
         />
-      </div>
+      </Sektion>
 
-      <TravelView
-        isAssistant={profile.is_assistant}
-        options={(optionRows ?? []) as HospitalityOption[]}
-        bookings={(bookingRows ?? []) as HospitalityBooking[]}
-        tierLabels={vgroup(vocab, "hotel_tier")}
-        locale={locale}
-        dateLocale={t.meta.dateLocale}
-        t={t.speaker}
-        common={{
-          cancel: t.common.cancel,
-          choose: t.common.choose,
-          none: t.common.none,
-          save: t.common.save,
-        }}
-        rpcMessages={t.rpc}
-      />
+      {zeigtHotel && (
+        <Sektion id="hotel">
+        <TravelView
+          isAssistant={profile.is_assistant}
+          options={(optionRows ?? []) as HospitalityOption[]}
+          bookings={(bookingRows ?? []) as HospitalityBooking[]}
+          tierLabels={vgroup(vocab, "hotel_tier")}
+          locale={locale}
+          dateLocale={t.meta.dateLocale}
+          t={t.speaker}
+          common={{
+            cancel: t.common.cancel,
+            choose: t.common.choose,
+            none: t.common.none,
+            save: t.common.save,
+            yes: t.common.yes,
+            no: t.common.no,
+          }}
+          rpcMessages={t.rpc}
+        />
+        </Sektion>
+      )}
     </div>
   );
 }

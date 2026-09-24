@@ -53,12 +53,19 @@ export type MySession = {
  * Werte sind Freitext (Konrad, 17.09.: „ich denke Freitext bietet mehr
  * Flexibilität"). `lines` sagt, ob das Feld eine Zeile oder ein Feld braucht.
  */
-export const TECH_FIELDS: { key: string; lines: 1 | 2 }[] = [
-  { key: "people_on_stage", lines: 1 },
-  { key: "microphone", lines: 1 },
-  { key: "presentation_media", lines: 2 },
-  { key: "special_requirements", lines: 2 },
-  { key: "furniture", lines: 1 },
+/**
+ * Was der Speaker zur Technik sagt — seit dem Umbau vom 23.09. nur noch zwei
+ * Felder (SPK-029).
+ *
+ * „Personen auf der Bühne", „Präsentation und Medien" und „Mobiliar" sind
+ * raus: das weiß der Speaker nicht, das disponieren die Stage Leads. Sie
+ * stehen jetzt in `regie_cue` (LEAD-012).
+ *
+ * Das Mikrofon ist eine **Auswahl** (Konrad 21.09.), der Rest ein Kurztext.
+ */
+export const TECH_FIELDS: { key: string; kind: "select" | "text"; vocab?: string }[] = [
+  { key: "microphone", kind: "select", vocab: "speaker_microphone" },
+  { key: "special_requirements", kind: "text" },
 ];
 
 /** Was `update_session_tech` je Feld annimmt. */

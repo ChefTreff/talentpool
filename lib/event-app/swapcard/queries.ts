@@ -64,3 +64,67 @@ export function toSwapcardInput(item: ExhibitorUpsert): SwapcardExhibitorInput {
   if (item.booth) input.booth = item.booth;
   return input;
 }
+
+/**
+ * Sponsoren — der Bereich „Sponsoring & Werbung" in Swapcard: Logos, nach Kategorien sortiert.
+ *
+ * Geprüft am 21.09.2026 am 27er-Event. Lesen über die **oberste** Ebene (`sponsors(eventId)`), nicht über `event { … }`;
+ * die Kategorien hängen dagegen am Event (`sponsorsCategories`, ohne Argumente). Geschrieben wird je Eintrag einzeln
+ * (`createEventSponsor` / `updateEventSponsor`); eine Stapelmutation gibt es nicht. `logoUrl` ist eine frei abrufbare
+ * Adresse — dieselbe öffentliche Kopie des freigegebenen PNG, die auch der Aussteller bekommt (0057).
+ *
+ * `deleteEventSponsors` **löscht endgültig**: einen Papierkorb wie in HubSpot gibt es hier nicht.
+ */
+export const SPONSOR_CATEGORIES = `query PortalSponsorCategories($id: ID!) {
+  event(id: $id) { sponsorsCategories { id name value position } }
+}`;
+
+export const LIST_SPONSORS = `query PortalSponsors($eventId: String!) {
+  sponsors(eventId: $eventId) {
+    ... on Sponsor { id name logoUrl externalUrl mode category { id name value } }
+    ... on SponsorExhibitor { id name logoUrl externalUrl mode category { id name value } }
+  }
+}`;
+
+export const CREATE_SPONSOR = `mutation PortalCreateSponsor($eventId: String!, $sponsor: CreateSponsorInput!) {
+  createEventSponsor(eventId: $eventId, sponsor: $sponsor) {
+    ... on Sponsor { id name logoUrl category { id name } }
+    ... on SponsorExhibitor { id name logoUrl category { id name } }
+  }
+}`;
+
+export const UPDATE_SPONSOR = `mutation PortalUpdateSponsor($eventId: String!, $sponsor: UpdateSponsorInput!) {
+  updateEventSponsor(eventId: $eventId, sponsor: $sponsor) {
+    ... on Sponsor { id name logoUrl category { id name } }
+    ... on SponsorExhibitor { id name logoUrl category { id name } }
+  }
+}`;
+
+export const DELETE_SPONSORS = `mutation PortalDeleteSponsors($eventId: String!, $sponsorIds: [String!]!) {
+  deleteEventSponsors(eventId: $eventId, sponsorIds: $sponsorIds) { ... on Sponsor { id } ... on SponsorExhibitor { id } }
+}`;
+/**
+ * Personen — Speaker und (später) Teilnehmende.
+ *
+ * Geprüft am 22.09.2026: `importEventPeople(eventId, data: [ImportEventPersonInput!]!, validateOnly)` legt an **oder** ändert,
+ * je `clientId`; anders als beim Ausstellerlauf gibt es hier ein echtes `validateOnly`. Der Pass-Typ steht als `type` und
+ * nimmt die Werte aus `event.speakersTypes` (`speaker-pass`, `partner-pass`, `talent-pass`, …). Gruppen (`Speakers`,
+ * `Exhibitors`, `Attendees`, `Team`, `Helpdesk`) hängen am Event und werden über `actions.updateGroups` gesetzt.
+ *
+ * Die Antwort ordnet über `results { inputId eventPerson { id } }` zu; `eventPeopleCreated` und `eventPeopleUpdated` sind
+ * **reine Kennungslisten** (`[ID!]!`, keine Objekte) — ob ein Eintrag neu war, steht also daran, ob seine Personen-Kennung
+ * in der ersten Liste auftaucht. Das kostete eine Runde: die naheliegende Form mit `clientIds` an den beiden Listen
+ * existiert nicht.
+ */
+export const EVENT_GROUPS = `query PortalEventGroups($id: ID!) {
+  event(id: $id) { groups { id name } }
+}`;
+
+export const IMPORT_PEOPLE = `mutation PortalImportPeople($eventId: ID!, $data: [ImportEventPersonInput!]!, $validateOnly: Boolean) {
+  importEventPeople(eventId: $eventId, data: $data, validateOnly: $validateOnly) {
+    errors { inputId errorCode message path expectedValue }
+    results { inputId eventPerson { id } }
+    eventPeopleCreated
+    eventPeopleUpdated
+  }
+}`;

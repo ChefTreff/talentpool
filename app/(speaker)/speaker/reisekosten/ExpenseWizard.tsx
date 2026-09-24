@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { FileButton } from "@/components/ui/FileButton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CheckMark } from "@/components/ui/CheckMark";
@@ -273,10 +274,14 @@ export function ExpenseWizard({
   // Dieselben drei Bedingungen, die unten die Pruefliste bildet — sie stehen
   // hier einmal und werden zweimal benutzt, damit Leiste und Liste nicht
   // auseinanderlaufen koennen.
-  const positionenFertig = rowsComplete && !missingReceipt;
+  // Bei einer Pauschale gibt es nichts zu erfassen (SPK-042): der Betrag steht
+  // fest, das Team hat ihn gesetzt, und die Datenbank weist Positionen ab. Der
+  // Antrag bleibt trotzdem — er trägt die Bankverbindung.
+  const pauschale = eligibility.mode === "lump_sum";
+  const positionenFertig = pauschale ? true : rowsComplete && !missingReceipt;
   const bankFertig = Boolean(open?.has_bank);
   const schritte = [
-    { label: t.stepPositions, done: positionenFertig },
+    { label: pauschale ? t.stepLumpSum : t.stepPositions, done: positionenFertig },
     { label: t.stepBank, done: bankFertig },
     { label: t.stepSubmit, done: false },
   ];
@@ -305,7 +310,18 @@ export function ExpenseWizard({
         </Card>
       )}
 
-      {/* 1 · Positionen */}
+      {/* 1 · Pauschale oder Positionen */}
+      {pauschale ? (
+        <Card className="p-6">
+          <h2 className="ct-h3 mb-1 text-ink">{t.stepLumpSum}</h2>
+          <p className="ct-small mt-2 leading-6">{t.lumpSumBody}</p>
+          <p className="ct-display mt-3 text-ink">
+            {new Intl.NumberFormat(dateLocale, { style: "currency", currency: "EUR" }).format(
+              (eligibility.lump_sum_cents ?? 0) / 100,
+            )}
+          </p>
+        </Card>
+      ) : (
       <Card className="p-6">
         <h2 className="ct-h3 mb-1 text-ink">{t.stepPositions}</h2>
         <p className="ct-help mb-4">{t.positionsHint}</p>
@@ -362,18 +378,16 @@ export function ExpenseWizard({
                   ) : (
                     <Badge tone="warning">{t.receiptMissing}</Badge>
                   )}
-                  <label className="ct-help">
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png,.webp"
-                      disabled={uploading === i}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        e.target.value = "";
-                        if (file) onReceipt(i, file);
-                      }}
-                    />
-                  </label>
+                  {/* Der gemeinsame Baustein statt eines rohen Dateifelds
+                      (QS-025). In einer Belegzeile steht er klein. */}
+                  <FileButton
+                    label={t.receiptChoose}
+                    uploadLabel={t.uploadAction}
+                    changeLabel={t.uploadChange}
+                    accept=".pdf,.jpg,.jpeg,.png,.webp"
+                    disabled={uploading === i}
+                    onFile={(file) => onReceipt(i, file)}
+                  />
                   {uploading === i && <span className="ct-help">{t.uploading}</span>}
                 </div>
                 {rows.length > 1 && (
@@ -411,6 +425,7 @@ export function ExpenseWizard({
           </Button>
         </div>
       </Card>
+      )}
 
       {/* 2 · Bankdaten — nur der Speaker, nie vorbefüllt */}
       <Card className="p-6">

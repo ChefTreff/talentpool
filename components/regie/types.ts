@@ -11,6 +11,8 @@ export type RegieCue = {
   regie: string | null;
   backstage: string | null;
   mobiliar: string | null;
+  /** Wer auf der Bühne steht — Angabe der Stage Leads (SPK-029). */
+  people_on_stage: string | null;
   notes: string | null;
   mic_assignments: Record<string, unknown>;
   media: Record<string, unknown>;

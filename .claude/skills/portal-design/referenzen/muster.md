@@ -88,6 +88,14 @@ Die Marker sind Sechsecke auf einer durchgehenden Linie — waagerecht ab 640 px
 
 **Die Porträt-Form gilt für Personen, nicht für Bedienelemente.** `PortraitShape` (gekipptes Dreieck) trägt jede Personen-Darstellung ab 56 px — `PersonCard`, `ContactCard`, Listen, Jury, Team. Der Avatar im Profilmenü bleibt rund: er ist bei 24 px der Auslöser eines Menüs, kein Porträt, und ein Dreieck in dieser Grösse ist nur noch ein Fleck.
 
+**Lange Seiten sagen, woraus sie bestehen** (QS-026). Ab etwa vier Abschnitten bekommt eine Seite eine `AbschnittsNavigation` oben; jeder Abschnitt traegt einen Anker (`<Card id>` oder `<Sektion id>`), und die Seitenleiste spiegelt dieselbe Liste als eingerueckte Unterpunkte. **Die Seite benennt ihre Abschnitte selbst** — nicht automatisch aus den Ueberschriften gelesen, denn die Uebersicht soll die wichtigen zeigen, nicht alle. Zustandsmeldungen („nicht berechtigt“, „abgelehnt“) gehoeren nicht hinein. **Wizards bekommen keine**: dort fuehrt die `StepBar`, und zwei Fortschrittsanzeigen nebeneinander widersprechen sich. **Seiten mit gestuften Bedingungen auch nicht** — im Hackathon haengt jeder Abschnitt am vorigen (`accepted`, dann `accepted && team`, dann `accepted && team && challenge`); eine feste Liste zeigte dort auf Anker, die je nach Stand gar nicht im Dokument stehen. Ein Sprungziel, das ins Leere fuehrt, ist schlechter als keine Übersicht.
+
+**Dateien waehlt man mit `FileButton`, nie mit einem rohen `<input type="file">`.** Das rohe Feld zeichnet der Browser selbst: es sieht auf jedem System anders aus, heisst mal „Datei auswaehlen“ und mal „Durchsuchen“, und man erkennt nicht, dass dort etwas hochgeladen wird (QS-025). Auswaehlen und Hochladen sind **zwei** Schritte — wer die falsche Datei erwischt, soll es vor dem Hochladen sehen.
+
+**Die Sprache waehlt man ueberall gleich**, mit `LocaleSwitcher`: beide Sprachen nebeneinander, die aktive fett und unterstrichen. Eine Zeile, die nur die *andere* Sprache zeigt, verraet den Zustand nicht (QS-024). Der Baustein steht in der Shell und gilt damit fuer alle Portale; einzelne Seiten bauen ihn nicht nach.
+
+**Das Hero-Band steht auf jeder Startseite** (Konrad, 17.09.). Es traegt den Titel, deshalb steht darunter **kein** `PageHeader` mehr — zwei Ueberschriften uebereinander waren genau der Fehler, den es vermeidet. Leerzustaende (kein Profil, keine Organisation) behalten den schlichten Kopf: ein Marken-Band ueber einer Fehlmeldung ist Prunk.
+
 ## Login, Welcome, Marketing-Moment
 
 Die einzigen Stellen, an denen die Marke laut auftritt:

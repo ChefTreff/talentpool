@@ -10,7 +10,7 @@ begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_sp from speaker_profile where id = p_profile_id;
   if not found then raise exception 'speaker_not_found' using errcode = 'P0002'; end if;
-  if not coalesce((v_sp.person_id = v_me or v_sp.assistant_person_id = v_me or can_manage_speaker(p_profile_id)), false) then
+  if not coalesce((v_sp.person_id = v_me or is_speaker_assistant(v_sp.id, v_me) or can_manage_speaker(p_profile_id)), false) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   if p_kind not in ('presentation', 'photo', 'other', 'receipt') then raise exception 'invalid_kind' using errcode = '22023'; end if;

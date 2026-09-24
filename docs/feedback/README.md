@@ -10,7 +10,7 @@ Je Portal eine Datei. Sie ist das **Gedächtnis** für Konrads Feedback: jeder P
 
 **Prio:** `P1` blockiert den Go-live 14.10. (Funktion fehlt, ist falsch, Sicherheit) · `P2` vor dem Prozessstart 01.11. (Kunden sehen es) · `P3` danach.
 
-**Status:** `erfasst` (offen, nichts gebaut) · `geplant #<PR>` · `gebaut` (im Code, von Konrad noch nicht abgenommen) · `abgenommen` (nur wenn Konrad es ausdrücklich bestätigt hat) · `zurückgestellt (Grund, Datum)` · `abgelehnt (Entscheidungslog <Datum>)`. Hinter `gebaut`/`geplant` steht der Beleg in Klammern (Pfad oder Migrationsnummer). **Nie löschen, nur den Status ändern.**
+**Status:** `offen` (früher `erfasst`, gleichbedeutend; nichts gebaut) · `geplant #<PR>` · `gebaut` (im Code, von Konrad noch nicht abgenommen) · `abgenommen` (nur wenn Konrad es ausdrücklich bestätigt hat) · `zurückgestellt (Grund, Datum)` · `abgelehnt (Entscheidungslog <Datum>)`. Hinter `gebaut`/`geplant` steht der Beleg in Klammern (Pfad oder Migrationsnummer). **Nie löschen, nur den Status ändern.**
 
 **Pflichtablauf der Session (Leitfaden §3):**
 1. Jede Feedback-Nachricht **zuerst vollständig** hier eintragen, Status `erfasst`.
