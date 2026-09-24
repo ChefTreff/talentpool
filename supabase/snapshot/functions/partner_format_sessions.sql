@@ -1,5 +1,5 @@
 create or replace function partner_format_sessions(p_org_id uuid, p_format text DEFAULT NULL::text, p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(id uuid, format text, title_de text, title_en text, description_de text, description_en text, language text, access_mode text, capacity integer, publish_status text, format_details jsonb, starts_at timestamp with time zone, ends_at timestamp with time zone, stage_name text, day_label_de text, applications_total integer, applications_accepted integer, is_host boolean, stage_id uuid, event_day_id uuid)
+ RETURNS TABLE(id uuid, format text, title_de text, title_en text, description_de text, description_en text, language text, access_mode text, capacity integer, publish_status text, format_details jsonb, starts_at timestamp with time zone, ends_at timestamp with time zone, stage_name text, day_label_de text, applications_total integer, applications_accepted integer, is_host boolean, stage_id uuid, event_day_id uuid, return_note text, returned_at timestamp with time zone)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -16,12 +16,15 @@ begin
            (select count(*)::integer from application a where a.session_id = se.id),
            (select count(*)::integer from application a where a.session_id = se.id and a.status in ('accepted','confirmed')),
            (se.host_org_id = p_org_id),
-           st.id, ed.id
+           st.id, ed.id,
+           -- PART-083: der offene Rückgabegrund der Programmleitung, falls es einen gibt.
+           rr.note, rr.returned_at
       from session se
       join event ev on ev.id = se.event_id
       left join slot sl on sl.id = se.slot_id
       left join stage st on st.id = sl.stage_id
       left join event_day ed on ed.id = sl.event_day_id
+      left join partner_session_return rr on rr.session_id = se.id
      where se.partner_org_id = p_org_id
        and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id)
        and se.publish_status <> 'cancelled'

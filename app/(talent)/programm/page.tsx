@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/Card";
 import { ButtonLink } from "@/components/ui/Button";
 import { EVENT_APP_STORE_LINKS } from "@/lib/event-app/store-links";
 import { ProgrammeView } from "./ProgrammeView";
-import { isApplicationFormat } from "./types";
+import { isApplicationFormat, targetProfileLabels, type FormatDetails } from "./types";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type {
   MyApplication,
   ProgrammeSession,
@@ -53,6 +54,79 @@ export default async function ProgrammPage() {
     supabase.from("event").select("id, timezone"),
     loadVocabMap(supabase, locale),
   ]);
+
+  // Format-Details (TAL-002/003). Vor der Migration v6_format_details_public
+  // liefert der Aufruf einen Fehler — dann bleibt es bei den Grunddaten.
+  type RawDetails = {
+    session_id: string;
+    host_name: string | null;
+    location_text: string | null;
+    image_path: string | null;
+    job_title: string | null;
+    job_posting_text: string | null;
+    job_posting_url: string | null;
+    interview_mode: "single" | "group" | null;
+    target_profile: Record<string, string[]> | null;
+    tour: {
+      name: string;
+      meeting_point: string | null;
+      starts_at: string | null;
+      ends_at: string | null;
+      stops: {
+        host_name: string | null;
+        address: string | null;
+        arrival_at: string | null;
+        departure_at: string | null;
+        notes_public: string | null;
+        target_profile: Record<string, string[]> | null;
+      }[];
+    } | null;
+  };
+  const { data: detailRows } = await supabase.rpc("programme_format_details");
+  const rawDetails = (detailRows ?? []) as RawDetails[];
+  // Bilder liegen im privaten Bucket der Partner. Signiert werden nur Pfade,
+  // die `programme_format_details()` eben herausgegeben hat; der Pfad selbst
+  // geht nicht in den Browser.
+  const imagePaths = rawDetails.map((d) => d.image_path).filter((p): p is string => Boolean(p));
+  let imageUrls = new Map<string, string | null>();
+  if (imagePaths.length > 0) {
+    const { data: signed } = await createSupabaseAdminClient()
+      .storage.from("partner-assets")
+      .createSignedUrls(imagePaths, 60 * 60);
+    imageUrls = new Map((signed ?? []).map((u) => [u.path ?? "", u.signedUrl ?? null]));
+  }
+  const tpLabel = (v: string, k: string) => vlabel(vocab, v, k);
+  const details: Record<string, FormatDetails> = Object.fromEntries(
+    rawDetails.map((d) => [
+      d.session_id,
+      {
+        hostName: d.host_name,
+        location: d.location_text ?? d.tour?.meeting_point ?? null,
+        imageUrl: d.image_path ? (imageUrls.get(d.image_path) ?? null) : null,
+        jobTitle: d.job_title,
+        jobPostingText: d.job_posting_text,
+        jobPostingUrl: d.job_posting_url,
+        interviewMode: d.interview_mode,
+        targetProfile: targetProfileLabels(d.target_profile, tpLabel),
+        tour: d.tour
+          ? {
+              name: d.tour.name,
+              meetingPoint: d.tour.meeting_point,
+              startsAt: d.tour.starts_at,
+              endsAt: d.tour.ends_at,
+              stops: (d.tour.stops ?? []).map((st) => ({
+                hostName: st.host_name,
+                address: st.address,
+                arrivalAt: st.arrival_at,
+                departureAt: st.departure_at,
+                notes: st.notes_public,
+                targetProfile: targetProfileLabels(st.target_profile, tpLabel),
+              })),
+            }
+          : null,
+      } satisfies FormatDetails,
+    ]),
+  );
 
   // Nur Formate mit Bewerbung (TAL-014). Keynotes, Panels und Talks stehen in
   // der Event-App; das Portal ist der Bewerbungsort, nicht der Programmplan.
@@ -207,6 +281,7 @@ export default async function ProgrammPage() {
           (registrationRows ?? []) as { session_id: string; status: string }[]
         }
         questions={questions}
+        details={details}
         timezones={Object.fromEntries(timezoneByEvent)}
         labels={labels}
         locale={locale}

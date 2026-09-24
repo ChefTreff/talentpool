@@ -57,6 +57,17 @@ begin
   update slot set status = case when p_approved then 'final' else 'requested' end
    where id = v_se.slot_id;
 
+  -- PART-083: der Grund muss beim Partner ankommen, nicht nur im Audit. Freigegeben heisst: kein
+  -- offener Grund mehr; eine zweite Rückgabe ersetzt die erste.
+  if p_approved then
+    delete from partner_session_return where session_id = p_session_id;
+  else
+    insert into partner_session_return (session_id, note, returned_at, returned_by)
+    values (p_session_id, btrim(p_note), now(), current_person_id())
+    on conflict (session_id) do update
+      set note = excluded.note, returned_at = excluded.returned_at, returned_by = excluded.returned_by;
+  end if;
+
   perform log_audit(case when p_approved then 'partner.session_released' else 'partner.session_rejected' end,
                     'session', p_session_id::text,
                     jsonb_build_object('publish_status', v_se.publish_status),
