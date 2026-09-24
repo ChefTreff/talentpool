@@ -1,4 +1,5 @@
--- 00NN · Eigene Tickets im Teilnehmer-Portal (TAL-015): Leserolle my_tickets().
+-- 0170 · Eigene Tickets im Teilnehmer-Portal (TAL-015)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924190531.
 --
 -- Anlass: TAL-015 (Konrad 24.09.2026, über die Architektur-Session): Ticket-Seite in der
 -- Seitengruppe „Summit 2027" mit QR und Pass-Typ, nur eigene Tickets der Edition; Muster

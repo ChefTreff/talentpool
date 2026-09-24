@@ -96,6 +96,8 @@
 | Welle 6 · 0167 | **Welle 6 · Belege im Dateibereich einordnen (PART-065): my_partner_documents (Angebot, Rechnung, Messeshop-Rechnung)** (`20260924142604`, `v6_partner_belege`; Details im Migrationskopf) | — |
 | Welle 6 · 0168 | **Welle 6 · Community-Events aus Luma (TAL-007 Stufe 2, D12): luma_sync_event, luma_sync_registration (nur Server), my_community_registrations** (`20260924142616`, `v6_luma_events`; Details im Migrationskopf) | — |
 | Welle 6 · 0169 | **Admin-Sicht Community-Events (TAL-008, D12)** (`20260924185858`, `v6_community_events_admin`; Details im Migrationskopf) | — |
+| Welle 6 · 0170 | **Eigene Tickets im Teilnehmer-Portal (TAL-015)** (`20260924190531`, `v6_my_tickets`; Details im Migrationskopf) | — |
+| Welle 6 · 0171 | **person.pronouns und person.cv_url streichen (SPK-066, TAL-013 B3)** (`20260924190700`, `v6_pronomen_cv_url`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

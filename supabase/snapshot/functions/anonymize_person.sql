@@ -53,8 +53,8 @@ begin
   --     alles nach Art. 9 DSGVO (Ernährung, Geschlecht) fällt weg.
   update person set
     first_name = null, last_name = null, birthdate = null, phone = null, phone_e164 = null,
-    linkedin_url = null, linkedin_normalized = null, cv_url = null,
-    employer_name = null, university = null, title = null, city = null, pronouns = null,
+    linkedin_url = null, linkedin_normalized = null,
+    employer_name = null, university = null, title = null, city = null,
     nationality = null, invite_code = null, auth_user_id = null,
     gender = null, diet = null, diet_note = null, photo_path = null,
     job_title = null, study_program_label = null, cv_path = null,
