@@ -1,21 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/shared";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import {
-  acceptAttribute,
-  checkFileRules,
-  formatBytes,
-  type FileRules,
-} from "@/lib/partner/file-rules";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { FileButton } from "@/components/ui/FileButton";
 import { StepBar } from "@/components/ui/StepBar";
-import { cn } from "@/components/ui/cn";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { useToast } from "@/components/ui/Toast";
 import { LogoWandEinwilligung } from "@/components/partner/LogoWandEinwilligung";
@@ -28,32 +19,17 @@ import {
   speicherDaten,
   type EureDatenEntwurf,
 } from "@/components/partner/EureDaten";
+import { saveOnboarding, setLogoWhiteningConsent } from "../actions";
 import {
-  registerPartnerAsset,
-  saveOnboarding,
-  setLogoWhiteningConsent,
-  submitDeliverable,
-} from "../actions";
-import { BUCKET, safeFileName } from "../upload";
-import {
-  canEditOnboarding,
-  type Deliverable,
-  type DeliverableAsset,
-  type PartnerOverview,
-} from "../types";
+  UploadKachel,
+  aktuelleFassung,
+  useDateiOeffnen,
+  usePflichtUpload,
+  useVorschau,
+} from "../UploadKachel";
+import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
 
 type Strings = Record<string, string>;
-
-/** Aktuelle Fassung einer Logo-Pflicht, falls es eine gibt. */
-function aktuelleFassung(d: Deliverable): DeliverableAsset | null {
-  return d.assets.find((a) => a.status !== "rejected") ?? d.assets[0] ?? null;
-}
-
-/** SVG und PNG zeigt der Browser; EPS nicht — dort bleibt es beim Dateinamen. */
-function vorschaubar(a: DeliverableAsset): boolean {
-  const mime = (a.mime ?? "").toLowerCase();
-  return mime === "image/svg+xml" || mime === "image/png" || /\.(svg|png)$/i.test(a.filename ?? a.storage_path);
-}
 
 export function OnboardingWizard({
   orgId,
@@ -83,10 +59,8 @@ export function OnboardingWizard({
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
-  const [uploading, setUploading] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<EureDatenEntwurf>(() => entwurfAus(overview));
-  const [vorschau, setVorschau] = useState<Record<string, string>>({});
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, {
@@ -98,28 +72,16 @@ export function OnboardingWizard({
   const allLogosThere = logos.length > 0 && logos.every((d) => aktuelleFassung(d) !== null);
   const logosDa = logos.filter((d) => aktuelleFassung(d) !== null).length;
 
-  // PART-060: Vorschau auf Schachbrett — nur so sieht man, ob ein PNG freigestellt
-  // ist. Die Dateien liegen privat; die Leseadresse gilt zehn Minuten.
-  const vorschauZiele = useMemo(
-    () => logos.map(aktuelleFassung).filter((a): a is DeliverableAsset => a !== null && vorschaubar(a)),
-    [logos],
-  );
-  useEffect(() => {
-    if (vorschauZiele.length === 0) return;
-    let aktiv = true;
-    const supabase = createSupabaseBrowserClient();
-    void Promise.all(
-      vorschauZiele.map(async (a) => {
-        const { data } = await supabase.storage.from(BUCKET).createSignedUrl(a.storage_path, 600);
-        return [a.id, data?.signedUrl ?? ""] as const;
-      }),
-    ).then((paare) => {
-      if (aktiv) setVorschau(Object.fromEntries(paare.filter(([, url]) => url !== "")));
-    });
-    return () => {
-      aktiv = false;
-    };
-  }, [vorschauZiele]);
+  // PART-060: Vorschau auf Schachbrett, Upload und Öffnen — dieselbe Umsetzung wie
+  // auf der Dateien-Seite (PART-035/065).
+  const vorschau = useVorschau(logos);
+  const { laedt, hochladen } = usePflichtUpload({
+    orgId,
+    editionId,
+    texte: { tooBig: t.logoTooBig, wrongType: t.logoWrongType, failed: t.logoFailed, done: t.logoDone },
+    rpcMessages,
+  });
+  const oeffnen = useDateiOeffnen(t.downloadFailed);
 
   // Der Haken kommt aus dem Inhalt, nicht aus der Position — dieselben Regeln
   // wie in `MissingHint`, damit Anzeige und Hinweis nicht auseinanderlaufen.
@@ -167,76 +129,6 @@ export function OnboardingWizard({
       if (next !== undefined) setStep(next);
       router.refresh();
     });
-  }
-
-  /**
-   * Logo-Upload. Der doppelte Riegel steht nur hier: einmal im Browser aus
-   * `file_rules`, damit niemand 20 MB hochlädt, um dann abgewiesen zu werden —
-   * und einmal in `register_partner_asset`, worauf allein Verlass ist.
-   *
-   * Seit Migration 0057 gibt es zwei Logo-Pflichten (SVG und PNG); der Ablauf
-   * ist für beide derselbe, die Art im Pfad ist der Schlüssel der Pflicht.
-   */
-  async function onLogo(logo: Deliverable, file: File) {
-    const rules: FileRules = logo.file_rules;
-    const bad = checkFileRules(file, rules);
-    if (bad) {
-      const allowed = (rules?.ext ?? []).map((e) => `.${e}`).join(", ");
-      toast(
-        "error",
-        bad.reason === "size"
-          ? t.logoTooBig.replace("{max}", bad.detail)
-          : t.logoWrongType.replace("{allowed}", allowed).replace("{got}", bad.detail),
-      );
-      return;
-    }
-    setUploading(logo.key);
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const path = `${editionId}/${orgId}/${logo.key}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
-      const up = await supabase.storage.from(BUCKET).upload(path, file, {
-        contentType: file.type || undefined,
-        upsert: false,
-      });
-      if (up.error) {
-        toast("error", `${t.logoFailed} (${up.error.message})`);
-        return;
-      }
-      const reg = await registerPartnerAsset({
-        orgId,
-        kind: logo.key,
-        storagePath: path,
-        filename: file.name,
-        mime: file.type || null,
-        sizeBytes: file.size,
-        deliverableId: logo.id,
-      });
-      if (!reg.ok) {
-        // Die Datei bleibt dann verwaist im Bucket. Sie hier zu löschen wäre
-        // der zweite Fehlerfall — lieber melden und aufräumen lassen.
-        toast("error", message(reg.key) + (reg.detail ? ` (${reg.detail})` : ""));
-        return;
-      }
-      const sub = await submitDeliverable(logo.id, [reg.data.id]);
-      if (!sub.ok) {
-        toast("error", message(sub.key) + (sub.detail ? ` (${sub.detail})` : ""));
-        return;
-      }
-      toast("success", t.logoDone.replace("{v}", String(reg.data.version)));
-      router.refresh();
-    } finally {
-      setUploading(null);
-    }
-  }
-
-  async function onDownloadLogo(path: string) {
-    const supabase = createSupabaseBrowserClient();
-    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 60);
-    if (error || !data?.signedUrl) {
-      toast("error", t.downloadFailed);
-      return;
-    }
-    window.open(data.signedUrl, "_blank", "noopener");
   }
 
   return (
@@ -314,103 +206,33 @@ export function OnboardingWizard({
               <div className="grid gap-4 sm:grid-cols-2">
                 {logos.map((logo) => {
                   const current = aktuelleFassung(logo);
-                  const rules: FileRules = logo.file_rules;
-                  // Das Formatzeichen kommt aus den Dateiregeln, nicht aus dem Text — ein
-                  // weiteres Format bekommt so von selbst sein Zeichen.
-                  const format = (rules?.ext?.[0] ?? logo.key).toUpperCase();
-                  const url = current ? vorschau[current.id] : undefined;
-                  const titel = (locale === "en" ? logo.label_en : logo.label_de) ?? logo.key;
                   return (
-                    <section
+                    <UploadKachel
                       key={logo.id}
-                      aria-labelledby={`logo-${logo.id}`}
-                      className={cn(
-                        "flex flex-col gap-3 rounded-ct-md border p-4",
-                        // Was fehlt, sieht anders aus: gestrichelt und mit Satz — Form und Text,
-                        // nicht nur Farbe.
-                        current ? "border-border" : "border-dashed border-border-strong",
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span
-                          aria-hidden
-                          className="ct-h2 flex size-14 shrink-0 items-center justify-center rounded-ct-md bg-accent-soft text-accent-deep"
-                        >
-                          {format}
-                        </span>
-                        <div>
-                          <h3 id={`logo-${logo.id}`} className="ct-h3 text-ink">
-                            {titel}
-                          </h3>
-                          <p className="ct-help">
-                            {(locale === "en" ? logo.description_en : logo.description_de) ?? ""}
-                          </p>
-                        </div>
-                      </div>
-
-                      {current ? (
-                        <>
-                          {url && (
-                            <div className="flex h-28 items-center justify-center rounded-ct-sm border bg-pattern-transparent p-3">
-                              {/* eslint-disable-next-line @next/next/no-img-element -- Signierte Storage-Adresse, keine feste Größe. */}
-                              <img
-                                src={url}
-                                alt={t.logoPreviewAlt.replace("{format}", format)}
-                                className="max-h-full max-w-full object-contain"
-                              />
-                            </div>
-                          )}
-                          <div className="flex flex-wrap items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => onDownloadLogo(current.storage_path)}
-                              className="ct-link break-all text-left"
-                            >
-                              {current.filename ?? current.storage_path.split("/").pop()}
-                            </button>
-                            <span className="ct-help">v{current.version}</span>
-                            <Badge
-                              tone={
-                                logo.status === "accepted"
-                                  ? "success"
-                                  : logo.status === "rejected"
-                                    ? "error"
-                                    : "accent"
-                              }
-                            >
-                              {t[`deliverable_${logo.status}`] ?? logo.status}
-                            </Badge>
-                          </div>
-                          {logo.submitted_at && (
-                            <p className="ct-help">
-                              {t.submittedOn} {dateTime.format(new Date(logo.submitted_at))}
-                            </p>
-                          )}
-                          {logo.review_note && (
-                            <p className="ct-help text-error-ink">
-                              {t.reviewNote}: {logo.review_note}
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <p className="ct-small text-muted">{t.logoNone}</p>
-                      )}
-
-                      <div className="mt-auto">
-                        <FileButton
-                          uploadLabel={common.upload}
-                          changeLabel={common.chooseOtherFile}
-                          label={(current ? t.logoReplaceFormat : t.logoUploadFormat).replace("{format}", format)}
-                          accept={acceptAttribute(rules)}
-                          disabled={uploading !== null || pending}
-                          hint={t.logoHint
-                            .replace("{allowed}", (rules?.ext ?? []).map((x) => `.${x}`).join(", "))
-                            .replace("{max}", formatBytes(rules?.max_bytes ?? 0))}
-                          onFile={(file) => void onLogo(logo, file)}
-                        />
-                        {uploading === logo.key && <p className="ct-help mt-2">{t.logoUploading}</p>}
-                      </div>
-                    </section>
+                      pflicht={logo}
+                      titel={(locale === "en" ? logo.label_en : logo.label_de) ?? logo.key}
+                      beschreibung={(locale === "en" ? logo.description_en : logo.description_de) ?? null}
+                      vorschauUrl={current ? vorschau[current.id] : undefined}
+                      kannHochladen
+                      laedt={laedt === logo.id}
+                      gesperrt={laedt !== null || pending}
+                      statusText={t[`deliverable_${logo.status}`] ?? logo.status}
+                      dateTime={dateTime}
+                      t={{
+                        upload: t.logoUploadFormat,
+                        replace: t.logoReplaceFormat,
+                        none: t.logoNone,
+                        hint: t.logoHint,
+                        uploading: t.logoUploading,
+                        previewAlt: t.logoPreviewAlt,
+                        submittedOn: t.submittedOn,
+                        reviewNote: t.reviewNote,
+                        upload_button: common.upload,
+                        change_file: common.chooseOtherFile,
+                      }}
+                      onFile={(file) => void hochladen(logo, file)}
+                      onOeffnen={(path) => void oeffnen(path)}
+                    />
                   );
                 })}
               </div>
