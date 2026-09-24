@@ -100,6 +100,7 @@
 | Welle 6 · 0171 | **person.pronouns und person.cv_url streichen (SPK-066, TAL-013 B3)** (`20260924190700`, `v6_pronomen_cv_url`; Details im Migrationskopf) | — |
 | Welle 6 · 0172 | **Rückgabegrund der Programmleitung für den Partner (PART-083)** (`20260924191722`, `v6_rueckgabegrund`; Details im Migrationskopf) | — |
 | Welle 6 · 0173 | **Format-Details für Teilnehmende (TAL-002/003)** (`20260924191735`, `v6_format_details_public`; Details im Migrationskopf) | — |
+| Welle 6 · 0174 | **Status der Session-Inhalte für Speaker (SPK-050)** (`20260924191954`, `v6_session_inhalt_status`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

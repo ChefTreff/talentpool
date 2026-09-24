@@ -11,7 +11,11 @@ AS $$
                    from session_speaker ss2 join person p2 on p2.id = ss2.person_id
                    where ss2.session_id = se.id and ss2.person_id <> ss.person_id), '[]'::jsonb),
          (select to_jsonb(sub) from (
-            select s.id, s.title, s.description, s.topics, s.language, s.notes, s.status, s.review_note, s.created_at, s.reviewed_at
+            select s.id, s.title, s.description, s.topics, s.language, s.notes, s.status, s.review_note, s.created_at, s.reviewed_at,
+                   -- SPK-050: ob vor dieser Einreichung schon eine übernommen wurde.
+                   exists (select 1 from session_submission s0
+                            where s0.session_id = s.session_id and s0.status = 'approved'
+                              and s0.created_at < s.created_at) as is_change
             from session_submission s where s.session_id = se.id order by s.created_at desc limit 1) sub),
          case when sp.person_id <> current_person_id()
               then jsonb_build_object('person_id', sp.person_id, 'first_name', p.first_name, 'last_name', p.last_name) end,

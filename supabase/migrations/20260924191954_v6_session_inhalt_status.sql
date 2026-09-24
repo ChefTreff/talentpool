@@ -1,4 +1,5 @@
--- Vorschlag ohne Nummer · Welle 6 · Status der Session-Inhalte für Speaker (SPK-050): my_sessions liefert is_change
+-- 0174 · Status der Session-Inhalte für Speaker (SPK-050)
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924191954.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
