@@ -86,7 +86,7 @@ export default async function PartnerTalkPage() {
 
   return (
     <>
-      <PageHeader title={s.title} description={s.lead} />
+      <PageHeader word={t.partner.wordStage} title={s.title} description={s.lead} />
 
       {sessions.length === 0 ? (
         // Gebucht, aber noch kein Slot: das ist der Normalfall am Anfang und

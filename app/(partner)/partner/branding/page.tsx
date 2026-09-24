@@ -61,7 +61,7 @@ export default async function PartnerBrandingPage() {
 
   return (
     <>
-      <PageHeader title={s.title} description={s.lead} />
+      <PageHeader word={t.partner.wordBrand} title={s.title} description={s.lead} />
 
       {gebucht.length === 0 ? (
         <EmptyState
