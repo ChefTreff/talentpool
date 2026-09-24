@@ -2828,7 +2828,6 @@
       "field_description_de": "Description (German)",
       "field_description_en": "Description (English)"
     },
-<<<<<<< HEAD
     "programmeRelease": {
       "tab": "Release",
       "partnerTitle": "Booth stages",
@@ -2851,7 +2850,7 @@
       "noSpeaker": "no speaker",
       "noSpeakerHint": "Publishing needs at least one speaker.",
       "untitled": "Untitled"
-=======
+    },
     "words": {
       "applications": "Talent",
       "programme": "Programme",
@@ -2903,7 +2902,6 @@
       "deadlines": "Every portal's deadlines in one place.",
       "contacts": "Who is in charge of what, and when things happen.",
       "persons": "Everyone on the platform — one profile per person."
->>>>>>> origin/main
     }
   },
   "adminMailTemplates": {

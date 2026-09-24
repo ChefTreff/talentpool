@@ -2828,7 +2828,6 @@
       "field_description_de": "Beschreibung (deutsch)",
       "field_description_en": "Beschreibung (englisch)"
     },
-<<<<<<< HEAD
     "programmeRelease": {
       "tab": "Freigabe",
       "partnerTitle": "Standbühnen",
@@ -2851,7 +2850,7 @@
       "noSpeaker": "kein Speaker",
       "noSpeakerHint": "Veröffentlichen braucht mindestens einen Speaker.",
       "untitled": "Ohne Titel"
-=======
+    },
     "words": {
       "applications": "Talente",
       "programme": "Programm",
@@ -2903,7 +2902,6 @@
       "deadlines": "Die Fristen aller Portale an einer Stelle.",
       "contacts": "Wer wofür zuständig ist und wann was stattfindet.",
       "persons": "Alle Personen der Plattform — ein Profil je Mensch."
->>>>>>> origin/main
     }
   },
   "adminMailTemplates": {
