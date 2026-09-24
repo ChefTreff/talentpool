@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
+import { SuchFeld } from "@/components/ui/SuchFeld";
 import { postJson, readJson } from "@/lib/fetch-json";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Bild, SessionZeile } from "./types";
@@ -159,7 +160,7 @@ export function GrafikenView({
         <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
           <label className="flex flex-col gap-1 sm:col-span-2">
             <span className="ct-label text-ink">{t.search}</span>
-            <Input value={suche} onChange={(e) => setSuche(e.target.value)} placeholder={t.searchHint} />
+            <SuchFeld value={suche} onChange={(e) => setSuche(e.target.value)} placeholder={t.searchHint} />
           </label>
           <label className="flex flex-col gap-1">
             <span className="ct-label text-ink">{t.filter}</span>

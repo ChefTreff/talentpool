@@ -16,6 +16,11 @@ import { DateRow, DateList } from "./DateRow";
 import { EmptyState } from "./EmptyState";
 import { Field } from "./Field";
 import { Input } from "./Input";
+import { AbschnittsNavigation } from "./Abschnitte";
+import { FristMarke } from "./FristMarke";
+import { Fortschritt } from "./Fortschritt";
+import { KalenderKnoepfe } from "./KalenderKnoepfe";
+import { SuchFeld } from "./SuchFeld";
 import { PortalFooter } from "@/components/layout/PortalFooter";
 
 export type KitTexte = Record<string, string>;
@@ -179,6 +184,59 @@ export function KitSchau({ t }: { t: KitTexte }) {
           <AccordionItem question={t.faqQ2}>{t.faqA2}</AccordionItem>
           <AccordionItem question={t.faqQ3}>{t.faqA3}</AccordionItem>
         </Accordion>
+      </Abschnitt>
+
+      {/* Neu am 24.09. (QS-042, QS-043, QS-044): die Bausteine, die Seiten nur
+          mit Daten zeigen — hier mit Musterinhalten zum Nachschlagen. */}
+      <Abschnitt titel={t.sSection}>
+        <AbschnittsNavigation
+          label={t.onThisPage}
+          items={[
+            { id: "kit-a", label: t.secA },
+            { id: "kit-b", label: t.secB },
+            { id: "kit-c", label: t.secC },
+          ]}
+        />
+        <Card>
+          <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
+            <h3 className="ct-h2 text-ink">{t.sectionTitle}</h3>
+            <FristMarke
+              className="ml-auto"
+              dueAt="2027-03-15T22:59:00Z"
+              dateText={t.deadlineDate}
+              t={{
+                label: t.deadlineLabel,
+                days: t.deadlineDays,
+                hours: t.deadlineHours,
+                soon: t.deadlineSoon,
+                passed: t.deadlinePassed,
+                done: t.deadlineDone,
+              }}
+            />
+          </div>
+          <KalenderKnoepfe
+            beschriftung="sichtbar"
+            termin={{ titel: t.calTitle, start: new Date("2027-04-16T08:30:00Z"), ende: new Date("2027-04-16T09:15:00Z") }}
+            ics="#"
+            t={{ add: t.calAdd, google: t.calGoogle, outlook: t.calOutlook, apple: t.calApple }}
+          />
+        </Card>
+      </Abschnitt>
+
+      {/* QS-038: aus den Quellen 21st.dev („Search Bars") und Dribbble-Dashboards. */}
+      <Abschnitt titel={t.sSearch}>
+        <Card>
+          <Field label={t.searchLabel} htmlFor="kit-suche">
+            <SuchFeld id="kit-suche" placeholder={t.searchPlaceholder} />
+          </Field>
+          <Fortschritt className="mt-6" wert={3} gesamt={8} label={t.progressLabel} />
+          <div className="mt-6 flex flex-wrap items-center gap-6">
+            <Fortschritt form="ring" wert={4} gesamt={7} label={t.progressRing} />
+            <div className="rounded-ct-lg bg-navy p-4">
+              <Fortschritt form="ring" ton="navy" wert={4} gesamt={7} label={t.progressRing} />
+            </div>
+          </div>
+        </Card>
       </Abschnitt>
 
       <Abschnitt titel={t.sEmpty}>

@@ -5,9 +5,9 @@ import Link from "next/link";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
+import { SuchFeld } from "@/components/ui/SuchFeld";
 import type { AdminSpeakerRow } from "./types";
 
 type Strings = Record<string, string>;
@@ -90,7 +90,7 @@ export function SpeakerListe({
         <div className="grid gap-3 sm:grid-cols-4 sm:items-end">
           <label className="flex flex-col gap-1 sm:col-span-2">
             <span className="ct-label text-ink">{t.search}</span>
-            <Input
+            <SuchFeld
               value={suche}
               onChange={(e) => setSuche(e.target.value)}
               placeholder={t.searchHint}

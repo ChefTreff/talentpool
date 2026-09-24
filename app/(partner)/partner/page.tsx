@@ -13,6 +13,7 @@ import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { PhotoCard } from "@/components/ui/PhotoCard";
 import { DateRow, DateList } from "@/components/ui/DateRow";
 import { InfoList, type InfoEintrag } from "@/components/ui/InfoList";
+import { Fortschritt } from "@/components/ui/Fortschritt";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadEditionInfos, loadMyContacts } from "@/components/kontakt/load";
 import { Anfahrt } from "@/components/kontakt/Anfahrt";
@@ -352,25 +353,16 @@ export default async function PartnerDashboard() {
 
         <Card>
           <h2 className="ct-h2 text-ink">{t.partner.checklistTitle}</h2>
-          <p className="ct-help mt-1">
-            {t.partner.checklistDone
+          {/* Der gemeinsame Balken mit Zahl daneben (QS-038) statt eines hier
+              gebauten; für Vorlesesoftware eine `progressbar` mit Wert. */}
+          <Fortschritt
+            className="mt-3"
+            wert={o.checklist.done}
+            gesamt={o.checklist.total}
+            label={t.partner.checklistDone
               .replace("{done}", String(o.checklist.done))
               .replace("{total}", String(o.checklist.total))}
-          </p>
-          <div
-            className="mt-3 h-2 w-full overflow-hidden rounded-ct-sm bg-surface-hover"
-            role="img"
-            aria-label={t.partner.checklistDone
-              .replace("{done}", String(o.checklist.done))
-              .replace("{total}", String(o.checklist.total))}
-          >
-            <div
-              className="h-full bg-accent"
-              style={{
-                width: `${o.checklist.total > 0 ? Math.round((o.checklist.done / o.checklist.total) * 100) : 0}%`,
-              }}
-            />
-          </div>
+          />
           <dl className="ct-help mt-3 flex flex-wrap gap-x-4 gap-y-1">
             <div className="flex gap-1">
               <dt className="font-semibold">{t.partner.statOpen}:</dt>

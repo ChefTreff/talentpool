@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/Input";
+import { SuchFeld } from "@/components/ui/SuchFeld";
 
 /**
  * Suche links, Warenkorb rechts — die Anordnung, die jeder Shop hat.
@@ -65,9 +65,8 @@ export function ShopBar({
         <label htmlFor="shop-suche" className="ct-label text-ink">
           {searchLabel}
         </label>
-        <Input
+        <SuchFeld
           id="shop-suche"
-          type="search"
           value={q}
           placeholder={searchPlaceholder}
           onChange={(e) => setQ(e.target.value)}
