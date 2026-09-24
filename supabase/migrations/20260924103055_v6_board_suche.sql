@@ -1,4 +1,5 @@
--- Vorschlag ohne Nummer · Welle 6 · Suche im Programm-Board (LEAD-019, LEAD-020)
+-- 0155 · Welle 6 · Board-Suche für Stage Leads (LEAD-019/020): can_search_board, board_search_people, board_search_partners, board_session_refs
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924103055.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
