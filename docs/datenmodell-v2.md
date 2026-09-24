@@ -86,6 +86,7 @@
 | Welle 6 · 0157 | **Welle 6 · Freigabe durch die Programmleitung (LEAD-022): partner_sessions_pending/release_partner_session prüfen is_programme_editor mit der richtigen Veranstaltung** (`20260924105441`, `v6_freigabe_programmleitung`; Details im Migrationskopf) | — |
 | Welle 6 · 0158 | **ip_hash aus audit_log und consent_record gestrichen (Konrad, 24.09.2026: „streichen, sofern kein Sicherheitsrisiko“)** (`20260924133016`, `v6_ip_hash_streichen`; Details im Migrationskopf) | — |
 | Welle 6 · 0159 | **Welle 6 · Kontakte bearbeiten und CC-Kontakt (PART-062/063): update_partner_contact, partner_mail_cc, mail_cc_recipients, Kopie an fünf Partner-Mails** (`20260924133947`, `v6_kontakte_bearbeiten_cc`; Details im Migrationskopf) | — |
+| Welle 6 · 0160 | **Welle 6 · Folien mit den Teilnehmenden teilen (SPK-055): set_slides_release mit NULL-sicherer Eigentümerprüfung, nur Präsentationen** (`20260924134337`, `v6_folien_teilen`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
