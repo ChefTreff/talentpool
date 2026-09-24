@@ -636,6 +636,21 @@ export function Board({
           slotId={editing.slotId}
           canPublish={canPublish}
           hostOrgId={hostOrgId}
+          slotInfo={(() => {
+            // Was der Drawer oben zeigt (LEAD-019): der Slot ist hier schon
+            // geladen, ein zweiter Abruf im Drawer wäre doppelte Arbeit.
+            const sl = slots.find((x) => x.slot_id === editing.slotId);
+            if (!sl) return null;
+            const stage = stages.find((x) => x.id === sl.stage_id);
+            return {
+              stageName: stage?.name ?? "—",
+              when: `${day ? formatDay(day.day_date, dateLocale) + " · " : ""}${formatMinutes(
+                minutesOfDay(sl.start_at, timezone),
+              )}–${formatMinutes(minutesOfDay(sl.end_at, timezone))}`,
+              status: sl.slot_status,
+              slotType: sl.slot_type,
+            };
+          })()}
           labels={labels}
           locale={locale}
           t={t}
