@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
+import { KalenderKnoepfe, type KalenderTexte } from "@/components/ui/KalenderKnoepfe";
 import { setReceptionRsvp } from "./actions";
 import type { MyReception } from "./types";
 
@@ -30,6 +31,7 @@ export function ReceptionCard({
   locale,
   dateLocale,
   t,
+  kalender,
   common,
   rpcMessages,
 }: {
@@ -38,6 +40,8 @@ export function ReceptionCard({
   locale: string;
   dateLocale: string;
   t: Strings;
+  /** Die drei Wege in den Kalender (QS-043) — dieselben Texte wie auf der Übersicht. */
+  kalender: KalenderTexte;
   common: { save: string };
   rpcMessages: Record<string, string>;
 }) {
@@ -101,9 +105,18 @@ export function ReceptionCard({
       {/* Erst nach der Zusage (SPK-014): ein Termin, den man abgesagt hat,
           gehört in keinen Kalender. */}
       {zugesagt && (
-        <a className="ct-link mt-3 inline-block" href={`/api/speaker/kalender?reception=${reception.id}`}>
-          {t.calendarAdd}
-        </a>
+        <KalenderKnoepfe
+          className="mt-3"
+          beschriftung="sichtbar"
+          termin={{
+            titel,
+            start: new Date(reception.starts_at),
+            ende: reception.ends_at ? new Date(reception.ends_at) : null,
+            ort: [reception.location, reception.address].filter(Boolean).join(", ") || null,
+          }}
+          ics={`/api/speaker/kalender?reception=${reception.id}`}
+          t={kalender}
+        />
       )}
 
       {reception.free != null && (
