@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
 import { Ausstattung } from "./Ausstattung";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Hallenplan } from "./Hallenplan";
 import { Rueckwand } from "./Rueckwand";
 import type { BoothPackage, EditionFile, Exhibitor } from "./types";
@@ -91,6 +92,16 @@ export default async function MessestandPage() {
   return (
     <>
       <PageHeader word={t.partner.wordPresence} title={b.title} description={b.lead} />
+      {/* QS-042: die drei Arbeitsabschnitte als Menü. Die Einleitung darüber
+          ist Lesestoff, kein Sprungziel. */}
+      <AbschnittsNavigation
+        label={t.common.onThisPage}
+        items={[
+          { id: "ausstattung", label: b.equipTitle },
+          { id: "rueckwand", label: b.backTitle },
+          { id: "hallenplan", label: b.planTitle },
+        ]}
+      />
 
       <div className="flex flex-col gap-10">
         <Card>
@@ -100,7 +111,7 @@ export default async function MessestandPage() {
 
         <section aria-labelledby="ausstattung">
           <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-            <h2 id="ausstattung" className="ct-h2 text-ink">
+            <h2 id="ausstattung" className="ct-h2 scroll-mt-20 text-ink">
               {b.equipTitle}
             </h2>
           </div>
@@ -121,7 +132,7 @@ export default async function MessestandPage() {
 
         <section aria-labelledby="rueckwand">
           <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-            <h2 id="rueckwand" className="ct-h2 text-ink">
+            <h2 id="rueckwand" className="ct-h2 scroll-mt-20 text-ink">
               {b.backTitle}
             </h2>
           </div>
@@ -141,7 +152,7 @@ export default async function MessestandPage() {
 
         <section aria-labelledby="hallenplan">
           <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-            <h2 id="hallenplan" className="ct-h2 text-ink">
+            <h2 id="hallenplan" className="ct-h2 scroll-mt-20 text-ink">
               {b.planTitle}
             </h2>
           </div>

@@ -40,7 +40,8 @@
     "no": "Nein",
     "upload": "Hochladen",
     "chooseOtherFile": "Andere Datei",
-    "newTab": "öffnet ein neues Fenster"
+    "newTab": "öffnet ein neues Fenster",
+    "onThisPage": "Auf dieser Seite"
   },
   "messages": {
     "not_signed_in": "Du bist nicht mehr angemeldet. Bitte neu anmelden.",

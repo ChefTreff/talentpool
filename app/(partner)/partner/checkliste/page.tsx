@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { ChecklistView, type ChecklistGroup } from "./ChecklistView";
 
 export const dynamic = "force-dynamic";
@@ -78,6 +79,13 @@ export default async function PartnerChecklistPage() {
           description={t.partnerChecklist.emptyBody}
         />
       ) : (
+        <>
+        {/* QS-042: die Gruppen als Menü. Ein Partner mit nur der allgemeinen
+            Gruppe sieht keins — unter zwei Einträgen zeigt die Übersicht nichts. */}
+        <AbschnittsNavigation
+          label={t.common.onThisPage}
+          items={groups.map((g) => ({ id: `g-${g.sku ?? "global"}`, label: g.label }))}
+        />
         <ChecklistView
           orgId={current.org_id}
           editionId={current.edition_id}
@@ -91,6 +99,7 @@ export default async function PartnerChecklistPage() {
           t={t.partnerChecklist}
           rpcMessages={t.rpc}
         />
+        </>
       )}
     </>
   );
