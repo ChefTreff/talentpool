@@ -1,3 +1,5 @@
+-- 0161 · Welle 6 · Profilfelder Teilnehmer-Portal (TAL-013): Vokabular, Spalten, person_language, Lebenslauf-Bucket person-cv, set_my_cv, Vokabular-Wächter
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924135111.
 -- 00NN · Profilfelder Teilnehmer-Portal (TAL-013): Spalten, Vokabular, Sprachen, Lebenslauf.
 --
 -- Anlass: Feldvorschlag `docs/talent-felder-vorschlag.md`, Konrads Antworten §5 (24.09.2026):

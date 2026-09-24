@@ -29,10 +29,16 @@ begin
     select 'person-photos', p.photo_path from person p
      where p.id = p_person_id and p.photo_path is not null
   on conflict (bucket, path) do nothing;
+  -- Lebenslauf aus dem Teilnehmer-Profil (TAL-013, B3).
+  insert into storage_purge_queue (bucket, path)
+    select 'person-cv', p.cv_path from person p
+     where p.id = p_person_id and p.cv_path is not null
+  on conflict (bucket, path) do nothing;
 
   -- 3 · Zeilen, die ohne die Person keinen Sinn mehr haben.
   delete from person_interest            where person_id = p_person_id;
   delete from person_acquisition_channel where person_id = p_person_id;
+  delete from person_language            where person_id = p_person_id;
   delete from role_assignment            where person_id = p_person_id;
   -- Ansprechperson einer Organisation kann nur sein, wen es gibt.
   delete from org_membership             where person_id = p_person_id;
@@ -51,6 +57,7 @@ begin
     employer_name = null, university = null, title = null, city = null, pronouns = null,
     nationality = null, invite_code = null, auth_user_id = null,
     gender = null, diet = null, diet_note = null, photo_path = null,
+    job_title = null, study_program_label = null, cv_path = null,
     salutation_de = null, salutation_en = null, self_assessment = null,
     deleted_at = now()
   where id = p_person_id;
