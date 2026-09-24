@@ -48,6 +48,14 @@ begin
       using errcode = 'P0001', hint = 'Slot ist veröffentlicht. Verschieben nur mit Bestätigung.';
   end if;
   select * into v_sd from stage_day where stage_id = p_stage_id and event_day_id = v_day.id;
+  -- Tagesrahmen (LEAD-016): für Stage Leads hart, für das Programm-Team eine
+  -- Warnung wie bisher. Ohne Rahmen keine Grenze (siehe Kopf).
+  if found and stage_frame_binds(p_stage_id) and (
+       (v_sd.open_from is not null and (p_start at time zone v_tz)::time < v_sd.open_from)
+    or (v_sd.open_to   is not null and (p_end   at time zone v_tz)::time > v_sd.open_to)) then
+    raise exception 'outside_stage_day' using errcode = 'P0001',
+      detail = coalesce(to_char(v_sd.open_from, 'HH24:MI'), '') || '–' || coalesce(to_char(v_sd.open_to, 'HH24:MI'), '');
+  end if;
   if found then
     if v_sd.open_from is not null and (p_start at time zone v_tz)::time < v_sd.open_from then
       v_warn := array_append(v_warn, 'before_open');

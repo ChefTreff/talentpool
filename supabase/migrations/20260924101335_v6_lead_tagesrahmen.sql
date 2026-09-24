@@ -1,4 +1,5 @@
--- Vorschlag ohne Nummer · Welle 6 · Tagesrahmen für Stage Leads (LEAD-016)
+-- 0153 · Welle 6 · Tagesrahmen für Stage Leads (LEAD-016): create_slot/move_slot weisen speaker_manager außerhalb stage_day hart ab
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924101335.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
