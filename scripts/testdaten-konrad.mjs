@@ -10,12 +10,15 @@
  *   - Rollen tragen `note = 'testdaten:konrad'`
  *   - angelegte Zeilen tragen den Namenspräfix `TEST — ` bzw. den
  *     Vokabular-Schlüssel `zz_test_bereich`
+ *   - Codes und Barcodes beginnen mit `ZZTEST`, Testdateien im Bucket mit
+ *     `zztest-`
  *   - `--remove` entfernt genau diese und sonst nichts
  *
  * Aufruf:
  *   node --env-file=.env.local scripts/testdaten-konrad.mjs --dry-run
  *   node --env-file=.env.local scripts/testdaten-konrad.mjs --apply
  *   node --env-file=.env.local scripts/testdaten-konrad.mjs --remove
+ *   … --apply --nur=ticket,fotos   (nur diese Schritte, siehe `SCHRITTE`)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -29,12 +32,20 @@ requireEnv(true);
 const args = process.argv.slice(2);
 const mode = args.includes("--apply") ? "apply" : args.includes("--remove") ? "remove" : "dry-run";
 const email = (args.find((a) => a.startsWith("--email="))?.split("=")[1] ?? "konrad@chef-treff.de").toLowerCase();
+/**
+ * Einzelne Schritte nachziehen. Ein volles `--apply` schreibt Profil,
+ * Bewerbungen und Rollen neu und setzt damit zurück, was jemand im Walkthrough
+ * inzwischen geändert hat — `--nur` lässt das stehen.
+ */
+const nur = args.find((a) => a.startsWith("--nur="))?.split("=")[1]?.split(",").filter(Boolean) ?? null;
 
 const MARK = "testdaten:konrad";
 const PREFIX = "TEST — ";
 const AREA_KEY = "zz_test_bereich";
 /** Kürzel im Coupon-Code, damit Testkontingente in vivenu-Listen auffallen. */
 const PREFIX_CODE = "ZZTEST";
+/** Bucket der Bühnenfotos (`v6_session_grafiken`), privat. */
+const SESSION_BUCKET = "session-assets";
 const admin = createClient(url, secretKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
 const log = [];
@@ -335,6 +346,10 @@ async function apply(me, ed) {
   // beurteilbar.
   if (orgId) await ticketAllocation(me, ed, orgId);
   await ownSession(me, ed);
+  // SPK-063/064: ohne sie zeigen `/speaker/tickets` nur „wird ausgestellt"
+  // und „Deine Bilder" nur den Leerzustand.
+  await speakerTicket(me, ed);
+  await stagePhotos(me, ed);
   if (orgId) await partnerStage(me, ed, orgId, validTo);
   if (orgId) await formatApplication(me, ed, orgId);
 }
@@ -399,6 +414,151 @@ async function ownSession(me, ed) {
       .upsert({ session_id: sessionId, person_id: me.id, role: "speaker", confirmed: true },
               { onConflict: "session_id,person_id,role" });
   });
+}
+
+/**
+ * SPK-063: Konrads eigenes Speaker-Ticket als ausgestellt, damit
+ * `/speaker/tickets` die Ticketkarte mit QR-Code zeigt statt „wird
+ * ausgestellt".
+ *
+ * Das Freiticket legt der Trigger auf `speaker_profile` selbst an, sobald das
+ * Profil `confirmed` ist (0034). Hier wird es nur so gesetzt, wie
+ * `set_ticket_issued` es täte — **ohne vivenu**: der Barcode beginnt mit
+ * ZZTEST, `vivenu_ticket_id` und Secret bleiben leer. Deshalb endet „Zur
+ * Wallet hinzufügen" beim Testticket in „not found" (`my_ticket_wallet_link`
+ * → `ticket_not_issued`); ein über vivenu ausgestelltes Ticket führt auf
+ * seine vivenu-Seite.
+ *
+ * `team_note` bleibt leer: die Spalte ist der Hinweis des Teams **an den
+ * Anfragenden**, keine Kennzeichnung. Erkennbar ist das Testticket am Barcode
+ * und daran, dass es am Testprofil hängt — daran hält sich auch `--remove`.
+ *
+ * Nach aussen geht davon nichts: der vivenu-Abgleich liest nur ein und findet
+ * Zeilen über `vivenu_ticket_id`, und eine Ausstellung über die vivenu-API
+ * (A7b) gibt es noch nicht.
+ */
+async function speakerTicket(me, ed) {
+  const { data: sp } = await admin.from("speaker_profile").select("id")
+    .eq("person_id", me.id).eq("edition_id", ed.id).maybeSingle();
+  if (!sp) {
+    // Im Trockenlauf ohne Profil gibt es auch noch kein Freiticket.
+    if (mode === "dry-run") note("Speaker-Ticket ausgestellt (Testbarcode)");
+    else fail("Speaker-Ticket", "kein Speaker-Profil");
+    return;
+  }
+  const { data: t, error } = await admin.from("ticket").select("id, status, barcode")
+    .eq("speaker_profile_id", sp.id).eq("source", "speaker").neq("status", "cancelled").maybeSingle();
+  if (error) return fail("Speaker-Ticket", error);
+  if (!t) return fail("Speaker-Ticket", "keins angelegt — Trigger auf speaker_profile prüfen");
+  if (t.barcode) {
+    // Ein echter Barcode wird nie überschrieben.
+    return note("Speaker-Ticket", t.barcode.startsWith(PREFIX_CODE) ? "schon ausgestellt" : "echtes Ticket, nicht angefasst");
+  }
+  if (t.status !== "requested") return fail("Speaker-Ticket", `Status ${t.status}, erwartet requested`);
+  await write("Speaker-Ticket ausgestellt (Testbarcode)", () =>
+    admin.from("ticket").update({
+      status: "valid",
+      barcode: `${PREFIX_CODE}-SPK-${t.id.slice(0, 8).toUpperCase()}`,
+      purchased_at: new Date().toISOString(),
+    }).eq("id", t.id).is("barcode", null),
+  );
+}
+
+/**
+ * SPK-064: drei Bühnenfotos an der Testsession, damit „Deine Bilder" Raster,
+ * Bildnachweis und Download zeigt.
+ *
+ * Die Bilder sind gezeichnete Platzhalter — Bühne, Licht, Pult, kein Mensch,
+ * kein fremdes Foto. Zwei im Quer-, eines im Hochformat: das Raster schneidet
+ * auf 16:9 zu, und wie ein Hochformat dabei aussieht, soll man sehen.
+ *
+ * Pfad wie in `/api/admin/session-assets`: `<session>/stage_photo/<datei>` —
+ * nur so lässt die Bucket-Policy (`session_asset_path_allowed`) die Speakerin
+ * lesen. Die Zeile entsteht direkt statt über `register_session_asset`: die
+ * RPC verlangt Marketing-Rechte am Nutzerkonto und schickt beim ersten Foto
+ * `stage_photos_ready` an alle Speaker der Session; Testdaten lösen keine
+ * Mails aus.
+ */
+async function stagePhotos(me, ed) {
+  const { data: ev } = await admin
+    .from("event").select("id").eq("edition_id", ed.id).order("start_date").limit(1).maybeSingle();
+  const eventId = ev?.id ?? ed.id;
+  const { data: se } = await admin.from("session").select("id")
+    .eq("event_id", eventId).eq("title_de", `${PREFIX}Keynote`).maybeSingle();
+  if (!se) {
+    if (mode === "dry-run") note("Bühnenfotos 1–3 an der Testsession");
+    else fail("Bühnenfotos", "Testsession fehlt");
+    return;
+  }
+  const fotos = [
+    { n: 1, w: 1800, h: 1200, credit: "ChefTreff (Testbild)" },
+    { n: 2, w: 1920, h: 1080, credit: "ChefTreff (Testbild)" },
+    // Ohne Nachweis: so sieht man auch die Karte, der die Zeile fehlt.
+    { n: 3, w: 1200, h: 1800, credit: null },
+  ];
+  let sharp = null;
+  for (const f of fotos) {
+    const path = `${se.id}/stage_photo/zztest-buehnenfoto-${f.n}.png`;
+    const { data: da } = await admin.from("session_asset").select("id").eq("storage_path", path).maybeSingle();
+    if (da) {
+      note(`Bühnenfoto ${f.n}`, "schon da");
+      continue;
+    }
+    await write(`Bühnenfoto ${f.n} (${f.w}×${f.h})`, async () => {
+      // Erst hier laden: `sharp` kommt über Next mit, steht aber nicht in
+      // unserer package.json — fehlt es, scheitert nur dieser Schritt.
+      sharp ??= (await import("sharp")).default;
+      const png = await sharp(Buffer.from(platzhalterSvg(f))).png().toBuffer();
+      const { error: upErr } = await admin.storage.from(SESSION_BUCKET)
+        .upload(path, png, { contentType: "image/png", upsert: true });
+      if (upErr) return { data: null, error: upErr };
+      const { data: letzte } = await admin.from("session_asset").select("version")
+        .eq("session_id", se.id).eq("kind", "stage_photo").order("version", { ascending: false }).limit(1).maybeSingle();
+      const res = await admin.from("session_asset").insert({
+        session_id: se.id, kind: "stage_photo", storage_path: path,
+        filename: `${PREFIX}Bühnenfoto ${f.n}.png`, mime: "image/png", size_bytes: png.length,
+        width: f.w, height: f.h, cutout: false, credit: f.credit,
+        version: (letzte?.version ?? 0) + 1, is_current: true, uploaded_by: me.id,
+      });
+      // Keine Datei ohne Zeile zurücklassen (wie die Upload-Route).
+      if (res.error) await admin.storage.from(SESSION_BUCKET).remove([path]);
+      return res;
+    });
+  }
+}
+
+/** Ein gezeichnetes Bühnenbild mit deutlicher Aufschrift „Testbild". */
+function platzhalterSvg({ n, w, h }) {
+  const kante = Math.round(h * 0.7);
+  const pultB = Math.round(w * 0.12);
+  const pultH = Math.round(h * 0.2);
+  const pultX = Math.round(w / 2 - pultB / 2);
+  // Nach der Breite bemessen, sonst läuft die Zeile im Hochformat über den Rand.
+  const gross = Math.round(Math.min(w * 0.05, h * 0.075));
+  // Die Aufschrift steht über der Mitte: das Raster schneidet auf 16:9 zu,
+  // beim Hochformat fällt die Bühnenkante weg, die Aufschrift bleibt.
+  const zeile = Math.round(h * 0.42);
+  const klein = Math.round(gross * 0.45);
+  const kegel = (x) =>
+    `<polygon points="${x - w * 0.02},0 ${x + w * 0.02},0 ${x + w * 0.16},${kante} ${x - w * 0.16},${kante}" fill="url(#licht)"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+  <defs>
+    <linearGradient id="grund" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#081a35"/><stop offset="1" stop-color="#4a4ac5"/>
+    </linearGradient>
+    <linearGradient id="licht" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.5"/><stop offset="1" stop-color="#ffffff" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+  <rect width="${w}" height="${h}" fill="url(#grund)"/>
+  ${kegel(w * 0.25)}${kegel(w * 0.5)}${kegel(w * 0.75)}
+  <rect x="0" y="${kante}" width="${w}" height="${h - kante}" fill="#081a35"/>
+  <rect x="${pultX}" y="${kante - pultH}" width="${pultB}" height="${pultH}" rx="${Math.round(pultB * 0.06)}" fill="#6262dc"/>
+  <text x="${w / 2}" y="${zeile}" text-anchor="middle" fill="#ffffff"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="${gross}">TESTBILD · Bühnenfoto ${n}</text>
+  <text x="${w / 2}" y="${zeile + klein * 1.8}" text-anchor="middle" fill="#ffffff" fill-opacity="0.8"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="${klein}">${PREFIX}Keynote · keine echte Aufnahme · ${w}×${h}</text>
+</svg>`;
 }
 
 /**
@@ -484,6 +644,19 @@ async function formatApplication(me, ed, orgId) {
   });
 }
 
+/** Die Schritte, die `--nur` kennt. */
+const SCHRITTE = { ticket: speakerTicket, fotos: stagePhotos };
+
+async function teilschritte(me, ed, namen) {
+  for (const name of namen) {
+    if (!SCHRITTE[name]) {
+      fail(`Schritt ${name}`, `unbekannt — bekannt sind ${Object.keys(SCHRITTE).join(", ")}`);
+      continue;
+    }
+    await SCHRITTE[name](me, ed);
+  }
+}
+
 async function remove(me) {
   await write("Rollen entfernt", () =>
     admin.from("role_assignment").delete().eq("person_id", me.id).eq("note", MARK),
@@ -543,6 +716,23 @@ async function remove(me) {
   await write("Vokabular-Bereich entfernt", () =>
     admin.from("vocab_term").delete().eq("vocabulary", "volunteer_area").eq("key", AREA_KEY),
   );
+  // Vor den Sessions: `session_asset` geht per ON DELETE CASCADE mit der
+  // Session, die Dateien im Bucket aber nicht — sie blieben als Waisen liegen.
+  // Also erst die Dateien, dann die Zeilen. Gemeint sind alle Bilder an
+  // Testsessions, auch die, die jemand im Walkthrough selbst hochgeladen hat.
+  await write("Bilder an Testsessions entfernt (Dateien und Zeilen)", async () => {
+    const { data: sessions } = await admin.from("session").select("id").like("title_de", `${PREFIX}%`);
+    const ids = (sessions ?? []).map((s) => s.id);
+    if (ids.length === 0) return { data: null, error: null };
+    const { data: rows, error } = await admin.from("session_asset").select("storage_path").in("session_id", ids);
+    if (error) return { data: null, error };
+    const pfade = (rows ?? []).map((r) => r.storage_path);
+    if (pfade.length > 0) {
+      const { error: wegFehler } = await admin.storage.from(SESSION_BUCKET).remove(pfade);
+      if (wegFehler) return { data: null, error: wegFehler };
+    }
+    return admin.from("session_asset").delete().in("session_id", ids);
+  });
   // Reihenfolge ist hier nicht beliebig: `slot` löscht per ON DELETE SET NULL
   // die `session.slot_id`, und der Veröffentlichungs-Trigger weist das für eine
   // veröffentlichte Session mit 23514 ab. Erst die Sessions, dann die Slots.
@@ -558,6 +748,22 @@ async function remove(me) {
     const { data: stages } = await admin.from("stage").select("id").eq("slug", "zz-test-standbuehne");
     for (const st of stages ?? []) await admin.from("slot").delete().eq("stage_id", st.id);
     return admin.from("stage").delete().eq("slug", "zz-test-standbuehne");
+  });
+  // Vor dem Profil: `ticket.speaker_profile_id` ist ON DELETE SET NULL — wer
+  // erst das Profil löscht, lässt Freiticket und Begleitticket als Waisen
+  // stehen. Was schon an vivenu hängt (`vivenu_ticket_id`), bleibt stehen und
+  // wird gemeldet; dahinter steht ein echtes Ticket, das man dort storniert.
+  await write("Tickets des Testprofils entfernt", async () => {
+    const { data: profile } = await admin.from("speaker_profile").select("id")
+      .eq("person_id", me.id).eq("internal_notes", MARK);
+    const ids = (profile ?? []).map((p) => p.id);
+    if (ids.length === 0) return { data: null, error: null };
+    const { data: echt } = await admin.from("ticket").select("id")
+      .in("speaker_profile_id", ids).not("vivenu_ticket_id", "is", null);
+    if ((echt ?? []).length > 0) {
+      log.push(`  !!  ${echt.length} Ticket(s) am Testprofil hängen an vivenu und bleiben stehen — bitte dort stornieren.`);
+    }
+    return admin.from("ticket").delete().in("speaker_profile_id", ids).is("vivenu_ticket_id", null);
   });
   await write("Speaker-Profil entfernt", () =>
     admin.from("speaker_profile").delete().eq("person_id", me.id).eq("internal_notes", MARK),
@@ -577,6 +783,7 @@ if (!ed) {
 
 console.log(`Testdaten für ${email} · Edition ${ed.name} (${ed.slug}) · Modus ${mode}\n`);
 if (mode === "remove") await remove(me);
+else if (nur) await teilschritte(me, ed, nur);
 else await apply(me, ed);
 console.log(log.join("\n"));
 if (mode === "dry-run") console.log("\nNichts geschrieben. Mit --apply ausführen.");

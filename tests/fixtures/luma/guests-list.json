@@ -1,0 +1,8 @@
+{ "entries": [
+    { "id": "gst-1", "user_id": "usr-1", "user_email": "Anna@Example.com ", "user_name": "Anna Beispiel",
+      "approval_status": "approved", "registered_at": "2026-10-01T10:00:00.000Z",
+      "event_tickets": [{ "checked_in_at": "2026-10-15T16:40:00.000Z" }] },
+    { "id": "gst-2", "user_id": "usr-2", "user_email": "ben@example.com", "approval_status": "waitlist",
+      "registered_at": "2026-10-02T10:00:00.000Z", "event_tickets": [] },
+    { "id": "gst-3", "user_id": "usr-3", "user_email": "cem@example.com", "approval_status": "pending_approval" }
+  ], "has_more": false }

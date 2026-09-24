@@ -91,6 +91,8 @@
 | Welle 6 · 0162 | **Welle 6 · Rollenmodell (ADM-053): Team-Rollen je Bereich, speaker_manager/volunteer_lead/checkin_operator nicht mehr Team, admin_section_override je Rolle und Person** (`20260924135400`, `v6_rollenmodell_abschnitte`; Details im Migrationskopf) | — |
 | Welle 6 · 0163 | **Welle 6 · Laptop und Video mit Ton in der Technik (SPK-067): session_tech_keys, update_session_tech als Wahrheitswert** (`20260924140426`, `v6_technik_laptop_video`; Details im Migrationskopf) | — |
 | Welle 6 · 0164 | **Welle 6 · Eure Daten (PART-059/061): organization.address_extra und customer_number, set_org_customer_number, partner_overview, shop_invoice_candidates** (`20260924140443`, `v6_eure_daten`; Details im Migrationskopf) | — |
+| Welle 6 · 0165 | **Welle 6 · Next Up im Teilnehmer-Portal (TAL-006): next_up_item, next_up_items, Pflege im Admin-Abschnitt nextUp** (`20260924140714`, `v6_next_up`; Details im Migrationskopf) | — |
+| Welle 6 · 0166 | **Welle 6 · Folien nach dem Summit für Teilnehmende (TAL-001): my_session_slides (Ticket der Edition, veröffentlicht, Slot vorbei, freigegeben)** (`20260924141539`, `v6_folien_teilnehmende`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
