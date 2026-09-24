@@ -246,7 +246,8 @@
     "partner_not_in_edition": "This organisation is not a partner in this edition.",
     "partner_host_mismatch": "The session is already hosted by another partner — the booking partner has to be the same one.",
     "invalid_vocab_value": "This value is no longer available. Please choose another one.",
-    "not_presentation": "Only presentations can be shared."
+    "not_presentation": "Only presentations can be shared.",
+    "invalid_tech_value": "This field only takes yes or no."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1060,7 +1061,12 @@
     "shareAsk": "Share with participants …",
     "shareStop": "Stop sharing",
     "shareStateOn": "shared",
-    "shareStateOff": "not shared"
+    "shareStateOff": "not shared",
+    "tech_own_laptop": "I am bringing my own laptop",
+    "tech_own_laptop_hint": "Then we plan a connection for you. Without the tick you present from our computer.",
+    "tech_video_with_sound": "I am showing video with sound",
+    "tech_video_with_sound_hint": "So the control room routes the sound to the PA.",
+    "techChecksLabel": "What you bring and show"
   },
   "leads": {
     "title": "Speaker pipeline",
@@ -3424,7 +3430,10 @@
     "tech_presentation_media": "Presentation",
     "tech_special_requirements": "Special",
     "tech_furniture": "Furniture",
-    "colPeopleOnStage": "People on stage"
+    "colPeopleOnStage": "People on stage",
+    "tech_own_laptop": "Own laptop",
+    "tech_video_with_sound": "Video with sound",
+    "techYes": "yes"
   },
   "wiki": {
     "title": "Wiki",

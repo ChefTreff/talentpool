@@ -246,7 +246,8 @@
     "partner_not_in_edition": "Diese Organisation ist in dieser Edition kein Partner.",
     "partner_host_mismatch": "Die Session wird schon von einem anderen Partner ausgerichtet — der buchende Partner muss derselbe sein.",
     "invalid_vocab_value": "Dieser Wert steht nicht (mehr) zur Auswahl. Bitte wähle einen anderen.",
-    "not_presentation": "Nur Präsentationen lassen sich teilen."
+    "not_presentation": "Nur Präsentationen lassen sich teilen.",
+    "invalid_tech_value": "Bei diesem Feld geht nur Ja oder Nein."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -1060,7 +1061,12 @@
     "shareAsk": "Mit Teilnehmenden teilen …",
     "shareStop": "Nicht mehr teilen",
     "shareStateOn": "wird geteilt",
-    "shareStateOff": "wird nicht geteilt"
+    "shareStateOff": "wird nicht geteilt",
+    "tech_own_laptop": "Ich bringe meinen eigenen Laptop mit",
+    "tech_own_laptop_hint": "Dann planen wir einen Anschluss für dich ein. Ohne Häkchen zeigst du von unserem Rechner.",
+    "tech_video_with_sound": "Ich zeige Video mit Ton",
+    "tech_video_with_sound_hint": "Damit die Regie den Ton auf die Anlage legt.",
+    "techChecksLabel": "Was du mitbringst und zeigst"
   },
   "leads": {
     "title": "Speaker-Pipeline",
@@ -3424,7 +3430,10 @@
     "tech_presentation_media": "Präsentation",
     "tech_special_requirements": "Besonderes",
     "tech_furniture": "Mobiliar",
-    "colPeopleOnStage": "Personen auf der Bühne"
+    "colPeopleOnStage": "Personen auf der Bühne",
+    "tech_own_laptop": "Eigener Laptop",
+    "tech_video_with_sound": "Video mit Ton",
+    "techYes": "ja"
   },
   "wiki": {
     "title": "Wiki",
