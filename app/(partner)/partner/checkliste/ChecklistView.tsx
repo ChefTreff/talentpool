@@ -6,7 +6,6 @@ import type { Locale } from "@/lib/i18n/shared";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   acceptAttribute,
-  checkFileRules,
   formatBytes,
   type FileRules,
 } from "@/lib/partner/file-rules";
@@ -20,8 +19,9 @@ import { FristMarke, type FristTexte } from "@/components/ui/FristMarke";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
-import { orderLunchPackage, registerPartnerAsset, submitDeliverable } from "../actions";
-import { safeFileName, BUCKET } from "../upload";
+import { orderLunchPackage, submitDeliverable } from "../actions";
+import { usePflichtUpload } from "../UploadKachel";
+import { BUCKET } from "../upload";
 import type { AnswerField, Deliverable, DeliverableAsset, PartnerOverview } from "../types";
 
 type Strings = Record<string, string>;
@@ -77,7 +77,14 @@ export function ChecklistView({
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
-  const [uploading, setUploading] = useState<string | null>(null);
+  // Upload über dieselbe Hülle wie Onboarding und Dateien (PART-035) — ein Ablauf,
+  // ein Kern (`uploadDeliverableFile`).
+  const { laedt: uploading, hochladen } = usePflichtUpload({
+    orgId,
+    editionId,
+    texte: { tooBig: t.uploadTooBig, wrongType: t.uploadWrongType, failed: t.uploadFailed, done: t.submitted },
+    rpcMessages,
+  });
   /** Anzahl Personen fürs Lunch-Paket (PART-049), je Pflicht. */
   const [lunchQty, setLunchQty] = useState<Record<string, string>>({});
 
@@ -176,60 +183,6 @@ export function ChecklistView({
       else out[f.key] = raw.trim();
     }
     return out;
-  }
-
-  async function onUpload(d: Deliverable, file: File) {
-    const rules: FileRules = d.file_rules;
-    const bad = checkFileRules(file, rules);
-    if (bad) {
-      const allowed = (rules?.ext ?? []).map((e) => `.${e}`).join(", ");
-      toast(
-        "error",
-        bad.reason === "size"
-          ? t.uploadTooBig.replace("{max}", bad.detail)
-          : t.uploadWrongType.replace("{allowed}", allowed).replace("{got}", bad.detail),
-      );
-      return;
-    }
-    setUploading(d.id);
-    try {
-      const supabase = createSupabaseBrowserClient();
-      // Die Art im Pfad ist der Schlüssel der Pflicht — dieselbe Regel prüft
-      // die Storage-Policy und danach `register_partner_asset` noch einmal.
-      const path = `${editionId}/${orgId}/${d.key}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
-      const up = await supabase.storage.from(BUCKET).upload(path, file, {
-        contentType: file.type || undefined,
-        upsert: false,
-      });
-      if (up.error) {
-        toast("error", `${t.uploadFailed} (${up.error.message})`);
-        return;
-      }
-      const reg = await registerPartnerAsset({
-        orgId,
-        kind: d.key,
-        storagePath: path,
-        filename: file.name,
-        mime: file.type || null,
-        sizeBytes: file.size,
-        deliverableId: d.id,
-      });
-      if (!reg.ok) {
-        // Die Datei bleibt verwaist im Bucket; sie hier zu löschen wäre der
-        // zweite Fehlerfall. Lieber melden und aufräumen lassen.
-        toast("error", message(reg.key) + (reg.detail ? ` (${reg.detail})` : ""));
-        return;
-      }
-      const sub = await submitDeliverable(d.id, [reg.data.id]);
-      if (!sub.ok) {
-        toast("error", message(sub.key) + (sub.detail ? ` (${sub.detail})` : ""));
-        return;
-      }
-      toast("success", t.submitted.replace("{v}", String(reg.data.version)));
-      router.refresh();
-    } finally {
-      setUploading(null);
-    }
   }
 
   function onSubmitSimple(d: Deliverable) {
@@ -450,7 +403,7 @@ export function ChecklistView({
                           hint={t.uploadHint
                             .replace("{allowed}", (rules?.ext ?? []).map((e) => `.${e}`).join(", "))
                             .replace("{max}", formatBytes(rules?.max_bytes ?? 0))}
-                          onFile={(file) => void onUpload(d, file)}
+                          onFile={(file) => void hochladen(d, file)}
                         />
                         {uploading === d.id && <p className="ct-help">{t.uploading}</p>}
                         {/* PART-064: sonst wundert man sich, dass man hier nicht abhaken kann. */}
