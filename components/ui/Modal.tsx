@@ -10,11 +10,20 @@ import { Button } from "./Button";
 export function Modal({
   label,
   onCancel,
+  blocking,
   children,
 }: {
   /** Zugänglicher Name des Dialogs; sichtbar ist die Überschrift darin. */
   label: string;
   onCancel: () => void;
+  /**
+   * Lässt Escape und den Zurück-Knopf des Browsers ins Leere laufen — für den
+   * einen Fall, in dem der Dialog **die** Aufgabe ist und nicht daneben steht
+   * (die Einwilligung beim ersten Anmelden, SPK-024). Sparsam verwenden: ein
+   * Dialog, den man nicht schliessen kann, ist eine Sackgasse, wenn das
+   * Speichern scheitert — deshalb muss er selbst einen Ausweg anbieten.
+   */
+  blocking?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -23,7 +32,13 @@ export function Modal({
         if (el && !el.open) el.showModal();
       }}
       aria-label={label}
-      onCancel={onCancel}
+      onCancel={(e) => {
+        if (blocking) {
+          e.preventDefault();
+          return;
+        }
+        onCancel();
+      }}
       className="w-full max-w-[560px] rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40"
     >
       {children}

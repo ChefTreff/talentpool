@@ -939,7 +939,11 @@
     "sectionShuttle": "Shuttle",
     "sectionHotel": "Hotel & Übernachtung",
     "sectionSlot": "Dein Slot",
-    "sectionContent": "Titel & Beschreibung"
+    "sectionContent": "Titel & Beschreibung",
+    "consentGateTitle": "Kurz deine Einwilligungen",
+    "consentGateLead": "Bevor es losgeht: Sag uns einmal, was wir mit deinen Inhalten und deinem Bild tun dürfen. Ändern kannst du das jederzeit in deinem Profil.",
+    "consentGateFreeChoice": "Du musst nichts ankreuzen. Wir fragen nur einmal und halten auch ein Nein fest — ohne Häkchen geht es genauso weiter, manche Funktionen stehen dann aber nicht zur Verfügung.",
+    "consentGateSubmit": "Entscheidung speichern"
   },
   "leads": {
     "title": "Speaker-Pipeline",
