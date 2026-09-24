@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/Card";
 export function Anfahrt({ t }: { t: { arrivalTitle: string; arrivalBody: string } }) {
   return (
     <Card className="p-6">
-      <h2 className="ct-h3 mb-2 text-ink">{t.arrivalTitle}</h2>
+      <h2 className="ct-h2 mb-2 text-ink">{t.arrivalTitle}</h2>
       <p className="ct-help whitespace-pre-line">{t.arrivalBody}</p>
     </Card>
   );

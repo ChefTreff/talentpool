@@ -14,7 +14,7 @@ Gelesen am 17.09.2026 aus Figma „REBRANDING CHEFTREFF“ (Datei `ZmpM9E7Cj8I8J
 
 | Bestandteil | Website | Im Portal |
 |---|---|---|
-| **Sektionskopf** | Laica-Kursiv-Eyebrow → Extrabold-Versalien-Titel (2 Zeilen) → ein Absatz → **eine** Aktion, alles zentriert | `PageHeader`: `.ct-eyebrow` (Versalien, SB) statt Laica, `.ct-h1`, ein Satz, eine Aktion — **linksbündig**. Laica bleibt Login/Welcome |
+| **Sektionskopf** | Laica-Kursiv-Eyebrow → Extrabold-Versalien-Titel (2 Zeilen) → ein Absatz → **eine** Aktion, alles zentriert | `PageHeader`: Laica-Wort im Akzent (`word`, seit QS-037), `.ct-h1`, ein Satz, eine Aktion — **linksbündig**. Bis 24.09.2026 stand hier `.ct-eyebrow` statt Laica |
 | **Highlight-Wort** | ein Wort des Titels in Extrabold **Italic**, oft in Akzent oder Verlauf | `.ct-highlight text-highlight` (Pink), nur auf Navy: Login, Welcome, Begrüßung. Nie in Arbeitsansichten |
 | **Aktion** | Rechteck ohne Radius, Padding 16/13.5; Hauptaktion Pink mit Navy-Text, sonst 1-px-Umriss | `<Button>` (8-px-Rechteck, `accent-strong`). Pink nur im Marketing-Moment |
 | **Karte** | 1 px Umriss im Akzent, **kein** Radius, Innenabstand ~17–24, kein Schatten | `<Card>` (`rounded-ct-lg`, `border-border`, `p-6`). Der Umriss-im-Akzent ist die Auszeichnung für **eine** hervorgehobene Karte, nicht für alle |

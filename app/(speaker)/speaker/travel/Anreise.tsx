@@ -98,7 +98,7 @@ export function Anreise({
 
   return (
     <Card>
-      <h2 className="ct-h3 text-ink">{t.travelTitle2}</h2>
+      <h2 className="ct-h2 text-ink">{t.travelTitle2}</h2>
       <p className="ct-small mt-1 leading-6">{t.travelBody2}</p>
       {isAssistant && <p className="ct-help mt-1">{t.travelAssistantHint}</p>}
 

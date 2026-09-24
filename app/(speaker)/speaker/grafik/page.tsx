@@ -75,7 +75,7 @@ export default async function SpeakerGrafikPage() {
 
   return (
     <div className="max-w-[1100px]">
-      <PageHeader title={t.speakerGraphic.title} description={t.speakerGraphic.lead} />
+      <PageHeader word={t.speaker.wordSpotlight} title={t.speakerGraphic.title} description={t.speakerGraphic.lead} />
       <GrafikMaske
         vorschlag={dateiname(profile?.person.first_name ?? null, profile?.person.last_name ?? null)}
         t={t.speakerGraphic}
@@ -100,7 +100,7 @@ export default async function SpeakerGrafikPage() {
       </section>
 
       <section aria-labelledby="h-posts" className="mt-10 max-w-[900px]">
-        <h2 id="h-posts" className="ct-h3 mb-1 text-ink">
+        <h2 id="h-posts" className="ct-h2 mb-1 text-ink">
           {t.speakerGraphic.postsTitle}
         </h2>
         <p className="ct-help mb-3">{t.speakerGraphic.postsLead}</p>

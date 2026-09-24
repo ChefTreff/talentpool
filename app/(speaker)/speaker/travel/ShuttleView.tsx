@@ -158,7 +158,7 @@ export function ShuttleView({
   return (
     <section aria-labelledby="h-shuttle" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h2 id="h-shuttle" className="ct-h3 text-ink">
+        <h2 id="h-shuttle" className="ct-h2 text-ink">
           {t.shuttleTitle}
         </h2>
         {!offen && (

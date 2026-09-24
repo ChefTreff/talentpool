@@ -127,7 +127,7 @@ Direkt übertragbar:
 
 | Muster von der Website | Einsatz im Portal |
 |---|---|
-| **Sektionsrhythmus**: Laica-Kursiv-Eyebrow („What to expect") → Extrabold-Versalien-Headline → Fließtext → **eine** Aktion | Login, Welcome, Landing. Im Arbeitsbereich derselbe Rhythmus, aber Eyebrow als `.ct-eyebrow` (Versalien, SB) statt Laica |
+| **Sektionsrhythmus**: Laica-Kursiv-Eyebrow („What to expect") → Extrabold-Versalien-Headline → Fließtext → **eine** Aktion | Login, Welcome, Landing — und **seit QS-037 (24.09.2026) jede Unterseite**: `PageHeader word` setzt das Laica-Wort im Akzent über den Titel. Vorher stand im Arbeitsbereich eine Versalienzeile statt Laica; Konrad hat die Kursive der Talent-Startseite ausdrücklich als Vorbild genannt |
 | **Personen-Karte**: rundes Foto mit Akzent-Ring, Name Extrabold Versalien, Rolle als gefüllter Akzent-Chip, Organisation darunter | Speaker-, Mentoren-, Jury- und Team-Listen. Im Portal die Rolle in Sharp Sans SB statt Laica — Laica nur auf Marketing-Seiten |
 | **Zitat-Karte**: 1 px Akzentrahmen, Zitat, darunter Hexagon-Bullet + Name (Versalien) + Rolle | Referenzen, Feedback-Zitate, Erfolgsmeldungen im Welcome |
 | **Akkordeon**: 1 px Akzentrahmen, Label SB Versalien links, Chevron rechts, geöffnet mit Fließtext | FAQ und Hilfe in jedem Bereich. Umsetzung mit `<details>/<summary>` oder Button + `aria-expanded` — nie mit reinem CSS-Trick |
@@ -256,10 +256,14 @@ Für alles, was ausgefüllt wird: Onboarding, Anmeldung, Einreichung, Profil.
 Die Startseite eines Bereichs. Beantwortet in dieser Reihenfolge: **Wo bin ich · Was ist zu tun · Wie steht es · Wen frage ich.**
 
 ```
-┌ HeroBand ── Bereich · Titel mit Highlight · ein Satz ── [Kennzahl] ┐  Navy
+┌ HeroBand ── Gruss mit Highlight · ein Satz · [Aktion] · [Kennzahl] ┐  Navy
 ├────────────────────────────────────────────────────────────────────┤
 │ NextStepBanner ── „3 von 8 Aufgaben offen"          [ Zur Liste ]  │  Akzent
-├──────────────┬──────────────┬──────────────┬───────────────────────┤
+├──────────────────────┬──────────────────────┬──────────────────────┤
+│ ▲ Bildfläche         │ ▲ Bildfläche         │ ▲ Bildfläche         │  Einstiege
+│ Bühne (kursiv)       │ Unterwegs (kursiv)   │ Spotlight (kursiv)   │  (PhotoCard,
+│ Titel · ein Satz     │ Titel · ein Satz     │ Titel · ein Satz     │   QS-037)
+├──────────────┬───────┴──────┬──────────────┬┴──────────────────────┤
 │ StatCard     │ StatCard     │ StatCard     │ StatCard              │  4 Zahlen
 ├──────────────┴──────────────┴──────────────┴───────────────────────┤
 │ Nächste Fristen (DateRow-Liste)   │ Ansprechpartner (PersonCard)   │
@@ -273,3 +277,44 @@ Die Startseite eines Bereichs. Beantwortet in dieser Reihenfolge: **Wo bin ich �
 - **Fristen als `DateRow`-Liste**, nicht als Absatz mit Datum darin. Datum links in fester Spalte, Sache in der Mitte, Zustand rechts.
 - **Keine Karte ohne Inhalt:** ein Abschnitt, zu dem nichts gepflegt ist, fällt weg. Eine leere Überschrift ist schlechter als nichts.
 - Der Fuss trägt `PortalFooter` — Support-Postfach und Rechtstexte, sonst nichts.
+
+## Das Talent-Muster (QS-037, ab 24.09.2026)
+
+Konrad, Feedback-Runde 24.09.: Auf der Startseite des Teilnehmer-Portals ist das Design *„sehr gut umgesetzt mit klaren farblichen Hierarchien, es wurden auch die Schriftarten besser verwendet (bspw. die Italic Schrift), Platzhalter für Bilder gesetzt"* — alle übrigen Portale werden danach umgestaltet. Vorbild: `app/(talent)/start/page.tsx`, erste Übertragung: `app/(speaker)/speaker/page.tsx`.
+
+**Was die Seite ausmacht — drei Farbstufen statt einer.** Vorher hatte jede Seite genau eine: schwarze Überschriften auf Weiss, die Hierarchie nur an der etwas dunkleren Schrift erkennbar (Konrad zum Partner-Logo, PART-060). Jetzt: Navy (das Band: wo bin ich) → Akzent (das kursive Wort, die Aktion: worum geht es) → Akzent-Soft (die Bildflächen: wohin kann ich) → Weiss (die Arbeit). Das Auge fällt in dieser Reihenfolge.
+
+**Startseite**
+
+1. `HeroBand` mit Gruss und **einem** Highlight-Wort (`highlight`, Pink auf Navy), einem Satz, **genau einer Aktion** und rechts der Kennzahl. Die Aktion ist der nächste offene Schritt, nicht „Mehr erfahren" — wer alles erledigt hat, bekommt den Weg zum Kern des Portals.
+2. Darunter die **drei Einstiege** als `PhotoCard`: Bildfläche, kursives Schlüsselwort, Titel, ein Satz, eine Nebenaktion (`variant="secondary" size="sm"`). Drei, nicht vier — die Website zeigt drei, und die dritte Karte ist die, bei der man merkt, ob man auswählt oder aufzählt. Die Bildflächen sind der Platz für die Penno-Fotos (QS-027); bis dahin trägt sie die Dreiecksform.
+3. Dann die Arbeit (Checkliste, Termine), dann die Ansprechpersonen.
+
+Wer im Namen eines anderen arbeitet (Assistenz), wird nicht mit dessen Vornamen begrüsst: Titel bleibt der Name, ohne Highlight.
+
+**Unterseite**
+
+- `PageHeader word={…}`: das kursive Wort ist **derselbe Begriff** wie auf der Einstiegskarte, die hierher führt. Man erkennt die Seite, bevor man den Titel gelesen hat.
+- Das Wort ist der eine Laica-Moment des Screens. Keine zweite Kursive auf derselben Seite.
+
+**Abschnitte**
+
+- Ein `<h2>` ist `.ct-h2` (Versalien, ExtraBold, 18/24) — auch in Karten. Vorher trug jede Abschnittskarte `.ct-h3` (16/24 SemiBold), also fast Fliesstextgrösse; H1 und Fliesstext hatten nichts dazwischen.
+- `.ct-h3` bleibt für Titel **innerhalb** eines Abschnitts, für Meldungskarten (Zustände wie „noch nicht freigeschaltet", „Erfassung gesperrt"), für Dialog- und Paneltitel, für Werkzeugschritte (Grafik-Maske) und für dynamische Objekttitel (Einladung, Buchung).
+- **Eine** Karte je Seite darf den Akzent-Umriss tragen (`border-accent`): die, um die es auf der Seite geht — auf der Session-Seite der Slot. Mehr als eine, und keine ist mehr hervorgehoben (Website-Karte, `website-bloecke.md`).
+
+**Die Wörter je Portal** (DE / EN, im Wörterbuch des Bereichs)
+
+| Portal | Seite | Wort |
+|---|---|---|
+| Speaker | Startseite (Leerzustand), Session | Bühne / Stage |
+| Speaker | Anreise & Unterkunft | Unterwegs / Journey |
+| Speaker | Deine Grafik | Spotlight / Spotlight |
+| Speaker | Tickets | Zugang / Access |
+| Speaker | Reisekosten | Erstattung / Refund |
+| Speaker | Deine Bilder | Erinnerungen / Memories |
+| Speaker | Profil | Steckbrief / Bio |
+| alle | Wiki (`components/wiki/WikiPage`) | Wissen / Know-how |
+| Talent | Einstiege | Entdecken · Überblick · Profil |
+
+Neue Wörter: ein Wort, kein Halbsatz; ein Begriff aus der Welt des Nutzers, nicht aus der Bedienung („Zugang", nicht „Verwalten"); nie derselbe wie der Titel darunter.

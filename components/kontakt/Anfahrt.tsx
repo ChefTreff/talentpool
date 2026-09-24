@@ -32,7 +32,7 @@ export function Anfahrt({
   const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venue}, ${address}`)}`;
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="ct-h3">{title}</h2>
+      <h2 className="ct-h2">{title}</h2>
       <Card>
         <p className="ct-label text-ink">{venue}</p>
         <p className="ct-help mt-0.5">{address}</p>

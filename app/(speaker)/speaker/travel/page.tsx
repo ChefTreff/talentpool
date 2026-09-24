@@ -55,6 +55,7 @@ export default async function SpeakerTravelPage() {
     return (
       <>
         <PageHeader
+          word={t.speaker.wordJourney}
           title={t.speaker.travelTitle}
           description={t.speaker.travelLead}
         />
@@ -143,6 +144,7 @@ export default async function SpeakerTravelPage() {
   return (
     <div className="max-w-[900px]">
       <PageHeader
+        word={t.speaker.wordJourney}
         title={t.speaker.travelTitle}
         description={t.speaker.travelLead}
       />

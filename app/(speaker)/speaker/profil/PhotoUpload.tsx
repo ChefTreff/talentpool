@@ -97,7 +97,7 @@ export function PhotoUpload({
 
   return (
     <Card id="foto">
-      <h2 className="ct-h3 mb-1 text-ink">{t.photoTitle}</h2>
+      <h2 className="ct-h2 mb-1 text-ink">{t.photoTitle}</h2>
       <p className="ct-help mb-4">{t.photoLead}</p>
 
       <div className="flex flex-wrap items-center gap-4">

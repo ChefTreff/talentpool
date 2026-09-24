@@ -29,7 +29,7 @@ export function Ansprechpartner({
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="ct-h3">{title}</h2>
+      <h2 className="ct-h2">{title}</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         {sichtbar.map((k) => (
           <ContactCard

@@ -191,7 +191,7 @@ export function TravelView({
       {/* Eigene Buchungen */}
       {active.length > 0 && (
         <section aria-labelledby="h-bookings">
-          <h2 id="h-bookings" className="ct-h3 mb-3 text-ink">
+          <h2 id="h-bookings" className="ct-h2 mb-3 text-ink">
             {t.myBookings}
           </h2>
           <ul className="flex flex-col gap-3">
@@ -244,7 +244,7 @@ export function TravelView({
 
       {/* Angebote */}
       <section aria-labelledby="h-options">
-        <h2 id="h-options" className="ct-h3 mb-3 text-ink">
+        <h2 id="h-options" className="ct-h2 mb-3 text-ink">
           {t.optionsTitle}
         </h2>
         <p className="ct-help mb-3">{t.optionsLead}</p>

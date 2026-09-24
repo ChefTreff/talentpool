@@ -37,7 +37,7 @@ export async function WikiPage({
 
   return (
     <>
-      <PageHeader title={t.wiki.title} description={t.wiki.lead} />
+      <PageHeader word={t.wiki.word} title={t.wiki.title} description={t.wiki.lead} />
       <Assistent
         audience={audience}
         locale={locale}

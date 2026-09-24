@@ -27,7 +27,7 @@ export default async function SpeakerTicketsPage() {
   if (!profile || !tickets) {
     return (
       <>
-        <PageHeader title={t.speaker.ticketsTitle} description={t.speaker.ticketsLead} />
+        <PageHeader word={t.speaker.wordAccess} title={t.speaker.ticketsTitle} description={t.speaker.ticketsLead} />
         <EmptyState title={t.speaker.noProfileTitle} description={t.speaker.noProfileBody} />
       </>
     );
@@ -35,7 +35,7 @@ export default async function SpeakerTicketsPage() {
 
   return (
     <div className="max-w-text">
-      <PageHeader title={t.speaker.ticketsTitle} description={t.speaker.ticketsLead} />
+      <PageHeader word={t.speaker.wordAccess} title={t.speaker.ticketsTitle} description={t.speaker.ticketsLead} />
       <TicketsView
         profileId={profile.id}
         isAssistant={profile.is_assistant}
