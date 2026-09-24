@@ -1,7 +1,9 @@
--- 0141? · Welle 6: Logo-Wand — Einwilligung zum Weißen, und nur noch SVG oder EPS (PART-053).
+-- Vorschlag · Welle 6: Logo-Wand — Einwilligung zum Weißen, und nur noch SVG oder EPS (PART-053).
 --
--- **Die Nummer ist offen.** Die Architektur-Session vergibt sie beim Anwenden; 0140 liegt bei
--- B7a (#104). Der Dateiname trägt deshalb einen Vorschlagszeitstempel.
+-- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
+-- Neu aufgesetzt nach dem Einzug von `main` am 24.09.; `register_partner_asset` und
+-- `partner_overview` sind gegen die Live-Datenbank geprüft (`db.sh fn-diff`), nicht gegen die
+-- Kopie vom 22.09.
 --
 -- Anlass: Konrad, 22.09.2026, zwei Antworten und eine neue Anforderung.
 --

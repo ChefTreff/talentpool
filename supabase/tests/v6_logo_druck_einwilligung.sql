@@ -10,7 +10,8 @@
 --      erteilt wurde, nicht wann jemand zuletzt geklickt hat;
 --   06 der Widerruf setzt beide Felder zurueck (eine Erlaubnis ohne Widerruf waere keine);
 --   07 eine fremde Organisation darf nicht (42501), `anon` gar nicht.
--- Probelauf Bau-Chat 22.09.2026 (`sh scripts/db.sh dry-run`): **10/10 gruen**.
+-- Probelauf Bau-Chat 22.09.2026: 10/10 gruen. Nach Einzug von main erneut 24.09.2026
+-- (`sh scripts/db.sh dry-run`, fn-diff gegen live ohne unerklaerte Zeile): **10/10 gruen**.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
