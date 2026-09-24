@@ -1,3 +1,5 @@
+-- 0162 · Welle 6 · Rollenmodell (ADM-053): Team-Rollen je Bereich, speaker_manager/volunteer_lead/checkin_operator nicht mehr Team, admin_section_override je Rolle und Person
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924135400.
 -- ADM-053 · Rollenmodell: je Bereich Lead und Team, Abschnitte schaltbar
 -- (Nummer vergibt die Architektur-Session.)
 --
