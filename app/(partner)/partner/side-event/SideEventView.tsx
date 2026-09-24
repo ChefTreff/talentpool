@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
@@ -13,6 +12,7 @@ import { zonedTimeToInstant } from "@/lib/tz";
 import { createFormatSession, deleteFormatSession, updateFormatSession } from "../actions";
 import { EVENT_TZ, type PartnerDay, type PartnerStage } from "../formate";
 import type { PartnerFormatSession } from "../talk/types";
+import { RueckgabeHinweis, SessionStatusBadge, type RueckgabeTexte } from "../Rueckgabe";
 
 type Strings = Record<string, string>;
 
@@ -46,6 +46,7 @@ export function SideEventView({
   canEdit,
   frei,
   statusLabel,
+  rueckgabe,
   locale,
   t,
   rpcMessages,
@@ -59,6 +60,8 @@ export function SideEventView({
   /** Noch offener Anspruch aus den gebuchten Produkten. */
   frei: number;
   statusLabel: Record<string, string>;
+  /** PART-083: Kennzeichen und Hinweis bei einer zurückgegebenen Session. */
+  rueckgabe: RueckgabeTexte;
   locale: string;
   t: Strings;
   rpcMessages: Record<string, string>;
@@ -168,15 +171,27 @@ export function SideEventView({
           <div key={x.id} className="rounded-ct-md border border-border bg-surface p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="ct-h3 text-ink">{x.title_de ?? t.untitled}</h2>
-              <Badge tone={x.publish_status === "published" ? "success" : "neutral"}>
-                {statusLabel[x.publish_status] ?? x.publish_status}
-              </Badge>
+              <SessionStatusBadge
+                publishStatus={x.publish_status}
+                returnNote={x.return_note}
+                statusLabel={statusLabel}
+                t={rueckgabe}
+              />
             </div>
             <p className="ct-help mt-1">
               {x.starts_at ? zeit.format(new Date(x.starts_at)) : t.timePending}
               {ort ? ` · ${ort}` : ""}
             </p>
             {x.publish_status !== "published" && <p className="ct-help mt-2">{t.needsRelease}</p>}
+            {x.return_note && x.returned_at && x.publish_status !== "published" && (
+              <RueckgabeHinweis
+                className="mt-3"
+                note={x.return_note}
+                returnedAt={x.returned_at}
+                dateLocale={locale === "en" ? "en-GB" : "de-DE"}
+                t={rueckgabe}
+              />
+            )}
 
             {canEdit && !offen && (
               <div className="mt-4 flex flex-wrap gap-2">

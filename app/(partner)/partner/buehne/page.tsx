@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Board } from "@/components/programme/Board";
 import { loadBoard } from "@/components/programme/load";
 import { canPublishSessions } from "@/components/programme/permissions";
+import type { PartnerFormatSession } from "../talk/types";
+import { RueckgabeHinweis } from "../Rueckgabe";
 import { getPartnerScope } from "../org";
 
 export const dynamic = "force-dynamic";
@@ -87,6 +89,17 @@ export default async function PartnerStagePage({
 
   const own = stages.map((s) => s.stage_name).filter(Boolean).join(" · ");
 
+  // PART-083: zurückgegebene Sessions auf den eigenen Bühnen stehen über dem Board —
+  // das Board selbst (components/programme/) gehört dem Speaker-Chat.
+  const { data: sessionRows } = await supabase.rpc("partner_format_sessions", {
+    p_org_id: current.org_id,
+    p_edition_id: current.edition_id,
+  });
+  const eigene = new Set(stages.map((st) => st.stage_id));
+  const zurueck = ((sessionRows ?? []) as PartnerFormatSession[]).filter(
+    (x) => x.return_note && x.returned_at && x.publish_status !== "published" && x.stage_id && eigene.has(x.stage_id),
+  );
+
   return (
     <>
       <PageHeader word={t.partner.wordProgramme} title={t.partnerStage.title} description={t.partnerStage.lead} />
@@ -97,6 +110,26 @@ export default async function PartnerStagePage({
         <p className="ct-help mt-1">{t.partnerStage.readOnlyHint}</p>
         <p className="ct-help mt-1">{t.partnerStage.releaseHint}</p>
       </Card>
+      {zurueck.length > 0 && (
+        <section aria-labelledby="buehne-zurueck" className="mb-6">
+          <h2 id="buehne-zurueck" className="ct-h2 mb-3 text-ink">
+            {t.partner.returnedListTitle}
+          </h2>
+          <ul className="flex flex-col gap-3">
+            {zurueck.map((x) => (
+              <li key={x.id}>
+                <p className="ct-label mb-1 text-ink">{x.title_de ?? x.title_en ?? t.partnerStage.title}</p>
+                <RueckgabeHinweis
+                  note={x.return_note!}
+                  returnedAt={x.returned_at!}
+                  dateLocale={t.meta.dateLocale}
+                  t={{ badge: t.partner.returnedBadge, title: t.partner.returnedTitle, next: t.partner.returnedNext }}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <Board
         basePath={PATH}
         canPublish={canPublishSessions(roleNames)}

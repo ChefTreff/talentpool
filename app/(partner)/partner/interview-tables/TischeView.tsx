@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/components/ui/cn";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Modal";
@@ -14,6 +13,7 @@ import { useToast } from "@/components/ui/Toast";
 import { createFormatSession, deleteFormatSession, setInterviewPosting } from "../actions";
 import { EVENT_TZ, MAX_SLOTS, rechneSlots, type PartnerDay, type PartnerStage } from "../formate";
 import type { PartnerFormatSession } from "../talk/types";
+import { RueckgabeHinweis, SessionStatusBadge, type RueckgabeTexte } from "../Rueckgabe";
 
 type Strings = Record<string, string>;
 type VokabularOption = { key: string; label: string };
@@ -45,6 +45,7 @@ export function TischeView({
   canEdit,
   profilFelder,
   statusLabel,
+  rueckgabe,
   locale,
   t,
   rpcMessages,
@@ -58,6 +59,8 @@ export function TischeView({
   /** Dieselben Auswahlfelder wie im Teilnehmerprofil (D1). */
   profilFelder: Record<"occupation_status" | "career_level" | "study_field", VokabularOption[]>;
   statusLabel: Record<string, string>;
+  /** PART-083: Kennzeichen und Hinweis bei einer zurückgegebenen Session. */
+  rueckgabe: RueckgabeTexte;
   locale: string;
   t: Strings;
   rpcMessages: Record<string, string>;
@@ -228,9 +231,12 @@ export function TischeView({
                   {x.ends_at ? `–${nurZeit.format(new Date(x.ends_at))}` : ""}
                 </span>
                 <span className="flex flex-wrap items-center gap-2">
-                  <Badge tone={x.publish_status === "published" ? "success" : "neutral"}>
-                    {statusLabel[x.publish_status] ?? x.publish_status}
-                  </Badge>
+                  <SessionStatusBadge
+                    publishStatus={x.publish_status}
+                    returnNote={x.return_note}
+                    statusLabel={statusLabel}
+                    t={rueckgabe}
+                  />
                   <span className="ct-help">
                     {t.applications.replace("{n}", String(x.applications_total))}
                   </span>
@@ -240,6 +246,15 @@ export function TischeView({
                     </Button>
                   )}
                 </span>
+                {x.return_note && x.returned_at && x.publish_status !== "published" && (
+                  <RueckgabeHinweis
+                    className="basis-full"
+                    note={x.return_note}
+                    returnedAt={x.returned_at}
+                    dateLocale={locale === "en" ? "en-GB" : "de-DE"}
+                    t={rueckgabe}
+                  />
+                )}
               </li>
             ))}
           </ul>
