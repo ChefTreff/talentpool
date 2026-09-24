@@ -186,8 +186,21 @@
 /* =============================================================================
  * Grundlagen
  * ========================================================================== */
-* {
-  border-color: var(--ct-border);
+/* Die Standardfarbe für jeden Rand — **in `@layer base`**, nicht frei.
+ *
+ * Bis zum 24.09.2026 stand diese Regel ausserhalb jeder Ebene. Eine Regel ohne
+ * Ebene schlägt in der Kaskade **jede** Regel mit Ebene, egal wie spezifisch —
+ * und Tailwinds Utilities liegen alle in `@layer utilities`. Damit war jede
+ * Randfarbe im Portal wirkungslos: `border-border-strong` an den Eingabefeldern
+ * (gemessen 1,34:1 statt 3,49:1, WCAG 1.4.11 verfehlt), `focus:border-accent`,
+ * die Akzentleiste aktiver Einträge (`border-l-accent`), die roten Ränder an
+ * fehlerhaften Feldern, die Lücke im Lade-Kreisel (`border-t-transparent`).
+ * Dieselbe Falle wie bei den Typo-Rollen unten (F7, 14.09.) — die Regel hier
+ * war damals nicht mitgezogen worden (QS-041). */
+@layer base {
+  * {
+    border-color: var(--ct-border);
+  }
 }
 
 html {
