@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6: Zusatztickets — strukturiert, mit eigener Mail, sichtbar für Partner und Team (PART-070).
+-- 0154 · Welle 6 · Zusatztickets strukturiert (PART-070): shop_request.pass_type/quantity, eigene Mailvorlage, my_ticket_requests, ticket_requests_admin
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924102901.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --

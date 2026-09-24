@@ -80,6 +80,7 @@
 | Welle 6 · 0151 | **Welle 6 · Porträt im Teilnehmer-Profil (TAL-012): Spalte, privater Bucket, Pfadregel, RPC** (`20260924101125`, `v6_person_portraet`; Details im Migrationskopf) | — |
 | Welle 6 · 0152 | **Welle 6 · Logo-Wand: Einwilligung zum Weißen, nur noch SVG oder EPS (PART-053)** (`20260924101126`, `v6_logo_druck_einwilligung`; Details im Migrationskopf) | — |
 | Welle 6 · 0153 | **Welle 6 · Tagesrahmen für Stage Leads (LEAD-016): create_slot/move_slot weisen speaker_manager außerhalb stage_day hart ab** (`20260924101335`, `v6_lead_tagesrahmen`; Details im Migrationskopf) | — |
+| Welle 6 · 0154 | **Welle 6 · Zusatztickets strukturiert (PART-070): shop_request.pass_type/quantity, eigene Mailvorlage, my_ticket_requests, ticket_requests_admin** (`20260924102901`, `v6_zusatztickets`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
