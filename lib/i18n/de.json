@@ -2464,7 +2464,8 @@
       "regie": "Regie",
       "speakerTasks": "Speaker-Aufgaben",
       "production": "Produktion",
-      "nextUp": "Next Up"
+      "nextUp": "Next Up",
+      "communityEvents": "Community-Events"
     },
     "overview": {
       "title": "Übersicht",
@@ -3041,7 +3042,8 @@
       "roles": "Rechte",
       "duplicates": "Bereinigung",
       "deletions": "Datenschutz",
-      "nextUp": "Next Up"
+      "nextUp": "Next Up",
+      "communityEvents": "Community"
     },
     "entries": {
       "programme": "Alle Bühnen und Tage auf einem Board.",
@@ -4707,5 +4709,26 @@
     "qrHint": "Am Einlass scannen lassen. Der Code gilt nur für dich — bitte nicht weitergeben.",
     "walletAdd": "Zur Wallet hinzufügen",
     "walletHint": "Öffnet dein Ticket bei vivenu — dort liegen die Knöpfe für Apple und Google Wallet."
+  },
+  "communityEventsAdmin": {
+    "word": "Community",
+    "title": "Community-Events",
+    "lead": "Unsere Events aus Luma und wer aus dem Talent-Pool dabei ist. Gepflegt werden die Events in Luma; hier steht, was der stündliche Abgleich ins Profil geschrieben hat.",
+    "empty": "Noch keine Community-Events",
+    "emptyBody": "Sobald der Abgleich mit Luma läuft oder sich jemand aus dem Portal anmeldet, erscheinen die Events hier.",
+    "colEvent": "Event",
+    "colDate": "Datum",
+    "colRegistered": "Angemeldet",
+    "colPending": "Angefragt",
+    "colWaitlist": "Warteliste",
+    "colAttended": "Teilgenommen",
+    "openLuma": "In Luma öffnen",
+    "back": "Alle Community-Events",
+    "guests": "Teilnehmende aus dem Talent-Pool",
+    "guestsEmpty": "Noch niemand aus dem Talent-Pool.",
+    "guestsHint": "Nur Personen mit Profil. Gäste, die sich nur über Luma angemeldet haben, stehen in Luma.",
+    "colName": "Name",
+    "colStatus": "Status",
+    "colSince": "Seit"
   }
 }

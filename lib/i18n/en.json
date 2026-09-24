@@ -2464,7 +2464,8 @@
       "regie": "Show flow",
       "speakerTasks": "Speaker tasks",
       "production": "Production",
-      "nextUp": "Next Up"
+      "nextUp": "Next Up",
+      "communityEvents": "Community events"
     },
     "overview": {
       "title": "Overview",
@@ -3041,7 +3042,8 @@
       "roles": "Permissions",
       "duplicates": "Clean-up",
       "deletions": "Privacy",
-      "nextUp": "Next up"
+      "nextUp": "Next up",
+      "communityEvents": "Community"
     },
     "entries": {
       "programme": "All stages and days on one board.",
@@ -4707,5 +4709,26 @@
     "qrHint": "Have it scanned at the entrance. The code is only valid for you — please don't share it.",
     "walletAdd": "Add to wallet",
     "walletHint": "Opens your ticket at vivenu — that's where the Apple and Google Wallet buttons are."
+  },
+  "communityEventsAdmin": {
+    "word": "Community",
+    "title": "Community events",
+    "lead": "Our events from Luma and who from the talent pool is taking part. Events are managed in Luma; this shows what the hourly sync has written to profiles.",
+    "empty": "No community events yet",
+    "emptyBody": "Once the Luma sync runs or someone registers from the portal, events appear here.",
+    "colEvent": "Event",
+    "colDate": "Date",
+    "colRegistered": "Registered",
+    "colPending": "Requested",
+    "colWaitlist": "Waitlist",
+    "colAttended": "Attended",
+    "openLuma": "Open in Luma",
+    "back": "All community events",
+    "guests": "Participants from the talent pool",
+    "guestsEmpty": "No one from the talent pool yet.",
+    "guestsHint": "Only people with a profile. Guests who registered only on Luma are listed there.",
+    "colName": "Name",
+    "colStatus": "Status",
+    "colSince": "Since"
   }
 }
