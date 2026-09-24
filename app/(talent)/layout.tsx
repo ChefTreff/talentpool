@@ -52,6 +52,8 @@ export default async function TalentLayout({ children }: { children: ReactNode }
       { href: "/summit", label: t.talentSummit.navLabel },
       { href: "/programm", label: t.programme.title },
       { href: "/meine", label: t.participation.title },
+      // Eigene Tickets mit QR (TAL-015).
+      { href: "/tickets", label: t.talentTickets.navLabel },
       // Folien nach dem Summit (TAL-001): die Liste ist leer, solange keine
       // Session vorbei ist — der Punkt steht trotzdem, die Seite erklärt es.
       { href: "/folien", label: t.talentSlides.navLabel },

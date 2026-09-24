@@ -4472,6 +4472,22 @@
     "lead": "Find the formats you can apply for and everything you're currently involved in.",
     "navLabel": "Overview"
   },
+  "talentTickets": {
+    "checkedIn": "Checked in",
+    "emptyBody": "As soon as you've bought or received a ticket and it's personalised to you, it appears here.",
+    "emptyTitle": "No ticket yet",
+    "lead": "Your summit ticket with the QR code for entry.",
+    "navLabel": "Tickets",
+    "pending": "Being issued. Once it's ready, your QR code appears here.",
+    "qrAlt": "QR code of your ticket",
+    "qrHint": "Have it scanned at the entrance. The code is only valid for you — please don't share it.",
+    "ticket": "Ticket",
+    "title": "Your tickets",
+    "valid": "Valid",
+    "walletAdd": "Add to wallet",
+    "walletHint": "Opens your ticket at vivenu — that's where the Apple and Google Wallet buttons are.",
+    "word": "Access"
+  },
   "titleAssistant": {
     "assistant": "Suggestion",
     "close": "Close",
