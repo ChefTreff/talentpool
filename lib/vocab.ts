@@ -34,6 +34,23 @@ export async function loadVocabMap(
   return m;
 }
 
+/**
+ * Die Schlüssel eines Vokabulars, die noch **angeboten** werden (`active`).
+ *
+ * `loadVocabMap` lädt bewusst alle Begriffe: ein stillgelegter Wert an einem
+ * alten Datensatz soll sein Label behalten. Eine Auswahlliste dagegen soll nur
+ * anbieten, was aktiv ist — sonst ändert der Schalter in `/admin/vokabular`
+ * nichts, was man sieht (SPK-059, „Fernbus" und „Wohnt in Hamburg").
+ */
+export async function loadActiveKeys(client: SupabaseClient, vocabulary: string): Promise<Set<string>> {
+  const { data } = await client
+    .from("vocab_term")
+    .select("key")
+    .eq("vocabulary", vocabulary)
+    .eq("active", true);
+  return new Set(((data ?? []) as { key: string }[]).map((t) => t.key));
+}
+
 export function pickLabel(
   t: { label_de: string; label_en?: string | null },
   locale: Locale,

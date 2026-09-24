@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -41,8 +41,15 @@ export function SpeakerProfileForm({
   t,
   common,
   rpcMessages,
+  ernaehrung,
 }: {
   profile: SpeakerProfile;
+  /**
+   * Die Ernährungskarte (SPK-056), fertig von der Seite gebaut. Sie speichert
+   * für sich — wie Einwilligungen und Kontakte — und steht deshalb hinter dem
+   * Knopf, der für die Karten darüber gilt.
+   */
+  ernaehrung?: ReactNode;
   t: Strings;
   common: {
     cancel: string;
@@ -278,6 +285,8 @@ export function SpeakerProfileForm({
           {common.save}
         </Button>
       </div>
+
+      {ernaehrung}
 
       <Card id="consent" className="p-6">
         <h2 className="ct-h2 mb-1 text-ink">{t.sectionConsent}</h2>
