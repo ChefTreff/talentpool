@@ -12,6 +12,8 @@ export type WizardData = {
   city: string;
   country: string;
   occupation_status: string;
+  /** Pflicht (Talent-Schwelle, Konrad 24.09., TAL-013 A1). */
+  work_experience: string;
   career_level: string;
   employer_name: string;
   study_field: string;

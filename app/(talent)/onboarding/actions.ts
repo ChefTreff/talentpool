@@ -44,6 +44,7 @@ export async function saveStep(
       .from("person")
       .update({
         occupation_status: nn(data.occupation_status),
+        work_experience: nn(data.work_experience),
         career_level: nn(data.career_level),
         employer_name: nn(data.employer_name),
         study_field: nn(data.study_field),
@@ -54,10 +55,13 @@ export async function saveStep(
   }
 
   if (step === "interests") {
+    // Nur die beiden Listen dieses Schritts ersetzen — Karrierewünsche, Ziele,
+    // Skills und Arbeitsweise pflegt das Profil und dürfen hier nicht fallen.
     const { error: del } = await supabase
       .from("person_interest")
       .delete()
-      .eq("person_id", pid);
+      .eq("person_id", pid)
+      .in("vocabulary", ["interests", "interests_founder"]);
     if (del) return { ok: false, message: "save_failed", detail: del.message };
 
     const rows = [

@@ -48,7 +48,8 @@
     "no_person": "Zu diesem Login gibt es kein Profil.",
     "invalid_email": "Das ist keine gültige E-Mail-Adresse.",
     "save_failed": "Speichern fehlgeschlagen.",
-    "missing_site_url": "Ohne NEXT_PUBLIC_SITE_URL kann das Portal keine Links in Mails setzen."
+    "missing_site_url": "Ohne NEXT_PUBLIC_SITE_URL kann das Portal keine Links in Mails setzen.",
+    "invalid_year": "Das Abschlussjahr bitte vierstellig angeben, zum Beispiel 2027."
   },
   "rpc": {
     "not_allowed": "Dafür fehlt dir die Berechtigung.",
@@ -242,6 +243,7 @@
     "outside_stage_day": "Das liegt außerhalb der Öffnungszeiten dieser Bühne an diesem Tag",
     "partner_not_in_edition": "Diese Organisation ist in dieser Edition kein Partner.",
     "partner_host_mismatch": "Die Session wird schon von einem anderen Partner ausgerichtet — der buchende Partner muss derselbe sein.",
+    "invalid_vocab_value": "Dieser Wert steht nicht (mehr) zur Auswahl. Bitte wähle einen anderen.",
     "not_presentation": "Nur Präsentationen lassen sich teilen."
   },
   "nav": {
@@ -347,7 +349,7 @@
     "stepInterests": "Interessen",
     "stepConsent": "Einwilligungen",
     "basicsHint": "Name und Sprache stehen später auf deinem Badge und in unseren Mails.",
-    "optionalHint": "Alles freiwillig — es hilft uns, passende Angebote vorzuschlagen.",
+    "optionalHint": "Nur die Berufserfahrung brauchen wir, alles andere ist freiwillig — es hilft uns, passende Angebote vorzuschlagen.",
     "interestsHint": "Wähle, was dich interessiert. Danach richtet sich, was wir dir vorschlagen.",
     "consentHint": "Die ersten beiden brauchen wir, um dich überhaupt anmelden zu können.",
     "firstName": "Vorname",
@@ -368,7 +370,8 @@
     "skip": "Überspringen",
     "finish": "Fertig",
     "done": "Profil angelegt — willkommen!",
-    "stepOf": "Schritt {n} von {total}"
+    "stepOf": "Schritt {n} von {total}",
+    "workExperience": "Berufserfahrung"
   },
   "profile": {
     "title": "Mein Profil",
@@ -379,7 +382,9 @@
       "work": "Status & Beruf",
       "study": "Studium",
       "interests": "Interessen",
-      "channels": "Wie bist du auf ChefTreff aufmerksam geworden?"
+      "channels": "Wie bist du auf ChefTreff aufmerksam geworden?",
+      "career": "Karriere & Wünsche",
+      "skills": "Skills & Sprachen"
     },
     "fields": {
       "firstName": "Vorname",
@@ -402,12 +407,31 @@
       "university": "Universität / Hochschule",
       "selfAssessment": "Akademische Selbsteinschätzung",
       "topics": "Themen",
-      "founderTopics": "Founder-Themen"
+      "founderTopics": "Founder-Themen",
+      "city": "Stadt",
+      "jobTitle": "Position",
+      "functionArea": "Funktionsbereich",
+      "studyProgramLabel": "Genaue Studiengangsbezeichnung",
+      "graduationYear": "Abschlussjahr",
+      "summitGoals": "Was willst du beim Summit erreichen?",
+      "careerOpportunities": "Wonach suchst du?",
+      "jobOpenness": "Offen für Jobangebote?",
+      "availability": "Verfügbar ab",
+      "mobility": "Umzugsbereitschaft",
+      "workMode": "Arbeitsweise",
+      "skills": "Deine Stärken",
+      "languages": "Sprachen",
+      "spokenLanguage": "Sprache",
+      "languageLevel": "Niveau"
     },
     "hints": {
       "nationality": "z. B. deutsch",
       "country": "z. B. DE",
-      "linkedin": "https://linkedin.com/in/…"
+      "linkedin": "https://linkedin.com/in/…",
+      "functionArea": "Wo arbeitest du hauptsächlich?",
+      "studyProgramLabel": "So, wie er auf deinem Zeugnis steht.",
+      "graduationYear": "Geplant oder erreicht, zum Beispiel 2027.",
+      "career": "Diese Angaben sehen Partner nur, wenn du dich bei ihnen bewirbst und der Weitergabe zustimmst."
     },
     "portrait": {
       "title": "Dein Porträt",
@@ -424,6 +448,41 @@
       "wrongType": "Bitte ein Bild als JPG, PNG oder WebP.",
       "failed": "Das Porträt konnte nicht hochgeladen werden.",
       "rules": "JPG, PNG oder WebP, bis 5 MB."
+    },
+    "completeHint": "Alles hier ist freiwillig. Je vollständiger dein Profil ist, desto besser passen die Angebote, die wir dir zeigen.",
+    "addLanguage": "Sprache hinzufügen",
+    "removeLanguage": "Entfernen",
+    "cv": {
+      "title": "Dein Lebenslauf",
+      "lead": "Partner sehen ihn nur, wenn du dich bei ihnen bewirbst und der Weitergabe zustimmst.",
+      "none": "Noch kein Lebenslauf hinterlegt.",
+      "current": "Hinterlegt:",
+      "open": "Lebenslauf öffnen",
+      "upload": "PDF auswählen",
+      "replace": "Lebenslauf ersetzen",
+      "change": "Andere Datei wählen",
+      "remove": "Lebenslauf entfernen",
+      "uploading": "Wird hochgeladen …",
+      "done": "Lebenslauf gespeichert.",
+      "removed": "Lebenslauf entfernt.",
+      "tooBig": "Die Datei ist zu groß. Bis 10 MB geht.",
+      "wrongType": "Bitte als PDF hochladen.",
+      "failed": "Der Lebenslauf konnte nicht hochgeladen werden.",
+      "rules": "PDF, bis 10 MB."
+    },
+    "consents": {
+      "title": "Daten und Einwilligungen",
+      "lead": "Du kannst jede freiwillige Einwilligung hier jederzeit geben oder zurücknehmen.",
+      "requiredTitle": "Für die Teilnahme nötig",
+      "given": "Erteilt",
+      "missing": "Fehlt",
+      "requiredHint": "Diese beiden brauchen wir für dein Konto. Wenn du sie zurücknehmen willst, lösche dein Profil über den Link unten.",
+      "failed": "Die Einwilligungen konnten nicht gespeichert werden.",
+      "hints": {
+        "newsletter": "Neuigkeiten zu Summit, Community-Events und Programmen per E-Mail.",
+        "photo_video": "Wir dürfen Fotos und Videos, auf denen du zu sehen bist, für Berichte und Social Media nutzen.",
+        "share_with_partner": "Partner dürfen dich anhand deines Profils für passende Angebote finden. Wir nutzen das erst, wenn es diese Suche gibt; bei Bewerbungen fragen wir weiter jedes Mal einzeln."
+      }
     }
   },
   "programme": {
@@ -2587,7 +2646,10 @@
       "salutationEn": "Englisch",
       "salutationSaved": "Anrede gespeichert",
       "useSuggestion": "Vorschlag übernehmen: {v}",
-      "sectionsLabel": "Auf dieser Seite"
+      "sectionsLabel": "Auf dieser Seite",
+      "career": "Karriere & Wünsche",
+      "cv": "Lebenslauf",
+      "cvOpen": "Öffnen"
     },
     "vocab": {
       "title": "Vokabular",

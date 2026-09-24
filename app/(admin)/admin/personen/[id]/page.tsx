@@ -43,6 +43,7 @@ export default async function PersonDetail({
     { data: interests },
     { data: channels },
     { data: regs },
+    { data: languages },
     vocab,
   ] = await Promise.all([
     admin.from("person").select("*").eq("id", id).maybeSingle(),
@@ -56,10 +57,32 @@ export default async function PersonDetail({
       .from("registration")
       .select("status, ticket_type, source, registered_at, event(name, format_tag)")
       .eq("person_id", id),
+    // Tabelle aus v6_profilfelder (TAL-013); vorher liefert die Abfrage einen
+    // Fehler und die Karte bleibt ohne Sprachen.
+    admin.from("person_language").select("language, level").eq("person_id", id),
     loadVocabMap(admin, locale),
   ]);
 
   if (!person) notFound();
+
+  // Lebenslauf (TAL-013 B3): signierte Adresse, kurz gültig — das Team liest,
+  // die Datei bleibt im privaten Bucket.
+  let cvUrl: string | null = null;
+  if (person.cv_path) {
+    const { data: signed } = await admin.storage.from("person-cv").createSignedUrl(person.cv_path, 600);
+    cvUrl = signed?.signedUrl ?? null;
+  }
+  const PROFILE_EXTRA = ["career_opportunities", "summit_goal", "skill", "work_mode"];
+  const allInterests = (interests ?? []) as { vocabulary: string; term_key: string }[];
+  const extra = (vocabulary: string) => allInterests.filter((i) => i.vocabulary === vocabulary);
+  const badges = (list: { vocabulary: string; term_key: string }[]) =>
+    list.length === 0 ? null : (
+      <span className="flex flex-wrap justify-end gap-1">
+        {list.map((i) => (
+          <Badge key={i.term_key}>{vlabel(vocab, i.vocabulary, i.term_key)}</Badge>
+        ))}
+      </span>
+    );
 
   // Vorschläge über die Sitzung, nicht über den Admin-Client: `suggest_salutation`
   // ist eine Definer-Funktion und prüft die Rechte selbst.
@@ -89,6 +112,7 @@ export default async function PersonDetail({
             { id: "stammdaten", label: d.masterData },
             { id: "arbeit", label: d.workStudy },
             { id: "mails", label: d.emails },
+            { id: "karriere", label: d.career },
             { id: "interessen", label: d.interests },
             { id: "kanaele", label: d.channels },
             { id: "anmeldungen", label: d.registrations },
@@ -102,6 +126,7 @@ export default async function PersonDetail({
             <Row label={f.gender} value={vlabel(vocab, "gender", person.gender)} />
             <Row label={f.nationality} value={person.nationality} />
             <Row label={f.country} value={person.country} />
+            <Row label={f.city} value={person.city} />
             <Row label={f.phone} value={person.phone} />
             <Row
               label={f.linkedin}
@@ -141,6 +166,8 @@ export default async function PersonDetail({
               value={vlabel(vocab, "employer_type", person.employer_type)}
             />
             <Row label={f.employerName} value={person.employer_name} />
+            <Row label={f.jobTitle} value={person.job_title} />
+            <Row label={f.functionArea} value={vlabel(vocab, "function_area", person.function_area)} />
             <Row
               label={f.startupPhase}
               value={vlabel(vocab, "startup_phase", person.startup_phase)}
@@ -153,6 +180,8 @@ export default async function PersonDetail({
               label={f.studyProgram}
               value={vlabel(vocab, "study_program", person.study_program)}
             />
+            <Row label={f.studyProgramLabel} value={person.study_program_label} />
+            <Row label={f.graduationYear} value={person.graduation_year} />
             <Row label={f.university} value={person.university} />
             <Row
               label={f.selfAssessment}
@@ -178,15 +207,48 @@ export default async function PersonDetail({
           </ul>
         </Card>
 
+        <Card id="karriere">
+          <h2 className="ct-h2 mb-3 text-ink">{d.career}</h2>
+          <dl>
+            <Row label={f.careerOpportunities} value={badges(extra("career_opportunities"))} />
+            <Row label={f.jobOpenness} value={vlabel(vocab, "job_openness", person.job_openness)} />
+            <Row label={f.availability} value={vlabel(vocab, "availability", person.availability)} />
+            <Row label={f.workMode} value={badges(extra("work_mode"))} />
+            <Row label={f.mobility} value={vlabel(vocab, "mobility", person.mobility)} />
+            <Row label={f.summitGoals} value={badges(extra("summit_goal"))} />
+            <Row label={f.skills} value={badges(extra("skill"))} />
+            <Row
+              label={f.languages}
+              value={
+                (languages ?? []).length === 0
+                  ? null
+                  : ((languages ?? []) as { language: string; level: string }[])
+                      .map((l) => `${vlabel(vocab, "spoken_language", l.language)} (${vlabel(vocab, "language_level", l.level)})`)
+                      .join(", ")
+              }
+            />
+            <Row
+              label={d.cv}
+              value={
+                cvUrl ? (
+                  <a href={cvUrl} {...neuesFenster} className="ct-link">
+                    {d.cvOpen}
+                  </a>
+                ) : null
+              }
+            />
+          </dl>
+        </Card>
+
         <Card id="interessen">
           <h2 className="ct-h2 mb-3 text-ink">{d.interests}</h2>
           <div className="flex flex-wrap gap-2">
-            {(interests ?? []).map((i) => (
+            {allInterests.filter((i) => !PROFILE_EXTRA.includes(i.vocabulary)).map((i) => (
               <Badge key={`${i.vocabulary}:${i.term_key}`}>
                 {vlabel(vocab, i.vocabulary, i.term_key)}
               </Badge>
             ))}
-            {(interests ?? []).length === 0 && (
+            {allInterests.filter((i) => !PROFILE_EXTRA.includes(i.vocabulary)).length === 0 && (
               <span className="ct-small text-muted">{t.common.none}</span>
             )}
           </div>

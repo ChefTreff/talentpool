@@ -80,6 +80,8 @@ const BUSINESS_KEYS = new Set([
   "tour_not_found",
   "stop_not_found",
   "invalid_type",
+  // Profilfelder mit Vokabular (TAL-013, Trigger person_vocab_guard)
+  "invalid_vocab_value",
   "too_many_questions",
   "invalid_time",
   "invalid_vocab",
