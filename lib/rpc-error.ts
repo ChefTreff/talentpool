@@ -23,6 +23,8 @@ export type RpcFailure = {
 const BUSINESS_KEYS = new Set([
   "confirmation_required",
   "outside_stage_day",
+  "partner_not_in_edition",
+  "partner_host_mismatch",
   "deadline_passed",
   "not_eligible",
   "not_released",

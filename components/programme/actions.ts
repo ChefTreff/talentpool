@@ -115,8 +115,6 @@ export type SessionInput = {
    * Org an — `upsert_session` setzt das nicht von selbst, es muss mit.
    */
   host_org_id?: string;
-  /** Moderation (LEAD-019) — eine Person, leer heisst „keine". */
-  moderation_person_id?: string;
   /** Themen aus `session_topic` (LEAD-019). */
   tags?: string[];
 };
@@ -221,8 +219,12 @@ export type SessionDetail = {
   moderation_person_id: string | null;
   tags: string[] | null;
   speakers: SessionSpeaker[];
-  /** Die Namen zu Moderation und Partner — Leads dürfen `person` nicht lesen. */
-  refs: { moderation: { id: string; name: string | null } | null; partner: { id: string; name: string | null } | null };
+  /**
+   * Der Name des **buchenden** Partners — Leads dürfen `organization` nicht
+   * lesen. Die Moderation steht nicht hier, sondern als Speaker mit der Rolle
+   * `moderator` in `speakers`.
+   */
+  refs: { partner: { id: string; name: string | null } | null };
 };
 
 /** Details einer Session für den Editor. Lesen unter RLS, kein service_role. */
@@ -249,7 +251,7 @@ export async function loadSession(
   return {
     ...(data as Omit<SessionDetail, "speakers" | "refs">),
     speakers: Array.isArray(speakers) ? (speakers as SessionSpeaker[]) : [],
-    refs: (refs as SessionDetail["refs"] | null) ?? { moderation: null, partner: null },
+    refs: (refs as SessionDetail["refs"] | null) ?? { partner: null },
   };
 }
 
@@ -277,6 +279,27 @@ export async function searchBoardPeople(
   return ((data ?? []) as { id: string; display_name: string | null; organization: string | null }[]).map(
     (p) => ({ id: p.id, name: p.display_name ?? "—", hint: p.organization }),
   );
+}
+
+/**
+ * Den **buchenden** Partner setzen oder abnehmen (Korrektur zu #147).
+ *
+ * `partner_org_id` = hat gebucht, auch beim Talk auf unserer Bühne;
+ * `host_org_id` = richtet aus und öffnet dem Partner die Bewerbersicht. Das
+ * Partnerfeld im Board meint das Erste.
+ */
+export async function setSessionPartner(
+  sessionId: string,
+  orgId: string | null,
+): Promise<ActionResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_session_partner", {
+    p_session_id: sessionId,
+    p_org_id: orgId,
+  });
+  if (error) return fail(error);
+  revalidateBoard();
+  return { ok: true, data: undefined };
 }
 
 /** Partner der Edition suchen (LEAD-019, LEAD-010/ADM-025). */

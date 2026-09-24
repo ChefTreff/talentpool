@@ -235,7 +235,9 @@
     "invalid_type": "No such question type.",
     "stop_not_found": "No such tour stop.",
     "tour_not_found": "No such company tour.",
-    "outside_stage_day": "That is outside this stage's opening hours on this day"
+    "outside_stage_day": "That is outside this stage's opening hours on this day",
+    "partner_not_in_edition": "This organisation is not a partner in this edition.",
+    "partner_host_mismatch": "The session is already hosted by another partner — the booking partner has to be the same one."
   },
   "nav": {
     "brand": "ChefTreff",
@@ -2377,12 +2379,12 @@
       "stage": "Stage",
       "topics": "Topics",
       "moderation": "Moderation",
-      "moderationHint": "Who hosts the slot. Searches among this edition's speakers.",
+      "moderationHint": "Who hosts the slot — listed as a speaker with the moderation role. Searches among this edition's speakers.",
       "partner": "Partner",
       "partnerHint": "For sponsored slots: the partner who booked it. Searches among this edition's partners.",
       "remove": "Remove",
       "noHits": "Nothing found. The search starts at two letters and looks at names and organisations.",
-      "saveToApply": "Topics, moderation and partner are applied with “Save”.",
+      "saveToApply": "Topics and partner are applied with “Save”, moderation right away — like the speakers.",
       "appMissing": "Still missing for the event app:",
       "appSlot": "Slot (stage and time)"
     },
