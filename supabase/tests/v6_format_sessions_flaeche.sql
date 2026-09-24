@@ -71,8 +71,10 @@ begin
          with ordinality as a(atttypid, attname, attmode, attnum)
    where n.nspname = 'public' and p.proname = 'partner_format_sessions' and a.attmode = 't';
   insert into t_res values ('03_additiv',
-    case when v_r.stage_name like 'id,format,title_de,%is_host,stage_id,event_day_id'
-         then 'bestehende Spalten unveraendert, zwei neue hinten (richtig)'
+    -- Seit dem Vorschlag v6_rueckgabegrund (PART-083) folgen hinten weitere Spalten; geprueft
+    -- wird, was dieser Test belegen soll: die bisherigen stehen unveraendert vorn.
+    case when v_r.stage_name like 'id,format,title_de,%is_host,stage_id,event_day_id%'
+         then 'bestehende Spalten unveraendert vorn (richtig)'
          else 'Reihenfolge geaendert: ' || left(coalesce(v_r.stage_name,'null'), 160) end);
 
   -- 04 Fremde Organisation

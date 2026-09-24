@@ -22,6 +22,12 @@ export type PartnerFormatSession = {
   /** Seit 0140. Die Zuordnung laeuft ueber die Kennung, nicht ueber den Namen. */
   stage_id: string | null;
   event_day_id: string | null;
+  /**
+   * PART-083: offener Rückgabegrund der Programmleitung und wann — bis zur
+   * Freigabe; danach wieder `null`.
+   */
+  return_note: string | null;
+  returned_at: string | null;
 };
 
 /**
