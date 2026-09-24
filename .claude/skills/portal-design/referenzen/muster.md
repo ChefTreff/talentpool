@@ -168,6 +168,22 @@ Gelesen am 17.09.2026 im Walkthrough mit Konrad (er eingeloggt, Design-Session n
 1. **Die Seitenleiste des Team-Portals ist hell**, nicht Navy — aktiver Punkt als Soft-Fläche mit Akzenttext. Unsere Leiste ist Navy (`QS-001`, `QS-007`, beide gebaut). Offen.
 2. **Knöpfe und Chips sind dort Pillen**, bei uns 8-px-Rechtecke (Design-Briefing §5: eine Form konsequent). Offen.
 
+## Fristen am Abschnitt (QS-044, ab 24.09.2026)
+
+Eine Frist, die zu einem Abschnitt gehört, steht **rechts in dessen Kopfzeile** als `FristMarke`, nicht als Hilfezeile darunter und nicht als eigene Karte weiter unten (Konrad, 24.09.: „deutlich größer, farblich hervorgehoben, rechtsbündig in der Zeile des Sektionskopfs"). Das Datum steht in `.ct-h2` und ist damit so groß wie der Titel daneben. Die Fläche folgt dem Stand, immer mit einem Wort dazu: offen (Akzent) · bald, unter sieben Tagen (gelb) · vorbei (rot) · erledigt (grün).
+
+```tsx
+<div className="flex flex-wrap items-start justify-between gap-3">
+  <h2 className="ct-h2 text-ink">{titel}</h2>
+  <FristMarke className="ml-auto" dueAt={iso} dateText={…} vorbei={…} erledigt={…} t={…} />
+</div>
+```
+
+- Das Datum formatiert der Server **mit `timeZone: "Europe/Berlin"`**, denn er läuft in UTC.
+- Kennt der Server den Stand (`late_now`, angenommene Datei), gibt die Seite `vorbei` oder `erledigt` mit. Sonst rechnet der Browser nach dem Laden.
+- Ist die Aufgabe angenommen, fällt die Marke weg: dann sagt das Badge alles.
+- Die große, laufende Zahl (`DeadlineCard prominent`) bleibt der Ticketseite vorbehalten. Dort ist die Frist das Thema der Seite (PART-066).
+
 ## Links in ein neues Fenster (QS-034, ab 24.09.2026)
 
 Jeder Link, der das Portal verlässt, öffnet ein neues Fenster (Konrad, 23.09.: *„generell sollen global immer alle Tabs die nach extern leiten im neuen Tab geöffnet werden"*). Nie von Hand, immer über den Helfer:

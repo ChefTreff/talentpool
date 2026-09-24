@@ -15,9 +15,13 @@ import { Countdown, useRestzeit } from "./Countdown";
  * **`prominent` dreht die Gewichtung um** (PART-066, Konrad 21.09.: „größer und
  * prominenter, als Countdown — dynamisches Element, wirkt immer super"): die
  * Restzeit steht als grosse Zahl vorn, das Datum darunter. Nur die Ticketseite
- * nutzt das — dort ist die Frist die eine Zahl, auf die es ankommt. Messestand,
- * Branding und Hackathon bleiben bei der ruhigen Fassung; wer das ändern will,
- * ändert es dort ausdrücklich, nicht über diese Komponente nebenbei.
+ * nutzt das — dort ist die Frist die eine Zahl, auf die es ankommt.
+ *
+ * **Fristen, die zu einem Abschnitt gehören, stehen seit QS-044 nicht mehr
+ * hier**, sondern als `FristMarke` rechts in dessen Kopfzeile (Messestand,
+ * Branding, Hackathon, Präsentation). Die ruhige Fassung ohne `prominent`
+ * nutzt deshalb derzeit keine Seite; sie bleibt für eine Frist, die für sich
+ * steht und keinen Abschnitt hat.
  */
 export function DeadlineCard({
   dueAt,

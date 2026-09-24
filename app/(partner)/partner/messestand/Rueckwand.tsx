@@ -8,7 +8,6 @@ import { acceptAttribute, checkFileRules, formatBytes } from "@/lib/partner/file
 import { Badge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { DeadlineCard } from "@/components/ui/DeadlineCard";
 import { Field } from "@/components/ui/Field";
 import { FileButton } from "@/components/ui/FileButton";
 import { Textarea } from "@/components/ui/Input";
@@ -179,17 +178,9 @@ export function Rueckwand({
         )}
       </Card>
 
-      {dueAt && (
-        <DeadlineCard
-          dueAt={dueAt}
-          label={t.dueOn}
-          dateText={dateTime.format(new Date(dueAt))}
-          days={t.countdownDays}
-          hours={t.countdownHours}
-          soon={t.countdownSoon}
-          note={t.backAfterDeadline}
-        />
-      )}
+      {/* Die Frist selbst steht seit QS-044 im Kopf des Abschnitts (Seite,
+          `FristMarke`); hier bleibt, was nach ihr gilt. */}
+      {dueAt && <p className="ct-small leading-6 text-muted">{t.backAfterDeadline}</p>}
 
       {/* Nach der Frist bleibt genau ein Weg — und der führt nicht in eine
           Mailbox, sondern in die Anfrageliste des Partner-Teams. */}

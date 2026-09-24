@@ -17,6 +17,7 @@ import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { KalenderKnoepfe } from "@/components/ui/KalenderKnoepfe";
+import { FristMarke } from "@/components/ui/FristMarke";
 import {
   deleteAsset,
   registerAsset,
@@ -80,7 +81,15 @@ export function SessionView({
   t: Strings;
   /** Texte des Titel-Assistenten (SPK-012) — eigener Block, `t` bleibt flach. */
   assistant: Strings;
-  common: { cancel: string; choose: string; none: string; required: string; save: string };
+  common: {
+    cancel: string;
+    choose: string;
+    none: string;
+    required: string;
+    save: string;
+    deadlinePassed: string;
+    deadlineDone: string;
+  };
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
@@ -354,7 +363,15 @@ function SessionCard({
   t: Strings;
   /** Texte des Titel-Assistenten — eigener Block, damit `t` flach bleibt. */
   assistant: Strings;
-  common: { cancel: string; choose: string; none: string; required: string; save: string };
+  common: {
+    cancel: string;
+    choose: string;
+    none: string;
+    required: string;
+    save: string;
+    deadlinePassed: string;
+    deadlineDone: string;
+  };
   message: (key: string) => string;
   onUpload: (session: MySession, file: File) => void;
   onDownload: (asset: SpeakerAsset) => void;
@@ -626,12 +643,35 @@ function SessionCard({
       {/* Präsentation */}
     <Card id="praesentation" className="scroll-mt-20 p-6">
       <div>
-        <h2 className="ct-h2 mb-1 text-ink">{t.presentationTitle}</h2>
-        <p className="ct-help">
-          {due ? `${t.deadline}: ${dateTime.format(new Date(due))}` : t.deadlineUnknown}
+        {/* Die Frist gehört in den Kopf des Abschnitts, rechts neben den Titel
+            (QS-044, Konrad 24.09.: „deutlich größer, farblich hervorgehoben,
+            rechtsbündig in der Zeile des Sektionskopfs"). Vorher stand sie als
+            graue Hilfezeile darunter. */}
+        <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
+          <h2 className="ct-h2 text-ink">{t.presentationTitle}</h2>
+          {due && (
+            <FristMarke
+              className="ml-auto"
+              dueAt={due}
+              dateText={dateTime.format(new Date(due))}
+              vorbei={lateNow}
+              erledigt={assets.length > 0}
+              t={{
+                label: t.deadline,
+                days: t.dueDays,
+                hours: t.dueHours,
+                soon: t.dueSoon,
+                passed: common.deadlinePassed,
+                done: common.deadlineDone,
+              }}
+            />
+          )}
+        </div>
+        {!due && <p className="ct-help">{t.deadlineUnknown}</p>}
+        <p className="ct-help mt-1">
+          {t.uploadHint}
           {lateNow && ` — ${t.deadlinePassedHint}`}
         </p>
-        <p className="ct-help mt-1">{t.uploadHint}</p>
 
         {/* Der gemeinsame Baustein statt eines rohen Dateifelds (QS-025) —
             genau die Stelle, an der es Konrad aufgefallen ist. Als Knopf

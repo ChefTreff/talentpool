@@ -41,7 +41,9 @@
     "upload": "Upload",
     "chooseOtherFile": "Choose another file",
     "newTab": "opens in a new window",
-    "onThisPage": "On this page"
+    "onThisPage": "On this page",
+    "deadlinePassed": "passed",
+    "deadlineDone": "done"
   },
   "messages": {
     "not_signed_in": "You are no longer signed in. Please sign in again.",
