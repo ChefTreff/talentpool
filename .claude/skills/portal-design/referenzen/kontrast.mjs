@@ -40,6 +40,11 @@ const PAARE = [
   // und auf der vollen Fläche für „final".
   ["Warning-Ink auf Schraffur (dunkler Streifen)", "#8A6100", "#FEE7A6", 4.5],
   ["Weiß auf accent-strong (Slot final)", "#FFFFFF", "#5B5BD9", 4.5],
+  // Admin-Leiste im Kontrastton Lila (QS-046, 24.09.2026): Grund accent-deep.
+  ["Admin-Leiste: Schrift on-navy auf accent-deep", "#F5F4F2", "#4A4AC5", 4.5],
+  ["Admin-Leiste: Gruppenkopf/Hilfstext accent-soft auf accent-deep", "#E8E8FC", "#4A4AC5", 4.5],
+  ["Leiste: aktive Pille, accent-deep auf on-navy (Admin)", "#4A4AC5", "#F5F4F2", 4.5],
+  ["Leiste: Gruppenkopf accent-soft auf Navy", "#E8E8FC", "#081A35", 4.5],
   ["Weiß auf Akzentfläche", "#FFFFFF", "#6262DC", 4.5],
   ["Off-White auf Akzentfläche", "#F5F4F2", "#6262DC", 4.5],
   ["Akzent als Rand/Fokus auf Karte", "#6262DC", "#FFFFFF", 3.0],

@@ -1,3 +1,5 @@
+-- 0165 · Welle 6 · Next Up im Teilnehmer-Portal (TAL-006): next_up_item, next_up_items, Pflege im Admin-Abschnitt nextUp
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924140714.
 -- 00NN · „Next Up" im Teilnehmer-Portal (TAL-006): Hinweise auf kommende Events und Programme.
 --
 -- Anlass: Konrad 24.09.2026 (Eingang TAL-006) — „Home" bekommt eine Sektion **Next Up**:

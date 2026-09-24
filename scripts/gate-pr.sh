@@ -26,6 +26,8 @@ marker="$(git grep -lE '^(<<<<<<< |>>>>>>> )' -- . || true)"
 [ -z "$marker" ] || { echo "dateien: FEHLER (Konfliktmarker)"; echo "$marker"; exit 1; }
 # Neue Migrationen ausserhalb von vorschlag/ muessen den Vermerk der Architektur-Session tragen (22.09.2026, #121 hatte eine selbst benannte Datei).
 neu="$(git diff --name-only "$(git merge-base HEAD origin/main)" HEAD -- supabase/migrations | grep -vE "/vorschlag/" | grep -E "\.sql$" || true)"
+# Tests dürfen Migrationen nicht über den Vorschlagspfad lesen (der wird beim Anwenden umbenannt): nur über tests/migration-datei.ts
+if grep -rn "migrations/vorschlag/" tests --include="*.ts" | grep -v "tests/migration-datei.ts" >/dev/null 2>&1; then echo "dateien: FEHLER (Test liest supabase/migrations/vorschlag/ direkt — migrationText() aus tests/migration-datei.ts nutzen)"; grep -rn "migrations/vorschlag/" tests --include="*.ts" | grep -v "tests/migration-datei.ts"; exit 1; fi
 for f in $neu; do grep -q "Angewendet von der Architektur-Session" "$f" || { echo "dateien: FEHLER (Migration ohne Anwendungsvermerk ausserhalb von vorschlag/): $f"; exit 1; }; done
 echo "dateien: ok"
 npm ci --no-audit --no-fund >/dev/null 2>&1 || { echo "npm ci: FEHLER"; exit 1; }
