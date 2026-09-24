@@ -35,6 +35,11 @@ const PAARE = [
   ["Schlüsselwort (accent-strong) auf Grund", "#5B5BD9", "#F5F4F2", 4.5],
   ["Schlüsselwort (accent-strong) auf Karte", "#5B5BD9", "#FFFFFF", 4.5],
   ["Akzent-Umriss (Slot-Karte) auf Grund", "#6262DC", "#F5F4F2", 3],
+  // Board-Status (Vorschlag LEAD-017, 24.09.2026): Text auf dem dunkleren
+  // Streifen der Schraffur `--ct-hatch-pending` (30 % warning in warning-soft)
+  // und auf der vollen Fläche für „final".
+  ["Warning-Ink auf Schraffur (dunkler Streifen)", "#8A6100", "#FEE7A6", 4.5],
+  ["Weiß auf accent-strong (Slot final)", "#FFFFFF", "#5B5BD9", 4.5],
   ["Weiß auf Akzentfläche", "#FFFFFF", "#6262DC", 4.5],
   ["Off-White auf Akzentfläche", "#F5F4F2", "#6262DC", 4.5],
   ["Akzent als Rand/Fokus auf Karte", "#6262DC", "#FFFFFF", 3.0],

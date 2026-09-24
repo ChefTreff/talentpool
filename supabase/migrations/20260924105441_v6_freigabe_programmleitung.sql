@@ -1,3 +1,63 @@
+-- 0157 · Welle 6 · Freigabe durch die Programmleitung (LEAD-022): partner_sessions_pending/release_partner_session prüfen is_programme_editor mit der richtigen Veranstaltung
+-- Angewendet von der Architektur-Session am 24.09.2026 als 20260924105441.
+--
+-- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
+-- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
+--
+-- **Befund (24.09., gegen die Datenbank geprüft):** `partner_sessions_pending`
+-- und `release_partner_session` (PART-050) prüfen
+-- `is_partner_team() or is_programme_editor(null)`. `is_programme_editor`
+-- sucht `where ev.id = p_event_id` — mit NULL trifft das nie, das Ergebnis ist
+-- **immer false**, auch für ein globales Programm-Team. Probe: als
+-- `programme_team` global gibt `is_programme_editor(null)` false,
+-- `is_programme_editor(<event>)` true, und `partner_sessions_pending` weist mit
+-- 42501 ab. Die Freigabe der Standbühnen ging also nur für admin und die
+-- Partner-Leitung — genau die Programmleitung (Paulina), für die LEAD-022 den
+-- Bereich will, war ausgesperrt.
+--
+-- Korrektur: mit der Veranstaltung prüfen, die jeweils vorliegt — bei der
+-- Liste die übergebene Edition, bei der Freigabe die der Session. Beide aus
+-- `supabase/snapshot/functions/`, sonst unverändert.
+--
+-- **Nicht hier, gemeldet:** derselbe Fehler steckt in `company_tours_admin`,
+-- `upsert_company_tour` und `upsert_company_tour_stop` — nicht Speaker-Domäne.
+
+set search_path = public, extensions;
+
+-- ---- partner_sessions_pending
+create or replace function partner_sessions_pending(p_edition_id uuid DEFAULT NULL::uuid)
+ RETURNS TABLE(session_id uuid, org_id uuid, org_name text, format text, title_de text, starts_at timestamp with time zone, stage_name text, format_details jsonb, created_at timestamp with time zone)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $$
+begin
+  -- `is_programme_editor(null)` war immer false: die Funktion sucht
+  -- `where ev.id = p_event_id`, und mit NULL trifft das nie. Also mit der
+  -- Edition prüfen, die ohnehin übergeben wird. Ohne Edition bleibt es beim
+  -- Partner-Team — für eine Liste über alles gibt es keinen Scope zu prüfen.
+  if not coalesce(is_partner_team()
+                  or (p_edition_id is not null and is_programme_editor(p_edition_id)), false) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  return query
+    select se.id, se.partner_org_id, coalesce(o.communication_name, o.legal_name), se.format, se.title_de,
+           sl.start_at, st.name, se.format_details, se.created_at
+      from session se
+      join organization o on o.id = se.partner_org_id
+      join event ev on ev.id = se.event_id
+      left join slot sl on sl.id = se.slot_id
+      left join stage st on st.id = sl.stage_id
+     -- Der Formatfilter ist gefallen (Auflage 4): seit einer Textänderung eine
+     -- veröffentlichte Session zurück auf `review` schickt, kann auch ein Talk oder eine
+     -- Masterclass hier landen. Mit dem alten Filter wäre sie aus dem Programm verschwunden,
+     -- ohne dass sie jemand in der Warteschlange gesehen hätte.
+     where se.publish_status = 'review'
+       and (p_edition_id is null or ev.id = p_edition_id or ev.edition_id = p_edition_id)
+     order by se.created_at;
+end $$;
+
+-- ---- release_partner_session
 create or replace function release_partner_session(p_session_id uuid, p_approved boolean, p_note text DEFAULT NULL::text)
  RETURNS void
  LANGUAGE plpgsql
@@ -62,3 +122,5 @@ begin
                     jsonb_build_object('publish_status', v_se.publish_status),
                     jsonb_build_object('org_id', v_se.partner_org_id, 'note', nullif(btrim(coalesce(p_note, '')), '')));
 end $$;
+
+select harden_definer_functions();

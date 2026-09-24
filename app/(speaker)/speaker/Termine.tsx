@@ -1,5 +1,6 @@
 import { AppleMarke, GoogleKalenderMarke, MicrosoftMarke } from "@/components/brand/KalenderMarken";
 import { DateList, DateRow } from "@/components/ui/DateRow";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 /** Ein Termin, fertig formatiert und mit den drei Wegen in den Kalender. */
 export type Termin = {
@@ -48,8 +49,6 @@ export function Termine({
     google: string;
     outlook: string;
     apple: string;
-    /** Hinweis für Vorlesesoftware, dass der Link ein neues Fenster öffnet. */
-    newTab: string;
   };
 }) {
   if (termine.length === 0) return <p className="ct-help">{t.empty}</p>;
@@ -68,10 +67,10 @@ export function Termine({
               {/* Der Zweck der Reihe steht für Vorlesesoftware einmal davor;
                   die drei Links tragen danach nur noch ihren Dienstnamen. */}
               <span className="sr-only">{`${t.add}: ${termin.titel}`}</span>
-              <KalenderLink href={termin.google} name={t.google} extern={t.newTab}>
+              <KalenderLink href={termin.google} name={t.google} extern>
                 <GoogleKalenderMarke />
               </KalenderLink>
-              <KalenderLink href={termin.outlook} name={t.outlook} extern={t.newTab}>
+              <KalenderLink href={termin.outlook} name={t.outlook} extern>
                 <MicrosoftMarke />
               </KalenderLink>
               <KalenderLink href={termin.ics} name={t.apple}>
@@ -100,22 +99,22 @@ function KalenderLink({
   href: string;
   name: string;
   /**
-   * Gesetzt, wenn der Link aus dem Portal herausführt — dann steht hier der
-   * Hinweis für Vorlesesoftware. Google und Microsoft führen hinaus, die
-   * eigene `.ics` nicht: die lädt herunter, und ein Tab, der sich sofort
-   * wieder schliesst, ist kein Gewinn.
+   * Gesetzt, wenn der Link aus dem Portal herausführt. Google und Microsoft
+   * führen hinaus, die eigene `.ics` nicht: die lädt herunter, und ein Tab,
+   * der sich sofort wieder schliesst, ist kein Gewinn. Neues Fenster, `rel`
+   * und die Ansage für Vorlesesoftware kommen aus `neuesFenster` (QS-034) —
+   * der Hinweis stand hier vorher im `aria-label` und würde neben dem
+   * gemeinsamen Verweis doppelt vorgelesen.
    */
-  extern?: string;
+  extern?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <a
       href={href}
       title={name}
-      // `noopener` ist nicht Zierde: ohne es bekommt die geöffnete Seite
-      // `window.opener` und kann unsere Seite umleiten.
-      {...(extern ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      aria-label={extern ? `${name} (${extern})` : name}
+      {...(extern ? neuesFenster : {})}
+      aria-label={name}
       className="flex h-11 w-11 items-center justify-center rounded-ct-sm transition-colors hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       {children}

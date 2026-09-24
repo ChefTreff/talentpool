@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { saveScore } from "../actions";
 import type { JudgingRow } from "../types";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
 
@@ -68,12 +69,12 @@ function TeamCard({
         {row.submitted_at ? (
           <div className="flex flex-col gap-1">
             {row.submission_url && (
-              <a className="ct-link" href={row.submission_url} target="_blank" rel="noopener noreferrer">
+              <a className="ct-link" href={row.submission_url} {...neuesFenster}>
                 {row.submission_url}
               </a>
             )}
             {row.repo_url && (
-              <a className="ct-link" href={row.repo_url} target="_blank" rel="noopener noreferrer">
+              <a className="ct-link" href={row.repo_url} {...neuesFenster}>
                 {row.repo_url}
               </a>
             )}

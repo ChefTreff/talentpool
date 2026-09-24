@@ -11,6 +11,7 @@ import { loadVideo, loomEmbedUrl } from "@/components/video/load";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type PartnerContact, type PartnerOverview } from "../types";
 import { Schritte, type SchrittStand } from "./Schritte";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +73,7 @@ export default async function EventAppPage() {
         <h2 className="ct-h2 text-ink">{s.appTitle}</h2>
         <p className="ct-small mt-1 leading-6">{s.appBody}</p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <ButtonLink href={APP_URL} target="_blank" rel="noreferrer noopener">
+          <ButtonLink href={APP_URL} {...neuesFenster}>
             {s.appAction}
           </ButtonLink>
           <Link className="ct-link ct-small" href="/partner/wiki">

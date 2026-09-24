@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "./Button";
 import { cn } from "./cn";
+import { neuesFenster } from "./neues-fenster";
 
 /**
  * Fremde Einbettung erst auf Klick — Zwei-Klick-Lösung.
@@ -62,7 +63,7 @@ export function EmbedGate({
         <Button size="sm" onClick={() => setGeladen(true)}>
           {loadLabel}
         </Button>
-        <a className="ct-link ct-small" href={src} target="_blank" rel="noreferrer noopener">
+        <a className="ct-link ct-small" href={src} {...neuesFenster}>
           {openLabel}
         </a>
       </div>

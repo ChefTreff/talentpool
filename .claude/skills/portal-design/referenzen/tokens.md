@@ -80,6 +80,8 @@ Die Grundformen der Division stehen als Token in `globals.css`, damit keine Komp
 | `--ct-gradient-shape` | 110°, Akzent 0 % → 60 % | Formen-Verlauf laut A2 (`3:20352`). **Nur auf Navy, nie hinter Text** |
 | `--ct-gradient-shape-light` | 110°, `accent-soft` → `accent` | dieselbe Form auf **hellem** Grund: `PersonCard`, `PhotoCard`. Der Verlauf aus A2 blendet aus Transparenz ein und verschwindet auf Weiß fast ganz — genau der dünne Eindruck, den v2 abstellen soll |
 | `--ct-gradient-hero` | Navy → Navy + 22 % Akzent | Fläche des `HeroBand`. Hellste Stelle `#1C2A5A`: Off-White darauf 12,5:1, Hilfstext 5,9:1, Highlight-Pink 6,3:1 |
+| `--ct-hatch-pending` · Utility `bg-hatch-pending` | 135°-Streifen aus `warning-soft` und 30 % `warning` | Zustand „angefragt, noch nicht bestätigt“ als **Form** (Programm-Board, Vorschlag LEAD-017). `text-warning-ink` hält auf dem dunkleren Streifen 4,54:1 |
+| `--ct-pattern-transparent` · Utility `bg-pattern-transparent` | Karo aus `surface` und `border`, 16 px | Hintergrund für Logos und Bilder mit Transparenz (Logo-Upload, Vorschlag PART-060) — nur darauf sieht man, ob ein PNG freigestellt ist |
 
 Ein geclipptes Element trägt **keinen Rand**. Wo eine Form eine Kontur braucht (`PersonCard`-Umriss, offener Schritt in `StepBar`), steht sie als SVG-`polygon` mit `stroke`, nicht als `clip-path` — sonst müsste die Komponente die Hintergrundfarbe der Seite kennen, und die ist auf `bg-surface` eine andere als auf `bg-canvas`.
 

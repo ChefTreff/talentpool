@@ -41,6 +41,8 @@ const MAILBOXES: Record<string, string> = {
   "speaker-leads": "speaker@chef-treff.de",
 };
 
+import { neuesFenster } from "@/components/ui/neues-fenster";
+
 export const DEFAULT_MAILBOX = "portal@chef-treff.de";
 
 export function mailboxFor(area: string): string {
@@ -97,8 +99,7 @@ export function PortalFooter({
             <a
               key={l.href}
               href={l.href}
-              target="_blank"
-              rel="noreferrer noopener"
+              {...neuesFenster}
               className={
                 onNavy
                   ? "ct-help text-on-navy-muted hover:text-on-navy"

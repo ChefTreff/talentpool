@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { SessionView } from "./SessionView";
 import type { SpeakerProfile } from "../types";
 import type { MySession, PresentationWindow, SpeakerAsset } from "./types";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 export const dynamic = "force-dynamic";
 
@@ -150,8 +151,7 @@ export default async function SpeakerSessionPage() {
               <div className="mt-3">
                 <ButtonLink
                   href={planUrl}
-                  target="_blank"
-                  rel="noreferrer noopener"
+                  {...neuesFenster}
                   variant="secondary"
                 >
                   {t.speaker.planOpen}

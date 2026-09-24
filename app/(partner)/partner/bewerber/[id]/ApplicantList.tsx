@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import { decideApplication } from "../../actions";
 import { APPLICATION_DECISIONS, type PartnerApplication } from "../../types";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
 
@@ -116,8 +117,7 @@ export function ApplicantList({
                       <a
                         className="ct-link mt-1 inline-block"
                         href={a.profile.linkedin_url}
-                        target="_blank"
-                        rel="noreferrer noopener"
+                        {...neuesFenster}
                       >
                         LinkedIn
                       </a>

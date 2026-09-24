@@ -168,6 +168,21 @@ Gelesen am 17.09.2026 im Walkthrough mit Konrad (er eingeloggt, Design-Session n
 1. **Die Seitenleiste des Team-Portals ist hell**, nicht Navy — aktiver Punkt als Soft-Fläche mit Akzenttext. Unsere Leiste ist Navy (`QS-001`, `QS-007`, beide gebaut). Offen.
 2. **Knöpfe und Chips sind dort Pillen**, bei uns 8-px-Rechtecke (Design-Briefing §5: eine Form konsequent). Offen.
 
+## Links in ein neues Fenster (QS-034, ab 24.09.2026)
+
+Jeder Link, der das Portal verlässt, öffnet ein neues Fenster (Konrad, 23.09.: *„generell sollen global immer alle Tabs die nach extern leiten im neuen Tab geöffnet werden"*). Nie von Hand, immer über den Helfer:
+
+```tsx
+import { neuesFenster } from "@/components/ui/neues-fenster";
+
+<a href={url} className="ct-link" {...neuesFenster}>…</a>
+<ButtonLink href={url} {...neuesFenster}>…</ButtonLink>
+```
+
+Er setzt `target="_blank"`, `rel="noopener noreferrer"` und `aria-describedby` auf die **eine** Ansage „öffnet ein neues Fenster" im Root-Layout. Ein Link mit eigenem Hinweis im `aria-label` würde doppelt vorgelesen. Dasselbe gilt für eigene Seiten, die bewusst in einem neuen Fenster aufgehen (Druckansicht der Regie).
+
+**Nicht** für Downloads: die eigene `.ics`, signierte Adressen mit `download: true`. Dort bliebe ein leeres Fenster zurück, solche Links tragen `download`. `tests/externe-links.test.ts` lässt neue Verstöße auffallen: `target="_blank"` von Hand, feste `https://`-Adressen ohne Helfer, Adressen aus Daten (`…Url`, `…_url`) ohne Helfer oder `download`, `window.open` ohne `noopener`.
+
 ## Sprache
 
 Du/ihr. Buttons benennen das Ergebnis. Fehler nennen den nächsten Schritt („Frist abgelaufen — melde dich bei …" statt „Ungültige Eingabe"). Jeder Begriff, den Nutzer sehen, kommt aus `vocab_term` bzw. `getI18n`, DE und EN gleichwertig.

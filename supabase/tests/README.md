@@ -114,3 +114,4 @@ Simulation eines eingeloggten Nutzers innerhalb der Transaktion:
 
 Nach jedem Umzug/Neuaufbau alle vier Dateien laufen lassen (Runbook `supabase-umzug.md`, Schritt „Prüfen"). Zusätzlich die Realtime-Probe `node --env-file=.env.local scripts/realtime-probe.mjs` (prüft Policies auf `realtime.messages` mit echtem Realtime-Dienst statt nur in SQL).
 | `v6_consent_current_invoker.sql` | 0150 | `consent_current` folgt der RLS von `consent_record`: authenticated ohne Person sieht 0 Zeilen (vorher alle) |
+| `v6_ip_hash_streichen.sql` | 0158 | `ip_hash` in `audit_log`/`consent_record` weg; `consent_current` und `audit_log` lesen weiter |

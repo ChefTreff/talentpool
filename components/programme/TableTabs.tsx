@@ -12,9 +12,15 @@ import type { Locale } from "@/lib/i18n/shared";
 export async function TableTabs({
   basePath,
   locale,
+  withRelease,
 }: {
   basePath: string;
   locale?: Locale;
+  /**
+   * Dritter Reiter „Freigabe" (LEAD-022) — nur im Admin. Im Leads-Board gibt
+   * es nichts freizugeben: das darf nur die Programmleitung.
+   */
+  withRelease?: boolean;
 }) {
   const { t } = await getI18n(locale);
   return (
@@ -23,6 +29,9 @@ export async function TableTabs({
       items={[
         { href: basePath, label: t.admin.programmeTable.tabBoard, exact: true },
         { href: `${basePath}/tabelle`, label: t.admin.programmeTable.tabTable },
+        ...(withRelease
+          ? [{ href: `${basePath}/freigabe`, label: t.admin.programmeRelease.tab }]
+          : []),
       ]}
     />
   );

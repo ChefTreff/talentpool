@@ -137,3 +137,14 @@ Laufend gepflegt. ☐ offen · ☑ erledigt. Quelle: Entscheidungslog.
 - ☐ **Datenschutzerklärung fürs Portal prüfen (QS-018, P1):** Impressum und Datenschutz verlinken ab PR #53 auf `chef-treff.de/impressum/` und `/datenschutzerklaerung/` (Konrad, 17.09.). Offen: deckt die Website-Erklärung die Verarbeitung im Portal ab — Magic-Link-Login, Supabase (Frankfurt), Vercel (fra1), Resend, Anthropic (Assistent), Speicherfristen, Consent-Set? Wenn nicht: eigener Portal-Abschnitt, Text vom Anwalt (siehe Consent-Agent/Anwaltsprüfung oben), Seite baut der Chat Admin & Schnittstellen — Konrad + Anwalt.
 - [ ] **Löschkonzept extern (QS-019):** Zuständigkeit und Frist für die Löschung in vivenu, HubSpot und Swapcard nach jeder erledigten Profillöschung festlegen (30 Tage); Kennzeichen „extern offen“ in der Admin-Liste der Löschanträge (Folgebaustein ADM). Quelle: Review #65, 18.09.2026.
 - [x] **Supabase Redirect-URL für Branch-Previews** (eingetragen von Konrad am 18.09.2026) `https://talentpool-git-*-chef-treff.vercel.app/auth/callback` eintragen (Authentication → URL Configuration) — Konrad; danach können alle Rollout-Previews ohne Einzeleintrag abgenommen werden. Dazu Vercel → Settings → Deployment Protection für Previews prüfen (Previews laufen gegen die Live-Datenbank). Quelle: Design-Chat, Architektur 18.09.2026.
+
+## Finale Checkliste vor Veröffentlichung (Go-live 14.10.2026) — angelegt 24.09.2026 auf Konrads Wunsch
+
+Alles, was vor dem ersten echten Nutzer noch einmal geprüft oder umgestellt wird. Pflege: Architektur-Session; Konrad hakt ab.
+
+- [ ] **Profilfelder Pflicht/optional** (TAL-013, Frage 3): Entscheidung „alles optional außer Berufserfahrung“ noch einmal prüfen und ggf. anpassen (Konrad, 24.09.).
+- [ ] **CSP scharf** (`CSP_ENFORCE=true` in Vercel Production, Redeploy) — erst nach Prüfung der Report-Only-Meldungen (`[csp]` in den Vercel-Logs); Stand 24.09.: Variable gesetzt, Header läuft noch Report-Only.
+- [ ] **Supabase-Auth-Rate-Limits erhöhen** (Screenshot 24.09.: E-Mails 30/h, Anmeldungen und Verifikationen 30 je 5 Minuten **je IP**): E-Mails auf mindestens 200/h (Login-Spitzen vor dem Summit), Anmeldungen und Verifikationen auf mindestens 100 je 5 Minuten — am Veranstaltungsort teilen sich hunderte Geräte im WLAN eine IP.
+- [ ] **`ip_hash`** in `audit_log` und `consent_record` gestrichen (Konrad 24.09.: „streichen, sofern kein Sicherheitsrisiko“ — keins; Migration durch die Architektur-Session).
+- [ ] **Testdaten entfernen** (Testkonten, Test-Tickets, Test-Fotos aus SPK-063/064), Sperrliste prüfen.
+- [ ] **Weiterleitung `/produktion`** kann bleiben (schadet nicht, Konrad 24.09.).

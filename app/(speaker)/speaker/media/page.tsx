@@ -102,6 +102,9 @@ export default async function SpeakerMediaPage() {
                     {f.downloadUrl && (
                       <ButtonLink
                         href={f.downloadUrl}
+                        // Lädt herunter (signierte Adresse mit `download: true`),
+                        // deshalb kein neues Fenster — es bliebe leer (QS-034).
+                        download
                         variant="secondary"
                         size="sm"
                         className="self-start"

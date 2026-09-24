@@ -123,6 +123,34 @@
     var(--ct-navy) 55%,
     color-mix(in srgb, var(--ct-accent) 22%, var(--ct-navy)) 100%
   );
+
+  /* Zwei Muster, die einen Zustand als **Form** zeigen, nicht nur als Farbe
+     (Design-Regel 4; Vorschläge vom 24.09., docs/design-vorschlaege-2026-09-24.md).
+     Als Utilities unten: `bg-hatch-pending`, `bg-pattern-transparent`.
+
+     Schraffur für „angefragt, noch nicht bestätigt" (Programm-Board, LEAD-017):
+     die dunklere Streifenfarbe ist so gemischt, dass `text-warning-ink` darauf
+     noch 4,54:1 hält (auf der hellen 5,13:1). */
+  --ct-hatch-pending: repeating-linear-gradient(
+    135deg,
+    var(--ct-warning-soft) 0 6px,
+    color-mix(in srgb, var(--ct-warning) 30%, var(--ct-warning-soft)) 6px 12px
+  );
+  /* Karomuster hinter Logos und Bildern mit Transparenz (Logo-Upload,
+     PART-060): nur darauf sieht man, ob ein PNG wirklich freigestellt ist. */
+  --ct-pattern-transparent: repeating-conic-gradient(
+    var(--ct-surface) 0% 25%,
+    var(--ct-border) 0% 50%
+  );
+}
+
+@utility bg-hatch-pending {
+  background-image: var(--ct-hatch-pending);
+}
+
+@utility bg-pattern-transparent {
+  background-image: var(--ct-pattern-transparent);
+  background-size: 16px 16px;
 }
 
 @theme inline {

@@ -16,6 +16,7 @@ import type {
   RawQuestionOption,
   SessionQuestion,
 } from "./types";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 
 export const dynamic = "force-dynamic";
 
@@ -167,8 +168,7 @@ export default async function ProgrammPage() {
           variant="secondary"
           size="sm"
           href={EVENT_APP_STORE_LINKS.appStore}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...neuesFenster}
         >
           {t.programme.eventAppIos}
         </ButtonLink>
@@ -176,8 +176,7 @@ export default async function ProgrammPage() {
           variant="secondary"
           size="sm"
           href={EVENT_APP_STORE_LINKS.googlePlay}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...neuesFenster}
         >
           {t.programme.eventAppAndroid}
         </ButtonLink>
