@@ -16,6 +16,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { ConfirmDialog } from "@/components/ui/Modal";
+import { KalenderKnoepfe } from "@/components/ui/KalenderKnoepfe";
 import {
   deleteAsset,
   registerAsset,
@@ -424,15 +425,22 @@ function SessionCard({
           {session.stage_name && <span>· {session.stage_name}</span>}
           {session.room && <span>· {session.room}</span>}
           {/* Der Termin zum Mitnehmen (SPK-014). Nur mit Slot — ohne Zeit gibt
-              es nichts einzutragen. Ein einfacher Link, kein Knopf: die Seite
-              hat ihre primäre Aktion schon im Einreichen. */}
+              es nichts einzutragen. Seit QS-043 dieselben drei Zeichen wie auf
+              der Übersicht; vorher stand hier nur der Apple-Weg als Textlink.
+              Zeichen statt Knopf: die Seite hat ihre primäre Aktion schon im
+              Einreichen. */}
           {session.start_at && (
-            <a
-              className="ct-link"
-              href={`/api/speaker/kalender?session=${session.session_id}`}
-            >
-              {t.calendarAdd}
-            </a>
+            <KalenderKnoepfe
+              beschriftung="sichtbar"
+              termin={{
+                titel: finalTitle ?? t.untitled,
+                start: new Date(session.start_at),
+                ende: session.end_at ? new Date(session.end_at) : null,
+                ort: [session.stage_name, session.room].filter(Boolean).join(", ") || null,
+              }}
+              ics={`/api/speaker/kalender?session=${session.session_id}`}
+              t={{ add: t.calendarAdd, google: t.calGoogle, outlook: t.calOutlook, apple: t.calApple }}
+            />
           )}
         </div>
         <h2 className="ct-h2 mt-1 text-ink">{finalTitle ?? t.untitled}</h2>
