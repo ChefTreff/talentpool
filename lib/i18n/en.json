@@ -2586,7 +2586,7 @@
       "revoked": "Role revoked",
       "assignTitle": "Grant a role",
       "assignHint": "The same role in the same scope is extended rather than duplicated.",
-      "roleMultiHint": "Several roles at once \u2014 all with the same scope.",
+      "roleMultiHint": "Several roles at once — all with the same scope.",
       "overrideTitle": "Switch sections",
       "overrideHint": "Exceptions to the default: what a role or a person may see in the admin area. Without an entry the default applies. The admin role always sees everything.",
       "overrideSection": "Section",
@@ -4561,6 +4561,19 @@
     "navLabel": "Overview",
     "eyebrow": "Summit 2027",
     "lead": "Find the formats you can apply for and everything you're currently involved in."
+  },
+  "talentSlides": {
+    "navLabel": "Slides",
+    "word": "Recap",
+    "title": "Slides after the summit",
+    "lead": "Presentations that speakers have shared with participants — available after their session.",
+    "emptyTitle": "No slides yet",
+    "emptyBody": "Slides appear here after each session once the speaker shares them. You can see them with a ticket for this edition.",
+    "emptyAction": "Go to the programme",
+    "download": "Download",
+    "unavailable": "Not available right now",
+    "untitled": "Session",
+    "usageNote": "These slides are for you personally. Please don't pass them on or publish them — the rights remain with the speakers."
   },
   "nextUpAdmin": {
     "title": "Next up",
