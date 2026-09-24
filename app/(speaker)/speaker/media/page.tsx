@@ -66,7 +66,7 @@ export default async function SpeakerMediaPage() {
   });
 
   return (
-    <div className="max-w-[900px]">
+    <div className="max-w-detail">
       <PageHeader word={t.speaker.wordMemories} title={t.speakerMedia.title} description={t.speakerMedia.lead} />
 
       {gruppen.size === 0 ? (

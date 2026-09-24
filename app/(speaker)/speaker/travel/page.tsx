@@ -142,7 +142,7 @@ export default async function SpeakerTravelPage() {
   ];
 
   return (
-    <div className="max-w-[900px]">
+    <div className="max-w-detail">
       <PageHeader
         word={t.speaker.wordJourney}
         title={t.speaker.travelTitle}

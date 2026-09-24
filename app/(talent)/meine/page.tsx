@@ -84,7 +84,7 @@ export default async function MeinePage() {
 
   return (
     <div className="max-w-text">
-      <PageHeader title={t.participation.title} description={t.participation.lead} />
+      <PageHeader word={t.talentStart.cardMineWord} title={t.participation.title} description={t.participation.lead} />
       <VolunteerInvite
         status={((volunteerJson ?? null) as VolunteerProfile | null)?.status ?? null}
         t={t.volunteers}

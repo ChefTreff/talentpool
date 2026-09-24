@@ -46,7 +46,7 @@ export default async function SpeakerProfilPage() {
   }
 
   return (
-    <div className="max-w-[800px]">
+    <div className="max-w-text">
       <PageHeader word={t.speaker.wordBio} title={t.speaker.profileTitle} description={t.speaker.profileLead} />
       {/* Das Foto steht vor dem Formular: es ist der Schritt, den die
           Startseite als offen führt, und der kürzeste Weg zum Erfolgserlebnis. */}

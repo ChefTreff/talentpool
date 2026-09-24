@@ -74,7 +74,7 @@ export default async function SpeakerGrafikPage() {
     }));
 
   return (
-    <div className="max-w-[1100px]">
+    <div className="max-w-content">
       <PageHeader word={t.speaker.wordSpotlight} title={t.speakerGraphic.title} description={t.speakerGraphic.lead} />
       <GrafikMaske
         vorschlag={dateiname(profile?.person.first_name ?? null, profile?.person.last_name ?? null)}
@@ -84,7 +84,7 @@ export default async function SpeakerGrafikPage() {
       {/* Der Generator steht **vor** den Vorlagen: wer etwas Eigenes sagen
           will, soll nicht erst an drei fertigen Texten vorbeiscrollen. Wer
           nur schnell etwas braucht, findet die Vorlagen direkt darunter. */}
-      <section aria-labelledby="h-generator" className="mt-10 max-w-[900px]">
+      <section aria-labelledby="h-generator" className="mt-10 max-w-detail">
         <h2 id="h-generator" className="sr-only">
           {t.speakerGraphic.genTitle}
         </h2>
@@ -99,7 +99,7 @@ export default async function SpeakerGrafikPage() {
         />
       </section>
 
-      <section aria-labelledby="h-posts" className="mt-10 max-w-[900px]">
+      <section aria-labelledby="h-posts" className="mt-10 max-w-detail">
         <h2 id="h-posts" className="ct-h2 mb-1 text-ink">
           {t.speakerGraphic.postsTitle}
         </h2>

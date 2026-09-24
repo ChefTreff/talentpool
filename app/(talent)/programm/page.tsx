@@ -187,7 +187,7 @@ export default async function ProgrammPage() {
   if (sessions.length === 0) {
     return (
       <>
-        <PageHeader title={t.programme.title} description={t.programme.lead} />
+        <PageHeader word={t.talentStart.cardProgrammeWord} title={t.programme.title} description={t.programme.lead} />
         {eventApp}
         <EmptyState title={t.programme.emptyTitle} description={t.programme.emptyBody} />
       </>
@@ -196,7 +196,7 @@ export default async function ProgrammPage() {
 
   return (
     <>
-      <PageHeader title={t.programme.title} description={t.programme.lead} />
+      <PageHeader word={t.talentStart.cardProgrammeWord} title={t.programme.title} description={t.programme.lead} />
       {eventApp}
       <ProgrammeView
         sessions={sessions}
