@@ -40,11 +40,17 @@ const PROFILE_FIELDS = [
  *
  * Die Antworten stehen unter ihrem Schlüssel; wer Fragetexte hat, gibt sie als
  * Schlüssel herein (die Tour liefert sie aus `partner_tour_applications`).
+ *
+ * Mit `wunsch` kann der Partner eines Tour-Stopps Bewerbungen als Wunsch
+ * markieren (PART-092, höchstens fünf) — nur mit Einwilligung sichtbare, denn
+ * wen er nicht sehen darf, kann er nicht wünschen. Die Grenze prüft die
+ * Datenbank; hier ist der Knopf nur gesperrt, wenn sie erreicht ist.
  */
 export function ApplicantList({
   applications,
   statusLabels,
   decide,
+  wunsch,
   dateLocale,
   t,
   rpcMessages,
@@ -53,6 +59,12 @@ export function ApplicantList({
   statusLabels: Record<string, string>;
   /** Server-Aktion zum Entscheiden; fehlt sie, ist die Liste nur Anzeige. */
   decide?: (applicationId: string, status: string) => Promise<PartnerResult>;
+  /** Wunschmarkierung (PART-092): gewünschte Bewerbungen, Obergrenze und die (gebundene) Server-Aktion. */
+  wunsch?: {
+    gewuenscht: string[];
+    max: number;
+    setzen: (applicationId: string, wish: boolean) => Promise<PartnerResult<{ count: number }>>;
+  };
   dateLocale: string;
   t: Strings;
   rpcMessages: Record<string, string>;
@@ -63,6 +75,22 @@ export function ApplicantList({
   const [busy, setBusy] = useState<string | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
+  const voll = wunsch ? wunsch.gewuenscht.length >= wunsch.max : false;
+
+  function onWunsch(a: PartnerApplication, wish: boolean) {
+    if (!wunsch) return;
+    setBusy(a.id);
+    startTransition(async () => {
+      const res = await wunsch.setzen(a.id, wish);
+      setBusy(null);
+      if (!res.ok) {
+        toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+        return;
+      }
+      toast("success", wish ? t.wishAdded : t.wishRemoved);
+      router.refresh();
+    });
+  }
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
 
   function onDecide(a: PartnerApplication, status: string) {
@@ -103,6 +131,7 @@ export function ApplicantList({
                     {statusLabels[a.status] ?? a.status}
                   </Badge>
                   {a.rank != null && <span className="ct-help">#{a.rank}</span>}
+                  {wunsch?.gewuenscht.includes(a.id) && <Badge tone="accent">{t.wishBadge}</Badge>}
                 </div>
                 <p className="ct-help mt-1">
                   {t.appliedOn} {dateTime.format(new Date(a.created_at))}
@@ -145,6 +174,20 @@ export function ApplicantList({
                   </>
                 )}
               </div>
+
+              {wunsch && !hidden && (
+                <div className="flex flex-col items-start gap-1">
+                  {wunsch.gewuenscht.includes(a.id) ? (
+                    <Button size="sm" variant="ghost" disabled={pending} onClick={() => onWunsch(a, false)}>
+                      {busy === a.id && pending ? "…" : t.wishRemove}
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="secondary" disabled={pending || voll} onClick={() => onWunsch(a, true)}>
+                      {busy === a.id && pending ? "…" : t.wishAdd}
+                    </Button>
+                  )}
+                </div>
+              )}
 
               {decide && (
                 <div className="flex w-full max-w-75 flex-wrap gap-2">

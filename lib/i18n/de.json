@@ -33,7 +33,8 @@
       "releaseTitle": "Entscheidungen freigeben?",
       "released": "Freigegeben",
       "releasedToast": "Entscheidungen freigegeben",
-      "title": "Bewerbungen"
+      "title": "Bewerbungen",
+      "wishBadge": "Wunsch: {org} (Stopp {n})"
     },
     "brand": "ChefTreff Admin",
     "deadlines": {
@@ -2918,7 +2919,12 @@
     "profile_occupation_status": "Status",
     "profile_study_field": "Fach",
     "profile_university": "Hochschule",
-    "released": "Die Entscheidungen sind freigegeben und verschickt."
+    "released": "Die Entscheidungen sind freigegeben und verschickt.",
+    "wishAdd": "Als Wunsch markieren",
+    "wishAdded": "Als Wunsch markiert.",
+    "wishBadge": "Euer Wunsch",
+    "wishRemove": "Wunsch zurücknehmen",
+    "wishRemoved": "Wunsch zurückgenommen."
   },
   "partnerBewerbung": {
     "applicationsLead": "Wer sich bewirbt. Ihr entscheidet; die Entscheidungen verschickt ChefTreff nach der Freigabe.",
@@ -3800,6 +3806,8 @@
     "title": "Eure Company Tour",
     "toChecklist": "Zur Checkliste",
     "tourTime": "Tour gesamt",
+    "wishCount": "Eure Wünsche: {n} von {max}.",
+    "wishLead": "Markiert bis zu {max} Personen, die ihr euch für euren Stopp wünscht. Die Auswahl trifft unser Team für die ganze Tour.",
     "yes": "Ja"
   },
   "placeholder": {
@@ -4083,6 +4091,7 @@
     "answers_incomplete": "Ein Pflichtfeld fehlt noch.",
     "answers_required": "Bitte das Formular ausfüllen.",
     "application_not_found": "Bewerbung nicht gefunden.",
+    "application_not_shared": "Diese Person hat dem Teilen ihrer Daten nicht zugestimmt — sie lässt sich nicht als Wunsch markieren.",
     "asset_not_found": "Datei nicht gefunden.",
     "asset_required": "Für diese Pflicht braucht es mindestens eine Datei.",
     "assignment_not_found": "Diese Rollenzuweisung gibt es nicht mehr.",
@@ -4285,6 +4294,7 @@
     "too_long": "Der Text ist zu lang.",
     "too_many_positions": "Mehr als 50 Zeilen gehen nicht.",
     "too_many_questions": "Mehr als zwei eigene Fragen je Format sind nicht vorgesehen.",
+    "too_many_wishes": "Mehr als fünf Wünsche je Stopp gehen nicht. Nehmt erst einen zurück.",
     "too_young": "Am ersten Eventtag musst du 18 sein.",
     "tour_not_found": "Diese Company Tour gibt es nicht.",
     "track_not_found": "Diesen Track gibt es nicht.",

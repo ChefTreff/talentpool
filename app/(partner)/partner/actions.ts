@@ -654,6 +654,24 @@ export async function updateTourStop(stopId: string, fields: Record<string, unkn
   return { ok: true, data: undefined };
 }
 
+/**
+ * Wunsch unter den Bewerbungen der Company Tour setzen oder zurücknehmen
+ * (PART-092, höchstens fünf je Stopp). Die Seite bindet den Stopp vorab
+ * (`setTourWish.bind(null, stopId)`); Grenze, Einwilligung und Recht prüft
+ * `partner_set_tour_wish`.
+ */
+export async function setTourWish(stopId: string, applicationId: string, wish: boolean): Promise<PartnerResult<{ count: number }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_set_tour_wish", {
+    p_stop_id: stopId,
+    p_application_id: applicationId,
+    p_wish: wish,
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/company-tour/bewerbungen`);
+  return { ok: true, data: { count: Number(data ?? 0) } };
+}
+
 /** Nach einer Änderung an den Gästen der Standbühne: Liste, Tabelle, Kalender (seit PART-091 nur dort). */
 function refreshGaeste() {
   revalidatePath(`${PATH}/buehne`);

@@ -33,7 +33,8 @@
       "releaseTitle": "Release decisions?",
       "released": "Released",
       "releasedToast": "Decisions released",
-      "title": "Applications"
+      "title": "Applications",
+      "wishBadge": "Wish: {org} (stop {n})"
     },
     "brand": "ChefTreff Admin",
     "deadlines": {
@@ -2918,7 +2919,12 @@
     "profile_occupation_status": "Status",
     "profile_study_field": "Field",
     "profile_university": "University",
-    "released": "The decisions are released and have been sent."
+    "released": "The decisions are released and have been sent.",
+    "wishAdd": "Mark as wish",
+    "wishAdded": "Marked as wish.",
+    "wishBadge": "Your wish",
+    "wishRemove": "Remove wish",
+    "wishRemoved": "Wish removed."
   },
   "partnerBewerbung": {
     "applicationsLead": "Who applies. You decide; ChefTreff sends the decisions after release.",
@@ -3800,6 +3806,8 @@
     "title": "Your company tour",
     "toChecklist": "To the checklist",
     "tourTime": "Whole tour",
+    "wishCount": "Your wishes: {n} of {max}.",
+    "wishLead": "Mark up to {max} people you would like at your stop. Our team makes the selection for the whole tour.",
     "yes": "Yes"
   },
   "placeholder": {
@@ -4083,6 +4091,7 @@
     "answers_incomplete": "A required field is still missing.",
     "answers_required": "Please fill in the form.",
     "application_not_found": "Application not found.",
+    "application_not_shared": "This person has not agreed to share their data — they cannot be marked as a wish.",
     "asset_not_found": "File not found.",
     "asset_required": "This task needs at least one file.",
     "assignment_not_found": "That role assignment no longer exists.",
@@ -4285,6 +4294,7 @@
     "too_long": "The text is too long.",
     "too_many_positions": "More than 50 lines is not possible.",
     "too_many_questions": "More than two of your own questions per format are not supported.",
+    "too_many_wishes": "No more than five wishes per stop. Remove one first.",
     "too_young": "You need to be 18 on the first day of the event.",
     "tour_not_found": "No such company tour.",
     "track_not_found": "No such track.",

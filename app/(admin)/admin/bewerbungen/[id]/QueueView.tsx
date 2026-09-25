@@ -34,6 +34,7 @@ export function QueueView({
   rows,
   timezone,
   questionLabels,
+  wuensche,
   statusLabels,
   profileLabels,
   vocabProfile,
@@ -46,6 +47,8 @@ export function QueueView({
   rows: QueueRow[];
   timezone: string;
   questionLabels: Record<string, string>;
+  /** PART-092: Wünsche der Stopp-Partner je Bewerbung, schon beschriftet („Wunsch: … (Stopp 1)“). */
+  wuensche?: Record<string, string[]>;
   statusLabels: Record<string, string>;
   profileLabels: Record<string, string>;
   /** Labels für Profilwerte, die aus dem Vokabular kommen. */
@@ -192,6 +195,11 @@ export function QueueView({
                     </Badge>
                     {row.rank != null && <Badge>{`${t.rank} ${row.rank}`}</Badge>}
                     {!row.consent_share && <Badge tone="neutral">{t.notShared}</Badge>}
+                    {(wuensche?.[row.id] ?? []).map((w) => (
+                      <Badge key={w} tone="accent">
+                        {w}
+                      </Badge>
+                    ))}
                   </div>
 
                   <div className="ct-help mt-1 flex flex-wrap gap-x-4">

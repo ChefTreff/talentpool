@@ -34,7 +34,7 @@ export default async function QueuePage({
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: overview }, { data: queue, error }, { data: events }, { data: questionRows }, vocab] =
+  const [{ data: overview }, { data: queue, error }, { data: events }, { data: questionRows }, vocab, { data: wunschZeilen }] =
     await Promise.all([
       supabase.rpc("applications_overview"),
       supabase.rpc("applications_for_session", { p_session_id: id }),
@@ -45,6 +45,8 @@ export default async function QueuePage({
         .eq("session_id", id)
         .order("sort_order"),
       loadVocabMap(supabase, locale),
+      // PART-092: Wünsche der Partner je Stopp — nur bei Sessions einer Company Tour.
+      supabase.rpc("tour_wishes_for_session", { p_session_id: id }),
     ]);
 
   const session = ((overview ?? []) as OverviewRow[]).find((s) => s.session_id === id);
@@ -62,6 +64,12 @@ export default async function QueuePage({
   }
 
   const title = (locale === "en" ? session.title_en : session.title_de) ?? session.title_de ?? "—";
+  const wuensche: Record<string, string[]> = {};
+  for (const w of (wunschZeilen ?? []) as { application_id: string; org_name: string | null; stop_sort: number }[]) {
+    (wuensche[w.application_id] ??= []).push(
+      t.admin.applications.wishBadge.replace("{org}", w.org_name ?? "—").replace("{n}", String(w.stop_sort)),
+    );
+  }
   const statusLabels = vgroup(vocab, "application_status");
   // Feldnamen aus den vorhandenen Wörterbüchern, nicht neu erfunden.
   const profileLabels: Record<string, string> = {
@@ -95,6 +103,7 @@ export default async function QueuePage({
           )?.timezone ?? "Europe/Berlin"
         }
         questionLabels={questionLabels}
+        wuensche={wuensche}
         statusLabels={statusLabels}
         profileLabels={profileLabels}
         vocabProfile={{

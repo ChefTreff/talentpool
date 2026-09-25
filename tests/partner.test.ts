@@ -332,6 +332,9 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     { code: "P0001", message: "speaker_has_access", key: "speaker_has_access" },
     { code: "P0001", message: "no_ops_contact", key: "no_ops_contact" },
     { code: "23514", message: "contact_is_speaker", key: "contact_is_speaker" },
+    // PART-092: Wünsche je Tour-Stopp
+    { code: "P0001", message: "too_many_wishes", key: "too_many_wishes" },
+    { code: "P0001", message: "application_not_shared", key: "application_not_shared" },
   ];
 
   for (const c of CASES) {
