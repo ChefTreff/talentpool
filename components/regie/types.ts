@@ -66,7 +66,10 @@ export type AnweisungsSlot = {
   session_id: string | null;
   title: string | null;
   format: string | null;
-  speakers: { person_id: string; first_name: string | null; last_name: string | null }[] | null;
+  /** Aus `session_speakers_public` — `role = 'moderator'` ist die Moderation (K-35). */
+  speakers:
+    | { person_id: string; first_name: string | null; last_name: string | null; role?: string | null }[]
+    | null;
   tech: Record<string, string | boolean> | null;
   cue_id: string | null;
   people_on_stage: string | null;

@@ -22,8 +22,14 @@ type Strings = Record<string, string>;
  * mussten sich dort Bühne und Tag zusammensuchen. Hier steht **jeder Slot der
  * eigenen Bühnen** untereinander, nach Tag und Bühne gruppiert, und die
  * Anweisungen stehen direkt in der Zeile: Personen auf der Bühne, Mikrofon,
- * Präsentation und Medien, Mobiliar, Notizen. Wie in der Regie-Tabelle
- * speichert jedes Feld beim Verlassen, wenn es sich geändert hat.
+ * Präsentation und Medien, Mobiliar, besondere Anforderungen. Wie in der
+ * Regie-Tabelle speichert jedes Feld beim Verlassen, wenn es sich geändert hat.
+ *
+ * Abgleich mit dem Regieplan 2026 (K-35, Konrad 25.09.): die fünf Felder decken
+ * die Airtable-Spalten ab; „Notizen“ heißt dort „Special Requirements (e.g.
+ * technical stuff)“ und hier deshalb „Besondere Anforderungen (z. B. Technik)“.
+ * Die Moderation ist kein Feld, sondern steht an der Session — die Spalte liest
+ * die Session-Speaker mit der Rolle Moderation.
  *
  * **Keine neuen Slots, keine Zeiten**: die Zeit steht nur zum Lesen da, und
  * `set_regie_anweisungen` nimmt nichts anderes als die fünf Felder. Den Plan
@@ -102,6 +108,7 @@ export function Anweisungsliste({
             <Thead>
               <Th>{p.colTime}</Th>
               <Th>{p.colSession}</Th>
+              <Th>{p.colModeration}</Th>
               <Th>{p.colTech}</Th>
               <Th>{p.colPeopleOnStage}</Th>
               <Th>{p.colMic}</Th>
@@ -159,8 +166,16 @@ function Zeile({
     />
   );
 
+  const person = (s: { first_name: string | null; last_name: string | null }) =>
+    [s.first_name, s.last_name].filter(Boolean).join(" ");
   const namen = (slot.speakers ?? [])
-    .map((s) => [s.first_name, s.last_name].filter(Boolean).join(" "))
+    .filter((s) => s.role !== "moderator")
+    .map(person)
+    .filter(Boolean)
+    .join(", ");
+  const moderation = (slot.speakers ?? [])
+    .filter((s) => s.role === "moderator")
+    .map(person)
     .filter(Boolean)
     .join(", ");
 
@@ -175,6 +190,8 @@ function Zeile({
           {namen && <span className="ct-help">{namen}</span>}
         </div>
       </Td>
+      {/* Nur lesen: gesetzt wird die Moderation in der Session (Board-Schubfach). */}
+      <Td className="whitespace-nowrap">{moderation || <span className="text-muted">—</span>}</Td>
       <Td className="align-top">
         <TechAnsage tech={slot.tech} t={p} />
       </Td>
