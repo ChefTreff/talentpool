@@ -52,6 +52,9 @@
  *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage, mit
  *                                   Einordnung, Bühne in Frage und Verlauf samt
  *                                   überfälliger Aufgabe — LEAD-039)
+ *   … --apply --nur=portraet       (SPK-047: TEST-Porträt an Konrads Speaker-Profil
+ *                                   für den Fotoweg nach Swapcard; ein eigenes
+ *                                   Porträt bleibt unangetastet)
  *   … --apply --nur=moderation     (LEAD-042: TEST-Person als Stage Lead ohne
  *                                   Speaker-Profil, für die Moderationssuche)
  *   … --apply --nur=summit         (LEAD-014: Teststandbühne und Test-Keynote
@@ -819,6 +822,54 @@ function platzhalterSvg({ n, w, h }) {
   <text x="${w / 2}" y="${zeile + klein * 1.8}" text-anchor="middle" fill="#ffffff" fill-opacity="0.8"
         font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="${klein}">${PREFIX}Keynote · keine echte Aufnahme · ${w}×${h}</text>
 </svg>`;
+}
+
+const PORTRAET_NAME = `${PREFIX}Porträt.png`;
+
+/** Platzhalter-Porträt, quadratisch: erkennbar als Testbild, keine echte Aufnahme. */
+function portraetSvg(kante = 600) {
+  const kopf = Math.round(kante * 0.17);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${kante}" height="${kante}" viewBox="0 0 ${kante} ${kante}">
+  <rect width="${kante}" height="${kante}" fill="#081a35"/>
+  <circle cx="${kante / 2}" cy="${kante * 0.38}" r="${kopf}" fill="#6262dc"/>
+  <rect x="${kante * 0.24}" y="${kante * 0.6}" width="${kante * 0.52}" height="${kante * 0.4}" rx="${kante * 0.2}" fill="#6262dc"/>
+  <text x="${kante / 2}" y="${kante * 0.12}" text-anchor="middle" fill="#ffffff"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="${Math.round(kante * 0.06)}">TESTBILD · Porträt</text>
+  <text x="${kante / 2}" y="${kante * 0.19}" text-anchor="middle" fill="#ffffff" fill-opacity="0.8"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="${Math.round(kante * 0.032)}">${PREFIX}keine echte Aufnahme</text>
+</svg>`;
+}
+
+/**
+ * SPK-047: ein TEST-Porträt an Konrads eigenem Speaker-Profil. Erst damit zeigt
+ * der Swapcard-Lauf (`/admin/partner/integrationen` → Speaker übertragen) den
+ * Fotoweg: Kopie im privaten Bucket `speaker-photos`, signierte Adresse, und
+ * nach dem ersten Echtlauf die Fotoprobe `scripts/swapcard-foto-hosts.mjs`.
+ * Hat Konrad selbst ein Porträt hochgeladen, tut der Schritt nichts. Direkt
+ * geschrieben wie die Bühnenfotos (kein Trigger, keine Mail); erkennbar am
+ * Dateinamen `TEST — Porträt.png`, `--remove` nimmt Datei und Eintrag weg.
+ */
+async function testPortraet(me, ed) {
+  const { data: sp } = await admin.from("speaker_profile").select("id")
+    .eq("person_id", me.id).eq("edition_id", ed.id).maybeSingle();
+  if (!sp) return fail("TEST-Porträt", "kein Speaker-Profil — zuerst ein volles --apply");
+  const { data: da, error } = await admin.from("speaker_asset").select("filename")
+    .eq("profile_id", sp.id).eq("kind", "photo").eq("is_current", true).maybeSingle();
+  if (error) return fail("TEST-Porträt", error);
+  if (da) return note("TEST-Porträt", da.filename === PORTRAET_NAME ? "schon da" : "eigenes Porträt vorhanden — unverändert");
+  await write("TEST-Porträt am Speaker-Profil", async () => {
+    // Wie bei den Bühnenfotos erst hier laden: `sharp` kommt über Next mit.
+    const sharp = (await import("sharp")).default;
+    const png = await sharp(Buffer.from(portraetSvg())).png().toBuffer();
+    // Pfad wie beim Hochladen im Portal: `<edition>/<profil>/photo/<uuid>-<datei>`.
+    const path = `${ed.id}/${sp.id}/photo/${crypto.randomUUID()}-zztest-portraet.png`;
+    const { error: up } = await admin.storage.from("speaker-assets").upload(path, png, { contentType: "image/png" });
+    if (up) return { data: null, error: up };
+    return admin.from("speaker_asset").insert({
+      profile_id: sp.id, kind: "photo", storage_path: path, filename: PORTRAET_NAME,
+      mime: "image/png", size_bytes: png.length, version: 1, is_current: true, uploaded_by: me.id,
+    });
+  });
 }
 
 /**
@@ -2159,6 +2210,7 @@ const SCHRITTE = {
   formate: formateSchritt,
   ticket: speakerTicket,
   fotos: stagePhotos,
+  portraet: testPortraet,
   "ticket-zurueck": ticketZurueck,
   buehne: stageLeadBuehne,
   standstatus: standStatus,
@@ -2187,6 +2239,15 @@ async function remove(me) {
   await write("Rollen entfernt", () =>
     admin.from("role_assignment").delete().eq("person_id", me.id).eq("note", MARK),
   );
+  // SPK-047: das TEST-Porträt — die Datei hängt nicht per Kaskade am Profil.
+  await write("TEST-Porträt entfernt", async () => {
+    const { data: fotos } = await admin.from("speaker_asset").select("id, storage_path")
+      .eq("kind", "photo").eq("filename", PORTRAET_NAME).eq("uploaded_by", me.id);
+    if (!fotos?.length) return { data: null, error: null };
+    const { error } = await admin.storage.from("speaker-assets").remove(fotos.map((f) => f.storage_path));
+    if (error) return { data: null, error };
+    return admin.from("speaker_asset").delete().in("id", fotos.map((f) => f.id));
+  });
 
   const { data: org } = await admin
     .from("organization")
