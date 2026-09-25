@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { hasSevdeskToken } from "@/lib/sevdesk/client";
-import { downloadPdf, listDocuments } from "@/lib/sevdesk/documents";
+import { downloadPdf, findContactByCustomerNumber, listDocuments } from "@/lib/sevdesk/documents";
 
 const BUCKET = "partner-assets";
 
@@ -14,6 +14,10 @@ export type BelegErgebnis = {
   failed: number;
   /** Organisationen, die angefasst wurden. */
   orgs: number;
+  /** Über die Kundennummer aufgelöst und gemerkt (ADM-050). */
+  aufgeloest: number;
+  /** Hatten eine Kundennummer, aber drüben keinen eindeutigen Kontakt. */
+  ohneKontakt: string[];
   skippedReason?: string;
 };
 
@@ -22,7 +26,8 @@ type Ziel = {
   org_edition_id: string;
   edition_id: string;
   org_name: string;
-  sevdesk_contact_id: string;
+  sevdesk_contact_id: string | null;
+  customer_number: string | null;
   bekannt: string[];
 };
 
@@ -47,7 +52,7 @@ export async function syncPartnerDocuments(
   admin: SupabaseClient,
   triggeredBy: string,
 ): Promise<BelegErgebnis> {
-  const out: BelegErgebnis = { jobId: null, added: 0, known: 0, failed: 0, orgs: 0 };
+  const out: BelegErgebnis = { jobId: null, added: 0, known: 0, failed: 0, orgs: 0, aufgeloest: 0, ohneKontakt: [] };
 
   const { data, error } = await supabase.rpc("sevdesk_document_targets", { p_edition_id: null });
   if (error) throw new Error(error.message);
@@ -68,9 +73,34 @@ export async function syncPartnerDocuments(
   out.jobId = typeof jobId === "number" ? jobId : null;
 
   for (const ziel of ziele) {
+    // ADM-050: Ohne SevDesk-Kennung über die Kundennummer auflösen. Die Kennung
+    // schreibt sonst nur `record_shop_invoice` — ein Partner mit Angebot und
+    // Rechnung, aber ohne Messeshop-Bestellung, fiel deshalb still aus dem Abruf.
+    let kontakt = ziel.sevdesk_contact_id?.trim() || null;
+    if (!kontakt && ziel.customer_number) {
+      try {
+        kontakt = await findContactByCustomerNumber(ziel.customer_number);
+      } catch (fehler) {
+        out.failed += 1;
+        await melden(admin, out.jobId, ziel.org_id, fehler);
+        continue;
+      }
+      if (kontakt) {
+        out.aufgeloest += 1;
+        // Merken, damit die Auflösung einmal passiert und nicht jede Nacht.
+        // Dieselbe Bedingung wie im Messeshop-Lauf: nur, wenn nichts dasteht.
+        await supabase.rpc("set_org_sevdesk_contact", { p_org_id: ziel.org_id, p_contact_id: kontakt });
+      }
+    }
+    if (!kontakt) {
+      // Sichtbar statt still: wer keine Belege bekommt, steht namentlich im Lauf.
+      out.ohneKontakt.push(ziel.org_name);
+      continue;
+    }
+
     let belege;
     try {
-      belege = await listDocuments(ziel.sevdesk_contact_id);
+      belege = await listDocuments(kontakt);
     } catch (fehler) {
       out.failed += 1;
       await melden(admin, out.jobId, ziel.org_id, fehler);
@@ -114,7 +144,9 @@ export async function syncPartnerDocuments(
     await admin.rpc("finish_sync_job", {
       p_id: out.jobId,
       p_status: out.failed === 0 ? "ok" : out.added > 0 ? "partial" : "failed",
-      p_stats: { added: out.added, known: out.known, failed: out.failed, orgs: out.orgs },
+      // Namen bleiben aus dem Protokoll heraus, dort zählt die Zahl.
+      p_stats: { added: out.added, known: out.known, failed: out.failed, orgs: out.orgs,
+                 aufgeloest: out.aufgeloest, ohneKontakt: out.ohneKontakt.length },
     });
   }
   return out;

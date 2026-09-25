@@ -6,6 +6,7 @@ import { IntegrationsView } from "./IntegrationsView";
 import { HubspotArchiveCard } from "./HubspotArchiveCard";
 import { ProductSyncCard } from "./ProductSyncCard";
 import { SponsorWallCard } from "./SponsorWallCard";
+import { BelegSyncCard } from "./BelegSyncCard";
 import { SpeakerSyncCard } from "./SpeakerSyncCard";
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function AdminIntegrationsPage() {
       <ProductSyncCard t={t.adminPartner} />
       <HubspotArchiveCard t={t.adminPartner} />
       <SponsorWallCard t={t.adminPartner} />
+      <BelegSyncCard t={t.adminPartner} />
       <SpeakerSyncCard t={t.adminPartner} />
       <IntegrationsView
       editions={editions}

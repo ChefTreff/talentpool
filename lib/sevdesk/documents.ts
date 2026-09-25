@@ -63,3 +63,26 @@ export async function downloadPdf(beleg: SevdeskBeleg): Promise<Uint8Array> {
   if (!content) throw new Error(`SevDesk hat kein PDF geliefert (${pfad} ${beleg.id})`);
   return Uint8Array.from(Buffer.from(content, "base64"));
 }
+
+/**
+ * Den SevDesk-Kontakt zu einer Kundennummer (ADM-050).
+ *
+ * Die Brücke zwischen unserer Welt und der Buchhaltung: `organization.customer_number`
+ * (aus HubSpot, ADM-057) und SevDesk `Contact.customerNumber` tragen dieselbe
+ * Nummer in derselben Form (`C-…`). Am 25.09.2026 lesend geprüft: der Filter
+ * liefert bei bekannter Nummer genau einen Treffer und bei unbekannter null.
+ *
+ * **Mehrdeutig heisst: nichts.** Stehen zwei Kontakte auf derselben Nummer, ist
+ * in SevDesk etwas durcheinander; einen davon zu raten hiesse, fremde Rechnungen
+ * in ein Partnerportal zu legen. Dann lieber kein Beleg und ein Eintrag im Lauf.
+ */
+export async function findContactByCustomerNumber(nummer: string): Promise<string | null> {
+  const wert = nummer.trim();
+  if (!wert) return null;
+  const res = await sd<SdList<{ id: string }[]>>(
+    `/Contact?customerNumber=${encodeURIComponent(wert)}&limit=2`,
+  );
+  const treffer = res.objects ?? [];
+  if (treffer.length !== 1) return null;
+  return String(treffer[0].id);
+}
