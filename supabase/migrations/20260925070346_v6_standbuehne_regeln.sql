@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Standbühne: Zeitfenster für Partner (PART-079) und Partner-Status „Veröffentlichen" (PART-080): partner_booth_window, partner_window_binds, create_slot, move_slot, partner_request_publish, partner_withdraw_publish
+-- 0179 · Standbühne: Zeitfenster und Partner-Status (PART-079, PART-080)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925070346.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --

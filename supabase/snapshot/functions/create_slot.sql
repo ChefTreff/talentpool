@@ -10,6 +10,7 @@ declare
   v_day   event_day%rowtype;
   v_sd    stage_day%rowtype;
   v_id    uuid;
+  v_win   record;
 begin
   if not can_edit_stage(p_stage_id) then
     raise exception 'not allowed on this stage' using errcode = '42501';
@@ -33,6 +34,16 @@ begin
     or (v_sd.open_to   is not null and (p_end   at time zone v_tz)::time > v_sd.open_to)) then
     raise exception 'outside_stage_day' using errcode = 'P0001',
       detail = coalesce(to_char(v_sd.open_from, 'HH24:MI'), '') || '–' || coalesce(to_char(v_sd.open_to, 'HH24:MI'), '');
+  end if;
+  -- PART-079: Standbühne eines Partners — frühestens 90 Minuten nach Öffnung des Tages, der letzte
+  -- Slot endet spätestens 19:00. Für den Partner hart; das Programm-Team darf abweichen.
+  if partner_window_binds(p_stage_id) then
+    select * into v_win from partner_booth_window(p_stage_id, v_day.id);
+    if (v_win.von is not null and (p_start at time zone v_tz)::time < v_win.von)
+       or (p_end at time zone v_tz)::time > v_win.bis then
+      raise exception 'outside_partner_window' using errcode = 'P0001',
+        detail = coalesce(to_char(v_win.von, 'HH24:MI'), '') || '–' || to_char(v_win.bis, 'HH24:MI');
+    end if;
   end if;
   insert into slot (stage_id, event_day_id, start_at, end_at, slot_type, source_ref, created_by, updated_by)
     values (p_stage_id, v_day.id, p_start, p_end, p_slot_type, p_source_ref, current_person_id(), current_person_id())

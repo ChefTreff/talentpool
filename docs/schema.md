@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-24 19:27 UTC · 98 Tabellen · 6 Views · 516 Funktionen
+> Stand: 2026-09-25 07:03 UTC · 98 Tabellen · 6 Views · 520 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2187,6 +2187,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_admin_overview` | p_edition_id: uuid |
 | `partner_applications` | p_session_id: uuid |
 | `partner_asset_path_allowed` | p_name: text, p_write: boolean |
+| `partner_booth_window` | p_event_day_id: uuid, p_stage_id: uuid |
 | `partner_can_edit` | p_org_id: uuid |
 | `partner_can_manage_contacts` | p_org_id: uuid |
 | `partner_company_tour` | p_edition_id: uuid, p_org_id: uuid |
@@ -2202,6 +2203,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_mail_cc` | p_mail_id: bigint, p_org_id: uuid |
 | `partner_onboarding_recheck` | p_org_edition_id: uuid |
 | `partner_overview` | p_edition_id: uuid, p_org_id: uuid |
+| `partner_request_publish` | p_session_id: uuid |
 | `partner_request_question` | p_label_de: text, p_label_en: text, p_options: jsonb, p_purpose: text, p_session_id: uuid, p_type: text |
 | `partner_review_queue` | p_edition_id: uuid |
 | `partner_roles` | p_org_id: uuid |
@@ -2213,6 +2215,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_update_session` | p_fields: jsonb, p_session_id: uuid |
 | `partner_update_speaker` | p_fields: jsonb, p_profile_id: uuid |
 | `partner_update_tour_stop` | p_fields: jsonb, p_stop_id: uuid |
+| `partner_window_binds` | p_stage_id: uuid |
+| `partner_withdraw_publish` | p_session_id: uuid |
 | `pending_submissions` | p_event_id: uuid |
 | `person_cv_path_allowed` | p_name: text, p_write: boolean |
 | `person_photo_path_allowed` | p_name: text, p_write: boolean |

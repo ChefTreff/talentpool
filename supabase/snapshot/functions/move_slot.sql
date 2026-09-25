@@ -14,6 +14,7 @@ declare
   v_published boolean;
   v_before    jsonb;
   v_after     jsonb;
+  v_win       record;
 begin
   select * into v_slot from slot where id = p_slot_id for update;
   if not found then
@@ -62,6 +63,16 @@ begin
     end if;
     if v_sd.open_to is not null and (p_end at time zone v_tz)::time > v_sd.open_to then
       v_warn := array_append(v_warn, 'after_close');
+    end if;
+  end if;
+  -- PART-079: Standbühne eines Partners — frühestens 90 Minuten nach Öffnung des Tages, der letzte
+  -- Slot endet spätestens 19:00. Für den Partner hart; das Programm-Team darf abweichen.
+  if partner_window_binds(p_stage_id) then
+    select * into v_win from partner_booth_window(p_stage_id, v_day.id);
+    if (v_win.von is not null and (p_start at time zone v_tz)::time < v_win.von)
+       or (p_end at time zone v_tz)::time > v_win.bis then
+      raise exception 'outside_partner_window' using errcode = 'P0001',
+        detail = coalesce(to_char(v_win.von, 'HH24:MI'), '') || '–' || to_char(v_win.bis, 'HH24:MI');
     end if;
   end if;
   if extract(epoch from p_start)::bigint % 300 <> 0 or extract(epoch from p_end)::bigint % 300 <> 0 then
