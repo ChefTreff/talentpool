@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     minute: "2-digit",
     timeZone: "Europe/Berlin",
   });
-  const head = ["Von", "Bis", "Umbau (min)", "Aktion", "Titel", "Speaker", "Moderation", "Regie", "Backstage", "Personen auf der Bühne", "Mikrofon", "Medien", "Mobiliar", "Notiz"];
+  const head = ["Von", "Bis", "Umbau (min)", "Aktion", "Titel", "Speaker", "Moderation", "Regie", "Backstage", "Personen auf der Bühne", "Mikrofon", "Medien", "Mobiliar", "Besondere Anforderungen (z. B. Technik)"];
   const lines = [
     head.map(csvCell).join(";"),
     ...cues.map((c) =>

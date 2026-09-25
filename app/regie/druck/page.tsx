@@ -122,7 +122,11 @@ export default async function RegieDruckPage({
                 </td>
                 <td className="ct-small px-2 py-2">
                   {c.mobiliar ?? ""}
-                  {c.notes && <span className="ct-help block">{c.notes}</span>}
+                  {c.notes && (
+                    <span className="ct-help block">
+                      {p.colNotes}: {c.notes}
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}
