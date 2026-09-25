@@ -54,6 +54,8 @@ Aus den gebuchten Leistungen entstehen von selbst: **Checklisten-Pflichten**, **
 
 **Profilwahl im Speaker-Portal (SPK-071):** `--apply --nur=assistenz` legt einen zweiten Speaker an, für den Konrad arbeitet: TEST-Person mit `+zztest-assistenz`-Adresse, bestätigt; Konrad ist ihre **Assistenz** mit Zugang. Dazu `TEST — Assistenz-Talk` auf der Stage-Lead-Testbühne (Freitag 17:00–17:30). Braucht den Schritt `buehne` und die Migration `v6_speaker_profilwahl` (vorher zeigte `my_sessions` beide Profile gemischt). Konrad klickt `/speaker`: oben in der Leiste „Working for / Du arbeitest für“ mit „Konrad Gruner (du)“ und „TEST Assistenz“; nach dem Wechsel zeigen Übersicht, Session (jetzt `TEST — Assistenz-Talk`), Profil, Reise und Tickets den TEST-Speaker. Die Wahl bleibt beim nächsten Besuch. Mit `--nur=verwaltet` (PART-091) kommt ein drittes Profil dazu. `--remove` entfernt die TEST-Person samt Profil und Kontakt; die Session geht mit dem Präfix.
 
+**Präsentationen je Slot (LEAD-023) und Rückgabegrund (LEAD-038):** ohne eigenen Schritt. `/speaker-leads/praesentationen` (Stage Leads: ihre Slots; Konrad als Team: alle) und `/admin/technik` → „Nach Slots“ zeigen je Session den Stand je Speaker; bei einem TEST-Speaker mit Profil (z. B. Konrads eigenem aus dem vollen Lauf) „Präsentation wählen“ → „Hochladen“ — die Datei steht danach auch in der Technik-Prüfung. Den Rückgabegrund zeigt im Admin-Board (`/admin/programm`) das Schubfach der zurückgegebenen TEST-Session aus `--nur=standstatus` („Zurückgegeben am … von …:“).
+
 ## Kennzeichnung
 
 - Rollen tragen `role_assignment.note = 'testdaten:konrad'` und laufen mit der Edition ab.

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireArea } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { registrierePraesentation, type PraesentationsEingang } from "@/lib/speaker/praesentationen";
 import { toRpcFailure } from "@/lib/rpc-error";
 
 /**
@@ -139,6 +140,20 @@ export async function handoverSpeaker(
 }
 
 /** Die Lead-Personen zur Auswahl. */
+/**
+ * LEAD-023: eine per Mail eingesandte Präsentation für den Speaker eintragen.
+ * Recht und Pfad prüfen Storage-Policy und `register_speaker_asset`.
+ */
+export async function registerPresentationAsLead(
+  input: PraesentationsEingang,
+): Promise<LeadResult<{ version: number; late: boolean }>> {
+  const supabase = await client();
+  const { error, data } = await registrierePraesentation(supabase, input);
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/praesentationen`);
+  return { ok: true, data };
+}
+
 export async function listManagers(): Promise<{ person_id: string; display_name: string | null }[]> {
   const supabase = await client();
   const { data, error } = await supabase.rpc("speaker_managers");

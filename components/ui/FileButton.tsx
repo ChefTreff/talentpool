@@ -36,6 +36,7 @@ export function FileButton({
   hint,
   icon,
   className,
+  variant = "primary",
 }: {
   /** Beschriftung des Auswahl-Knopfes, z. B. „Datei auswählen". */
   label: string;
@@ -49,6 +50,12 @@ export function FileButton({
   hint?: string;
   icon?: ReactNode;
   className?: string;
+  /**
+   * `secondary` für Listen mit einem Knopf je Zeile (LEAD-023): sonst stünden
+   * viele primäre Aktionen untereinander (Skill-Regel 1). Dieselben Farben wie
+   * `<Button variant="secondary">`.
+   */
+  variant?: "primary" | "secondary";
 }) {
   const id = useId();
   const [gewaehlt, setGewaehlt] = useState<File | null>(null);
@@ -83,8 +90,11 @@ export function FileButton({
               Feld selbst, das direkt darunter liegt. */}
           <span
             className={cn(
-              "inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-ct-md bg-accent-strong px-5 ct-label text-on-navy transition-colors",
-              "hover:bg-accent-deep focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent",
+              "inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-ct-md px-5 ct-label transition-colors",
+              variant === "secondary"
+                ? "border-2 border-accent bg-transparent text-accent-strong hover:bg-accent/10"
+                : "bg-accent-strong text-on-navy hover:bg-accent-deep",
+              "focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent",
               disabled && "pointer-events-none opacity-40",
             )}
           >

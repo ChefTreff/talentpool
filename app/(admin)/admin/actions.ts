@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { registrierePraesentation, type PraesentationsEingang } from "@/lib/speaker/praesentationen";
 import { toRpcFailure } from "@/lib/rpc-error";
 import { buildInvoicePdf, type InvoiceClaim } from "@/lib/expenses/invoice-pdf";
 import { getDictionary, resolveLocale } from "@/lib/i18n";
@@ -319,6 +320,18 @@ export async function setTechCheck(
   if (error) return fail(error, "technik");
   revalidatePath(PATHS.tech);
   return { ok: true, data: undefined };
+}
+
+/** LEAD-023 (Admin-Vollständigkeit): Präsentation je Slot auch im Admin hochladen. */
+export async function registerPresentationAsAdmin(
+  input: PraesentationsEingang,
+): Promise<AdminOpResult<{ version: number; late: boolean }>> {
+  const supabase = await client(`${PATHS.tech}/praesentationen`);
+  const { error, data } = await registrierePraesentation(supabase, input);
+  if (error) return fail(error, "technik");
+  revalidatePath(PATHS.tech);
+  revalidatePath(`${PATHS.tech}/praesentationen`);
+  return { ok: true, data };
 }
 
 /**
