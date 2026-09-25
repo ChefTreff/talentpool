@@ -60,13 +60,14 @@ export type UnassignedRow = {
  * wie viel), und das Aufnehmen einer neuen Lead-Person ist der seltenste
  * Vorgang und steht deshalb zuletzt.
  *
- * Die Rolle wird immer im Scope der Edition vergeben. Eine globale Rolle würde
- * auch für den Summit danach gelten, und daran denkt in zwölf Monaten niemand.
+ * Die Rolle wird je Bühne vergeben (PORT3): externe Stage Leads sehen nur die
+ * Speaker und Slots ihrer Bühnen. Für mehrere Bühnen nimmt man die Person
+ * mehrmals auf.
  */
 export function LeadsView({
   leads,
   unassigned,
-  editionId,
+  stages,
   labels,
   t,
   common,
@@ -74,7 +75,8 @@ export function LeadsView({
 }: {
   leads: LeadRow[];
   unassigned: UnassignedRow[];
-  editionId: string;
+  /** Die Bühnen des Summits, für die jemand Stage Lead werden kann. */
+  stages: { id: string; name: string }[];
   labels: Record<string, Record<string, string>>;
   t: Strings;
   common: { cancel: string; choose: string; none: string };
@@ -89,6 +91,8 @@ export function LeadsView({
   const [suche, setSuche] = useState("");
   const [treffer, setTreffer] = useState<FoundPerson[]>([]);
   const [gesucht, setGesucht] = useState(false);
+  const [buehne, setBuehne] = useState(stages[0]?.id ?? "");
+  const buehnenName = new Map(stages.map((s) => [s.id, s.name]));
   /** Offene Rückfrage beim Entziehen: die betroffene Zuweisung. */
   const [entziehen, setEntziehen] = useState<{ id: string; name: string; speakers: number } | null>(null);
 
@@ -194,7 +198,9 @@ export function LeadsView({
                     <div className="flex flex-wrap gap-1">
                       {l.assignments.map((a) => (
                         <Badge key={a.id} tone={a.role === "area_lead_speaker" ? "accent" : "neutral"}>
-                          {labels.role[a.role] ?? a.role} · {t[`scope_${a.scope_type}`] ?? a.scope_type}
+                          {labels.role[a.role] ?? a.role} ·{" "}
+                          {(a.scope_type === "stage" && a.scope_id && buehnenName.get(a.scope_id)) ||
+                            (t[`scope_${a.scope_type}`] ?? a.scope_type)}
                         </Badge>
                       ))}
                     </div>
@@ -239,6 +245,14 @@ export function LeadsView({
       <Card>
         <CardHeader title={t.addTitle} description={t.addHint} />
         <div className="flex flex-wrap items-end gap-3">
+          <Field label={t.stageLabel} htmlFor="lead-buehne" className="min-w-56">
+            <Select
+              id="lead-buehne"
+              value={buehne}
+              onChange={(e) => setBuehne(e.target.value)}
+              options={stages.map((s) => ({ value: s.id, label: s.name }))}
+            />
+          </Field>
           <Field label={t.searchPerson} htmlFor="q" className="min-w-64 grow">
             <SuchFeld
               id="q"
@@ -266,7 +280,12 @@ export function LeadsView({
         {treffer.length > 0 && (
           <ul className="mt-4 flex flex-col gap-2">
             {treffer.map((p) => {
-              const schon = leads.some((l) => l.person_id === p.id);
+              // Schon Stage Lead **dieser** Bühne — eine weitere Bühne geht.
+              const schon = leads.some(
+                (l) =>
+                  l.person_id === p.id &&
+                  l.assignments.some((a) => a.role === "speaker_manager" && a.scope_type === "stage" && a.scope_id === buehne),
+              );
               return (
                 <li key={p.id} className="flex items-center justify-between gap-3 border-b pb-2 last:border-0">
                   <span className="ct-small">
@@ -278,9 +297,9 @@ export function LeadsView({
                   ) : (
                     <Button
                       variant="secondary"
-                      disabled={pending}
+                      disabled={pending || !buehne}
                       onClick={() =>
-                        startTransition(async () => report(await makeLead(p.id, editionId), t.added))
+                        startTransition(async () => report(await makeLead(p.id, buehne), t.added))
                       }
                     >
                       {t.makeLead}

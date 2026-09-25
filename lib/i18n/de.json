@@ -1516,11 +1516,11 @@
     "yes": "Ja"
   },
   "adminSpeakerLeads": {
-    "addHint": "Die Rolle gilt für diese Edition. Global wäre sie auch im nächsten Jahr noch da, und daran denkt dann niemand.",
+    "addHint": "Die Rolle gilt für eine Bühne: Stage Leads sehen nur die Speaker und Slots ihrer Bühnen. Für mehrere Bühnen die Person mehrmals aufnehmen.",
     "addTitle": "Lead-Person aufnehmen",
     "added": "Als Speaker-Lead aufgenommen.",
     "allAssigned": "Jeder Speaker hat eine Betreuung.",
-    "alreadyLead": "Ist schon Lead",
+    "alreadyLead": "Schon Lead dieser Bühne",
     "assign": "Zuordnen",
     "assignTo": "Zuordnen an",
     "assigned": "Speaker zugeordnet.",
@@ -1551,6 +1551,7 @@
     "search": "Suchen",
     "searchHint": "Name oder E-Mail",
     "searchPerson": "Person suchen",
+    "stageLabel": "Bühne",
     "title": "Speaker-Leads",
     "unassignedHint": "Diese Speaker haben noch keine Lead-Person. Zuordnen geht von hier aus am Stück.",
     "unassignedTitle": "Ohne Betreuung"
@@ -4279,6 +4280,7 @@
     "stage_guest_consent_required": "Bitte bestätigt, dass die Person informiert und einverstanden ist, dass Name, Position und Porträt in der Event-App erscheinen.",
     "stage_not_found": "Diese Fläche gibt es nicht.",
     "stage_not_in_edition": "Diese Bühne gehört nicht zu dieser Edition.",
+    "stage_scope_required": "Stage Leads gelten nur für eine Bühne, einen Tag oder einen Slot — nicht für die ganze Edition.",
     "stop_not_found": "Diesen Tour-Stopp gibt es nicht.",
     "submission_not_found": "Einreichung nicht gefunden.",
     "suppressed": "Diese Adresse ist gesperrt und wird nicht mehr angeschrieben.",

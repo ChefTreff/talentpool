@@ -1516,11 +1516,11 @@
     "yes": "Yes"
   },
   "adminSpeakerLeads": {
-    "addHint": "The role applies to this edition. A global one would still be there next year, and nobody remembers it then.",
+    "addHint": "The role applies to one stage: stage leads only see the speakers and slots of their stages. Add the person again for more stages.",
     "addTitle": "Add a lead",
     "added": "Added as a speaker lead.",
     "allAssigned": "Every speaker has an owner.",
-    "alreadyLead": "Already a lead",
+    "alreadyLead": "Already lead of this stage",
     "assign": "Assign",
     "assignTo": "Assign to",
     "assigned": "Speaker assigned.",
@@ -1551,6 +1551,7 @@
     "search": "Search",
     "searchHint": "Name or email",
     "searchPerson": "Find a person",
+    "stageLabel": "Stage",
     "title": "Speaker leads",
     "unassignedHint": "These speakers have no lead yet. Assigning them works best in one go.",
     "unassignedTitle": "Without an owner"
@@ -4279,6 +4280,7 @@
     "stage_guest_consent_required": "Please confirm that the person has been informed and agrees that their name, position and portrait appear in the event app.",
     "stage_not_found": "No such space.",
     "stage_not_in_edition": "This stage doesn't belong to this edition.",
+    "stage_scope_required": "Stage leads apply to one stage, one day or one slot only — never to the whole edition.",
     "stop_not_found": "No such tour stop.",
     "submission_not_found": "Submission not found.",
     "suppressed": "This address is blocked and will not be contacted again.",

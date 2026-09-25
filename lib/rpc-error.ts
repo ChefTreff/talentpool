@@ -251,6 +251,8 @@ const BUSINESS_KEYS = new Set([
   "speaker_managed_by_partner",
   // Kommunikation über einen Kontakt im Admin (Vorschlag v6_speaker_mail_via_admin, SPK-072)
   "contact_without_access",
+  // Stage Leads nur je Bühne (Vorschlag v6_port3_stage_leads, PORT3)
+  "stage_scope_required",
   // Speaker eines gebuchten Slots (Vorschlag v6_talk_speaker_zugang, PART-091);
   // `contact_is_speaker` kommt als 23514, gilt auch für die Kontakte im Speaker-Portal.
   "speaker_has_access",

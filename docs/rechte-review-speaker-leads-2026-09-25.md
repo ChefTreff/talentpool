@@ -1,13 +1,13 @@
 # Rechte-Review Stage-Lead-Portal `/speaker-leads/*` (PORT3, 25.09.2026)
 
-**Stand:** Bestandsaufnahme, nur gelesen (Live-Fassungen aus `supabase/snapshot/functions/`, Policies und Views aus den Migrationen). **WIP Pause 25.09.** — der Migrationsbau beginnt nach der Pause.
+**Stand:** Bestandsaufnahme 25.09. (nur gelesen: Live-Fassungen aus `supabase/snapshot/functions/`, Policies und Views aus den Migrationen); **gebaut 26.09.** als Vorschlag `v6_port3_stage_leads` mit Test `supabase/tests/v6_port3_stage_leads.sql` (9/9, gegen live scheitern 7 — 02 und 08 waren schon dicht). Entscheidungen F1–F3 in §7.
 
 **Entscheidung (Plan-Chat, 25.09., Variante A):** keine neue Rolle. `speaker_manager` **ist** die Rolle der externen Stage Leads — seit #161 (ADM-053, 0162) keine Teamrolle mehr und ohne Admin-Zugang (Konrads Rollenmodell vom 24.09. abends, Arbeitsauftrag Welle 6). PORT3 macht sie dicht: nur Scope `stage` (oder `slot`/`stage_day`), Prädikat `is_stage_lead_of(stage)`, keine Edition-Zweige mehr, keine fremden Entwürfe, Personendaten nur zu Speakern der eigenen Bühnen und eigenen Einträgen.
 
 ## 1 · Was schon stimmt
 
 - **App-Gate:** `speaker_manager` steht in `EXTERNAL_ROLES`, nicht in `TEAM_ROLES` (`lib/admin-sections.ts`); der Bereich `admin` lässt nur `TEAM_ROLES` ein (`lib/areas.ts`) → `requireArea("admin")` weist einen reinen `speaker_manager` ab. `speaker-leads` öffnet `speaker_manager` und `programme_team`.
-- **Board lesen:** `programme_board` ist `security_invoker`, die Session-Felder kommen über die RLS von `session` (`session_read`, 0180): veröffentlicht, Team (`is_programme_reader` = `is_staff`), eigener Auftritt, eigene Organisation, Standbühnen-Editor der Org, `can_edit_session`. Für einen Stage Lead heißt das: veröffentlichte Sessions, Sessions der eigenen Bühnen/Slots/Tage (`can_edit_slot` kennt für `speaker_manager` nur `stage`, `stage_day`, `slot`) und eigene Backlog-Sessions. **Fremde Entwürfe stehen als belegter Slot ohne Inhalt da.**
+- **Board lesen:** `programme_board` ist `security_invoker`, die Session-Felder kommen über die RLS von `session` (`session_read`, 0180): veröffentlicht, Team (`is_programme_reader` = `is_staff`), eigener Auftritt, eigene Organisation, Standbühnen-Editor der Org, `can_edit_session`. Für einen Stage Lead heißt das: veröffentlichte Sessions, Sessions der eigenen Bühnen/Slots/Tage (`can_edit_slot` kennt für `speaker_manager` nur `stage`, `stage_day`, `slot`) und eigene Backlog-Sessions. **Fremde Entwürfe erscheinen gar nicht:** `slot_read` (0180) zeigt fremde Slots nur mit veröffentlichter Session (im Test belegt, 26.09.; die Annahme vom 25.09. „belegter Slot ohne Inhalt“ war zu vorsichtig).
 - **Board schreiben:** `create_slot`/`move_slot`/`set_slot_status` über `can_edit_stage`/`can_edit_slot` (nur Bühnen-, Tag-, Slot-Scope für `speaker_manager`); Tagesrahmen hart über `stage_frame_binds` (nur Bühnen-Scope).
 - **Regie:** alle Wege über `can_edit_regie` = `is_production_team() or can_edit_stage(stage)` bzw. `can_plan_regie`.
 - **Team-Funktionen:** `approve_travel_costs` (admin, area_lead_speaker), `search_people` (`is_staff`), `publish_session`/`release_partner_session` (Programm-Team) — Stage Leads bekommen 42501.
@@ -80,6 +80,7 @@ L als `speaker_manager` mit Bühnen-Scope auf Bühne A; Bühne B fremd, darauf e
 
 ## 7 · Offene Fragen
 
-- **F1 (L5):** Fehlerschlüssel bei fremdem, bestehendem Profil — eigener Schlüssel `speaker_exists` (P0001, „Diese Person ist schon Speaker der Edition — das Team ordnet sie deiner Bühne zu“) ist hilfreich, verrät aber, dass zu einer bekannten Adresse ein Profil existiert; Alternative 42501 ohne Hinweis. Empfehlung: `speaker_exists`, weil die Adresse schon bekannt sein muss.
-- **F2 (L3):** Sollen Stage Leads bestätigte oder veröffentlichte Speaker der Edition finden (sie stehen ohnehin auf der Website), um sie in eigene Sessions zu holen? Empfehlung: nein — nur eigene Bühne und eigene Einträge; das Team ordnet zu.
-- **F3:** Slot- und Tag-Scope bleiben erlaubt (bestehende Funktionen kennen sie); `is_stage_lead_of` meint nur die ganze Bühne. Passt das?
+Entschieden (Architektur-Session, 25.09., Entscheidungslog „Pause Teil 2“):
+- **F1 (L5):** bei fremdem, bestehendem Profil **42501** für Nicht-Team — keine Existenzauskunft zu einer Adresse; `speaker_exists` nur fürs Team (der Team-Weg bleibt wie bisher ein Upsert). **Gebaut.**
+- **F2 (L3):** **nein** — Stage Leads finden nur Speaker der eigenen Bühne und eigene Einträge; das Team ordnet zu. **Gebaut.**
+- **F3:** **ja** — Slot- und Tag-Scope bleiben erlaubt; `is_stage_lead_of(stage)` meint die ganze Bühne. **Gebaut.**
