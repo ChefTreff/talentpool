@@ -97,7 +97,8 @@ export type AdminSectionKey =
   | "team"
   | "roles"
   | "duplicates"
-  | "deletions";
+  | "deletions"
+  | "auditLog";
 
 /** Alle Teamrollen ausser `admin` — für Abschnitte, die jede Rolle im Haus braucht. */
 export const INTERNE_ROLLEN = [
@@ -211,6 +212,9 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { key: "roles", path: "/admin/rollen", roles: [] },
   { key: "duplicates", path: "/admin/dubletten", roles: [] },
   { key: "deletions", path: "/admin/loeschantraege", roles: [] },
+  // PORT4a: das Protokoll zeigt Vorher- und Nachher-Stände aus dem ganzen
+  // System. Das ist der eine Ort, an dem „Teammitglied" zu wenig ist.
+  { key: "auditLog", path: "/admin/verwaltung/protokoll", roles: [] },
 ];
 
 const NACH_KEY = new Map(ADMIN_SECTIONS.map((s) => [s.key, s]));

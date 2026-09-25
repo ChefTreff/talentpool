@@ -207,6 +207,7 @@
     },
     "nav": {
       "applications": "Applications",
+      "auditLog": "Audit log",
       "catering": "Catering",
       "checkin": "Check-in",
       "communityEvents": "Community events",
@@ -237,6 +238,7 @@
       "regie": "Show flow",
       "roles": "Roles",
       "sections": {
+        "administration": "Administration",
         "crossCutting": "Across the event",
         "participants": "Participants",
         "partner": "Partners",
@@ -644,6 +646,7 @@
     },
     "words": {
       "applications": "Talent",
+      "auditLog": "Traceability",
       "catering": "Meals",
       "checkin": "Entry",
       "communityEvents": "Community",
@@ -1792,6 +1795,29 @@
       "name": "Volunteers",
       "portal": "Volunteer Portal"
     }
+  },
+  "auditLog": {
+    "after": "After",
+    "apply": "Filter",
+    "before": "Before",
+    "count": "{n} entries",
+    "detail": "Before and after",
+    "empty": "No entries",
+    "emptyBody": "Nothing matches these filters. Without filters this shows everything logged since the start.",
+    "filterAction": "Action",
+    "filterActor": "Person",
+    "filterAll": "— all —",
+    "filterFrom": "From",
+    "filterObject": "Object type",
+    "filterTo": "Until (excluding that day)",
+    "lead": "Every admin action with before and after. To look at, not to take away — hence no export.",
+    "next": "Next",
+    "nothing": "—",
+    "page": "Page {seite} of {seiten}",
+    "prev": "Back",
+    "reset": "Reset",
+    "system": "System",
+    "title": "Audit log"
   },
   "catering": {
     "adminLead": "Diets by group, plus how many have replied.",
