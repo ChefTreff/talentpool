@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 10:50 UTC · 102 Tabellen · 6 Views · 557 Funktionen
+> Stand: 2026-09-25 11:03 UTC · 102 Tabellen · 6 Views · 559 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2012,6 +2012,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `assign_role` | p_edition_id: uuid, p_note: text, p_person_id: uuid, p_portal: text, p_role: text, p_scope_id: uuid, p_scope_type: text, p_valid_from: timestamp with time zone, p_valid_to: timestamp with time zone |
 | `assign_shift` | p_person_id: uuid, p_shift_id: uuid, p_status: text |
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
+| `audit_log_admin` | p_action: text, p_actor: uuid, p_from: timestamp with time zone, p_limit: integer, p_object_id: text, p_object_type: text, p_offset: integer, p_to: timestamp with time zone |
+| `audit_log_filters` | args: ? |
 | `backfill_ticket_pass_types` | args: ? |
 | `board_like_pattern` | p_query: text |
 | `board_search_partners` | p_event_id: uuid, p_limit: integer, p_query: text |
