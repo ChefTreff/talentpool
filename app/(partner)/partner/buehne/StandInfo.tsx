@@ -5,7 +5,7 @@ import { PARTNER_STATUS, PARTNER_STATUS_TON, type PartnerStatus } from "@/compon
 
 /**
  * Kopf beider Sichten auf die Standbühne (Kalender und Tabelle): welche Bühne,
- * welches Zeitfenster an welchem Tag (PART-079), wer veröffentlicht — und in
+ * welche Öffnungszeiten an welchem Tag (PART-090), wer veröffentlicht — und in
  * der Tabelle die Legende der Partner-Status (PART-080). Im Kalender fehlt die
  * Legende, solange das Board noch den internen Slot-Status zeigt.
  */

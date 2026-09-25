@@ -20,7 +20,8 @@
  *   node --env-file=.env.local scripts/testdaten-konrad.mjs --remove
  *   … --apply --nur=ticket,fotos   (nur diese Schritte, siehe `SCHRITTE`)
  *   … --apply --nur=partner        (Test-Organisation mit allen Format-Produkten,
- *                                   Konrad Hauptkontakt und Standbühnen-Editor, Talk)
+ *                                   Konrad Hauptkontakt und Standbühnen-Editor, Talk,
+ *                                   Öffnungszeiten der Teststandbühne — PART-090)
  *   … --apply --nur=gaeste         (PART-081: ein TEST-Gast der Standbühne, braucht
  *                                   v6_standbuehnen_gaeste und den Schritt partner)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist)
@@ -354,11 +355,51 @@ async function partnerTalk(ed, orgId) {
 }
 
 /**
+ * Öffnungszeiten der Teststandbühne an den beiden Summit-Tagen (PART-090): das
+ * Fenster, in dem Konrad als Partner Slots anlegt und verschiebt. Bewusst anders
+ * als der Programmrahmen der Tage (13:00–20:30 und 12:00–19:30), damit zu sehen
+ * ist, dass die Zeiten der Bühne gelten; alle Test-Slots liegen darin.
+ *
+ * Eine Zeile mit eigener Kennzeichnung bekommt die Testzeiten zurück; eine, in
+ * der schon jemand Zeiten eingetragen hat (Admin, Gerüst), bleibt, wie sie ist.
+ */
+const TEST_OEFFNUNGSZEITEN = [
+  { open_from: "12:00", open_to: "20:00" },
+  { open_from: "11:00", open_to: "19:00" },
+];
+
+async function partnerOeffnungszeiten(ed, orgId) {
+  const ziel = await summit(ed);
+  if (!ziel) return fail("Öffnungszeiten der Teststandbühne", "kein Summit");
+  const { data: buehne } = await admin.from("stage").select("id")
+    .eq("event_id", ziel.id).eq("slug", "zz-test-standbuehne").eq("partner_org_id", orgId).maybeSingle();
+  if (!buehne) {
+    // Im Trockenlauf gibt es die Bühne vor dem ersten Lauf noch nicht.
+    note("Öffnungszeiten der Teststandbühne", mode === "dry-run" ? "nach dem Anlegen der Bühne" : "keine Teststandbühne");
+    return;
+  }
+  for (const [i, tag] of ziel.tage.slice(0, TEST_OEFFNUNGSZEITEN.length).entries()) {
+    const zeiten = TEST_OEFFNUNGSZEITEN[i];
+    await write(`Öffnungszeiten Teststandbühne ${tag.day_date}: ${zeiten.open_from}–${zeiten.open_to}`, async () => {
+      const { data: da } = await admin.from("stage_day").select("id, open_from, open_to, notes")
+        .eq("stage_id", buehne.id).eq("event_day_id", tag.id).maybeSingle();
+      if (!da) {
+        return admin.from("stage_day").insert({ stage_id: buehne.id, event_day_id: tag.id, ...zeiten, notes: MARK });
+      }
+      if (da.notes === MARK || (!da.open_from && !da.open_to)) {
+        return admin.from("stage_day").update(zeiten).eq("id", da.id);
+      }
+      return { data: da, error: null };
+    });
+  }
+}
+
+/**
  * Schritt `partner` (Regel „Konrads Konto sieht alles“, 25.09.2026): Konrads
  * Test-Organisation führt alle Produkte, an denen Partner-Seiten hängen, Konrad
- * ist Hauptkontakt und Standbühnen-Editor (Scope Organisation), und es gibt einen
- * Talk zum Durchklicken. Idempotent; Profil, Bewerbungen und Tickets bleiben
- * unberührt.
+ * ist Hauptkontakt und Standbühnen-Editor (Scope Organisation), die
+ * Teststandbühne hat Öffnungszeiten, und es gibt einen Talk zum Durchklicken.
+ * Idempotent; Profil, Bewerbungen und Tickets bleiben unberührt.
  */
 async function partnerSchritt(me, ed) {
   const validTo = gueltigBis(ed);
@@ -368,6 +409,7 @@ async function partnerSchritt(me, ed) {
   if (oeId) await partnerStand(oeId);
   await partnerKontakt(me, ed, orgId, validTo);
   await partnerStage(me, ed, orgId, validTo);
+  await partnerOeffnungszeiten(ed, orgId);
   await partnerTalk(ed, orgId);
 }
 
@@ -545,6 +587,7 @@ async function apply(me, ed) {
   await speakerTicket(me, ed);
   await stagePhotos(me, ed);
   if (orgId) await partnerStage(me, ed, orgId, validTo);
+  if (orgId) await partnerOeffnungszeiten(ed, orgId);
   if (orgId) await partnerTalk(ed, orgId);
   if (orgId) await formatApplication(me, ed, orgId);
 }
@@ -1527,7 +1570,8 @@ async function remove(me) {
   await write("Stage-Lead-Bühne entfernt (Slots und Cues gehen mit)", () =>
     admin.from("stage").delete().eq("slug", "zz-test-stagelead"),
   );
-  await write("Teststandbühne und ihre Slots entfernt", async () => {
+  // Die Öffnungszeiten (`stage_day`, PART-090) hängen mit ON DELETE CASCADE an der Bühne.
+  await write("Teststandbühne, ihre Slots und Öffnungszeiten entfernt", async () => {
     const { data: stages } = await admin.from("stage").select("id").eq("slug", "zz-test-standbuehne");
     for (const st of stages ?? []) await admin.from("slot").delete().eq("stage_id", st.id);
     return admin.from("stage").delete().eq("slug", "zz-test-standbuehne");

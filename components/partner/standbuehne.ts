@@ -2,7 +2,7 @@ import type { BadgeTone } from "@/components/ui/Badge";
 import { formatMinutes, parseClock } from "@/lib/tz";
 
 /**
- * Standbühne aus Sicht des Partners (PART-079, PART-080): Zeitfenster und
+ * Standbühne aus Sicht des Partners (PART-090, PART-080): Zeitfenster und
  * Partner-Status. Reine Funktionen ohne Server — die Tabelle unter
  * `/partner/buehne/tabelle` nutzt sie, und das Board (Speaker-Chat) kann sie
  * für Markierung und Legende übernehmen, ohne die Regel neu zu schreiben.
@@ -14,27 +14,34 @@ import { formatMinutes, parseClock } from "@/lib/tz";
  * Die Regel steht in der Datenbank (`partner_booth_window`, durchgesetzt in
  * `create_slot` und `move_slot`). Hier wird sie nur gespiegelt, damit die
  * Oberfläche das Fenster zeigen und offensichtliche Fehler vor dem Absenden
- * melden kann. `tests/partner-standbuehne.test.ts` prüft, dass beide Werte mit
- * der Migration übereinstimmen.
+ * melden kann; `tests/partner-standbuehne.test.ts` hält beide Seiten zusammen.
+ *
+ * PART-090 (Konrad 25.09., ersetzt PART-079): das Fenster sind die
+ * **Öffnungszeiten der Bühne** (`stage_day.open_from/open_to`, gepflegt vom Team
+ * im Admin), ohne Aufschlag und ohne feste Schlusszeit. Fehlt eine Grenze, gilt
+ * der Tagesrahmen der Veranstaltung (`event_day.programme_start/programme_end`).
  */
-export const MINUTEN_NACH_OEFFNUNG = 90;
-export const LETZTES_ENDE = "19:00";
 
-/** Fenster in Minuten seit Mitternacht; `von` fehlt, wenn die Bühne an dem Tag keinen Rahmen hat. */
+/** Ende ohne jeden Rahmen: 24:00 wie in der Datenbank — praktisch keine Grenze. */
+export const OHNE_ENDE = 24 * 60;
+
+/** Fenster in Minuten seit Mitternacht; `von` fehlt, wenn es an dem Tag gar keinen Beginn gibt. */
 export type StandFenster = { von: number | null; bis: number };
 
 /**
- * Fenster aus dem Tagesrahmen der Bühne (`stage_day.open_from/open_to`):
- * frühestens 90 Minuten nach Öffnung, Ende spätestens 19:00 — oder früher, wenn
- * die Bühne früher schließt. Ohne Rahmen gilt nur das Ende.
+ * Fenster je Grenze: Öffnungszeit der Bühne, sonst der Tagesrahmen der
+ * Veranstaltung, beim Ende zuletzt 24:00 — genau die `coalesce`-Folge der
+ * Datenbank.
  */
-export function standFenster(openFrom: string | null, openTo: string | null): StandFenster {
-  const auf = parseClock(openFrom);
-  const zu = parseClock(openTo);
-  const ende = parseClock(LETZTES_ENDE) as number;
+export function standFenster(
+  openFrom: string | null,
+  openTo: string | null,
+  tagVon: string | null = null,
+  tagBis: string | null = null,
+): StandFenster {
   return {
-    von: auf === null ? null : auf + MINUTEN_NACH_OEFFNUNG,
-    bis: zu === null ? ende : Math.min(zu, ende),
+    von: parseClock(openFrom) ?? parseClock(tagVon),
+    bis: parseClock(openTo) ?? parseClock(tagBis) ?? OHNE_ENDE,
   };
 }
 
@@ -43,11 +50,14 @@ export function imFenster(f: StandFenster, start: number, ende: number): boolean
   return (f.von === null || start >= f.von) && ende <= f.bis;
 }
 
-/** „10:30–19:00“; ohne Beginn „bis 19:00“ über die übergebene Vorlage mit `{bis}`. */
+/** Uhrzeit; 24:00 bleibt 24:00 (`formatMinutes` rechnet es auf 00:00 herum). */
+function uhr(minuten: number): string {
+  return minuten >= OHNE_ENDE ? "24:00" : formatMinutes(minuten);
+}
+
+/** „12:00–20:00“; ohne Beginn „bis 20:00“ über die übergebene Vorlage mit `{bis}`. */
 export function fensterText(f: StandFenster, nurBis: string): string {
-  return f.von === null
-    ? nurBis.replace("{bis}", formatMinutes(f.bis))
-    : `${formatMinutes(f.von)}–${formatMinutes(f.bis)}`;
+  return f.von === null ? nurBis.replace("{bis}", uhr(f.bis)) : `${uhr(f.von)}–${uhr(f.bis)}`;
 }
 
 // ---------------------------------------------------------------- Partner-Status

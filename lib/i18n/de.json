@@ -3386,7 +3386,7 @@
   "partnerStage": {
     "addDay": "Tag",
     "addDone": "Slot angelegt",
-    "addLead": "Euer Zeitfenster an diesem Tag: {fenster}.",
+    "addLead": "Öffnungszeiten an diesem Tag: {fenster}.",
     "addStage": "Bühne",
     "addSubmit": "Slot anlegen",
     "addTitle": "Slot anlegen",
@@ -3454,8 +3454,8 @@
     "timeSaved": "Zeit geändert",
     "title": "Standbühne",
     "titlePlaceholder": "Titel eintragen",
-    "windowRule": "Slots auf eurer Standbühne beginnen frühestens 90 Minuten nach Öffnung und enden spätestens um 19:00.",
-    "windowTitle": "Euer Zeitfenster",
+    "windowRule": "Innerhalb der Öffnungszeiten legt ihr Slots frei an und verschiebt sie. Die Öffnungszeiten legt unser Team fest.",
+    "windowTitle": "Öffnungszeiten eurer Standbühne",
     "windowUntil": "bis {bis}",
     "withdraw": "Zurücknehmen",
     "withdrawDone": "Anfrage zurückgenommen"
@@ -3987,7 +3987,7 @@
     "org_edition_not_found": "Für diese Organisation gibt es die Edition nicht.",
     "org_not_found": "Diese Organisation gibt es nicht.",
     "out_of_stock": "Davon ist nicht mehr genug da.",
-    "outside_partner_window": "Außerhalb eures Zeitfensters: Auf der Standbühne beginnt ein Slot frühestens 90 Minuten nach Öffnung und endet spätestens um 19:00",
+    "outside_partner_window": "Außerhalb der Öffnungszeiten eurer Standbühne",
     "outside_stage_day": "Das liegt außerhalb der Öffnungszeiten dieser Bühne an diesem Tag",
     "partner_host_mismatch": "Die Session wird schon von einem anderen Partner ausgerichtet — der buchende Partner muss derselbe sein.",
     "partner_not_in_edition": "Diese Organisation ist in dieser Edition kein Partner.",

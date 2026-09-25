@@ -1,4 +1,7 @@
--- Smoke-Test (Standbühne: Zeitfenster PART-079, Partner-Status PART-080). Nummer offen. Belegt:
+-- Smoke-Test (Standbühne: Zeitfenster PART-079, Partner-Status PART-080). Belegt:
+-- **Fenster seit PART-090 überholt** (`v6_standbuehne_oeffnungszeiten`, Öffnungszeiten statt
+-- „90 Minuten nach Öffnung, Ende 19:00“): die Schritte 01, 02, 04 und 06 prüfen die alte Regel und
+-- sind danach rot; der Rest (Partner-Status, Rechte) gilt weiter.
 --   01 ein Partner legt keinen Slot vor Öffnung + 90 Minuten an (Tagesrahmen 09:00–20:00 ⇒
 --      Fenster 10:30–19:00), P0001 `outside_partner_window` mit dem Fenster im detail;
 --   02 keinen, der nach 19:00 endet — auch wenn die Bühne länger offen ist;

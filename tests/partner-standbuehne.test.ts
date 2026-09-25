@@ -4,8 +4,7 @@ import { describe, it } from "node:test";
 import { migrationText } from "@/tests/migration-datei";
 import { toRpcFailure } from "@/lib/rpc-error";
 import {
-  LETZTES_ENDE,
-  MINUTEN_NACH_OEFFNUNG,
+  OHNE_ENDE,
   fehlendAusDetail,
   fehlendFuerFreigabe,
   fensterText,
@@ -15,22 +14,32 @@ import {
 } from "@/components/partner/standbuehne";
 
 const sql = () => migrationText("v6_standbuehne_regeln");
+/** PART-090: das Fenster aus den Öffnungszeiten ersetzt die Regel aus 0179. */
+const sqlOeffnung = () => migrationText("v6_standbuehne_oeffnungszeiten");
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
 /** Rumpf einer Funktion aus dem Migrationstext, bis zum nächsten `$$;`. */
-function rumpf(name: string): string {
-  const s = sql();
-  const start = s.indexOf(`create or replace function ${name}(`);
+function rumpf(name: string, text: string = sql()): string {
+  const start = text.indexOf(`create or replace function ${name}(`);
   assert.ok(start >= 0, `${name} fehlt`);
-  return s.slice(start, s.indexOf("$$;", start));
+  return text.slice(start, text.indexOf("$$;", start));
 }
 
-describe("Standbühne: Zeitfenster und Partner-Status (PART-079, PART-080)", () => {
-  it("das Fenster steht einmal in der Datenbank: 90 Minuten nach Öffnung, Ende 19:00", () => {
-    const f = rumpf("partner_booth_window");
-    assert.match(f, /open_from \+ interval '90 minutes'/);
-    assert.match(f, /least\(coalesce\(sd\.open_to, time '19:00'\), time '19:00'\)/);
+describe("Standbühne: Zeitfenster und Partner-Status (PART-090, PART-080)", () => {
+  it("das Fenster sind die Öffnungszeiten der Bühne, sonst der Tagesrahmen — ohne Aufschlag und ohne 19:00", () => {
+    const text = sqlOeffnung();
+    const f = rumpf("partner_booth_window", text);
+    assert.match(f, /coalesce\(sd\.open_from, ed\.programme_start\)/);
+    // Ende nie NULL: create_slot und move_slot bauen das detail als `von–bis`.
+    assert.match(f, /coalesce\(sd\.open_to, ed\.programme_end, time '24:00'\)/);
     assert.match(f, /st\.type = 'partner_booth'/);
+    assert.doesNotMatch(f, /90 minutes|19:00/);
+    assert.match(f, /security definer/);
+    assert.match(f, /set search_path = public, extensions/);
+    assert.match(text, /revoke execute on function partner_booth_window\(uuid, uuid\) from public, anon, authenticated;/);
+    assert.match(text.trimEnd(), /select harden_definer_functions\(\);$/);
+    // Nur die Fensterfunktion: create_slot und move_slot bleiben die Live-Fassung aus 0179.
+    assert.doesNotMatch(text, /create or replace function (create_slot|move_slot)\(/);
   });
 
   it("create_slot und move_slot prüfen das Fenster für den Partner", () => {
@@ -76,24 +85,28 @@ describe("Standbühne: Zeitfenster und Partner-Status (PART-079, PART-080)", () 
 });
 
 describe("Standbühne in der Oberfläche (PART-078…080)", () => {
-  it("das angezeigte Fenster folgt denselben Zahlen wie die Datenbank", () => {
-    const f = rumpf("partner_booth_window");
-    assert.match(f, new RegExp(`open_from \\+ interval '${MINUTEN_NACH_OEFFNUNG} minutes'`));
-    assert.match(f, new RegExp(`time '${LETZTES_ENDE}'`));
-    assert.deepEqual(standFenster("09:00:00", "20:00:00"), { von: 630, bis: 1140 });
-    assert.deepEqual(standFenster("09:00", "18:00"), { von: 630, bis: 1080 });
-    assert.deepEqual(standFenster(null, null), { von: null, bis: 1140 });
-    assert.equal(fensterText(standFenster("09:00", "20:00"), "bis {bis}"), "10:30–19:00");
-    assert.equal(fensterText(standFenster(null, null), "bis {bis}"), "bis 19:00");
+  it("das angezeigte Fenster folgt derselben Rückfallfolge wie die Datenbank", () => {
+    assert.match(rumpf("partner_booth_window", sqlOeffnung()), new RegExp(`time '${OHNE_ENDE / 60}:00'`));
+    // Öffnungszeiten der Bühne gelten, wie sie sind.
+    assert.deepEqual(standFenster("12:00:00", "20:00:00", "13:00:00", "20:30:00"), { von: 720, bis: 1200 });
+    // Ohne Zeile der Programmrahmen des Tages, je Grenze einzeln.
+    assert.deepEqual(standFenster(null, null, "13:00:00", "20:30:00"), { von: 780, bis: 1230 });
+    assert.deepEqual(standFenster("10:00", null, null, "19:30"), { von: 600, bis: 1170 });
+    // Ganz ohne Rahmen: kein Beginn, Ende 24:00.
+    assert.deepEqual(standFenster(null, null), { von: null, bis: OHNE_ENDE });
+    assert.equal(fensterText(standFenster("12:00", "20:00"), "bis {bis}"), "12:00–20:00");
+    assert.equal(fensterText(standFenster(null, null, null, "19:30"), "bis {bis}"), "bis 19:30");
+    // 24:00 bleibt 24:00 — wie im detail der Datenbank, nicht 00:00.
+    assert.equal(fensterText(standFenster("10:00", null), "bis {bis}"), "10:00–24:00");
   });
 
   it("imFenster zieht dieselben Grenzen wie create_slot und move_slot", () => {
-    const f = standFenster("09:00", "20:00");
-    assert.equal(imFenster(f, 630, 660), true, "10:30–11:00");
-    assert.equal(imFenster(f, 600, 630), false, "10:00–10:30");
-    assert.equal(imFenster(f, 1110, 1140), true, "18:30–19:00");
-    assert.equal(imFenster(f, 1125, 1155), false, "18:45–19:15");
-    assert.equal(imFenster(standFenster(null, null), 480, 510), true, "ohne Rahmen kein Beginn");
+    const f = standFenster("12:00", "20:00");
+    assert.equal(imFenster(f, 720, 740), true, "12:00–12:20, direkt zur Öffnung");
+    assert.equal(imFenster(f, 705, 725), false, "11:45–12:05");
+    assert.equal(imFenster(f, 1180, 1200), true, "19:40–20:00, bis zum Schluss");
+    assert.equal(imFenster(f, 1190, 1210), false, "19:50–20:10");
+    assert.equal(imFenster(standFenster(null, null), 360, 380), true, "ohne Rahmen keine Grenze");
   });
 
   it("Partner-Status: der interne Slot-Status taucht nicht auf, Rückgabe nur im Entwurf", () => {
