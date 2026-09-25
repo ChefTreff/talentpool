@@ -127,6 +127,7 @@
 | Welle 6 · 0198 | **Talk-Speaker: eigener Zugang oder Verwaltung durch den Ops-Kontakt, Gäste nur Standbühne (PART-091)** (`20260925102305`, `v6_talk_speaker_zugang`; Details im Migrationskopf) | — |
 | Welle 6 · 0199 | **Check-in-Sicht im Admin: Tage, Suche, Ticketstatus (ADM-051)** (`20260925102703`, `v6_checkin_admin`; Details im Migrationskopf) | — |
 | Welle 6 · 0200 | **Mail-Weiche: Speaker-Mails an den Ops-Kontakt im Verwaltet-Fall (PART-091)** (`20260925103230`, `v6_speaker_mail_weiche`; Details im Migrationskopf) | — |
+| Welle 6 · 0201 | **Logo-Produktionsliste für die Foto-Wand, Abschnitt logoWall (ADM-048)** (`20260925103840`, `v6_logo_produktionsliste`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

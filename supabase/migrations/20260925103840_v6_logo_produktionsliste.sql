@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Logo-Produktionsliste fuer die Foto-Wand (ADM-048)
+-- 0201 · Logo-Produktionsliste für die Foto-Wand, Abschnitt logoWall (ADM-048)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925103840.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --
