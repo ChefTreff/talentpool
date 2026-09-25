@@ -51,6 +51,7 @@ export async function POST(request: Request) {
           ...summary, runs: undefined,
           zurueckgehalten: summary.zurueckgehalten.length,
           ohneFoto: summary.ohneFoto.length,
+          alsNutzer: summary.alsNutzer.length,
         },
         p_error: summary.skipped ?? null,
       });

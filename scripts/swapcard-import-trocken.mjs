@@ -86,6 +86,22 @@ const IMPORT = `mutation Trocken($eventId: ID!, $data: [ImportEventPersonInput!]
     eventPeopleUpdated
   }
 }`;
+// Zwei Durchgänge, wie der echte Lauf seit dem isUser-Schnitt: erst fragen,
+// wo `isUser: false` nicht geht, dann mit der Berichtigung prüfen.
+const probe = await gql(IMPORT, { eventId, data: daten, validateOnly: true });
+const konflikt = new Set((probe.importEventPeople.errors ?? [])
+  .filter((e) => (e.path ?? []).includes("isUser")).map((e) => e.inputId));
+if (konflikt.size > 0) {
+  console.log(`\nVorprüfung: ${konflikt.size} Person(en) sind in Swapcard schon Nutzerin — werden als solche übertragen:`);
+  for (const id of konflikt) {
+    const p = gehen.find((x) => x.person_id === id);
+    console.log(`  ${p ? p.first_name + " " + p.last_name : id}`);
+  }
+  for (const e of daten) if (konflikt.has(e.clientId)) e.create = { ...e.create, isUser: true };
+} else {
+  console.log("\nVorprüfung: keine Person mit isUser-Konflikt");
+}
+
 const d = await gql(IMPORT, { eventId, data: daten, validateOnly: true });
 const r = d.importEventPeople;
 console.log(`\nAntwort: ${r.errors.length} Beanstandung(en), ${r.results?.length ?? 0} Ergebniszeilen, created ${r.eventPeopleCreated?.length ?? 0}, updated ${r.eventPeopleUpdated?.length ?? 0}`);

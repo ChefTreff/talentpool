@@ -1215,6 +1215,8 @@
     "showPayload": "Show payload",
     "skipped": "skipped",
     "skuHint": "Format I-00000.",
+    "speakerAsUserHint": "These people already belong to an exhibitor in Swapcard. A profile without an account is not allowed there — no new account is created, this only describes what is already the case.",
+    "speakerAsUserTitle": "Sent as existing users ({n})",
     "speakerHeldHint": "These speakers are not transferred — Swapcard requires both a first and a last name. They are listed here so nobody is missing unnoticed.",
     "speakerHeldTitle": "Held back ({n})",
     "speakerHeld_kein_name": "name missing",
