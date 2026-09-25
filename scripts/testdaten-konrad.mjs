@@ -20,6 +20,7 @@
  *   node --env-file=.env.local scripts/testdaten-konrad.mjs --remove
  *   … --apply --nur=ticket,fotos   (nur diese Schritte, siehe `SCHRITTE`)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist)
+ *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage)
  *   … --apply --nur=ticket-zurueck (SPK-068: Freiticket zurueck auf `requested`,
  *                                   damit das Ausstellen im Admin pruefbar ist)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
@@ -750,12 +751,50 @@ async function stageLeadBuehne(me, ed) {
   await role(me.id, "speaker_manager", "stage", stageId, ed.id, validTo);
 }
 
+/**
+ * LEAD-028: Einträge **vor der Zusage**, damit die Seite „Pipeline" nicht leer
+ * ist — auf der Edition stehen sonst nur bestätigte Profile, und Konrad könnte
+ * sie nicht abnehmen. Drei Test-Personen mit Adressen in **Konrads eigenem
+ * Postfach** (`konrad+zztest-pipeline-N@…`) — keine erfundenen fremden
+ * Kontaktdaten; der Name sagt, was sie sind. Owner ist Konrad, damit sie in
+ * seiner Sicht stehen. `--remove` löscht die Personen, Profile und Adressen
+ * gehen mit.
+ *
+ * Angelegt über `testdaten_person` (Vorschlag v6_testdaten_person): eine Person
+ * braucht beim Commit genau eine primäre E-Mail, und über PostgREST wären
+ * Person und Adresse zwei Transaktionen.
+ */
+const PIPELINE_TESTS = [
+  { nachname: "Pipeline 1 (angefragt)", status: "lead", notiz: "TEST — Erstkontakt über LinkedIn geplant." },
+  { nachname: "Pipeline 2 (im Gespräch)", status: "contacted", notiz: "TEST — Rückmeldung bis Freitag zugesagt." },
+  { nachname: "Pipeline 3 (abgesagt)", status: "declined", notiz: "TEST — für 2028 vormerken.", grund: "termin" },
+];
+
+const pipelineAdresse = (i) => email.replace("@", `+zztest-pipeline-${i}@`);
+
+async function pipelineEintraege(me, ed) {
+  for (const [i, e] of PIPELINE_TESTS.entries()) {
+    await write(`Pipeline-Eintrag ${e.status}`, async () => {
+      const { data: personId, error } = await admin.rpc("testdaten_person", {
+        p_first_name: "TEST", p_last_name: e.nachname, p_email: pipelineAdresse(i + 1),
+      });
+      if (error) return { data: null, error };
+      return admin.from("speaker_profile").upsert({
+        person_id: personId, edition_id: ed.id, speaker_type: "panelist", pipeline_status: e.status,
+        owner_person_id: me.id, internal_notes: e.notiz,
+        ...(e.grund ? { declined_at: new Date().toISOString(), decline_reason: e.grund } : {}),
+      }, { onConflict: "person_id,edition_id" });
+    });
+  }
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   ticket: speakerTicket,
   fotos: stagePhotos,
   "ticket-zurueck": ticketZurueck,
   buehne: stageLeadBuehne,
+  pipeline: pipelineEintraege,
 };
 
 async function teilschritte(me, ed, namen) {
@@ -854,6 +893,16 @@ async function remove(me) {
       await admin.from("session_speaker").delete().eq("session_id", se.id);
     }
     return admin.from("session").delete().like("title_de", `${PREFIX}%`);
+  });
+  // Die Test-Personen der Pipeline (nur Vorname TEST, ohne Konto): erst die
+  // Profile, dann die Personen.
+  await write("Pipeline-Testeinträge entfernt", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", PIPELINE_TESTS.map((_, i) => pipelineAdresse(i + 1)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    // Profile und Adressen hängen mit ON DELETE CASCADE an der Person.
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
   await write("Stage-Lead-Bühne entfernt (Slots und Cues gehen mit)", () =>
     admin.from("stage").delete().eq("slug", "zz-test-stagelead"),

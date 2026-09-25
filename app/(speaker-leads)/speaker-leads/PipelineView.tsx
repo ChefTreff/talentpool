@@ -11,7 +11,15 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { cn } from "@/components/ui/cn";
 import { NewSpeakerDrawer } from "./NewSpeakerDrawer";
 import { SpeakerDrawer } from "./SpeakerDrawer";
-import { PIPELINE_ORDER, type ManagedSpeaker, type ManagerOption, type ManagerScope } from "./types";
+import {
+  PIPELINE_BESTAETIGT,
+  PIPELINE_ORDER,
+  PIPELINE_VOR_ZUSAGE,
+  type ManagedSpeaker,
+  type ManagerOption,
+  type ManagerScope,
+  type PipelineAnsicht,
+} from "./types";
 
 type Strings = Record<string, string>;
 
@@ -27,6 +35,7 @@ const PIPELINE_TONE: Record<string, BadgeTone> = {
 };
 
 export function PipelineView({
+  ansicht,
   scope,
   speakers,
   managers,
@@ -37,6 +46,8 @@ export function PipelineView({
   common,
   rpcMessages,
 }: {
+  /** Pipeline (vor der Zusage) oder Bestätigte Speaker (Onboarding), LEAD-028. */
+  ansicht: PipelineAnsicht;
   scope: ManagerScope;
   speakers: ManagedSpeaker[];
   managers: ManagerOption[];
@@ -63,9 +74,17 @@ export function PipelineView({
   const name = (s: ManagedSpeaker) =>
     [s.title, s.first_name, s.last_name].filter(Boolean).join(" ") || common.none;
 
+  // Nur die Stände dieser Seite (LEAD-028). Das Schubfach sucht weiter in allen
+  // Speakern: wer hier gerade bestätigt wurde, bleibt offen, bis man es schliesst.
+  const bereich = ansicht === "pipeline" ? PIPELINE_VOR_ZUSAGE : PIPELINE_BESTAETIGT;
+  const imBereich = useMemo(
+    () => speakers.filter((s) => bereich.includes(s.pipeline_status)),
+    [speakers, bereich],
+  );
+
   const visible = useMemo(() => {
     const term = query.trim().toLowerCase();
-    return speakers
+    return imBereich
       .filter((s) => (!status || s.pipeline_status === status))
       .filter(
         (s) =>
@@ -80,14 +99,14 @@ export function PipelineView({
             PIPELINE_ORDER.indexOf(b.pipeline_status) ||
           (a.last_name ?? "").localeCompare(b.last_name ?? ""),
       );
-  }, [query, speakers, status]);
+  }, [query, imBereich, status]);
 
   // Zähler je Stand — der Überblick, den ein Lead zuerst braucht.
   const counts = useMemo(() => {
     const m = new Map<string, number>();
-    for (const s of speakers) m.set(s.pipeline_status, (m.get(s.pipeline_status) ?? 0) + 1);
+    for (const s of imBereich) m.set(s.pipeline_status, (m.get(s.pipeline_status) ?? 0) + 1);
     return m;
-  }, [speakers]);
+  }, [imBereich]);
 
   const selected = speakers.find((s) => s.id === openId) ?? null;
   // Die Edition für „Speaker anlegen" und die Board-Vorauswahl: bei genau einer
@@ -109,9 +128,9 @@ export function PipelineView({
               : "text-muted hover:bg-surface-hover hover:text-ink",
           )}
         >
-          {t.allStatuses} ({speakers.length})
+          {t.allStatuses} ({imBereich.length})
         </button>
-        {PIPELINE_ORDER.filter((s) => counts.has(s)).map((s) => (
+        {PIPELINE_ORDER.filter((s) => bereich.includes(s) && counts.has(s)).map((s) => (
           <button
             key={s}
             type="button"
@@ -138,23 +157,41 @@ export function PipelineView({
             autoComplete="off"
           />
         </Field>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" onClick={() => setCreating(true)}>
-            {t.newSpeaker}
-          </Button>
-        </div>
+        {/* Neue Speaker beginnen in der Pipeline, nicht bei den Bestätigten. */}
+        {ansicht === "pipeline" && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" onClick={() => setCreating(true)}>
+              {t.newSpeaker}
+            </Button>
+          </div>
+        )}
       </div>
 
-      {visible.length === 0 ? (
+      {imBereich.length === 0 ? (
+        <EmptyState
+          title={ansicht === "pipeline" ? t.pipelineEmptyTitle : t.confirmedEmptyTitle}
+          description={ansicht === "pipeline" ? t.pipelineEmptyBody : t.confirmedEmptyBody}
+        />
+      ) : visible.length === 0 ? (
         <EmptyState title={t.noMatchTitle} description={t.noMatchBody} />
+      ) : ansicht === "bestaetigt" ? (
+        <BestaetigtTabelle
+          speakers={visible}
+          labels={labels}
+          locale={locale}
+          dateTime={dateTime}
+          name={name}
+          t={t}
+          none={common.none}
+          onOpen={setOpenId}
+        />
       ) : (
         <Table>
           <Thead>
             <Th>{t.colName}</Th>
             <Th>{t.colRole}</Th>
             <Th>{t.colStatus}</Th>
-            <Th>{t.colSessions}</Th>
-            <Th>{t.colOpen}</Th>
+            <Th>{t.colNote}</Th>
             <Th>{t.colOwner}</Th>
           </Thead>
           <Tbody>
@@ -185,26 +222,13 @@ export function PipelineView({
                     </div>
                   )}
                 </Td>
-                <Td className="text-muted">
-                  {(s.sessions ?? []).length === 0 ? (
-                    <span className="ct-help">{t.noSession}</span>
+                {/* Vor der Zusage zählt, wo die Ansprache steht — Session und
+                    offene Schritte gehören auf die Seite der Bestätigten. */}
+                <Td className="max-w-80 text-muted">
+                  {s.internal_notes ? (
+                    <span className="line-clamp-2 ct-help">{s.internal_notes}</span>
                   ) : (
-                    (s.sessions ?? []).map((se) => (
-                      <div key={se.session_id}>
-                        {(locale === "en" ? se.title_en : se.title_de) ?? se.title_de ?? "—"}
-                      </div>
-                    ))
-                  )}
-                </Td>
-                <Td>
-                  {(s.next_open ?? []).length === 0 ? (
-                    <Badge tone="success">{t.allDone}</Badge>
-                  ) : (
-                    <div className="flex flex-wrap gap-1">
-                      {(s.next_open ?? []).map((step) => (
-                        <Badge key={step}>{t[`step_${step}`] ?? step}</Badge>
-                      ))}
-                    </div>
+                    <span className="ct-help">{common.none}</span>
                   )}
                 </Td>
                 <Td className="text-muted">{s.owner_name || common.none}</Td>
@@ -243,5 +267,126 @@ export function PipelineView({
         />
       )}
     </div>
+  );
+}
+
+/**
+ * Bestätigte Speaker: das Onboarding auf einen Blick (LEAD-028).
+ *
+ * Konrad: „fehlende Infos, Session, Einladung ins Portal, Eintrag ins
+ * Programm". Genau diese vier Fragen beantwortet je eine Spalte — was fehlt
+ * (dieselben offenen Schritte wie im Speaker-Portal), welche Session, ob die
+ * Einladung raus ist und ob die Session im Programm steht.
+ */
+function BestaetigtTabelle({
+  speakers,
+  labels,
+  locale,
+  dateTime,
+  name,
+  t,
+  none,
+  onOpen,
+}: {
+  speakers: ManagedSpeaker[];
+  labels: Record<string, Record<string, string>>;
+  locale: Locale;
+  dateTime: Intl.DateTimeFormat;
+  name: (s: ManagedSpeaker) => string;
+  t: Strings;
+  none: string;
+  onOpen: (id: string) => void;
+}) {
+  return (
+    <Table>
+      <Thead>
+        <Th>{t.colName}</Th>
+        <Th>{t.colStatus}</Th>
+        <Th>{t.colSessions}</Th>
+        <Th>{t.colInvite}</Th>
+        <Th>{t.colMissing}</Th>
+        <Th>{t.colProgramme}</Th>
+        <Th>{t.colOwner}</Th>
+      </Thead>
+      <Tbody>
+        {speakers.map((s) => {
+          const sessions = s.sessions ?? [];
+          return (
+            <Tr key={s.id}>
+              <Td>
+                <button type="button" onClick={() => onOpen(s.id)} className="ct-link text-left">
+                  {name(s)}
+                </button>
+                <div className="ct-help">{[s.job_title, s.organization_name].filter(Boolean).join(" · ")}</div>
+              </Td>
+              <Td>
+                <Badge tone={PIPELINE_TONE[s.pipeline_status] ?? "neutral"}>
+                  {labels.pipeline[s.pipeline_status] ?? s.pipeline_status}
+                </Badge>
+                {s.confirmed_at && (
+                  <div className="ct-help">
+                    {t.confirmedOn} {dateTime.format(new Date(s.confirmed_at))}
+                  </div>
+                )}
+              </Td>
+              <Td className="text-muted">
+                {sessions.length === 0 ? (
+                  <Badge tone="warning">{t.noSession}</Badge>
+                ) : (
+                  sessions.map((se) => (
+                    <div key={se.session_id}>
+                      <span className="text-ink">
+                        {(locale === "en" ? se.title_en : se.title_de) ?? se.title_de ?? "—"}
+                      </span>
+                      {(se.start_at || se.stage_name) && (
+                        <span className="ct-help block">
+                          {[se.start_at ? dateTime.format(new Date(se.start_at)) : null, se.stage_name]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      )}
+                    </div>
+                  ))
+                )}
+              </Td>
+              <Td>
+                {s.invited_at ? (
+                  <span className="ct-help">
+                    {t.invitedOn} {dateTime.format(new Date(s.invited_at))}
+                  </span>
+                ) : (
+                  <Badge tone="warning">{t.notInvited}</Badge>
+                )}
+              </Td>
+              <Td>
+                {(s.next_open ?? []).length === 0 ? (
+                  <Badge tone="success">{t.allDone}</Badge>
+                ) : (
+                  <div className="flex flex-wrap gap-1">
+                    {(s.next_open ?? []).map((step) => (
+                      <Badge key={step}>{t[`step_${step}`] ?? step}</Badge>
+                    ))}
+                  </div>
+                )}
+              </Td>
+              <Td>
+                {sessions.length === 0 ? (
+                  <span className="ct-help">—</span>
+                ) : (
+                  <div className="flex flex-col items-start gap-1">
+                    {sessions.map((se) => (
+                      <Badge key={se.session_id} tone={se.publish_status === "published" ? "success" : "neutral"}>
+                        {labels.publishStatus?.[se.publish_status ?? ""] ?? se.publish_status ?? none}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </Td>
+              <Td className="text-muted">{s.owner_name || none}</Td>
+            </Tr>
+          );
+        })}
+      </Tbody>
+    </Table>
   );
 }
