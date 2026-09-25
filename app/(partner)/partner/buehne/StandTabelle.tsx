@@ -23,6 +23,8 @@ import {
   type StandFenster,
 } from "@/components/partner/standbuehne";
 import { formatMinutes, minutesOfDay, parseClock, zonedTimeToInstant } from "@/lib/tz";
+import { GastZuordnung } from "@/components/partner/GastZuordnung";
+import type { GastWahl } from "@/components/partner/gaeste";
 import { RueckgabeHinweis, type RueckgabeTexte } from "../Rueckgabe";
 import { assignStageGuest, requestStagePublish, withdrawStagePublish } from "../actions";
 
@@ -50,7 +52,7 @@ export type StandZeile = {
 
 export type StandTag = { id: string; day_date: string; label: string };
 /** Gast der eigenen Organisation (`partner_stage_guests`), zur Auswahl in den Details. */
-export type StandGast = { profile_id: string; person_id: string; name: string };
+export type StandGast = GastWahl;
 export type StandBuehne = { id: string; name: string; default_duration_min: number };
 
 type Texte = Record<string, string>;
@@ -571,7 +573,21 @@ function Zeile({
                   </span>
                 )}
               </Field>
-              <GastZuordnung z={z} gaeste={gaeste} pending={pending} t={t} onGast={onGast} />
+              <GastZuordnung
+                speakers={z.speakers}
+                gaeste={gaeste}
+                canEdit={z.can_edit}
+                pending={pending}
+                t={{
+                  label: t.colSpeakers,
+                  none: t.noSpeakers,
+                  noGuests: t.guestNone,
+                  choose: t.guestChoose,
+                  add: t.guestAdd,
+                  remove: t.guestRemove,
+                }}
+                onGast={onGast}
+              />
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label={t.descriptionDe} htmlFor={`${detailsId}-de`} error={fehlt.includes("description") ? t.descriptionHint : undefined}>
                   <Textarea
@@ -615,91 +631,6 @@ function Zeile({
         </tr>
       )}
     </Fragment>
-  );
-}
-
-/**
- * Speaker eines Programmpunkts in den Details. Gäste der eigenen Organisation
- * (PART-081) lassen sich hier zuordnen und wieder abnehmen; reguläre Speaker
- * teilt das Programm-Team zu, sie stehen nur da. Geschrieben wird über
- * `partner_assign_stage_guest`, nicht über `set_session_speakers`, das beliebige
- * Personen annimmt.
- */
-function GastZuordnung({
-  z,
-  gaeste,
-  pending,
-  t,
-  onGast,
-}: {
-  z: StandZeile;
-  gaeste: StandGast[];
-  pending: boolean;
-  t: Texte;
-  onGast: (profileId: string, zuordnen: boolean) => void;
-}) {
-  const [wahl, setWahl] = useState("");
-  const gastVonPerson = new Map(gaeste.map((g) => [g.person_id, g]));
-  const frei = gaeste.filter((g) => !z.speakers.some((s) => s.person_id === g.person_id));
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="ct-label text-ink">{t.colSpeakers}</p>
-      {z.speakers.length === 0 ? (
-        <p className="ct-help">{t.noSpeakers}</p>
-      ) : (
-        <ul className="flex flex-wrap gap-2">
-          {z.speakers.map((s) => {
-            const gast = gastVonPerson.get(s.person_id);
-            return (
-              <li key={s.person_id}>
-                <Badge tone={gast ? "accent" : "neutral"}>
-                  {s.name}
-                  {gast && z.can_edit && (
-                    <button
-                      type="button"
-                      aria-label={t.guestRemove.replace("{name}", s.name)}
-                      className="text-muted transition-colors hover:text-error-ink"
-                      disabled={pending}
-                      onClick={() => onGast(gast.profile_id, false)}
-                    >
-                      ×
-                    </button>
-                  )}
-                </Badge>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-      {z.can_edit &&
-        (gaeste.length === 0 ? (
-          <p className="ct-help">{t.guestNone}</p>
-        ) : (
-          frei.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <Select
-                aria-label={t.guestChoose}
-                className="w-64"
-                value={wahl}
-                placeholder={t.guestChoose}
-                options={frei.map((g) => ({ value: g.profile_id, label: g.name }))}
-                onChange={(e) => setWahl(e.target.value)}
-              />
-              <Button
-                size="sm"
-                variant="secondary"
-                disabled={!wahl || pending}
-                onClick={() => {
-                  onGast(wahl, true);
-                  setWahl("");
-                }}
-              >
-                {t.guestAdd}
-              </Button>
-            </div>
-          )
-        ))}
-    </div>
   );
 }
 

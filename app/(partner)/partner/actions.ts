@@ -394,32 +394,10 @@ export async function shopRequestProduct(input: {
   return { ok: true, data: { request_id: data as string } };
 }
 
-/**
- * Talk (PART-044, B6). Zwei Wege, beide über die RPCs aus 0132/0133 und 0139.
- *
- * `addSpeaker` trägt eine Person zu einer gebuchten Keynote oder einem Panel
- * ein — wie ein Stage Lead. Ob daraus ein Pflegerecht wird, entscheidet die
- * Datenbank und nicht diese Stelle: nur eine Person, die es vorher nicht gab,
- * darf der Partner danach pflegen. Wer nur eine bekannte Mailadresse eintippt,
- * ordnet zu und sieht nichts weiter (Review-Auflage zu #68).
- */
-export async function addTalkSpeaker(input: {
-  sessionId: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-}): Promise<PartnerResult<{ profile_id: string }>> {
-  const supabase = await client();
-  const { data, error } = await supabase.rpc("partner_add_speaker", {
-    p_session_id: input.sessionId,
-    p_email: input.email,
-    p_first_name: input.firstName,
-    p_last_name: input.lastName,
-  });
-  if (error) return fail(error);
-  revalidatePath(`${PATH}/talk`);
-  return { ok: true, data: { profile_id: data as string } };
-}
+// Talk (PART-044, B6). Seit PART-088 legt der Partner seine Speaker als Gäste an
+// (`addStageGuest` und Zuordnung über `assignStageGuest`); das frühere Eintragen
+// über `partner_add_speaker` mit Einladung ins Speaker-Portal entfällt. Wer so
+// schon eingetragen wurde, bleibt sichtbar und pflegbar:
 
 /**
  * Der Partner pflegt die Programmangaben seines Speakers, solange dieser sich
@@ -595,6 +573,7 @@ function refreshGaeste() {
   revalidatePath(`${PATH}/buehne`);
   revalidatePath(`${PATH}/buehne/tabelle`);
   revalidatePath(`${PATH}/buehne/gaeste`);
+  revalidatePath(`${PATH}/talk`);
 }
 
 /**
