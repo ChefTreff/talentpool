@@ -11,6 +11,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
+import { Verlauf } from "@/components/speaker/Verlauf";
 import {
   buehnenGeaendert,
   einordnungAenderungen,
@@ -48,6 +49,8 @@ export function SpeakerFenster({
   dateLocale,
   t,
   te,
+  verlaufArten,
+  tv,
   common,
   rpcMessages,
   onClose,
@@ -67,6 +70,10 @@ export function SpeakerFenster({
   t: Strings;
   /** `speakerEinordnung`-Texte. */
   te: Strings;
+  /** Bezeichnungen aus `speaker_activity_kind`. */
+  verlaufArten: Record<string, string>;
+  /** `speakerVerlauf`-Texte. */
+  tv: Strings;
   common: {
     cancel: string;
     choose: string;
@@ -301,6 +308,22 @@ export function SpeakerFenster({
         </div>
 
         <div className="flex min-w-0 flex-col gap-5">
+          {/* Verlauf (LEAD-039 Schnitt 2): Notizen, Kontakte, Aufgaben mit Frist —
+              oben rechts, weil er in der Akquise am häufigsten gebraucht wird. */}
+          <section className="border-t pt-4">
+            <h3 className="ct-label mb-1 text-ink">{tv.title}</h3>
+            <p className="ct-help mb-3">{tv.hint}</p>
+            <Verlauf
+              profileId={speaker.id}
+              meId={meId}
+              zustaendige={managers.map((m) => ({ id: m.person_id, name: m.display_name ?? "—" }))}
+              arten={verlaufArten}
+              dateLocale={dateLocale}
+              t={tv}
+              rpcMessages={rpcMessages}
+            />
+          </section>
+
           {/* Stammdaten */}
           <section className="border-t pt-4">
             <h3 className="ct-label mb-3 text-ink">{t.details}</h3>

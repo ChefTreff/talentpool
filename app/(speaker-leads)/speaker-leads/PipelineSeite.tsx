@@ -88,6 +88,8 @@ export async function PipelineSeite({ ansicht, path }: { ansicht: PipelineAnsich
             })),
           }}
           te={t.speakerEinordnung}
+          verlaufArten={vgroup(vocab, "speaker_activity_kind")}
+          tv={t.speakerVerlauf}
           locale={locale}
           dateLocale={t.meta.dateLocale}
           t={t.leads}

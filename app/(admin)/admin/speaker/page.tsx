@@ -2,6 +2,7 @@ import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import { ButtonLink } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SpeakerListe } from "./SpeakerListe";
 import type { AdminSpeakerRow } from "./types";
@@ -31,6 +32,12 @@ export default async function AdminSpeakerPage() {
         word={t.admin.words.speakers}
         title={t.adminSpeaker.title}
         description={`${t.adminSpeaker.lead} · ${speakers.length} ${t.common.shown}`}
+        actions={
+          // LEAD-025: alle Notizen, Kontakte und Aufgaben der Edition an einem Ort.
+          <ButtonLink href="/admin/speaker/verlauf" variant="secondary" size="sm">
+            {t.speakerVerlauf.overviewLink}
+          </ButtonLink>
+        }
       />
       <SpeakerListe
         rows={speakers}

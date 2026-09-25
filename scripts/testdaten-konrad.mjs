@@ -25,7 +25,8 @@
  *                                   v6_standbuehnen_gaeste und den Schritt partner)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist)
  *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage, mit
- *                                   Einordnung und Bühne in Frage — LEAD-039)
+ *                                   Einordnung, Bühne in Frage und Verlauf samt
+ *                                   überfälliger Aufgabe — LEAD-039)
  *   … --apply --nur=moderation     (LEAD-042: TEST-Person als Stage Lead ohne
  *                                   Speaker-Profil, für die Moderationssuche)
  *   … --apply --nur=summit         (LEAD-014: Teststandbühne und Test-Keynote
@@ -988,6 +989,12 @@ const PIPELINE_TESTS = [
       priority: "a", recommended_format: "keynote", contact_via: "TEST — über Konrad", outreach_channel: "linkedin",
     },
     buehne: true,
+    // LEAD-039 Schnitt 2: Verlauf — Tage relativ zu heute; die Aufgabe ist
+    // überfällig, damit „Fällig“ oben in der Pipeline etwas zeigt.
+    verlauf: [
+      { kind: "call", body: "TEST — Anruf: Interesse an einer Keynote", vorTagen: 2 },
+      { kind: "task", body: "TEST — Nachfassen: Termin fürs Vorgespräch", faelligInTagen: -1 },
+    ],
   },
   {
     nachname: "Pipeline 2 (im Gespräch)", status: "contacted", notiz: "TEST — Rückmeldung bis Freitag zugesagt.",
@@ -996,6 +1003,10 @@ const PIPELINE_TESTS = [
       priority: "b", recommended_format: "panel", contact_via: "TEST — über Partner", outreach_channel: "email",
     },
     buehne: true,
+    verlauf: [
+      { kind: "email", body: "TEST — Mail mit Themenvorschlag geschickt", vorTagen: 5 },
+      { kind: "task", body: "TEST — Rückmeldung abfragen", faelligInTagen: 3 },
+    ],
   },
   {
     nachname: "Pipeline 3 (abgesagt)", status: "declined", notiz: "TEST — für 2028 vormerken.", grund: "termin",
@@ -1004,6 +1015,7 @@ const PIPELINE_TESTS = [
       priority: "c", recommended_format: "fireside_chat", contact_via: "TEST — über Agentur", outreach_channel: "agency",
     },
     buehne: false,
+    verlauf: [{ kind: "note", body: "TEST — Absage: Termin passt nicht, für 2028 vormerken", vorTagen: 1 }],
   },
 ];
 
@@ -1021,7 +1033,10 @@ async function pipelineEintraege(me, ed) {
         owner_person_id: me.id, internal_notes: e.notiz, ...e.einordnung,
         ...(e.grund ? { declined_at: new Date().toISOString(), decline_reason: e.grund } : {}),
       }, { onConflict: "person_id,edition_id" }).select("id").single();
-      if (profil.error || !e.buehne) return profil;
+      if (profil.error) return profil;
+      const verlauf = await verlaufEintraege(me, profil.data.id, e.verlauf ?? []);
+      if (verlauf?.error) return verlauf;
+      if (!e.buehne) return profil;
       // Bühne in Frage (LEAD-039): die Stage-Lead-Testbühne, damit das Feld im
       // Fenster und im Admin-Detail nicht leer ist.
       const { data: st } = await admin.from("stage").select("id").eq("slug", "zz-test-stagelead").maybeSingle();
@@ -1283,6 +1298,33 @@ async function moderationStageLead(me, ed) {
   );
   if (!personId) return; // Probelauf oder Fehler — dann auch keine Rolle
   await role(personId, "speaker_manager", "stage", st.id, ed.id, validTo);
+}
+
+/**
+ * LEAD-039 Schnitt 2: Verlaufseinträge eines TEST-Leads, am Text wiedergefunden.
+ * Jeder Lauf setzt Zeitpunkt und Frist relativ zu heute neu und öffnet die
+ * Aufgabe wieder — so zeigt „Fällig“ immer eine überfällige Aufgabe, egal wann
+ * das Skript zuletzt lief. Autor und Zuständige ist Konrad.
+ */
+async function verlaufEintraege(me, profileId, eintraege) {
+  const tag = 86400000;
+  for (const v of eintraege) {
+    const zeile = {
+      profile_id: profileId, kind: v.kind, body: v.body, author_person_id: me.id,
+      occurred_at: new Date(Date.now() - (v.vorTagen ?? 0) * tag).toISOString(),
+      ...(v.kind === "task"
+        ? { due_on: new Date(Date.now() + v.faelligInTagen * tag).toISOString().slice(0, 10),
+            assignee_person_id: me.id, done_at: null, done_by: null }
+        : {}),
+    };
+    const { data: da } = await admin.from("speaker_activity").select("id")
+      .eq("profile_id", profileId).eq("body", v.body).maybeSingle();
+    const res = da
+      ? await admin.from("speaker_activity").update(zeile).eq("id", da.id)
+      : await admin.from("speaker_activity").insert(zeile);
+    if (res.error) return res;
+  }
+  return null;
 }
 
 /** Die Schritte, die `--nur` kennt. */
