@@ -23,5 +23,8 @@ begin
                       where c.bundle_sku = p.sku), '[]'::jsonb)
       from product p
      where p.type = 'package' and p.category = 'standflaeche' and p.active
+       -- PART-085: nur Stände, an denen die Messestand-Seite hängt — „Stand, ein Tag“ und
+       -- „Stand, beide Tage“ der Initiativen (0116, ohne format_key) nie in dieser Liste.
+       and p.format_key in ('booth', 'stage')
      order by p.area_sqm nulls last, p.name_de;
 end $$;

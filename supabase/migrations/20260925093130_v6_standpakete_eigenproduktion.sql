@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Standpakete: Standardausstattung der Eigenproduktions-Stände, „Agency Area Partner“
+-- 0191 · Standpakete Eigenproduktion: Stücklisten, Agency Area stillgelegt, booth_packages nur Stände (PART-085/086)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925093130.
 -- stillgelegt, Standliste ohne Initiativen-Stände (PART-085, PART-086): product_component, product, booth_packages
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
