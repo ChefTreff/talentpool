@@ -595,6 +595,20 @@ export async function withdrawStagePublish(sessionId: string): Promise<PartnerRe
   return { ok: true, data: { status: String(data) } };
 }
 
+/**
+ * Angaben zum eigenen Stopp der Company Tour (PART-046): Ansprechperson,
+ * Adresse, Zeitslot, Snacks, Hinweise, gesuchte Profile, Fotografieren.
+ * Welche Felder durchgehen und wer schreiben darf, entscheidet
+ * `partner_update_tour_stop` (Whitelist, `partner_can_edit`).
+ */
+export async function updateTourStop(stopId: string, fields: Record<string, unknown>): Promise<PartnerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("partner_update_tour_stop", { p_stop_id: stopId, p_fields: fields });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/company-tour`);
+  return { ok: true, data: undefined };
+}
+
 /** Nach einer Änderung an den Gästen der Standbühne: Liste, Tabelle, Kalender (seit PART-091 nur dort). */
 function refreshGaeste() {
   revalidatePath(`${PATH}/buehne`);

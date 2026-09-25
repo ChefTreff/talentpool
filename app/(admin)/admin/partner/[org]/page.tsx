@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import type { GastRow } from "@/components/partner/gaeste";
+import type { TourStopp } from "@/components/partner/tour";
 import { gastFotoAdressen } from "@/lib/partner/gaeste";
 import { partnerAdminShell } from "../shell";
 import { OrgDetail } from "./OrgDetail";
@@ -49,6 +50,9 @@ export default async function AdminPartnerOrgPage({
     supabase.rpc("partner_speakers", { p_org_id: org }),
     loadVocabMap(supabase, locale),
   ]);
+  // PART-046: Stopps der Company Tour mit den Angaben des Partners — dieselbe RPC wie unter /partner/company-tour.
+  const { data: tourZeilen } = await supabase.rpc("partner_company_tour", { p_org_id: org });
+  const alsListe = (m: Record<string, string>) => Object.entries(m).map(([key, label]) => ({ key, label }));
 
   const contactRows = (contacts ?? []) as AdminContact[];
 
@@ -93,6 +97,13 @@ export default async function AdminPartnerOrgPage({
       gaeste={gaeste}
       guestTexts={t.partnerGuests}
       talkSpeakers={((speakerZeilen ?? []) as AdminTalkSpeaker[]).filter((sp) => sp.session_id)}
+      tourStopps={(tourZeilen ?? []) as TourStopp[]}
+      tourFelder={{
+        occupation_status: alsListe(vgroup(vocab, "occupation_status")),
+        career_level: alsListe(vgroup(vocab, "career_level")),
+        study_field: alsListe(vgroup(vocab, "study_field")),
+      }}
+      tourTexts={t.partnerTour}
       deliverables={(deliverables ?? []) as AdminDeliverable[]}
       deals={(deals ?? []) as AdminDeal[]}
       stageRoles={stageRoles}

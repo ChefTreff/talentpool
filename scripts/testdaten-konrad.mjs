@@ -27,6 +27,9 @@
  *   … --apply --nur=talk           (PART-091: verwalteter TEST-Speaker am TEST-Talk,
  *                                   Konrad als Kontakt mit Zugang; braucht
  *                                   v6_talk_speaker_zugang und den Schritt partner)
+ *   … --apply --nur=tour-bewerbung (PART-046: Bewerbungen auf die TEST-Tour ohne Mail,
+ *                                   Konrad zugesagt, TEST-Person ohne Einwilligung;
+ *                                   braucht den Schritt tour)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist,
  *                                   mit Öffnungszeiten für die Markierung — LEAD-033)
  *   … --apply --nur=standstatus    (LEAD-035/036/037: drei TEST-Sessions auf der
@@ -1448,10 +1451,14 @@ async function standbuehnenGast(me, ed) {
  * (`mail_via_contact_id`). Geschrieben wird direkt statt über
  * `partner_add_speaker`: die RPC schickte dem Kontakt eine Mail, und Testdaten
  * verschicken nichts. Dazu nimmt der Schritt den TEST-Gast vom TEST-Talk —
- * Gäste gibt es seit PART-091 nur auf der Standbühne.
+ * Gäste gibt es seit PART-091 nur auf der Standbühne. Ein zweiter TEST-Speaker
+ * mit eigenem Zugang steht daneben (reguläres Profil `lead`, keine Einladung —
+ * die verschickt das Speaker-Team erst ab der Zusage).
  * Braucht `v6_talk_speaker_zugang` und den Schritt `partner`.
  */
 const talkSpeakerAdresse = () => email.replace("@", "+zztest-talk-1@");
+/** Der zweite TEST-Speaker hat einen eigenen Zugang — beide Fälle nebeneinander. */
+const talkSpeakerEigenAdresse = () => email.replace("@", "+zztest-talk-2@");
 
 async function talkSpeaker(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
@@ -1517,6 +1524,95 @@ async function talkSpeaker(me, ed) {
     admin.from("session_speaker").upsert(
       { session_id: talk.id, person_id: personId, role: "speaker" },
       { onConflict: "session_id,person_id,role" },
+    ),
+  );
+
+  const { data: eigenId, error: ee } = await admin.rpc("testdaten_person", {
+    p_first_name: "TEST", p_last_name: "Talk-Speakerin", p_email: talkSpeakerEigenAdresse(),
+  });
+  if (ee || !eigenId) {
+    fail("Talk-Speakerin mit eigenem Zugang (TEST-Person)", ee ?? "keine Person");
+    return;
+  }
+  await write("Speaker-Profil mit eigenem Zugang", () =>
+    admin.from("speaker_profile").upsert(
+      {
+        person_id: eigenId, edition_id: ed.id, speaker_type: "other", pipeline_status: "lead",
+        job_title: "Chief People Officer", organization_name: `${PREFIX}Partner`,
+        created_by_org_id: org.id, partner_editable_until_login: true, internal_notes: MARK,
+      },
+      { onConflict: "person_id,edition_id" },
+    ),
+  );
+  await write("TEST-Speakerin am TEST-Talk", () =>
+    admin.from("session_speaker").upsert(
+      { session_id: talk.id, person_id: eigenId, role: "speaker" },
+      { onConflict: "session_id,person_id,role" },
+    ),
+  );
+}
+
+/**
+ * Schritt `tour-bewerbung` (PART-046): zwei Bewerbungen auf die TEST-Tour, damit
+ * `/partner/company-tour` → Bewerbungen und Teilnehmende etwas zeigen — Konrad
+ * mit Einwilligung und zugesagt (steht unter Teilnehmende) und eine TEST-Person
+ * ohne Einwilligung (Zeile ohne Namen). Dazu eine TEST-Frage der Tour-Session,
+ * damit die Antwort mit Fragetext erscheint.
+ *
+ * **Ohne Mail:** der Status `applied` löst über `trg_application_mail` die Mail
+ * `application_received` aus. Deshalb `accepted` und `shortlisted` — solange die
+ * Entscheidungen der Session nicht freigegeben sind, geht dabei nichts raus; sind
+ * sie es, bricht der Schritt ab. Braucht den Schritt `tour`.
+ */
+const tourBewerbungAdresse = () => email.replace("@", "+zztest-tour-1@");
+
+async function tourBewerbung(me, ed) {
+  const { data: se } = await admin.from("session").select("id")
+    .eq("event_id", ed.id).eq("title_de", `${PREFIX}Company Tour Session`).maybeSingle();
+  if (!se) {
+    fail("Tour-Bewerbungen", "TEST — Company Tour Session fehlt — zuerst --nur=tour");
+    return;
+  }
+  const { data: freigegeben, error: fe } = await admin.rpc("decisions_released", { p_session_id: se.id });
+  if (fe || freigegeben) {
+    fail("Tour-Bewerbungen", fe ?? "Entscheidungen der TEST-Tour sind freigegeben — Zusagen würden Mails auslösen");
+    return;
+  }
+  if (mode === "dry-run") {
+    note("Tour-Bewerbungen (Konrad zugesagt mit Einwilligung, TEST-Person vorgemerkt ohne Einwilligung, TEST-Frage)");
+    return;
+  }
+  const frageText = `${PREFIX}Was interessiert dich an der Tour?`;
+  let { data: frage } = await admin.from("session_question").select("id")
+    .eq("session_id", se.id).eq("label_de", frageText).maybeSingle();
+  if (!frage) {
+    frage = await write("TEST-Frage der Tour-Session", () =>
+      admin.from("session_question").insert({
+        session_id: se.id, label_de: frageText, label_en: "TEST — What interests you about the tour?",
+        type: "textarea", required: false, sort_order: 1, purpose: "Testdaten", approved_at: new Date().toISOString(),
+      }).select("id").single(),
+    );
+  }
+  if (!frage) return;
+  await write("Konrads Bewerbung auf die TEST-Tour (zugesagt, mit Einwilligung)", () =>
+    admin.from("application").upsert(
+      { session_id: se.id, person_id: me.id, status: "accepted", decided_at: new Date().toISOString(),
+        answers: { [frage.id]: "Logistik einmal von innen sehen." }, consent_share: true },
+      { onConflict: "session_id,person_id" },
+    ),
+  );
+  const { data: personId, error: pe } = await admin.rpc("testdaten_person", {
+    p_first_name: "TEST", p_last_name: "Tourbewerbung", p_email: tourBewerbungAdresse(),
+  });
+  if (pe || !personId) {
+    fail("Tour-Bewerbung ohne Einwilligung (TEST-Person)", pe ?? "keine Person");
+    return;
+  }
+  await write("TEST-Bewerbung ohne Einwilligung (vorgemerkt)", () =>
+    admin.from("application").upsert(
+      { session_id: se.id, person_id: personId, status: "shortlisted",
+        answers: { [frage.id]: "Bitte nicht weitergeben." }, consent_share: false },
+      { onConflict: "session_id,person_id" },
     ),
   );
 }
@@ -1821,6 +1917,7 @@ const SCHRITTE = {
   partner: partnerSchritt,
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
+  "tour-bewerbung": tourBewerbung,
   ticket: speakerTicket,
   fotos: stagePhotos,
   "ticket-zurueck": ticketZurueck,
@@ -1959,11 +2056,19 @@ async function remove(me) {
   });
   // PART-091: der verwaltete TEST-Speaker. Profil, Kontakt und Zuordnung hängen mit
   // ON DELETE CASCADE an der Person; Konrads Rolle `speaker_assistant` geht mit den Rollen.
-  await write("Talk-Speaker entfernt (Profil, Kontakt, Zuordnung)", async () => {
+  // PART-046: die TEST-Person der Tour-Bewerbung; ihre Bewerbung hängt mit ON DELETE CASCADE an ihr.
+  await write("Tour-Bewerbung ohne Einwilligung entfernt", async () => {
     const { data: adresse } = await admin.from("person_email").select("person_id")
-      .eq("email", talkSpeakerAdresse()).maybeSingle();
+      .eq("email", tourBewerbungAdresse()).maybeSingle();
     if (!adresse) return { data: null, error: null };
     return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  await write("Talk-Speaker entfernt (Profil, Kontakt, Zuordnung)", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", [talkSpeakerAdresse(), talkSpeakerEigenAdresse()]);
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
   // Die Test-Personen der Pipeline (nur Vorname TEST, ohne Konto): erst die
   // Profile, dann die Personen.

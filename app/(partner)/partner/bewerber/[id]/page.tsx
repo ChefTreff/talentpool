@@ -14,7 +14,8 @@ import {
   type PartnerOverview,
   type PartnerSession,
 } from "../../types";
-import { ApplicantList } from "./ApplicantList";
+import { ApplicantList } from "@/components/partner/ApplicantList";
+import { decideApplication } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -101,7 +102,7 @@ export default async function PartnerApplicantsSessionPage({
         <ApplicantList
           applications={applications}
           statusLabels={vgroup(vocab, "application_status")}
-          canDecide={canEditOnboarding(overview?.roles ?? [], overview?.team ?? false)}
+          decide={canEditOnboarding(overview?.roles ?? [], overview?.team ?? false) ? decideApplication : undefined}
           dateLocale={t.meta.dateLocale}
           t={t.partnerApplicants}
           rpcMessages={t.rpc}
