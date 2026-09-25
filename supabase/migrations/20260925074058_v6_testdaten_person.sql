@@ -1,4 +1,5 @@
--- Vorschlag ohne Nummer · Welle 6 · Test-Personen für das Testdaten-Skript (Regel „Konrads Konto sieht alles“, LEAD-028)
+-- 0183 · testdaten_person: Testperson mit primärer Adresse in einer Transaktion (nur service_role, nur +zztest)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925074058.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
