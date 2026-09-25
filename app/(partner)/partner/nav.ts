@@ -13,11 +13,11 @@ import type { PartnerProduct } from "./types";
  * hätte er einen Deploy gebraucht. Die Konstante `STAGE_SKU` ist deshalb
  * entfallen.
  *
- * Zwei Punkte hängen weiterhin nicht am Produkt, sondern an dem, was daraus
- * entstanden ist (Review PR #14, Migration 0051): Bewerber gibt es, wenn der
- * Org eine Session zugeordnet wurde, Bühne, wenn ihr eine Bühne gehört. Über
- * Produkte allein ginge beides schief — eine Bühne kann das Team auch ohne
- * passendes Produkt zuweisen.
+ * Ein Punkt hängt weiterhin nicht am Produkt, sondern an dem, was daraus
+ * entstanden ist (Review PR #14, Migration 0051): Bühne, wenn der Org eine
+ * Bühne gehört — die kann das Team auch ohne passendes Produkt zuweisen.
+ * Einen eigenen Punkt „Bewerber“ gibt es seit PART-082 nicht mehr: die
+ * Bewerbungen stehen als Reiter auf den Formatseiten.
  */
 
 export type PartnerNavKey =
@@ -43,8 +43,7 @@ export type PartnerNavKey =
   | "hackathon"
   | "branding"
   | "talk"
-  | "stage"
-  | "applicants";
+  | "stage";
 
 /**
  * Die Menügruppen der Seitenleiste (PART-042, Konrad 17.09.).
@@ -67,7 +66,6 @@ export const NAV_GROUPS = {
     "hackathon",
     "branding",
     "stage",
-    "applicants",
   ],
 } as const satisfies Record<string, readonly PartnerNavKey[]>;
 
@@ -86,8 +84,6 @@ const FORMAT_KEYS = [
 
 export type NavInput = {
   products: readonly PartnerProduct[];
-  /** Sessions mit `host_org_id` = Org (Masterclass, Company Tour …). */
-  sessions_count: number;
   /** Bühne mit `partner_org_id` = Org. */
   has_stage: boolean;
   /** Stand mit Nummer, Maßen oder Rückwand — aus `partner_overview.booth`. */
@@ -154,8 +150,5 @@ export function visibleNavKeys(input: NavInput): PartnerNavKey[] {
   // Checkliste, nicht über den Katalog (PART-049).
   if (keys.includes("booth") || keys.includes("stage")) keys.push("shop");
 
-  // Bewerber folgt der Session, nicht dem Produkt: erst wenn der Org ein
-  // Format zugeordnet wurde, gibt es Bewerbungen zu entscheiden.
-  if (input.sessions_count > 0) keys.push("applicants");
   return keys;
 }

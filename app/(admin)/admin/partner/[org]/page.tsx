@@ -130,7 +130,7 @@ export default async function AdminPartnerOrgPage({
       frageTypen={Object.fromEntries(
         ["text", "textarea", "select", "multiselect", "boolean", "url", "number"].map((typ) => [
           typ,
-          (t.partnerMasterclass as Record<string, string>)[`type_${typ}`] ?? typ,
+          (t.partnerBewerbung as Record<string, string>)[`type_${typ}`] ?? typ,
         ]),
       )}
       deliverables={(deliverables ?? []) as AdminDeliverable[]}

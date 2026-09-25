@@ -57,8 +57,9 @@ describe("Masterclass: Fragen und Antworten in der Oberfläche (PART-045)", () =
 
   it("Seite im Menü, vier Reiter, Schreibwege über die Partner-RPCs", () => {
     assert.match(src("app/(partner)/layout.tsx"), /masterclass: \{ href: "\/partner\/masterclass"/);
-    const kopf = src("app/(partner)/partner/masterclass/MasterclassKopf.tsx");
-    for (const pfad of ["`${BASE}/bewerbungen`", "`${BASE}/teilnehmende`", "`${BASE}/fragen`"]) assert.ok(kopf.includes(pfad), pfad);
+    const reiter = src("app/(partner)/partner/FormatReiter.tsx");
+    for (const pfad of ["`${basis}/bewerbungen`", "`${basis}/teilnehmende`", "`${basis}/fragen`"]) assert.ok(reiter.includes(pfad), pfad);
+    assert.match(src("app/(partner)/partner/masterclass/MasterclassKopf.tsx"), /basis="\/partner\/masterclass"/);
     assert.match(src("app/(partner)/partner/masterclass/daten.ts"), /p_format: "masterclass"/);
     assert.match(src("app/(partner)/partner/masterclass/MasterclassInhalt.tsx"), /updateFormatSession\(\{ sessionId: session\.id, fields \}\)/);
     assert.match(src("app/(partner)/partner/masterclass/page.tsx"), /<SpeakerHinzufuegen/);
@@ -68,7 +69,7 @@ describe("Masterclass: Fragen und Antworten in der Oberfläche (PART-045)", () =
   });
 
   it("entschieden wird nur im Reiter Bewerbungen, und nur mit Recht", () => {
-    const liste = src("app/(partner)/partner/masterclass/MasterclassBewerbungen.tsx");
+    const liste = src("app/(partner)/partner/FormatBewerbungen.tsx");
     assert.match(liste, /rpc\("partner_applications", \{ p_session_id: x\.id \}\)/);
     assert.match(liste, /decide=\{!nurTeilnehmende && canEdit \? decideApplication : undefined\}/);
   });
@@ -89,19 +90,28 @@ describe("Masterclass: Fragen und Antworten in der Oberfläche (PART-045)", () =
   it("alle benutzten Texte stehen in beiden Wörterbüchern", () => {
     const benutzt = (text: string, praefix: string) =>
       [...new Set([...text.matchAll(new RegExp(`\\b${praefix}\\.([a-zA-Z_]+)`, "g"))].map((m) => m[1]))];
-    const dateien = {
-      s: ["page.tsx", "fragen/page.tsx", "MasterclassBewerbungen.tsx"],
-      t: ["MasterclassKopf.tsx", "MasterclassInhalt.tsx", "FragenAuswahl.tsx", "EigeneFrageAntrag.tsx"],
-    };
-    const keys = [
-      ...dateien.s.flatMap((d) => benutzt(src(`app/(partner)/partner/masterclass/${d}`), "s")),
-      ...dateien.t.flatMap((d) => benutzt(src(`app/(partner)/partner/masterclass/${d}`), "t")),
+    // Texte der Masterclass selbst …
+    const masterclass = [
+      ...["page.tsx"].flatMap((d) => benutzt(src(`app/(partner)/partner/masterclass/${d}`), "s")),
+      ...["MasterclassKopf.tsx", "MasterclassInhalt.tsx"].flatMap((d) => benutzt(src(`app/(partner)/partner/masterclass/${d}`), "t")),
+    ];
+    // … und die gemeinsamen der Bewerbungsreiter (PART-082).
+    const bewerbung = [
+      ...benutzt(src("app/(partner)/partner/FormatBewerbungen.tsx"), "s"),
+      ...benutzt(src("app/(partner)/partner/FormatFragen.tsx"), "s"),
+      ...benutzt(src("app/(partner)/partner/FormatUnterseite.tsx"), "b"),
+      ...benutzt(src("app/(partner)/partner/masterclass/MasterclassKopf.tsx"), "b"),
+      ...["FragenAuswahl.tsx", "EigeneFrageAntrag.tsx"].flatMap((d) => benutzt(src(`components/partner/${d}`), "t")),
       ...EIGENE_FRAGE_TYPEN.map((typ) => `type_${typ}`),
     ].filter((k) => k !== "cancel");
     for (const sprache of ["de", "en"]) {
       const dict = JSON.parse(src(`lib/i18n/${sprache}.json`));
-      for (const key of keys) assert.equal(typeof dict.partnerMasterclass[key], "string", `${sprache}: partnerMasterclass.${key}`);
+      for (const key of masterclass) assert.equal(typeof dict.partnerMasterclass[key], "string", `${sprache}: partnerMasterclass.${key}`);
+      for (const key of bewerbung) assert.equal(typeof dict.partnerBewerbung[key], "string", `${sprache}: partnerBewerbung.${key}`);
       assert.equal(typeof dict.partner.navMasterclass, "string", `${sprache}: partner.navMasterclass`);
+      for (const block of ["partnerSideEvent", "partnerInterviewTables"]) {
+        assert.equal(typeof dict[block].tabMain, "string", `${sprache}: ${block}.tabMain`);
+      }
     }
   });
 });

@@ -45,7 +45,7 @@ export default async function PartnerMasterclassPage() {
 
   return (
     <>
-      <MasterclassKopf gebucht={gebucht} sessions={sessions.length} word={t.partner.wordInvitation} t={s} />
+      <MasterclassKopf gebucht={gebucht} sessions={sessions.length} word={t.partner.wordInvitation} t={s} b={t.partnerBewerbung} />
       <div className="flex flex-col gap-8">
         {sessions.map((x) => {
           const titel = (locale === "en" ? x.title_en : x.title_de) ?? x.title_de ?? s.untitled;

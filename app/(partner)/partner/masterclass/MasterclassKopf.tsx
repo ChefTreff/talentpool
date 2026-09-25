@@ -1,39 +1,36 @@
 import Link from "next/link";
-import { SectionTabs } from "@/components/layout/SectionTabs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
-
-const BASE = "/partner/masterclass";
+import { FormatReiter } from "../FormatReiter";
 
 /**
  * Kopf aller Reiter der Masterclass (PART-045): Inhalt, Bewerbungen,
- * Teilnehmende, Fragen — eigene Pfade wie bei Standbühne und Company Tour.
- * Ohne Session stehen statt der Reiter die beiden Leerzustände: „nichts
- * gebucht“ und „wir legen euch den Slot noch an“.
+ * Teilnehmende, Fragen. Ohne Session stehen statt der Reiter die beiden
+ * Leerzustände: „nichts gebucht“ und „wir legen euch den Slot noch an“.
  */
 export function MasterclassKopf({
   gebucht,
   sessions,
   word,
   t,
+  b,
 }: {
   gebucht: boolean;
   sessions: number;
   word: string;
+  /** Texte der Masterclass. */
   t: Record<string, string>;
+  /** Gemeinsame Texte der Bewerbungsreiter (`partnerBewerbung`). */
+  b: Record<string, string>;
 }) {
   return (
     <>
       <PageHeader word={word} title={t.title} description={t.lead} />
       {sessions > 0 ? (
-        <SectionTabs
-          label={t.title}
-          items={[
-            { href: BASE, label: t.tabContent, exact: true },
-            { href: `${BASE}/bewerbungen`, label: t.tabApplications },
-            { href: `${BASE}/teilnehmende`, label: t.tabParticipants },
-            { href: `${BASE}/fragen`, label: t.tabQuestions },
-          ]}
+        <FormatReiter
+          basis="/partner/masterclass"
+          erster={t.tabContent}
+          t={{ label: t.title, tabApplications: b.tabApplications, tabParticipants: b.tabParticipants, tabQuestions: b.tabQuestions }}
         />
       ) : gebucht ? (
         <EmptyState title={t.noSessionTitle} description={t.noSessionBody} />

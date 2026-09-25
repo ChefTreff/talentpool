@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/components/ui/cn";
 import { useToast } from "@/components/ui/Toast";
-import { setSessionQuestions } from "../actions";
+import { setSessionQuestions } from "@/app/(partner)/partner/actions";
 
 /**
  * Katalogfragen wählen (PART-045). Zur Wahl stehen nur Fragen, die das Team

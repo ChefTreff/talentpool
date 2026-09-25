@@ -45,7 +45,6 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
   const allowed = new Set<PartnerNavKey>(
     visibleNavKeys({
       products: overview?.products ?? [],
-      sessions_count: overview?.sessions_count ?? 0,
       has_stage: overview?.has_stage ?? false,
       has_booth: overview?.booth != null,
       has_allocations: (overview?.ticket_allocations.length ?? 0) > 0,
@@ -64,7 +63,6 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     tickets: { href: "/partner/tickets", label: t.partner.navTickets },
     eventapp: { href: "/partner/event-app", label: t.partner.navEventApp },
     booth: { href: "/partner/messestand", label: t.partner.navBooth },
-    applicants: { href: "/partner/bewerber", label: t.partner.navApplicants },
     hackathon: { href: "/partner/hackathon", label: t.partner.navHackathon },
     branding: { href: "/partner/branding", label: t.partner.navBranding },
     talk: { href: "/partner/talk", label: t.partner.navTalk },

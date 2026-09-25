@@ -47,8 +47,8 @@ describe("Company Tour im Partner-Portal (PART-046)", () => {
   it("die Bewerbungsliste der Tour hat keine Entscheidungsknöpfe", () => {
     assert.doesNotMatch(src("app/(partner)/partner/company-tour/TourBewerbungen.tsx"), /decide=/);
     assert.match(src("components/partner/ApplicantList.tsx"), /\{decide && \(/);
-    // Die Bewerberseite entscheidet weiter — mit der Aktion, nicht mit einem Schalter.
-    assert.match(src("app/(partner)/partner/bewerber/[id]/page.tsx"), /decide=\{canEditOnboarding\([^)]*\)[^?]*\? decideApplication : undefined\}/);
+    // Die eigenen Formate entscheiden weiter — mit der Aktion, nicht mit einem Schalter (PART-082).
+    assert.match(src("app/(partner)/partner/FormatBewerbungen.tsx"), /decide=\{!nurTeilnehmende && canEdit \? decideApplication : undefined\}/);
   });
 
   it("gespeichert wird nur, was sich geändert hat; offene Ja/Nein-Fragen bleiben offen", () => {
