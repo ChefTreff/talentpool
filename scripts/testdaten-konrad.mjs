@@ -1280,6 +1280,31 @@ async function companyTour(me, ed) {
   }
   if (!tour) return;
 
+  // Begleitung vor Ort (ADM-059): `edition_contact` vom Typ `tour_lead` — kein
+  // Konto, keine Rolle. Dienstliche Adresse, damit der CHECK ohne
+  // Einwilligungsdatum haelt.
+  let { data: lead } = await admin.from("edition_contact").select("id")
+    .eq("edition_id", ed.id).eq("type", "tour_lead").eq("display_name", `${PREFIX}Begleitung`).maybeSingle();
+  if (!lead) {
+    lead = await write("Begleitung der Company Tour", () =>
+      admin.from("edition_contact").insert({
+        edition_id: ed.id, type: "tour_lead", display_name: `${PREFIX}Begleitung`,
+        role_label_de: "Eure Begleitung vor Ort", role_label_en: "Your guide on site",
+        email: "zztest-tourlead@chef-treff.de", phone: "+49 40 000000",
+      }).select("id").single(),
+    );
+  }
+  if (lead) {
+    const { data: jetzt } = await admin.from("company_tour").select("lead_contact_id").eq("id", tour.id).single();
+    if (jetzt?.lead_contact_id !== lead.id) {
+      await write("Begleitung zugeordnet", () =>
+        admin.from("company_tour").update({ lead_contact_id: lead.id }).eq("id", tour.id),
+      );
+    } else {
+      note("Begleitung der Company Tour", "steht schon");
+    }
+  }
+
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
   const { data: stopp } = await admin.from("company_tour_stop").select("id")
