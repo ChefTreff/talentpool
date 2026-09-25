@@ -81,14 +81,45 @@ export type BoardLabels = {
   topics: Record<string, string>;
 };
 
-/** Farbe im Board folgt dem Slot-Status (Datenmodell §Status-Maschinen). */
-export const SLOT_STATUS_STYLE: Record<string, string> = {
-  open: "border-border bg-surface",
-  requested: "border-warning-soft bg-warning-soft",
-  confirmed_title_open: "border-accent-soft bg-accent-soft",
-  final: "border-success-soft bg-success-soft",
-  unused: "border-dashed border-border bg-surface-hover",
+/**
+ * Wie eine Karte im Board aussieht — Fläche und Form (`flaeche`) und die
+ * Schriftfarbe aller Zeilen der Karte (`text`).
+ *
+ * Eine Farbe für alle Zeilen, weil auf der Akzentfläche nur volles Weiß trägt
+ * (4,88:1); eine gedämpfte zweite Textebene gibt es dort nicht (Skill,
+ * Tokens „Akzent“, Regel 1). Die Hierarchie in der Karte kommt aus Schnitt
+ * und Grösse.
+ */
+export type KartenStil = { flaeche: string; text: string; durchgestrichen?: boolean };
+
+/**
+ * Farbe im Board folgt dem Slot-Status (Datenmodell §Status-Maschinen).
+ *
+ * LEAD-017 (Konrad 24./25.09.: „Farben an unserem CI, Kalender-Design
+ * moderner“, Status sofort erkennbar): jeder Status hat eine Fläche, eine
+ * **Form** und ein Wort. Final ist die volle Akzentfläche — das fertige
+ * Programm sieht nach Marke aus. „Bestätigt, Titel offen“ trägt die
+ * Akzentleiste, „angefragt“ die Schraffur mit gelber Leiste, frei und
+ * ungenutzt sind gestrichelt. Wer Farben nicht unterscheidet, erkennt den
+ * Status an der Form (Design-Regel 4); das Wort steht in der Legende und für
+ * Screenreader in jeder Karte. Kontrast gemessen: Weiß auf Akzent 4,88:1,
+ * `accent-deep` auf `accent-soft` 5,65:1, `warning-ink` auf dem dunkleren
+ * Streifen 4,54:1, `muted` auf `canvas` 5,15:1; Leisten und Striche ≥ 3:1.
+ */
+export const SLOT_STATUS_STYLE: Record<string, KartenStil> = {
+  open: { flaeche: "border border-dashed border-border-strong bg-surface", text: "text-muted" },
+  requested: { flaeche: "border-l-4 border-warning-ink bg-hatch-pending", text: "text-warning-ink" },
+  confirmed_title_open: { flaeche: "border-l-4 border-accent bg-accent-soft", text: "text-accent-deep" },
+  final: { flaeche: "bg-accent", text: "text-white" },
+  unused: {
+    flaeche: "border border-dashed border-border-strong bg-canvas",
+    text: "text-muted",
+    durchgestrichen: true,
+  },
 };
+
+/** Belegt, aber ohne Status — fremde Bühnen in der Partner-Sicht (LEAD-035). */
+export const KARTE_NEUTRAL: KartenStil = { flaeche: "border border-border bg-surface", text: "text-ink" };
 
 export const SLOT_STATUS_ORDER = [
   "open",
