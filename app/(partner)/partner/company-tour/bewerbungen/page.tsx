@@ -19,7 +19,7 @@ export default async function PartnerCompanyTourApplicationsPage() {
           canEdit={canEdit}
           nurTeilnehmende={false}
           locale={locale}
-          t={{ tour: t.partnerTour, applicants: t.partnerApplicants, rpc: t.rpc, dateLocale: t.meta.dateLocale }}
+          t={{ tour: t.partnerTour, bewerbung: t.partnerBewerbung, applicants: t.partnerApplicants, rpc: t.rpc, dateLocale: t.meta.dateLocale }}
         />
       )}
     </>

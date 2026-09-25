@@ -4,6 +4,7 @@ import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import { ButtonDownload } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { QueueView } from "./QueueView";
 import type { OverviewRow, QueueRow } from "../types";
@@ -93,6 +94,12 @@ export default async function QueuePage({
         }
         title={title}
         description={session.stage_name ?? undefined}
+        actions={
+          // PART-051: dieselbe Datei, die der Partner lädt — nur mit Einwilligung, im Audit.
+          <ButtonDownload href={`/admin/bewerbungen/${id}/export`} size="sm" title={t.admin.applications.exportHint}>
+            {t.admin.applications.exportCsv}
+          </ButtonDownload>
+        }
       />
       <QueueView
         session={session}

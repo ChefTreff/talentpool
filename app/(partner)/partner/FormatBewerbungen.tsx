@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Locale } from "@/lib/i18n/shared";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import { ButtonDownload } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApplicantList } from "@/components/partner/ApplicantList";
@@ -24,6 +25,10 @@ const DABEI = new Set(["accepted", "promoted", "confirmed"]);
  *
  * Die Company Tour hat ihre eigene, nur lesende Liste (`TourBewerbungen`):
  * dort entscheidet das Team für die ganze Tour.
+ *
+ * Wer entscheiden darf, lädt die Bewerbungen je Session auch als CSV
+ * (PART-051, `/partner/export/format/<Session>`): nur mit Einwilligung, mit
+ * Datenschutzhinweis, jeder Export im Audit.
  */
 export async function FormatBewerbungen({
   supabase,
@@ -68,6 +73,7 @@ export async function FormatBewerbungen({
     <div className="flex flex-col gap-6">
       <p className="ct-help max-w-text">
         {nurTeilnehmende ? s.participantsLead : s.applicationsLead} {t.applicants.auditNotice}
+        {!nurTeilnehmende && canEdit && ` ${s.exportHint}`}
       </p>
       {sessions.map((x, i) => {
         const { bewerbungen, fragen } = ergebnisse[i];
@@ -93,6 +99,14 @@ export async function FormatBewerbungen({
               <p className="ct-help mb-4">
                 {freigegeben.get(x.id) ? t.applicants.released : t.applicants.notReleasedLong}
               </p>
+            )}
+            {/* Eigene Zeile statt im Kartenkopf: auf 375 px bliebe dem Titel sonst nur eine schmale Spalte. */}
+            {!nurTeilnehmende && canEdit && zeilen.some((a) => a.consent_share) && (
+              <div className="mb-4">
+                <ButtonDownload href={`/partner/export/format/${x.id}`}>
+                  {s.exportCsv}
+                </ButtonDownload>
+              </div>
             )}
             {zeilen.length === 0 ? (
               <EmptyState
