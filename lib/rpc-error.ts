@@ -241,6 +241,10 @@ const BUSINESS_KEYS = new Set([
   "customer_number_taken",
   // Standbühne: Zeitfenster für Partner (Vorschlag v6_standbuehne_regeln, PART-079)
   "outside_partner_window",
+  // Standbühnen-Gäste (Vorschlag v6_standbuehnen_gaeste, PART-081)
+  "stage_guest",
+  "already_speaker",
+  "stage_guest_consent_required",
   // Partner-Kontakte bearbeiten (Vorschlag v6_kontakte_bearbeiten_cc, PART-062)
   "contact_not_editable",
   "email_in_use",

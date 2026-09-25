@@ -46,6 +46,11 @@ begin
 
   select sp.id into v_prof from speaker_profile sp
    where sp.person_id = v_person and sp.edition_id = coalesce(v_oe.edition_id, v_se.event_id);
+  -- PART-081: ein Gast der Standbühne ist kein Speaker eines Talks — sonst stünde er ohne Zugang,
+  -- Ticket und Lounge auf der Hauptbühne. Erst das Gastprofil entfernen.
+  if v_prof is not null and exists (select 1 from speaker_profile where id = v_prof and stage_guest) then
+    raise exception 'stage_guest' using errcode = 'P0001';
+  end if;
   if v_prof is null then
     -- **`lead`, nicht `invited`** (Probelauf der Architektur-Session, 21.09.: 23514). Das
     -- Vokabular `speaker_pipeline` kennt lead, contacted, confirmed, onboarded, ready,

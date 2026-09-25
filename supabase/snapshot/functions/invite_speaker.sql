@@ -8,6 +8,8 @@ declare v_sp speaker_profile%rowtype; v_mail bigint; v_actor uuid := current_per
 begin
   select * into v_sp from speaker_profile where id = p_profile_id for update;
   if not found then raise exception 'speaker_not_found' using errcode = 'P0002'; end if;
+  -- PART-081: Gäste der Standbühne bekommen keinen Speaker-Zugang.
+  if v_sp.stage_guest then raise exception 'stage_guest' using errcode = 'P0001'; end if;
   if not can_manage_speaker(p_profile_id) then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_sp.pipeline_status not in ('confirmed', 'onboarded', 'ready', 'published') then
     raise exception 'not_confirmed' using errcode = 'P0001', detail = v_sp.pipeline_status;

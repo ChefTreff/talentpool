@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { cn } from "./cn";
+import { cn, feldBreite } from "./cn";
 
 export type SelectOption = { value: string; label: string };
 
@@ -19,7 +19,8 @@ export function Select({
       {...rest}
       aria-invalid={invalid || undefined}
       className={cn(
-        "h-10 w-full rounded-ct-md border border-border-strong bg-surface px-3 leading-6 text-ink",
+        "h-10 rounded-ct-md border border-border-strong bg-surface px-3 leading-6 text-ink",
+        feldBreite(className),
         "focus:border-accent disabled:bg-surface-hover disabled:text-muted",
         invalid && "border-error",
         className,

@@ -6,7 +6,8 @@ create or replace function speaker_profile_tickets_sync()
 AS $$
 declare v_n integer;
 begin
-  if speaker_is_confirmed(new.pipeline_status) and (tg_op = 'INSERT' or not speaker_is_confirmed(old.pipeline_status)) then
+  -- PART-081: für Gäste kein Freiticket — die Anlage steht schon auf „zugesagt“.
+  if not new.stage_guest and speaker_is_confirmed(new.pipeline_status) and (tg_op = 'INSERT' or not speaker_is_confirmed(old.pipeline_status)) then
     perform speaker_ticket_create(new.id);
   elsif tg_op = 'UPDATE' and speaker_is_confirmed(old.pipeline_status) and not speaker_is_confirmed(new.pipeline_status) then
     -- Absage/Rückstufung: noch nicht ausgestellte Freitickets zurückziehen; ausgestellte (valid) storniert das Team über vivenu

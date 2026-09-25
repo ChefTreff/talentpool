@@ -36,6 +36,12 @@ begin
      -- bei der vivenu-Kettenpruefung — der Export war leer.
      where speaker_is_confirmed(sp.pipeline_status)
        and sp.declined_at is null
+       -- PART-081: Gäste der Standbühne nur mit ihrer veröffentlichten Session am Slot.
+       and (not sp.stage_guest or exists (
+             select 1 from session_speaker ss join session se on se.id = ss.session_id
+              where ss.person_id = sp.person_id and se.slot_id is not null and se.publish_status = 'published'
+                and (se.event_id = sp.edition_id
+                     or se.event_id in (select ev.id from event ev where ev.edition_id = sp.edition_id))))
        and (p_edition_id is null or sp.edition_id = p_edition_id)
        and (p_edition_id is not null or e.swapcard_event_id is not null)
      order by p.last_name, p.first_name;

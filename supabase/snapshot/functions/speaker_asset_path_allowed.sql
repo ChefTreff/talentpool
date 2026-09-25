@@ -15,5 +15,7 @@ begin
   select * into v_sp from speaker_profile where id = v_profile and edition_id = v_edition;
   if not found then return false; end if;
   if split_part(p_name, '/', 3) = 'invoice' and not coalesce((v_sp.person_id = v_me or is_speaker_assistant(v_sp.id, v_me) or is_expense_approver()), false) then return false; end if;
-  return coalesce(v_sp.person_id = v_me or is_speaker_assistant(v_sp.id, v_me) or can_manage_speaker(v_profile) or is_staff(), false);
+  return coalesce(v_sp.person_id = v_me or is_speaker_assistant(v_sp.id, v_me) or can_manage_speaker(v_profile) or is_staff()
+                  -- PART-081: der Partner nur das Porträt seiner eigenen Gäste.
+                  or (split_part(p_name, '/', 3) = 'photo' and partner_manages_stage_guest(v_profile)), false);
 end $$;

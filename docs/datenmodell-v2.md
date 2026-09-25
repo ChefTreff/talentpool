@@ -113,6 +113,8 @@
 | Welle 6 · 0184 | **Einordnung der Speaker-Pipeline und Bühnen in Frage (LEAD-039 Schnitt 1, LEAD-026)** (`20260925084552`, `v6_lead039_einordnung`; Details im Migrationskopf) | — |
 | Welle 6 · 0185 | **Eine Wahrheit für „bestätigt“: Export nach Pipeline-Status, Trigger für confirmed_at (QS-049)** (`20260925084741`, `v6_bestaetigt_eine_wahrheit`; Details im Migrationskopf) | — |
 | Welle 6 · 0186 | **Admin-Abschnitte → Rollen in der Datenbank: admin_section_role, has_admin_section (PORT1b, ADM-056)** (`20260925085557`, `v6_port1b_abschnitt_rollen`; Details im Migrationskopf) | — |
+| Welle 6 · 0187 | **Moderation durch Stage Leads: board_search_people mit p_moderation (LEAD-042)** (`20260925090527`, `v6_moderation_stage_leads`; Details im Migrationskopf) | — |
+| Welle 6 · 0188 | **Standbühnen- und Talk-Gäste: stage_guest mit Sperren, Gästeliste, Zuordnung (PART-081, PART-088)** (`20260925091057`, `v6_standbuehnen_gaeste`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

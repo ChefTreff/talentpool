@@ -291,20 +291,26 @@ export async function loadSession(
 export async function searchBoardPeople(
   eventId: string,
   query: string,
-): Promise<{ id: string; name: string; hint: string | null }[]> {
+  /**
+   * Für die Moderation (LEAD-042): dann kommen die Stage Leads der Edition
+   * dazu — als Moderation wählbar, ohne Speaker-Profil und ohne Speaker-Hub.
+   */
+  opts?: { moderation?: boolean },
+): Promise<{ id: string; name: string; hint: string | null; stageLead: boolean }[]> {
   const supabase = await client();
   const { data, error } = await supabase.rpc("board_search_people", {
     p_event_id: eventId,
     p_query: query,
     p_limit: 10,
+    p_moderation: opts?.moderation ?? false,
   });
   if (error) {
     console.error("[programm] board_search_people:", error.message);
     return [];
   }
-  return ((data ?? []) as { id: string; display_name: string | null; organization: string | null }[]).map(
-    (p) => ({ id: p.id, name: p.display_name ?? "—", hint: p.organization }),
-  );
+  return (
+    (data ?? []) as { id: string; display_name: string | null; organization: string | null; is_stage_lead: boolean }[]
+  ).map((p) => ({ id: p.id, name: p.display_name ?? "—", hint: p.organization, stageLead: p.is_stage_lead === true }));
 }
 
 /**

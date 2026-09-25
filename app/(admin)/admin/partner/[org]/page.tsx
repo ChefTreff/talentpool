@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import type { GastRow } from "@/components/partner/gaeste";
+import { gastFotoAdressen } from "@/lib/partner/gaeste";
 import { partnerAdminShell } from "../shell";
 import { OrgDetail } from "./OrgDetail";
 import type {
@@ -47,6 +49,18 @@ export default async function AdminPartnerOrgPage({
 
   const contactRows = (contacts ?? []) as AdminContact[];
 
+  // PART-081: Gäste der Standbühne — dieselbe Liste wie im Partnerportal (Regel vom 22.09.).
+  let gaeste: GastRow[] = [];
+  if (overview.has_stage) {
+    const { data: gastZeilen } = await supabase.rpc("partner_stage_guests", { p_org_id: org });
+    const roh = (gastZeilen ?? []) as Omit<GastRow, "photo_url">[];
+    const adressen = await gastFotoAdressen(
+      supabase,
+      roh.map((g) => g.photo_path).filter((pfad): pfad is string => !!pfad),
+    );
+    gaeste = roh.map((g) => ({ ...g, photo_url: g.photo_path ? adressen.get(g.photo_path) ?? null : null }));
+  }
+
   /**
    * Bühnen-Editoren nachschlagen. `roles_of_person` verlangt `admin` — für
    * eine Bereichsleitung Partner bleibt die Spalte deshalb leer, und die
@@ -73,6 +87,8 @@ export default async function AdminPartnerOrgPage({
     <OrgDetail
       overview={overview}
       contacts={contactRows}
+      gaeste={gaeste}
+      guestTexts={t.partnerGuests}
       deliverables={(deliverables ?? []) as AdminDeliverable[]}
       deals={(deals ?? []) as AdminDeal[]}
       stageRoles={stageRoles}

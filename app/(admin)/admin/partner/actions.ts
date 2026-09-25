@@ -6,6 +6,8 @@ import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 import type { UpdateContactInput } from "@/components/partner/contacts";
+import type { GastAenderung, GastErgebnis, GastFoto, GastNeu } from "@/components/partner/gaeste";
+import { gastAendern, gastAnlegen, gastEntfernen, gastFotoRegistrieren } from "@/lib/partner/gaeste";
 import type { DryRunResult } from "./types";
 
 /**
@@ -631,4 +633,38 @@ export async function adminSetLogoWhiteningConsent(input: {
   if (error) return fail(error);
   refresh(input.orgId);
   return { ok: true, data: { granted_at: (data as string | null) ?? null } };
+}
+
+/**
+ * Standbühnen-Gäste einer Organisation (PART-081, Regel vom 22.09.) — dieselbe
+ * Liste und derselbe Kern wie im Partnerportal (`lib/partner/gaeste.ts`); die
+ * RPCs lassen das Partner-Team über `partner_can_edit` herein.
+ */
+function refreshGaeste() {
+  revalidatePath(PATH);
+  revalidatePath(`${PATH}/[org]`, "page");
+}
+
+export async function adminAddStageGuest(input: GastNeu): Promise<GastErgebnis<{ profileId: string; editionId: string }>> {
+  const res = await gastAnlegen(await client(), input);
+  if (res.ok) refreshGaeste();
+  return res;
+}
+
+export async function adminUpdateStageGuest(input: GastAenderung): Promise<GastErgebnis> {
+  const res = await gastAendern(await client(), input);
+  if (res.ok) refreshGaeste();
+  return res;
+}
+
+export async function adminRemoveStageGuest(profileId: string): Promise<GastErgebnis> {
+  const res = await gastEntfernen(await client(), profileId);
+  if (res.ok) refreshGaeste();
+  return res;
+}
+
+export async function adminRegisterStageGuestPhoto(input: GastFoto): Promise<GastErgebnis> {
+  const res = await gastFotoRegistrieren(await client(), input);
+  if (res.ok) refreshGaeste();
+  return res;
 }

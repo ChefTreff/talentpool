@@ -4,7 +4,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { TableTabs } from "@/components/programme/TableTabs";
+import { BuehnenTabs } from "../BuehnenTabs";
 import { loadProgrammeTable } from "@/components/programme/loadTable";
 import { speakerName } from "@/components/programme/types";
 import { fensterText } from "@/components/partner/standbuehne";
@@ -13,7 +13,7 @@ import type { PartnerFormatSession } from "../../talk/types";
 import { getPartnerScope } from "../../org";
 import { ladeEigeneBuehnen, ladeFenster } from "../daten";
 import { StandInfo } from "../StandInfo";
-import { StandTabelle, type StandTag, type StandZeile } from "../StandTabelle";
+import { StandTabelle, type StandGast, type StandTag, type StandZeile } from "../StandTabelle";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +66,7 @@ export default async function PartnerStageTablePage({
     return (
       <>
         {kopf}
-        <TableTabs basePath={BASE} locale="de" />
+        <BuehnenTabs t={{ label: t.partnerStage.title, board: t.admin.programmeTable.tabBoard, table: t.admin.programmeTable.tabTable, guests: t.partnerGuests.tab }} />
         <EmptyState title={t.partnerStage.emptyTitle} description={t.partnerStage.emptyBody} />
       </>
     );
@@ -92,6 +92,13 @@ export default async function PartnerStageTablePage({
     p_edition_id: current.edition_id,
   });
   const rueckgaben = new Map(((formate ?? []) as PartnerFormatSession[]).map((x) => [x.id, x]));
+  // PART-081: die Gäste der Organisation zur Auswahl in den Details.
+  const { data: gastZeilen } = await supabase.rpc("partner_stage_guests", {
+    p_org_id: current.org_id,
+    p_edition_id: current.edition_id,
+  });
+  const gaeste: StandGast[] = ((gastZeilen ?? []) as { profile_id: string; person_id: string; first_name: string | null; last_name: string | null }[])
+    .map((g) => ({ profile_id: g.profile_id, person_id: g.person_id, name: [g.first_name, g.last_name].filter(Boolean).join(" ") }));
 
   const zeilen: StandZeile[] = rows.map((r) => {
     const b = r.session_id ? beschreibung.get(r.session_id) : undefined;
@@ -110,7 +117,7 @@ export default async function PartnerStageTablePage({
       description_en: b?.description_en ?? null,
       format: r.format,
       publish_status: r.publish_status,
-      speakers: (r.speakers ?? []).map(speakerName),
+      speakers: (r.speakers ?? []).map((sp) => ({ person_id: sp.person_id, name: speakerName(sp) })),
       return_note: rr?.return_note ?? null,
       returned_at: rr?.returned_at ?? null,
       can_edit: r.can_edit,
@@ -136,12 +143,13 @@ export default async function PartnerStageTablePage({
   return (
     <>
       {kopf}
-      <TableTabs basePath={BASE} locale="de" />
+      <BuehnenTabs t={{ label: t.partnerStage.title, board: t.admin.programmeTable.tabBoard, table: t.admin.programmeTable.tabTable, guests: t.partnerGuests.tab }} />
       <StandInfo eigene={buehnen.map((b) => b.name).join(" · ")} fenster={fensterListe} t={t.partnerStage} legende />
       <StandTabelle
         zeilen={zeilen}
         tage={tage}
         buehnen={buehnen.map((b) => ({ id: b.id, name: b.name, default_duration_min: b.default_duration_min }))}
+        gaeste={gaeste}
         fenster={fenster}
         eventId={data.currentEvent.id}
         hostOrgId={current.org_id}
