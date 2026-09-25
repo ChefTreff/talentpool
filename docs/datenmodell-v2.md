@@ -133,6 +133,7 @@
 | Welle 6 · 0204 | **Mail-Umleitung im Speaker-Admin setzen oder aufheben (SPK-072)** (`20260925104718`, `v6_speaker_mail_via_admin`; Details im Migrationskopf) | — |
 | Welle 6 · 0205 | **SevDesk-Belege über die Kundennummer finden (ADM-050)** (`20260925105054`, `v6_sevdesk_kundennummer`; Details im Migrationskopf) | — |
 | Welle 6 · 0206 | **Masterclass im Partner-Portal: Katalogfragen wählen, ohne die Fragen des Teams zu verlieren (PART-045)** (`20260925110334`, `v6_masterclass_fragen`; Details im Migrationskopf) | — |
+| Welle 6 · 0207 | **Audit-Einsicht in der Verwaltung, Abschnitt auditLog (PORT4a)** (`20260925110347`, `v6_audit_einsicht`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

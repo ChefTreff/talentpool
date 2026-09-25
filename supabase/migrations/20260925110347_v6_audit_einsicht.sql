@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Audit-Einsicht in der Verwaltung (PORT4a)
+-- 0207 · Audit-Einsicht in der Verwaltung, Abschnitt auditLog (PORT4a)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925110347.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --
