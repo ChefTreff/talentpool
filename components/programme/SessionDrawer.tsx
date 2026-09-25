@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
+import { MehrfachAuswahl } from "@/components/ui/MehrfachAuswahl";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import {
@@ -532,6 +533,58 @@ export function SessionDrawer({
             onChange={(e) => set("title_en", e.target.value)}
           />
         </Field>
+
+        {/* Speaker direkt unter dem Titel (LEAD-047, Konrad 25.09.) — wer auftritt,
+            gehört zur ersten Angabe einer Session, nicht ans Ende der Maske. */}
+        <section aria-labelledby="speaker_titel" className="flex flex-col gap-2">
+          <h3 id="speaker_titel" className="ct-label text-ink">{t.speakers}</h3>
+          {speakers.every((sp) => sp.role === "moderator") ? (
+            <p className="ct-help">{t.noSpeakers}</p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {speakers.filter((sp) => sp.role !== "moderator").map((s) => (
+                <li key={s.person_id}>
+                  <span className="inline-flex items-center gap-2 rounded-ct-md border bg-surface px-2.5 py-1.5 ct-small">
+                    {speakerName(s)}
+                    <button
+                      type="button"
+                      onClick={() => removeSpeaker(s.person_id)}
+                      aria-label={`${t.removeSpeaker}: ${speakerName(s)}`}
+                      className="text-muted hover:text-error-ink"
+                    >
+                      ×
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {/* Vor dem ersten Speichern merkt sich das Feld die Auswahl und
+              schreibt sie mit dem Speichern (LEAD-040). */}
+          <Field label={t.addSpeaker} htmlFor="speaker_search" hint={id ? t.addSpeakerHint : t.speakersOnSave}>
+            <Input
+              id="speaker_search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </Field>
+          {hits.length > 0 && (
+            <ul className="mt-2 flex flex-col gap-1">
+              {hits.map((h) => (
+                <li key={h.id}>
+                  <button
+                    type="button"
+                    onClick={() => addSpeaker(h)}
+                    className="w-full rounded-ct-sm px-2 py-1 text-left ct-small hover:bg-surface-hover"
+                  >
+                    {h.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
         <Field
           label={t.descriptionDe}
           htmlFor="desc_de"
@@ -612,33 +665,22 @@ export function SessionDrawer({
           )}
         </div>
 
-        {/* Themen als Mehrfachauswahl (LEAD-019) — dieselbe Liste wie bei der
-            Einreichung (SPK-027), damit Board und Speaker-Portal dieselben
+        {/* Themen (LEAD-019) als aufklappbare Mehrfachauswahl (LEAD-046, Konrad
+            25.09.: die Kacheln nahmen zu viel Platz) — dieselbe Liste wie bei
+            der Einreichung (SPK-027), damit Board und Speaker-Portal dieselben
             Wörter benutzen. */}
         {Object.keys(labels.topics).length > 0 && (
-          <fieldset className="flex flex-col gap-2">
-            <legend className="ct-label mb-1 text-ink">{t.topics}</legend>
-            <div className="grid gap-x-4 gap-y-2 sm:grid-cols-2">
-              {Object.entries(labels.topics).map(([key, label]) => (
-                <label key={key} className="flex items-start gap-2 ct-small">
-                  <input
-                    type="checkbox"
-                    className="mt-1 size-4"
-                    checked={draft.tags.includes(key)}
-                    onChange={(e) =>
-                      set(
-                        "tags",
-                        e.target.checked
-                          ? [...draft.tags, key]
-                          : draft.tags.filter((k) => k !== key),
-                      )
-                    }
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
+          <Field label={t.topics} htmlFor="topics">
+            <MehrfachAuswahl
+              id="topics"
+              options={Object.entries(labels.topics).map(([value, label]) => ({ value, label }))}
+              value={draft.tags}
+              onChange={(tags) => set("tags", tags)}
+              placeholder={t.topicsSearch}
+              disabled={pending}
+              t={{ remove: t.topicRemove, noHits: t.topicsNoHits }}
+            />
+          </Field>
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -648,7 +690,13 @@ export function SessionDrawer({
             hint={t.moderationHint}
             value={moderation}
             disabled={pending}
-            suchen={(q) => searchBoardPeople(eventId, q)}
+            // LEAD-042: auch Stage Leads der Edition — ohne Speaker-Profil, der
+            // Treffer sagt es dazu.
+            suchen={(q) =>
+              searchBoardPeople(eventId, q, { moderation: true }).then((list) =>
+                list.map((h) => (h.stageLead ? { ...h, hint: t.stageLeadHint } : h)),
+              )
+            }
             onChange={(h) => {
               const ohne = speakers.filter((sp) => sp.role !== "moderator");
               const [first, ...rest] = (h?.name ?? "").split(" ");
@@ -686,56 +734,6 @@ export function SessionDrawer({
           )}
         </div>
         <p className="ct-help -mt-2">{t.saveToApply}</p>
-
-        {/* Speaker */}
-        <section className="border-t pt-4">
-          <h3 className="ct-h3 mb-2">{t.speakers}</h3>
-          {speakers.length === 0 ? (
-            <p className="ct-help">{t.noSpeakers}</p>
-          ) : (
-            <ul className="mb-3 flex flex-wrap gap-2">
-              {speakers.filter((sp) => sp.role !== "moderator").map((s) => (
-                <li key={s.person_id}>
-                  <span className="inline-flex items-center gap-2 rounded-ct-md border bg-surface px-2.5 py-1.5 ct-small">
-                    {speakerName(s)}
-                    <button
-                      type="button"
-                      onClick={() => removeSpeaker(s.person_id)}
-                      aria-label={`${t.removeSpeaker}: ${speakerName(s)}`}
-                      className="text-muted hover:text-error-ink"
-                    >
-                      ×
-                    </button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {/* Vor dem ersten Speichern merkt sich das Feld die Auswahl und
-              schreibt sie mit dem Speichern (LEAD-040). */}
-          <Field label={t.addSpeaker} htmlFor="speaker_search" hint={id ? t.addSpeakerHint : t.speakersOnSave}>
-            <Input
-              id="speaker_search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </Field>
-          {hits.length > 0 && (
-            <ul className="mt-2 flex flex-col gap-1">
-              {hits.map((h) => (
-                <li key={h.id}>
-                  <button
-                    type="button"
-                    onClick={() => addSpeaker(h)}
-                    className="w-full rounded-ct-sm px-2 py-1 text-left ct-small hover:bg-surface-hover"
-                  >
-                    {h.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
 
         {/* Fragen zur Bewerbung */}
         {draft.access_mode === "application" && (
