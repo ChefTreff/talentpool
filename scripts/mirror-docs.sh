@@ -39,6 +39,8 @@ docs/arbeitsauftrag-welle-6.md|08_Projektplan & MVP/Arbeitsauftrag Welle 6 — F
 docs/plan-ergaenzung-2026-09-17.md|08_Projektplan & MVP/Ergaenzender Plan — Abschluss, Abgleich, Feedback-Prozess, Backend, Design (Entwurf, 2026-09-17).md
 docs/feedback-leitfaden.md|05_Requirements (Team-Input)/Feedback-Leitfaden — so gibst du Feedback (Claude, laufend).md
 docs/chat-startpakete.md|08_Projektplan & MVP/Chat-Startpakete — sechs Sessions, ein Repo (Claude, laufend).md
+docs/konrad-todos-2026-09-24.md|08_Projektplan & MVP/Konrads offene Entscheidungen und Aufgaben (Claude, laufend).md
+docs/konrad-durchgang-2026-09-25.md|08_Projektplan & MVP/Durchgang Feedback-Runde 25.09.2026 (Claude).md
 docs/design-system-v2-auftrag.md|07_Mockups & Design/Design-System v2 — Auftrag an den Design-Chat (Claude, 2026-09-17).md
 docs/feld-matrix-2026-09.md|08_Projektplan & MVP/Feld-Eigentuemer-Matrix (generiert, 2026-09).md
 MAP
