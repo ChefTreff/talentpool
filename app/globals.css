@@ -249,6 +249,20 @@
     border-color: var(--ct-border);
   }
 
+  /* Kein Doppeltipp-Zoom auf Bedienelementen: der Tipp gilt sofort
+     (QS-014, Web Interface Guidelines „Touch“). Zoomen mit zwei Fingern
+     bleibt überall möglich. */
+  a,
+  button,
+  [role="button"],
+  label,
+  summary,
+  select,
+  input,
+  textarea {
+    touch-action: manipulation;
+  }
+
   /* Der Admin im Kontrastton Lila statt Navy (QS-046, Konrad 24.09.: „man
      erkennt nicht sofort, dass man im Admin ist"). Umgestellt werden nur
      Variablen im Bereich der Leiste — jede Klasse darin (`text-on-navy-muted`,
@@ -265,6 +279,10 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Tippen auf dem Handy: bewusst gesetzt statt des grauen Standardblitzes
+     (QS-014, Web Interface Guidelines „Touch“) — ein Hauch Akzent, die
+     eigentliche Rückmeldung tragen Hover- und Fokuszustände. */
+  -webkit-tap-highlight-color: color-mix(in srgb, var(--ct-accent) 15%, transparent);
 }
 
 body {
@@ -309,6 +327,16 @@ body {
  * Skala, die auf Hell **und** auf Navy gilt (F7, 14.09.2026).
  * ========================================================================== */
 @layer components {
+  /* Überschriften brechen ausgewogen um statt mit einem Wort allein in der
+     letzten Zeile (QS-014, Web Interface Guidelines „Typography“) — bei
+     Versalien und schmalen Karten fällt das besonders auf. */
+  .ct-display,
+  .ct-band-title,
+  .ct-h1,
+  .ct-h2,
+  .ct-h3 {
+    text-wrap: balance;
+  }
   .ct-h1 {
     font-family: var(--font-display);
     font-weight: 800;

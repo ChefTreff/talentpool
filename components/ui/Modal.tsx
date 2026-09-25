@@ -51,7 +51,9 @@ export function Modal({
       // und Tailwinds Preflight setzt jedes `margin` auf 0 — ohne das stand
       // jedes Modal links oben (25.09., beim breiten Fenster aufgefallen).
       className={cn(
-        "m-auto w-full rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40",
+        // `overscroll-contain`: wer im langen Dialog ans Ende scrollt, zieht nicht
+        // die Seite dahinter mit (QS-014, Web Interface Guidelines „Touch“).
+        "m-auto w-full overscroll-contain rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40",
         size === "wide" ? "max-w-5xl" : "max-w-[560px]",
       )}
     >
