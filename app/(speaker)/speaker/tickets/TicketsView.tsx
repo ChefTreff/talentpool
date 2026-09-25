@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import QRCode from "qrcode";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -11,6 +10,8 @@ import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
+// Der QR-Zeichner liegt seit #178 im Kit (QS-048); die eigene Kopie ist weg.
+import { QrCode } from "@/components/ui/QrCode";
 import { cancelCompanion, requestCompanion } from "./actions";
 import type { SpeakerTickets } from "./types";
 
@@ -296,32 +297,5 @@ export function TicketsView({
 
       {isAssistant && <p className="ct-help">{t.companionAssistantNote}</p>}
     </div>
-  );
-}
-
-/**
- * QR-Code aus dem Barcode. Gezeichnet wird im Browser auf ein Canvas — der
- * Wert geht damit weder durch eine URL noch durch ein Server-Log.
- */
-function QrCode({ value, label }: { value: string; label: string }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    QRCode.toCanvas(canvas, value, { width: 220, margin: 1 }).catch(() => setFailed(true));
-  }, [value]);
-
-  if (failed) {
-    return <p className="ct-help">{label}</p>;
-  }
-  return (
-    <canvas
-      ref={ref}
-      role="img"
-      aria-label={label}
-      className="rounded-ct-md border bg-white p-2"
-    />
   );
 }

@@ -6,8 +6,9 @@ import QRCode from "qrcode";
 /**
  * QR-Code aus einem Ticket-Barcode. Gezeichnet wird im Browser auf ein
  * Canvas — der Wert geht damit weder durch eine URL noch durch ein
- * Server-Log. Gleiches Verfahren wie im Speaker-Portal (`/speaker/tickets`),
- * hierher gezogen für das Teilnehmer-Portal (TAL-015).
+ * Server-Log. Aus dem Speaker-Portal hierher gezogen für das Teilnehmer-Portal
+ * (TAL-015); seit QS-048 nutzt auch `/speaker/tickets` diese Fassung statt einer
+ * eigenen Kopie.
  *
  * Kann der Code nicht gezeichnet werden, steht `label` als Text da — der
  * Einlass kann den Barcode dann aus vivenu scannen.
