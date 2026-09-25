@@ -330,7 +330,7 @@
       "editSession": "Session bearbeiten",
       "event": "Event",
       "format": "Format",
-      "hint": "Doppelklick auf freie Fläche legt einen Slot an.",
+      "hint": "Doppelklick auf freie Fläche legt einen Slot an und öffnet ihn.",
       "inBacklog": "Im Backlog",
       "language": "Sprache",
       "lead": "Bühnen als Spalten, 5-Minuten-Raster. Ziehen verschiebt, der untere Rand ändert die Dauer.",

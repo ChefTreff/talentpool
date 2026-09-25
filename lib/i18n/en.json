@@ -330,7 +330,7 @@
       "editSession": "Edit session",
       "event": "Event",
       "format": "Format",
-      "hint": "Double-click empty space to create a slot.",
+      "hint": "Double-click empty space to create a slot and open it.",
       "inBacklog": "In backlog",
       "language": "Language",
       "lead": "Stages as columns, 5-minute grid. Drag to move, the bottom edge changes the duration.",
