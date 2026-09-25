@@ -1296,6 +1296,8 @@
     "speakerHeld_kein_name": "name missing",
     "speakerNoPhotoHint": "The app shows a placeholder for them. Anyone who uploads a photo is included in the next run.",
     "speakerNoPhotoTitle": "Without a photo ({n})",
+    "speakerPhotosRemoved": "Removed {n} old photo copies — cancelled, new photo or deleted profile.",
+    "speakerPhotosRemovedDry": "Would remove {n} old photo copies — cancelled, new photo or deleted profile.",
     "speakerSyncConfirmBody": "{create} people will be created, {update} changed. {held} stay behind.",
     "speakerSyncConfirmTitle": "Transfer speakers?",
     "speakerSyncFailed": "That did not work. Details are in the server log.",
