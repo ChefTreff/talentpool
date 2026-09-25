@@ -30,6 +30,9 @@
  *   … --apply --nur=tour-bewerbung (PART-046: Bewerbungen auf die TEST-Tour ohne Mail,
  *                                   Konrad zugesagt, TEST-Person ohne Einwilligung;
  *                                   braucht den Schritt tour)
+ *   … --apply --nur=formate        (PART-082: Side-Event und Interview Table der Test-
+ *                                   Organisation mit Fläche, Session und Konrads
+ *                                   Bewerbung ohne Mail; braucht partner)
  *   … --apply --nur=masterclass    (PART-045: TEST-Masterclass im TEST-Raum statt auf
  *                                   der Standbühne, beantragte eigene Frage, Speakerin;
  *                                   braucht partner und talk)
@@ -1621,6 +1624,110 @@ async function tourBewerbung(me, ed) {
 }
 
 /**
+ * Schritt `formate` (PART-082): Side-Event und Interview Table der Test-
+ * Organisation, damit `/partner/side-event` und `/partner/interview-tables` mit
+ * ihren Reitern (Bewerbungen, Teilnehmende, Fragen) etwas zeigen. Je Format eine
+ * Fläche, wie sie das Team zuordnet (`side_event_venue` bzw. `interview_table`),
+ * eine Session auf einem Slot am ersten Summit-Tag und Konrads Bewerbung.
+ *
+ * **Ohne Mail:** `applied` löste über `trg_application_mail` die Mail
+ * `application_received` aus. Deshalb `accepted` beim Side-Event (steht unter
+ * Teilnehmende) und `shortlisted` beim Interview Table — solange die
+ * Entscheidungen nicht freigegeben sind, geht dabei nichts raus; sind sie es,
+ * bricht der Schritt vor dem Schreiben der Bewerbung ab. Die Sessions stehen auf
+ * `review` wie nach dem Anlegen durch einen Partner. Braucht den Schritt `partner`.
+ */
+const TEST_FORMATE = [
+  {
+    schluessel: "side_event",
+    buehne: { name: `${PREFIX}Side-Event-Ort`, slug: "zz-test-side-event-ort", type: "side_event_venue", capacity: 40, default_duration_min: 90 },
+    zeit: ["18:00", "19:30"],
+    session: {
+      title_de: `${PREFIX}Side-Event`, title_en: `${PREFIX}Side event`,
+      description_de: "Testformat für die Feedback-Runden.", description_en: "Test format for the feedback rounds.",
+      capacity: 30, format_details: { location_text: "Testweg 2, 20095 Hamburg" },
+    },
+    status: "accepted",
+  },
+  {
+    schluessel: "interview_table",
+    buehne: { name: `${PREFIX}Interview Table`, slug: "zz-test-interview-table", type: "interview_table", capacity: 2, default_duration_min: 30 },
+    zeit: ["14:00", "14:30"],
+    session: {
+      title_de: `${PREFIX}Interview Table`, title_en: `${PREFIX}Interview table`,
+      capacity: 1,
+      format_details: {
+        interview_mode: "single", job_title: "Junior Consultant (TEST)",
+        job_posting_text: "Testausschreibung für die Feedback-Runden.",
+      },
+    },
+    status: "shortlisted",
+  },
+];
+
+async function formateSchritt(me, ed) {
+  const ziel = await summit(ed);
+  const tag = ziel?.tage?.[0];
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!ziel || !tag || !org) {
+    fail("Side-Event und Interview Table", "Summit, Tag oder Test-Organisation fehlt — zuerst --nur=partner");
+    return;
+  }
+  for (const f of TEST_FORMATE) {
+    if (mode === "dry-run") {
+      note(`${f.session.title_de}: Fläche, Slot ${f.zeit.join("–")}, Session, Konrads Bewerbung (${f.status}, ohne Mail)`);
+      continue;
+    }
+    const { data: da } = await admin.from("stage").select("id")
+      .eq("event_id", ziel.id).eq("slug", f.buehne.slug).maybeSingle();
+    const buehneId = da?.id ?? (await write(`Fläche ${f.buehne.name}`, () =>
+      admin.from("stage").insert({ event_id: ziel.id, ...f.buehne, partner_org_id: org.id, active: true })
+        .select("id").single(),
+    ))?.id;
+    if (!buehneId) continue;
+
+    let { data: se } = await admin.from("session").select("id")
+      .eq("event_id", ziel.id).eq("title_de", f.session.title_de).maybeSingle();
+    if (!se) {
+      // Sommerzeit im April: die Wanduhrzeit des Summits ist UTC+2.
+      const [von, bis] = f.zeit.map((z) => new Date(`${tag.day_date}T${z}:00+02:00`).toISOString());
+      const slot = await write(`Slot ${f.zeit.join("–")} an ${f.buehne.name}`, () =>
+        admin.from("slot").insert({
+          stage_id: buehneId, event_day_id: tag.id, start_at: von, end_at: bis, slot_type: "partner_block",
+          status: "requested", source_ref: `partner:${org.id}`, internal_title: f.session.title_de,
+        }).select("id").single(),
+      );
+      if (!slot) continue;
+      se = await write(`Session ${f.session.title_de}`, () =>
+        admin.from("session").insert({
+          event_id: ziel.id, slot_id: slot.id, format: f.schluessel, language: "de", access_mode: "application",
+          partner_org_id: org.id, host_org_id: org.id, publish_status: "review", ...f.session,
+        }).select("id").single(),
+      );
+      if (!se) continue;
+    } else {
+      note(`Session ${f.session.title_de}`, "steht schon");
+    }
+
+    const { data: freigegeben, error: fe } = await admin.rpc("decisions_released", { p_session_id: se.id });
+    if (fe || freigegeben) {
+      fail(`Bewerbung ${f.session.title_de}`, fe ?? "Entscheidungen freigegeben — eine Zusage würde eine Mail auslösen");
+      continue;
+    }
+    await write(`Konrads Bewerbung ${f.session.title_de} (${f.status}, ohne Mail)`, () =>
+      admin.from("application").upsert(
+        {
+          session_id: se.id, person_id: me.id, status: f.status, consent_share: true,
+          decided_at: new Date().toISOString(), answers: {},
+        },
+        { onConflict: "session_id,person_id" },
+      ),
+    );
+  }
+}
+
+/**
  * Schritt `masterclass` (PART-045): die TEST-Masterclass so, wie sie im Partner-
  * Portal aussehen soll.
  * - Der Slot zieht von der Teststandbühne in einen TEST-Raum: eine Masterclass
@@ -1999,6 +2106,7 @@ const SCHRITTE = {
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
   masterclass: masterclassSchritt,
+  formate: formateSchritt,
   ticket: speakerTicket,
   fotos: stagePhotos,
   "ticket-zurueck": ticketZurueck,
@@ -2183,6 +2291,13 @@ async function remove(me) {
     admin.from("stage").delete().eq("slug", "zz-test-stagelead"),
   );
   // PART-045: der TEST-Raum der Masterclass; die Sessions sind oben schon weg.
+  // PART-082: die Flächen von Side-Event und Interview Table; die Sessions sind oben schon weg.
+  await write("Flächen von Side-Event und Interview Table entfernt", async () => {
+    const slugs = TEST_FORMATE.map((f) => f.buehne.slug);
+    const { data: flaechen } = await admin.from("stage").select("id").in("slug", slugs);
+    for (const st of flaechen ?? []) await admin.from("slot").delete().eq("stage_id", st.id);
+    return admin.from("stage").delete().in("slug", slugs);
+  });
   await write("TEST-Raum der Masterclass entfernt", async () => {
     const { data: raeume } = await admin.from("stage").select("id").eq("slug", "zz-test-masterclass-raum");
     for (const st of raeume ?? []) await admin.from("slot").delete().eq("stage_id", st.id);
