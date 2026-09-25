@@ -77,6 +77,7 @@ export type AdminSectionKey =
   | "graphics"
   | "partner"
   | "initiatives"
+  | "companyTours"
   | "volunteers"
   | "catering"
   | "production"
@@ -155,6 +156,12 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // Partner
   { key: "partner", path: "/admin/partner", roles: ["area_lead_partner", "partner_team"] },
   { key: "initiatives", path: "/admin/initiativen", roles: ["area_lead_partner", "partner_team"] },
+  // Company Tours (ADM-058, K-31): die Varianten stehen nicht im Katalog — gebucht
+  // wird ein allgemeiner Slot, zugeordnet wird danach. Konrad, 24.09.: „Das ist dann
+  // ja nicht mehr Verkauf sondern Operations." Deshalb Produktion **und** Partner,
+  // dazu das Programm-Team wegen der Session-Verknüpfung. Dieselbe Liste steht in
+  // `admin_section_role` und wird von `has_admin_section('companyTours')` gefragt.
+  { key: "companyTours", path: "/admin/company-tours", roles: ["area_lead_partner", "partner_team", "programme_team", "area_lead_production", "production_team"] },
 
   // Volunteers
   { key: "volunteers", path: "/admin/volunteers", roles: ["area_lead_volunteers", "volunteers_team"] },

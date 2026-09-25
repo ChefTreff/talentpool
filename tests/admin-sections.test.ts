@@ -210,13 +210,7 @@ describe("Admin-Abschnitte: Rollen", () => {
    * Migration und stellt beide Seiten gegeneinander.
    */
   it("die Tabelle admin_section_role spiegelt ADMIN_SECTIONS Zeile für Zeile", () => {
-    const sql = migrationText("v6_port1b_abschnitt_rollen");
-    const block = sql.split("insert into admin_section_role (section, role) values")[1];
-    assert.ok(block, "Einfügeblock nicht gefunden");
-    const paare = new Set<string>();
-    for (const [, section, role] of block.slice(0, block.indexOf(";")).matchAll(/\('([^']+)',\s*'([^']+)'\)/g)) {
-      paare.add(`${section}|${role}`);
-    }
+    const paare = gespiegeltePaare();
 
     const erwartet = new Set<string>();
     for (const s of ADMIN_SECTIONS) {
@@ -234,11 +228,45 @@ describe("Admin-Abschnitte: Rollen", () => {
   });
 
   it("das SQL-Prädikat kennt dieselben Abschnitte wie der Code", () => {
-    // Ein Abschnitt, den die Migration nicht kennt, liesse `has_admin_section`
+    // Ein Abschnitt, den keine Migration kennt, liesse `has_admin_section`
     // mit `unknown_section` scheitern — im Betrieb, nicht im Gate.
-    const sql = migrationText("v6_port1b_abschnitt_rollen");
+    const paare = gespiegeltePaare();
     for (const s of ADMIN_SECTIONS) {
-      assert.ok(sql.includes(`('${s.key}', 'admin')`), `Abschnitt ${s.key} fehlt in der Migration`);
+      assert.ok(paare.has(`${s.key}|admin`), `Abschnitt ${s.key} fehlt in den Migrationen`);
     }
   });
 });
+
+/**
+ * Alle Paare `section|role`, die die Migrationen in `admin_section_role`
+ * schreiben — über **alle** Dateien hinweg, nicht nur über die erste.
+ *
+ * PORT1b setzt die Tabelle einmal vollständig (`delete` + `insert`); spätere
+ * Migrationen legen einzelne Abschnitte nach. Die Vereinigung ist deshalb der
+ * Endstand, **solange niemand Zeilen löscht**. Tut das doch einmal jemand, muss
+ * dieser Helfer mit — sonst prüft er einen Stand, den es nicht mehr gibt.
+ */
+function gespiegeltePaare(): Set<string> {
+  const dir = join("supabase", "migrations");
+  const dateien = [
+    ...readdirSync(dir).filter((f) => f.endsWith(".sql")).map((f) => join(dir, f)),
+    ...(existsSync(join(dir, "vorschlag"))
+      ? readdirSync(join(dir, "vorschlag")).filter((f) => f.endsWith(".sql")).map((f) => join(dir, "vorschlag", f))
+      : []),
+  ];
+  const paare = new Set<string>();
+  for (const datei of dateien) {
+    if (statSync(datei).isDirectory()) continue;
+    const sql = readFileSync(datei, "utf8");
+    let von = sql.indexOf("insert into admin_section_role");
+    while (von !== -1) {
+      const bis = sql.indexOf(";", von);
+      const block = sql.slice(von, bis === -1 ? undefined : bis);
+      for (const [, section, role] of block.matchAll(/\('([^']+)',\s*'([^']+)'\)/g)) {
+        paare.add(`${section}|${role}`);
+      }
+      von = sql.indexOf("insert into admin_section_role", bis === -1 ? sql.length : bis);
+    }
+  }
+  return paare;
+}

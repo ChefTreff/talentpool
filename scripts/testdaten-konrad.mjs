@@ -1124,6 +1124,73 @@ async function umzugSummit(me, ed) {
   }
 }
 
+/**
+ * Eine Company Tour mit Stopp und verknuepfter Session (ADM-058, K-31), damit
+ * Konrad `/admin/company-tours` mit Inhalt sieht statt mit dem Leerzustand.
+ *
+ * Geschrieben wird direkt auf die Tabellen, nicht ueber `upsert_company_tour`:
+ * das Skript laeuft mit dem Service-Schluessel, und die RPC verlangt eine
+ * angemeldete Person mit Abschnittsrecht. Idempotent ueber den Namen.
+ */
+async function companyTour(me, ed) {
+  const name = `${PREFIX}Company Tour`;
+  const titel = `${PREFIX}Company Tour Session`;
+
+  let { data: se } = await admin.from("session").select("id")
+    .eq("event_id", ed.id).eq("title_de", titel).maybeSingle();
+  if (!se) {
+    se = await write("Session der Company Tour", () =>
+      admin.from("session").insert({
+        event_id: ed.id, format: "company_tour", title_de: titel,
+        title_en: "TEST — Company Tour session", access_mode: "application",
+      }).select("id").single(),
+    );
+  }
+
+  let { data: tour } = await admin.from("company_tour").select("id")
+    .eq("edition_id", ed.id).eq("name", name).maybeSingle();
+  if (!tour) {
+    tour = await write("Company Tour", () =>
+      admin.from("company_tour").insert({
+        edition_id: ed.id, name, track: "ZZTEST",
+        starts_at: ed.start_date ? `${ed.start_date}T09:00:00+02:00` : null,
+        ends_at: ed.start_date ? `${ed.start_date}T12:00:00+02:00` : null,
+        capacity: 12, notes: "Testtour fuer die Abnahme.", session_id: se?.id ?? null,
+      }).select("id").single(),
+    );
+  } else if (se) {
+    // Nur melden, wenn die Verknuepfung wirklich fehlt — sonst behauptet jeder
+    // Lauf eine Aenderung, die keine war.
+    const { data: vorhanden } = await admin.from("company_tour").select("session_id").eq("id", tour.id).single();
+    if (vorhanden?.session_id !== se.id) {
+      await write("Company Tour verknuepft", () =>
+        admin.from("company_tour").update({ session_id: se.id }).eq("id", tour.id),
+      );
+    } else {
+      note("Company Tour", "steht schon");
+    }
+  }
+  if (!tour) return;
+
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  const { data: stopp } = await admin.from("company_tour_stop").select("id")
+    .eq("tour_id", tour.id).eq("sort_order", 1).maybeSingle();
+  if (!stopp) {
+    await write("Stopp der Company Tour", () =>
+      admin.from("company_tour_stop").insert({
+        tour_id: tour.id, sort_order: 1, host_org_id: org?.id ?? null,
+        address: "Testweg 1, 20095 Hamburg",
+        arrival_at: ed.start_date ? `${ed.start_date}T09:30:00+02:00` : null,
+        departure_at: ed.start_date ? `${ed.start_date}T10:30:00+02:00` : null,
+        target_profile: {},
+      }),
+    );
+  } else {
+    note("Stopp der Company Tour", "steht schon");
+  }
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
@@ -1133,6 +1200,7 @@ const SCHRITTE = {
   buehne: stageLeadBuehne,
   pipeline: pipelineEintraege,
   summit: umzugSummit,
+  tour: companyTour,
 };
 
 async function teilschritte(me, ed, namen) {
