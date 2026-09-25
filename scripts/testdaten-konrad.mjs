@@ -22,7 +22,8 @@
  *   … --apply --nur=partner        (Test-Organisation mit allen Format-Produkten,
  *                                   Konrad Hauptkontakt und Standbühnen-Editor, Talk)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist)
- *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage)
+ *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage, mit
+ *                                   Einordnung und Bühne in Frage — LEAD-039)
  *   … --apply --nur=summit         (LEAD-014: Teststandbühne und Test-Keynote
  *                                   vom Hackathon aufs Summit, nichts gelöscht)
  *   … --apply --nur=ticket-zurueck (SPK-068: Freiticket zurueck auf `requested`,
@@ -975,9 +976,31 @@ async function stageLeadBuehne(me, ed) {
  * Person und Adresse zwei Transaktionen.
  */
 const PIPELINE_TESTS = [
-  { nachname: "Pipeline 1 (angefragt)", status: "lead", notiz: "TEST — Erstkontakt über LinkedIn geplant." },
-  { nachname: "Pipeline 2 (im Gespräch)", status: "contacted", notiz: "TEST — Rückmeldung bis Freitag zugesagt." },
-  { nachname: "Pipeline 3 (abgesagt)", status: "declined", notiz: "TEST — für 2028 vormerken.", grund: "termin" },
+  {
+    nachname: "Pipeline 1 (angefragt)", status: "lead", notiz: "TEST — Erstkontakt über LinkedIn geplant.",
+    // LEAD-039: Einordnung wie in der Arbeitstabelle, und die Stage-Lead-Testbühne in Frage.
+    einordnung: {
+      category: "politics", topic_cluster: "politics_society", topic_role: "TEST — Stimme der jungen Politik",
+      priority: "a", recommended_format: "keynote", contact_via: "TEST — über Konrad", outreach_channel: "linkedin",
+    },
+    buehne: true,
+  },
+  {
+    nachname: "Pipeline 2 (im Gespräch)", status: "contacted", notiz: "TEST — Rückmeldung bis Freitag zugesagt.",
+    einordnung: {
+      category: "technology", topic_cluster: "tech_science_deeptech", topic_role: "TEST — KI in der Industrie",
+      priority: "b", recommended_format: "panel", contact_via: "TEST — über Partner", outreach_channel: "email",
+    },
+    buehne: true,
+  },
+  {
+    nachname: "Pipeline 3 (abgesagt)", status: "declined", notiz: "TEST — für 2028 vormerken.", grund: "termin",
+    einordnung: {
+      category: "sport", topic_cluster: "sport_health_lifestyle", topic_role: null,
+      priority: "c", recommended_format: "fireside_chat", contact_via: "TEST — über Agentur", outreach_channel: "agency",
+    },
+    buehne: false,
+  },
 ];
 
 const pipelineAdresse = (i) => email.replace("@", `+zztest-pipeline-${i}@`);
@@ -989,11 +1012,20 @@ async function pipelineEintraege(me, ed) {
         p_first_name: "TEST", p_last_name: e.nachname, p_email: pipelineAdresse(i + 1),
       });
       if (error) return { data: null, error };
-      return admin.from("speaker_profile").upsert({
+      const profil = await admin.from("speaker_profile").upsert({
         person_id: personId, edition_id: ed.id, speaker_type: "panelist", pipeline_status: e.status,
-        owner_person_id: me.id, internal_notes: e.notiz,
+        owner_person_id: me.id, internal_notes: e.notiz, ...e.einordnung,
         ...(e.grund ? { declined_at: new Date().toISOString(), decline_reason: e.grund } : {}),
-      }, { onConflict: "person_id,edition_id" });
+      }, { onConflict: "person_id,edition_id" }).select("id").single();
+      if (profil.error || !e.buehne) return profil;
+      // Bühne in Frage (LEAD-039): die Stage-Lead-Testbühne, damit das Feld im
+      // Fenster und im Admin-Detail nicht leer ist.
+      const { data: st } = await admin.from("stage").select("id").eq("slug", "zz-test-stagelead").maybeSingle();
+      if (!st) return profil;
+      return admin.from("speaker_stage_candidate").upsert(
+        { profile_id: profil.data.id, stage_id: st.id, created_by: me.id },
+        { onConflict: "profile_id,stage_id", ignoreDuplicates: true },
+      );
     });
   }
 }
