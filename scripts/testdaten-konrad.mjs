@@ -37,6 +37,9 @@
  *   … --apply --nur=masterclass    (PART-045: TEST-Masterclass im TEST-Raum statt auf
  *                                   der Standbühne, beantragte eigene Frage, Speakerin;
  *                                   braucht partner und talk)
+ *   … --apply --nur=media          (PART-041: TEST-Partnergrafik der Test-Organisation und
+ *                                   eine TEST-Datei im Media Kit, echte Dateien im Speicher;
+ *                                   braucht v6_media_kit und den Schritt partner)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist,
  *                                   mit Öffnungszeiten für die Markierung — LEAD-033)
  *   … --apply --nur=standstatus    (LEAD-035/036/037: drei TEST-Sessions auf der
@@ -2113,6 +2116,109 @@ async function checkinScans(me, ed) {
  * Der druckfertige Fall entsteht in zwei Klicks: Logo im Partner-Portal
  * hochladen, Liste neu laden.
  */
+/**
+ * Schritt `media` (PART-041, ADM-023): eine TEST-Partnergrafik der Test-
+ * Organisation und eine TEST-Datei im Media Kit, damit Konrad `/partner/media`
+ * mit Vorschau und Downloads sieht und unter `/admin/grafiken` beide Listen
+ * gefüllt sind.
+ *
+ * **Echte Dateien**, keine leeren Einträge (siehe Einwilligung zum Weissen): ein
+ * kleines PNG, hier erzeugt, geht in beide Buckets; erst danach entstehen die
+ * Zeilen. Idempotent über den festen Pfad. Braucht `v6_media_kit` (die Art
+ * `media_kit`) und den Schritt `partner`.
+ */
+const TEST_GRAFIK_NAME = "zz-test-partnergrafik.png";
+const TEST_MEDIAKIT_NAME = "zz-test-vorlage-social-post.png";
+
+/** Ein einfarbiges PNG (Breite × Höhe) ohne Bibliothek — reicht für Vorschau und Download. */
+async function testPng(breite, hoehe, [r, g, b]) {
+  const { deflateSync } = await import("node:zlib");
+  const zeile = Buffer.alloc(1 + breite * 3);
+  for (let x = 0; x < breite; x++) zeile.set([r, g, b], 1 + x * 3);
+  const roh = Buffer.concat(Array.from({ length: hoehe }, () => zeile));
+  const crcTabelle = Array.from({ length: 256 }, (_, n) => {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    return c >>> 0;
+  });
+  const crc = (buf) => {
+    let c = 0xffffffff;
+    for (const byte of buf) c = crcTabelle[(c ^ byte) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  };
+  const block = (typ, daten) => {
+    const laenge = Buffer.alloc(4);
+    laenge.writeUInt32BE(daten.length);
+    const typDaten = Buffer.concat([Buffer.from(typ, "ascii"), daten]);
+    const pruef = Buffer.alloc(4);
+    pruef.writeUInt32BE(crc(typDaten));
+    return Buffer.concat([laenge, typDaten, pruef]);
+  };
+  const kopf = Buffer.alloc(13);
+  kopf.writeUInt32BE(breite, 0);
+  kopf.writeUInt32BE(hoehe, 4);
+  kopf.set([8, 2, 0, 0, 0], 8);
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    block("IHDR", kopf),
+    block("IDAT", deflateSync(roh)),
+    block("IEND", Buffer.alloc(0)),
+  ]);
+}
+
+async function mediaSchritt(me, ed) {
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) return fail("Media Kit", "Test-Organisation fehlt — erst --nur=partner");
+  const { data: oe } = await admin.from("org_edition").select("id")
+    .eq("org_id", org.id).eq("edition_id", ed.id).maybeSingle();
+  if (!oe) return fail("Media Kit", "Org-Edition fehlt");
+
+  // Partnergrafik
+  const grafikPfad = `${ed.id}/${org.id}/partner_graphic/${TEST_GRAFIK_NAME}`;
+  const { data: grafik } = await admin.from("partner_asset").select("id")
+    .eq("org_edition_id", oe.id).eq("kind", "partner_graphic").eq("storage_path", grafikPfad).maybeSingle();
+  if (grafik) {
+    note("TEST-Partnergrafik", "steht schon");
+  } else if (mode === "dry-run") {
+    note("TEST-Partnergrafik (PNG in partner-assets, Zeile angenommen)");
+  } else {
+    const png = await testPng(1200, 628, [91, 91, 217]);
+    const hoch = await admin.storage.from("partner-assets").upload(grafikPfad, png, { contentType: "image/png", upsert: true });
+    if (hoch.error) return fail("TEST-Partnergrafik hochladen", hoch.error);
+    await write("TEST-Partnergrafik eintragen", async () => {
+      await admin.from("partner_asset").update({ is_current: false })
+        .eq("org_edition_id", oe.id).eq("kind", "partner_graphic").eq("is_current", true);
+      return admin.from("partner_asset").insert({
+        org_edition_id: oe.id, kind: "partner_graphic", storage_path: grafikPfad, filename: TEST_GRAFIK_NAME,
+        mime: "image/png", size_bytes: png.length, version: 1, is_current: true, status: "accepted",
+        reviewed_by: me.id, reviewed_at: new Date().toISOString(), uploaded_by: me.id,
+      });
+    });
+  }
+
+  // Media Kit
+  const kitPfad = `${ed.id}/media_kit/${TEST_MEDIAKIT_NAME}`;
+  const { data: kit } = await admin.from("edition_file").select("id")
+    .eq("edition_id", ed.id).eq("storage_path", kitPfad).maybeSingle();
+  if (kit) {
+    note("TEST-Datei im Media Kit", "steht schon");
+  } else if (mode === "dry-run") {
+    note("TEST-Datei im Media Kit (PNG in edition-files, Art media_kit)");
+  } else {
+    const png = await testPng(1080, 1080, [8, 26, 53]);
+    const hoch = await admin.storage.from("edition-files").upload(kitPfad, png, { contentType: "image/png", upsert: true });
+    if (hoch.error) return fail("TEST-Datei im Media Kit hochladen", hoch.error);
+    await write("TEST-Datei im Media Kit eintragen", () =>
+      admin.from("edition_file").insert({
+        edition_id: ed.id, kind: "media_kit", storage_path: kitPfad, filename: TEST_MEDIAKIT_NAME,
+        mime: "image/png", size_bytes: png.length, label_de: `${PREFIX}Vorlage Social Post`,
+        label_en: "TEST — Social post template", audience: ["partner"], sort_order: 99, uploaded_by: me.id,
+      }),
+    );
+  }
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -2169,6 +2275,7 @@ const SCHRITTE = {
   tour: companyTour,
   checkin: checkinScans,
   logos: logoEinwilligung,
+  media: mediaSchritt,
   zugang: zugangTestperson,
   moderation: moderationStageLead,
 };
