@@ -22,6 +22,8 @@ export type DetailSession = {
  * `Einordnung` dazu — dieselben Schlüssel wie in `manager_speakers`.
  */
 export type SpeakerDetail = Einordnung & {
+  /** Gast eines Partners (0188, SPK-070) — keine Einladung, kein Onboarding. */
+  stage_guest?: boolean;
   id: string;
   edition_id: string;
   person: {

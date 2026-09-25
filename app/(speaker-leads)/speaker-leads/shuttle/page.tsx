@@ -25,15 +25,17 @@ export default async function LeadsShuttlePage() {
   ]);
 
   // Für wen darf ich anfordern? Absagen bleiben draußen — für jemanden, der
-  // nicht kommt, bucht niemand ein Auto.
+  // nicht kommt, bucht niemand ein Auto. Gäste der Partner auch (SPK-070): sie
+  // bekommen keine Leistungen eines Speakers (0188).
   const speakers = ((speakerRows ?? []) as {
     profile_id?: string;
     id?: string;
     first_name: string | null;
     last_name: string | null;
     pipeline_status?: string | null;
+    stage_guest?: boolean;
   }[])
-    .filter((s) => s.pipeline_status !== "declined")
+    .filter((s) => s.pipeline_status !== "declined" && !s.stage_guest)
     .map((s) => ({
       profile_id: s.profile_id ?? s.id ?? "",
       first_name: s.first_name,

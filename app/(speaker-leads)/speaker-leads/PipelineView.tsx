@@ -58,6 +58,7 @@ export function PipelineView({
   te,
   verlaufArten,
   tv,
+  tg,
   common,
   rpcMessages,
 }: {
@@ -78,6 +79,8 @@ export function PipelineView({
   verlaufArten: Record<string, string>;
   /** `speakerVerlauf`-Texte. */
   tv: Strings;
+  /** `speakerGast`-Texte (SPK-070). */
+  tg: Strings;
   common: {
     cancel: string;
     choose: string;
@@ -96,6 +99,9 @@ export function PipelineView({
   const [kategorie, setKategorie] = useState("");
   const [cluster, setCluster] = useState("");
   const [betreuung, setBetreuung] = useState("");
+  // SPK-070: Gäste der Partner (0188) sind zugesagt, aber kein Fall fürs Team —
+  // sie stehen erst auf Wunsch in der Liste, dann mit „Gast“.
+  const [gaesteZeigen, setGaesteZeigen] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -112,10 +118,17 @@ export function PipelineView({
   // Nur die Stände dieser Seite (LEAD-028). Das Schubfach sucht weiter in allen
   // Speakern: wer hier gerade bestätigt wurde, bleibt offen, bis man es schliesst.
   const bereich = ansicht === "pipeline" ? PIPELINE_VOR_ZUSAGE : PIPELINE_BESTAETIGT;
-  const imBereich = useMemo(
+  const imBereichAlle = useMemo(
     () => speakers.filter((s) => bereich.includes(s.pipeline_status)),
     [speakers, bereich],
   );
+  // SPK-070: die Tabelle zeigt Gäste nur auf Wunsch — „Fällig“ nimmt den ganzen
+  // Bereich, eine eigene Aufgabe verschwindet nicht hinter dem Schalter.
+  const imBereich = useMemo(
+    () => (gaesteZeigen ? imBereichAlle : imBereichAlle.filter((s) => !s.stage_guest)),
+    [imBereichAlle, gaesteZeigen],
+  );
+  const gaesteImBereich = imBereichAlle.filter((s) => s.stage_guest).length;
 
   /** Wer in diesem Bereich wirklich betreut — plus „ohne Betreuung“. */
   const betreuende = useMemo(() => {
@@ -159,7 +172,7 @@ export function PipelineView({
    */
   const faellig = useMemo(
     () =>
-      imBereich
+      imBereichAlle
         .filter(
           (s) =>
             s.next_task &&
@@ -167,7 +180,7 @@ export function PipelineView({
             fristStand(s.next_task.due_on, heuteIso) !== "spaeter",
         )
         .sort((a, b) => (a.next_task!.due_on < b.next_task!.due_on ? -1 : 1)),
-    [imBereich, meId, heuteIso],
+    [imBereichAlle, meId, heuteIso],
   );
 
   // Zähler je Stand — der Überblick, den ein Lead zuerst braucht.
@@ -277,6 +290,17 @@ export function PipelineView({
               onChange={(e) => setCluster(e.target.value)}
             />
           </Field>
+          {gaesteImBereich > 0 && (
+            <label className="flex min-h-10 items-center gap-2 self-end ct-label text-ink">
+              <input
+                type="checkbox"
+                className="size-4"
+                checked={gaesteZeigen}
+                onChange={(e) => setGaesteZeigen(e.target.checked)}
+              />
+              {tg.show} ({gaesteImBereich})
+            </label>
+          )}
           <Field label={t.colOwner} htmlFor="lead-betreuung" className="min-w-44">
             <Select
               id="lead-betreuung"
@@ -315,6 +339,7 @@ export function PipelineView({
           dateTime={dateTime}
           name={name}
           t={t}
+          tg={tg}
           none={common.none}
           onOpen={setOpenId}
         />
@@ -340,6 +365,7 @@ export function PipelineView({
                   >
                     {name(s)}
                   </button>
+                  {s.stage_guest && <Badge className="ml-2">{tg.badge}</Badge>}
                   <div className="ct-help">
                     {[s.job_title, s.organization_name].filter(Boolean).join(" · ")}
                   </div>
@@ -435,6 +461,7 @@ export function PipelineView({
           te={te}
           verlaufArten={verlaufArten}
           tv={tv}
+          tg={tg}
           common={common}
           rpcMessages={rpcMessages}
           onClose={() => setOpenId(null)}
@@ -471,6 +498,7 @@ function BestaetigtTabelle({
   dateTime,
   name,
   t,
+  tg,
   none,
   onOpen,
 }: {
@@ -480,6 +508,7 @@ function BestaetigtTabelle({
   dateTime: Intl.DateTimeFormat;
   name: (s: ManagedSpeaker) => string;
   t: Strings;
+  tg: Strings;
   none: string;
   onOpen: (id: string) => void;
 }) {
@@ -503,6 +532,7 @@ function BestaetigtTabelle({
                 <button type="button" onClick={() => onOpen(s.id)} className="ct-link text-left">
                   {name(s)}
                 </button>
+                {s.stage_guest && <Badge className="ml-2">{tg.badge}</Badge>}
                 <div className="ct-help">{[s.job_title, s.organization_name].filter(Boolean).join(" · ")}</div>
               </Td>
               <Td>
@@ -535,8 +565,12 @@ function BestaetigtTabelle({
                   ))
                 )}
               </Td>
+              {/* SPK-070: ein Gast wird nicht eingeladen und macht kein Onboarding —
+                  statt Warnungen steht da, wer ihn pflegt. */}
               <Td>
-                {s.invited_at ? (
+                {s.stage_guest ? (
+                  <span className="ct-help">—</span>
+                ) : s.invited_at ? (
                   <span className="ct-help">
                     {t.invitedOn} {dateTime.format(new Date(s.invited_at))}
                   </span>
@@ -545,7 +579,9 @@ function BestaetigtTabelle({
                 )}
               </Td>
               <Td>
-                {(s.next_open ?? []).length === 0 ? (
+                {s.stage_guest ? (
+                  <span className="ct-help">{tg.viaPartner}</span>
+                ) : (s.next_open ?? []).length === 0 ? (
                   <Badge tone="success">{t.allDone}</Badge>
                 ) : (
                   <div className="flex flex-wrap gap-1">
@@ -568,7 +604,7 @@ function BestaetigtTabelle({
                   </div>
                 )}
               </Td>
-              <Td className="text-muted">{s.owner_name || none}</Td>
+              <Td className="text-muted">{s.owner_name || (s.stage_guest ? tg.viaPartner : none)}</Td>
             </Tr>
           );
         })}

@@ -4581,6 +4581,12 @@
     "topicRole": "Thema oder Rolle im Programm",
     "topicRoleHint": "Worüber die Person sprechen könnte oder welche Rolle sie im Programm hat, bis 300 Zeichen."
   },
+  "speakerGast": {
+    "badge": "Gast",
+    "hint": "Gast des Partners — ohne Portal, Ticket und Onboarding; gepflegt wird er im Partner-Portal.",
+    "show": "Gäste zeigen",
+    "viaPartner": "über den Partner"
+  },
   "speakerGraphic": {
     "announceHint": "Ein bis zwei Wochen vor dem Summit. Am besten mit deiner Speaker-Grafik als Bild.",
     "announceLabel": "Vorher: Ankündigung",

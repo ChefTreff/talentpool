@@ -85,6 +85,7 @@ export function SpeakerDetailView({
   t,
   te,
   tv,
+  tg,
   common,
   rpcMessages,
 }: {
@@ -106,6 +107,8 @@ export function SpeakerDetailView({
   te: Strings;
   /** `speakerVerlauf`-Texte. */
   tv: Strings;
+  /** `speakerGast`-Texte (SPK-070). */
+  tg: Strings;
   common: { cancel: string; choose: string; none: string; save: string };
   rpcMessages: Record<string, string>;
 }) {
@@ -261,6 +264,8 @@ export function SpeakerDetailView({
             {labels.pipeline[speaker.pipeline_status] ?? speaker.pipeline_status}
           </Badge>
           <Badge>{labels.speakerType[speaker.speaker_type] ?? speaker.speaker_type}</Badge>
+          {speaker.stage_guest && <Badge>{tg.badge}</Badge>}
+          {speaker.stage_guest && <span className="ct-help text-muted">{tg.hint}</span>}
           {speaker.confirmed_at && (
             <span className="ct-help text-muted">
               {t.confirmedOn} {datum.format(new Date(speaker.confirmed_at))}
@@ -322,15 +327,18 @@ export function SpeakerDetailView({
               >
                 {t.setStatus}
               </Button>
-              <Button
-                variant="ghost"
-                disabled={pending}
-                onClick={() =>
-                  startTransition(async () => report(await inviteSpeaker(speaker.id), t.invited))
-                }
-              >
-                {speaker.invited_at ? t.inviteAgain : t.invite}
-              </Button>
+              {/* SPK-070: `invite_speaker` weist Gäste ab (0188) — kein Knopf dafür. */}
+              {!speaker.stage_guest && (
+                <Button
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() =>
+                    startTransition(async () => report(await inviteSpeaker(speaker.id), t.invited))
+                  }
+                >
+                  {speaker.invited_at ? t.inviteAgain : t.invite}
+                </Button>
+              )}
             </div>
           </div>
           {speaker.invited_at && (

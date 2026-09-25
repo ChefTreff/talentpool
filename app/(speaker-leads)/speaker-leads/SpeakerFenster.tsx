@@ -51,6 +51,7 @@ export function SpeakerFenster({
   te,
   verlaufArten,
   tv,
+  tg,
   common,
   rpcMessages,
   onClose,
@@ -74,6 +75,8 @@ export function SpeakerFenster({
   verlaufArten: Record<string, string>;
   /** `speakerVerlauf`-Texte. */
   tv: Strings;
+  /** `speakerGast`-Texte (SPK-070). */
+  tg: Strings;
   common: {
     cancel: string;
     choose: string;
@@ -180,6 +183,7 @@ export function SpeakerFenster({
           <h2 className="ct-h3 text-ink">{name}</h2>
           <div className="flex flex-wrap items-center gap-2">
             <Badge>{labels.pipeline[speaker.pipeline_status] ?? speaker.pipeline_status}</Badge>
+            {speaker.stage_guest && <Badge>{tg.badge}</Badge>}
             {speaker.assistant_name && (
               <Badge tone="accent">
                 {t.assistant}: {speaker.assistant_name}
@@ -191,6 +195,8 @@ export function SpeakerFenster({
               </span>
             )}
           </div>
+          {/* SPK-070: ein Gast des Partners bekommt weder Einladung noch Onboarding. */}
+          {speaker.stage_guest && <p className="ct-help">{tg.hint}</p>}
           {/* Kontakt: die RPC gibt die Adresse nur im Scope heraus. */}
           {speaker.email ? (
             <p className="ct-help">{speaker.email}</p>
@@ -541,17 +547,20 @@ export function SpeakerFenster({
         <Button onClick={onSave} loading={pending} disabled={adresse}>
           {common.save}
         </Button>
-        <Button
-          variant="secondary"
-          disabled={pending}
-          onClick={() =>
-            startTransition(async () =>
-              void report(await inviteSpeaker(speaker.id), t.invited),
-            )
-          }
-        >
-          {speaker.invited_at ? t.inviteAgain : t.invite}
-        </Button>
+        {/* `invite_speaker` weist Gäste ab (0188) — der Knopf steht dann gar nicht erst da. */}
+        {!speaker.stage_guest && (
+          <Button
+            variant="secondary"
+            disabled={pending}
+            onClick={() =>
+              startTransition(async () =>
+                void report(await inviteSpeaker(speaker.id), t.invited),
+              )
+            }
+          >
+            {speaker.invited_at ? t.inviteAgain : t.invite}
+          </Button>
+        )}
         <Button variant="ghost" disabled={pending} onClick={onClose}>
           {common.close}
         </Button>

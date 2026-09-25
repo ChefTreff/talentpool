@@ -4581,6 +4581,12 @@
     "topicRole": "Topic or role in the programme",
     "topicRoleHint": "What the person could talk about or which role they play in the programme, up to 300 characters."
   },
+  "speakerGast": {
+    "badge": "Guest",
+    "hint": "Partner guest — no portal, ticket or onboarding; maintained in the partner portal.",
+    "show": "Show guests",
+    "viaPartner": "via the partner"
+  },
   "speakerGraphic": {
     "announceHint": "One or two weeks before the summit. Works best with your speaker graphic as the image.",
     "announceLabel": "Before: the announcement",
