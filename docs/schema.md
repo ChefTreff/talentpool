@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 10:27 UTC · 101 Tabellen · 6 Views · 549 Funktionen
+> Stand: 2026-09-25 10:32 UTC · 101 Tabellen · 6 Views · 552 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2302,6 +2302,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `purge_diet_data` | p_days: integer |
 | `purge_kb_questions` | p_days: integer |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
+| `queue_speaker_mail` | p_profile_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `reception_guests` | p_reception_id: uuid |
 | `reception_taken` | p_reception_id: uuid |
 | `receptions_admin` | p_edition_id: uuid |
@@ -2449,6 +2450,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_detail` | p_profile_id: uuid |
 | `speaker_is_confirmed` | p_status: text |
 | `speaker_leads_admin` | p_edition_id: uuid |
+| `speaker_mail_locale` | p_profile_id: uuid |
+| `speaker_mail_recipient` | p_profile_id: uuid |
 | `speaker_managers` | args: ? |
 | `speaker_next_steps` | p_profile_id: uuid |
 | `speaker_tasks_admin` | p_edition_id: uuid |

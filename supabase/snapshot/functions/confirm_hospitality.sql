@@ -15,8 +15,9 @@ begin
   update hospitality_booking set status = 'confirmed', confirmed_by = current_person_id(), confirmed_at = now(), team_note = coalesce(nullif(btrim(p_note), ''), team_note)
    where id = p_booking_id;
   update speaker_profile set hospitality_status = 'booked' where id = v_sp.id and hospitality_status in ('eligible', 'requested');
-  select coalesce(case when p.preferred_language in ('de', 'en') then p.preferred_language end, 'en') into v_locale from person p where p.id = v_sp.person_id;
-  perform queue_mail('hospitality_confirmed', v_sp.person_id,
+  -- PART-091: an den Empfänger der Speaker-Mails, in dessen Sprache.
+  v_locale := speaker_mail_locale(v_sp.id);
+  perform queue_speaker_mail('hospitality_confirmed', v_sp.id,
     jsonb_build_object(
       'kind', v_q.kind,
       'quota_label', case when v_locale = 'de' then v_q.label_de else v_q.label_en end,

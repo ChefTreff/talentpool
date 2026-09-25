@@ -13,7 +13,8 @@ begin
   if v_t.status <> 'requested' then raise exception 'not_pending' using errcode = 'P0001', detail = v_t.status; end if;
   update ticket set status = 'approved', approved_by = current_person_id(), approved_at = now(), team_note = nullif(btrim(p_note), '')
    where id = p_ticket_id;
-  perform queue_mail('companion_ticket_confirmed', v_sp.person_id,
+  -- PART-091: an den Empfänger der Speaker-Mails.
+  perform queue_speaker_mail('companion_ticket_confirmed', v_sp.id,
                      jsonb_build_object('companion_name', btrim(coalesce(v_t.holder_first_name, '') || ' ' || coalesce(v_t.holder_last_name, '')),
                                         'companion_email', v_t.holder_email::text, 'note', coalesce(nullif(btrim(p_note), ''), '')),
                      'ticket', p_ticket_id);

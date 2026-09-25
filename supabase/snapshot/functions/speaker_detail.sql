@@ -102,6 +102,14 @@ begin
     'outreach_channel', v_sp.outreach_channel,
     -- SPK-070: Gast des Partners (0188) — das Detail bietet dann keine Einladung an.
     'stage_guest', v_sp.stage_guest,
+    -- PART-091: über wen die Speaker-Mails gehen, wenn der Partner alles verwaltet.
+    'mail_via', (select jsonb_build_object(
+                          'contact_id', c.id,
+                          'name', coalesce(nullif(btrim(coalesce(c.first_name, '') || ' ' || coalesce(c.last_name, '')), ''),
+                                           (select nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), '')
+                                              from person p where p.id = c.person_id)),
+                          'has_access', c.has_access)
+                   from speaker_contact c where c.id = v_sp.mail_via_contact_id),
     'stage_candidates', coalesce((select jsonb_agg(jsonb_build_object('stage_id', st.id, 'name', st.name)
                                                    order by st.sort_order, st.name)
                                     from speaker_stage_candidate c join stage st on st.id = c.stage_id

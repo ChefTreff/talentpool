@@ -9,10 +9,18 @@ begin
   if not (auth.uid() is null or has_role('admin') or has_role('programme_team')) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
+  -- PART-091: je Empfänger und Session eine Mail. Verwaltet ein Kontakt
+  -- mehrere Speaker derselben Session (ein Panel des Partners), nennt die eine
+  -- Mail sie alle — `queue_mail` ließe eine zweite sonst als Doppel fallen.
   for r in
-    select ss.person_id, se.id as session_id, e.timezone,
-           least(d.due_at, sl.start_at - interval '48 hours') as effective_due,
-           coalesce(p.preferred_language, 'en') as locale
+    select x.recipient, x.session_id, x.timezone, x.effective_due, x.start_at,
+           coalesce(case when rp.preferred_language in ('de', 'en') then rp.preferred_language end, 'en') as locale,
+           string_agg(distinct x.fuer, ', ' order by x.fuer) as fuer
+    from (
+    select speaker_mail_recipient(sp.id) as recipient, se.id as session_id, e.timezone,
+           least(d.due_at, sl.start_at - interval '48 hours') as effective_due, sl.start_at,
+           case when speaker_mail_recipient(sp.id) is distinct from ss.person_id
+                then nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), '') end as fuer
     from session se
     join slot sl on sl.id = se.slot_id
     join event e on e.id = se.event_id
@@ -30,12 +38,16 @@ begin
                       where a.profile_id = sp.id and a.kind = 'presentation' and a.is_current
                         and (a.session_id = se.id or a.session_id is null))
       and not exists (select 1 from mail_log m
-                      where m.template_key = 'presentation_reminder' and m.person_id = ss.person_id
+                      where m.template_key = 'presentation_reminder' and m.person_id = speaker_mail_recipient(sp.id)
                         and m.related_type = 'session' and m.related_id = se.id)
-    order by sl.start_at
+    ) x
+    join person rp on rp.id = x.recipient
+    group by x.recipient, x.session_id, x.timezone, x.effective_due, x.start_at, rp.preferred_language
+    order by x.start_at
   loop
-    perform queue_mail('presentation_reminder', r.person_id,
-                       session_mail_vars(r.session_id, r.locale) || jsonb_build_object('due_label', mail_fmt_ts(r.effective_due, r.timezone, r.locale)),
+    perform queue_mail('presentation_reminder', r.recipient,
+                       session_mail_vars(r.session_id, r.locale) || jsonb_build_object('due_label', mail_fmt_ts(r.effective_due, r.timezone, r.locale))
+                         || case when r.fuer is not null then jsonb_build_object('on_behalf_of', r.fuer) else '{}'::jsonb end,
                        'session', r.session_id);
     v_n := v_n + 1;
   end loop;

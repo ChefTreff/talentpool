@@ -13,7 +13,8 @@ begin
   if v_c.status <> 'submitted' then raise exception 'not_pending' using errcode = 'P0001', detail = v_c.status; end if;
   select * into v_sp from speaker_profile where id = v_c.profile_id;
   update expense_claim set status = 'rejected', reviewed_by = current_person_id(), reviewed_at = now(), review_note = btrim(p_note) where id = p_claim_id;
-  select coalesce(p.preferred_language, 'en') into v_locale from person p where p.id = v_sp.person_id;
-  perform queue_mail('expense_rejected', v_sp.person_id, jsonb_build_object('amount', fmt_cents(v_c.amount_cents, v_locale), 'invoice_no', v_c.invoice_no, 'note', btrim(p_note)), 'expense_claim', p_claim_id);
+  -- PART-091: an den Empfänger der Speaker-Mails, Betrag in dessen Sprache.
+  v_locale := speaker_mail_locale(v_sp.id);
+  perform queue_speaker_mail('expense_rejected', v_sp.id, jsonb_build_object('amount', fmt_cents(v_c.amount_cents, v_locale), 'invoice_no', v_c.invoice_no, 'note', btrim(p_note)), 'expense_claim', p_claim_id);
   perform log_audit('expense.reject', 'expense_claim', p_claim_id::text, jsonb_build_object('status', v_c.status), jsonb_build_object('status', 'rejected', 'note', p_note));
 end $$;

@@ -41,21 +41,28 @@ begin
   returning id into v_id;
 
   if v_kind = 'stage_photo' and v_erstes then
+    -- PART-091: je Empfänger eine Mail — ein Kontakt, der mehrere Speaker der
+    -- Session verwaltet, bekommt eine, die sie alle nennt.
     for r in
-      select ss.person_id, coalesce(se.title_de, se.title_en) as titel
+      select speaker_mail_recipient(sp.id) as recipient, coalesce(se.title_de, se.title_en) as titel,
+             string_agg(distinct case when speaker_mail_recipient(sp.id) is distinct from ss.person_id
+                                      then nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), '') end,
+                        ', ') as fuer
         from session_speaker ss join session se on se.id = ss.session_id
         join event ev on ev.id = se.event_id
+        -- SPK-070 / LEAD-042: die Mail führt ins Speaker-Portal. Sie geht deshalb
+        -- nur an Speaker mit Profil dieser Edition — nicht an Gäste des Partners
+        -- und nicht an eine Moderation ohne Profil (etwa einen Stage Lead).
+        join speaker_profile sp on sp.person_id = ss.person_id
+                               and sp.edition_id = coalesce(ev.edition_id, ev.id)
+                               and not sp.stage_guest
+        join person p on p.id = ss.person_id
        where ss.session_id = v_session
-         -- SPK-070 / LEAD-042: die Mail führt ins Speaker-Portal. Sie geht deshalb
-         -- nur an Speaker mit Profil dieser Edition — nicht an Gäste des Partners
-         -- und nicht an eine Moderation ohne Profil (etwa einen Stage Lead).
-         and exists (select 1 from speaker_profile sp
-                      where sp.person_id = ss.person_id
-                        and sp.edition_id = coalesce(ev.edition_id, ev.id)
-                        and not sp.stage_guest)
+       group by 1, 2
     loop
-      perform queue_mail('stage_photos_ready', r.person_id,
-                         jsonb_build_object('session_title', coalesce(r.titel, '')),
+      perform queue_mail('stage_photos_ready', r.recipient,
+                         jsonb_build_object('session_title', coalesce(r.titel, ''))
+                           || case when r.fuer is not null then jsonb_build_object('on_behalf_of', r.fuer) else '{}'::jsonb end,
                          'session', v_session);
     end loop;
   end if;

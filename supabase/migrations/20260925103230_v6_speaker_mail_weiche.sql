@@ -1,4 +1,5 @@
--- 00NN · PART-091: Speaker-Mails an den zugeordneten Kontakt, wenn der Partner alles verwaltet
+-- 0200 · Mail-Weiche: Speaker-Mails an den Ops-Kontakt im Verwaltet-Fall (PART-091)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925103230.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.

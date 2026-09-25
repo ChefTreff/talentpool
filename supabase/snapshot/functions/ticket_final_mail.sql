@@ -16,7 +16,8 @@ begin
     return;
   end if;
   v_halter := nullif(btrim(coalesce(p_t.holder_first_name, '') || ' ' || coalesce(p_t.holder_last_name, '')), '');
-  perform queue_mail('ticket_final', v_person,
+  -- PART-091: an den Empfänger der Speaker-Mails.
+  perform queue_speaker_mail('ticket_final', p_t.speaker_profile_id,
                      jsonb_build_object('holder_name', coalesce(v_halter, p_t.holder_email::text, '—'),
                                         'source', p_t.source),
                      'ticket', p_t.id);

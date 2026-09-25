@@ -13,7 +13,8 @@ begin
   if not is_speaker_team(v_sp.edition_id) then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_t.status not in ('requested', 'approved') then raise exception 'not_pending' using errcode = 'P0001', detail = v_t.status; end if;
   update ticket set status = 'cancelled', team_note = btrim(p_note), approved_by = null, approved_at = null where id = p_ticket_id;
-  perform queue_mail('companion_ticket_declined', v_sp.person_id,
+  -- PART-091: an den Empfänger der Speaker-Mails.
+  perform queue_speaker_mail('companion_ticket_declined', v_sp.id,
                      jsonb_build_object('companion_name', btrim(coalesce(v_t.holder_first_name, '') || ' ' || coalesce(v_t.holder_last_name, '')),
                                         'note', btrim(p_note)),
                      'ticket', p_ticket_id);
