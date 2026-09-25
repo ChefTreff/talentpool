@@ -201,4 +201,44 @@ describe("Admin-Abschnitte: Rollen", () => {
     for (const p of pfade) assert.ok(p === "/admin" || p.startsWith("/admin/"), p);
     assert.equal(new Set(pfade).size, pfade.length, "doppelter Pfad in ADMIN_SECTIONS");
   });
+
+  /**
+   * PORT1b: Die Datenbank fuehrt dieselbe Zuordnung in `admin_section_role`,
+   * damit SQL-Funktionen sie fragen koennen statt sie abzuschreiben. Die Vorgabe
+   * bleibt hier im Code — die Tabelle ist ihre Spiegelung, und eine Spiegelung
+   * altert, sobald niemand sie prueft. Genau das tut dieser Test: er liest die
+   * Migration und stellt beide Seiten gegeneinander.
+   */
+  it("die Tabelle admin_section_role spiegelt ADMIN_SECTIONS Zeile für Zeile", () => {
+    const sql = migrationText("v6_port1b_abschnitt_rollen");
+    const block = sql.split("insert into admin_section_role (section, role) values")[1];
+    assert.ok(block, "Einfügeblock nicht gefunden");
+    const paare = new Set<string>();
+    for (const [, section, role] of block.slice(0, block.indexOf(";")).matchAll(/\('([^']+)',\s*'([^']+)'\)/g)) {
+      paare.add(`${section}|${role}`);
+    }
+
+    const erwartet = new Set<string>();
+    for (const s of ADMIN_SECTIONS) {
+      // Jeder Abschnitt bekommt eine `admin`-Zeile: so ist die Tabelle zugleich
+      // der vollständige Katalog der Schlüssel, und `has_admin_section` kann
+      // einen Tippfehler von „darf nicht" unterscheiden.
+      erwartet.add(`${s.key}|admin`);
+      for (const r of s.roles) erwartet.add(`${s.key}|${r}`);
+    }
+
+    const fehlt = [...erwartet].filter((x) => !paare.has(x)).sort();
+    const zuviel = [...paare].filter((x) => !erwartet.has(x)).sort();
+    assert.deepEqual(fehlt, [], "fehlt in der Migration");
+    assert.deepEqual(zuviel, [], "steht in der Migration, aber nicht in ADMIN_SECTIONS");
+  });
+
+  it("das SQL-Prädikat kennt dieselben Abschnitte wie der Code", () => {
+    // Ein Abschnitt, den die Migration nicht kennt, liesse `has_admin_section`
+    // mit `unknown_section` scheitern — im Betrieb, nicht im Gate.
+    const sql = migrationText("v6_port1b_abschnitt_rollen");
+    for (const s of ADMIN_SECTIONS) {
+      assert.ok(sql.includes(`('${s.key}', 'admin')`), `Abschnitt ${s.key} fehlt in der Migration`);
+    }
+  });
 });
