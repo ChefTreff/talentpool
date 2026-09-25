@@ -1331,7 +1331,13 @@ function BacklogChip({
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === "Enter") onOpen();
+          // Enter und Leertaste wie bei einem Knopf — `role="button"`
+          // verspricht beides (QS-014, Web Interface Guidelines); vorher
+          // reagierte die Karte nur auf Enter, die Leertaste scrollte die Seite.
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpen();
+          }
         }}
         className={cn(
           "inline-flex items-center gap-2 rounded-ct-md border px-2.5 py-1.5 ct-help",
