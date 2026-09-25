@@ -5,6 +5,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { SpeakerDetailView } from "./Detail";
 import type { ContactOption, SpeakerDetail, SpeakerManager } from "../types";
+import { aktuellesFotoAdresse } from "@/lib/speaker/foto";
+import { fotoTexte } from "@/components/speaker/foto-texte";
 import { boardEvents } from "@/components/programme/events";
 
 export const dynamic = "force-dynamic";
@@ -32,13 +34,15 @@ export default async function AdminSpeakerDetail({
   if (error || !data) notFound();
   const speaker = data as SpeakerDetail;
 
-  const [{ data: managers }, { data: contacts }, vocab, events] = await Promise.all([
+  const [{ data: managers }, { data: contacts }, vocab, events, fotoUrl] = await Promise.all([
     supabase.rpc("speaker_managers"),
     supabase.rpc("edition_contacts_admin", { p_edition_id: speaker.edition_id }),
     loadVocabMap(supabase, locale),
     // Bühnen in Frage (LEAD-039): die Bühnen des Summits dieser Edition —
     // dieselbe Auswahl wie im Board (`boardEvents`, LEAD-014).
     boardEvents(supabase, [speaker.edition_id]),
+    // LEAD-029: das Foto auch im Admin hochladen — hier die signierte Adresse.
+    aktuellesFotoAdresse(supabase, id),
   ]);
   const { data: stageRows } = events.length
     ? await supabase
@@ -52,6 +56,8 @@ export default async function AdminSpeakerDetail({
   return (
     <SpeakerDetailView
       speaker={speaker}
+      fotoUrl={fotoUrl}
+      tf={fotoTexte(t.speaker)}
       managers={(managers ?? []) as SpeakerManager[]}
       contacts={(contacts ?? []) as ContactOption[]}
       labels={{

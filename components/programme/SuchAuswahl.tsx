@@ -23,6 +23,8 @@ export function SuchAuswahl({
   hint,
   value,
   disabled,
+  required,
+  requiredLabel,
   suchen,
   onChange,
   t,
@@ -30,6 +32,9 @@ export function SuchAuswahl({
   id: string;
   label: string;
   hint?: string;
+  /** Pflichtfeld-Markierung wie bei `Field` (LEAD-030, Shuttle der Leads). */
+  required?: boolean;
+  requiredLabel?: string;
   value: { id: string; name: string | null } | null;
   disabled?: boolean;
   suchen: (query: string) => Promise<Treffer[]>;
@@ -60,7 +65,7 @@ export function SuchAuswahl({
 
   if (value) {
     return (
-      <Field label={label} htmlFor={id} hint={hint}>
+      <Field label={label} htmlFor={id} hint={hint} required={required} requiredLabel={requiredLabel}>
         <span className="inline-flex w-fit items-center gap-2 rounded-ct-md border bg-surface px-2.5 py-1.5 ct-small">
           <span id={id}>{value.name ?? "—"}</span>
           <button
@@ -78,7 +83,7 @@ export function SuchAuswahl({
   }
 
   return (
-    <Field label={label} htmlFor={id} hint={hint}>
+    <Field label={label} htmlFor={id} hint={hint} required={required} requiredLabel={requiredLabel}>
       <Input
         id={id}
         value={query}

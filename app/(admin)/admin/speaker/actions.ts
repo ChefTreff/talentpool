@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { registriereFoto, type FotoEingang } from "@/lib/speaker/foto";
 import { toRpcFailure } from "@/lib/rpc-error";
 
 /**
@@ -33,6 +34,15 @@ function refresh(profileId?: string) {
 }
 
 /** Alle Felder aus der Whitelist von `update_speaker`. */
+/** LEAD-029 (Admin-Vollständigkeit): das Profilfoto auch im Admin-Detail hochladen. */
+export async function registerSpeakerPhotoAsAdmin(input: FotoEingang): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await registriereFoto(supabase, input);
+  if (error) return fail(error);
+  refresh(input.profileId);
+  return { ok: true, data: undefined };
+}
+
 export async function saveSpeaker(
   profileId: string,
   data: Record<string, unknown>,

@@ -6,7 +6,8 @@ import { DietCard } from "@/components/diet/DietCard";
 import { AbschnittsNavigation, Sektion } from "@/components/ui/Abschnitte";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { PhotoUpload } from "./PhotoUpload";
+import { PhotoUpload } from "@/components/speaker/PhotoUpload";
+import { registerSpeakerPhoto } from "../actions";
 import { SpeakerProfileForm } from "./SpeakerProfileForm";
 import { SPEAKER_BUCKET, type SpeakerProfile } from "../types";
 
@@ -87,6 +88,7 @@ export default async function SpeakerProfilPage() {
           profileId={profile.id}
           editionId={profile.edition_id}
           photoUrl={photoUrl}
+          register={registerSpeakerPhoto}
           t={t.speaker}
           rpcMessages={t.rpc}
         />

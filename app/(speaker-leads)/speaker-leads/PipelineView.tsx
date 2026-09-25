@@ -59,6 +59,7 @@ export function PipelineView({
   verlaufArten,
   tv,
   tg,
+  tf,
   common,
   rpcMessages,
 }: {
@@ -81,6 +82,8 @@ export function PipelineView({
   tv: Strings;
   /** `speakerGast`-Texte (SPK-070). */
   tg: Strings;
+  /** Foto-Upload im Fenster (LEAD-029), Auszug aus `speaker`. */
+  tf: Strings;
   common: {
     cancel: string;
     choose: string;
@@ -462,6 +465,7 @@ export function PipelineView({
           verlaufArten={verlaufArten}
           tv={tv}
           tg={tg}
+          tf={tf}
           common={common}
           rpcMessages={rpcMessages}
           onClose={() => setOpenId(null)}

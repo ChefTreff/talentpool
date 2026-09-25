@@ -1,17 +1,17 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
+import { SuchAuswahl, type Treffer } from "@/components/programme/SuchAuswahl";
 import {
   SHUTTLE_FIELDS,
   SHUTTLE_LIMIT,
@@ -80,6 +80,22 @@ export function LeadShuttle({
   const [nurOffen, setNurOffen] = useState(false);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
+
+  // LEAD-030: bei 200 Speakern ist eine Einfachauswahl unübersichtlich — gesucht
+  // wird im Browser über die betreuten Speaker, die Seite hat sie schon.
+  const speakerLabel = (s: { first_name: string | null; last_name: string | null; profile_id: string }) =>
+    [s.first_name, s.last_name].filter(Boolean).join(" ") || s.profile_id;
+  const suchen = useCallback(
+    async (q: string): Promise<Treffer[]> => {
+      const n = q.trim().toLocaleLowerCase("de");
+      return speakers
+        .filter((s) => speakerLabel(s).toLocaleLowerCase("de").includes(n))
+        .slice(0, 20)
+        .map((s) => ({ id: s.profile_id, name: speakerLabel(s), hint: null }));
+    },
+    [speakers],
+  );
+  const gewaehlt = speakers.find((s) => s.profile_id === profil) ?? null;
   const dateTime = new Intl.DateTimeFormat(dateLocale, {
     dateStyle: "short",
     timeStyle: "short",
@@ -163,18 +179,18 @@ export function LeadShuttle({
             </p>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t.shuttleForSpeaker} htmlFor="ls-profil" required requiredLabel={t.required}>
-              <Select
-                id="ls-profil"
-                value={profil}
-                placeholder={common.choose}
-                onChange={(e) => setProfil(e.target.value)}
-                options={speakers.map((s) => ({
-                  value: s.profile_id,
-                  label: [s.first_name, s.last_name].filter(Boolean).join(" ") || s.profile_id,
-                }))}
-              />
-            </Field>
+            <SuchAuswahl
+              id="ls-profil"
+              label={t.shuttleForSpeaker}
+              hint={gewaehlt ? undefined : t.shuttleSpeakerSearchHint}
+              value={gewaehlt ? { id: gewaehlt.profile_id, name: speakerLabel(gewaehlt) } : null}
+              disabled={pending}
+              required
+              requiredLabel={t.required}
+              suchen={suchen}
+              onChange={(h) => setProfil(h?.id ?? "")}
+              t={{ remove: t.shuttleSpeakerRemove, noHits: t.shuttleSpeakerNoHits }}
+            />
             <div />
 
             {SHUTTLE_FIELDS.map((f) => (

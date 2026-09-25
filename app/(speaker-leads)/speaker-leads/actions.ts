@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireArea } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { fotoFuerProfil, registriereFoto, type FotoEingang } from "@/lib/speaker/foto";
 import { toRpcFailure } from "@/lib/rpc-error";
 
 /**
@@ -139,6 +140,24 @@ export async function handoverSpeaker(
 }
 
 /** Die Lead-Personen zur Auswahl. */
+/**
+ * LEAD-029: das Profilfoto im Lead-Fenster — Adresse lesen und ein neues
+ * eintragen. Recht und Pfad prüfen RLS, Storage-Policy und
+ * `register_speaker_asset` (`can_manage_speaker`); hier nur das Tor des Bereichs.
+ */
+export async function speakerFoto(profileId: string): Promise<{ url: string | null; editionId: string | null }> {
+  const supabase = await client();
+  return fotoFuerProfil(supabase, profileId);
+}
+
+export async function registerSpeakerPhotoAsLead(input: FotoEingang): Promise<LeadResult> {
+  const supabase = await client();
+  const { error } = await registriereFoto(supabase, input);
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
+
 export async function listManagers(): Promise<{ person_id: string; display_name: string | null }[]> {
   const supabase = await client();
   const { data, error } = await supabase.rpc("speaker_managers");

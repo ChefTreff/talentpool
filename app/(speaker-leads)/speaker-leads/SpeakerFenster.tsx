@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/shared";
 import { Badge } from "@/components/ui/Badge";
@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
 import { Verlauf } from "@/components/speaker/Verlauf";
+import { PhotoUpload } from "@/components/speaker/PhotoUpload";
 import {
   buehnenGeaendert,
   einordnungAenderungen,
@@ -22,7 +23,9 @@ import {
   approveTravelCosts,
   handoverSpeaker,
   inviteSpeaker,
+  registerSpeakerPhotoAsLead,
   setPipeline,
+  speakerFoto,
   setStageCandidates,
   updateSpeaker,
   type LeadResult,
@@ -52,6 +55,7 @@ export function SpeakerFenster({
   verlaufArten,
   tv,
   tg,
+  tf,
   common,
   rpcMessages,
   onClose,
@@ -77,6 +81,8 @@ export function SpeakerFenster({
   tv: Strings;
   /** `speakerGast`-Texte (SPK-070). */
   tg: Strings;
+  /** Foto-Upload (LEAD-029), Auszug aus `speaker`. */
+  tf: Strings;
   common: {
     cancel: string;
     choose: string;
@@ -114,6 +120,20 @@ export function SpeakerFenster({
   const einordnungVorher = useMemo(() => einordnungEntwurf(speaker), [speaker]);
   const [einordnung, setEinordnung] = useState(einordnungVorher);
   const adresse = kontaktViaHatAdresse(einordnung.contact_via);
+
+  // LEAD-029: das Profilfoto — die Adresse ist signiert und kommt vom Server;
+  // nach einem Upload zählt `fotoStand` hoch und holt die neue.
+  const [foto, setFoto] = useState<{ url: string | null; editionId: string | null } | null>(null);
+  const [fotoStand, setFotoStand] = useState(0);
+  useEffect(() => {
+    let aktuell = true;
+    void speakerFoto(speaker.id).then((f) => {
+      if (aktuell) setFoto(f);
+    });
+    return () => {
+      aktuell = false;
+    };
+  }, [speaker.id, fotoStand]);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
@@ -314,6 +334,20 @@ export function SpeakerFenster({
         </div>
 
         <div className="flex min-w-0 flex-col gap-5">
+          {/* LEAD-029: das Foto hochladen oder austauschen, wie im Admin-Detail. */}
+          {foto?.editionId && (
+          <PhotoUpload
+            profileId={speaker.id}
+            editionId={foto.editionId}
+            photoUrl={foto.url}
+            register={registerSpeakerPhotoAsLead}
+            ansicht="betreut"
+            variante="abschnitt"
+            onDone={() => setFotoStand((n) => n + 1)}
+            t={tf}
+            rpcMessages={rpcMessages}
+          />
+          )}
           {/* Verlauf (LEAD-039 Schnitt 2): Notizen, Kontakte, Aufgaben mit Frist —
               oben rechts, weil er in der Akquise am häufigsten gebraucht wird. */}
           <section className="border-t pt-4">
