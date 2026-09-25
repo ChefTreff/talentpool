@@ -90,6 +90,45 @@ Zu klären, bevor das gebaut wird:
 * **Einwilligung.** Für Speaker gilt Konrads Regel „kommt automatisch mit der Zusage" (24.09.). Bühnenleitungen sind Externe mit Vertrag — ob dieselbe Regel gilt, entscheidet Konrad.
 * **Foto.** Porträts hängen an `speaker_asset.profile_id`, also am Profil. Ohne Profil gibt es kein Bild; entweder bleibt die Kachel ohne Foto, oder die Bilder brauchen einen zweiten Ort.
 
+## Swapcard · Speaker-Import im Trockenlauf (QS-036/EA3, 25.09.2026)
+
+Gefahren mit `node --env-file=.env.local scripts/swapcard-import-trocken.mjs` (neu) gegen das **Livekonto**, Event `FUTURE LEADER SUMMIT 2027`, mit `validateOnly: true` — Swapcard prüft dann nur und legt nichts an. Das Skript baut denselben Rumpf wie `lib/event-app/speakers.ts`, Feld für Feld, damit der Lauf etwas über den echten Weg aussagt und nicht über eine Nachbildung.
+
+| | |
+|---|---|
+| Speaker im Export | 2 (Konrad und ein Testprofil) |
+| Zurückgehalten (kein vollständiger Name) | 0 |
+| Gruppe „Speakers" am Event | gefunden |
+| Beanstandungen | **1 von 2** |
+
+**Befund 7 — `isUser: false` scheitert bei jeder Person, die in Swapcard schon zu einem Aussteller gehört.**
+
+```
+EMAIL_EMPTY @data.0.isUser
+Cannot turn an exhibitor member into a non-user person,
+your user is link to an exhibitor (community level)
+```
+
+Der Fehlerschlüssel führt in die Irre: mit einer leeren Adresse hat das nichts zu tun, die Adresse steht. Gemeint ist der Konflikt am Feld `isUser`. Konrads Adresse hängt auf Community-Ebene an einem Aussteller; Swapcard weigert sich, eine solche Person zu einer „Nicht-Nutzerin" zu machen.
+
+**Das trifft nicht nur Testdaten.** Betroffen ist jede Person, die in Swapcard schon Ausstellermitglied ist und bei uns als Speaker geführt wird — also genau die Partner-Ansprechpersonen, die auch auf der Bühne stehen. Beim echten Lauf fiele jede von ihnen einzeln mit dieser Meldung heraus.
+
+**Varianten, alle mit `validateOnly` geprüft (nichts geschrieben):**
+
+| Variante | Ergebnis |
+|---|---|
+| `isUser: false` (heute) | abgewiesen |
+| `isUser` weggelassen | geht nicht — `isUser` ist in `CreateEventPersonInput` **Pflichtfeld** (neben `firstName`, `lastName`) |
+| `isUser: false` + `force: true` | abgewiesen, `force` hilft hier nicht |
+| **`isUser: true`** | **gültig** |
+| nur `update`, kein `create` | gültig — aber nur, weil es die Person schon gibt; für neue Personen kein Weg |
+
+**Empfehlung, und warum sie eine Entscheidung braucht.** Technisch ist der Weg klar: die abgewiesenen Einträge einmal mit `isUser: true` wiederholen. Das ist bei genau diesen Personen auch keine Rechteausweitung — sie **sind** bereits Nutzerinnen in Swapcard, `true` beschreibt nur den Ist-Zustand. Trotzdem hängt daran K-32/K-38: `isUser: false` war ein Baustein der Antwort „der Import löst keine Einladung aus". Ob eine Person in Swapcard zur Nutzerin wird, entscheidet Konrad, nicht der Ingest. Sobald die Freigabe steht, ist der Wiederholungslauf ein kleiner Schnitt in `lib/event-app/speakers.ts` mit Vermerk im Laufprotokoll — der Fall bleibt sichtbar und wird nicht stillschweigend geglättet.
+
+**Bis dahin ist nichts kaputt:** Der Lauf meldet solche Personen heute schon einzeln als Fehler; niemand verschwindet unbemerkt.
+
+**Fotos:** beide Einträge ohne Bild (`has_photo = false`), die öffentliche Kopie war also nicht Teil dieses Laufs. Die Fotoübertragung bleibt ungeprüft, bis ein Testprofil ein Porträt hat.
+
 ## Offen
 
 - **Swapcard (EA3):** Slot → Swapcard mit Speaker- und Partner-IDs, Pflichtfelder, Reihenfolge Speaker anlegen → Kennung zurück → Slot. Noch nicht geprüft. Der Export als Datenquelle ist geprüft (siehe oben), der Import nach Swapcard nicht.
