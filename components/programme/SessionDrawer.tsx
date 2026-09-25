@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
 import { Field } from "@/components/ui/Field";
+import { ConfirmDialog } from "@/components/ui/Modal";
 import { Input, Textarea } from "@/components/ui/Input";
 import { MehrfachAuswahl } from "@/components/ui/MehrfachAuswahl";
 import { Select } from "@/components/ui/Select";
@@ -31,7 +32,16 @@ import {
 import { SLOT_STATUS_ORDER, speakerName, type BoardLabels, type SessionSpeaker } from "./types";
 import { SuchAuswahl } from "./SuchAuswahl";
 import { fehlerText } from "./fehler";
+import { boardPartnerStatus, partnerStatusTexte, type PartnerSicht } from "./partnerSicht";
 import type { ProgrammeStrings } from "./Board";
+import { GastZuordnung } from "@/components/partner/GastZuordnung";
+import type { GastWahl } from "@/components/partner/gaeste";
+import {
+  PARTNER_STATUS_TON,
+  fehlendAusDetail,
+  fehlendFuerFreigabe,
+  type FehlendesFeld,
+} from "@/components/partner/standbuehne";
 
 type Draft = {
   title_de: string;
@@ -86,6 +96,19 @@ function speakerPayload(list: SessionSpeaker[]) {
 }
 
 /** Reihenfolge lückenlos halten — `set_session_questions` übernimmt sie 1:1. */
+/** Ein zugeordneter Gast als Eintrag der Speakerliste (LEAD-037). */
+function gastAlsSpeaker(g: GastWahl): SessionSpeaker {
+  const [first, ...rest] = g.name.split(" ");
+  return {
+    person_id: g.person_id,
+    role: "speaker",
+    first_name: first ?? g.name,
+    last_name: rest.join(" ") || null,
+    employer_name: null,
+    confirmed: true,
+  };
+}
+
 function renumber<T>(list: T[]): (T & { sort_order: number })[] {
   return list.map((q, i) => ({ ...q, sort_order: i }));
 }
@@ -105,6 +128,7 @@ export function SessionDrawer({
   slotId,
   canPublish = true,
   hostOrgId,
+  partnerSicht,
   slotInfo,
   stageOptions,
   onChangeStage,
@@ -124,6 +148,13 @@ export function SessionDrawer({
   canPublish?: boolean;
   /** Gastgebende Org für neu angelegte Sessions (Partner-Bühne). */
   hostOrgId?: string;
+  /**
+   * Partner-Sicht (LEAD-036/037): Partner-Status statt Slot-Status,
+   * „Veröffentlichen“ als Anfrage, Gäste statt Personensuche. Die Suche wäre
+   * dort ohnehin leer — `board_search_people` ist Partnern verschlossen.
+   * (Nicht zu verwechseln mit `partner` unten: das ist der buchende Partner.)
+   */
+  partnerSicht?: PartnerSicht;
   /** Bühne, Zeit und Status des Slots — oben sichtbar statt versteckt (LEAD-019). */
   slotInfo?: SlotInfo | null;
   /**
@@ -170,6 +201,13 @@ export function SessionDrawer({
   // Der Drawer wird je Session über `key` neu montiert — deshalb reicht der
   // Initialwert, und der Effekt unten lädt nur nach.
   const [id, setId] = useState<string | null>(sessionId);
+  // Partner-Sicht: Gäste vor dem ersten Speichern (LEAD-037, wie LEAD-040 für
+  // Speaker) — `partner_assign_stage_guest` braucht die Session.
+  const [gastPuffer, setGastPuffer] = useState<string[]>([]);
+  // Stand nach Anfrage oder Rücknahme, bis das Board neu lädt.
+  const [publishLokal, setPublishLokal] = useState<string | null>(null);
+  const [anfrageOffen, setAnfrageOffen] = useState(false);
+  const [fehltFreigabe, setFehltFreigabe] = useState<FehlendesFeld[]>([]);
 
   const message = (key: string) => rpcMessages[key] ?? key;
 
@@ -332,9 +370,28 @@ export function SessionDrawer({
           return;
         }
       }
+      // Gäste, die vor dem ersten Speichern gewählt wurden (LEAD-037) — der
+      // Partner-Weg ist `partner_assign_stage_guest`, nicht `set_session_speakers`.
+      if (!id && partnerSicht && gastPuffer.length > 0) {
+        const zugeordnet: SessionSpeaker[] = [];
+        for (const profileId of gastPuffer) {
+          const res = await partnerSicht.gastZuordnen(newId, profileId, true);
+          if (!res.ok) {
+            toast("error", fehlerText(message, res));
+            setSpeakers(zugeordnet);
+            setGastPuffer([]);
+            onChanged();
+            return;
+          }
+          const g = partnerSicht.gaeste.find((x) => x.profile_id === profileId);
+          if (g) zugeordnet.push(gastAlsSpeaker(g));
+        }
+        setSpeakers(zugeordnet);
+        setGastPuffer([]);
+      }
       // Speaker und Moderation, die vor dem ersten Speichern gewählt wurden
       // (LEAD-040): erst jetzt gibt es die Session, an der sie hängen.
-      if (!id && speakers.length > 0) {
+      if (!id && !partnerSicht && speakers.length > 0) {
         const gesetzt = await setSessionSpeakers(newId, speakerPayload(speakers));
         if (!gesetzt.ok) {
           toast("error", fehlerText(message, gesetzt));
@@ -343,6 +400,9 @@ export function SessionDrawer({
         }
       }
       toast("success", t.saved);
+      // Was für die Anfrage fehlte, ist vielleicht eben ergänzt — die nächste
+      // Anfrage prüft neu (LEAD-036).
+      setFehltFreigabe([]);
       onSaved?.({
         sessionId: newId,
         title_de: draft.title_de.trim() || null,
@@ -393,6 +453,84 @@ export function SessionDrawer({
     });
   }
 
+  // ---- Partner-Sicht (LEAD-036/037)
+  const publishStatus = publishLokal ?? detail?.publish_status ?? null;
+  const partnerStand = partnerSicht
+    ? boardPartnerStatus({ session_id: id, publish_status: publishStatus }, partnerSicht.rueckgaben)
+    : null;
+  const partnerTexte = partnerSicht ? partnerStatusTexte(partnerSicht.t) : null;
+  const feldName = (f: FehlendesFeld) =>
+    f === "title_de"
+      ? partnerSicht?.t.fieldTitleDe
+      : f === "title_en"
+        ? partnerSicht?.t.fieldTitleEn
+        : partnerSicht?.t.fieldDescription;
+
+  /** Erst die Pflichtfelder wie `partner_request_publish`, dann die Warnung. */
+  function anfragePruefen() {
+    const fehlt = fehlendFuerFreigabe(draft);
+    setFehltFreigabe(fehlt);
+    if (fehlt.length === 0) setAnfrageOffen(true);
+  }
+
+  function anfrageSenden() {
+    if (!partnerSicht || !id) return;
+    startTransition(async () => {
+      const res = await partnerSicht.anfragen(id);
+      setAnfrageOffen(false);
+      if (!res.ok) {
+        if (res.key === "fields_required") {
+          setFehltFreigabe(fehlendAusDetail(res.detail));
+          return;
+        }
+        toast("error", fehlerText(message, res));
+        return;
+      }
+      setPublishLokal(res.data.status);
+      toast("success", partnerSicht.t.publishDone);
+      onChanged();
+    });
+  }
+
+  function anfrageZuruecknehmen() {
+    if (!partnerSicht || !id) return;
+    startTransition(async () => {
+      const res = await partnerSicht.zuruecknehmen(id);
+      if (!res.ok) {
+        toast("error", fehlerText(message, res));
+        return;
+      }
+      setPublishLokal(res.data.status);
+      toast("success", partnerSicht.t.withdrawDone);
+      onChanged();
+    });
+  }
+
+  function gastWaehlen(profileId: string, zuordnen: boolean) {
+    if (!partnerSicht) return;
+    if (!id) {
+      setGastPuffer((p) => (zuordnen ? [...p, profileId] : p.filter((x) => x !== profileId)));
+      return;
+    }
+    const g = partnerSicht.gaeste.find((x) => x.profile_id === profileId);
+    startTransition(async () => {
+      const res = await partnerSicht.gastZuordnen(id, profileId, zuordnen);
+      if (!res.ok) {
+        toast("error", fehlerText(message, res));
+        return;
+      }
+      if (g) {
+        setSpeakers((list) =>
+          zuordnen
+            ? [...list.filter((sp) => sp.person_id !== g.person_id), gastAlsSpeaker(g)]
+            : list.filter((sp) => sp.person_id !== g.person_id),
+        );
+      }
+      toast("success", zuordnen ? partnerSicht.t.guestAssigned : partnerSicht.t.guestUnassigned);
+      onChanged();
+    });
+  }
+
   const isPublished = detail?.publish_status === "published";
   const opt = (map: Record<string, string>) =>
     Object.entries(map).map(([value, label]) => ({ value, label }));
@@ -434,8 +572,21 @@ export function SessionDrawer({
               {t.unpublish}
             </Button>
           )}
+          {/* Partner-Sicht (LEAD-036): die Anfrage an die Programmleitung — mit
+              Warnung, weil die Session nach der Freigabe so ins offizielle
+              Programm geht. Zurücknehmen, solange nicht freigegeben ist. */}
+          {partnerSicht && id && (partnerStand === "in_bearbeitung" || partnerStand === "zurueckgegeben") && (
+            <Button variant="secondary" disabled={pending} onClick={anfragePruefen}>
+              {partnerSicht.t.publish}
+            </Button>
+          )}
+          {partnerSicht && id && partnerStand === "zur_freigabe" && (
+            <Button variant="ghost" disabled={pending} onClick={anfrageZuruecknehmen}>
+              {partnerSicht.t.withdraw}
+            </Button>
+          )}
           {/* Ohne das Recht steht statt des Knopfes, wer entscheidet. */}
-          {!canPublish && id && !isPublished && (
+          {!canPublish && !partnerSicht && id && !isPublished && (
             <p className="ct-help self-center">{t.awaitingRelease}</p>
           )}
           {id && detail?.slot_id && (
@@ -479,6 +630,9 @@ export function SessionDrawer({
                 <p className="ct-help tabular-nums">{slotInfo.when}</p>
               </div>
             )}
+            {/* Der interne Slot-Status ist Sprache der Programmleitung (PART-080) —
+                in der Partner-Sicht steht der Partner-Status darunter. */}
+            {!partnerSicht && (
             <Field label={t.slotStatus} htmlFor="slot_status">
               <Select
                 id="slot_status"
@@ -495,6 +649,7 @@ export function SessionDrawer({
                 options={SLOT_STATUS_ORDER.map((st) => ({ value: st, label: labels.slotStatus[st] ?? st }))}
               />
             </Field>
+            )}
           </div>
         )}
 
@@ -504,13 +659,32 @@ export function SessionDrawer({
           </p>
         )}
 
-        {detail && (
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone={isPublished ? "success" : "neutral"}>
-              {labels.publishStatus[detail.publish_status ?? "draft"]}
-            </Badge>
-            {!detail.slot_id && <Badge tone="warning">{t.inBacklog}</Badge>}
+        {partnerSicht && partnerStand && partnerTexte ? (
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone={PARTNER_STATUS_TON[partnerStand]}>{partnerTexte[partnerStand]}</Badge>
+              {detail && !detail.slot_id && <Badge tone="warning">{t.inBacklog}</Badge>}
+            </div>
+            {partnerStand === "zurueckgegeben" && id && partnerSicht.rueckgaben[id] && (
+              <p className="rounded-ct-md border border-warning-soft bg-warning-soft px-3 py-2 ct-small">
+                <span className="ct-label">{partnerSicht.t.legendReturned}</span> {partnerSicht.rueckgaben[id]}
+              </p>
+            )}
+            {fehltFreigabe.length > 0 && (
+              <p role="alert" className="rounded-ct-md border border-warning-soft bg-warning-soft px-3 py-2 ct-small">
+                {partnerSicht.t.missingFields.replace("{fields}", fehltFreigabe.map(feldName).join(", "))}
+              </p>
+            )}
           </div>
+        ) : (
+          detail && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone={isPublished ? "success" : "neutral"}>
+                {labels.publishStatus[detail.publish_status ?? "draft"]}
+              </Badge>
+              {!detail.slot_id && <Badge tone="warning">{t.inBacklog}</Badge>}
+            </div>
+          )
         )}
 
         <Field
@@ -534,8 +708,40 @@ export function SessionDrawer({
           />
         </Field>
 
-        {/* Speaker direkt unter dem Titel (LEAD-047, Konrad 25.09.) — wer auftritt,
-            gehört zur ersten Angabe einer Session, nicht ans Ende der Maske. */}
+        {/* Partner-Sicht (LEAD-037): wer auf der Standbühne spricht, sind die
+            Gäste der Organisation (PART-081) — dieselbe Auswahl wie in der
+            Tabelle. Reguläre Speaker stehen ohne Knopf da, die teilt das
+            Programm-Team zu. */}
+        {partnerSicht ? (
+          <section className="flex flex-col gap-1">
+            <GastZuordnung
+              speakers={
+                id
+                  ? speakers
+                      .filter((sp) => sp.role !== "moderator")
+                      .map((sp) => ({ person_id: sp.person_id, name: speakerName(sp) }))
+                  : partnerSicht.gaeste
+                      .filter((g) => gastPuffer.includes(g.profile_id))
+                      .map((g) => ({ person_id: g.person_id, name: g.name }))
+              }
+              gaeste={partnerSicht.gaeste}
+              canEdit
+              pending={pending}
+              t={{
+                label: t.speakers,
+                none: t.noSpeakers,
+                noGuests: partnerSicht.t.guestNone,
+                choose: partnerSicht.t.guestChoose,
+                add: partnerSicht.t.guestAdd,
+                remove: partnerSicht.t.guestRemove,
+              }}
+              onGast={gastWaehlen}
+            />
+            {!id && gastPuffer.length > 0 && <p className="ct-help">{t.speakersOnSave}</p>}
+          </section>
+        ) : (
+        /* Speaker direkt unter dem Titel (LEAD-047, Konrad 25.09.) — wer auftritt,
+            gehört zur ersten Angabe einer Session, nicht ans Ende der Maske. */
         <section aria-labelledby="speaker_titel" className="flex flex-col gap-2">
           <h3 id="speaker_titel" className="ct-label text-ink">{t.speakers}</h3>
           {speakers.every((sp) => sp.role === "moderator") ? (
@@ -584,6 +790,7 @@ export function SessionDrawer({
             </ul>
           )}
         </section>
+        )}
 
         <Field
           label={t.descriptionDe}
@@ -684,6 +891,16 @@ export function SessionDrawer({
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
+          {/* Die Moderation setzt das Programm-Team — Partner sehen sie nur
+              (die Suche ist ihnen verschlossen, LEAD-037). */}
+          {partnerSicht ? (
+            moderation && (
+              <div>
+                <p className="ct-label text-ink">{t.moderation}</p>
+                <p className="ct-small">{moderation.name}</p>
+              </div>
+            )
+          ) : (
           <SuchAuswahl
             id="moderation"
             label={t.moderation}
@@ -719,6 +936,7 @@ export function SessionDrawer({
             }}
             t={{ remove: t.remove, noHits: t.noHits }}
           />
+          )}
           {/* Auf der Partner-Bühne steht die Gastgeberin fest. */}
           {!hostOrgId && (
             <SuchAuswahl
@@ -800,6 +1018,17 @@ export function SessionDrawer({
         )}
 
       </div>
+      {anfrageOffen && partnerSicht && (
+        <ConfirmDialog
+          title={partnerSicht.t.publishConfirmTitle}
+          body={partnerSicht.t.publishConfirmBody}
+          confirmLabel={partnerSicht.t.publishConfirm}
+          cancelLabel={t.cancel}
+          pending={pending}
+          onConfirm={anfrageSenden}
+          onCancel={() => setAnfrageOffen(false)}
+        />
+      )}
     </Drawer>
   );
 }

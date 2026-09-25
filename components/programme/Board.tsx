@@ -36,6 +36,14 @@ import {
   type ActionResult,
 } from "./actions";
 import { fehlerText } from "./fehler";
+import { geschlossen, oeffnung, oeffnungText, type BoardStageDay } from "./oeffnung";
+import {
+  PARTNER_KARTE,
+  PARTNER_LEGENDE,
+  boardPartnerStatus,
+  partnerStatusTexte,
+  type PartnerSicht,
+} from "./partnerSicht";
 import { SessionDrawer } from "./SessionDrawer";
 import {
   SLOT_STATUS_ORDER,
@@ -72,6 +80,8 @@ export function Board({
   slots,
   backlog,
   stats,
+  stageDays = [],
+  partner,
   labels,
   locale,
   t,
@@ -113,6 +123,15 @@ export function Board({
   slots: BoardSlot[];
   backlog: BacklogSession[];
   stats: Stats[];
+  /** Öffnungszeiten der Bühnen am gezeigten Tag (LEAD-033) — `loadBoard` liefert sie. */
+  stageDays?: readonly BoardStageDay[];
+  /**
+   * Partner-Sicht (LEAD-035/036/037), nur aus dem Partner-Portal: die eigenen
+   * Bühnen zeigen den Partner-Status, das Schubfach fragt „Veröffentlichen“ an
+   * und ordnet Gäste zu. Fremde Bühnen stehen dann ohne internen Status da —
+   * die Legende erklärt nur, was der Partner auch deuten soll.
+   */
+  partner?: PartnerSicht;
   labels: BoardLabels;
   locale: Locale;
   t: ProgrammeStrings;
@@ -227,6 +246,32 @@ export function Board({
   );
 
   const gridHeight = (windowEnd - windowStart) * PX_PER_MIN;
+
+  // LEAD-033: Öffnungszeiten je Bühne und was davon im Raster geschlossen ist.
+  const oeffnungen = useMemo(
+    () => new Map(stages.map((s) => [s.id, oeffnung(s, stageDays, day)])),
+    [day, stageDays, stages],
+  );
+  const zuJeBuehne = useMemo(
+    () =>
+      new Map(
+        stages.map((s) => [s.id, geschlossen(oeffnungen.get(s.id) ?? null, windowStart, windowEnd)]),
+      ),
+    [oeffnungen, stages, windowEnd, windowStart],
+  );
+  const irgendwoZu = [...zuJeBuehne.values()].some((z) => z.length > 0);
+
+  // LEAD-035: in der Partner-Sicht spricht die Karte die Sprache des Partners.
+  const statusTexte = partner ? partnerStatusTexte(partner.t) : null;
+  const kartenStil = (slot: BoardSlot): { stil: string; stand?: string } => {
+    if (!partner || !statusTexte) {
+      return { stil: SLOT_STATUS_STYLE[slot.slot_status] ?? SLOT_STATUS_STYLE.open };
+    }
+    // Fremde Bühnen: belegt, aber ohne den Status der Programmleitung.
+    if (!eigen(slot.stage_id)) return { stil: SLOT_STATUS_STYLE.open };
+    const stand = boardPartnerStatus(slot, partner.rueckgaben);
+    return { stil: PARTNER_KARTE[stand], stand: statusTexte[stand] };
+  };
 
   const statsByStage = useMemo(
     () => new Map(stats.map((s) => [s.stage_id, s])),
@@ -596,6 +641,33 @@ export function Board({
           )}
         </section>
 
+        {/* Legende über dem Kalender (LEAD-045, Konrad 25.09.): erst lesen, was
+            die Farben heißen, dann planen. In der Partner-Sicht die Stände des
+            Partners (LEAD-035) — dieselben Wörter wie in der Tabelle. */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="ct-eyebrow text-muted">{partner ? partner.t.colStatus : t.legend}</span>
+          {partner && statusTexte
+            ? PARTNER_LEGENDE.map((s) => (
+                <span key={s} className="flex items-center gap-1.5 ct-help">
+                  <span aria-hidden className={cn("inline-block size-3 rounded-sm border", PARTNER_KARTE[s])} />
+                  {statusTexte[s]}
+                </span>
+              ))
+            : SLOT_STATUS_ORDER.map((s) => (
+                <span key={s} className="flex items-center gap-1.5 ct-help">
+                  <span aria-hidden className={cn("inline-block size-3 rounded-sm border", SLOT_STATUS_STYLE[s])} />
+                  {labels.slotStatus[s]}
+                </span>
+              ))}
+          {irgendwoZu && (
+            <span className="flex items-center gap-1.5 ct-help">
+              <span aria-hidden className="inline-block size-3 rounded-sm border border-border bg-hatch-closed" />
+              {t.closedLegend}
+            </span>
+          )}
+          {pending && <span className="ct-help ml-auto">{t.saving}</span>}
+        </div>
+
         {/* Board. Es scrollt in sich, damit die Kopfzeile mit den Bühnen
             oben und die Zeitachse links stehen bleiben (LEAD-015) — `sticky`
             greift nur innerhalb des Containers, der scrollt, und ein
@@ -614,6 +686,7 @@ export function Board({
               {spalten.map((s) => {
                 const st = statsByStage.get(s.id);
                 const istEigen = eigen(s.id);
+                const o = oeffnungen.get(s.id) ?? null;
                 return (
                   <div
                     key={s.id}
@@ -636,6 +709,13 @@ export function Board({
                         : `0 ${t.slotsUsed}`}
                       {s.changeover_min > 0 && ` · ${t.changeover} ${s.changeover_min}′`}
                     </div>
+                    {/* LEAD-033: die Öffnungszeit als Text — die Schraffur im
+                        Raster wiederholt sie nur. */}
+                    {o && (
+                      <div className={cn("ct-help tabular-nums", istEigen && "text-white")}>
+                        {t.openHours.replace("{zeit}", oeffnungText(o, { from: t.openFrom, until: t.openUntil }))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -674,6 +754,7 @@ export function Board({
                   stage={stage}
                   editable={bearbeitbar(stage.id)}
                   own={eigen(stage.id)}
+                  zu={zuJeBuehne.get(stage.id) ?? []}
                   windowStart={windowStart}
                   hourMarks={hourMarks}
                   onDoubleClick={(e) => onColumnDoubleClick(stage, e)}
@@ -681,10 +762,13 @@ export function Board({
                   {(slotsByStage.get(stage.id) ?? []).map((serverSlot) => {
                     const v = serverSlot.session_id === null ? vorlaeufig[serverSlot.slot_id] : undefined;
                     const slot = v ? { ...serverSlot, ...v } : serverSlot;
+                    const { stil, stand } = kartenStil(slot);
                     return (
                     <SlotCard
                       key={slot.slot_id}
                       slot={slot}
+                      stil={stil}
+                      stand={stand}
                       editable={bearbeitbar(slot.stage_id)}
                       timezone={timezone}
                       windowStart={windowStart}
@@ -718,20 +802,6 @@ export function Board({
         </DragOverlay>
       </DndContext>
 
-      {/* Legende */}
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="ct-eyebrow text-muted">{t.legend}</span>
-        {SLOT_STATUS_ORDER.map((s) => (
-          <span key={s} className="flex items-center gap-1.5 ct-help">
-            <span
-              className={cn("inline-block size-3 rounded-sm border", SLOT_STATUS_STYLE[s])}
-            />
-            {labels.slotStatus[s]}
-          </span>
-        ))}
-        {pending && <span className="ct-help ml-auto">{t.saving}</span>}
-      </div>
-
       {/* Bestätigung: veröffentlichter Slot wird verschoben */}
       {confirmMove && (
         <ConfirmDialog
@@ -751,8 +821,12 @@ export function Board({
           eventId={currentEventId}
           sessionId={editing.sessionId}
           slotId={editing.slotId}
-          canPublish={canPublish}
+          // In der Partner-Sicht wird nie freigegeben, auch nicht von einem
+          // Admin, der hier als Partner arbeitet (LEAD-016) — dort steht die
+          // Anfrage an die Programmleitung (LEAD-036).
+          canPublish={canPublish && !partner}
           hostOrgId={hostOrgId}
+          partnerSicht={partner}
           slotInfo={(() => {
             // Was der Drawer oben zeigt (LEAD-019): der Slot ist hier schon
             // geladen, ein zweiter Abruf im Drawer wäre doppelte Arbeit. Ein
@@ -817,6 +891,7 @@ function StageColumn({
   stage,
   editable,
   own,
+  zu,
   windowStart,
   hourMarks,
   onDoubleClick,
@@ -827,6 +902,8 @@ function StageColumn({
   editable: boolean;
   /** Die eigene Bühne einer Bühnen-Sicht: mit Rahmen, wie ihr Kopf (LEAD-015). */
   own: boolean;
+  /** Außerhalb der Öffnungszeit (LEAD-033), Minuten seit Mitternacht. */
+  zu: { von: number; bis: number }[];
   windowStart: number;
   hourMarks: number[];
   onDoubleClick: (e: React.MouseEvent<HTMLDivElement>) => void;
@@ -848,6 +925,17 @@ function StageColumn({
         !editable && "bg-canvas",
       )}
     >
+      {/* Geschlossen: schraffiert als Form, nicht nur als Farbe (Design-Regel 4).
+          Die Zeit steht als Text im Kopf der Spalte; die Fläche bleibt
+          klickbar, die Datenbank entscheidet über den Doppelklick. */}
+      {zu.map((b) => (
+        <div
+          key={b.von}
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bg-hatch-closed"
+          style={{ top: (b.von - windowStart) * PX_PER_MIN, height: (b.bis - b.von) * PX_PER_MIN }}
+        />
+      ))}
       {hourMarks.map((m) => (
         <div
           key={m}
@@ -862,6 +950,8 @@ function StageColumn({
 
 function SlotCard({
   slot,
+  stil,
+  stand,
   editable,
   timezone,
   windowStart,
@@ -872,6 +962,10 @@ function SlotCard({
   onResize,
 }: {
   slot: BoardSlot;
+  /** Rand und Grund der Karte: Slot-Status, in der Partner-Sicht der Partner-Status (LEAD-035). */
+  stil: string;
+  /** Partner-Status als Text — die Farbe allein trägt keine Information. */
+  stand?: string;
   /**
    * Ob die Sicht diese Bühne bearbeiten lässt (LEAD-016). Zusammen mit
    * `slot.can_edit` — **beides** muss gelten. `can_edit` kommt aus der
@@ -930,7 +1024,7 @@ function SlotCard({
       style={slotBox(startMin, endMin, windowStart)}
       className={cn(
         "absolute inset-x-1 overflow-hidden rounded-ct-sm border ct-help",
-        SLOT_STATUS_STYLE[slot.slot_status] ?? SLOT_STATUS_STYLE.open,
+        stil,
         isDragging && "opacity-40",
         resizing && "ring-2 ring-accent",
         ziehbar ? "cursor-grab" : "cursor-default",
@@ -955,7 +1049,8 @@ function SlotCard({
       >
         <div className="flex items-center gap-1 tabular-nums text-muted">
           {formatMinutes(startMin)}–{formatMinutes(endMin)}
-          {slot.publish_status === "published" && (
+          {stand && <span className="truncate text-ink">· {stand}</span>}
+          {!stand && slot.publish_status === "published" && (
             <span aria-label={labels.publishStatus.published} title={labels.publishStatus.published}>
               ●
             </span>
