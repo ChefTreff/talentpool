@@ -1,4 +1,5 @@
--- 00NN · LEAD-039 Schnitt 2: Verlauf der Speaker-Pipeline (Notizen, Kontakte, Aufgaben mit Frist)
+-- 0190 · Verlauf und Aufgaben der Speaker-Pipeline: speaker_activity (LEAD-039 Schnitt 2, LEAD-025, LEAD-027)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925092258.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.

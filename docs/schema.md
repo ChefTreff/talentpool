@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 09:15 UTC · 100 Tabellen · 6 Views · 538 Funktionen
+> Stand: 2026-09-25 09:23 UTC · 101 Tabellen · 6 Views · 546 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1433,6 +1433,24 @@ Zeitfenster auf einer Bühne. Genau eine Session kann darauf liegen. Farbe im Bo
 | `after` | jsonb |  |  |  |  |
 | `reason` | text |  |  |  |  |
 
+### `speaker_activity`
+Verlauf der Speaker-Pipeline (LEAD-039 Schnitt 2): Notizen, Kontakte, Aufgaben mit Frist. Intern wie das Profil: lesen mit can_manage_speaker, schreiben nur über die RPCs.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `profile_id` | uuid | ja |  | `speaker_profile.id` |  |
+| `kind` | text | ja |  |  | Vokabular speaker_activity_kind: note, email, call, meeting, message, task. |
+| `body` | text | ja |  |  |  |
+| `occurred_at` | timestamp with time zone | ja | `now()` |  | Wann es war — nachtragbar; bei Aufgaben der Zeitpunkt des Anlegens. |
+| `due_on` | date |  |  |  | Frist einer Aufgabe (Wiedervorlage); gesetzt genau bei kind = task. |
+| `assignee_person_id` | uuid |  |  | `person.id` | Wer die Aufgabe erledigt; Standard die schreibende Person. |
+| `done_at` | timestamp with time zone |  |  |  |  |
+| `done_by` | uuid |  |  | `person.id` |  |
+| `author_person_id` | uuid |  |  | `person.id` | Wer den Eintrag geschrieben hat (current_person_id()); bleibt nach dem Löschen einer Person leer. |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `speaker_asset`
 Dateien im Bucket speaker-assets: Präsentationen (Versionen, late, Technik-Check, Slid@Home), Fotos, Sonstiges.
 
@@ -1965,6 +1983,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | Funktion | Parameter |
 |---|---|
 | `active_roles` | args: ? |
+| `add_speaker_activity` | p_data: jsonb, p_profile_id: uuid |
 | `admin_products` | p_only_active: boolean |
 | `admin_section_overrides` | args: ? |
 | `ai_take_slot` | p_kind: text, p_limit: integer |
@@ -2058,6 +2077,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_reception` | p_id: uuid |
 | `delete_regie_cue` | p_id: uuid |
 | `delete_session_asset` | p_id: uuid |
+| `delete_speaker_activity` | p_id: uuid |
 | `delete_speaker_asset` | p_id: uuid |
 | `delete_speaker_task` | p_task_id: uuid |
 | `delete_stage` | p_id: uuid |
@@ -2371,6 +2391,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
 | `set_slides_release` | p_asset_id: uuid, p_release: boolean |
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
+| `set_speaker_activity_done` | p_done: boolean, p_id: uuid |
 | `set_speaker_contacts` | p_buddy: uuid, p_lead: uuid, p_profile_id: uuid |
 | `set_speaker_pipeline` | p_profile_id: uuid, p_reason: text, p_status: text |
 | `set_speaker_stage_candidates` | p_profile_id: uuid, p_stage_ids: uuid[] |
@@ -2417,6 +2438,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shuttle_bookings_admin` | p_edition_id: uuid |
 | `slot_has_published_session` | p_slot_id: uuid |
 | `speaker_access_revoke` | p_edition_id: uuid, p_person_id: uuid |
+| `speaker_activities` | p_profile_id: uuid |
+| `speaker_activity_assignee_ok` | p_person: uuid, p_profile_id: uuid |
+| `speaker_activity_edit_right` | p_id: uuid |
+| `speaker_activity_overview` | p_edition_id: uuid |
 | `speaker_asset_path_allowed` | p_name: text |
 | `speaker_detail` | p_profile_id: uuid |
 | `speaker_is_confirmed` | p_status: text |
@@ -2459,6 +2484,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `update_partner_onboarding` | p_data: jsonb, p_edition_id: uuid, p_org_id: uuid |
 | `update_session_tech` | p_session_id: uuid, p_tech: jsonb |
 | `update_speaker` | p_data: jsonb, p_profile_id: uuid |
+| `update_speaker_activity` | p_data: jsonb, p_id: uuid |
 | `upload_partner_document` | p_filename: text, p_kind: text, p_org_edition_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `upsert_booth` | p_data: jsonb, p_edition_id: uuid, p_org_id: uuid |
 | `upsert_company_tour` | p_data: jsonb |

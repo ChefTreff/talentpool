@@ -116,6 +116,7 @@
 | Welle 6 · 0187 | **Moderation durch Stage Leads: board_search_people mit p_moderation (LEAD-042)** (`20260925090527`, `v6_moderation_stage_leads`; Details im Migrationskopf) | — |
 | Welle 6 · 0188 | **Standbühnen- und Talk-Gäste: stage_guest mit Sperren, Gästeliste, Zuordnung (PART-081, PART-088)** (`20260925091057`, `v6_standbuehnen_gaeste`; Details im Migrationskopf) | — |
 | Welle 6 · 0189 | **Company-Tour-Sektion im Admin: Tour ↔ Session, Stopps, has_admin_section (ADM-058, ADM-052)** (`20260925091507`, `v6_company_tours_admin`; Details im Migrationskopf) | — |
+| Welle 6 · 0190 | **Verlauf und Aufgaben der Speaker-Pipeline: speaker_activity (LEAD-039 Schnitt 2, LEAD-025, LEAD-027)** (`20260925092258`, `v6_lead039_verlauf`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

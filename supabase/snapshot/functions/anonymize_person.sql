@@ -116,6 +116,10 @@ begin
     recommended_format = null, contact_via = null, outreach_channel = null
    where person_id = p_person_id;
   delete from speaker_stage_candidate where profile_id = any (v_profile);
+  -- LEAD-039 Schnitt 2: der Verlauf über die Person geht mit. Einträge, die sie
+  -- selbst über andere geschrieben hat, bleiben; sie zeigen dann den
+  -- anonymisierten Namen.
+  delete from speaker_activity where profile_id = any (v_profile);
   -- Titel und Beschreibung sind der veröffentlichte Programmpunkt und gehören
   -- zur Veranstaltung, nicht zur Person; die interne Notiz nicht.
   update session_submission  set notes = null      where speaker_profile_id = any (v_profile);

@@ -1,5 +1,5 @@
 create or replace function manager_speakers(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(id uuid, person_id uuid, first_name text, last_name text, title text, email text, job_title text, organization_name text, speaker_type text, pipeline_status text, owner_person_id uuid, owner_name text, reception_eligible boolean, travel_costs_covered boolean, travel_costs_approved boolean, hospitality_status text, hotel_tier text, pass_type text, lounge_access boolean, invited_at timestamp with time zone, confirmed_at timestamp with time zone, declined_at timestamp with time zone, decline_reason text, assistant_name text, sessions jsonb, next_open jsonb, updated_at timestamp with time zone, internal_notes text, category text, topic_cluster text, topic_role text, priority text, recommended_format text, contact_via text, outreach_channel text, stage_candidates jsonb)
+ RETURNS TABLE(id uuid, person_id uuid, first_name text, last_name text, title text, email text, job_title text, organization_name text, speaker_type text, pipeline_status text, owner_person_id uuid, owner_name text, reception_eligible boolean, travel_costs_covered boolean, travel_costs_approved boolean, hospitality_status text, hotel_tier text, pass_type text, lounge_access boolean, invited_at timestamp with time zone, confirmed_at timestamp with time zone, declined_at timestamp with time zone, decline_reason text, assistant_name text, sessions jsonb, next_open jsonb, updated_at timestamp with time zone, internal_notes text, category text, topic_cluster text, topic_role text, priority text, recommended_format text, contact_via text, outreach_channel text, stage_candidates jsonb, open_tasks integer, next_task jsonb, last_activity_at timestamp with time zone)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -37,7 +37,22 @@ begin
            coalesce((select jsonb_agg(jsonb_build_object('stage_id', st.id, 'name', st.name)
                                       order by st.sort_order, st.name)
                        from speaker_stage_candidate c join stage st on st.id = c.stage_id
-                      where c.profile_id = sp.id), '[]'::jsonb)
+                      where c.profile_id = sp.id), '[]'::jsonb),
+           -- LEAD-039 Schnitt 2: Verlauf — offene Aufgaben, die früheste als
+           -- nächster Schritt, und wann zuletzt etwas geschah (eine Aufgabe zählt
+           -- erst, wenn sie erledigt ist).
+           (select count(*)::integer from speaker_activity a
+             where a.profile_id = sp.id and a.kind = 'task' and a.done_at is null),
+           (select jsonb_build_object('id', a.id, 'body', a.body, 'due_on', a.due_on,
+                                      'assignee_person_id', a.assignee_person_id,
+                                      'assignee_name', (select nullif(btrim(coalesce(z.first_name, '') || ' ' || coalesce(z.last_name, '')), '')
+                                                          from person z where z.id = a.assignee_person_id))
+              from speaker_activity a
+             where a.profile_id = sp.id and a.kind = 'task' and a.done_at is null
+             order by a.due_on, a.created_at
+             limit 1),
+           (select max(case when a.kind = 'task' then a.done_at else a.occurred_at end)
+              from speaker_activity a where a.profile_id = sp.id)
     from speaker_profile sp
     join person p on p.id = sp.person_id
     left join vocab_term v on v.vocabulary = 'speaker_pipeline' and v.key = sp.pipeline_status
