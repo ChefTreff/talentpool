@@ -66,12 +66,16 @@ begin
 
   -- ---- 01 Liste
   begin
+    -- Nur O, X und Y bewerten: T kann live schon weitere Profile betreuen
+    -- (etwa den verwalteten TEST-Speaker aus den Testdaten des Partner-Chats).
     execute $q$select string_agg(case when p.own then 'O' when p.profile_id = $1 then 'X' when p.profile_id = $2 then 'Y' else '?' end
-                                 || case when p.selected then '*' else '' end, ',' order by p.own desc)
-                 from my_speaker_profiles() p where p.edition_id = $3$q$
-      into v_txt using v_sx, v_sy, v_ed;
-    -- O zuerst und gewählt; X und Y folgen (nach Name).
-    v_txt := case when v_txt = 'O*,X,Y' then 'ok' else 'FEHLER ' || coalesce(v_txt, 'leer') end;
+                                 || case when p.selected then '*' else '' end, ',' order by p.own desc, p.last_name)
+                 from my_speaker_profiles() p where p.profile_id in ($1, $2, $4)$q$
+      into v_txt using v_sx, v_sy, v_ed, v_so;
+    -- O gewählt; X und Y folgen (nach Name). Und das eigene steht ganz oben.
+    execute 'select ((select p.profile_id from my_speaker_profiles() p limit 1) = $1)::int' into v_n using v_so;
+    v_txt := case when v_txt = 'O*,X,Y' and v_n = 1 then 'ok'
+                  else 'FEHLER ' || coalesce(v_txt, 'leer') || ' eigenes oben=' || coalesce(v_n::text, 'null') end;
   exception when others then v_txt := 'FEHLER ' || sqlstate || ' ' || sqlerrm;
   end;
   r1 := v_txt;
