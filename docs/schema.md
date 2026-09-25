@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 07:09 UTC · 98 Tabellen · 6 Views · 522 Funktionen
+> Stand: 2026-09-25 07:28 UTC · 98 Tabellen · 6 Views · 525 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1979,6 +1979,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_judge_hack_team` | p_team_id: uuid |
 | `can_manage_speaker` | p_profile_id: uuid |
 | `can_manage_speaker_leads` | args: ? |
+| `can_plan_regie` | p_stage_id: uuid |
 | `can_read_checkin_stats` | p_edition_id: uuid |
 | `can_request_shuttle` | p_profile_id: uuid |
 | `can_search_board` | p_event_id: uuid |
@@ -2117,6 +2118,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `kb_search` | p_audience: text, p_edition_id: uuid, p_language: text, p_limit: integer, p_query: text |
 | `kb_take_question_slot` | p_limit: integer |
 | `kb_ts_config` | p_language: text |
+| `lead_regie_slots` | args: ? |
 | `leave_hack_team` | p_edition_id: uuid |
 | `list_external_refs` | p_object_type: text, p_system: text |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
@@ -2324,6 +2326,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_primary_email` | p_email_id: uuid |
 | `set_product_external_ref` | p_external_id: text, p_sku: text, p_system: text |
 | `set_reception_rsvp` | p_guests: integer, p_note: text, p_reception_id: uuid, p_status: text |
+| `set_regie_anweisungen` | p_data: jsonb, p_slot_id: uuid |
 | `set_session_asset` | p_data: jsonb, p_id: uuid |
 | `set_session_partner` | p_org_id: uuid, p_session_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |

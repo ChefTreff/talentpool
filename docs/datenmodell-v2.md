@@ -108,6 +108,7 @@
 | Welle 6 · 0179 | **Standbühne: Zeitfenster und Partner-Status (PART-079, PART-080)** (`20260925070346`, `v6_standbuehne_regeln`; Details im Migrationskopf) | — |
 | Welle 6 · 0180 | **Programm lesen: Entwürfe nur intern und für die eigenen Bühnen (LEAD-032, F10)** (`20260925070949`, `v6_programm_lesen`; Details im Migrationskopf) | — |
 | Welle 6 · 0181 | **session_mail_vars nur intern (Security-Check Teil 2, F11)** (`20260925071823`, `v6_mail_vars_intern`; Details im Migrationskopf) | — |
+| Welle 6 · 0182 | **Regieanweisungen der Stage Leads; Regieplan nur Produktion und Team (LEAD-031, LEAD-012)** (`20260925072814`, `v6_regie_anweisungen`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

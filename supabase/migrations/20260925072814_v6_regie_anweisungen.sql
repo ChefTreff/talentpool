@@ -1,4 +1,5 @@
--- Vorschlag ohne Nummer · Welle 6 · Regieanweisungen der Stage Leads als Liste; Regieplan nur intern (LEAD-031)
+-- 0182 · Regieanweisungen der Stage Leads; Regieplan nur Produktion und Team (LEAD-031, LEAD-012)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925072814.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
