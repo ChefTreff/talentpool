@@ -4428,6 +4428,8 @@
     "presentationTitle": "Präsentation",
     "previewInvoice": "Auslagenrechnung ansehen",
     "profileLead": "Das erscheint im Programm und auf der Bühnenkarte.",
+    "profileOwn": "{name} (du)",
+    "profileSwitch": "Du arbeitest für",
     "profileTitle": "Profil",
     "qrAlt": "QR-Code deines Tickets",
     "qrHint": "Am Einlass scannen lassen. Der Code gilt nur für dich — bitte nicht weitergeben.",

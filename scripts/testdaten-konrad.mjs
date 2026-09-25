@@ -36,6 +36,9 @@
  *                                   Konrad ist der Kontakt, an den die Mails gehen;
  *                                   braucht v6_talk_speaker_zugang und
  *                                   v6_speaker_mail_weiche sowie den Schritt buehne)
+ *   … --apply --nur=assistenz      (SPK-071: Konrad als Assistenz eines TEST-Speakers
+ *                                   mit eigener Session — zweites Profil für die
+ *                                   Profilwahl im Speaker-Portal; braucht buehne)
  *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage, mit
  *                                   Einordnung, Bühne in Frage und Verlauf samt
  *                                   überfälliger Aufgabe — LEAD-039)
@@ -1298,6 +1301,79 @@ async function verwalteterSpeaker(me, ed) {
 }
 
 /**
+ * SPK-071: ein zweites Profil für die Profilwahl im Speaker-Portal. Eine
+ * TEST-Person mit `+zztest-assistenz`-Adresse (Konrads Postfach) als
+ * bestätigter Speaker; Konrad ist ihre Assistenz mit Zugang (Kontakt der Art
+ * `assistant`). Dazu `TEST — Assistenz-Talk` auf der Stage-Lead-Testbühne
+ * (Freitag 17:00–17:30, in ihren Öffnungszeiten) — so zeigt „Session“ nach dem
+ * Wechsel eine andere Liste als beim eigenen Profil. Braucht den Schritt
+ * `buehne`; `--remove` nimmt die TEST-Person mit Profil und Kontakt weg.
+ */
+const assistenzAdresse = () => email.replace("@", "+zztest-assistenz@");
+
+async function assistenzProfil(me, ed) {
+  const ziel = await summit(ed);
+  const tag = ziel?.tage?.[0];
+  if (!ziel || !tag) return fail("Assistenz-Profil", "kein Summit mit Tagen");
+  const { data: st } = await admin.from("stage").select("id").eq("slug", "zz-test-stagelead").maybeSingle();
+  if (!st) return fail("Assistenz-Profil", "Stage-Lead-Testbühne fehlt — zuerst --nur=buehne");
+
+  await write("Assistenz-Profil (TEST-Person, Profil, Konrad als Assistenz)", async () => {
+    const { data: personId, error } = await admin.rpc("testdaten_person", {
+      p_first_name: "TEST", p_last_name: "Assistenz", p_email: assistenzAdresse(),
+    });
+    if (error) return { data: null, error };
+    const profil = await admin.from("speaker_profile").upsert({
+      person_id: personId, edition_id: ed.id, speaker_type: "panelist", pipeline_status: "confirmed",
+      confirmed_at: new Date().toISOString(), owner_person_id: me.id, internal_notes: MARK,
+    }, { onConflict: "person_id,edition_id" }).select("id").single();
+    if (profil.error) return profil;
+    const { data: da } = await admin.from("speaker_contact").select("id")
+      .eq("profile_id", profil.data.id).eq("person_id", me.id).maybeSingle();
+    if (da) return { data: da, error: null };
+    // Zugang verlangt Person und Adresse (`speaker_contact_access_chk`).
+    return admin.from("speaker_contact").insert({
+      profile_id: profil.data.id, kind: "assistant", person_id: me.id,
+      first_name: me.first_name, last_name: me.last_name, email,
+      has_access: true, consent_at: new Date().toISOString().slice(0, 10),
+    }).select("id").single();
+  });
+
+  const titel = `${PREFIX}Assistenz-Talk`;
+  const start = new Date(`${tag.day_date}T17:00:00+02:00`).toISOString();
+  const ende = new Date(`${tag.day_date}T17:30:00+02:00`).toISOString();
+  await write(`${titel} (Freitag 17:00)`, async () => {
+    const { data: adresse } = await admin.from("person_email").select("person_id").eq("email", assistenzAdresse()).maybeSingle();
+    if (!adresse) return { data: null, error: { message: "TEST-Person fehlt" } };
+    const { data: da } = await admin.from("session").select("id, slot_id")
+      .eq("event_id", ziel.id).eq("title_de", titel).maybeSingle();
+    let slotId = da?.slot_id ?? null;
+    if (!slotId) {
+      const { data: sl, error } = await admin.from("slot").insert({
+        stage_id: st.id, event_day_id: tag.id, start_at: start, end_at: ende,
+        slot_type: "content", status: "confirmed_title_open", internal_title: titel,
+      }).select("id").single();
+      if (error) return { data: null, error };
+      slotId = sl.id;
+    }
+    let sessionId = da?.id ?? null;
+    if (!sessionId) {
+      const { data, error } = await admin.from("session").insert({
+        event_id: ziel.id, slot_id: slotId, format: "talk", title_de: titel, title_en: titel,
+        description_de: "Testsession für die Profilwahl (SPK-071).", language: "de",
+        access_mode: "open", publish_status: "draft",
+      }).select("id").single();
+      if (error) return { data: null, error };
+      sessionId = data.id;
+    }
+    return admin.from("session_speaker").upsert(
+      { session_id: sessionId, person_id: adresse.person_id, role: "speaker", confirmed: true },
+      { onConflict: "session_id,person_id,role" },
+    );
+  });
+}
+
+/**
  * PART-081: ein Gast der Standbühne — eine TEST-Person mit `+zztest`-Adresse
  * (Konrads eigenes Postfach, über `testdaten_person` aus 0183), als Gast der
  * Test-Organisation mit Einwilligung, am ersten TEST-Programmpunkt der
@@ -1751,6 +1827,7 @@ const SCHRITTE = {
   buehne: stageLeadBuehne,
   standstatus: standStatus,
   verwaltet: verwalteterSpeaker,
+  assistenz: assistenzProfil,
   pipeline: pipelineEintraege,
   summit: umzugSummit,
   tour: companyTour,
@@ -1901,6 +1978,12 @@ async function remove(me) {
   await write("Verwalteter TEST-Speaker entfernt (Profil und Kontakt gehen mit)", async () => {
     const { data: adresse } = await admin.from("person_email").select("person_id")
       .eq("email", verwaltetAdresse()).maybeSingle();
+    if (!adresse) return { data: null, error: null };
+    return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  await write("Assistenz-Testprofil entfernt (Profil und Kontakt gehen mit)", async () => {
+    const { data: adresse } = await admin.from("person_email").select("person_id")
+      .eq("email", assistenzAdresse()).maybeSingle();
     if (!adresse) return { data: null, error: null };
     return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
   });
