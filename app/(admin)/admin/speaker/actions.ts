@@ -153,6 +153,22 @@ export async function setContacts(
   return { ok: true, data: undefined };
 }
 
+/**
+ * Über wen die Speaker-Mails gehen (SPK-072, PART-091): ein Kontakt des
+ * Profils mit Zugang, oder `null` für die Speakerin selbst. Recht, Prüfung des
+ * Kontakts und Audit-Eintrag liegen in `set_speaker_mail_via`.
+ */
+export async function setMailVia(profileId: string, contactId: string | null): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_speaker_mail_via", {
+    p_profile_id: profileId,
+    p_contact_id: contactId,
+  });
+  if (error) return fail(error);
+  refresh(profileId);
+  return { ok: true, data: undefined };
+}
+
 /** Einladung ins Portal. Geht erst ab „bestätigt" (P0001 `not_confirmed`). */
 export async function inviteSpeaker(profileId: string): Promise<AdminResult> {
   const supabase = await client();
