@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { ladeStopps, saveStop, saveTour, type Stopp } from "./actions";
+import { ladeStopps, saveStop, saveTour, saveTourLead, type Stopp } from "./actions";
 
 export type AdminTour = {
   tour_id: string;
@@ -32,7 +32,10 @@ export type AdminTour = {
 export type Optionen = {
   edition_id: string | null;
   days: { id: string; label: string }[];
-  leads: { id: string; name: string }[];
+  leads: {
+    id: string; name: string; email: string | null; phone: string | null;
+    role_label_de: string | null; role_label_en: string | null; contract_consent_at: string | null;
+  }[];
   sessions: { id: string; title: string; format: string }[];
   orgs: { id: string; name: string }[];
 };
@@ -68,6 +71,18 @@ const LEERE_TOUR: TourEntwurf = {
   lead_contact_id: "", capacity: "", notes: "", session_id: "",
 };
 
+type LeadEntwurf = {
+  id: string;
+  display_name: string;
+  email: string;
+  phone: string;
+  role_label_de: string;
+  contract_consent_at: string;
+};
+const LEERE_BEGLEITUNG: LeadEntwurf = {
+  id: "", display_name: "", email: "", phone: "", role_label_de: "", contract_consent_at: "",
+};
+
 type StoppEntwurf = {
   id: string;
   tour_id: string;
@@ -98,6 +113,7 @@ export function CompanyTours({
   const [stoppsVon, setStoppsVon] = useState<AdminTour | null>(null);
   const [stopps, setStopps] = useState<Stopp[] | null>(null);
   const [stopp, setStopp] = useState<StoppEntwurf | null>(null);
+  const [lead, setLead] = useState<LeadEntwurf | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
@@ -113,6 +129,7 @@ export function CompanyTours({
     });
 
   const setT = <K extends keyof TourEntwurf>(k: K, v: TourEntwurf[K]) => setTour((o) => (o ? { ...o, [k]: v } : o));
+  const setL = <K extends keyof LeadEntwurf>(k: K, v: LeadEntwurf[K]) => setLead((o) => (o ? { ...o, [k]: v } : o));
   const setS = <K extends keyof StoppEntwurf>(k: K, v: StoppEntwurf[K]) => setStopp((o) => (o ? { ...o, [k]: v } : o));
 
   const stoppsOeffnen = (x: AdminTour) => {
@@ -236,6 +253,33 @@ export function CompanyTours({
                   options={optionen.leads.map((l) => ({ value: l.id, label: l.name }))}
                   onChange={(e) => setT("lead_contact_id", e.target.value)}
                 />
+                {/* ADM-059: anlegen und pflegen, ohne den Abschnitt zu verlassen —
+                    wer nur Company Tours hat, kommt sonst nirgends an die
+                    Begleitung heran. */}
+                <span className="mt-2 flex gap-2">
+                  <Button
+                    type="button" size="sm" variant="ghost"
+                    onClick={() => { setFehler(null); setLead({ ...LEERE_BEGLEITUNG }); }}
+                  >
+                    {t.addLead}
+                  </Button>
+                  {tour.lead_contact_id && (
+                    <Button
+                      type="button" size="sm" variant="ghost"
+                      onClick={() => {
+                        const l = optionen.leads.find((x) => x.id === tour.lead_contact_id);
+                        if (!l) return;
+                        setFehler(null);
+                        setLead({
+                          id: l.id, display_name: l.name, email: l.email ?? "", phone: l.phone ?? "",
+                          role_label_de: l.role_label_de ?? "", contract_consent_at: l.contract_consent_at ?? "",
+                        });
+                      }}
+                    >
+                      {t.editLead}
+                    </Button>
+                  )}
+                </span>
               </Field>
               <Field label={t.fieldCapacity} htmlFor="ct-cap">
                 <Input id="ct-cap" inputMode="numeric" value={tour.capacity} onChange={(e) => setT("capacity", e.target.value)} />
@@ -258,6 +302,55 @@ export function CompanyTours({
             <div className="flex gap-2">
               <Button type="submit" loading={pending}>{common.save}</Button>
               <Button type="button" variant="secondary" onClick={() => setTour(null)}>{common.cancel}</Button>
+            </div>
+          </form>
+        </Drawer>
+      )}
+
+      {lead && (
+        <Drawer open error={fehler} onClose={() => setLead(null)} title={lead.id ? t.editLead : t.addLead}>
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setFehler(null);
+              start(async () => {
+                const res = await saveTourLead({
+                  ...(lead.id ? { id: lead.id } : { edition_id: optionen.edition_id }),
+                  display_name: lead.display_name,
+                  email: lead.email,
+                  phone: lead.phone,
+                  role_label_de: lead.role_label_de,
+                  contract_consent_at: lead.contract_consent_at,
+                });
+                if (!res.ok) { melden(res.key, res.detail); return; }
+                // Frisch angelegt: gleich an der offenen Tour setzen, sonst
+                // müsste man sie hinterher suchen.
+                if (!lead.id) setT("lead_contact_id", res.id);
+                setLead(null);
+              });
+            }}
+          >
+            <Field label={t.fieldLeadName} htmlFor="cl-name" required>
+              <Input id="cl-name" value={lead.display_name} required onChange={(e) => setL("display_name", e.target.value)} />
+            </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={t.fieldLeadEmail} htmlFor="cl-mail" hint={t.fieldLeadEmailHint} required>
+                <Input id="cl-mail" type="email" value={lead.email} required onChange={(e) => setL("email", e.target.value)} />
+              </Field>
+              <Field label={t.fieldLeadPhone} htmlFor="cl-phone" required>
+                <Input id="cl-phone" value={lead.phone} required onChange={(e) => setL("phone", e.target.value)} />
+              </Field>
+              <Field label={t.fieldLeadRole} htmlFor="cl-role" hint={t.fieldLeadRoleHint}>
+                <Input id="cl-role" value={lead.role_label_de} onChange={(e) => setL("role_label_de", e.target.value)} />
+              </Field>
+              <Field label={t.fieldLeadConsent} htmlFor="cl-consent" hint={t.fieldLeadConsentHint}>
+                <Input id="cl-consent" type="date" value={lead.contract_consent_at} onChange={(e) => setL("contract_consent_at", e.target.value)} />
+              </Field>
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" loading={pending}>{common.save}</Button>
+              <Button type="button" variant="secondary" onClick={() => setLead(null)}>{common.cancel}</Button>
             </div>
           </form>
         </Drawer>
