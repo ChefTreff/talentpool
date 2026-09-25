@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  * Spalten nicht in eine einzige quetscht.
  */
 export async function GET(request: Request) {
-  await requireAdminSection("production", "/admin/produktion/bestellungen");
+  await requireAdminSection("productionOrders", "/admin/produktion/bestellungen");
   const supplier = new URL(request.url).searchParams.get("dienstleister")?.trim() || undefined;
   const axes = await loadAxes();
   const rows = axes.editionId ? await loadSuppliers(axes.editionId, supplier) : [];

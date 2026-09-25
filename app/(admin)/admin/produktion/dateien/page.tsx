@@ -4,7 +4,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { ProductionTabs } from "../shell";
 import { loadAxes } from "../load";
 import { DateienView, type EditionFileRow } from "./DateienView";
 
@@ -18,7 +17,7 @@ export const dynamic = "force-dynamic";
  * Bild sein." Wer sie sieht, entscheidet die Zielgruppe am Eintrag.
  */
 export default async function EditionFilesPage() {
-  await requireAdminSection("production", "/admin/produktion/dateien");
+  await requireAdminSection("productionFiles", "/admin/produktion/dateien");
   const { locale, t } = await getI18n("de");
   const axes = await loadAxes();
 
@@ -31,7 +30,6 @@ export default async function EditionFilesPage() {
   return (
     <>
       <PageHeader word={t.admin.words.production} title={t.productionFiles.title} description={t.productionFiles.lead} />
-      <ProductionTabs />
       {!axes.editionId ? (
         <EmptyState
           title={t.productionFiles.emptyTitle}

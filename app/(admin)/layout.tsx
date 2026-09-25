@@ -103,7 +103,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     // Dateien bleiben in der Seite.
     {
       label: nav.sections.production,
-      items: eintrag("production", "/admin/produktion", nav.production),
+      items: [
+        ...eintrag("production", "/admin/produktion", nav.productionRegie),
+        ...eintrag("productionBooths", "/admin/produktion/staende", nav.productionBooths),
+        ...eintrag("productionOrders", "/admin/produktion/bestellungen", nav.productionOrders),
+        ...eintrag("productionFiles", "/admin/produktion/dateien", nav.productionFiles),
+      ],
     },
     // Catering steht für sich: es betrifft Speaker **und** Volunteers, und die
     // Zahlen sind bewusst ohne Personenbezug (Migration 0100).

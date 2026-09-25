@@ -2,21 +2,19 @@ import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ProductionTabs } from "../shell";
 import { BoothChecklist } from "../BoothChecklist";
 import { loadAxes, loadBooths } from "../load";
 
 export const dynamic = "force-dynamic";
 
 export default async function BoothsPage() {
-  await requireAdminSection("production", "/admin/produktion/staende");
+  await requireAdminSection("productionBooths", "/admin/produktion/staende");
   const { locale, t } = await getI18n("de");
   const axes = await loadAxes();
 
   return (
     <>
       <PageHeader word={t.admin.words.production} title={t.production.boothTitle} description={t.production.boothLead} />
-      <ProductionTabs />
       {!axes.editionId ? (
         <EmptyState title={t.production.emptyBooths} description={t.production.emptyBoothsBody} />
       ) : (
