@@ -864,3 +864,5 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **Architektur-Session nach der Pause:** Merges und Migrationen (nächste freie Nummer 0208); CSP-Logs nach Konrads Klickrunde, dann `CSP_ENFORCE=true`; Security-Check Teil 3 (Stage-Lead-Schritt in der Rollen-Probe nach PORT3, Storage-Policies je Rolle, K-14); K-36 F5 Import der Speaker-Arbeitstabelle vor dem 01.11.
 
 - **K-13 (Konrad, 25.09. Mittag):** CSP-Klickrunde und Scharfschalten erst, wenn alles gebaut ist — bis dahin bleibt die Richtlinie Report-Only.
+
+- **Durchgang für Konrads Feedback-Runde:** `docs/konrad-durchgang-2026-09-25.md` — alle offenen und zurückgestellten Punkte mit Kern, Empfehlung, Aufwandsklasse und Frage; Konrad antwortet je Kennung (bauen/später/streichen). Ziel: nächste Woche alles fertig. K-13 CSP erst nach dem Bauende.
