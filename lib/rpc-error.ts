@@ -256,6 +256,9 @@ const BUSINESS_KEYS = new Set([
   "speaker_has_access",
   "no_ops_contact",
   "contact_is_speaker",
+  // Wünsche je Tour-Stopp (Vorschlag v6_tour_wuensche, PART-092)
+  "too_many_wishes",
+  "application_not_shared",
   // Partner-Kontakte bearbeiten (Vorschlag v6_kontakte_bearbeiten_cc, PART-062)
   "contact_not_editable",
   "email_in_use",

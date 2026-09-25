@@ -29,6 +29,7 @@
  *                                   v6_talk_speaker_zugang und den Schritt partner)
  *   … --apply --nur=tour-bewerbung (PART-046: Bewerbungen auf die TEST-Tour ohne Mail,
  *                                   Konrad zugesagt, TEST-Person ohne Einwilligung;
+ *                                   PART-092: Konrads Bewerbung als Wunsch des Stopps;
  *                                   braucht den Schritt tour)
  *   … --apply --nur=masterclass    (PART-045: TEST-Masterclass im TEST-Raum statt auf
  *                                   der Standbühne, beantragte eigene Frage, Speakerin;
@@ -1618,6 +1619,24 @@ async function tourBewerbung(me, ed) {
       { onConflict: "session_id,person_id" },
     ),
   );
+
+  // PART-092: Konrads Bewerbung ist Wunsch des Stopps der Test-Organisation (braucht v6_tour_wuensche).
+  const { data: tour } = await admin.from("company_tour").select("id").eq("session_id", se.id).maybeSingle();
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  const { data: stopp } = tour && org
+    ? await admin.from("company_tour_stop").select("id").eq("tour_id", tour.id).eq("host_org_id", org.id).limit(1).maybeSingle()
+    : { data: null };
+  const { data: eigene } = await admin.from("application").select("id")
+    .eq("session_id", se.id).eq("person_id", me.id).maybeSingle();
+  if (stopp && eigene) {
+    await write("Konrads Bewerbung als Wunsch des Test-Stopps", () =>
+      admin.from("company_tour_wish").upsert(
+        { stop_id: stopp.id, application_id: eigene.id, created_by: me.id },
+        { onConflict: "stop_id,application_id" },
+      ),
+    );
+  }
 }
 
 /**
