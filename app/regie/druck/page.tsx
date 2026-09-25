@@ -74,6 +74,7 @@ export default async function RegieDruckPage({
               <th className="ct-label px-2 py-1.5">{p.colModeration}</th>
               <th className="ct-label px-2 py-1.5">{p.colRegie}</th>
               <th className="ct-label px-2 py-1.5">{p.colBackstage}</th>
+              <th className="ct-label px-2 py-1.5">{p.colOnStage}</th>
               <th className="ct-label px-2 py-1.5">{p.colMobiliar}</th>
             </tr>
           </thead>
@@ -103,6 +104,22 @@ export default async function RegieDruckPage({
                 <td className="ct-small px-2 py-2">{c.moderation ?? ""}</td>
                 <td className="ct-small px-2 py-2">{c.regie ?? ""}</td>
                 <td className="ct-small px-2 py-2">{c.backstage ?? ""}</td>
+                {/* Was die Stage Leads je Slot angeben (LEAD-012, LEAD-031) —
+                    auf Papier, weil Technik und Stage Hands mit dem Ausdruck
+                    arbeiten. Leere Angaben fallen weg. */}
+                <td className="ct-small px-2 py-2">
+                  {c.people_on_stage && <span className="block">{c.people_on_stage}</span>}
+                  {text(c.mic_assignments) && (
+                    <span className="block">
+                      {p.colMic}: {text(c.mic_assignments)}
+                    </span>
+                  )}
+                  {text(c.media) && (
+                    <span className="block">
+                      {p.colMedia}: {text(c.media)}
+                    </span>
+                  )}
+                </td>
                 <td className="ct-small px-2 py-2">
                   {c.mobiliar ?? ""}
                   {c.notes && <span className="ct-help block">{c.notes}</span>}
@@ -114,4 +131,9 @@ export default async function RegieDruckPage({
       )}
     </main>
   );
+}
+
+/** Freitext aus einem jsonb-Feld der Regie (`{ text }`). */
+function text(v: Record<string, unknown> | null | undefined): string {
+  return typeof v?.text === "string" ? v.text : "";
 }

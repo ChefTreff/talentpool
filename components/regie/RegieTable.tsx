@@ -9,6 +9,7 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { deleteCue, saveCue } from "./actions";
+import { TechAnsage } from "./TechAnsage";
 import type { OpenSlot, RegieCue } from "./types";
 
 type Strings = Record<string, string>;
@@ -103,6 +104,8 @@ export function RegieTable({
               <Th>{t.colModeration}</Th>
               <Th>{t.colRegie}</Th>
               <Th>{t.colPeopleOnStage}</Th>
+              <Th>{t.colMic}</Th>
+              <Th>{t.colMedia}</Th>
               <Th>{t.colBackstage}</Th>
               <Th>{t.colMobiliar}</Th>
               <Th>{t.colNotes}</Th>
@@ -176,6 +179,29 @@ function CueRow({
     notes: cue.notes ?? "",
   });
 
+  // `mic_assignments` und `media` sind jsonb; der Text steht unter `text`,
+  // andere Schlüssel darin bleiben beim Speichern erhalten.
+  const [json, setJson] = useState({
+    mic_assignments: textOf(cue.mic_assignments),
+    media: textOf(cue.media),
+  });
+  const jsonText = (key: "mic_assignments" | "media", label: string) => (
+    <Input
+      aria-label={label}
+      className="w-full min-w-[9rem]"
+      value={json[key]}
+      disabled={pending}
+      onChange={(e) => setJson((d) => ({ ...d, [key]: e.target.value }))}
+      onBlur={() => {
+        if (json[key] === textOf(cue[key])) return;
+        const rest = { ...(cue[key] ?? {}) } as Record<string, unknown>;
+        delete rest.text;
+        const wert = json[key].trim();
+        run(saveCue({ id: cue.cue_id, [key]: wert ? { ...rest, text: wert } : rest }), t.saved);
+      }}
+    />
+  );
+
   const field = (key: keyof typeof draft, label: string, wide = false) => (
     <Input
       aria-label={label}
@@ -223,6 +249,10 @@ function CueRow({
       {/* Kommt seit dem 23.09. von hier und nicht mehr vom Speaker
           (SPK-029, LEAD-012). */}
       <Td>{field("people_on_stage", t.colPeopleOnStage)}</Td>
+      {/* Mikrofon und Medien: dieselben Felder, die die Stage Leads in ihrer
+          Liste pflegen (LEAD-031) — die Produktion kann sie hier überschreiben. */}
+      <Td>{jsonText("mic_assignments", t.colMic)}</Td>
+      <Td>{jsonText("media", t.colMedia)}</Td>
       <Td>{field("backstage", t.colBackstage)}</Td>
       <Td>{field("mobiliar", t.colMobiliar)}</Td>
       <Td>{field("notes", t.colNotes, true)}</Td>
@@ -240,32 +270,8 @@ function CueRow({
   );
 }
 
-/**
- * Was der Speaker angemeldet hat, in einer Tabellenzelle.
- *
- * Kurz gehalten: die Regie überfliegt die Zeile, sie liest sie nicht. Leere
- * Felder fallen weg, damit die Spalte bei Cues ohne Ansage wirklich leer ist
- * und nicht nach einer Angabe aussieht.
- */
-function TechAnsage({ tech, t }: { tech: Record<string, string | boolean> | null; t: Strings }) {
-  // Seit SPK-067 stehen hier auch Wahrheitswerte (eigener Laptop, Video mit
-  // Ton). `.trim()` auf `true` würde die ganze Regieseite abstürzen lassen —
-  // deshalb erst nach Art trennen: ein Ja wird „ja", Text bleibt Text, alles
-  // andere fällt heraus.
-  const eintraege = Object.entries(tech ?? {}).flatMap(([key, v]): [string, string][] => {
-    if (v === true) return [[key, t.techYes ?? "ja"]];
-    if (typeof v === "string" && v.trim() !== "") return [[key, v]];
-    return [];
-  });
-  if (eintraege.length === 0) return <span className="ct-help text-muted">—</span>;
-  return (
-    <dl className="flex flex-col gap-0.5">
-      {eintraege.map(([key, wert]) => (
-        <div key={key} className="flex gap-1">
-          <dt className="ct-help shrink-0 font-semibold">{t[`tech_${key}`] ?? key}:</dt>
-          <dd className="ct-help">{wert}</dd>
-        </div>
-      ))}
-    </dl>
-  );
+/** Der Freitext aus einem jsonb-Feld der Regie (`{ text }`), sonst leer. */
+function textOf(v: Record<string, unknown> | null | undefined): string {
+  const text = v?.text;
+  return typeof text === "string" ? text : "";
 }
