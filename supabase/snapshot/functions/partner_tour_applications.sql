@@ -1,38 +1,9 @@
--- Company Tour im Partner-Portal: Bewerbungen auf die Tour lesen (PART-046)
---
--- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
---
--- Anlass: PART-046 (Konrad 17./18.09., D5) und die Reihenfolge vom 25.09.: „der Partner sieht seinen
--- Stopp und die Bewerbungen, die Verknüpfung pflegt das Team“. Stopp und Antworten gibt es seit 0133
--- (`partner_company_tour`, `partner_update_tour_stop`), die Session der Tour seit 0173
--- (`company_tour.session_id`, TAL-003), die Pflege im Admin seit 0189.
---
--- **Was fehlte:** ein Leseweg für die Bewerbungen. Die Session einer Tour gehört keiner Organisation
--- (`host_org_id` leer — eine Tour hat mehrere Stopps), also greifen `partner_applications` und
--- `can_decide_session` für den Partner nicht, und das ist richtig so: **entschieden wird für die ganze
--- Tour vom Team**, nicht je Stopp. Der Partner liest nur.
---
--- `partner_tour_applications(p_stop_id)`:
--- * Recht wie bei den eigenen Formaten: `partner_can_edit` der Organisation, die den Stopp hält
---   (Hauptkontakt, weitere Kontakte, Zeichnungsberechtigte; dazu das Partner-Team).
--- * Personenbezug nur mit `consent_share` — dieselbe Regel wie `applications_for_session` für Partner:
---   ohne Einwilligung bleibt die Zeile stehen (damit die Zahl stimmt), aber ohne Name, Antworten, Profil.
--- * Antworten kommen **mit Fragetext** (`label_de`/`label_en` je Antwort, Reihenfolge der Fragen): die
---   Fragen der Tour-Session sind für den Partner nicht lesbar, solange sie nicht veröffentlicht ist, und
---   ein Schlüssel wie eine UUID sagt niemandem etwas.
--- * Jeder Abruf steht im Audit (`application.partner_view`, wie `partner_applications`, mit `tour`).
--- * Ohne verknüpfte Session: keine Zeilen, kein Fehler.
-
-set search_path = public, extensions;
-
 create or replace function partner_tour_applications(p_stop_id uuid)
- returns table (id uuid, person_id uuid, display_name text, status text, rank integer, answers jsonb,
-                consent_share boolean, confirm_by timestamptz, confirmed_at timestamptz,
-                decided_at timestamptz, created_at timestamptz, profile jsonb)
- language plpgsql
- security definer
- set search_path = public, extensions
-as $$
+ RETURNS TABLE(id uuid, person_id uuid, display_name text, status text, rank integer, answers jsonb, consent_share boolean, confirm_by timestamp with time zone, confirmed_at timestamp with time zone, decided_at timestamp with time zone, created_at timestamp with time zone, profile jsonb)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $$
 declare v_st company_tour_stop; v_session uuid; v_n integer;
 begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
@@ -77,10 +48,3 @@ begin
                             when 'shortlisted' then 2 when 'applied' then 3 when 'waitlisted' then 4 else 5 end,
               a.rank nulls last, a.created_at;
 end $$;
-
-comment on function partner_tour_applications(uuid) is
-  'PART-046: Bewerbungen auf die Session der Company Tour, für den Partner eines Stopps (partner_can_edit). Nur lesen — entschieden wird für die ganze Tour vom Team. Personenbezug nur mit consent_share, Antworten mit Fragetext, jeder Abruf im Audit.';
-
-grant execute on function partner_tour_applications(uuid) to authenticated;
-
-select harden_definer_functions();
