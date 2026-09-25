@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Produktion als eigene Abschnitte (ADM-054)
+-- 0197 · Produktion als eigene Admin-Abschnitte: Stände, Bestellungen, Dateien (ADM-054)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925101238.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --

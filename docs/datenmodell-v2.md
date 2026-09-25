@@ -123,6 +123,7 @@
 | Welle 6 · 0194 | **Tour-Begleitung im Company-Tour-Abschnitt: Gate in upsert_edition_contact (ADM-059)** (`20260925094908`, `v6_tour_leads`; Details im Migrationskopf) | — |
 | Welle 6 · 0195 | **Standbühnen-Fenster = Öffnungszeiten der Bühne, Rückfall Tagesrahmen (PART-090, ersetzt PART-079)** (`20260925095914`, `v6_standbuehne_oeffnungszeiten`; Details im Migrationskopf) | — |
 | Welle 6 · 0196 | **Begleitungen im Company-Tour-Abschnitt löschen, Folge im Audit (ADM-060)** (`20260925100242`, `v6_begleitungen`; Details im Migrationskopf) | — |
+| Welle 6 · 0197 | **Produktion als eigene Admin-Abschnitte: Stände, Bestellungen, Dateien (ADM-054)** (`20260925101238`, `v6_produktion_abschnitte`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
