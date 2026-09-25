@@ -21,6 +21,8 @@
  *   … --apply --nur=ticket,fotos   (nur diese Schritte, siehe `SCHRITTE`)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist)
  *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage)
+ *   … --apply --nur=summit         (LEAD-014: Teststandbühne und Test-Keynote
+ *                                   vom Hackathon aufs Summit, nichts gelöscht)
  *   … --apply --nur=ticket-zurueck (SPK-068: Freiticket zurueck auf `requested`,
  *                                   damit das Ausstellen im Admin pruefbar ist)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
@@ -91,6 +93,20 @@ async function edition() {
     .limit(1)
     .maybeSingle();
   return data;
+}
+
+/**
+ * Das Summit der Edition mit seinen Tagen (LEAD-014). Dort stehen die Bühnen,
+ * also gehören auch Test-Keynote und Teststandbühne dorthin. Früher nahmen die
+ * Schritte die **früheste** Veranstaltung der Edition — das ist seit dem AI
+ * Hackathon (einen Tag vor dem Summit) der Hackathon, und Konrad fand seine
+ * Standbühne dort.
+ */
+async function summit(ed) {
+  const { data } = await admin.from("event").select("id, event_day(id, day_date)")
+    .eq("edition_id", ed.id).eq("format_tag", "summit").order("start_date").limit(1).maybeSingle();
+  if (!data) return null;
+  return { id: data.id, tage: [...(data.event_day ?? [])].sort((a, b) => a.day_date.localeCompare(b.day_date)) };
 }
 
 /**
@@ -349,6 +365,9 @@ async function apply(me, ed) {
   // `/partner/bewerber` nur ihren Leerzustand — richtig gebaut, aber nicht
   // beurteilbar.
   if (orgId) await ticketAllocation(me, ed, orgId);
+  // Vor dem Anlegen: sonst entstünde am Summit eine zweite Test-Keynote neben
+  // der alten am Hackathon (LEAD-014).
+  await umzugSummit(me, ed);
   await ownSession(me, ed);
   // SPK-063/064: ohne sie zeigen `/speaker/tickets` nur „wird ausgestellt"
   // und „Deine Bilder" nur den Leerzustand.
@@ -395,9 +414,7 @@ async function ticketAllocation(me, ed, orgId) {
  * Inhalte, Frist und Upload statt „Noch keine Session".
  */
 async function ownSession(me, ed) {
-  const { data: ev } = await admin
-    .from("event").select("id").eq("edition_id", ed.id).order("start_date").limit(1).maybeSingle();
-  const eventId = ev?.id ?? ed.id;
+  const eventId = (await summit(ed))?.id ?? ed.id;
   await write("Session mit Konrad als Speaker", async () => {
     const { data: da } = await admin.from("session").select("id")
       .eq("event_id", eventId).eq("title_de", `${PREFIX}Keynote`).maybeSingle();
@@ -484,9 +501,7 @@ async function speakerTicket(me, ed) {
  * Mails aus.
  */
 async function stagePhotos(me, ed) {
-  const { data: ev } = await admin
-    .from("event").select("id").eq("edition_id", ed.id).order("start_date").limit(1).maybeSingle();
-  const eventId = ev?.id ?? ed.id;
+  const eventId = (await summit(ed))?.id ?? ed.id;
   const { data: se } = await admin.from("session").select("id")
     .eq("event_id", eventId).eq("title_de", `${PREFIX}Keynote`).maybeSingle();
   if (!se) {
@@ -571,9 +586,7 @@ function platzhalterSvg({ n, w, h }) {
  * eine globale Rolle genügt der Funktion nicht.
  */
 async function partnerStage(me, ed, orgId, validTo) {
-  const { data: ev } = await admin
-    .from("event").select("id").eq("edition_id", ed.id).order("start_date").limit(1).maybeSingle();
-  const eventId = ev?.id ?? ed.id;
+  const eventId = (await summit(ed))?.id ?? ed.id;
   await write("Standbühne der Test-Organisation", async () => {
     const { data: da } = await admin.from("stage").select("id")
       .eq("event_id", eventId).eq("slug", "zz-test-standbuehne").maybeSingle();
@@ -594,9 +607,7 @@ async function partnerStage(me, ed, orgId, validTo) {
  * (siehe Kopf).
  */
 async function formatApplication(me, ed, orgId) {
-  const { data: ev } = await admin
-    .from("event").select("id").eq("edition_id", ed.id).order("start_date").limit(1).maybeSingle();
-  const eventId = ev?.id ?? ed.id;
+  const eventId = (await summit(ed))?.id ?? ed.id;
 
   // Veröffentlichen verlangt einen Slot (Trigger „publish requires a slot") —
   // zu Recht: ein Format ohne Bühne und Zeit hat im Programm nichts verloren.
@@ -695,10 +706,9 @@ async function ticketZurueck(me, ed) {
  */
 async function stageLeadBuehne(me, ed) {
   const validTo = ed.end_date ? new Date(new Date(ed.end_date).getTime() + 86400000).toISOString() : null;
-  const { data: summit } = await admin.from("event").select("id, event_day(id, day_date)")
-    .eq("edition_id", ed.id).eq("format_tag", "summit").order("start_date").limit(1).maybeSingle();
-  const tage = [...(summit?.event_day ?? [])].sort((a, b) => a.day_date.localeCompare(b.day_date));
-  if (!summit || tage.length === 0) return fail("Stage-Lead-Bühne", "kein Summit mit Tagen");
+  const ziel = await summit(ed);
+  const tage = ziel?.tage ?? [];
+  if (!ziel || tage.length === 0) return fail("Stage-Lead-Bühne", "kein Summit mit Tagen");
 
   const { data: da } = await admin.from("stage").select("id").eq("slug", "zz-test-stagelead").maybeSingle();
   let stageId = da?.id ?? null;
@@ -708,7 +718,7 @@ async function stageLeadBuehne(me, ed) {
       return;
     }
     const { data, error } = await admin.from("stage").insert({
-      event_id: summit.id, name: `${PREFIX}Bühne Stage Lead`, slug: "zz-test-stagelead",
+      event_id: ziel.id, name: `${PREFIX}Bühne Stage Lead`, slug: "zz-test-stagelead",
       type: "side", capacity: 80, default_duration_min: 30, active: true,
     }).select("id").single();
     if (error) return fail("Stage-Lead-Bühne", error);
@@ -718,23 +728,32 @@ async function stageLeadBuehne(me, ed) {
     note("Stage-Lead-Bühne", "schon da");
   }
 
+  // In der Programmzeit (Freitag ab 13, Samstag ab 12 Uhr). Bis 25.09. lagen
+  // die Slots um 10 Uhr und standen damit ausserhalb des Board-Rasters.
   const slots = [
-    { tag: tage[0], von: "10:00", bis: "10:30", titel: `${PREFIX}Stage-Lead-Talk` },
-    { tag: tage[0], von: "11:00", bis: "11:45", titel: null },
-    { tag: tage[tage.length - 1], von: "10:00", bis: "10:30", titel: `${PREFIX}Stage-Lead-Panel` },
+    { tag: tage[0], von: "15:00", bis: "15:30", titel: `${PREFIX}Stage-Lead-Talk` },
+    { tag: tage[0], von: "16:00", bis: "16:45", titel: null },
+    { tag: tage[tage.length - 1], von: "14:00", bis: "14:30", titel: `${PREFIX}Stage-Lead-Panel` },
   ];
   for (const sl of slots) {
     // Ortszeit Hamburg im April: UTC+2.
     const start = new Date(`${sl.tag.day_date}T${sl.von}:00+02:00`).toISOString();
     const ende = new Date(`${sl.tag.day_date}T${sl.bis}:00+02:00`).toISOString();
+    const titel = sl.titel ?? `${PREFIX}offener Slot`;
     await write(`Slot ${sl.tag.day_date} ${sl.von}`, async () => {
-      const { data: vorhanden } = await admin.from("slot").select("id")
-        .eq("stage_id", stageId).eq("event_day_id", sl.tag.id).eq("start_at", start).maybeSingle();
+      // Am Titel wiederfinden, nicht an der Uhrzeit: so zieht ein älterer Lauf
+      // mit anderen Zeiten nach, statt einen zweiten Slot zu bekommen.
+      const { data: vorhanden } = await admin.from("slot").select("id, start_at, end_at")
+        .eq("stage_id", stageId).eq("event_day_id", sl.tag.id).eq("internal_title", titel).maybeSingle();
       let slotId = vorhanden?.id ?? null;
+      if (slotId && (Date.parse(vorhanden.start_at) !== Date.parse(start) || Date.parse(vorhanden.end_at) !== Date.parse(ende))) {
+        const { error } = await admin.from("slot").update({ start_at: start, end_at: ende }).eq("id", slotId);
+        if (error) return { data: null, error };
+      }
       if (!slotId) {
         const { data, error } = await admin.from("slot").insert({
           stage_id: stageId, event_day_id: sl.tag.id, start_at: start, end_at: ende,
-          slot_type: "content", status: "open", internal_title: sl.titel ?? `${PREFIX}offener Slot`,
+          slot_type: "content", status: "open", internal_title: titel,
         }).select("id").single();
         if (error) return { data: null, error };
         slotId = data.id;
@@ -743,7 +762,7 @@ async function stageLeadBuehne(me, ed) {
       const { data: se } = await admin.from("session").select("id").eq("slot_id", slotId).maybeSingle();
       if (se) return { data: se.id, error: null };
       return admin.from("session").insert({
-        event_id: summit.id, slot_id: slotId, format: "talk",
+        event_id: ziel.id, slot_id: slotId, format: "talk",
         title_de: sl.titel, title_en: sl.titel, language: "de", access_mode: "open", publish_status: "draft",
       }).select("id").single();
     });
@@ -788,6 +807,100 @@ async function pipelineEintraege(me, ed) {
   }
 }
 
+/**
+ * LEAD-014: zieht aufs Summit, was frühere Läufe auf die früheste Veranstaltung
+ * gelegt haben (den Hackathon): die Teststandbühne mit allen Slots und den
+ * Sessions darin, dazu Test-Sessions ohne Slot. **Gelöscht wird nichts** —
+ * auch die Slots und Sessions, die Konrad im Board auf der Teststandbühne
+ * angelegt hat, ziehen mit, zur selben Uhrzeit am entsprechenden Summit-Tag
+ * (erster Tag auf den ersten, zweiter auf den zweiten).
+ *
+ * Reihenfolge wegen `slot_consistency_check` — Bühne und Tag eines Slots
+ * müssen zur selben Veranstaltung gehören, geprüft wird beim Schreiben des
+ * Slots: erst die Bühne, dann jeder Slot mit seinem neuen Tag, dann die
+ * Sessions. Regie-Zeilen der Bühne (aus den Regie-Walkthroughs, teils ohne
+ * Slot) ziehen um denselben Tagesversatz mit. Hängt ein Tagesrahmen
+ * (`stage_day`) an der Bühne, bricht der Schritt ab: den legt nur jemand von
+ * Hand an, und dann soll auch jemand hinsehen.
+ */
+async function umzugSummit(me, ed) {
+  const ziel = await summit(ed);
+  if (!ziel || ziel.tage.length === 0) return fail("Umzug aufs Summit", "kein Summit mit Tagen");
+
+  const { data: buehne } = await admin.from("stage").select("id, event_id")
+    .eq("slug", "zz-test-standbuehne").neq("event_id", ziel.id).maybeSingle();
+  /** Slots, die mit der Bühne umziehen — ihre Sessions gehen im selben Zug mit. */
+  const mitgezogen = new Set();
+  if (!buehne) {
+    note("Teststandbühne am Summit", "schon da oder nicht angelegt");
+  } else {
+    const [{ data: alteTage }, { data: slots }, { data: cues }, { data: rahmen }] = await Promise.all([
+      admin.from("event_day").select("id, day_date").eq("event_id", buehne.event_id).order("day_date"),
+      admin.from("slot").select("id, event_day_id, start_at, end_at").eq("stage_id", buehne.id),
+      admin.from("regie_cue").select("id, event_day_id, cue_start, cue_end").eq("stage_id", buehne.id),
+      admin.from("stage_day").select("id").eq("stage_id", buehne.id),
+    ]);
+    if ((rahmen ?? []).length > 0) {
+      return fail("Teststandbühne aufs Summit", "Tagesrahmen an der Bühne — von Hand prüfen");
+    }
+    const tagIndex = new Map((alteTage ?? []).map((t, i) => [t.id, i]));
+    /** Neuer Tag und Versatz in Millisekunden für einen alten Tag der Bühne. */
+    const umTag = (eventDayId) => {
+      const i = tagIndex.get(eventDayId) ?? 0;
+      const alt = (alteTage ?? [])[i];
+      const neu = ziel.tage[Math.min(i, ziel.tage.length - 1)];
+      return { neu, versatz: Date.parse(`${neu.day_date}T00:00:00Z`) - Date.parse(`${alt.day_date}T00:00:00Z`) };
+    };
+    await write(`Teststandbühne aufs Summit (${(slots ?? []).length} Slots ziehen mit)`, () =>
+      admin.from("stage").update({ event_id: ziel.id }).eq("id", buehne.id),
+    );
+    for (const sl of slots ?? []) {
+      const { neu, versatz } = umTag(sl.event_day_id);
+      await write(`Slot ${sl.start_at.slice(0, 16)} → ${neu.day_date}`, () =>
+        admin.from("slot").update({
+          event_day_id: neu.id,
+          start_at: new Date(Date.parse(sl.start_at) + versatz).toISOString(),
+          end_at: new Date(Date.parse(sl.end_at) + versatz).toISOString(),
+        }).eq("id", sl.id),
+      );
+    }
+    for (const cue of cues ?? []) {
+      const { neu, versatz } = umTag(cue.event_day_id);
+      await write(`Regie-Zeile → ${neu.day_date}`, () =>
+        admin.from("regie_cue").update({
+          event_day_id: neu.id,
+          cue_start: new Date(Date.parse(cue.cue_start) + versatz).toISOString(),
+          cue_end: new Date(Date.parse(cue.cue_end) + versatz).toISOString(),
+        }).eq("id", cue.id),
+      );
+    }
+    const slotIds = (slots ?? []).map((sl) => sl.id);
+    for (const id of slotIds) mitgezogen.add(id);
+    if (slotIds.length > 0) {
+      await write("Sessions der Teststandbühne aufs Summit", () =>
+        admin.from("session").update({ event_id: ziel.id }).in("slot_id", slotIds),
+      );
+    }
+  }
+
+  // Test-Sessions ohne Slot (etwa die Keynote, bevor sie jemand platziert hat).
+  const { data: events } = await admin.from("event").select("id").eq("edition_id", ed.id).neq("id", ziel.id);
+  const andere = (events ?? []).map((e) => e.id);
+  if (andere.length === 0) return;
+  const { data: lose } = await admin.from("session").select("id, title_de, slot_id")
+    .in("event_id", andere).like("title_de", `${PREFIX}%`);
+  for (const se of lose ?? []) {
+    if (se.slot_id && mitgezogen.has(se.slot_id)) continue;
+    if (se.slot_id) {
+      fail(`${se.title_de} aufs Summit`, "hängt an einem Slot einer anderen Bühne — von Hand prüfen");
+      continue;
+    }
+    await write(`${se.title_de} aufs Summit`, () =>
+      admin.from("session").update({ event_id: ziel.id }).eq("id", se.id),
+    );
+  }
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   ticket: speakerTicket,
@@ -795,6 +908,7 @@ const SCHRITTE = {
   "ticket-zurueck": ticketZurueck,
   buehne: stageLeadBuehne,
   pipeline: pipelineEintraege,
+  summit: umzugSummit,
 };
 
 async function teilschritte(me, ed, namen) {
