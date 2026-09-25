@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Eine Wahrheit fuer „bestaetigt" (QS-049): event_app_speakers, Zeitstempel-Trigger
+-- 0185 · Eine Wahrheit für „bestätigt“: Export nach Pipeline-Status, Trigger für confirmed_at (QS-049)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925084741.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --

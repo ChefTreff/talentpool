@@ -27,7 +27,14 @@ begin
       left join person_email pe on pe.person_id = p.id and pe.is_primary
       left join organization o on o.id = sp.org_id
       left join speaker_asset a on a.profile_id = sp.id and a.kind = 'photo' and a.is_current
-     where sp.confirmed_at is not null
+     -- QS-049: **eine** Wahrheit fuer „bestaetigt" — der Pipeline-Status.
+     -- Vorher stand hier `confirmed_at is not null`, waehrend der Ticket-Trigger
+     -- `speaker_is_confirmed(pipeline_status)` fragte. Solange nur
+     -- `set_speaker_pipeline` schreibt, faellt das nicht auf; jeder Weg daneben
+     -- (Testdaten, Altdaten-Import) trennt die beiden **lautlos**: der Speaker
+     -- bekommt ein Ticket und fehlt in der Event-App. Gefunden am 25.09.2026
+     -- bei der vivenu-Kettenpruefung — der Export war leer.
+     where speaker_is_confirmed(sp.pipeline_status)
        and sp.declined_at is null
        and (p_edition_id is null or sp.edition_id = p_edition_id)
        and (p_edition_id is not null or e.swapcard_event_id is not null)

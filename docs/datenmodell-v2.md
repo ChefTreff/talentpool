@@ -111,6 +111,7 @@
 | Welle 6 · 0182 | **Regieanweisungen der Stage Leads; Regieplan nur Produktion und Team (LEAD-031, LEAD-012)** (`20260925072814`, `v6_regie_anweisungen`; Details im Migrationskopf) | — |
 | Welle 6 · 0183 | **testdaten_person: Testperson mit primärer Adresse in einer Transaktion (nur service_role, nur +zztest)** (`20260925074058`, `v6_testdaten_person`; Details im Migrationskopf) | — |
 | Welle 6 · 0184 | **Einordnung der Speaker-Pipeline und Bühnen in Frage (LEAD-039 Schnitt 1, LEAD-026)** (`20260925084552`, `v6_lead039_einordnung`; Details im Migrationskopf) | — |
+| Welle 6 · 0185 | **Eine Wahrheit für „bestätigt“: Export nach Pipeline-Status, Trigger für confirmed_at (QS-049)** (`20260925084741`, `v6_bestaetigt_eine_wahrheit`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
