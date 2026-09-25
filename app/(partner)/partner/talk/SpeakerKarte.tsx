@@ -23,6 +23,10 @@ type Strings = Record<string, string>;
  *
  * Dasselbe gilt für eine Person, die der Partner nur über ihre Mailadresse
  * zugeordnet hat — sie gab es im Portal schon, ihre Angaben gehören ihr.
+ *
+ * **Verwaltet der Partner den Slot** (PART-091), läuft die Kommunikation über
+ * seinen Operations-Kontakt: die Karte sagt das bei jedem Speaker dazu, damit
+ * niemand auf eine Mail des Speakers wartet, die nie kommt.
  */
 export function SpeakerKarte({
   speaker,
@@ -54,6 +58,7 @@ export function SpeakerKarte({
   });
 
   const darfPflegen = canEdit && speaker.can_edit;
+  const kontakt = speaker.mail_contact_name;
 
   function speichern() {
     startSaving(async () => {
@@ -80,7 +85,11 @@ export function SpeakerKarte({
         <h3 className="ct-h3 text-ink">{speaker.display_name || t.unnamed}</h3>
         <div className="flex flex-wrap gap-2">
           {speaker.confirmed && <Badge tone="success">{t.confirmed}</Badge>}
-          {!speaker.can_edit && <Badge tone="neutral">{t.ownsData}</Badge>}
+          {kontakt ? (
+            <Badge tone="accent">{t.managedBadge}</Badge>
+          ) : (
+            !speaker.can_edit && <Badge tone="neutral">{t.ownsData}</Badge>
+          )}
         </div>
       </div>
 
@@ -90,8 +99,9 @@ export function SpeakerKarte({
         </p>
       ) : (
         // Kein ausgegrautes Formular: ein Satz, der die Regel erklärt.
-        <p className="ct-help mt-1">{t.ownsDataBody}</p>
+        <p className="ct-help mt-1">{kontakt ? t.managedOwnsBody.replace("{kontakt}", kontakt) : t.ownsDataBody}</p>
       )}
+      {kontakt && <p className="ct-small mt-2 text-ink">{t.managedNote.replace("{kontakt}", kontakt)}</p>}
 
       {darfPflegen && !offen && (
         <div className="mt-3">
