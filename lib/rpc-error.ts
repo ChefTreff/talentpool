@@ -257,6 +257,14 @@ const BUSINESS_KEYS = new Set([
   "text_too_long",
   "contact_details_not_allowed",
   "stage_not_in_edition",
+  // Verlauf der Speaker-Pipeline (Vorschlag v6_lead039_verlauf, LEAD-039 Schnitt 2);
+  // `text_too_long` steht schon oben.
+  "invalid_activity_kind",
+  "body_required",
+  "due_required",
+  "invalid_assignee",
+  "not_a_task",
+  "activity_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {

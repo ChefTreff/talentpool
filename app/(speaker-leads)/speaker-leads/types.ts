@@ -1,4 +1,5 @@
 import type { Einordnung } from "@/lib/speaker/einordnung";
+import type { VerlaufStand } from "@/lib/speaker/verlauf";
 
 /** Antwort aus `my_manager_scope()`. */
 export type ManagerScope = {
@@ -48,9 +49,10 @@ export type SpeakerSession = {
 /**
  * Zeile aus `manager_speakers()`. Die Einordnung (LEAD-039: Kategorie, Cluster,
  * Thema/Rolle, Prio, Format, Kontakt via, Outreach, Bühnen in Frage) kommt über
- * `Einordnung` dazu.
+ * `Einordnung` dazu, der Stand des Verlaufs (offene Aufgaben, nächster Schritt,
+ * letzte Aktivität — LEAD-039 Schnitt 2) über `VerlaufStand`.
  */
-export type ManagedSpeaker = Einordnung & {
+export type ManagedSpeaker = Einordnung & VerlaufStand & {
   id: string;
   person_id: string;
   first_name: string | null;

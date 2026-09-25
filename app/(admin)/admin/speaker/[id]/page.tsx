@@ -24,7 +24,7 @@ export default async function AdminSpeakerDetail({
   const { id } = await params;
   // Gate je Seite, nicht nur im Layout: Layouts rendern bei Client-Navigation
   // nicht neu.
-  await requireAdminSection("speakers", `/admin/speaker/${id}`);
+  const ctx = await requireAdminSection("speakers", `/admin/speaker/${id}`);
   const { locale, t } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
 
@@ -76,6 +76,9 @@ export default async function AdminSpeakerDetail({
         })),
       }}
       te={t.speakerEinordnung}
+      meId={ctx.personId ?? ""}
+      verlaufArten={vgroup(vocab, "speaker_activity_kind")}
+      tv={t.speakerVerlauf}
       dateLocale={t.meta.dateLocale}
       word={t.admin.words.speakers}
       t={t.adminSpeaker}

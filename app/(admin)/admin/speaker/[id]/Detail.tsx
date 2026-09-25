@@ -27,6 +27,7 @@ import {
 } from "../actions";
 import { KontakteCard } from "@/components/speaker/KontakteCard";
 import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
+import { Verlauf } from "@/components/speaker/Verlauf";
 import {
   buehnenGeaendert,
   einordnungAenderungen,
@@ -77,10 +78,13 @@ export function SpeakerDetailView({
   contacts,
   labels,
   einordnungOptionen,
+  meId,
+  verlaufArten,
   dateLocale,
   word,
   t,
   te,
+  tv,
   common,
   rpcMessages,
 }: {
@@ -90,12 +94,18 @@ export function SpeakerDetailView({
   labels: Record<string, Record<string, string>>;
   /** Auswahllisten der Einordnung (LEAD-039): Vokabular und Bühnen der Edition. */
   einordnungOptionen: EinordnungOptionen;
+  /** Die eigene Person — Standard-Zuständige neuer Aufgaben im Verlauf. */
+  meId: string;
+  /** Bezeichnungen aus `speaker_activity_kind` (Verlauf, LEAD-039 Schnitt 2). */
+  verlaufArten: Record<string, string>;
   dateLocale: string;
   /** Das kursive Wort des Abschnitts im Seitenkopf (QS-037). */
   word: string;
   t: Strings;
   /** `speakerEinordnung`-Texte — dieselben wie im Fenster der Speaker-Leads. */
   te: Strings;
+  /** `speakerVerlauf`-Texte. */
+  tv: Strings;
   common: { cancel: string; choose: string; none: string; save: string };
   rpcMessages: Record<string, string>;
 }) {
@@ -236,6 +246,7 @@ export function SpeakerDetailView({
           { id: "betreuung", label: t.careTitle },
           { id: "stammdaten", label: t.basicsTitle },
           { id: "einordnung", label: te.title },
+          { id: "verlauf", label: tv.title },
           { id: "bio", label: t.bioTitle },
           { id: "links", label: t.linksTitle },
           { id: "hospitality", label: t.hospitalityTitle },
@@ -477,6 +488,21 @@ export function SpeakerDetailView({
             t={te}
             none={common.none}
             disabled={pending}
+          />
+        </Card>
+
+        {/* Verlauf (LEAD-039 Schnitt 2): speichert je Eintrag sofort und steht
+            deshalb nicht im gemeinsamen Speichern-Balken. */}
+        <Card id="verlauf">
+          <CardHeader title={tv.title} description={tv.hint} />
+          <Verlauf
+            profileId={speaker.id}
+            meId={meId}
+            zustaendige={managers.map((m) => ({ id: m.person_id, name: m.display_name ?? m.email ?? "—" }))}
+            arten={verlaufArten}
+            dateLocale={dateLocale}
+            t={tv}
+            rpcMessages={rpcMessages}
           />
         </Card>
 

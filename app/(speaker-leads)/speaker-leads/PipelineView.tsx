@@ -12,6 +12,7 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { cn } from "@/components/ui/cn";
 import { NewSpeakerDrawer } from "./NewSpeakerDrawer";
 import type { EinordnungOptionen } from "@/components/speaker/Einordnung";
+import { fristStand, heute } from "@/lib/speaker/verlauf";
 import { SpeakerFenster } from "./SpeakerFenster";
 import {
   PIPELINE_BESTAETIGT,
@@ -24,6 +25,11 @@ import {
 } from "./types";
 
 type Strings = Record<string, string>;
+
+/** Hat die früheste offene Aufgabe ihre Frist schon gerissen? (LEAD-039) */
+function istUeberfaellig(s: ManagedSpeaker, heuteIso: string): boolean {
+  return Boolean(s.next_task && fristStand(s.next_task.due_on, heuteIso) === "ueberfaellig");
+}
 
 /** Prio als Marke mit Text (LEAD-039): A hebt sich ab, B und C bleiben ruhig. */
 const PRIO_TONE: Record<string, BadgeTone> = { a: "accent", b: "neutral", c: "neutral" };
@@ -50,6 +56,8 @@ export function PipelineView({
   dateLocale,
   t,
   te,
+  verlaufArten,
+  tv,
   common,
   rpcMessages,
 }: {
@@ -66,6 +74,10 @@ export function PipelineView({
   t: Strings;
   /** `speakerEinordnung`-Texte. */
   te: Strings;
+  /** Bezeichnungen aus `speaker_activity_kind` (Verlauf, LEAD-039 Schnitt 2). */
+  verlaufArten: Record<string, string>;
+  /** `speakerVerlauf`-Texte. */
+  tv: Strings;
   common: {
     cancel: string;
     choose: string;
@@ -88,6 +100,12 @@ export function PipelineView({
   const [creating, setCreating] = useState(false);
 
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "short" });
+  // Einmal je Mount: der Kalendertag hängt an der Uhr, und im Rendern darf
+  // nichts Unreines stehen, sonst gibt der React-Compiler die Memos auf.
+  const [heuteIso] = useState(() => heute());
+  const meId = scope.person_id;
+  const ueberfaellig = (s: ManagedSpeaker) => istUeberfaellig(s, heuteIso);
+  const fristDatum = (iso: string) => dateTime.format(new Date(`${iso}T12:00:00`));
   const name = (s: ManagedSpeaker) =>
     [s.title, s.first_name, s.last_name].filter(Boolean).join(" ") || common.none;
 
@@ -125,11 +143,32 @@ export function PipelineView({
       )
       .sort(
         (a, b) =>
+          // Überfällige Wiedervorlagen oben (LEAD-039): wer eine Frist gerissen
+          // hat, steht vor dem Rest — danach wie bisher nach Stand und Name.
+          Number(istUeberfaellig(b, heuteIso)) - Number(istUeberfaellig(a, heuteIso)) ||
           PIPELINE_ORDER.indexOf(a.pipeline_status) -
             PIPELINE_ORDER.indexOf(b.pipeline_status) ||
           (a.last_name ?? "").localeCompare(b.last_name ?? ""),
       );
-  }, [query, imBereich, status, prio, kategorie, cluster, betreuung]);
+  }, [query, imBereich, status, prio, kategorie, cluster, betreuung, heuteIso]);
+
+  /**
+   * „Fällig“ (LEAD-027): die eigenen Aufgaben, die heute fällig oder überfällig
+   * sind — oben in der Pipeline, mit dem Speaker verknüpft. Gezählt wird die
+   * früheste offene Aufgabe je Speaker (`next_task`).
+   */
+  const faellig = useMemo(
+    () =>
+      imBereich
+        .filter(
+          (s) =>
+            s.next_task &&
+            s.next_task.assignee_person_id === meId &&
+            fristStand(s.next_task.due_on, heuteIso) !== "spaeter",
+        )
+        .sort((a, b) => (a.next_task!.due_on < b.next_task!.due_on ? -1 : 1)),
+    [imBereich, meId, heuteIso],
+  );
 
   // Zähler je Stand — der Überblick, den ein Lead zuerst braucht.
   const counts = useMemo(() => {
@@ -145,6 +184,29 @@ export function PipelineView({
 
   return (
     <div className="flex flex-col gap-4">
+      {faellig.length > 0 && (
+        <section aria-labelledby="pipeline-faellig" className="rounded-ct-lg border border-warning-soft bg-warning-soft p-4">
+          <h2 id="pipeline-faellig" className="ct-label text-ink">
+            {tv.faelligTitle} ({faellig.length})
+          </h2>
+          <p className="ct-help mb-2">{tv.faelligHint}</p>
+          <ul className="flex flex-col gap-1">
+            {faellig.map((s) => (
+              <li key={s.id} className="flex flex-wrap items-center gap-2">
+                <Badge tone={ueberfaellig(s) ? "error" : "warning"}>
+                  {ueberfaellig(s) ? tv.overdue : tv.dueToday}
+                </Badge>
+                <button type="button" onClick={() => setOpenId(s.id)} className="ct-link text-left">
+                  {name(s)}
+                </button>
+                <span className="ct-small text-ink">{s.next_task!.body}</span>
+                {ueberfaellig(s) && <span className="ct-help">{tv.dueOn.replace("{date}", fristDatum(s.next_task!.due_on))}</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* Zähler je Pipeline-Stand */}
       <div className="flex flex-wrap gap-1" role="group" aria-label={t.filterStatus}>
         <button
@@ -264,7 +326,7 @@ export function PipelineView({
             <Th>{t.colStatus}</Th>
             <Th>{te.priority}</Th>
             <Th>{te.title}</Th>
-            <Th>{t.colNote}</Th>
+            <Th>{tv.nextStep}</Th>
             <Th>{t.colOwner}</Th>
           </Thead>
           <Tbody>
@@ -292,6 +354,11 @@ export function PipelineView({
                   {s.invited_at && (
                     <div className="ct-help">
                       {t.invitedOn} {dateTime.format(new Date(s.invited_at))}
+                    </div>
+                  )}
+                  {s.last_activity_at && (
+                    <div className="ct-help">
+                      {tv.lastActivity.replace("{date}", dateTime.format(new Date(s.last_activity_at)))}
                     </div>
                   )}
                 </Td>
@@ -325,11 +392,23 @@ export function PipelineView({
                     <span className="ct-help">{common.none}</span>
                   )}
                 </Td>
-                {/* Vor der Zusage zählt, wo die Ansprache steht — Session und
-                    offene Schritte gehören auf die Seite der Bestätigten. */}
-                <Td className="max-w-80 text-muted">
-                  {s.internal_notes ? (
-                    <span className="line-clamp-2 ct-help">{s.internal_notes}</span>
+                {/* Vor der Zusage zählt, wo die Ansprache steht (LEAD-039): der
+                    nächste Schritt aus dem Verlauf statt der freien Notiz — die
+                    steht weiter im Fenster. */}
+                <Td className="max-w-80">
+                  {s.next_task ? (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="line-clamp-2 ct-small text-ink">{s.next_task.body}</span>
+                      <span className="flex flex-wrap items-center gap-1 ct-help">
+                        {ueberfaellig(s) ? (
+                          <Badge tone="error">{tv.overdue}</Badge>
+                        ) : fristStand(s.next_task.due_on, heuteIso) === "heute" ? (
+                          <Badge tone="warning">{tv.dueToday}</Badge>
+                        ) : null}
+                        {tv.dueOn.replace("{date}", fristDatum(s.next_task.due_on))}
+                        {(s.open_tasks ?? 0) > 1 && ` · ${tv.moreTasks.replace("{n}", String((s.open_tasks ?? 1) - 1))}`}
+                      </span>
+                    </div>
                   ) : (
                     <span className="ct-help">{common.none}</span>
                   )}
@@ -354,6 +433,8 @@ export function PipelineView({
           dateLocale={dateLocale}
           t={t}
           te={te}
+          verlaufArten={verlaufArten}
+          tv={tv}
           common={common}
           rpcMessages={rpcMessages}
           onClose={() => setOpenId(null)}
