@@ -1,3 +1,5 @@
+-- 0198 · Talk-Speaker: eigener Zugang oder Verwaltung durch den Ops-Kontakt, Gäste nur Standbühne (PART-091)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925102305.
 -- Speaker eines gebuchten Slots: eigener Zugang oder Kommunikation über den Operations-Kontakt (PART-091)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.

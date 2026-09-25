@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 09:23 UTC · 101 Tabellen · 6 Views · 546 Funktionen
+> Stand: 2026-09-25 10:23 UTC · 101 Tabellen · 6 Views · 547 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1551,8 +1551,9 @@ Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality,
 | `recommended_format` | text |  |  |  | Vokabular session_format (LEAD-039): unsere Idee während der Akquise. speaker_type bleibt die Rolle auf der Bühne nach der Zusage; beide dürfen abweichen. |
 | `contact_via` | text |  |  |  | Wer den Draht hat oder über wen der Kontakt läuft, bis 200 Zeichen, ohne @ (LEAD-039). Keine Kontaktdaten Dritter — die gehören nach speaker_contact, mit Einverständnis. |
 | `outreach_channel` | text |  |  |  | Vokabular outreach_channel (LEAD-039): der Weg, über den wir die Person ansprechen. |
-| `stage_guest` | boolean | ja | `false` |  | Vom Partner angelegter Gast (PART-081 Standbühne, PART-088 Talk): erscheint in der Event-App als Speaker am veröffentlichten Programmpunkt, bekommt keinen Speaker-Zugang, kein Onboarding, keine Kommunikation, kein Freiticket, keine Lounge. Einlass über ein Ticket aus dem Partner-Kontingent. |
+| `stage_guest` | boolean | ja | `false` |  | Vom Partner angelegter Gast der Standbühne (PART-081; seit PART-091 nur dort, nicht mehr am Talk): erscheint in der Event-App als Speaker am veröffentlichten Programmpunkt, bekommt keinen Speaker-Zugang, kein Onboarding, keine Kommunikation, kein Freiticket, keine Lounge. Einlass über ein Ticket aus dem Partner-Kontingent. |
 | `stage_guest_consent_at` | timestamp with time zone |  |  |  | Wann der Partner bestätigt hat, dass die Person informiert und einverstanden ist, dass Name, Position und Porträt in der Event-App erscheinen (Auflage der Architektur-Session zu K-32). Selbstauskunft, kein Nachweis — das Setzen steht mit Akteur im Audit-Log. |
+| `mail_via_contact_id` | uuid |  |  |  | PART-091: Empfängerregel „Kontakt statt Speaker“. Gesetzt, wenn der Partner alles rund um den Slot verwaltet: alle Speaker-Mails (Einladung, Erinnerungen, Ticket, Präsentation) gehen an diesen Kontakt (speaker_contact dieses Profils, mit has_access), der Speaker selbst bekommt keine. Leer = der Speaker direkt. Entfernen des Kontakts hebt die Regel auf. |
 
 ### `speaker_reception`
 Speaker Reception je Edition (A7.4): Zeit, Ort, Beschreibung, Obergrenze. Anmeldung in speaker_reception_rsvp. Sichtbar nur für Speaker mit reception_eligible.
@@ -2238,7 +2239,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `org_editions_picker` | p_edition_id: uuid |
 | `org_has_booth` | p_org_edition_id: uuid |
 | `org_steps_progress` | p_edition_id: uuid, p_topic: text |
-| `partner_add_speaker` | p_email: text, p_first_name: text, p_last_name: text, p_session_id: uuid |
+| `partner_add_speaker` | p_email: text, p_first_name: text, p_last_name: text, p_session_id: uuid, p_verwaltet: boolean |
 | `partner_add_stage_guest` | p_consent: boolean, p_edition_id: uuid, p_email: text, p_first_name: text, p_job_title: text, p_last_name: text, p_org_id: uuid, p_organization: text |
 | `partner_admin_overview` | p_edition_id: uuid |
 | `partner_applications` | p_session_id: uuid |
@@ -2473,6 +2474,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `ticket_allocations_admin` | p_edition_id: uuid |
 | `ticket_allocations_of_orgs` | p_event_id: uuid, p_org_ids: uuid[] |
 | `ticket_allocations_pending` | args: ? |
+| `ticket_final_mail` | p_t: public.ticket |
 | `ticket_requests_admin` | p_edition_id: uuid |
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
 | `unassign_shift` | p_assignment_id: uuid |
