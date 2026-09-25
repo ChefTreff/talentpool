@@ -1,11 +1,25 @@
 /**
  * Store-Links der Event-App (Swapcard, App „FLS 2026", Konrad 21./24.09.).
  *
- * Vorläufig als Konstante: die Pflege im Admin (wie die Videos) kommt mit
- * PART-072 und ersetzt diese Datei — bis dahin lesen Teilnehmer-Programm
- * (TAL-014) und Partner-Portal dieselben zwei Adressen von hier.
+ * Seit PART-072 pflegt das Team die Adressen im Admin unter Videos
+ * (`portal_link`, Abschnitt „Links“) — die App wird im Store gerade angepasst,
+ * und ein Link im Code bräuchte dafür einen Deploy. Diese Datei nennt nur noch
+ * die Schlüssel; gelesen wird über `loadStoreLinks` (`./load-store-links.ts`),
+ * vom Teilnehmer-Programm (TAL-014) und vom Partner-Portal dieselben zwei
+ * Einträge. Fehlt einer, lässt die Seite den Knopf weg.
  */
-export const EVENT_APP_STORE_LINKS = {
-  appStore: "https://apps.apple.com/de/app/fls-2026/id6479501389",
-  googlePlay: "https://play.google.com/store/apps/details?id=com.swapcard.apps.android.cheftreffdeutsch",
+export const STORE_LINK_SCHLUESSEL = {
+  appStore: "event_app_app_store",
+  googlePlay: "event_app_google_play",
 } as const;
+
+export type StoreLinks = { appStore: string | null; googlePlay: string | null };
+
+/** Aus den Zeilen von `portal_links_for` die beiden Adressen — nur https, sonst `null`. */
+export function storeLinksAus(zeilen: { key: string; url: string | null }[]): StoreLinks {
+  const url = (key: string) => {
+    const wert = zeilen.find((z) => z.key === key)?.url ?? null;
+    return wert && /^https:\/\//.test(wert) ? wert : null;
+  };
+  return { appStore: url(STORE_LINK_SCHLUESSEL.appStore), googlePlay: url(STORE_LINK_SCHLUESSEL.googlePlay) };
+}

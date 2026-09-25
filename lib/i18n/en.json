@@ -3245,6 +3245,7 @@
     "stepsHint": "You tick these off yourselves — we cannot see what happens inside Swapcard.",
     "stepsLead": "{done} of {total} done",
     "stepsTitle": "What to do in the app",
+    "storeLabel": "The app for your phone:",
     "title": "Event app",
     "videoTitle": "How to set up your presence",
     "wikiHint": "More in the wiki under Event app"
@@ -4278,6 +4279,8 @@
     "path_mismatch": "The storage location does not match this file.",
     "person_not_found": "Person not found.",
     "phase_closed": "This ordering phase is over.",
+    "portal_link_key": "The key may only contain lowercase letters, digits and underscores (2 to 60 characters).",
+    "portal_link_url": "The link must start with https:// and be at most 500 characters long.",
     "position_required": "Please enter a position.",
     "positions_required": "Please add at least one receipt line.",
     "primary_exists": "There already is a main contact. Transfer it instead of adding a second one.",
@@ -5202,6 +5205,14 @@
     "fieldUrl": "Loom link",
     "fieldUrlHint": "Loom only. The normal share link is enough — we work out the embed address.",
     "lead": "Every embedded video in one place. Swapping a link here swaps the video everywhere that key is used.",
+    "linkAdd": "Add link",
+    "linkEmpty": "No links yet",
+    "linkEmptyBody": "Add a link with the key the page expects — for the event app event_app_app_store and event_app_google_play.",
+    "linkKeyHint": "The page reads through this, for example event_app_app_store. Lowercase letters, digits and underscores only.",
+    "linkUrl": "Address",
+    "linkUrlHint": "Full address starting with https://.",
+    "linksLead": "Addresses that pages link to rather than embed — first the event app store links for the participant programme and the partner portal. Pages read them by key; changing a link here changes it everywhere.",
+    "linksTitle": "Links",
     "title": "Videos"
   },
   "volunteers": {

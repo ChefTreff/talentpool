@@ -288,6 +288,9 @@ const BUSINESS_KEYS = new Set([
   "invalid_assignee",
   "not_a_task",
   "activity_not_found",
+  // Links je Schlüssel (Vorschlag v6_portal_links, PART-072)
+  "portal_link_url",
+  "portal_link_key",
 ]);
 
 const BY_CODE: Record<string, string> = {
