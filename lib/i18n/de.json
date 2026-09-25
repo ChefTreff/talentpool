@@ -1200,7 +1200,7 @@
     "merchType_textarea": "Mehrzeilig",
     "net": "netto",
     "no": "nein",
-    "noAccessBody": "Zum Partner-Admin kommen Admins und die Bereichsleitung Partner. Wenn du hier arbeiten sollst, meldet sich Konrad bei der Rollenvergabe.",
+    "noAccessBody": "Zum Partner-Admin kommen Admins und das Partner-Team. Wenn du hier arbeiten sollst, meldet sich Konrad bei der Rollenvergabe.",
     "noAccessTitle": "Dieser Bereich gehört dem Partner-Team",
     "noEditionBody": "Ohne Edition gibt es nichts zu zeigen. Leg zuerst eine Edition an.",
     "noEditionTitle": "Keine Edition eingerichtet",
@@ -3216,7 +3216,7 @@
         "title": "Füllt euer Profil aus"
       },
       {
-        "body": "Am besten über das Partner-Portal unter „Kontakte“. Alternativ könnt ihr Team-Mitglieder auch direkt in der App hinzufügen — das geht allerdings erst, wenn sie bereits ein Ticket auf ihre Mailadresse personalisiert haben.",
+        "body": "Am besten über das Partner-Portal unter „Kontakte“: Diese Team-Mitglieder legen wir per Schnittstelle an, und ihre gescannten Kontakte landen automatisch bei eurem Firmenprofil. Alternativ könnt ihr Team-Mitglieder auch direkt in der App hinzufügen — das geht allerdings erst, wenn sie bereits ein Ticket auf ihre Mailadresse personalisiert haben, und sie müssen das Teilen der Kontakte selbst einstellen (Schritt 4).",
         "key": "team",
         "title": "Fügt euer Team hinzu"
       },
@@ -3226,7 +3226,7 @@
         "title": "Füllt die Profile der Mitarbeitenden aus"
       },
       {
-        "body": "Wichtig: Stellt in den einzelnen Profilen unbedingt ein, dass die Kontakte mit dem Team geteilt werden. Sonst könnt ihr im Anschluss nicht auf die Leads zugreifen. Wie das geht, steht im Wiki.",
+        "body": "Wichtig: Wer über „Kontakte“ im Partner-Portal angelegt ist, den legen wir per Schnittstelle an — diese Team-Mitglieder teilen gescannte Kontakte automatisch mit eurem Firmenprofil. Wer direkt in der App hinzugefügt wurde, muss im eigenen Profil selbst einstellen, dass die Kontakte mit dem Team geteilt werden. Sonst könnt ihr im Anschluss nicht auf diese Leads zugreifen. Wie das geht, steht im Wiki.",
         "important": true,
         "key": "leads_teilen",
         "title": "Stellt das Teilen der Kontakte ein"
@@ -3246,6 +3246,8 @@
     "stepsLead": "{done} von {total} erledigt",
     "stepsTitle": "Was ihr in der App erledigen solltet",
     "title": "Event-App",
+    "videoPending": "Die Video-Anleitung nehmen wir im November auf und stellen sie hier ein. Bis dahin steht alles Wichtige im Wiki.",
+    "videoSectionTitle": "Anleitung als Video",
     "videoTitle": "So richtet ihr euren Auftritt ein",
     "wikiHint": "Mehr im Wiki unter Event-App"
   },
@@ -3486,7 +3488,15 @@
     "emptyTitle": "Der Shop ist noch nicht offen",
     "fieldRequired": "Bitte ausfüllen.",
     "gross": "Brutto",
+    "guideBody": "Wie Bestellen, Fristen und Lieferung funktionieren, steht im Wiki. Bei Fragen hilft euch das Partner-Team.",
+    "guideTitle": "Anleitung & Support",
+    "guideVideo": "Video-Anleitung ansehen",
+    "guideVideoTitle": "So bestellt ihr im Messeshop",
+    "guideWiki": "Zum Wiki",
     "inCart": "im Warenkorb",
+    "introBody": "Das Video zeigt euch in wenigen Minuten, wie ihr bestellt und bis wann. Ihr findet es später unten auf jeder Shop-Seite unter „Anleitung & Support“.",
+    "introStart": "Los geht’s",
+    "introTitle": "Willkommen im Messeshop",
     "invoiceConfirm": "Die Rechnungsdaten stimmen so.",
     "invoiceConfirmFirst": "Bestätigt kurz die Rechnungsdaten, dann könnt ihr bestellen.",
     "invoiceEdit": "Rechnungsdaten ändern (unter „Eure Daten“)",
@@ -5191,6 +5201,10 @@
     "edit": "Bearbeiten",
     "empty": "Noch kein Video hinterlegt",
     "emptyBody": "Lege eines an und binde es über seinen Schlüssel auf einer Seite ein.",
+    "expectedLead": "Fehlt ein Link, lässt die Seite das Video weg oder sagt, wann es kommt. Tragt ihn mit genau diesem Schlüssel und der Zielgruppe der Seite ein.",
+    "expectedMissing": "Link fehlt",
+    "expectedSet": "Video hinterlegt",
+    "expectedTitle": "Diese Schlüssel binden Seiten ein",
     "fieldAudience": "Zielgruppen",
     "fieldAudienceHint": "Kommagetrennt: partner, speaker, talent, volunteer, hackathon.",
     "fieldEdition": "Edition",

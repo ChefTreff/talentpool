@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
+import { cn } from "@/components/ui/cn";
 import { useToast } from "@/components/ui/Toast";
 import { checkMerchValues, parseMerchSchema, type MerchField, type MerchValues } from "@/lib/partner/merch";
 import { MerchDialog, type MerchAsset } from "../MerchDialog";
@@ -132,7 +133,9 @@ export function Warenkorb({
           <ul className="flex flex-col">
             {cart.lines.map((line) => (
               <li key={line.sku} className="flex flex-wrap items-center gap-3 border-b px-4 py-3 last:border-b-0">
-                <span className="min-w-0 flex-1">
+                {/* Auf dem Telefon eine eigene Zeile: neben Anzahl, Preis und
+                    Knöpfen blieben vom Namen sonst zwei Buchstaben. */}
+                <span className="min-w-0 flex-1 basis-full sm:basis-0">
                   <Link
                     href={`/partner/shop/${encodeURIComponent(line.sku)}`}
                     className="ct-label ct-link"
@@ -253,15 +256,30 @@ export function Warenkorb({
                   {t.invoiceEdit}
                 </Link>
               </p>
-              <label className="mt-3 flex items-start gap-2">
+              {/* PART-076 (Konrad 24.09.): das Häkchen wurde übersehen. Offen steht
+                  es auf einer Akzentfläche mit Rahmen, bestätigt auf Grün — Zustand
+                  in Form (Haken) und Farbe. Ohne vollständige Adresse bleibt es
+                  ruhig: dann ist „Daten ergänzen“ der Weg, nicht das Häkchen. */}
+              <label
+                className={cn(
+                  "mt-4 flex min-h-11 cursor-pointer items-start gap-3 rounded-ct-md border-2 p-3 transition-colors",
+                  !adresseVollstaendig
+                    ? "cursor-not-allowed border-border bg-surface"
+                    : adresseOk
+                      ? "border-success-soft bg-success-soft"
+                      : "border-accent bg-accent-soft",
+                )}
+              >
                 <input
                   type="checkbox"
-                  className="mt-0.5 h-5 w-5"
+                  className="mt-0.5 h-5 w-5 shrink-0"
                   checked={adresseOk}
                   disabled={!adresseVollstaendig}
                   onChange={(e) => setAdresseOk(e.target.checked)}
                 />
-                <span className="ct-small">{t.invoiceConfirm}</span>
+                <span className={cn("ct-label", adresseVollstaendig ? "text-ink" : "text-muted")}>
+                  {t.invoiceConfirm}
+                </span>
               </label>
             </Card>
 
