@@ -58,4 +58,9 @@ export type PartnerSpeaker = {
   linkedin_url: string | null;
   socials: Record<string, unknown> | null;
   photo_asset_id: string | null;
+  /**
+   * PART-091: verwaltet der Partner den Slot, läuft die Kommunikation über
+   * diesen Kontakt (sein Operations-Kontakt); `null` = der Speaker direkt.
+   */
+  mail_contact_name: string | null;
 };

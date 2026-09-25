@@ -1,5 +1,5 @@
 create or replace function partner_speakers(p_org_id uuid, p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(profile_id uuid, person_id uuid, session_id uuid, session_title text, display_name text, can_edit boolean, confirmed boolean, pipeline_status text, first_name text, last_name text, title text, job_title text, organization_name text, bio_short_de text, bio_short_en text, bio_long_de text, bio_long_en text, linkedin_url text, socials jsonb, photo_asset_id uuid)
+ RETURNS TABLE(profile_id uuid, person_id uuid, session_id uuid, session_title text, display_name text, can_edit boolean, confirmed boolean, pipeline_status text, first_name text, last_name text, title text, job_title text, organization_name text, bio_short_de text, bio_short_en text, bio_long_de text, bio_long_en text, linkedin_url text, socials jsonb, photo_asset_id uuid, mail_contact_name text)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -27,7 +27,12 @@ begin
            case when sp.partner_editable_until_login then sp.bio_long_en end,
            case when sp.partner_editable_until_login then pe.linkedin_url end,
            case when sp.partner_editable_until_login then sp.socials end,
-           case when sp.partner_editable_until_login then sp.photo_asset_id end
+           case when sp.partner_editable_until_login then sp.photo_asset_id end,
+           -- PART-091: über wen die Kommunikation läuft (Verwaltet-Fall) — der eigene Operations-Kontakt
+           -- des Partners, keine fremden Daten. Leer = der Speaker direkt.
+           (select nullif(btrim(concat_ws(' ', coalesce(pc.first_name, c.first_name), coalesce(pc.last_name, c.last_name))), '')
+              from speaker_contact c left join person pc on pc.id = c.person_id
+             where c.id = sp.mail_via_contact_id)
       from speaker_profile sp
       join person pe on pe.id = sp.person_id
       left join session_speaker ss on ss.person_id = sp.person_id

@@ -124,6 +124,8 @@
 | Welle 6 · 0195 | **Standbühnen-Fenster = Öffnungszeiten der Bühne, Rückfall Tagesrahmen (PART-090, ersetzt PART-079)** (`20260925095914`, `v6_standbuehne_oeffnungszeiten`; Details im Migrationskopf) | — |
 | Welle 6 · 0196 | **Begleitungen im Company-Tour-Abschnitt löschen, Folge im Audit (ADM-060)** (`20260925100242`, `v6_begleitungen`; Details im Migrationskopf) | — |
 | Welle 6 · 0197 | **Produktion als eigene Admin-Abschnitte: Stände, Bestellungen, Dateien (ADM-054)** (`20260925101238`, `v6_produktion_abschnitte`; Details im Migrationskopf) | — |
+| Welle 6 · 0198 | **Talk-Speaker: eigener Zugang oder Verwaltung durch den Ops-Kontakt, Gäste nur Standbühne (PART-091)** (`20260925102305`, `v6_talk_speaker_zugang`; Details im Migrationskopf) | — |
+| Welle 6 · 0199 | **Check-in-Sicht im Admin: Tage, Suche, Ticketstatus (ADM-051)** (`20260925102703`, `v6_checkin_admin`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

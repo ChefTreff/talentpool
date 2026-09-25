@@ -334,6 +334,10 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     { code: "P0001", message: "stage_guest", key: "stage_guest" },
     { code: "P0001", message: "already_speaker", key: "already_speaker" },
     { code: "22023", message: "stage_guest_consent_required", key: "stage_guest_consent_required" },
+    // PART-091: Speaker eines gebuchten Slots (eigener Zugang oder verwaltet)
+    { code: "P0001", message: "speaker_has_access", key: "speaker_has_access" },
+    { code: "P0001", message: "no_ops_contact", key: "no_ops_contact" },
+    { code: "23514", message: "contact_is_speaker", key: "contact_is_speaker" },
   ];
 
   for (const c of CASES) {

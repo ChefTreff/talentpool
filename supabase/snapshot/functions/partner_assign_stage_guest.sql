@@ -16,10 +16,11 @@ begin
   v_buehne := v_stage.id is not null and v_stage.type = 'partner_booth'
               and v_stage.partner_org_id = v_sp.created_by_org_id
               and coalesce(can_edit_slot(v_se.slot_id), false);
-  -- Talk: gebucht von derselben Organisation, Speaking-Format wie in partner_add_speaker, nicht auf einer Standbühne.
-  v_talk := not v_buehne and v_se.partner_org_id = v_sp.created_by_org_id
-            and v_se.format in ('keynote', 'panel', 'talk', 'impulse', 'fireside_chat', 'masterclass')
-            and coalesce(v_stage.type, '') <> 'partner_booth'
+  -- PART-091 (Konrad 25.09.): Gäste gibt es nur auf der Standbühne. Einen Talk-Slot bekommt ein Gast
+  -- nicht mehr (Speaker eines gebuchten Slots laufen über partner_add_speaker); eine Zuordnung aus der
+  -- Zeit davor lässt sich nur noch abnehmen.
+  v_talk := not v_buehne and not coalesce(p_assign, false)
+            and v_se.partner_org_id = v_sp.created_by_org_id
             and partner_can_edit(v_sp.created_by_org_id);
   if not (v_buehne or v_talk)
      or not exists (select 1 from event ev where ev.id = v_se.event_id

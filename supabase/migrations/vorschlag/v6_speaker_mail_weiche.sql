@@ -403,13 +403,13 @@ begin
   if not found then raise exception 'speaker_not_found' using errcode = 'P0002'; end if;
   -- PART-081: Gäste der Standbühne bekommen keinen Speaker-Zugang.
   if v_sp.stage_guest then raise exception 'stage_guest' using errcode = 'P0001'; end if;
+  if not can_manage_speaker(p_profile_id) then raise exception 'not allowed' using errcode = '42501'; end if;
   -- PART-091: verwaltet der Partner alles, läuft die Kommunikation über den
   -- zugeordneten Kontakt. Die Einladung ist persönlich und wird nie umgeleitet;
   -- den Zugang hat der Kontakt über seine eigene Einladung.
   if v_sp.mail_via_contact_id is not null then
     raise exception 'speaker_managed_by_partner' using errcode = 'P0001';
   end if;
-  if not can_manage_speaker(p_profile_id) then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_sp.pipeline_status not in ('confirmed', 'onboarded', 'ready', 'published') then
     raise exception 'not_confirmed' using errcode = 'P0001', detail = v_sp.pipeline_status;
   end if;

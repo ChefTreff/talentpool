@@ -179,6 +179,8 @@ const BUSINESS_KEYS = new Set([
   "invalid_contact_type",
   "invalid_contact",
   "contact_not_found",
+  // ADM-051: Suche im Check-in unter drei Zeichen — eine leere Antwort waere irrefuehrend.
+  "query_too_short",
   "invalid_audience",
   "info_not_found",
   "note_required",
@@ -247,6 +249,11 @@ const BUSINESS_KEYS = new Set([
   "stage_guest_consent_required",
   // Mail-Weiche: der Partner verwaltet alles (Vorschlag v6_speaker_mail_weiche, PART-091)
   "speaker_managed_by_partner",
+  // Speaker eines gebuchten Slots (Vorschlag v6_talk_speaker_zugang, PART-091);
+  // `contact_is_speaker` kommt als 23514, gilt auch für die Kontakte im Speaker-Portal.
+  "speaker_has_access",
+  "no_ops_contact",
+  "contact_is_speaker",
   // Partner-Kontakte bearbeiten (Vorschlag v6_kontakte_bearbeiten_cc, PART-062)
   "contact_not_editable",
   "email_in_use",

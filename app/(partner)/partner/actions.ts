@@ -394,10 +394,37 @@ export async function shopRequestProduct(input: {
   return { ok: true, data: { request_id: data as string } };
 }
 
-// Talk (PART-044, B6). Seit PART-088 legt der Partner seine Speaker als Gäste an
-// (`addStageGuest` und Zuordnung über `assignStageGuest`); das frühere Eintragen
-// über `partner_add_speaker` mit Einladung ins Speaker-Portal entfällt. Wer so
-// schon eingetragen wurde, bleibt sichtbar und pflegbar:
+// Talk (PART-044, B6). Seit PART-091 (Konrad 25.09., Korrektur zu PART-088)
+// sind Speaker eines gebuchten Slots wieder reguläre Speaker — Gäste ohne Profil
+// gibt es nur auf der Standbühne.
+
+/**
+ * Speaker eines gebuchten Slots eintragen (PART-091). Zwei Wege, die die Seite
+ * beim Anlegen erfragt: **eigener Zugang** (reguläres Profil, die Einladung ins
+ * Speaker-Portal verschickt das Speaker-Team ab der Zusage) oder **„wir
+ * verwalten alles“** — dann bekommt der Operations-Kontakt der Organisation den
+ * Speaker-Zugang, und die Speaker-Mails gehen an ihn statt an den Speaker. Was
+ * davon greift und wer der Kontakt ist, entscheidet `partner_add_speaker`.
+ */
+export async function addTalkSpeaker(input: {
+  sessionId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  verwaltet: boolean;
+}): Promise<PartnerResult<{ profile_id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_add_speaker", {
+    p_session_id: input.sessionId,
+    p_email: input.email,
+    p_first_name: input.firstName,
+    p_last_name: input.lastName,
+    p_verwaltet: input.verwaltet,
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/talk`);
+  return { ok: true, data: { profile_id: data as string } };
+}
 
 /**
  * Der Partner pflegt die Programmangaben seines Speakers, solange dieser sich
@@ -568,12 +595,11 @@ export async function withdrawStagePublish(sessionId: string): Promise<PartnerRe
   return { ok: true, data: { status: String(data) } };
 }
 
-/** Nach einer Änderung an den Gästen der Standbühne: Liste, Tabelle, Kalender. */
+/** Nach einer Änderung an den Gästen der Standbühne: Liste, Tabelle, Kalender (seit PART-091 nur dort). */
 function refreshGaeste() {
   revalidatePath(`${PATH}/buehne`);
   revalidatePath(`${PATH}/buehne/tabelle`);
   revalidatePath(`${PATH}/buehne/gaeste`);
-  revalidatePath(`${PATH}/talk`);
 }
 
 /**

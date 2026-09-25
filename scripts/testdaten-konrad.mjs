@@ -24,6 +24,9 @@
  *                                   Öffnungszeiten der Teststandbühne — PART-090)
  *   … --apply --nur=gaeste         (PART-081: ein TEST-Gast der Standbühne, braucht
  *                                   v6_standbuehnen_gaeste und den Schritt partner)
+ *   … --apply --nur=talk           (PART-091: verwalteter TEST-Speaker am TEST-Talk,
+ *                                   Konrad als Kontakt mit Zugang; braucht
+ *                                   v6_talk_speaker_zugang und den Schritt partner)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist,
  *                                   mit Öffnungszeiten für die Markierung — LEAD-033)
  *   … --apply --nur=standstatus    (LEAD-035/036/037: drei TEST-Sessions auf der
@@ -1363,6 +1366,86 @@ async function standbuehnenGast(me, ed) {
 }
 
 /**
+ * Schritt `talk` (PART-091): ein TEST-Speaker am `TEST — Talk`, den die
+ * Test-Organisation verwaltet. Konrad ist ihr Operations-Kontakt, bekommt den
+ * Speaker-Zugang als Kontakt „Partner“, und die Speaker-Mails gehen an ihn
+ * (`mail_via_contact_id`). Geschrieben wird direkt statt über
+ * `partner_add_speaker`: die RPC schickte dem Kontakt eine Mail, und Testdaten
+ * verschicken nichts. Dazu nimmt der Schritt den TEST-Gast vom TEST-Talk —
+ * Gäste gibt es seit PART-091 nur auf der Standbühne.
+ * Braucht `v6_talk_speaker_zugang` und den Schritt `partner`.
+ */
+const talkSpeakerAdresse = () => email.replace("@", "+zztest-talk-1@");
+
+async function talkSpeaker(me, ed) {
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  const eventId = (await summit(ed))?.id ?? ed.id;
+  const { data: talk } = await admin.from("session").select("id")
+    .eq("event_id", eventId).eq("title_de", `${PREFIX}Talk`).maybeSingle();
+  if (!org || !talk) {
+    fail("Talk-Speaker", "Test-Organisation oder TEST — Talk fehlt — zuerst --nur=partner");
+    return;
+  }
+
+  await write("TEST-Gast vom TEST-Talk genommen (Gäste nur noch auf der Standbühne)", async () => {
+    const { data: gaeste } = await admin.from("speaker_profile").select("person_id")
+      .eq("stage_guest", true).eq("created_by_org_id", org.id).eq("internal_notes", MARK);
+    const ids = (gaeste ?? []).map((g) => g.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("session_speaker").delete().eq("session_id", talk.id).in("person_id", ids);
+  });
+
+  if (mode === "dry-run") {
+    note("Verwalteter TEST-Speaker am TEST-Talk (Konrad als Kontakt mit Zugang, Speaker-Mails an ihn)");
+    return;
+  }
+  const { data: personId, error: pe } = await admin.rpc("testdaten_person", {
+    p_first_name: "TEST", p_last_name: "Talk-Speaker", p_email: talkSpeakerAdresse(),
+  });
+  if (pe || !personId) {
+    fail("Talk-Speaker (TEST-Person)", pe ?? "keine Person");
+    return;
+  }
+  note("Talk-Speaker (TEST-Person)");
+  const profil = await write("Speaker-Profil, verwaltet von der Test-Organisation", () =>
+    admin.from("speaker_profile").upsert(
+      {
+        person_id: personId, edition_id: ed.id, speaker_type: "other", pipeline_status: "lead",
+        job_title: "Head of Operations", organization_name: `${PREFIX}Partner`,
+        created_by_org_id: org.id, partner_editable_until_login: true, internal_notes: MARK,
+      },
+      { onConflict: "person_id,edition_id" },
+    ).select("id").single(),
+  );
+  if (!profil) return;
+  const kontakt = await write("Konrad als Kontakt „Partner“ mit Zugang", async () => {
+    const { data: da } = await admin.from("speaker_contact").select("id")
+      .eq("profile_id", profil.id).eq("person_id", me.id).maybeSingle();
+    if (da) {
+      return admin.from("speaker_contact").update({ kind: "partner", has_access: true })
+        .eq("id", da.id).select("id").single();
+    }
+    return admin.from("speaker_contact").insert({
+      profile_id: profil.id, kind: "partner", person_id: me.id,
+      first_name: me.first_name, last_name: me.last_name, email,
+      has_access: true, consent_at: new Date().toISOString().slice(0, 10),
+    }).select("id").single();
+  });
+  if (!kontakt) return;
+  await role(me.id, "speaker_assistant", "edition", null, ed.id, gueltigBis(ed));
+  await write("Speaker-Mails an den Kontakt (mail_via_contact_id)", () =>
+    admin.from("speaker_profile").update({ mail_via_contact_id: kontakt.id }).eq("id", profil.id),
+  );
+  await write("TEST-Speaker am TEST-Talk", () =>
+    admin.from("session_speaker").upsert(
+      { session_id: talk.id, person_id: personId, role: "speaker" },
+      { onConflict: "session_id,person_id,role" },
+    ),
+  );
+}
+
+/**
  * LEAD-014: zieht aufs Summit, was frühere Läufe auf die früheste Veranstaltung
  * gelegt haben (den Hackathon): die Teststandbühne mit allen Slots und den
  * Sessions darin, dazu Test-Sessions ohne Slot. **Gelöscht wird nichts** —
@@ -1597,10 +1680,49 @@ async function verlaufEintraege(me, profileId, eintraege) {
   return null;
 }
 
+/**
+ * Ein gescanntes Ticket, damit `/admin/checkin` etwas zeigt (ADM-051).
+ *
+ * Konrads Speaker-Freiticket bleibt unberuehrt — das steht auf `requested`,
+ * damit er das Ausstellen selbst pruefen kann. Stattdessen ein eigenes
+ * ZZTEST-Ticket auf **seine** Person (keine erfundenen Dritten), gueltig, mit
+ * zwei Scans: einmal eingelassen, einmal zweiter Scan. So sieht er beide Faelle
+ * und findet sich in der Suche wieder.
+ */
+async function checkinScans(me, ed) {
+  const barcode = `${PREFIX_CODE}-CHECKIN`;
+  let { data: t } = await admin.from("ticket").select("id").eq("barcode", barcode).maybeSingle();
+  if (!t) {
+    t = await write("Ticket fuer den Check-in", () =>
+      admin.from("ticket").insert({
+        event_id: ed.id, person_id: me.id, pass_type: "talent",
+        holder_email: me.email, holder_first_name: me.first_name, holder_last_name: me.last_name,
+        barcode, status: "valid", personalization_status: "complete", price_cents: 0, source: "vivenu",
+      }).select("id").single(),
+    );
+  }
+  if (!t) return;
+
+  const { data: tag } = await admin.from("event_day").select("day_date, event_id")
+    .order("day_date").limit(1).maybeSingle();
+  if (!tag) return fail("Scans fuer den Check-in", "kein Veranstaltungstag");
+  const { count } = await admin.from("checkin").select("*", { count: "exact", head: true }).eq("ticket_id", t.id);
+  if (count && count > 0) return note("Scans fuer den Check-in", "stehen schon");
+  await write("Scans fuer den Check-in", () =>
+    admin.from("checkin").insert([
+      { ticket_id: t.id, edition_id: ed.id, scan_day: tag.day_date, result: "ok",
+        device_id: `${PREFIX_CODE}-Tablet-1`, location: "Haupteingang" },
+      { ticket_id: t.id, edition_id: ed.id, scan_day: tag.day_date, result: "duplicate",
+        device_id: `${PREFIX_CODE}-Tablet-2`, location: "Haupteingang" },
+    ]),
+  );
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
   gaeste: standbuehnenGast,
+  talk: talkSpeaker,
   ticket: speakerTicket,
   fotos: stagePhotos,
   "ticket-zurueck": ticketZurueck,
@@ -1610,6 +1732,7 @@ const SCHRITTE = {
   pipeline: pipelineEintraege,
   summit: umzugSummit,
   tour: companyTour,
+  checkin: checkinScans,
   moderation: moderationStageLead,
 };
 
@@ -1732,6 +1855,14 @@ async function remove(me) {
         if (wegFehler) return { data: null, error: wegFehler };
       }
     }
+    return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  // PART-091: der verwaltete TEST-Speaker. Profil, Kontakt und Zuordnung hängen mit
+  // ON DELETE CASCADE an der Person; Konrads Rolle `speaker_assistant` geht mit den Rollen.
+  await write("Talk-Speaker entfernt (Profil, Kontakt, Zuordnung)", async () => {
+    const { data: adresse } = await admin.from("person_email").select("person_id")
+      .eq("email", talkSpeakerAdresse()).maybeSingle();
+    if (!adresse) return { data: null, error: null };
     return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
   });
   // Die Test-Personen der Pipeline (nur Vorname TEST, ohne Konto): erst die
