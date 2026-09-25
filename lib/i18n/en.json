@@ -1,4 +1,34 @@
 {
+  "accessAdmin": {
+    "active": "Active",
+    "block": "Block access",
+    "blockBody": "The person immediately loses all roles and cannot sign in. Nothing is deleted — one click undoes it.",
+    "blockTitle": "Block this access?",
+    "blocked": "Blocked",
+    "count": "{n} accounts",
+    "empty": "Nobody found",
+    "emptyBody": "This lists people with an account or with a valid role.",
+    "hasLogin": "Account",
+    "invite": "Send invitation",
+    "inviteBody": "A sign-in mail goes to the stored address. Without an address, nothing happens.",
+    "inviteTitle": "Send the invitation?",
+    "invited": "The invitation is on its way.",
+    "lead": "Who has an account and which roles they hold. Accounts are blocked, not deleted — the person and their history stay, the access is gone.",
+    "next": "Next",
+    "noLogin": "No account",
+    "noRoles": "no role",
+    "noteLabel": "Note for the log",
+    "page": "Page {seite} of {seiten}",
+    "prev": "Back",
+    "search": "Search",
+    "searchLabel": "Find a person",
+    "searchPlaceholder": "Name or email",
+    "selfHint": "Nobody can block themselves.",
+    "title": "Access",
+    "unblock": "Restore access",
+    "unblockBody": "The person gets back exactly the roles they had and can sign in again.",
+    "unblockTitle": "Restore this access?"
+  },
   "admin": {
     "applications": {
       "answers": "Answers",
@@ -207,6 +237,7 @@
       "title": "Mail delivery"
     },
     "nav": {
+      "access": "Access",
       "applications": "Applications",
       "auditLog": "Audit log",
       "catering": "Catering",
@@ -646,6 +677,7 @@
       "vocabularies": "vocabularies"
     },
     "words": {
+      "access": "Keys",
       "applications": "Talent",
       "auditLog": "Traceability",
       "catering": "Meals",
@@ -4096,6 +4128,7 @@
     "asset_required": "This task needs at least one file.",
     "assignment_not_found": "That role assignment no longer exists.",
     "assistant_is_speaker": "That is the speaker's own address.",
+    "auth_ban_failed": "The roles are revoked, but the sign-in could not be blocked. Please try again — until then the person can sign in and sees an empty page.",
     "bank_required": "Bank details are required.",
     "barcode_missing": "vivenu returned no barcode — without it there is no entry.",
     "barcode_required": "The barcode is missing.",
@@ -4104,6 +4137,7 @@
     "body_required": "Please enter a text.",
     "booking_not_found": "Booking not found.",
     "booth_required": "The trade fair shop is open to partners with a booked booth. You can still order the lunch package from your checklist.",
+    "cannot_block_self": "You cannot block your own access — otherwise nobody could reach the page that undoes it.",
     "cannot_withdraw": "This application can no longer be withdrawn.",
     "changeover_short": "Note: changeover to the neighbouring session is tight.",
     "claim_not_found": "Claim not found.",
@@ -4133,6 +4167,7 @@
     "edition_required": "Please choose an edition.",
     "edition_without_vivenu": "No vivenu event is set for this edition.",
     "email_in_use": "This address already belongs to a profile. Delete the contact and invite the address instead — the existing profile will be linked.",
+    "email_missing": "No email address is stored for this person — without one there is no invitation.",
     "email_required": "Please enter an email address.",
     "empty_order": "An empty order cannot be confirmed.",
     "empty_query": "The question is empty.",
@@ -4198,6 +4233,7 @@
     "invalid_url": "Please provide a full address starting with https://.",
     "invalid_vocab": "No such option.",
     "invalid_vocab_value": "This value is no longer available. Please choose another one.",
+    "invite_failed": "The invitation did not go out. Details are in the server log.",
     "last_admin": "This is the last admin — the role cannot be revoked.",
     "late_only": "During late ordering only products marked for it are available.",
     "mail_not_found": "No such mail entry.",

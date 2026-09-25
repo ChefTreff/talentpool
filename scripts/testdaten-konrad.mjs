@@ -2118,6 +2118,29 @@ async function logoEinwilligung(me, ed) {
   );
 }
 
+/**
+ * Eine Wegwerf-Person fuer die Zugaenge (PORT4b), damit Konrad das Sperren und
+ * Entsperren an jemandem ueben kann, der nicht er selbst ist.
+ *
+ * **Adresse ist eine Plus-Adresse von Konrad selbst** (wie bei der Moderation):
+ * jede Person braucht genau eine primaere Adresse, ein Trigger besteht darauf.
+ * Damit landet auch ein versehentlicher Klick auf „Einladung schicken" in
+ * seinem eigenen Postfach und nicht bei jemand Fremdem.
+ */
+async function zugangTestperson(me, ed) {
+  const validTo = ed.end_date ? new Date(new Date(ed.end_date).getTime() + 86400000).toISOString() : null;
+  const personId = await write("Wegwerf-Person fuer Zugaenge", () =>
+    admin.rpc("testdaten_person", {
+      p_first_name: "TEST", p_last_name: "Zugang", p_email: email.replace("@", "+zztest-zugang@"),
+    }),
+  );
+  if (!personId) return;
+  const { count } = await admin.from("role_assignment").select("*", { count: "exact", head: true })
+    .eq("person_id", personId).eq("role", "volunteers_team");
+  if (count && count > 0) return note("Rolle der Wegwerf-Person", "steht schon");
+  await role(personId, "volunteers_team", "global", null, ed.id, validTo);
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
@@ -2138,6 +2161,7 @@ const SCHRITTE = {
   tour: companyTour,
   checkin: checkinScans,
   logos: logoEinwilligung,
+  zugang: zugangTestperson,
   moderation: moderationStageLead,
 };
 
