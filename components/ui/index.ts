@@ -36,6 +36,8 @@ export type { FristTexte } from "./FristMarke";
 export { HeroBand, BandStat } from "./HeroBand";
 export { NextStepBanner } from "./NextStepBanner";
 export { StepBar } from "./StepBar";
+export { SchrittMarke } from "./SchrittMarke";
+export type { SchrittZustand } from "./SchrittMarke";
 export type { BarStep } from "./StepBar";
 export { PersonCard } from "./PersonCard";
 export { PhotoCard } from "./PhotoCard";
