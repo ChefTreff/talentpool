@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { requireAdminSection } from "@/lib/auth";
+import { mayEnterAdminSection } from "@/lib/admin-access";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -26,6 +28,10 @@ export default async function ProgrammPage({
   // Das Team sieht alle Editionen; die Leads bekommen unter
   // `/speaker-leads/board` ihre eigene vorausgewählt.
   const board = await loadBoard({ eventSlug: event, day: tag });
+  // LEAD-018: Bühnen und Öffnungszeiten pflegt das Team im Gerüst der Edition
+  // (`upsert_stage`/`upsert_stage_day`) — das Board verlinkt dorthin, wo die
+  // Person den Abschnitt auch öffnen darf.
+  const zumGeruest = await mayEnterAdminSection("edition", roleNames);
 
   if (!board.currentEvent) {
     return (
@@ -44,6 +50,13 @@ export default async function ProgrammPage({
     <>
       <PageHeader word={t.admin.words.programme} title={t.admin.programme.title} description={t.admin.programme.lead} />
       <TableTabs basePath={PATH} withRelease />
+      {zumGeruest && (
+        <p className="-mt-2 mb-4">
+          <Link href="/admin/edition#zeiten" className="ct-link ct-small">
+            {t.admin.programme.editionLink}
+          </Link>
+        </p>
+      )}
       <Board
         basePath={PATH}
         canPublish={canPublishSessions(roleNames)}
