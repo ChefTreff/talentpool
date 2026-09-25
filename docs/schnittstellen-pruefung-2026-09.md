@@ -144,6 +144,26 @@ Der echte Import wartet weiter auf K-38.
 
 **Fotos:** beide Einträge ohne Bild (`has_photo = false`), die öffentliche Kopie war also nicht Teil dieses Laufs. Die Fotoübertragung bleibt ungeprüft, bis ein Testprofil ein Porträt hat.
 
+## SevDesk · Belege abrufen (ADM-050, 25.09.2026)
+
+Lesend gegen das Livekonto geprüft, nichts geschrieben:
+
+| Aufruf | Ergebnis |
+|---|---|
+| `GET /Contact?limit=3` | 200; der Kontakt führt **`customerNumber`**, Form `C-…` — dieselbe wie HubSpots `company_id` (ADM-057) |
+| `GET /Contact?customerNumber=<bekannt>` | 200, **genau ein** Treffer |
+| `GET /Contact?customerNumber=<unbekannt>` | 200, **null** Treffer (kein Fehler, keine Liste) |
+| `GET /Invoice?contact[id]=…` | 200, 3 Rechnungen |
+| `GET /Invoice/<id>/getPdf` | 200, **219 kB** base64 |
+
+**Befund 8 — der Abruf war gebaut, aber die halbe Kundschaft kam nie vor.** `sevdesk_document_targets` nahm nur Partner mit gesetzter `organization.sevdesk_contact_id`. Diese Kennung schreibt **allein** `record_shop_invoice` — sie entsteht also erst, wenn jemand im **Messeshop** bestellt hat. Ein Partner mit Angebot und Rechnung, aber ohne Messeshop-Bestellung, fiel damit **still** aus dem Abruf: keine Fehlermeldung, keine leere Zeile, er stand einfach nicht in der Liste. Genau die Belege, um die es in ADM-050 geht.
+
+Behoben: Die Zielliste nimmt Kennung **oder** Kundennummer, der Lauf löst den Kontakt über `GET /Contact?customerNumber=…` auf und merkt sich die Kennung über das vorhandene `set_org_sevdesk_contact`. **Mehrdeutig heisst nichts:** stehen zwei Kontakte auf derselben Nummer, wird keiner genommen — einen zu raten hiesse, fremde Rechnungen in ein Partnerportal zu legen.
+
+Wer weder Kennung noch Nummer hat, steht **namentlich** im Lauf („Ohne Beleg geblieben"), statt stillschweigend zu fehlen.
+
+**Vorbedingung, heute noch offen:** `organization.customer_number` ist bei **0 von allen** Organisationen gefüllt — der HubSpot-Ingest mit `company_id` (0177) ist noch gegen keinen echten Deal gelaufen. Der Abruf findet deshalb aktuell nichts über die Nummer; er ist gebaut und geprüft, aber seine Datenquelle füllt sich erst mit dem ersten Ingest.
+
 ## Offen
 
 - **Swapcard (EA3):** Slot → Swapcard mit Speaker- und Partner-IDs, Pflichtfelder, Reihenfolge Speaker anlegen → Kennung zurück → Slot. Noch nicht geprüft. Der Export als Datenquelle ist geprüft (siehe oben), der Import nach Swapcard nicht.
