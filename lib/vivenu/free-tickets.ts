@@ -1,5 +1,6 @@
 import "server-only";
 import { vv, VivenuError } from "@/lib/vivenu/client";
+import { istLebendesTicket } from "@/lib/vivenu/naming";
 
 /**
  * Freitickets bei vivenu anlegen — Speaker-Pass und Begleitticket (SPK-068).
@@ -44,16 +45,28 @@ export type VivenuFreeTicket = {
   [k: string]: unknown;
 };
 
-/** Ein bereits angelegtes Freiticket zu unserer Kennung — oder `null`. */
+/**
+ * Ein bereits angelegtes, **noch gültiges** Freiticket zu unserer Kennung — oder `null`.
+ *
+ * Das „noch gültig" ist der Kern: ein storniertes Ticket behält seinen
+ * `batch`, und die Abfrage gibt es weiter zurück (am 25.09.2026 in der Sandbox
+ * gemessen: `status: "INVALID"`). Wer es als „gibt es schon" nähme, schriebe
+ * einen toten Barcode in unsere Zeile — das Portal zeigte ein gültiges Ticket,
+ * am Einlass wäre es keines. Nach einem Storno soll ein neues entstehen.
+ *
+ * Deshalb auch `top=10` statt 2: nach einem Storno stehen zwei Tickets zu
+ * derselben Kennung in der Liste, und das lebende darf nicht hinten abgeschnitten
+ * werden.
+ */
 export async function findFreeTicketByBatch(ticketId: string): Promise<VivenuFreeTicket | null> {
   const antwort = await vv<{ docs?: VivenuFreeTicket[]; rows?: VivenuFreeTicket[] }>(
-    `/tickets?batch=${encodeURIComponent(ticketId)}&top=2`,
+    `/tickets?batch=${encodeURIComponent(ticketId)}&top=10`,
   );
   // vivenu nennt die Liste je nach Endpunkt `docs` oder `rows`; beides lesen,
   // statt sich auf eines festzulegen und bei der nächsten Änderung leer
   // auszugehen.
   const liste = antwort.docs ?? antwort.rows ?? [];
-  return liste[0] ?? null;
+  return liste.find((t) => t._id && istLebendesTicket(t.status)) ?? null;
 }
 
 /**
