@@ -54,6 +54,8 @@ Aus den gebuchten Leistungen entstehen von selbst: **Checklisten-Pflichten**, **
 
 **Profilwahl im Speaker-Portal (SPK-071):** `--apply --nur=assistenz` legt einen zweiten Speaker an, für den Konrad arbeitet: TEST-Person mit `+zztest-assistenz`-Adresse, bestätigt; Konrad ist ihre **Assistenz** mit Zugang. Dazu `TEST — Assistenz-Talk` auf der Stage-Lead-Testbühne (Freitag 17:00–17:30). Braucht den Schritt `buehne` und die Migration `v6_speaker_profilwahl` (vorher zeigte `my_sessions` beide Profile gemischt). Konrad klickt `/speaker`: oben in der Leiste „Working for / Du arbeitest für“ mit „Konrad Gruner (du)“ und „TEST Assistenz“; nach dem Wechsel zeigen Übersicht, Session (jetzt `TEST — Assistenz-Talk`), Profil, Reise und Tickets den TEST-Speaker. Die Wahl bleibt beim nächsten Besuch. Mit `--nur=verwaltet` (PART-091) kommt ein drittes Profil dazu. `--remove` entfernt die TEST-Person samt Profil und Kontakt; die Session geht mit dem Präfix.
 
+**Shuttle in der Anreise (SPK-069):** `--apply --nur=shuttle` legt an Konrads eigenem Speaker-Profil zwei TEST-Fahrten an (`passenger_name` mit `TEST — `, `note = testdaten:konrad`): am ersten Summit-Tag 09:30 Hamburg Hbf → Messe (angefragt), am letzten 18:30 Messe → Flughafen (bestätigt). Direkt geschrieben, nicht über `request_shuttle` — es geht keine Mail an den Fahrdienst. `/admin/anreise` und `/speaker-leads/anreise` zeigen damit an seiner Zeile „Shuttle angefragt“ und „Shuttle bestätigt“, der Filter „Nur mit Shuttle“ behält sie; `/admin/speaker/<id>` zeigt im Abschnitt Anreise „Shuttle: 1 bestätigt · 1 angefragt“. `--remove` nimmt die Fahrten mit.
+
 ## Kennzeichnung
 
 - Rollen tragen `role_assignment.note = 'testdaten:konrad'` und laufen mit der Edition ab.
