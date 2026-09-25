@@ -11,11 +11,12 @@ import { useToast } from "@/components/ui/Toast";
 import {
   removeSpeakerContact,
   saveSpeakerConsents,
+  saveSpeakerConsentsOnBehalf,
   saveSpeakerContact,
   saveSpeakerProfile,
   type SpeakerResult,
 } from "../actions";
-import { SPEAKER_CONSENTS, type SpeakerProfile } from "../types";
+import { SPEAKER_CONSENTS, SPEAKER_CONSENTS_ON_BEHALF, type SpeakerProfile } from "../types";
 import { KontakteCard } from "@/components/speaker/KontakteCard";
 
 type Strings = Record<string, string>;
@@ -38,12 +39,19 @@ type Draft = {
 
 export function SpeakerProfileForm({
   profile,
+  consentOnBehalf = false,
   t,
   common,
   rpcMessages,
   ernaehrung,
 }: {
   profile: SpeakerProfile;
+  /**
+   * SPK-074 (K-40): wer für ein verwaltetes Profil arbeitet und dessen Kontakt
+   * mit Zugang ist, bestätigt Foto, Veröffentlichung und Folien stellvertretend
+   * (`can_confirm_consent_on_behalf`).
+   */
+  consentOnBehalf?: boolean;
   /**
    * Die Ernährungskarte (SPK-056), fertig von der Seite gebaut. Sie speichert
    * für sich — wie Einwilligungen und Kontakte — und steht deshalb hinter dem
@@ -95,8 +103,13 @@ export function SpeakerProfileForm({
     setDraft((d) => ({ ...d, [key]: value }));
 
   // Die Assistenz darf Profil und Inhalte pflegen, aber keine Einwilligung
-  // geben und keine Assistenz einladen (Antwort 58, Abschnitt C).
-  const readOnlyConsent = profile.is_assistant;
+  // geben und keine Assistenz einladen (Antwort 58, Abschnitt C). Ausnahme
+  // (SPK-074, K-40): der Kontakt mit Zugang im Verwaltet-Fall bestätigt Foto,
+  // Veröffentlichung und Folien stellvertretend — Hotel und Shuttle nicht.
+  const stellvertretend = profile.is_assistant && consentOnBehalf;
+  const readOnlyConsent = profile.is_assistant && !consentOnBehalf;
+  const nurSelbst = (key: string) => stellvertretend && !SPEAKER_CONSENTS_ON_BEHALF.includes(key);
+  const speakerName = [p.first_name, p.last_name].filter(Boolean).join(" ");
   const bioMissing = draft.bio_short_en.trim() === "";
 
   function report(res: SpeakerResult, okText: string) {
@@ -126,6 +139,13 @@ export function SpeakerProfileForm({
 
   function onSaveConsents() {
     startTransition(async () => {
+      if (stellvertretend) {
+        const erlaubt = Object.fromEntries(
+          Object.entries(consents).filter(([key]) => SPEAKER_CONSENTS_ON_BEHALF.includes(key)),
+        );
+        report(await saveSpeakerConsentsOnBehalf(profile.id, erlaubt), t.consentSaved);
+        return;
+      }
       report(await saveSpeakerConsents(consents), t.consentSaved);
     });
   }
@@ -291,6 +311,9 @@ export function SpeakerProfileForm({
       <Card id="consent" className="p-6">
         <h2 className="ct-h2 mb-1 text-ink">{t.sectionConsent}</h2>
         {readOnlyConsent && <p className="ct-help mb-3">{t.consentReadOnly}</p>}
+        {stellvertretend && (
+          <p className="ct-help mb-3">{t.consentOnBehalf.replace("{name}", speakerName || "—")}</p>
+        )}
         <div className="mt-3 flex flex-col gap-3">
           {SPEAKER_CONSENTS.map((key) => (
             <label key={key} className="flex items-start gap-2 ct-small">
@@ -298,19 +321,22 @@ export function SpeakerProfileForm({
                 type="checkbox"
                 className="mt-1 size-4"
                 checked={consents[key] === true}
-                disabled={readOnlyConsent}
+                disabled={readOnlyConsent || nurSelbst(key)}
                 onChange={(e) =>
                   setConsents((c) => ({ ...c, [key]: e.target.checked }))
                 }
               />
-              <span>{t[consentLabelKey(key)]}</span>
+              <span>
+                {t[consentLabelKey(key)]}
+                {nurSelbst(key) && <span className="ct-help block">{t.consentReadOnly}</span>}
+              </span>
             </label>
           ))}
         </div>
         {!readOnlyConsent && (
           <div className="mt-6">
             <Button variant="secondary" onClick={onSaveConsents} loading={pending}>
-              {common.save}
+              {stellvertretend ? t.consentOnBehalfSave : common.save}
             </Button>
           </div>
         )}

@@ -94,6 +94,17 @@ export const SPEAKER_CONSENTS = [
 ] as const;
 
 /**
+ * Was der Kontakt mit Zugang im Verwaltet-Fall stellvertretend bestätigt
+ * (SPK-074, K-40): Foto, Veröffentlichung, Folien. Hotel und Shuttle bleibt
+ * bei der Speakerin selbst — die Datenbank weist es sonst ab.
+ */
+export const SPEAKER_CONSENTS_ON_BEHALF: readonly string[] = [
+  "photo_video",
+  "speaker_release",
+  "slides_publication",
+];
+
+/**
  * Schritte aus `next_steps.open` und ihr Ziel. `null` hiesse: die Seite gibt es
  * noch nicht — die Karte sagt das dann, statt ins Leere zu verlinken.
  *

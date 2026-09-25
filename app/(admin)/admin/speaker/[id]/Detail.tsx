@@ -35,7 +35,7 @@ import {
   einordnungEntwurf,
   kontaktViaHatAdresse,
 } from "@/lib/speaker/einordnung";
-import { RIDER_FLAGS, SOCIAL_KEYS, type ContactOption, type SpeakerDetail, type SpeakerManager } from "../types";
+import { RIDER_FLAGS, SOCIAL_KEYS, type ContactOption, type SpeakerConsentRow, type SpeakerDetail, type SpeakerManager } from "../types";
 
 type Strings = Record<string, string>;
 
@@ -75,6 +75,7 @@ const TONE: Record<string, BadgeTone> = {
  */
 export function SpeakerDetailView({
   speaker,
+  consents,
   managers,
   contacts,
   labels,
@@ -91,6 +92,8 @@ export function SpeakerDetailView({
   rpcMessages,
 }: {
   speaker: SpeakerDetail;
+  /** SPK-074: Stand je Einwilligung, mit Namen bei stellvertretender Bestätigung. */
+  consents: SpeakerConsentRow[];
   managers: SpeakerManager[];
   contacts: ContactOption[];
   labels: Record<string, Record<string, string>>;
@@ -747,6 +750,8 @@ export function SpeakerDetailView({
           )}
         </Card>
 
+        <Einwilligungen rows={consents} datum={datum} t={t} />
+
         <Card id="sessions">
           <CardHeader title={t.sessionsTitle} />
           {speaker.sessions.length === 0 ? (
@@ -809,6 +814,43 @@ function draftVon(speaker: SpeakerDetail) {
     x: socials.x ?? "",
     instagram: socials.instagram ?? "",
   };
+}
+
+/** Die vier Einwilligungen des Portals, in seiner Reihenfolge. */
+const EINWILLIGUNGEN: { art: string; label: string }[] = [
+  { art: "photo_video", label: "consentLabelPhotoVideo" },
+  { art: "speaker_release", label: "consentLabelSpeakerRelease" },
+  { art: "slides_publication", label: "consentLabelSlides" },
+  { art: "hospitality_data", label: "consentLabelHospitality" },
+];
+
+/**
+ * SPK-074 (K-40): Einwilligungen der Speakerin, nur lesend. Geben kann sie das
+ * Team nicht — nur die Speakerin selbst oder, im Verwaltet-Fall, der Kontakt
+ * mit Zugang stellvertretend; der steht dann mit Namen und Tag da.
+ */
+function Einwilligungen({ rows, datum, t }: { rows: SpeakerConsentRow[]; datum: Intl.DateTimeFormat; t: Strings }) {
+  const stand = new Map(rows.map((r) => [r.consent_type, r]));
+  const text = (r: SpeakerConsentRow | undefined) => {
+    if (!r) return t.consentNone;
+    const tag = datum.format(new Date(r.granted_at));
+    if (r.source === "stellvertretend" && r.by_name) {
+      return (r.granted ? t.consentGrantedByProxy : t.consentNotGivenByProxy)
+        .replace("{name}", r.by_name)
+        .replace("{date}", tag);
+    }
+    return (r.granted ? t.consentGranted : t.consentNotGiven).replace("{date}", tag);
+  };
+  return (
+    <Card id="einwilligungen">
+      <CardHeader title={t.consentsTitle} description={t.consentsHint} />
+      <dl className="grid gap-x-6 gap-y-2">
+        {EINWILLIGUNGEN.map(({ art, label }) => (
+          <Zeile key={art} label={t[label]} value={text(stand.get(art))} />
+        ))}
+      </dl>
+    </Card>
+  );
 }
 
 function Zeile({ label, value }: { label: string; value: string }) {
