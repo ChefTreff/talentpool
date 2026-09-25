@@ -34,5 +34,7 @@ begin
       left join session se on se.id = ss.session_id and se.partner_org_id = p_org_id
      where sp.created_by_org_id = p_org_id
        and sp.edition_id = v_oe.edition_id
+       -- PART-081: Gäste der Standbühne stehen in ihrer eigenen Liste (partner_stage_guests).
+       and not sp.stage_guest
      order by se.title_de nulls last, pe.last_name, pe.first_name;
 end $$;

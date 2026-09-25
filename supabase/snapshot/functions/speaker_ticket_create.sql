@@ -8,6 +8,8 @@ declare v_sp speaker_profile%rowtype; v_p person%rowtype; v_email citext; v_id u
 begin
   select * into v_sp from speaker_profile where id = p_profile_id;
   if not found then raise exception 'speaker_not_found' using errcode = 'P0002'; end if;
+  -- PART-081: Gäste kommen mit einem Ticket aus dem Partner-Kontingent, nicht mit einem Freiticket.
+  if v_sp.stage_guest then raise exception 'not_eligible' using errcode = 'P0001', detail = 'stage_guest'; end if;
   if not speaker_is_confirmed(v_sp.pipeline_status) then raise exception 'not_eligible' using errcode = 'P0001', detail = v_sp.pipeline_status; end if;
   select t.id into v_id from ticket t where t.speaker_profile_id = p_profile_id and t.source = 'speaker' and t.status <> 'cancelled';
   if found then return v_id; end if;

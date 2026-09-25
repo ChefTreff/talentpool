@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Standbühnen-Speaker als Gäste (PART-081): speaker_profile.stage_guest,
+-- 0188 · Standbühnen- und Talk-Gäste: stage_guest mit Sperren, Gästeliste, Zuordnung (PART-081, PART-088)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925091057.
 -- stage_guest_consent_at, CHECK, Sperren in invite_speaker, upsert_speaker, speaker_ticket_create,
 -- speaker_profile_tickets_sync, event_app_speakers, partner_speakers, partner_add_speaker; Porträt-Upload
 -- für den Partner (speaker_asset_path_allowed, register_speaker_asset); neue RPCs partner_stage_guests,

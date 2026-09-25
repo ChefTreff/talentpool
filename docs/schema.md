@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 08:55 UTC · 100 Tabellen · 6 Views · 529 Funktionen
+> Stand: 2026-09-25 09:10 UTC · 100 Tabellen · 6 Views · 536 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1533,6 +1533,8 @@ Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality,
 | `recommended_format` | text |  |  |  | Vokabular session_format (LEAD-039): unsere Idee während der Akquise. speaker_type bleibt die Rolle auf der Bühne nach der Zusage; beide dürfen abweichen. |
 | `contact_via` | text |  |  |  | Wer den Draht hat oder über wen der Kontakt läuft, bis 200 Zeichen, ohne @ (LEAD-039). Keine Kontaktdaten Dritter — die gehören nach speaker_contact, mit Einverständnis. |
 | `outreach_channel` | text |  |  |  | Vokabular outreach_channel (LEAD-039): der Weg, über den wir die Person ansprechen. |
+| `stage_guest` | boolean | ja | `false` |  | Vom Partner angelegter Gast (PART-081 Standbühne, PART-088 Talk): erscheint in der Event-App als Speaker am veröffentlichten Programmpunkt, bekommt keinen Speaker-Zugang, kein Onboarding, keine Kommunikation, kein Freiticket, keine Lounge. Einlass über ein Ticket aus dem Partner-Kontingent. |
+| `stage_guest_consent_at` | timestamp with time zone |  |  |  | Wann der Partner bestätigt hat, dass die Person informiert und einverstanden ist, dass Name, Position und Porträt in der Event-App erscheinen (Auflage der Architektur-Session zu K-32). Selbstauskunft, kein Nachweis — das Setzen steht mit Akteur im Audit-Log. |
 
 ### `speaker_reception`
 Speaker Reception je Edition (A7.4): Zeit, Ort, Beschreibung, Obergrenze. Anmeldung in speaker_reception_rsvp. Sichtbar nur für Speaker mit reception_eligible.
@@ -1984,7 +1986,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `backfill_ticket_pass_types` | args: ? |
 | `board_like_pattern` | p_query: text |
 | `board_search_partners` | p_event_id: uuid, p_limit: integer, p_query: text |
-| `board_search_people` | p_event_id: uuid, p_limit: integer, p_query: text |
+| `board_search_people` | p_event_id: uuid, p_limit: integer, p_moderation: boolean, p_query: text |
 | `board_session_refs` | p_session_id: uuid |
 | `book_hospitality` | p_details: jsonb, p_guests: integer, p_quota_id: uuid |
 | `booth_checklist` | p_edition_id: uuid, p_org_id: uuid |
@@ -2215,9 +2217,11 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `org_has_booth` | p_org_edition_id: uuid |
 | `org_steps_progress` | p_edition_id: uuid, p_topic: text |
 | `partner_add_speaker` | p_email: text, p_first_name: text, p_last_name: text, p_session_id: uuid |
+| `partner_add_stage_guest` | p_consent: boolean, p_edition_id: uuid, p_email: text, p_first_name: text, p_job_title: text, p_last_name: text, p_org_id: uuid, p_organization: text |
 | `partner_admin_overview` | p_edition_id: uuid |
 | `partner_applications` | p_session_id: uuid |
 | `partner_asset_path_allowed` | p_name: text, p_write: boolean |
+| `partner_assign_stage_guest` | p_assign: boolean, p_profile_id: uuid, p_session_id: uuid |
 | `partner_booth_window` | p_event_day_id: uuid, p_stage_id: uuid |
 | `partner_can_edit` | p_org_id: uuid |
 | `partner_can_manage_contacts` | p_org_id: uuid |
@@ -2232,8 +2236,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_format_sessions` | p_edition_id: uuid, p_format: text, p_org_id: uuid |
 | `partner_ingest_log` | p_limit: integer |
 | `partner_mail_cc` | p_mail_id: bigint, p_org_id: uuid |
+| `partner_manages_stage_guest` | p_profile_id: uuid |
 | `partner_onboarding_recheck` | p_org_edition_id: uuid |
 | `partner_overview` | p_edition_id: uuid, p_org_id: uuid |
+| `partner_remove_stage_guest` | p_profile_id: uuid |
 | `partner_request_publish` | p_session_id: uuid |
 | `partner_request_question` | p_label_de: text, p_label_en: text, p_options: jsonb, p_purpose: text, p_session_id: uuid, p_type: text |
 | `partner_review_queue` | p_edition_id: uuid |
@@ -2243,8 +2249,11 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_set_onboarding_status` | p_edition_id: uuid, p_org_id: uuid, p_status: text |
 | `partner_set_session_questions` | p_question_ids: uuid[], p_session_id: uuid |
 | `partner_speakers` | p_edition_id: uuid, p_org_id: uuid |
+| `partner_stage_guest_files` | p_profile_id: uuid |
+| `partner_stage_guests` | p_edition_id: uuid, p_org_id: uuid |
 | `partner_update_session` | p_fields: jsonb, p_session_id: uuid |
 | `partner_update_speaker` | p_fields: jsonb, p_profile_id: uuid |
+| `partner_update_stage_guest` | p_email: text, p_first_name: text, p_job_title: text, p_last_name: text, p_organization: text, p_profile_id: uuid |
 | `partner_update_tour_stop` | p_fields: jsonb, p_stop_id: uuid |
 | `partner_window_binds` | p_stage_id: uuid |
 | `partner_withdraw_publish` | p_session_id: uuid |

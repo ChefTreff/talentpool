@@ -10,7 +10,7 @@ declare
   v_pid uuid := nullif(p_data->>'person_id', '')::uuid;
   v_email citext := nullif(btrim(p_data->>'email'), '')::citext;
   v_type text := coalesce(nullif(p_data->>'speaker_type', ''), 'other');
-  v_team boolean; v_id uuid; v_existing uuid;
+  v_team boolean; v_id uuid; v_existing uuid; v_guest boolean;
 begin
   if v_actor is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   if v_edition is null or not exists (select 1 from event where id = v_edition and is_edition) then
@@ -68,15 +68,18 @@ begin
     lounge_access        = coalesce((p_data->>'lounge_access')::boolean, speaker_profile.lounge_access),
     hotel_tier           = coalesce(nullif(p_data->>'hotel_tier', ''), speaker_profile.hotel_tier),
     hospitality_status   = coalesce(nullif(p_data->>'hospitality_status', ''), speaker_profile.hospitality_status)
-  returning id into v_id;
+  returning id, stage_guest into v_id, v_guest;
 
-  insert into role_assignment (person_id, role, scope_type, edition_id, granted_by, note)
-  values (v_pid, 'speaker', 'edition', v_edition, v_actor, 'speaker_profile')
-  on conflict (person_id, role, scope_type,
-               coalesce(scope_id, '00000000-0000-0000-0000-000000000000'::uuid),
-               coalesce(edition_id, '00000000-0000-0000-0000-000000000000'::uuid),
-               coalesce(portal, ''))
-  do update set valid_to = null, granted_by = v_actor;
+  -- PART-081: ein Gastprofil bekommt keinen Speaker-Zugang (die Leistungen verhindert der CHECK).
+  if not v_guest then
+    insert into role_assignment (person_id, role, scope_type, edition_id, granted_by, note)
+    values (v_pid, 'speaker', 'edition', v_edition, v_actor, 'speaker_profile')
+    on conflict (person_id, role, scope_type,
+                 coalesce(scope_id, '00000000-0000-0000-0000-000000000000'::uuid),
+                 coalesce(edition_id, '00000000-0000-0000-0000-000000000000'::uuid),
+                 coalesce(portal, ''))
+    do update set valid_to = null, granted_by = v_actor;
+  end if;
 
   perform log_audit(case when v_existing is null then 'speaker.create' else 'speaker.update' end, 'speaker_profile', v_id::text, null, (p_data - 'email') || jsonb_build_object('person_id', v_pid));
   return v_id;
