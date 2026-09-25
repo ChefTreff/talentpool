@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Check-in-Sicht im Admin (ADM-051)
+-- 0199 · Check-in-Sicht im Admin: Tage, Suche, Ticketstatus (ADM-051)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925102703.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --
