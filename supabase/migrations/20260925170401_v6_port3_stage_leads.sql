@@ -1,4 +1,5 @@
--- 00NN · PORT3: Stage-Lead-Portal dicht — `speaker_manager` nur für Bühnen, Tage und Slots
+-- 0210 · PORT3: Stage Leads nur mit Bühnen-Scope, Lücken L1–L7 geschlossen (Variante A)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925170401.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.

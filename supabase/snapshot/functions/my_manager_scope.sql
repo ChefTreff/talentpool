@@ -4,22 +4,28 @@ create or replace function my_manager_scope()
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
 AS $$
-declare v_me uuid := current_person_id(); v_team boolean; v_global boolean; v_any boolean;
+declare v_me uuid := current_person_id(); v_team boolean; v_any boolean;
 begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   v_team   := is_speaker_team(null);
-  v_global := exists (select 1 from role_assignment ra where ra.person_id = v_me and ra.role = 'speaker_manager' and ra.scope_type = 'global'
-                      and ra.valid_from <= now() and (ra.valid_to is null or ra.valid_to > now()));
+  -- PORT3 / L6: `speaker_manager` gilt nur noch für Bühnen, Tage und Slots —
+  -- Edition- und globale Zeilen (Altbestand) geben weder „alle“ noch Editionen.
   v_any    := exists (select 1 from role_assignment ra where ra.person_id = v_me and ra.role = 'speaker_manager'
+                      and ra.scope_type in ('stage', 'stage_day', 'slot')
                       and ra.valid_from <= now() and (ra.valid_to is null or ra.valid_to > now()));
   return jsonb_build_object(
     'person_id', v_me,
     'team', v_team,
-    'all', v_team or v_global,
+    'all', v_team,
     'is_manager', v_team or v_any,
+    -- Die Editionen folgen den Bühnen — für „Speaker anlegen“ und die Board-Vorauswahl.
     'editions', coalesce((select jsonb_agg(to_jsonb(x) order by x.name) from (
-        select distinct e.id, e.name, e.slug from role_assignment ra join event e on e.id = ra.edition_id
-        where ra.person_id = v_me and ra.role = 'speaker_manager' and ra.scope_type = 'edition'
+        select distinct e.id, e.name, e.slug
+          from role_assignment ra
+          join stage st on st.id = scope_stage_id(ra.scope_type, ra.scope_id)
+          join event ev on ev.id = st.event_id
+          join event e on e.id = coalesce(ev.edition_id, ev.id)
+        where ra.person_id = v_me and ra.role = 'speaker_manager'
           and ra.valid_from <= now() and (ra.valid_to is null or ra.valid_to > now())) x), '[]'::jsonb),
     'stages', coalesce((select jsonb_agg(to_jsonb(x) order by x.name) from (
         select distinct st.id, st.name, st.event_id, coalesce(e.edition_id, e.id) as edition_id
