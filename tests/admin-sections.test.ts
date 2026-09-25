@@ -95,6 +95,35 @@ describe("PORT2: die alten Produktions-Adressen führen weiter", () => {
     // Läge dort noch eine Seite, gewänne sie gegen die Weiterleitung.
     assert.equal(existsSync("app/(produktion)"), false);
   });
+
+  /**
+   * ADM-054: Catering hatte zwei Seiten mit derselben Ansicht. Geblieben ist der
+   * eigene Abschnitt; die Adresse unter der Produktion leitet dorthin.
+   */
+  it("leitet das Catering der Produktion auf den eigenen Abschnitt", async () => {
+    const { default: config } = await import("@/next.config");
+    const rules = await config.redirects!();
+    const regel = rules.find((r) => r.source === "/admin/produktion/catering");
+    assert.ok(regel, "Weiterleitung für /admin/produktion/catering fehlt");
+    assert.equal(regel!.destination, "/admin/catering");
+    // Eine Seite dort gewänne gegen die Weiterleitung — und bräuchte ein
+    // eigenes Gate, also eine dritte Rollenliste für dieselbe Ansicht.
+    assert.equal(existsSync("app/(admin)/admin/produktion/catering"), false);
+  });
+
+  it("jede Unterseite der Produktion hat einen eigenen Abschnitt", () => {
+    // Der Sinn von ADM-054: „verschiedene Personen arbeiten damit." Läge wieder
+    // alles hinter `production`, wäre die Aufteilung nur Fassade.
+    for (const [pfad, key] of [
+      ["app/(admin)/admin/produktion/staende/page.tsx", "productionBooths"],
+      ["app/(admin)/admin/produktion/bestellungen/page.tsx", "productionOrders"],
+      ["app/(admin)/admin/produktion/bestellungen/csv/route.ts", "productionOrders"],
+      ["app/(admin)/admin/produktion/dateien/page.tsx", "productionFiles"],
+    ] as const) {
+      const quelle = readFileSync(pfad, "utf8");
+      assert.ok(quelle.includes(`requireAdminSection("${key}"`), `${pfad} zieht nicht ${key}`);
+    }
+  });
 });
 
 describe("Admin-Abschnitte: Rollen", () => {

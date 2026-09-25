@@ -46,6 +46,13 @@ const nextConfig: NextConfig = {
       // existiert. `permanent: false`, solange die Umstellung frisch ist.
       { source: "/produktion", destination: "/admin/produktion", permanent: false },
       { source: "/produktion/:path*", destination: "/admin/produktion/:path*", permanent: false },
+      // ADM-054: Catering hatte zwei Seiten mit derselben Ansicht und zwei
+      // Rollenlisten. Geblieben ist der eigene Abschnitt `/admin/catering`.
+      // Auch diese Umleitung steht hier und nicht in einer Seite: eine Seite,
+      // die nur weiterleitet, bräuchte ein eigenes Gate, und das wäre eine
+      // dritte Rollenliste für dieselbe Ansicht. Niemand verliert Zugang —
+      // der Abschnitt `catering` schliesst Produktion ein.
+      { source: "/admin/produktion/catering", destination: "/admin/catering", permanent: false },
     ];
   },
 };

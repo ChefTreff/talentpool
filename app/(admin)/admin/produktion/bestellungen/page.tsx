@@ -4,7 +4,6 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ButtonLink } from "@/components/ui/Button";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
-import { ProductionTabs } from "../shell";
 import { loadAxes, loadSuppliers } from "../load";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +18,7 @@ export default async function SupplierOrdersPage({
 }: {
   searchParams: Promise<{ dienstleister?: string }>;
 }) {
-  await requireAdminSection("production", "/admin/produktion/bestellungen");
+  await requireAdminSection("productionOrders", "/admin/produktion/bestellungen");
   const { locale, t } = await getI18n("de");
   const { dienstleister } = await searchParams;
   const axes = await loadAxes();
@@ -29,7 +28,6 @@ export default async function SupplierOrdersPage({
   return (
     <>
       <PageHeader word={t.admin.words.production} title={t.production.supplierTitle} description={t.production.supplierLead} />
-      <ProductionTabs />
       {rows.length === 0 ? (
         <EmptyState title={t.production.emptySuppliers} description={t.production.emptySuppliersBody} />
       ) : (

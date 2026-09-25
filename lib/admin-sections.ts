@@ -81,6 +81,9 @@ export type AdminSectionKey =
   | "volunteers"
   | "catering"
   | "production"
+  | "productionBooths"
+  | "productionOrders"
+  | "productionFiles"
   | "contacts"
   | "deadlines"
   | "wiki"
@@ -171,6 +174,14 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
 
   // Produktion (PORT2: war /produktion)
   { key: "production", path: "/admin/produktion", roles: ["production_team", "area_lead_production"] },
+  // ADM-054 (Konrad 24.09.): „verschiedene Personen arbeiten damit" — deshalb je
+  // ein eigener Abschnitt statt eines Reiters. Die Rollen sind **dieselben** wie
+  // bei `production`: hier geht es um Navigation und darum, dass sich die Rechte
+  // ab jetzt je Seite über `/admin/rollen` unterscheiden lassen — nicht darum,
+  // sie gleich umzuverteilen.
+  { key: "productionBooths", path: "/admin/produktion/staende", roles: ["production_team", "area_lead_production"] },
+  { key: "productionOrders", path: "/admin/produktion/bestellungen", roles: ["production_team", "area_lead_production"] },
+  { key: "productionFiles", path: "/admin/produktion/dateien", roles: ["production_team", "area_lead_production"] },
 
   // Werkzeuge, die jeder Bereich braucht — Leitung **und** Team. Ein Wiki, das
   // nur Bereichsleitungen pflegen dürfen, schreibt niemand.

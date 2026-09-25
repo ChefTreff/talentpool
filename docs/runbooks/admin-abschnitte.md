@@ -68,6 +68,14 @@ Je Bereich eine **Lead-** und eine **Team-Rolle**, beide intern:
 
 Die Zuordnung ist Arbeitsteilung, keine Technik — sie steht in einer Datei und ist eine Zeile weit änderbar. Was ein Bereichslead in seiner Domäne **tun** darf, entscheidet weiterhin die Datenbank (`is_partner_team()`, `can_edit_slot()` und so fort); dieses Gate sagt nur, welche Seite er öffnen kann.
 
+## Eine Seite, ein Abschnitt (ADM-054)
+
+Reiter innerhalb einer Seite teilen die **Ansicht**, nicht die **Rechte**: Wer den Abschnitt hat, hat alle Reiter. Sobald verschiedene Leute mit den Teilen arbeiten, gehört jeder Teil in einen eigenen Abschnitt mit eigenem Menüpunkt — so wie die Produktion seit dem 25.09.2026 (`production`, `productionBooths`, `productionOrders`, `productionFiles`).
+
+Die Rollen bleiben dabei zunächst **dieselben**. Der Gewinn ist nicht die andere Vorgabe, sondern dass sich ab jetzt eine einzelne Seite über `/admin/rollen` öffnen oder schliessen lässt, ohne die anderen anzufassen.
+
+**Bevor ein neuer Abschnitt entsteht, prüfen, ob es ihn schon gibt.** Catering hatte unter der Produktion einen Reiter *und* einen eigenen Abschnitt mit derselben Ansicht — zwei Seiten, zwei Rollenlisten, eine Wahrheit zu viel. Geblieben ist der eigene Abschnitt; die alte Adresse leitet über `next.config.ts` dorthin, nicht über eine Seite mit `redirect()`: die bräuchte ein eigenes Gate und damit eine dritte Rollenliste.
+
 ## Datenbankrechte: `has_admin_section(key)` (PORT1b)
 
 PORT1 änderte **keine** SQL-Prädikate; die Oberfläche war die zweite Schranke, nicht die erste. Das blieb an einer Stelle unbefriedigend: RPCs, die genau die Frage eines Abschnitts stellen, schrieben dessen Rollenliste ab — `can_edit_next_up()` und `can_view_community_events()` trugen den Hinweis „dieselbe Rollenliste" im Kommentar. Zwei Abschriften derselben Regel laufen auseinander, und zwar zur falschen Seite: die Seite wäre zu, die Schreib-RPC offen.

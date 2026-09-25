@@ -4,7 +4,6 @@ import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { HeroBand } from "@/components/ui/HeroBand";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ProductionTabs } from "./shell";
 import { AxisPicker } from "@/components/regie/AxisPicker";
 import { RegieTable } from "@/components/regie/RegieTable";
 import { loadAxes, loadRegie } from "./load";
@@ -35,7 +34,6 @@ export default async function ProduktionPage({
     return (
       <>
         <PageHeader word={t.admin.words.production} title={t.production.title} description={t.production.lead} />
-        <ProductionTabs />
         <EmptyState title={t.production.noStage} description={t.production.noStageBody} />
       </>
     );
@@ -50,7 +48,6 @@ export default async function ProduktionPage({
         title={t.production.title}
         lead={t.production.lead}
       />
-      <ProductionTabs />
       <AxisPicker
         stages={axes.stages}
         days={days}
