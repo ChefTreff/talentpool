@@ -18,6 +18,24 @@ describe("Zeitfenster des Boards", () => {
     });
   });
 
+  it("wächst um Slots vor oder nach den Programmzeiten, bis zur vollen Stunde", () => {
+    // Programm 13:00–20:30; ein Slot 10:00–10:30 stand vorher ausserhalb des Rasters.
+    assert.deepEqual(dayWindow([{ startMin: 600, endMin: 630 }], 780, 1230), {
+      start: 600,
+      end: 1230,
+    });
+    // 20:15–21:10 → Ende 22:00; der Anfang bleibt beim Programm.
+    assert.deepEqual(dayWindow([{ startMin: 1215, endMin: 1270 }], 780, 1230), {
+      start: 780,
+      end: 1320,
+    });
+    // Ein Slot mitten im Programm ändert nichts.
+    assert.deepEqual(dayWindow([{ startMin: 840, endMin: 870 }], 780, 1230), {
+      start: 780,
+      end: 1230,
+    });
+  });
+
   it("spannt sonst die Slots mit einer Stunde Luft ein", () => {
     // 10:00–11:30 -> volle Stunden 09:00–12:30
     assert.deepEqual(dayWindow([{ startMin: 600, endMin: 690 }], null, null), {

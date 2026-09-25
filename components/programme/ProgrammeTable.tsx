@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
 import { searchBoardPeople, setSessionSpeakers, setSlotStatus, upsertSession } from "./actions";
+import { fehlerText } from "./fehler";
 import { speakerName, SLOT_STATUS_ORDER, type BoardDay, type BoardLabels, type BoardSlot, type BoardStage } from "./types";
 
 type Strings = Record<string, string>;
@@ -89,7 +90,7 @@ export function ProgrammeTable({
     startTransition(async () => {
       const res = await action;
       if (!res.ok) {
-        toast("error", message(res.key ?? "unknown") + (res.detail ? ` (${res.detail})` : ""));
+        toast("error", fehlerText(message, { key: res.key ?? "unknown", detail: res.detail }));
         return;
       }
       toast("success", okText);

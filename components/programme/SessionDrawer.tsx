@@ -29,6 +29,7 @@ import {
 } from "./actions";
 import { SLOT_STATUS_ORDER, speakerName, type BoardLabels, type SessionSpeaker } from "./types";
 import { SuchAuswahl } from "./SuchAuswahl";
+import { fehlerText } from "./fehler";
 import type { ProgrammeStrings } from "./Board";
 
 type Draft = {
@@ -165,7 +166,7 @@ export function SessionDrawer({
       onChanged();
       return true;
     }
-    toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+    toast("error", fehlerText(message, res));
     return false;
   }
 
@@ -274,7 +275,7 @@ export function SessionDrawer({
         ...(!id && hostOrgId ? { host_org_id: hostOrgId } : {}),
       });
       if (!res.ok) {
-        toast("error", message(res.key));
+        toast("error", fehlerText(message, res));
         return;
       }
       const newId = res.data.sessionId;
@@ -285,14 +286,14 @@ export function SessionDrawer({
       if (!hostOrgId && (partner?.id ?? null) !== (detail?.refs.partner?.id ?? null)) {
         const gesetzt = await setSessionPartner(newId, partner?.id ?? null);
         if (!gesetzt.ok) {
-          toast("error", message(gesetzt.key));
+          toast("error", fehlerText(message, gesetzt));
           return;
         }
       }
       // Neu angelegt und aus einem leeren Slot heraus geöffnet: gleich anhängen.
       if (!id && slotId) {
         const attached = await attachSession(newId, slotId);
-        if (!attached.ok) toast("error", message(attached.key));
+        if (!attached.ok) toast("error", fehlerText(message, attached));
       }
       toast("success", t.saved);
       onChanged();

@@ -35,6 +35,7 @@ import {
   moveSlot,
   type ActionResult,
 } from "./actions";
+import { fehlerText } from "./fehler";
 import { SessionDrawer } from "./SessionDrawer";
 import {
   SLOT_STATUS_ORDER,
@@ -144,6 +145,35 @@ export function Board({
     (stageId: string) => !editableStageIds || editableStageIds.includes(stageId),
     [editableStageIds],
   );
+
+  /**
+   * Die eigene Bühne einer Bühnen-Sicht (LEAD-015). Im Admin gibt es keine —
+   * dort ist jede Bühne bearbeitbar, und keine steht vor den anderen.
+   */
+  const eigen = useCallback(
+    (stageId: string) => editableStageIds !== undefined && editableStageIds.includes(stageId),
+    [editableStageIds],
+  );
+
+  /**
+   * Konrad, 24.09.: „Die eigene Bühne ist nicht zu erkennen.“ Sie steht deshalb
+   * immer ganz links und doppelt so breit; die anderen folgen in ihrer
+   * Reihenfolge und bleiben sichtbar — man plant um sie herum.
+   */
+  const spalten = useMemo(
+    () => [...stages.filter((s) => eigen(s.id)), ...stages.filter((s) => !eigen(s.id))],
+    [eigen, stages],
+  );
+  const rasterSpalten = `64px ${spalten
+    .map((s) => (eigen(s.id) ? "minmax(360px, 2fr)" : "minmax(180px, 1fr)"))
+    .join(" ")}`;
+  // Mindestbreite aus denselben Zahlen: sonst ragen die Spalten über das Raster
+  // hinaus, und Kopfzeile wie Hintergrund enden vor der letzten Bühne.
+  const rasterBreite = Math.max(
+    900,
+    64 + spalten.reduce((summe, s) => summe + (eigen(s.id) ? 360 : 180), 0),
+  );
+  const aktuellesEvent = events.find((e) => e.id === currentEventId) ?? null;
   const dateLocale = locale === "en" ? "en-GB" : "de-DE";
 
   const sensors = useSensors(
@@ -265,7 +295,7 @@ export function Board({
         onOk?.();
         return true;
       }
-      toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+      toast("error", fehlerText(message, res));
       return false;
     },
     [message, notifyPeers, router, toast],
@@ -280,7 +310,7 @@ export function Board({
             setConfirmMove(input);
             return;
           }
-          toast("error", message(res.key));
+          toast("error", fehlerText(message, res));
           return;
         }
         setConfirmMove(null);
@@ -392,7 +422,11 @@ export function Board({
     [day, runMove, timezone],
   );
 
-  /** Doppelklick auf freie Fläche legt einen leeren Slot an. */
+  /**
+   * Doppelklick auf freie Fläche legt einen leeren Slot an und öffnet ihn
+   * gleich (LEAD-021) — vorher stand er nur da, und man musste ihn erst
+   * suchen und anklicken, um ihm eine Session zu geben.
+   */
   function onColumnDoubleClick(stage: BoardStage, e: React.MouseEvent<HTMLDivElement>) {
     if (!day || !bearbeitbar(stage.id)) return;
     if ((e.target as HTMLElement).closest("[data-slot-card]")) return;
@@ -405,7 +439,9 @@ export function Board({
         startAt: zonedTimeToInstant(day.day_date, startMin, timezone).toISOString(),
         endAt: zonedTimeToInstant(day.day_date, startMin + duration, timezone).toISOString(),
       });
-      if (handle(res)) toast("success", t.slotCreated);
+      if (!handle(res) || !res.ok) return;
+      toast("success", t.slotCreated);
+      setEditing({ sessionId: null, slotId: res.data.slotId });
     });
   }
 
@@ -420,8 +456,11 @@ export function Board({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Event- und Tagwahl */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* Board-Kopf (LEAD-014): der Summit als Überschrift, darunter Tag 1 und
+          Tag 2 als Schalter. Eine Wahl der Veranstaltung gibt es nur noch, wo
+          zwei Editionen je einen Summit haben — Nebenveranstaltungen bietet
+          `boardEvents` nicht mehr an. */}
+      <div className="flex flex-col gap-3">
         {events.length > 1 && (
           <div className="flex flex-wrap gap-1" role="group" aria-label={t.event}>
             {events.map((e) => (
@@ -430,7 +469,7 @@ export function Board({
                 href={`${basePath}?event=${e.slug}`}
                 aria-current={e.id === currentEventId ? "page" : undefined}
                 className={cn(
-                  "rounded-ct-sm px-2.5 py-1.5 ct-label",
+                  "inline-flex min-h-11 items-center rounded-ct-sm px-3 ct-label",
                   e.id === currentEventId
                     ? "bg-accent-soft text-accent-deep"
                     : "text-muted hover:bg-surface-hover hover:text-ink",
@@ -441,24 +480,37 @@ export function Board({
             ))}
           </div>
         )}
-        <div className="flex flex-wrap gap-1" role="group" aria-label={t.day}>
-          {days.map((d) => (
-            <a
-              key={d.id}
-              href={`${basePath}?event=${currentEventSlug}&tag=${d.day_date}`}
-              aria-current={d.id === currentDayId ? "page" : undefined}
-              className={cn(
-                "rounded-ct-sm px-2.5 py-1.5 ct-label",
-                d.id === currentDayId
-                  ? "bg-accent-soft text-accent-deep"
-                  : "text-muted hover:bg-surface-hover hover:text-ink",
-              )}
+        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+          <div className="flex min-w-0 flex-col gap-2">
+            {aktuellesEvent && <h2 className="ct-h2 text-ink">{aktuellesEvent.name}</h2>}
+            <div
+              className="inline-flex flex-wrap gap-1 self-start rounded-ct-md border border-border-strong bg-surface p-1"
+              role="group"
+              aria-label={t.day}
             >
-              {(locale === "en" ? d.label_en : d.label_de) ?? formatDay(d.day_date, dateLocale)}
-            </a>
-          ))}
+              {days.map((d, i) => {
+                const aktiv = d.id === currentDayId;
+                const name = (locale === "en" ? d.label_en : d.label_de) ?? formatDay(d.day_date, dateLocale);
+                return (
+                  <a
+                    key={d.id}
+                    href={`${basePath}?event=${currentEventSlug}&tag=${d.day_date}`}
+                    aria-current={aktiv ? "page" : undefined}
+                    className={cn(
+                      "inline-flex min-h-11 items-center gap-1.5 rounded-ct-sm px-4 ct-label transition-colors",
+                      aktiv ? "bg-accent text-white" : "text-muted hover:bg-surface-hover hover:text-ink",
+                    )}
+                  >
+                    <span>{t.dayN.replace("{n}", String(i + 1))}</span>
+                    <span aria-hidden>·</span>
+                    <span>{name}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+          <span className="ct-help">{t.hint}</span>
         </div>
-        <span className="ml-auto ct-help">{t.hint}</span>
       </div>
 
       <DndContext
@@ -504,27 +556,41 @@ export function Board({
           )}
         </section>
 
-        {/* Board */}
-        <div className="overflow-x-auto rounded-ct-lg border bg-surface">
-          <div className="min-w-[900px]">
-            {/* Kopfzeile */}
+        {/* Board. Es scrollt in sich, damit die Kopfzeile mit den Bühnen
+            oben und die Zeitachse links stehen bleiben (LEAD-015) — `sticky`
+            greift nur innerhalb des Containers, der scrollt, und ein
+            `overflow-x-auto` allein scrollt nicht senkrecht. */}
+        <div className="max-h-[75vh] overflow-auto rounded-ct-lg border bg-surface">
+          <div style={{ minWidth: rasterBreite }}>
+            {/* Kopfzeile: fixiert und als eigene Zeile eingefärbt (LEAD-015,
+                Konrad 25.09.) — am Freitag liegt der Einlass als Block über
+                allen Bühnen, und ohne eigenen Grund verschwanden die Namen
+                darin. */}
             <div
-              className="grid border-b bg-surface"
-              style={{ gridTemplateColumns: `64px repeat(${stages.length}, minmax(180px, 1fr))` }}
+              className="sticky top-0 z-20 grid border-b border-border-strong bg-accent-soft"
+              style={{ gridTemplateColumns: rasterSpalten }}
             >
-              <div />
-              {stages.map((s) => {
+              <div className="sticky left-0 z-10 bg-accent-soft" />
+              {spalten.map((s) => {
                 const st = statsByStage.get(s.id);
+                const istEigen = eigen(s.id);
                 return (
-                  <div key={s.id} className="border-l px-3 py-2">
+                  <div
+                    key={s.id}
+                    className={cn(
+                      "px-3 py-2",
+                      istEigen ? "border-x-2 border-accent bg-accent text-white" : "border-l border-border",
+                    )}
+                  >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="ct-label text-ink">{s.name}</span>
+                      <span className={cn("ct-label", istEigen ? "text-white" : "text-ink")}>{s.name}</span>
                       {/* Nur Farbe zu ändern reichte nicht: der Unterschied
                           muss auch da sein, wo Farben nicht unterschieden
                           werden (Design-Regel 4). */}
+                      {istEigen && <Badge tone="accent">{t.ownStage}</Badge>}
                       {!bearbeitbar(s.id) && <Badge>{t.stageReadOnly}</Badge>}
                     </div>
-                    <div className="ct-help">
+                    <div className={cn("ct-help", istEigen && "text-white")}>
                       {st
                         ? `${st.slots_used}${st.slot_quota ? ` / ${st.slot_quota}` : ""} ${t.slotsUsed}`
                         : `0 ${t.slotsUsed}`}
@@ -540,16 +606,21 @@ export function Board({
               ref={gridRef}
               className="relative grid"
               style={{
-                gridTemplateColumns: `64px repeat(${stages.length}, minmax(180px, 1fr))`,
+                gridTemplateColumns: rasterSpalten,
                 height: gridHeight,
               }}
             >
-              {/* Stundenachse */}
-              <div className="relative">
+              {/* Stundenachse — bleibt beim seitlichen Scrollen stehen. */}
+              <div className="sticky left-0 z-10 bg-surface">
                 {hourMarks.map((m) => (
                   <div
                     key={m}
-                    className="absolute right-2 -translate-y-1/2 ct-help tabular-nums"
+                    // Die erste Marke steht unter ihrer Linie statt mittig: halb
+                    // darüber läge sie unter der fixierten Kopfzeile.
+                    className={cn(
+                      "absolute right-2 ct-help tabular-nums",
+                      m > windowStart && "-translate-y-1/2",
+                    )}
                     style={{ top: (m - windowStart) * PX_PER_MIN }}
                   >
                     {formatMinutes(m)}
@@ -557,11 +628,12 @@ export function Board({
                 ))}
               </div>
 
-              {stages.map((stage) => (
+              {spalten.map((stage) => (
                 <StageColumn
                   key={stage.id}
                   stage={stage}
                   editable={bearbeitbar(stage.id)}
+                  own={eigen(stage.id)}
                   windowStart={windowStart}
                   hourMarks={hourMarks}
                   onDoubleClick={(e) => onColumnDoubleClick(stage, e)}
@@ -670,6 +742,7 @@ export function Board({
 function StageColumn({
   stage,
   editable,
+  own,
   windowStart,
   hourMarks,
   onDoubleClick,
@@ -678,6 +751,8 @@ function StageColumn({
   stage: BoardStage;
   /** Nur in dieser Sicht (LEAD-016) — die Rechtegrenze steht in den RPCs. */
   editable: boolean;
+  /** Die eigene Bühne einer Bühnen-Sicht: mit Rahmen, wie ihr Kopf (LEAD-015). */
+  own: boolean;
   windowStart: number;
   hourMarks: number[];
   onDoubleClick: (e: React.MouseEvent<HTMLDivElement>) => void;
@@ -691,7 +766,8 @@ function StageColumn({
       ref={setNodeRef}
       onDoubleClick={onDoubleClick}
       className={cn(
-        "relative border-l",
+        "relative",
+        own ? "border-x-2 border-b-2 border-accent" : "border-l",
         isOver && editable && "bg-accent-soft/40",
         // Ruhiger Grund, nicht ausgegraut: die fremde Bühne ist weiter zum
         // Lesen da — man plant schliesslich um sie herum.
