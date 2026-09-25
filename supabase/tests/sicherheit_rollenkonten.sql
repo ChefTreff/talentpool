@@ -1,14 +1,15 @@
 -- Rollenkonten-Probe (Security-Check Teil 2, Architektur-Session 25.09.2026). Echter Rollenwechsel
 -- (`set local role authenticated`), Erwartungen fest, jede Abweichung wird mit Tabelle und Zahl genannt:
 --   01 Externe ohne Rolle: in Tabellen mit person_id keine Zeile fremder Personen — Ausnahme
---      session_speaker für **veröffentlichte** Sessions (Programm);
+--      session_speaker für **veröffentlichte** Sessions (Programm) und die Mitsprecher der **eigenen** Sessions;
 --   02 Externe ohne Rolle: Tabellen mit org_id/organization_id nur für Organisationen, deren Mitglied man ist;
 --   03 Externe ohne Rolle: keine fremden Entwürfe, keine Slots ohne veröffentlichte Session (außer Rahmen);
 --   04 Externe ohne Rolle: ticket_secret, audit_log, organization ohne Grant; expense_claim,
 --      hospitality_booking, role_assignment leer;
 --   05 Partner-Kontakt einer Organisation A: keine Zeile fremder Organisationen in Tabellen mit org_id.
 -- Läuft gegen den Bestand (Testperson = älteste Person mit Konto, Rollen im Lauf entfernt), alles zurückgerollt.
--- Erster Lauf 25.09.2026: 5/5 ok (11 Tabellen mit person_id lesbar, 3 mit org_id).
+-- Erster Lauf 25.09.2026: 5/5 ok (11 Tabellen mit person_id lesbar, 3 mit org_id). Nach 0189 zeigte 01 einen
+-- Mitsprecher an der eigenen Entwurfs-Session der Testperson — kein Leck (is_speaker_of), seither ausgenommen.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 grant insert on t_res to authenticated;
@@ -28,7 +29,7 @@ begin
             where c.table_schema = 'public' and k.relkind = 'r' and c.column_name = 'person_id' order by 1 loop
     begin
       if r.table_name = 'session_speaker' then
-        execute 'select count(*) from public.session_speaker ss where ss.person_id is distinct from $1 and not exists (select 1 from public.session se where se.id = ss.session_id and se.publish_status = ''published'')' into v_n using v_pid;
+        execute 'select count(*) from public.session_speaker ss where ss.person_id is distinct from $1 and not exists (select 1 from public.session se where se.id = ss.session_id and se.publish_status = ''published'') and not exists (select 1 from public.session_speaker s2 where s2.session_id = ss.session_id and s2.person_id = $1)' into v_n using v_pid;
       else
         execute format('select count(*) from public.%I where person_id is distinct from $1', r.table_name) into v_n using v_pid;
       end if;
