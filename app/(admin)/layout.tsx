@@ -96,7 +96,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     },
     {
       label: nav.sections.volunteers,
-      items: eintrag("volunteers", "/admin/volunteers", nav.volunteersWork),
+      items: [
+        ...eintrag("volunteers", "/admin/volunteers", nav.volunteersWork),
+        ...eintrag("checkin", "/admin/checkin", nav.checkin),
+      ],
     },
     // Produktion (PORT2): war bis zum 22.09.2026 ein eigenes Portal unter
     // `/produktion`. Die Reiter Regie, Stände, Bestellungen, Catering und

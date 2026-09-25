@@ -179,6 +179,8 @@ const BUSINESS_KEYS = new Set([
   "invalid_contact_type",
   "invalid_contact",
   "contact_not_found",
+  // ADM-051: Suche im Check-in unter drei Zeichen — eine leere Antwort waere irrefuehrend.
+  "query_too_short",
   "invalid_audience",
   "info_not_found",
   "note_required",
