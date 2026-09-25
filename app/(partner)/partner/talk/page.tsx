@@ -8,11 +8,15 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Gaesteliste } from "@/components/partner/Gaesteliste";
+import type { GastRow, GastWahl } from "@/components/partner/gaeste";
+import { gastFotoAdressen } from "@/lib/partner/gaeste";
 import { getPartnerScope } from "../org";
 import { RueckgabeHinweis, SessionStatusBadge, rueckgabeOffen, type RueckgabeTexte } from "../Rueckgabe";
 import { canEditOnboarding, type PartnerOverview } from "../types";
-import { SpeakerHinzufuegen } from "./SpeakerHinzufuegen";
+import { addStageGuest, registerStageGuestPhoto, removeStageGuest, updateStageGuest } from "../actions";
 import { SpeakerKarte } from "./SpeakerKarte";
+import { TalkGaeste } from "./TalkGaeste";
 import type { PartnerFormatSession, PartnerSpeaker } from "./types";
 
 export const dynamic = "force-dynamic";
@@ -30,13 +34,16 @@ const TALK_FORMATE = new Set(["keynote", "panel", "talk", "impulse", "fireside_c
  *    dazu der Freigabestand. Der Partner soll nicht seine Speakerin fragen
  *    müssen, wann er auftritt — und wir wollen nicht, dass er beim Team
  *    nachfragt, was ohnehin in der Datenbank steht.
- * 2. **Wer spricht.** Er trägt die Person selbst ein, wie ein Stage Lead. Sie
- *    bekommt das normale Speaker-Onboarding mit eigenem Zugang; bis sie sich
- *    anmeldet, darf der Partner ihre Programmangaben pflegen (0139).
+ * 2. **Wer spricht.** Seit PART-088 (Konrad 25.09.) legt der Partner seine
+ *    Speaker vollständig an — wie Kontakte, mit Porträt — und ordnet sie dem
+ *    Talk zu. Es sind Gäste (`speaker_profile.stage_guest`, PART-081): Profil in
+ *    der Event-App, aber kein Portalzugang, kein Onboarding und keine
+ *    Kommunikation von uns. Dieselbe Gästeliste wie auf der Standbühne. Wer
+ *    früher über `partner_add_speaker` eingetragen wurde, bleibt sichtbar.
  *
  * **Die Bühne gehört uns.** Deshalb steht hier kein Formular für Titel oder
  * Beschreibung: Was auf einer Programmbühne läuft, entscheidet das
- * Programm-Team mit der Speakerin. Der Partner stellt die Person, nicht das
+ * Programm-Team mit dem Partner. Der Partner stellt die Person, nicht das
  * Programm. Side-Event und Interview Table sind der andere Fall — dort legt
  * er selbst an (B7).
  */
@@ -48,10 +55,11 @@ export default async function PartnerTalkPage() {
 
   const supabase = await createSupabaseServerClient();
   const args = { p_org_id: current.org_id, p_edition_id: current.edition_id };
-  const [{ data: overviewJson }, { data: sessionRows }, { data: speakerRows }, vocab] = await Promise.all([
+  const [{ data: overviewJson }, { data: sessionRows }, { data: speakerRows }, { data: gastZeilen }, vocab] = await Promise.all([
     supabase.rpc("partner_overview", args),
     supabase.rpc("partner_format_sessions", args),
     supabase.rpc("partner_speakers", args),
+    supabase.rpc("partner_stage_guests", args),
     // Formate und Freigabestand kommen aus dem Vokabular, nicht aus dem Code:
     // dasselbe Wort wie im Speaker-Portal und im Programmboard.
     loadVocabMap(supabase, locale),
@@ -70,7 +78,36 @@ export default async function PartnerTalkPage() {
   const s = t.partnerTalk;
   const canEdit = overview ? canEditOnboarding(overview.roles, overview.team) : false;
 
-  const sessions = alleSessions.filter((x) => TALK_FORMATE.has(x.format));
+  // PART-089: Programmpunkte auf der eigenen Standbühne gehören zur Standbühne, nicht hierher.
+  const buehnenIds = [...new Set(alleSessions.map((x) => x.stage_id).filter((id): id is string => !!id))];
+  const { data: buehnen } = buehnenIds.length
+    ? await supabase.from("stage").select("id, type").in("id", buehnenIds)
+    : { data: [] as { id: string; type: string | null }[] };
+  const standbuehnen = new Set(((buehnen ?? []) as { id: string; type: string | null }[])
+    .filter((b) => b.type === "partner_booth").map((b) => b.id));
+  const sessions = alleSessions.filter(
+    (x) => TALK_FORMATE.has(x.format) && !(x.stage_id && standbuehnen.has(x.stage_id)),
+  );
+
+  // PART-088: die Gäste der Organisation — angelegt unten, zugeordnet am Talk.
+  const gastRoh = (gastZeilen ?? []) as Omit<GastRow, "photo_url">[];
+  const adressen = await gastFotoAdressen(
+    supabase,
+    gastRoh.map((g) => g.photo_path).filter((pfad): pfad is string => !!pfad),
+  );
+  const gaeste: GastRow[] = gastRoh.map((g) => ({ ...g, photo_url: g.photo_path ? adressen.get(g.photo_path) ?? null : null }));
+  const gastName = (g: GastRow) => [g.first_name, g.last_name].filter(Boolean).join(" ");
+  const wahl: GastWahl[] = gaeste.map((g) => ({ profile_id: g.profile_id, person_id: g.person_id, name: gastName(g) }));
+  const zuordnungTexte = {
+    label: s.speakersLabel,
+    none: s.noSpeakerYet,
+    noGuests: s.assignNone,
+    choose: s.assignChoose,
+    add: s.assignAdd,
+    remove: s.assignRemove,
+    assigned: s.assigned,
+    unassigned: s.unassigned,
+  };
   const gebucht = (overview?.products ?? []).filter((p) => p.format_key === "talk");
 
   const zeit = new Intl.DateTimeFormat(t.meta.dateLocale, {
@@ -152,12 +189,20 @@ export default async function PartnerTalkPage() {
                   />
                 )}
 
-                <div className="mt-5 border-t border-border pt-4">
-                  <h3 className="ct-label text-muted">{s.speakersLabel}</h3>
-                  {dazu.length === 0 ? (
-                    <p className="ct-help mt-2">{s.noSpeakerYet}</p>
-                  ) : (
-                    <div className="mt-3 flex flex-col gap-4">
+                <div className="mt-5 flex flex-col gap-4 border-t border-border pt-4">
+                  <TalkGaeste
+                    sessionId={x.id}
+                    speakers={gaeste
+                      .filter((g) => g.sessions.some((z) => z.session_id === x.id))
+                      .map((g) => ({ person_id: g.person_id, name: gastName(g) }))}
+                    gaeste={wahl}
+                    canEdit={canEdit}
+                    t={zuordnungTexte}
+                    rpcMessages={t.rpc}
+                  />
+                  {/* Früher über partner_add_speaker eingetragen (mit Portalzugang) — bleibt sichtbar und pflegbar. */}
+                  {dazu.length > 0 && (
+                    <div className="flex flex-col gap-4">
                       {dazu.map((sp) => (
                         <SpeakerKarte
                           key={sp.profile_id}
@@ -169,15 +214,6 @@ export default async function PartnerTalkPage() {
                       ))}
                     </div>
                   )}
-                  {canEdit && (
-                    <div className="mt-4">
-                      <SpeakerHinzufuegen
-                        sessionId={x.id}
-                        t={s as unknown as Record<string, string>}
-                        rpcMessages={t.rpc}
-                      />
-                    </div>
-                  )}
                 </div>
               </Card>
             );
@@ -186,6 +222,33 @@ export default async function PartnerTalkPage() {
           <p className="ct-help">{s.programmeHint}</p>
         </div>
       )}
+
+      {/* PART-088: eure Speaker — dieselbe Liste wie unter Standbühne → Gäste. Auch ohne Slot,
+          damit der Partner seine Speaker schon anlegen kann. */}
+      <section aria-label={s.guestsTitle} className="mt-10">
+        <Gaesteliste
+          orgId={current.org_id}
+          gaeste={gaeste}
+          canManage={canEdit}
+          actions={{
+            add: addStageGuest,
+            update: updateStageGuest,
+            remove: removeStageGuest,
+            registerPhoto: registerStageGuestPhoto,
+          }}
+          dateLocale={t.meta.dateLocale}
+          t={{
+            ...t.partnerGuests,
+            title: s.guestsTitle,
+            lead: s.guestsLead,
+            add: s.guestsAdd,
+            addTitle: s.guestsAdd,
+            emptyTitle: s.guestsEmptyTitle,
+            emptyBody: s.guestsEmptyBody,
+          }}
+          rpcMessages={t.rpc}
+        />
+      </section>
     </>
   );
 }

@@ -88,3 +88,6 @@ export function gastFehlt(d: Omit<GastNeu, "orgId">): (keyof Omit<GastNeu, "orgI
   if (!d.consent) fehlt.push("consent");
   return fehlt;
 }
+
+/** Ein Gast zur Auswahl an einem Programmpunkt (Standbühne oder Talk). */
+export type GastWahl = { profile_id: string; person_id: string; name: string };
