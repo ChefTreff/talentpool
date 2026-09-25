@@ -2,6 +2,8 @@
 
 Stand 24.09.2026 (Nacht), Partner-Chat. **Nur Vorschlag — gebaut wird nach Freigabe** durch Konrad und die Architektur-Session (Arbeitsauftrag Welle 6, „Freigabe nach der Pause“ → Partner, Punkt 3).
 
+> **Entschieden und umgesetzt (25.09.2026):** Konrads Antworten K-32 — (1) Einlass über ein Ticket aus dem Partner-Kontingent, kein Freiticket; (2) Gäste werden in der Event-App **als Speaker** angelegt, mit ihrer Session (abweichend von der Empfehlung „nur Name“); (3) Porträt **Pflicht**; (4) Gastprofil weg, Person bleibt. Dazu die Auflage der Architektur-Session: Einwilligungs-Haken mit Zeitstempel (`speaker_profile.stage_guest_consent_at`). Umsetzung im Vorschlag `v6_standbuehnen_gaeste` (Partner-Chat): Datenmodell wie unten; `can_manage_speaker` bleibt **unverändert** — das Porträt öffnet ein eigener interner Helfer nur für den Foto-Pfad eigener Gäste; Swapcard exportiert einen Gast erst mit **veröffentlichter** Session am Slot; die Zuordnung zum Programmpunkt läuft über `partner_assign_stage_guest` in der Tabelle der Standbühne (nicht über das Board).
+
 ## Anlass
 
 PART-081 (Konrad, Runde 21.09., am 24.09. bestätigt): Der Partner kann für seine Standbühne keine Speaker anlegen. Neue Kategorie **Standbühnen-Speaker = Gäste**:

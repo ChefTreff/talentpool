@@ -21,6 +21,8 @@
  *   … --apply --nur=ticket,fotos   (nur diese Schritte, siehe `SCHRITTE`)
  *   … --apply --nur=partner        (Test-Organisation mit allen Format-Produkten,
  *                                   Konrad Hauptkontakt und Standbühnen-Editor, Talk)
+ *   … --apply --nur=gaeste         (PART-081: ein TEST-Gast der Standbühne, braucht
+ *                                   v6_standbuehnen_gaeste und den Schritt partner)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist)
  *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage, mit
  *                                   Einordnung und Bühne in Frage — LEAD-039)
@@ -1033,6 +1035,74 @@ async function pipelineEintraege(me, ed) {
 }
 
 /**
+ * PART-081: ein Gast der Standbühne — eine TEST-Person mit `+zztest`-Adresse
+ * (Konrads eigenes Postfach, über `testdaten_person` aus 0183), als Gast der
+ * Test-Organisation mit Einwilligung, am ersten TEST-Programmpunkt der
+ * Teststandbühne. Das Porträt fehlt absichtlich: so zeigt `/partner/buehne/gaeste`
+ * „Porträt fehlt“, und Konrad lädt es selbst hoch.
+ *
+ * Braucht die Migration `v6_standbuehnen_gaeste` (Spalte `stage_guest`) und den
+ * Schritt `partner` (Test-Organisation, Standbühne).
+ */
+const gastAdresse = () => email.replace("@", "+zztest-gast-1@");
+
+async function standbuehnenGast(me, ed) {
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) {
+    fail("Standbühnen-Gast", "Test-Organisation fehlt — zuerst --nur=partner");
+    return;
+  }
+  if (mode === "dry-run") {
+    note("Standbühnen-Gast (TEST-Person, Gastprofil mit Einwilligung, am ersten Programmpunkt der Teststandbühne)");
+    return;
+  }
+  const { data: personId, error: pe } = await admin.rpc("testdaten_person", {
+    p_first_name: "TEST", p_last_name: "Standbühnengast", p_email: gastAdresse(),
+  });
+  if (pe || !personId) {
+    fail("Standbühnen-Gast (TEST-Person)", pe ?? "keine Person");
+    return;
+  }
+  note("Standbühnen-Gast (TEST-Person)");
+  const jetzt = new Date().toISOString();
+  await write("Gastprofil mit Einwilligung", () =>
+    admin.from("speaker_profile").upsert(
+      {
+        person_id: personId, edition_id: ed.id, speaker_type: "other",
+        pipeline_status: "confirmed", confirmed_at: jetzt,
+        job_title: "Leitung Innovation", organization_name: `${PREFIX}Partner`,
+        stage_guest: true, stage_guest_consent_at: jetzt,
+        lounge_access: false, reception_eligible: false, travel_costs_covered: false, hospitality_status: "none",
+        created_by_org_id: org.id, partner_editable_until_login: true, internal_notes: MARK,
+      },
+      { onConflict: "person_id,edition_id" },
+    ),
+  );
+  const eventId = (await summit(ed))?.id ?? ed.id;
+  const { data: st } = await admin.from("stage").select("id")
+    .eq("event_id", eventId).eq("slug", "zz-test-standbuehne").maybeSingle();
+  if (!st) {
+    fail("Gast zuordnen", "keine Teststandbühne — zuerst --nur=partner");
+    return;
+  }
+  const { data: slots } = await admin.from("slot").select("id").eq("stage_id", st.id).order("start_at");
+  const { data: se } = await admin.from("session").select("id, title_de")
+    .in("slot_id", (slots ?? []).map((x) => x.id)).like("title_de", `${PREFIX}%`)
+    .order("title_de").limit(1).maybeSingle();
+  if (!se) {
+    fail("Gast zuordnen", "kein TEST-Programmpunkt auf der Teststandbühne");
+    return;
+  }
+  await write(`Gast am Programmpunkt „${se.title_de}“`, () =>
+    admin.from("session_speaker").upsert(
+      { session_id: se.id, person_id: personId, role: "speaker", confirmed: true },
+      { onConflict: "session_id,person_id,role" },
+    ),
+  );
+}
+
+/**
  * LEAD-014: zieht aufs Summit, was frühere Läufe auf die früheste Veranstaltung
  * gelegt haben (den Hackathon): die Teststandbühne mit allen Slots und den
  * Sessions darin, dazu Test-Sessions ohne Slot. **Gelöscht wird nichts** —
@@ -1151,6 +1221,7 @@ async function moderationStageLead(me, ed) {
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
+  gaeste: standbuehnenGast,
   ticket: speakerTicket,
   fotos: stagePhotos,
   "ticket-zurueck": ticketZurueck,
@@ -1256,6 +1327,24 @@ async function remove(me) {
       await admin.from("session_speaker").delete().eq("session_id", se.id);
     }
     return admin.from("session").delete().like("title_de", `${PREFIX}%`);
+  });
+  // PART-081: der TEST-Gast. Erst die Porträts im Bucket (die Zeilen gehen per
+  // ON DELETE CASCADE mit, die Dateien nicht), dann die Person — Profil und
+  // Zuordnung hängen mit ON DELETE CASCADE an ihr.
+  await write("Standbühnen-Gast entfernt (Porträts, Profil, Zuordnung)", async () => {
+    const { data: adresse } = await admin.from("person_email").select("person_id").eq("email", gastAdresse()).maybeSingle();
+    if (!adresse) return { data: null, error: null };
+    const { data: profile } = await admin.from("speaker_profile").select("id").eq("person_id", adresse.person_id);
+    const ids = (profile ?? []).map((x) => x.id);
+    if (ids.length > 0) {
+      const { data: dateien } = await admin.from("speaker_asset").select("storage_path").in("profile_id", ids);
+      const pfade = (dateien ?? []).map((d) => d.storage_path);
+      if (pfade.length > 0) {
+        const { error: wegFehler } = await admin.storage.from("speaker-assets").remove(pfade);
+        if (wegFehler) return { data: null, error: wegFehler };
+      }
+    }
+    return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
   });
   // Die Test-Personen der Pipeline (nur Vorname TEST, ohne Konto): erst die
   // Profile, dann die Personen.
