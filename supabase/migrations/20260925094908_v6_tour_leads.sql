@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Tour-Leads im Company-Tours-Abschnitt pflegen (ADM-059)
+-- 0194 · Tour-Begleitung im Company-Tour-Abschnitt: Gate in upsert_edition_contact (ADM-059)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925094908.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --

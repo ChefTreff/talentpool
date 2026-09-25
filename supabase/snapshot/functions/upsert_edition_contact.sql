@@ -5,12 +5,32 @@ create or replace function upsert_edition_contact(p_data jsonb)
  SET search_path TO 'public', 'extensions'
 AS $$
 declare v_id uuid; v_ed uuid; v_typ text; v_mail text; v_consent date; v_mail_effektiv text;
+        v_typ_alt text; v_typ_wirksam text;
 begin
-  if not can_edit_edition_contacts() then raise exception 'not allowed' using errcode = '42501'; end if;
   v_id := nullif(p_data->>'id', '')::uuid;
   v_typ := nullif(btrim(p_data->>'type'), '');
   if v_typ is not null and v_typ not in ('partner_lead','partner_buddy','speaker_lead','speaker_buddy','tour_lead') then
     raise exception 'invalid_contact_type' using errcode = '22023', detail = coalesce(v_typ, 'null');
+  end if;
+  -- ADM-059: Wer nur den Abschnitt „Company Tours" hat, darf **Begleitungen**
+  -- pflegen und sonst nichts. Die Regeln dafuer (Pflichtfelder, Einwilligung bei
+  -- fremder Adresse, Standard-Eindeutigkeit) stehen genau einmal — hier —, statt
+  -- in einer zweiten Funktion daneben, wo sie auseinanderlaufen wuerden.
+  --
+  -- Der **wirksame** Typ zaehlt: beim Aendern der bestehende, wenn keiner
+  -- mitkommt. Und der bisherige muss ebenfalls `tour_lead` sein — sonst koennte
+  -- jemand eine Begleitung anlegen und sie danach in einen Speaker-Buddy
+  -- verwandeln, also ueber den Umweg genau das pflegen, was ihm verwehrt ist.
+  if v_id is not null then
+    select c.type into v_typ_alt from edition_contact c where c.id = v_id;
+  end if;
+  v_typ_wirksam := coalesce(v_typ, v_typ_alt);
+  if not can_edit_edition_contacts() then
+    if not (coalesce(has_admin_section('companyTours'), false)
+            and v_typ_wirksam = 'tour_lead'
+            and (v_id is null or v_typ_alt = 'tour_lead')) then
+      raise exception 'not allowed' using errcode = '42501';
+    end if;
   end if;
   v_mail := nullif(btrim(p_data->>'email'), '');
   v_consent := nullif(p_data->>'contract_consent_at', '')::date;

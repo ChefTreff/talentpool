@@ -19,7 +19,14 @@ begin
     -- Nur Begleitpersonen vom Typ `tour_lead`: `check_edition_contact` laesst
     -- beim Speichern ohnehin nichts anderes zu, und eine Liste, aus der man
     -- Falsches waehlen kann, ist eine Falle.
-    'leads', coalesce((select jsonb_agg(jsonb_build_object('id', c.id, 'name', c.display_name) order by c.sort_order, c.display_name)
+    -- ADM-059: mit den Feldern, die der Editor braucht. Dieselbe Runde wie die
+    -- Auswahlliste — wer die Begleitung waehlen darf, darf sie auch pflegen.
+    'leads', coalesce((select jsonb_agg(jsonb_build_object(
+                            'id', c.id, 'name', c.display_name,
+                            'email', c.email::text, 'phone', c.phone,
+                            'role_label_de', c.role_label_de, 'role_label_en', c.role_label_en,
+                            'contract_consent_at', c.contract_consent_at)
+                          order by c.sort_order, c.display_name)
                          from edition_contact c where c.edition_id = v_ed and c.type = 'tour_lead'), '[]'::jsonb),
     -- Sessions im Format `company_tour` — **plus** jede, die schon an einer Tour
     -- haengt: sonst verschwaende eine bestehende Verknuepfung aus der Liste,
