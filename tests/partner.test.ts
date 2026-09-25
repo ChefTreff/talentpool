@@ -328,6 +328,8 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     // Eure Daten (PART-059)
     { code: "P0001", message: "customer_number_taken", key: "customer_number_taken" },
     { code: "22023", message: "too_long", key: "too_long" },
+    // Standbühne (PART-079)
+    { code: "P0001", message: "outside_partner_window", key: "outside_partner_window" },
   ];
 
   for (const c of CASES) {

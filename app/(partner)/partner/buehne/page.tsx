@@ -2,41 +2,32 @@ import { notFound } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Board } from "@/components/programme/Board";
+import { TableTabs } from "@/components/programme/TableTabs";
 import { loadBoard } from "@/components/programme/load";
 import { canPublishSessions } from "@/components/programme/permissions";
+import { fensterText } from "@/components/partner/standbuehne";
+import { formatDay } from "@/lib/tz";
 import type { PartnerFormatSession } from "../talk/types";
-import { RueckgabeHinweis } from "../Rueckgabe";
+import { RueckgabeHinweis, rueckgabeOffen } from "../Rueckgabe";
 import { getPartnerScope } from "../org";
+import { ladeEigeneBuehnen, ladeFenster } from "./daten";
+import { StandInfo } from "./StandInfo";
 
 export const dynamic = "force-dynamic";
 
 const PATH = "/partner/buehne";
-
-/** Zeile aus `my_partner_stages()`. */
-type PartnerStage = {
-  stage_id: string;
-  stage_name: string | null;
-  stage_slug: string | null;
-  event_id: string;
-  event_slug: string | null;
-  event_name: string | null;
-  edition_id: string;
-  org_id: string | null;
-  org_name: string | null;
-};
 
 /**
  * Dasselbe Board wie im Admin- und Lead-Bereich, mit dem Blick eines
  * Bühnen-Editors: nur die Edition der eigenen Bühne, alles andere sichtbar,
  * aber unziehbar (`can_edit` je Zeile aus `programme_board`).
  *
- * Veröffentlichen gibt es hier nicht — `publish_session` verlangt das
- * Programm-Team. Statt eines Knopfes, der immer in 42501 liefe, steht im
- * Drawer, wer entscheidet.
+ * Freigeben kann hier niemand — `publish_session` verlangt das Programm-Team.
+ * „Veröffentlichen“ als Anfrage an die Programmleitung steht in der Tabelle
+ * (PART-080, zweiter Reiter); im Board-Drawer folgt es über den Speaker-Chat.
  */
 export default async function PartnerStagePage({
   searchParams,
@@ -50,8 +41,7 @@ export default async function PartnerStagePage({
   if (!current) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const { data: stageRows } = await supabase.rpc("my_partner_stages");
-  const stages = (stageRows ?? []) as PartnerStage[];
+  const stages = await ladeEigeneBuehnen();
 
   // Ohne eigene Bühne gibt es nichts zu zeigen — und das ist kein Fehler,
   // sondern der Stand: die Produktion richtet sie ein.
@@ -68,8 +58,10 @@ export default async function PartnerStagePage({
   }
 
   const editionIds = [...new Set(stages.map((s) => s.edition_id))];
+  // Ohne Auswahl die Veranstaltung der eigenen Bühne — nicht die erste der Edition.
+  const heimat = stages.find((s) => s.org_id === current.org_id) ?? stages[0];
   const board = await loadBoard({
-    eventSlug: event,
+    eventSlug: event ?? heimat.event_slug ?? undefined,
     day: tag,
     fallbackLocale: "de",
     editionIds,
@@ -89,27 +81,40 @@ export default async function PartnerStagePage({
 
   const own = stages.map((s) => s.stage_name).filter(Boolean).join(" · ");
 
+  // PART-079: das Zeitfenster der Standbühnen dieser Veranstaltung, je Tag.
+  const eigeneIds = new Set(stages.map((st) => st.stage_id));
+  const standbuehnen = board.stages.filter((st) => eigeneIds.has(st.id) && st.type === "partner_booth");
+  const tage = board.days.map((d) => {
+    const label = board.locale === "en" ? d.label_en ?? d.label_de : d.label_de ?? d.label_en;
+    const datum = formatDay(d.day_date, t.meta.dateLocale);
+    return { id: d.id, label: label ? `${label} · ${datum}` : datum };
+  });
+  const fenster = await ladeFenster(
+    standbuehnen.map((st) => st.id),
+    tage.map((d) => d.id),
+  );
+  const fensterListe = standbuehnen.flatMap((st) =>
+    tage.map((d) => ({
+      label: standbuehnen.length > 1 ? `${st.name} · ${d.label}` : d.label,
+      text: fensterText(fenster[`${st.id}|${d.id}`], t.partnerStage.windowUntil),
+    })),
+  );
+
   // PART-083: zurückgegebene Sessions auf den eigenen Bühnen stehen über dem Board —
   // das Board selbst (components/programme/) gehört dem Speaker-Chat.
   const { data: sessionRows } = await supabase.rpc("partner_format_sessions", {
     p_org_id: current.org_id,
     p_edition_id: current.edition_id,
   });
-  const eigene = new Set(stages.map((st) => st.stage_id));
-  const zurueck = ((sessionRows ?? []) as PartnerFormatSession[]).filter(
-    (x) => x.return_note && x.returned_at && x.publish_status !== "published" && x.stage_id && eigene.has(x.stage_id),
-  );
+  const zurueck = ((sessionRows ?? []) as PartnerFormatSession[])
+    .filter(rueckgabeOffen)
+    .filter((x) => x.stage_id && eigeneIds.has(x.stage_id));
 
   return (
     <>
       <PageHeader word={t.partner.wordProgramme} title={t.partnerStage.title} description={t.partnerStage.lead} />
-      <Card className="mb-6">
-        <p className="ct-help">
-          {t.partnerStage.ownStages}: <span className="font-semibold text-ink">{own}</span>
-        </p>
-        <p className="ct-help mt-1">{t.partnerStage.readOnlyHint}</p>
-        <p className="ct-help mt-1">{t.partnerStage.releaseHint}</p>
-      </Card>
+      <TableTabs basePath={PATH} locale="de" />
+      <StandInfo eigene={own} fenster={fensterListe} t={t.partnerStage} hinweisAndere />
       {zurueck.length > 0 && (
         <section aria-labelledby="buehne-zurueck" className="mb-6">
           <h2 id="buehne-zurueck" className="ct-h2 mb-3 text-ink">
@@ -120,8 +125,8 @@ export default async function PartnerStagePage({
               <li key={x.id}>
                 <p className="ct-label mb-1 text-ink">{x.title_de ?? x.title_en ?? t.partnerStage.title}</p>
                 <RueckgabeHinweis
-                  note={x.return_note!}
-                  returnedAt={x.returned_at!}
+                  note={x.return_note}
+                  returnedAt={x.returned_at}
                   dateLocale={t.meta.dateLocale}
                   t={{ badge: t.partner.returnedBadge, title: t.partner.returnedTitle, next: t.partner.returnedNext }}
                 />

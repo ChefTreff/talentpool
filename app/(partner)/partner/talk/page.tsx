@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
-import { RueckgabeHinweis, SessionStatusBadge, type RueckgabeTexte } from "../Rueckgabe";
+import { RueckgabeHinweis, SessionStatusBadge, rueckgabeOffen, type RueckgabeTexte } from "../Rueckgabe";
 import { canEditOnboarding, type PartnerOverview } from "../types";
 import { SpeakerHinzufuegen } from "./SpeakerHinzufuegen";
 import { SpeakerKarte } from "./SpeakerKarte";
@@ -142,7 +142,7 @@ export default async function PartnerTalkPage() {
                 </dl>
 
                 {/* PART-083: was die Programmleitung geändert haben möchte. */}
-                {x.return_note && x.returned_at && x.publish_status !== "published" && (
+                {rueckgabeOffen(x) && (
                   <RueckgabeHinweis
                     className="mt-4"
                     note={x.return_note}
