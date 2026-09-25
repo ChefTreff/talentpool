@@ -1,4 +1,34 @@
 {
+  "accessAdmin": {
+    "active": "Aktiv",
+    "block": "Zugang sperren",
+    "blockBody": "Die Person verliert sofort alle Rollen und kann sich nicht mehr anmelden. Nichts wird gelöscht — ein Klick macht es rückgängig.",
+    "blockTitle": "Zugang sperren?",
+    "blocked": "Gesperrt",
+    "count": "{n} Konten",
+    "empty": "Niemand gefunden",
+    "emptyBody": "Hier stehen Personen mit Konto oder mit einer gültigen Rolle.",
+    "hasLogin": "Konto",
+    "invite": "Einladung schicken",
+    "inviteBody": "Es geht eine Anmelde-Mail an die hinterlegte Adresse. Ohne Adresse geht nichts.",
+    "inviteTitle": "Einladung schicken?",
+    "invited": "Einladung ist unterwegs.",
+    "lead": "Wer ein Konto hat und welche Rollen er trägt. Gesperrt wird, nicht gelöscht — die Person und ihre Geschichte bleiben, der Zugang ist weg.",
+    "next": "Weiter",
+    "noLogin": "Ohne Konto",
+    "noRoles": "keine Rolle",
+    "noteLabel": "Notiz fürs Protokoll",
+    "page": "Seite {seite} von {seiten}",
+    "prev": "Zurück",
+    "search": "Suchen",
+    "searchLabel": "Person suchen",
+    "searchPlaceholder": "Name oder E-Mail",
+    "selfHint": "Sich selbst kann niemand sperren.",
+    "title": "Zugänge",
+    "unblock": "Zugang wieder öffnen",
+    "unblockBody": "Die Person bekommt genau die Rollen zurück, die sie vorher hatte, und kann sich wieder anmelden.",
+    "unblockTitle": "Zugang wieder öffnen?"
+  },
   "admin": {
     "applications": {
       "answers": "Antworten",
@@ -206,6 +236,7 @@
       "title": "Mail-Versand"
     },
     "nav": {
+      "access": "Zugänge",
       "applications": "Bewerbungen",
       "auditLog": "Protokoll",
       "catering": "Catering",
@@ -645,6 +676,7 @@
       "vocabularies": "Vokabularen"
     },
     "words": {
+      "access": "Schlüssel",
       "applications": "Talente",
       "auditLog": "Nachvollziehbarkeit",
       "catering": "Verpflegung",
@@ -4087,6 +4119,7 @@
     "asset_required": "Für diese Pflicht braucht es mindestens eine Datei.",
     "assignment_not_found": "Diese Rollenzuweisung gibt es nicht mehr.",
     "assistant_is_speaker": "Das ist die Adresse des Speakers selbst.",
+    "auth_ban_failed": "Die Rollen sind entzogen, aber die Anmeldung liess sich nicht sperren. Bitte noch einmal versuchen — solange kann sich die Person anmelden und sieht eine leere Seite.",
     "bank_required": "Ohne Bankverbindung geht es nicht.",
     "barcode_missing": "vivenu hat kein Barcode zurückgegeben — ohne ihn gibt es keinen Einlass.",
     "barcode_required": "Es fehlt der Barcode.",
@@ -4095,6 +4128,7 @@
     "body_required": "Bitte einen Text eintragen.",
     "booking_not_found": "Buchung nicht gefunden.",
     "booth_required": "Der Messeshop steht Partnern mit gebuchtem Messestand offen. Das Lunch-Paket könnt ihr trotzdem über eure Checkliste bestellen.",
+    "cannot_block_self": "Den eigenen Zugang kann man nicht sperren — sonst käme niemand mehr an die Seite, auf der man es rückgängig macht.",
     "cannot_withdraw": "Diese Bewerbung lässt sich nicht mehr zurückziehen.",
     "changeover_short": "Hinweis: Wechselzeit zur Nachbar-Session ist knapp.",
     "claim_not_found": "Antrag nicht gefunden.",
@@ -4124,6 +4158,7 @@
     "edition_required": "Bitte eine Edition angeben.",
     "edition_without_vivenu": "Für diese Edition ist kein vivenu-Event hinterlegt.",
     "email_in_use": "Zu dieser Adresse gibt es schon ein Profil. Kontakt löschen und die Adresse neu einladen — dann wird das bestehende Profil verknüpft.",
+    "email_missing": "Für diese Person ist keine E-Mail-Adresse hinterlegt — ohne Adresse gibt es keine Einladung.",
     "email_required": "Bitte eine E-Mail-Adresse angeben.",
     "empty_order": "Eine leere Bestellung lässt sich nicht bestätigen.",
     "empty_query": "Die Frage ist leer.",
@@ -4189,6 +4224,7 @@
     "invalid_url": "Bitte eine vollständige Adresse mit https:// angeben.",
     "invalid_vocab": "Diese Auswahl gibt es nicht.",
     "invalid_vocab_value": "Dieser Wert steht nicht (mehr) zur Auswahl. Bitte wähle einen anderen.",
+    "invite_failed": "Die Einladung ging nicht raus. Einzelheiten stehen im Server-Log.",
     "last_admin": "Das ist der letzte Admin — die Rolle lässt sich nicht entziehen.",
     "late_only": "In der Nachbestellphase geht nur noch, was dafür freigegeben ist.",
     "mail_not_found": "Diesen Versandvorgang gibt es nicht.",

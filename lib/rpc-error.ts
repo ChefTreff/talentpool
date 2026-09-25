@@ -52,6 +52,13 @@ const BUSINESS_KEYS = new Set([
   "invalid_role",
   "last_admin",
   "person_not_found",
+  // PORT4b: Sich selbst den Zugang zu nehmen ist kein Versehen, das man
+  // stillschweigend ausführt.
+  "cannot_block_self",
+  // PORT4b: Rechte weg, Tür noch offen — das ist etwas anderes als „hat geklappt".
+  "auth_ban_failed",
+  "invite_failed",
+  "email_missing",
   "assignment_not_found",
   // Speaker-Portal (Migration 0025)
   "email_required",
