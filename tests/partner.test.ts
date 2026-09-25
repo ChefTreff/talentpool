@@ -330,6 +330,10 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     { code: "22023", message: "too_long", key: "too_long" },
     // Standbühne (PART-079)
     { code: "P0001", message: "outside_partner_window", key: "outside_partner_window" },
+    // Standbühnen-Gäste (PART-081)
+    { code: "P0001", message: "stage_guest", key: "stage_guest" },
+    { code: "P0001", message: "already_speaker", key: "already_speaker" },
+    { code: "22023", message: "stage_guest_consent_required", key: "stage_guest_consent_required" },
   ];
 
   for (const c of CASES) {

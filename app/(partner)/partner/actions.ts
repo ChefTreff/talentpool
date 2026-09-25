@@ -6,6 +6,8 @@ import { requireArea } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 import type { UpdateContactInput } from "@/components/partner/contacts";
+import type { GastAenderung, GastErgebnis, GastFoto, GastNeu } from "@/components/partner/gaeste";
+import { gastAendern, gastAnlegen, gastEntfernen, gastFotoRegistrieren, gastZuordnen } from "@/lib/partner/gaeste";
 import { ORG_COOKIE } from "./org";
 
 /**
@@ -586,4 +588,45 @@ export async function withdrawStagePublish(sessionId: string): Promise<PartnerRe
   if (error) return fail(error);
   refreshStage();
   return { ok: true, data: { status: String(data) } };
+}
+
+/** Nach einer Änderung an den Gästen der Standbühne: Liste, Tabelle, Kalender. */
+function refreshGaeste() {
+  revalidatePath(`${PATH}/buehne`);
+  revalidatePath(`${PATH}/buehne/tabelle`);
+  revalidatePath(`${PATH}/buehne/gaeste`);
+}
+
+/**
+ * Standbühnen-Gäste (PART-081). Der Kern liegt in `lib/partner/gaeste.ts` und
+ * ist derselbe wie im Admin; hier stehen nur Gate und Neuladen.
+ */
+export async function addStageGuest(input: GastNeu): Promise<GastErgebnis<{ profileId: string; editionId: string }>> {
+  const res = await gastAnlegen(await client(), input);
+  if (res.ok) refreshGaeste();
+  return res;
+}
+
+export async function updateStageGuest(input: GastAenderung): Promise<GastErgebnis> {
+  const res = await gastAendern(await client(), input);
+  if (res.ok) refreshGaeste();
+  return res;
+}
+
+export async function removeStageGuest(profileId: string): Promise<GastErgebnis> {
+  const res = await gastEntfernen(await client(), profileId);
+  if (res.ok) refreshGaeste();
+  return res;
+}
+
+export async function registerStageGuestPhoto(input: GastFoto): Promise<GastErgebnis> {
+  const res = await gastFotoRegistrieren(await client(), input);
+  if (res.ok) refreshGaeste();
+  return res;
+}
+
+export async function assignStageGuest(sessionId: string, profileId: string, assign: boolean): Promise<GastErgebnis> {
+  const res = await gastZuordnen(await client(), sessionId, profileId, assign);
+  if (res.ok) refreshGaeste();
+  return res;
 }

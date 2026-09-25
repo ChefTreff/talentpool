@@ -125,7 +125,7 @@ describe("Standbühne in der Oberfläche (PART-078…080)", () => {
     const seite = src("app/(partner)/partner/buehne/tabelle/page.tsx");
     assert.match(seite, /requireArea\("partner"/);
     assert.match(seite, /s\.type === "partner_booth"/);
-    assert.match(seite, /<TableTabs basePath=\{BASE\}/);
+    assert.match(seite, /<BuehnenTabs/);
     const actions = src("app/(partner)/partner/actions.ts");
     assert.match(actions, /rpc\("partner_request_publish", \{ p_session_id: sessionId \}\)/);
     assert.match(actions, /rpc\("partner_withdraw_publish", \{ p_session_id: sessionId \}\)/);

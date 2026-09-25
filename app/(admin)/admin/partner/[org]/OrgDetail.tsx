@@ -13,6 +13,8 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import { LogoWandEinwilligung } from "@/components/partner/LogoWandEinwilligung";
 import { ContactList } from "@/components/partner/ContactList";
+import { Gaesteliste } from "@/components/partner/Gaesteliste";
+import type { GastRow } from "@/components/partner/gaeste";
 import {
   BeschreibungFelder,
   RechnungFelder,
@@ -22,12 +24,16 @@ import {
   type EureDatenEntwurf,
 } from "@/components/partner/EureDaten";
 import {
+  adminAddStageGuest,
+  adminRegisterStageGuestPhoto,
   adminRemoveContact,
+  adminRemoveStageGuest,
   adminSaveOnboarding,
   adminSetCustomerNumber,
   adminSetLogoWhiteningConsent,
   adminTransferPrimary,
   adminUpdateContact,
+  adminUpdateStageGuest,
   adminUpsertContact,
   grantStageEditor,
   revokeStageEditor,
@@ -65,6 +71,8 @@ const DELIVERABLE_TONE: Record<string, BadgeTone> = {
 export function OrgDetail({
   overview,
   contacts,
+  gaeste,
+  guestTexts,
   deliverables,
   deals,
   stageRoles,
@@ -81,6 +89,10 @@ export function OrgDetail({
 }: {
   overview: OverviewPayload;
   contacts: AdminContact[];
+  /** Gäste der Standbühne (PART-081); leer, wenn die Organisation keine Standbühne hat. */
+  gaeste: GastRow[];
+  /** Texte der Gästeliste — dieselben wie im Partnerportal. */
+  guestTexts: Strings;
   deliverables: AdminDeliverable[];
   deals: AdminDeal[];
   /** Aktive `standbuehne_editor`-Zuweisungen dieser Organisation, je Person. */
@@ -470,6 +482,28 @@ export function OrgDetail({
           rpcMessages={rpcMessages}
         />
       </Card>
+
+      {overview.has_stage && (
+        <Card id="gaeste">
+          <CardHeader title={t.guestsTitle} description={`${t.guestsLead} · ${gaeste.length}`} />
+          {/* Dieselbe Liste wie unter /partner/buehne/gaeste (Regel vom 22.09.), über dieselben RPCs. */}
+          <Gaesteliste
+            orgId={orgId}
+            gaeste={gaeste}
+            canManage
+            actions={{
+              add: adminAddStageGuest,
+              update: adminUpdateStageGuest,
+              remove: adminRemoveStageGuest,
+              registerPhoto: adminRegisterStageGuestPhoto,
+            }}
+            mitKopf={false}
+            dateLocale={dateLocale}
+            t={guestTexts}
+            rpcMessages={rpcMessages}
+          />
+        </Card>
+      )}
 
       <Card>
         <CardHeader

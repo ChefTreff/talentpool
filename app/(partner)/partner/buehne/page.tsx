@@ -5,7 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Board } from "@/components/programme/Board";
-import { TableTabs } from "@/components/programme/TableTabs";
+import { BuehnenTabs } from "./BuehnenTabs";
 import { loadBoard } from "@/components/programme/load";
 import { canPublishSessions } from "@/components/programme/permissions";
 import { fensterText } from "@/components/partner/standbuehne";
@@ -113,7 +113,7 @@ export default async function PartnerStagePage({
   return (
     <>
       <PageHeader word={t.partner.wordProgramme} title={t.partnerStage.title} description={t.partnerStage.lead} />
-      <TableTabs basePath={PATH} locale="de" />
+      <BuehnenTabs t={{ label: t.partnerStage.title, board: t.admin.programmeTable.tabBoard, table: t.admin.programmeTable.tabTable, guests: t.partnerGuests.tab }} />
       <StandInfo eigene={own} fenster={fensterListe} t={t.partnerStage} hinweisAndere />
       {zurueck.length > 0 && (
         <section aria-labelledby="buehne-zurueck" className="mb-6">

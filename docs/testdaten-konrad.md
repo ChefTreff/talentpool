@@ -32,6 +32,8 @@ Aus den gebuchten Leistungen entstehen von selbst: **Checklisten-Pflichten**, **
 
 **Was Konrad unter `/partner` sieht** (bei mehreren Organisationen „TEST — Partner“ im Organisations-Wechsler wählen): Übersicht, Wiki · Unternehmen, Kontakte · Checkliste, Dateien, Tickets, Event-App, Messeshop · unter „Eure Formate“ Messestand, Side-Event, Interview Tables, Talk, Hackathon, Branding, Standbühne (Kalender und Tabelle), Bewerber. Masterclass und Company Tour erscheinen mit ihren Seiten (PART-045/046); die Produkte sind schon gebucht.
 
+**Standbühnen-Gäste (PART-081):** `--apply --nur=gaeste` legt eine TEST-Person mit `+zztest-gast-1`-Adresse als Gast der Test-Organisation an (mit Einwilligung, ohne Porträt — die Liste zeigt „Porträt fehlt“) und ordnet sie dem ersten TEST-Programmpunkt der Teststandbühne zu. Braucht die Migration `v6_standbuehnen_gaeste` und den Schritt `partner`. Konrad klickt `/partner/buehne` → Reiter **Gäste** (Liste, Porträt hochladen, bearbeiten, entfernen) und Reiter **Tabelle** → „Details“ am Programmpunkt (Gast zuordnen und abnehmen); im Admin `/admin/partner/<Test-Organisation>` → Karte „Standbühnen-Gäste“. `--remove` entfernt Person, Profil, Zuordnung und hochgeladene Porträts.
+
 ## Kennzeichnung
 
 - Rollen tragen `role_assignment.note = 'testdaten:konrad'` und laufen mit der Edition ab.
