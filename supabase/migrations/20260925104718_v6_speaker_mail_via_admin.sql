@@ -1,4 +1,5 @@
--- 00NN · SPK-072: Kommunikation über einen Kontakt im Speaker-Admin setzen oder aufheben
+-- 0204 · Mail-Umleitung im Speaker-Admin setzen oder aufheben (SPK-072)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925104718.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
