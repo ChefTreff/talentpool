@@ -1718,6 +1718,28 @@ async function checkinScans(me, ed) {
   );
 }
 
+/**
+ * Einwilligung zum Weissen an Konrads Test-Organisation (ADM-048), damit die
+ * Logo-Produktionsliste beide Faelle zeigt.
+ *
+ * **Keine erfundene Logodatei.** Eine `partner_asset`-Zeile ohne Datei im
+ * Bucket sieht im Partner-Portal wie ein Download aus, der ins Leere geht.
+ * Der druckfertige Fall entsteht in zwei Klicks: Logo im Partner-Portal
+ * hochladen, Liste neu laden.
+ */
+async function logoEinwilligung(me, ed) {
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) return fail("Einwilligung zum Weissen", "Test-Organisation fehlt — erst --nur=partner");
+  const { data: oe } = await admin.from("org_edition").select("id, logo_whitening_consent_at")
+    .eq("org_id", org.id).eq("edition_id", ed.id).maybeSingle();
+  if (!oe) return fail("Einwilligung zum Weissen", "Org-Edition fehlt");
+  if (oe.logo_whitening_consent_at) return note("Einwilligung zum Weissen", "steht schon");
+  await write("Einwilligung zum Weissen", () =>
+    admin.from("org_edition").update({ logo_whitening_consent_at: new Date().toISOString() }).eq("id", oe.id),
+  );
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
@@ -1733,6 +1755,7 @@ const SCHRITTE = {
   summit: umzugSummit,
   tour: companyTour,
   checkin: checkinScans,
+  logos: logoEinwilligung,
   moderation: moderationStageLead,
 };
 
