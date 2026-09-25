@@ -30,6 +30,7 @@ async function client() {
 /** Pipeline, Bestätigte, Admin-Liste und das Detail zeigen den neuen Stand. */
 function refresh(profileId: string) {
   revalidatePath("/speaker-leads");
+  revalidatePath("/speaker-leads/pipeline");
   revalidatePath("/speaker-leads/bestaetigt");
   revalidatePath("/admin/speaker");
   revalidatePath(`/admin/speaker/${profileId}`);
