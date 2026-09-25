@@ -172,3 +172,19 @@ Alle übrigen 1176 Spalten werden im Code oder in Funktionen verwendet (Wortsuch
 
 **Noch offen für Teil 3:** Stage Leads (`speaker_manager`) und Standbühnen-Editoren als eigene Probe-Rollen (0180 hat sie im eigenen Test 16/16), Storage-Bucket-Policies je Rolle, Rate-Limits (K-14) und die Auth-Einstellungen (K-13 CSP nach der Klickrunde).
 
+
+## Teil 3 (Vorarbeit, 25.09.2026) — Rechte-Review Stage-Lead-Portal durch den Speaker-Chat
+
+Vollständiges Review in `docs/rechte-review-speaker-leads-2026-09-25.md` (Draft-PR #231, Branch `speaker/port3`, nur Doku). Lücken L1–L7, alle über die Rolle `speaker_manager` (externe Stage Leads); **live gibt es noch keinen externen Zugang**, die Auflage „keine externen Zugänge vor PORT3“ bleibt deshalb hart.
+
+| Nr. | Schwere | Befund | Behebung (PORT3, Variante A) |
+|---|---|---|---|
+| L5 | **ernst** | `upsert_speaker`: `on conflict … do update` ohne `can_manage_speaker`; `person_id` wird auch von Nicht-Team angenommen → jeder `speaker_manager` überschreibt jedes bestehende Profil der Edition (Pipeline-Status, Typ, Titel, Organisation, interne Notiz, Reception, Reisekosten) per E-Mail oder `person_id` | Konfliktpfad prüft `can_manage_speaker(bestehendes Profil)`; `person_id` nur für das Team; Nicht-Team bekommt bei fremdem Profil **42501**, das Team behält `speaker_exists` (Entscheidung F1) |
+| L1 | mittel | `can_manage_speaker`, Edition-Zweig für `speaker_manager` | Zweig fällt; nur Bühnen-Scope (`is_stage_lead_of`) und eigene Einträge |
+| L2 | mittel | `can_search_board` global und Edition | nur Teamrollen und Bühnen-Scope |
+| L3 | mittel | `board_search_people` zeigt Namen aller Speaker der Edition | nur eigene Bühne und eigene Einträge (Entscheidung F2: Stage Leads finden keine bestätigten Speaker der Edition) |
+| L4 | mittel | `speaker_managers` gibt E-Mails an Leads | E-Mails nur für das Team |
+| L6 | niedrig | `my_manager_scope` liefert Editionen nur aus Edition-Scope | aus Bühnen-Scope ableiten |
+| L7 | mittel | `assign_role` und `/admin/speaker-leads` vergeben den Edition-Scope | Vergabe-Weg weist Edition und global für `speaker_manager` ab; Bühnenwahl im Admin; Konrads Edition-Zeile weg |
+
+Bereits dicht: Board-Lesewege und fremde Entwürfe (`security_invoker`, `session_read`, 0180). **Entscheidungen der Architektur-Session (25.09.):** F1 42501 für Nicht-Team, `speaker_exists` nur Team · F2 nein, nur eigene Bühne und eigene Einträge · F3 Slot- und Tag-Scope bleiben erlaubt, `is_stage_lead_of(stage)` gilt für die ganze Bühne (Slot/Tag sind Teilmengen derselben Bühne; Schreibrechte folgen weiter `can_edit_stage`). Nach „Migration live“ von PORT3 bekommt `supabase/tests/sicherheit_rollenkonten.sql` einen Stage-Lead-Schritt (fremde Bühne 0 Zeilen mit gesetzter Vorbedingung, `upsert_speaker` auf fremdes Profil 42501).
