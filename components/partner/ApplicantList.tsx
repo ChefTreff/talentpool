@@ -6,9 +6,9 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
-import { decideApplication } from "../../actions";
-import { APPLICATION_DECISIONS, type PartnerApplication } from "../../types";
 import { neuesFenster } from "@/components/ui/neues-fenster";
+import type { PartnerResult } from "@/app/(partner)/partner/actions";
+import { APPLICATION_DECISIONS, type PartnerApplication } from "@/app/(partner)/partner/types";
 
 type Strings = Record<string, string>;
 
@@ -33,17 +33,26 @@ const PROFILE_FIELDS = [
   "city",
 ] as const;
 
+/**
+ * Bewerbungen einer Session als Liste (Kontrakt B6) — auf der Bewerberseite mit
+ * Entscheidungen, auf der Company Tour nur zum Lesen (PART-046: entschieden wird
+ * dort für die ganze Tour vom Team). Ohne `decide` gibt es keine Knöpfe.
+ *
+ * Die Antworten stehen unter ihrem Schlüssel; wer Fragetexte hat, gibt sie als
+ * Schlüssel herein (die Tour liefert sie aus `partner_tour_applications`).
+ */
 export function ApplicantList({
   applications,
   statusLabels,
-  canDecide,
+  decide,
   dateLocale,
   t,
   rpcMessages,
 }: {
   applications: PartnerApplication[];
   statusLabels: Record<string, string>;
-  canDecide: boolean;
+  /** Server-Aktion zum Entscheiden; fehlt sie, ist die Liste nur Anzeige. */
+  decide?: (applicationId: string, status: string) => Promise<PartnerResult>;
   dateLocale: string;
   t: Strings;
   rpcMessages: Record<string, string>;
@@ -57,9 +66,10 @@ export function ApplicantList({
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
 
   function onDecide(a: PartnerApplication, status: string) {
+    if (!decide) return;
     setBusy(a.id);
     startTransition(async () => {
-      const res = await decideApplication(a.id, status);
+      const res = await decide(a.id, status);
       setBusy(null);
       if (!res.ok) {
         toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
@@ -136,7 +146,7 @@ export function ApplicantList({
                 )}
               </div>
 
-              {canDecide && (
+              {decide && (
                 <div className="flex w-full max-w-75 flex-wrap gap-2">
                   {APPLICATION_DECISIONS.map((status) => (
                     <Button

@@ -3,13 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { cn } from "@/components/ui/cn";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { ProfilAuswahl, profilUmschalten, type ProfilFeld, type Zielprofil } from "@/components/partner/ProfilAuswahl";
 import { createFormatSession, deleteFormatSession, setInterviewPosting } from "../actions";
 import { EVENT_TZ, MAX_SLOTS, rechneSlots, type PartnerDay, type PartnerStage } from "../formate";
 import type { PartnerFormatSession } from "../talk/types";
@@ -83,9 +83,7 @@ export function TischeView({
     job_posting_url: (ersteDetails.job_posting_url as string) ?? "",
     interview_mode: (ersteDetails.interview_mode as string) ?? "single",
   });
-  const [profil, setProfil] = useState<Record<string, string[]>>(
-    (ersteDetails.target_profile as Record<string, string[]>) ?? {},
-  );
+  const [profil, setProfil] = useState<Zielprofil>((ersteDetails.target_profile as Zielprofil) ?? {});
 
   const tag = days.find((d) => d.id === plan.dayId);
   const vorschau = tag
@@ -144,7 +142,7 @@ export function TischeView({
     if (posting.job_posting_text.trim()) details.job_posting_text = posting.job_posting_text.trim();
     if (posting.job_posting_url.trim()) details.job_posting_url = posting.job_posting_url.trim();
     const gesucht = Object.fromEntries(
-      Object.entries(profil).filter(([, v]) => v.length > 0),
+      Object.entries(profil).filter(([, v]) => (v ?? []).length > 0),
     );
     if (Object.keys(gesucht).length > 0) details.target_profile = gesucht;
     return details;
@@ -202,12 +200,8 @@ export function TischeView({
     timeZone: EVENT_TZ,
   });
 
-  function toggleProfil(feld: string, key: string) {
-    const jetzt = profil[feld] ?? [];
-    setProfil({
-      ...profil,
-      [feld]: jetzt.includes(key) ? jetzt.filter((k) => k !== key) : [...jetzt, key],
-    });
+  function toggleProfil(feld: ProfilFeld, key: string) {
+    setProfil(profilUmschalten(profil, feld, key));
   }
 
   return (
@@ -366,44 +360,13 @@ export function TischeView({
             />
           </Field>
 
-          <div>
-            <h3 className="ct-label text-ink">{t.profileTitle}</h3>
-            <p className="ct-help mt-1">{t.profileHint}</p>
-            <div className="mt-3 flex flex-col gap-3">
-              {(["occupation_status", "career_level", "study_field"] as const).map((feld) => (
-                <fieldset key={feld}>
-                  <legend className="ct-help">{t[`profile_${feld}`]}</legend>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {profilFelder[feld].map((o) => {
-                      const an = (profil[feld] ?? []).includes(o.key);
-                      return (
-                        <label
-                          key={o.key}
-                          // Der ausgewählte Zustand kommt aus React, nicht aus
-                          // `has-[:checked]:` — die Variante nutzt sonst niemand
-                          // im Repo, und ein Stil, den ich nicht im Browser
-                          // prüfen kann, soll nicht die einzige Rückmeldung sein.
-                          className={cn(
-                            "ct-small inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-ct-sm border px-3 py-2 text-ink",
-                            an ? "border-border-strong bg-canvas" : "border-border",
-                          )}
-                        >
-                          <input
-                            type="checkbox"
-                            className="size-4"
-                            checked={an}
-                            disabled={!canEdit}
-                            onChange={() => toggleProfil(feld, o.key)}
-                          />
-                          {o.label}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-              ))}
-            </div>
-          </div>
+          <ProfilAuswahl
+            felder={profilFelder}
+            value={profil}
+            onToggle={toggleProfil}
+            disabled={!canEdit}
+            t={t}
+          />
 
           {canEdit && (
             <div>

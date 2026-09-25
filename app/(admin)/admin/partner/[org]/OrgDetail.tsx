@@ -16,6 +16,9 @@ import { LogoWandEinwilligung } from "@/components/partner/LogoWandEinwilligung"
 import { ContactList } from "@/components/partner/ContactList";
 import { Gaesteliste } from "@/components/partner/Gaesteliste";
 import type { GastRow } from "@/components/partner/gaeste";
+import type { ProfilFeld, ProfilOption } from "@/components/partner/ProfilAuswahl";
+import type { TourStopp as TourStoppZeile } from "@/components/partner/tour";
+import { TourStopp } from "@/components/partner/TourStopp";
 import {
   BeschreibungFelder,
   RechnungFelder,
@@ -26,6 +29,7 @@ import {
 } from "@/components/partner/EureDaten";
 import {
   adminAddStageGuest,
+  adminUpdateTourStop,
   adminRegisterStageGuestPhoto,
   adminRemoveContact,
   adminRemoveStageGuest,
@@ -76,6 +80,9 @@ export function OrgDetail({
   gaeste,
   guestTexts,
   talkSpeakers,
+  tourStopps,
+  tourFelder,
+  tourTexts,
   deliverables,
   deals,
   stageRoles,
@@ -98,6 +105,12 @@ export function OrgDetail({
   guestTexts: Strings;
   /** Speaker der gebuchten Slots mit Zugangsweg (PART-091); Pflege im Speaker-Admin. */
   talkSpeakers: AdminTalkSpeaker[];
+  /** Stopps der Company Tour mit den Angaben des Partners (PART-046); leer ohne Stopp. */
+  tourStopps: TourStoppZeile[];
+  /** Vokabulare der gesuchten Profile. */
+  tourFelder: Record<ProfilFeld, ProfilOption[]>;
+  /** Texte der Stopp-Maske — dieselben wie im Partnerportal. */
+  tourTexts: Strings;
   deliverables: AdminDeliverable[];
   deals: AdminDeal[];
   /** Aktive `standbuehne_editor`-Zuweisungen dieser Organisation, je Person. */
@@ -509,6 +522,29 @@ export function OrgDetail({
           />
         </Card>
       )}
+
+      {tourStopps.map((x) => (
+        <Card key={x.stop_id} id={`tour-${x.stop_id}`}>
+          <CardHeader
+            title={tourTexts.stopTitle.replace("{n}", String(x.sort_order)).replace("{tour}", x.tour_name)}
+            description={t.tourStopLead}
+          />
+          {/* PART-046: dieselbe Maske wie unter /partner/company-tour, über dieselbe RPC.
+              Tour, Reihenfolge und Zeiten pflegt das Team unter Company Tours. */}
+          <TourStopp
+            stopp={x}
+            felder={tourFelder}
+            canEdit
+            save={adminUpdateTourStop}
+            dateLocale={dateLocale}
+            t={tourTexts}
+            rpcMessages={rpcMessages}
+          />
+          <Link href="/admin/company-tours" className="ct-link mt-4 inline-block">
+            {t.tourToAdmin}
+          </Link>
+        </Card>
+      ))}
 
       {talkSpeakers.length > 0 && (
         <Card id="speaker">

@@ -668,3 +668,17 @@ export async function adminRegisterStageGuestPhoto(input: GastFoto): Promise<Gas
   if (res.ok) refreshGaeste();
   return res;
 }
+
+/**
+ * Angaben zum Stopp der Company Tour (PART-046), wie im Partner-Portal — dieselbe
+ * RPC `partner_update_tour_stop`, die das Partner-Team über `partner_can_edit`
+ * hereinlässt (Regel vom 22.09.: was ein Portal kann, kann der Admin auch).
+ */
+export async function adminUpdateTourStop(stopId: string, fields: Record<string, unknown>): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("partner_update_tour_stop", { p_stop_id: stopId, p_fields: fields });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/[org]`, "page");
+  revalidatePath("/admin/company-tours");
+  return { ok: true, data: undefined };
+}
