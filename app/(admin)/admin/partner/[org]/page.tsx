@@ -55,7 +55,12 @@ export default async function AdminPartnerOrgPage({
   const { data: tourZeilen } = await supabase.rpc("partner_company_tour", { p_org_id: org });
   // PART-045: eigene Bewerbungsfragen des Partners, die noch auf die Freigabe warten.
   const { data: formatZeilen } = await supabase.rpc("partner_format_sessions", { p_org_id: org });
-  const formate = (formatZeilen ?? []) as { id: string; title_de: string | null }[];
+  const formate = (formatZeilen ?? []) as {
+    id: string;
+    format: string;
+    title_de: string | null;
+    format_details: Record<string, unknown> | null;
+  }[];
   const { data: offeneZeilen } = formate.length
     ? await supabase
         .from("session_question")
@@ -126,6 +131,17 @@ export default async function AdminPartnerOrgPage({
         study_field: alsListe(vgroup(vocab, "study_field")),
       }}
       tourTexts={t.partnerTour}
+      // PART-054: ob der Partner Goodies zur Masterclass einsendet — dieselbe Maske wie im Portal.
+      masterclasses={formate.filter((x) => x.format === "masterclass")}
+      goodiesTexts={{
+        question: t.partnerMasterclass.goodiesQuestion,
+        yes: t.partnerMasterclass.goodiesYes,
+        no: t.partnerMasterclass.goodiesNo,
+        none: t.partnerMasterclass.goodiesNone,
+        hintYes: t.partnerMasterclass.goodiesHintYes,
+        wiki: t.partnerMasterclass.goodiesWiki,
+        saved: t.partnerMasterclass.goodiesSaved,
+      }}
       offeneFragen={offeneFragen}
       frageTypen={Object.fromEntries(
         ["text", "textarea", "select", "multiselect", "boolean", "url", "number"].map((typ) => [

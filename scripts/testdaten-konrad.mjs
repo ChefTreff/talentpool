@@ -1764,6 +1764,10 @@ async function formateSchritt(me, ed) {
  *   Antwort darauf in seiner Bewerbung — geändert werden nur die Antworten, nicht
  *   der Status, also löst der Mail-Trigger nichts aus.
  * - Die TEST-Speakerin mit eigenem Zugang (Schritt `talk`) spricht auch hier.
+ * - PART-054: „Goodies einsenden: ja“ — so sieht Konrad die Antwort im Portal
+ *   (mit dem Weg ins Wiki) und im Admin beim Partner. Braucht `v6_masterclass_goodies`
+ *   (erst nach „Migration live“ anwenden: vorher lehnt `check_format_details` den
+ *   Schlüssel beim nächsten Speichern im Portal ab).
  * Braucht die Schritte `partner` und `talk` und die Masterclass aus dem vollen Lauf.
  */
 async function masterclassSchritt(me, ed) {
@@ -1815,6 +1819,17 @@ async function masterclassSchritt(me, ed) {
         .update({ answers: { ...(bew.answers ?? {}), [frage.id]: "Zwei Jahre Produktmanagement." } })
         .eq("id", bew.id);
     });
+  }
+
+  const { data: angaben } = await admin.from("session").select("format_details").eq("id", mc.id).maybeSingle();
+  if (angaben?.format_details?.goodies_planned === true) {
+    note("Goodies der Masterclass", "schon als geplant eingetragen");
+  } else {
+    await write("Goodies der Masterclass: geplant (PART-054)", () =>
+      admin.from("session")
+        .update({ format_details: { ...(angaben?.format_details ?? {}), goodies_planned: true } })
+        .eq("id", mc.id),
+    );
   }
 
   const { data: adresse } = await admin.from("person_email").select("person_id")

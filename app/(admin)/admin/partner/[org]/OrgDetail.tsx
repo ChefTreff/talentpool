@@ -19,6 +19,7 @@ import type { GastRow } from "@/components/partner/gaeste";
 import type { ProfilFeld, ProfilOption } from "@/components/partner/ProfilAuswahl";
 import type { TourStopp as TourStoppZeile } from "@/components/partner/tour";
 import { TourStopp } from "@/components/partner/TourStopp";
+import { GoodiesFrage } from "@/components/partner/GoodiesFrage";
 import { FragenFreigabe, type OffeneFragen } from "./FragenFreigabe";
 import {
   BeschreibungFelder,
@@ -30,6 +31,7 @@ import {
 } from "@/components/partner/EureDaten";
 import {
   adminAddStageGuest,
+  adminUpdateFormatDetails,
   adminUpdateTourStop,
   adminRegisterStageGuestPhoto,
   adminRemoveContact,
@@ -84,6 +86,8 @@ export function OrgDetail({
   tourStopps,
   tourFelder,
   tourTexts,
+  masterclasses,
+  goodiesTexts,
   offeneFragen,
   frageTypen,
   deliverables,
@@ -114,6 +118,10 @@ export function OrgDetail({
   tourFelder: Record<ProfilFeld, ProfilOption[]>;
   /** Texte der Stopp-Maske — dieselben wie im Partnerportal. */
   tourTexts: Strings;
+  /** Masterclasses der Organisation mit ihren Formatangaben (PART-054: Goodies). */
+  masterclasses: { id: string; title_de: string | null; format_details: Record<string, unknown> | null }[];
+  /** Texte der Goodies-Frage — dieselben wie im Partnerportal. */
+  goodiesTexts: { question: string; yes: string; no: string; none: string; hintYes: string; wiki: string; saved: string };
   /** Eigene Bewerbungsfragen, die auf die Freigabe warten (PART-045). */
   offeneFragen: OffeneFragen[];
   /** Bezeichnungen der Antwortarten. */
@@ -527,6 +535,30 @@ export function OrgDetail({
             t={guestTexts}
             rpcMessages={rpcMessages}
           />
+        </Card>
+      )}
+
+      {masterclasses.length > 0 && (
+        <Card id="goodies">
+          <CardHeader title={t.goodiesTitle} description={t.goodiesLead} />
+          {/* PART-054: der Haken steht beim Team — dieselbe Maske wie unter /partner/masterclass,
+              über dieselbe RPC (`partner_update_session`, Partner-Team über `partner_can_edit`). */}
+          <ul className="flex flex-col divide-y divide-border">
+            {masterclasses.map((x) => (
+              <li key={x.id} className="py-4 first:pt-0 last:pb-0">
+                <p className="ct-label mb-2 text-ink">{x.title_de ?? "—"}</p>
+                <GoodiesFrage
+                  sessionId={x.id}
+                  details={x.format_details}
+                  canEdit
+                  save={(details) => adminUpdateFormatDetails(x.id, details)}
+                  wikiHref="/admin/wiki"
+                  t={goodiesTexts}
+                  rpcMessages={rpcMessages}
+                />
+              </li>
+            ))}
+          </ul>
         </Card>
       )}
 

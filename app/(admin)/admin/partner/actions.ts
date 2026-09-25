@@ -684,6 +684,23 @@ export async function adminUpdateTourStop(stopId: string, fields: Record<string,
 }
 
 /**
+ * Formatangaben einer Session des Partners aus dem Admin (PART-054: Goodies der
+ * Masterclass) — dieselbe RPC wie im Portal, `partner_update_session`, die das
+ * Partner-Team über `partner_can_edit` hereinlässt (Regel vom 22.09.).
+ */
+export async function adminUpdateFormatDetails(sessionId: string, details: Record<string, unknown>): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("partner_update_session", {
+    p_session_id: sessionId,
+    p_fields: { format_details: details },
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/[org]`, "page");
+  revalidatePath("/partner/masterclass");
+  return { ok: true, data: undefined };
+}
+
+/**
  * Eigene Bewerbungsfragen eines Partners freigeben (PART-045). Bisher gab es für
  * `approve_session_questions` keine Oberfläche — beantragte Fragen blieben für
  * immer „beantragt“. Die RPC gibt alle offenen Fragen der Session frei und

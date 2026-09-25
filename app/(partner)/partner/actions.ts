@@ -498,6 +498,19 @@ export async function updateFormatSession(input: {
 }
 
 /**
+ * Formatangaben einer eigenen Session (PART-054: ob der Partner Goodies zur
+ * Masterclass einsendet). `format_details` wird als Ganzes geschrieben — die
+ * Maske gibt die übrigen Angaben mit; welche Schlüssel erlaubt sind, prüft
+ * `check_format_details`. Gebunden je Session: `updateFormatDetails.bind(null, id)`.
+ */
+export async function updateFormatDetails(
+  sessionId: string,
+  details: Record<string, unknown>,
+): Promise<PartnerResult<{ back_to_review: boolean }>> {
+  return updateFormatSession({ sessionId, fields: { format_details: details } });
+}
+
+/**
  * Katalogfragen einer eigenen Session wählen (PART-045). Zur Wahl stehen nur
  * Fragen mit `partner_selectable`; Fragen des Teams und eigene Fragen bleiben
  * stehen — das regelt `partner_set_session_questions`.
