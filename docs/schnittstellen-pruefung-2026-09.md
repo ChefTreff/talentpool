@@ -30,10 +30,36 @@ Geprüft wird je Übertragung: Endpunkt gegen die Beschreibung des Anbieters, Pf
 
 Gleichzeitig steht `VIVENU_SANDBOX=true`, also gehen **alle** Aufrufe an den Sandbox-Host, wo der Schlüssel nicht gilt. Und die in der Datenbank hinterlegte Event-Kennung gibt es im Produktionskonto nicht — sie stammt aus der Sandbox. Die Konfiguration ist damit in sich widersprüchlich: Es fehlt ein **Sandbox-Schlüssel**.
 
-Zu tun (Konrad): `sh scripts/env-set.sh VIVENU_API_KEY` mit dem Sandbox-Wert. Danach lässt sich die Kette in einem Durchgang belegen: Ausstellen im Admin → Ticket `valid` mit Barcode → QR und Wallet-Link in `/speaker/tickets` → Speaker im Swapcard-Export. Bis dahin ist der Weg gebaut und an der Datenbank geprüft, aber **nicht** an einem echten Ticket.
+~~Zu tun (Konrad): `sh scripts/env-set.sh VIVENU_API_KEY` mit dem Sandbox-Wert.~~ **Erledigt am 25.09.2026 (K-33).** Der Schlüssel war bewusst ein Produktionsschlüssel zum Testen; Konrad hat den Sandbox-Wert nachgezogen. Die Kette ist damit belegt — siehe den nächsten Abschnitt.
+
+## vivenu · Kettenprüfung am echten Sandbox-Ticket (25.09.2026)
+
+Gefahren mit `node --env-file=.env.local scripts/vivenu-sandbox-lauf.mjs kette` (neuer Schritt) an Konrads Freiticket `937c78de…`, Event `DEV Future Leader Summit 2027`, Tickettyp „Speaker Pass". Der Schritt spiegelt `issueSpeakerTicket` Aufruf für Aufruf; **nicht** geprüft ist der Klick selbst, weil `requireAdminSection` eine Anmeldung braucht — die macht Konrad.
+
+| Glied | Ergebnis |
+|---|---|
+| `speaker_ticket_for_issue` | Inhaberin, Event `6aa450d6…`, Tickettyp `6aa502a2…` — eine Zeile |
+| `GET /tickets?batch=…` vorher | 0 Treffer |
+| `POST /tickets/free` | Ticket angelegt, **Barcode ja, Secret ja**, `batch` = unsere Kennung, `status: VALID` |
+| Idempotenz danach | dieselbe Abfrage findet genau unser Ticket wieder |
+| `set_ticket_issued` | `status = valid`, Barcode, vivenu-Kennung, Tickettyp-Zuordnung geschrieben |
+| Wallet-Ziel | `HTTP 200` auf der vivenu-Ticketseite (über 308 auf die kanonische Adresse); die Adresse wird nirgends ausgegeben, sie enthält das Secret |
+| Swapcard-Export | Konrad in `event_app_speakers` enthalten |
+
+**Befund 4 — ein storniertes Ticket galt als „gibt es schon".** Beim Aufräumen aufgefallen: nach `POST /tickets/{id}/invalidate` gibt `GET /tickets?batch=…` das Ticket **weiterhin** zurück, mit `status: "INVALID"`. `findFreeTicketByBatch` nahm den ersten Treffer, also hätte das nächste Ausstellen den **toten Barcode** des stornierten Tickets in unsere Zeile geschrieben: das Portal zeigte ein gültiges Ticket mit QR-Code, am Einlass wäre es keines — und niemand hätte es gemerkt, weil kein Fehler entsteht. Der Fall ist nicht konstruiert: ein Speaker sagt ab (Ticket storniert), sagt wieder zu, das Team stellt neu aus.
+
+Behoben: `findFreeTicketByBatch` nimmt nur ein **lebendes** Ticket (`VALID`, `DETAILSREQUIRED`, `CHECKEDIN`, `CHECKED_IN`, `BLOCKED` — dieselbe Liste wie `vivenu_ticket_status()`), sucht mit `top=10` statt 2, weil nach einem Storno mehrere Tickets zur selben Kennung stehen, und behandelt Unbekanntes als „nicht vorhanden" — die Richtung, in der ein zweites Ticket entsteht statt eines toten Barcodes. Das zweite sieht das Team, den toten niemand. Belegt im erneuten Lauf: `1 Treffer, davon lebend 0 [INVALID]` → neues Ticket angelegt; danach `2 Treffer gesamt, 1 lebend, das neue dabei`.
+
+**Befund 5 — der Webhook läuft in der Sandbox.** Unbeabsichtigter, aber willkommener Beleg: das Storno kam als `ticket.updated` bei uns an, und `ingest_vivenu_ticket` setzte unsere Zeile auf `cancelled` (`vivenu_updated_at` gesetzt). Der Webhook-Weg ist damit am echten Ereignis geprüft, nicht nur im Test.
+
+**Befund 6 — der Swapcard-Export kennt eine andere Definition von „bestätigt" als der Ticket-Trigger.** Im ersten Lauf war der Export **leer**. Ursache: `event_app_speakers` filtert auf `confirmed_at is not null`, der Ticket-Trigger `speaker_profile_tickets_sync` dagegen auf `speaker_is_confirmed(pipeline_status)`. Beide Testprofile standen auf `pipeline_status = 'confirmed'` **ohne** `confirmed_at` — sie hatten ein Ticket, fehlten aber in der Event-App. Im Produktivweg fallen die beiden nicht auseinander, weil `set_speaker_pipeline` die einzige schreibende Funktion ist und beides setzt; **jeder Weg daneben** (Testdaten, künftiger Altdaten-Import) kann sie trennen, und zwar lautlos. Sofortmaßnahme: `scripts/testdaten-konrad.mjs` setzt `confirmed_at` mit. **Empfehlung an die Architektur-Session:** eine Definition statt zwei — entweder `event_app_speakers` auf `speaker_is_confirmed(pipeline_status)` umstellen oder `confirmed_at` per Trigger an den Status koppeln. Vor dem Altdaten-Import entscheiden.
+
+**Wiederholen:** `node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=ticket-zurueck` (setzt zurück und storniert dabei ein vivenu-Ticket, das aus unserem Weg stammt — erkennbar an `batch`), dann `… scripts/vivenu-sandbox-lauf.mjs kette`.
 
 ## Offen
 
-- **Swapcard (EA3):** Slot → Swapcard mit Speaker- und Partner-IDs, Pflichtfelder, Reihenfolge Speaker anlegen → Kennung zurück → Slot. Noch nicht geprüft.
+- **Swapcard (EA3):** Slot → Swapcard mit Speaker- und Partner-IDs, Pflichtfelder, Reihenfolge Speaker anlegen → Kennung zurück → Slot. Noch nicht geprüft. Der Export als Datenquelle ist geprüft (siehe oben), der Import nach Swapcard nicht.
+- **Speaker-Foto nach Swapcard:** nicht geprüft — Konrads Testprofil hat kein Porträt (`has_photo = false`), der öffentliche Kopierweg blieb deshalb ungenutzt. Konrad lädt im Walkthrough eines hoch, danach nachziehen.
+- **Einladungsmail bei `importEventPeople`:** offen (K-32, Standbühnen-Gäste als Speaker). Löst der Import eine Mail an die Person aus? Ergebnis an die Architektur-Session für den Partner-Chat.
 - **SevDesk:** Artikelstamm und Belege — Trockenlauf steht (`docs/runbooks/produktabgleich.md`), der erste Echtlauf wartet auf die Inventur.
 - **HubSpot:** Produktabgleich gemessen, Lauf wartet auf die Inventur.

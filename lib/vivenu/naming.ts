@@ -84,3 +84,26 @@ export function undershopUrl(eventId: string, shop: UnderShopLike): string | nul
   if (!base || !shop._id) return null;
   return `${base}/event/${eventId}/${shop._id}`;
 }
+
+/**
+ * Zählt ein Ticket bei vivenu als „gibt es schon"?
+ *
+ * Gebraucht für die Idempotenz über `batchId` (SPK-068). Ein **storniertes**
+ * Ticket zählt **nicht** — sonst gäbe `GET /tickets?batch=…` nach einem
+ * `invalidate` weiter einen Treffer zurück, das Ausstellen schriebe dessen
+ * toten Barcode in unsere Zeile, und die Speakerin stünde mit einem QR-Code am
+ * Einlass, den das Portal als gültig anzeigt. Am 25.09.2026 in der Sandbox
+ * gemessen: nach dem Storno liefert die Abfrage das Ticket mit `status:
+ * "INVALID"` weiterhin aus.
+ *
+ * Ebenso wenig zählt ein Ticket, das noch keines ist (`RESERVED`, `BLANK`) —
+ * es hat keinen Barcode, und jeder erneute Versuch fände wieder nur dieses.
+ *
+ * Die Namen stammen aus derselben Liste wie `vivenu_ticket_status()` in der
+ * Datenbank; beide zusammen ändern.
+ */
+const LEBENDE_TICKETSTATUS = new Set(["VALID", "DETAILSREQUIRED", "CHECKEDIN", "CHECKED_IN", "BLOCKED"]);
+
+export function istLebendesTicket(status: string | null | undefined): boolean {
+  return LEBENDE_TICKETSTATUS.has((status ?? "").trim().toUpperCase());
+}

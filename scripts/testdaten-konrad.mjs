@@ -159,6 +159,11 @@ async function apply(me, ed) {
         edition_id: ed.id,
         speaker_type: "keynote",
         pipeline_status: "confirmed",
+        // Beides setzen. Der Ticket-Trigger fragt `pipeline_status`, der
+        // Swapcard-Export `confirmed_at` — ohne den Zeitstempel bekaeme das
+        // Testprofil ein Ticket, fehlte aber im Export in die Event-App
+        // (gefunden bei der Kettenpruefung SPK-068 am 25.09.2026).
+        confirmed_at: new Date().toISOString(),
         job_title: "Geschäftsführer",
         organization_name: "ChefTreff",
         bio_short_de: "Testprofil für die Feedback-Runden.",
@@ -669,19 +674,65 @@ async function formatApplication(me, ed, orgId) {
  * Secret und vivenu-Kennungen gehen mit zurueck, weil der naechste Lauf sie neu
  * holt.
  */
+/**
+ * Konrads Freiticket zurueck auf `requested`, damit er „Ausstellen" selbst
+ * druecken kann (SPK-068, Regel „Konrads Konto sieht alles" vom 25.09.2026).
+ *
+ * Auch **nach einem echten Lauf**: dann traegt die Zeile ein echtes
+ * vivenu-Ticket. Das wird vorher bei vivenu **storniert** — sonst bliebe dort
+ * eine gueltige Karte ohne Gegenstueck bei uns, und die Idempotenz ueber
+ * `batchId` gaebe sie beim naechsten Klick wieder aus. Storniert wird
+ * **ausschliesslich**, was unser eigener Weg angelegt hat: `GET /tickets/{id}`
+ * muss `batch` = unsere Ticket-Kennung zeigen. Ein Ticket, das jemand im
+ * vivenu-Dashboard ausgestellt hat, bleibt unberuehrt.
+ *
+ * Der Status `cancelled` gehoert dazu: der Webhook `ticket.updated` traegt ein
+ * Storno bei uns als `cancelled` ein, und genau in diesem Zustand steht die
+ * Zeile nach einer Kettenpruefung.
+ */
 async function ticketZurueck(me, ed) {
   const { data: sp } = await admin.from("speaker_profile").select("id")
     .eq("person_id", me.id).eq("edition_id", ed.id).maybeSingle();
   if (!sp) return fail("Ticket zurueck", "kein Speaker-Profil");
-  const { data: t, error } = await admin.from("ticket")
+  const { data: alle, error } = await admin.from("ticket")
     .select("id, status, barcode, vivenu_ticket_id")
-    .eq("speaker_profile_id", sp.id).eq("source", "speaker").neq("status", "cancelled").maybeSingle();
+    .eq("speaker_profile_id", sp.id).eq("source", "speaker").order("created_at");
   if (error) return fail("Ticket zurueck", error);
+  const t = (alle ?? []).find((x) => x.status !== "cancelled") ?? (alle ?? [])[0];
   if (!t) return fail("Ticket zurueck", "kein Freiticket gefunden");
-  if (t.barcode && !t.barcode.startsWith(PREFIX_CODE)) {
-    return note("Ticket zurueck", "echtes vivenu-Ticket, nicht angefasst");
+  if (t.status === "requested" && !t.barcode && !t.vivenu_ticket_id) {
+    return note("Ticket zurueck", "steht schon auf requested");
   }
-  if (t.status === "requested" && !t.barcode) return note("Ticket zurueck", "steht schon auf requested");
+
+  // Echtes vivenu-Ticket: erst dort aufraeumen, sonst nicht anfassen.
+  const echt = Boolean(t.vivenu_ticket_id) || Boolean(t.barcode && !t.barcode.startsWith(PREFIX_CODE));
+  if (echt) {
+    const schluessel = process.env.VIVENU_API_KEY?.trim();
+    if (!schluessel) return note("Ticket zurueck", "echtes vivenu-Ticket, aber kein VIVENU_API_KEY — nicht angefasst");
+    if (!t.vivenu_ticket_id) return note("Ticket zurueck", "echter Barcode ohne vivenu-Kennung — nicht angefasst");
+    const basis = process.env.VIVENU_SANDBOX?.trim().toLowerCase() === "false"
+      ? "https://vivenu.com/api" : "https://vivenu.dev/api";
+    const kopf = { authorization: `Bearer ${schluessel}`, "content-type": "application/json" };
+    const lesen = await fetch(`${basis}/tickets/${encodeURIComponent(t.vivenu_ticket_id)}`, { headers: kopf });
+    if (lesen.status === 404) {
+      note("Ticket zurueck", `vivenu kennt ${t.vivenu_ticket_id} nicht mehr — nur unsere Zeile wird geleert`);
+    } else if (!lesen.ok) {
+      return fail("Ticket zurueck", `vivenu ${lesen.status} beim Lesen von ${t.vivenu_ticket_id}`);
+    } else {
+      const karte = await lesen.json();
+      if (String(karte.batch ?? "") !== t.id) {
+        return note("Ticket zurueck", `vivenu-Ticket ${t.vivenu_ticket_id} stammt nicht aus unserem Weg (batch fremd) — nicht angefasst`);
+      }
+      if (String(karte.status ?? "").toUpperCase() !== "INVALID") {
+        const weg = await write(`vivenu-Ticket ${t.vivenu_ticket_id} storniert`, async () => {
+          const r = await fetch(`${basis}/tickets/${encodeURIComponent(t.vivenu_ticket_id)}/invalidate`, { method: "POST", headers: kopf });
+          return r.ok ? {} : { error: new Error(`vivenu ${r.status}`) };
+        });
+        if (weg?.error) return;
+      }
+    }
+  }
+
   await write("Freiticket zurueck auf requested", async () => {
     const zurueck = await admin.from("ticket").update({
       status: "requested", barcode: null, vivenu_ticket_id: null,
