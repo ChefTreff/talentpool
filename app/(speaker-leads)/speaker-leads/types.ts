@@ -91,6 +91,16 @@ export const TEAM_ONLY = [
   "hospitality_status",
 ] as const;
 
+/**
+ * Zwei Seiten statt einer (LEAD-028, Konrad 24.09.): die **Pipeline** ist das
+ * CRM vor der Zusage — Ansprache bis Ja oder Nein, die Absage steht als Ergebnis
+ * am Ende. **Bestätigte Speaker** ist das Onboarding danach; die Liste ist
+ * dieselbe wie in `speaker_is_confirmed()`.
+ */
+export const PIPELINE_VOR_ZUSAGE = ["lead", "contacted", "declined"];
+export const PIPELINE_BESTAETIGT = ["confirmed", "onboarded", "ready", "published", "attended"];
+export type PipelineAnsicht = "pipeline" | "bestaetigt";
+
 /** Reihenfolge der Pipeline in der Liste; `declined` steht am Ende. */
 export const PIPELINE_ORDER = [
   "lead",
