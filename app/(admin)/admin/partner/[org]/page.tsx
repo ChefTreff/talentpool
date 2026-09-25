@@ -9,6 +9,7 @@ import type {
   AdminContact,
   AdminDeal,
   AdminDeliverable,
+  AdminTalkSpeaker,
   OverviewPayload,
   RoleAssignment,
 } from "./types";
@@ -40,10 +41,12 @@ export default async function AdminPartnerOrgPage({
     );
   }
 
-  const [{ data: contacts }, { data: deliverables }, { data: deals }, vocab] = await Promise.all([
+  const [{ data: contacts }, { data: deliverables }, { data: deals }, { data: speakerZeilen }, vocab] = await Promise.all([
     supabase.rpc("partner_contacts", { p_org_id: org }),
     supabase.rpc("my_deliverables", { p_org_id: org }),
     supabase.rpc("partner_deals", { p_org_id: org }),
+    // PART-091: Speaker der gebuchten Slots mit ihrem Zugangsweg — dieselbe RPC wie unter /partner/talk.
+    supabase.rpc("partner_speakers", { p_org_id: org }),
     loadVocabMap(supabase, locale),
   ]);
 
@@ -89,6 +92,7 @@ export default async function AdminPartnerOrgPage({
       contacts={contactRows}
       gaeste={gaeste}
       guestTexts={t.partnerGuests}
+      talkSpeakers={((speakerZeilen ?? []) as AdminTalkSpeaker[]).filter((sp) => sp.session_id)}
       deliverables={(deliverables ?? []) as AdminDeliverable[]}
       deals={(deals ?? []) as AdminDeal[]}
       stageRoles={stageRoles}

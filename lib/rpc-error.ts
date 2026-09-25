@@ -245,6 +245,11 @@ const BUSINESS_KEYS = new Set([
   "stage_guest",
   "already_speaker",
   "stage_guest_consent_required",
+  // Speaker eines gebuchten Slots (Vorschlag v6_talk_speaker_zugang, PART-091);
+  // `contact_is_speaker` kommt als 23514, gilt auch für die Kontakte im Speaker-Portal.
+  "speaker_has_access",
+  "no_ops_contact",
+  "contact_is_speaker",
   // Partner-Kontakte bearbeiten (Vorschlag v6_kontakte_bearbeiten_cc, PART-062)
   "contact_not_editable",
   "email_in_use",

@@ -109,3 +109,17 @@ export type RoleAssignment = {
   edition_id: string | null;
   active: boolean;
 };
+
+/**
+ * Speaker eines gebuchten Slots dieser Organisation (`partner_speakers`, PART-091).
+ * `mail_contact_name` gesetzt = der Partner verwaltet alles, die Speaker-Mails
+ * gehen an diesen Kontakt.
+ */
+export type AdminTalkSpeaker = {
+  profile_id: string;
+  session_id: string | null;
+  session_title: string | null;
+  display_name: string | null;
+  confirmed: boolean;
+  mail_contact_name: string | null;
+};

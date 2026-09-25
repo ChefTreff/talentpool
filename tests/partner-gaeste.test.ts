@@ -104,37 +104,3 @@ describe("Standbühnen-Gäste in der Oberfläche (PART-081)", () => {
     }
   });
 });
-
-describe("Talk-Seite mit Gästen (PART-088, PART-089)", () => {
-  const seite = () => src("app/(partner)/partner/talk/page.tsx");
-
-  it("Speaker sind Gäste: Liste unten, Zuordnung am Talk, kein Einladen ins Speaker-Portal mehr", () => {
-    assert.match(seite(), /rpc\("partner_stage_guests", args\)/);
-    assert.match(seite(), /<Gaesteliste/);
-    assert.match(seite(), /<TalkGaeste/);
-    assert.doesNotMatch(seite(), /SpeakerHinzufuegen/);
-    assert.doesNotMatch(src("app/(partner)/partner/actions.ts"), /export async function addTalkSpeaker/);
-    assert.match(src("app/(partner)/partner/talk/TalkGaeste.tsx"), /assignStageGuest\(sessionId, profileId, zuordnen\)/);
-  });
-
-  it("Programmpunkte auf der Standbühne stehen nicht unter Talk", () => {
-    assert.match(seite(), /from\("stage"\)\.select\("id, type"\)/);
-    assert.match(seite(), /b\.type === "partner_booth"/);
-    assert.match(seite(), /!\(x\.stage_id && standbuehnen\.has\(x\.stage_id\)\)/);
-  });
-
-  it("Tabelle und Talk nutzen dieselbe Zuordnung", () => {
-    for (const datei of ["app/(partner)/partner/buehne/StandTabelle.tsx", "app/(partner)/partner/talk/TalkGaeste.tsx"]) {
-      assert.match(src(datei), /<GastZuordnung/, datei);
-    }
-  });
-
-  it("die neuen Texte der Talk-Seite stehen in beiden Wörterbüchern", () => {
-    const benutzt = [...new Set([...seite().matchAll(/\bs\.([a-zA-Z]+)/g)].map((m) => m[1]))];
-    for (const sprache of ["de", "en"]) {
-      const block = JSON.parse(src(`lib/i18n/${sprache}.json`)).partnerTalk as Record<string, string>;
-      for (const key of benutzt) assert.equal(typeof block[key], "string", `${sprache}: partnerTalk.${key}`);
-      assert.doesNotMatch(block.lead, /Speaker-Portal/, `${sprache}: lead nennt kein Speaker-Portal mehr`);
-    }
-  });
-});

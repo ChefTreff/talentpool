@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
@@ -46,6 +47,7 @@ import type {
   AdminContact,
   AdminDeal,
   AdminDeliverable,
+  AdminTalkSpeaker,
   OverviewPayload,
   RoleAssignment,
 } from "./types";
@@ -73,6 +75,7 @@ export function OrgDetail({
   contacts,
   gaeste,
   guestTexts,
+  talkSpeakers,
   deliverables,
   deals,
   stageRoles,
@@ -93,6 +96,8 @@ export function OrgDetail({
   gaeste: GastRow[];
   /** Texte der Gästeliste — dieselben wie im Partnerportal. */
   guestTexts: Strings;
+  /** Speaker der gebuchten Slots mit Zugangsweg (PART-091); Pflege im Speaker-Admin. */
+  talkSpeakers: AdminTalkSpeaker[];
   deliverables: AdminDeliverable[];
   deals: AdminDeal[];
   /** Aktive `standbuehne_editor`-Zuweisungen dieser Organisation, je Person. */
@@ -502,6 +507,38 @@ export function OrgDetail({
             t={guestTexts}
             rpcMessages={rpcMessages}
           />
+        </Card>
+      )}
+
+      {talkSpeakers.length > 0 && (
+        <Card id="speaker">
+          <CardHeader title={t.talkSpeakersTitle} description={`${t.talkSpeakersLead} · ${talkSpeakers.length}`} />
+          {/* PART-091: welcher Speaker einen eigenen Zugang hat und bei welchem die Kommunikation
+              über den Operations-Kontakt läuft. Gepflegt wird im Speaker-Admin — dort hebt das
+              Entfernen des Kontakts die Umleitung auf. */}
+          <ul className="flex flex-col divide-y divide-border">
+            {talkSpeakers.map((sp) => (
+              <li
+                key={`${sp.profile_id}-${sp.session_id}`}
+                className="flex flex-wrap items-start justify-between gap-3 py-3"
+              >
+                <div className="min-w-48">
+                  <Link href={`/admin/speaker/${sp.profile_id}`} className="ct-link">
+                    {sp.display_name || t.talkSpeakerUnnamed}
+                  </Link>
+                  <p className="ct-help">{sp.session_title ?? "—"}</p>
+                </div>
+                <div className="flex flex-col items-start gap-1 sm:items-end">
+                  <Badge tone={sp.mail_contact_name ? "accent" : "neutral"}>
+                    {sp.mail_contact_name ? t.talkSpeakerManaged : t.talkSpeakerOwn}
+                  </Badge>
+                  {sp.mail_contact_name && (
+                    <span className="ct-help">{t.talkSpeakerVia.replace("{kontakt}", sp.mail_contact_name)}</span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
         </Card>
       )}
 
