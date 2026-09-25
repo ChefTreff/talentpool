@@ -3,6 +3,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import type { GastRow } from "@/components/partner/gaeste";
 import type { TourStopp } from "@/components/partner/tour";
+import type { OffeneFragen } from "./FragenFreigabe";
 import { gastFotoAdressen } from "@/lib/partner/gaeste";
 import { partnerAdminShell } from "../shell";
 import { OrgDetail } from "./OrgDetail";
@@ -52,6 +53,27 @@ export default async function AdminPartnerOrgPage({
   ]);
   // PART-046: Stopps der Company Tour mit den Angaben des Partners — dieselbe RPC wie unter /partner/company-tour.
   const { data: tourZeilen } = await supabase.rpc("partner_company_tour", { p_org_id: org });
+  // PART-045: eigene Bewerbungsfragen des Partners, die noch auf die Freigabe warten.
+  const { data: formatZeilen } = await supabase.rpc("partner_format_sessions", { p_org_id: org });
+  const formate = (formatZeilen ?? []) as { id: string; title_de: string | null }[];
+  const { data: offeneZeilen } = formate.length
+    ? await supabase
+        .from("session_question")
+        .select("id, session_id, label_de, type, purpose")
+        .in("session_id", formate.map((x) => x.id))
+        .is("question_id", null)
+        .is("approved_at", null)
+        .order("created_at")
+    : { data: [] };
+  const offeneFragen: OffeneFragen[] = formate
+    .map((x) => ({
+      sessionId: x.id,
+      sessionTitle: x.title_de ?? "—",
+      fragen: ((offeneZeilen ?? []) as { id: string; session_id: string; label_de: string | null; type: string | null; purpose: string | null }[])
+        .filter((f) => f.session_id === x.id)
+        .map((f) => ({ id: f.id, label_de: f.label_de ?? "—", type: f.type, purpose: f.purpose })),
+    }))
+    .filter((x) => x.fragen.length > 0);
   const alsListe = (m: Record<string, string>) => Object.entries(m).map(([key, label]) => ({ key, label }));
 
   const contactRows = (contacts ?? []) as AdminContact[];
@@ -104,6 +126,13 @@ export default async function AdminPartnerOrgPage({
         study_field: alsListe(vgroup(vocab, "study_field")),
       }}
       tourTexts={t.partnerTour}
+      offeneFragen={offeneFragen}
+      frageTypen={Object.fromEntries(
+        ["text", "textarea", "select", "multiselect", "boolean", "url", "number"].map((typ) => [
+          typ,
+          (t.partnerMasterclass as Record<string, string>)[`type_${typ}`] ?? typ,
+        ]),
+      )}
       deliverables={(deliverables ?? []) as AdminDeliverable[]}
       deals={(deals ?? []) as AdminDeal[]}
       stageRoles={stageRoles}

@@ -39,6 +39,7 @@ function refreshFormats() {
   revalidatePath(PATH);
   revalidatePath(`${PATH}/side-event`);
   revalidatePath(`${PATH}/interview-tables`);
+  revalidatePath(`${PATH}/masterclass`);
   revalidatePath(`${PATH}/bewerber`);
 }
 
@@ -494,6 +495,50 @@ export async function updateFormatSession(input: {
   if (error) return fail(error);
   refreshFormats();
   return { ok: true, data: { back_to_review: data === true } };
+}
+
+/**
+ * Katalogfragen einer eigenen Session wählen (PART-045). Zur Wahl stehen nur
+ * Fragen mit `partner_selectable`; Fragen des Teams und eigene Fragen bleiben
+ * stehen — das regelt `partner_set_session_questions`.
+ */
+export async function setSessionQuestions(sessionId: string, questionIds: string[]): Promise<PartnerResult<{ count: number }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_set_session_questions", {
+    p_session_id: sessionId,
+    p_question_ids: questionIds,
+  });
+  if (error) return fail(error);
+  refreshFormats();
+  revalidatePath(`${PATH}/masterclass/fragen`);
+  return { ok: true, data: { count: Number(data ?? 0) } };
+}
+
+/**
+ * Eine eigene Bewerbungsfrage beantragen (PART-045, höchstens zwei je Session).
+ * Sichtbar wird sie erst nach der Freigabe durch das Programm-Team; der Zweck
+ * ist Pflicht, weil daran entschieden wird, ob eine Frage gestellt werden darf.
+ */
+export async function requestSessionQuestion(input: {
+  sessionId: string;
+  labelDe: string;
+  labelEn: string;
+  type: string;
+  purpose: string;
+  options: { key: string; label_de: string; label_en: string }[] | null;
+}): Promise<PartnerResult<{ id: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_request_question", {
+    p_session_id: input.sessionId,
+    p_label_de: input.labelDe,
+    p_label_en: input.labelEn,
+    p_type: input.type,
+    p_purpose: input.purpose,
+    p_options: input.options,
+  });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/masterclass/fragen`);
+  return { ok: true, data: { id: String(data) } };
 }
 
 export async function deleteFormatSession(input: {

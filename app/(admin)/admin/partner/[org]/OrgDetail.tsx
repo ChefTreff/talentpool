@@ -19,6 +19,7 @@ import type { GastRow } from "@/components/partner/gaeste";
 import type { ProfilFeld, ProfilOption } from "@/components/partner/ProfilAuswahl";
 import type { TourStopp as TourStoppZeile } from "@/components/partner/tour";
 import { TourStopp } from "@/components/partner/TourStopp";
+import { FragenFreigabe, type OffeneFragen } from "./FragenFreigabe";
 import {
   BeschreibungFelder,
   RechnungFelder,
@@ -83,6 +84,8 @@ export function OrgDetail({
   tourStopps,
   tourFelder,
   tourTexts,
+  offeneFragen,
+  frageTypen,
   deliverables,
   deals,
   stageRoles,
@@ -111,6 +114,10 @@ export function OrgDetail({
   tourFelder: Record<ProfilFeld, ProfilOption[]>;
   /** Texte der Stopp-Maske — dieselben wie im Partnerportal. */
   tourTexts: Strings;
+  /** Eigene Bewerbungsfragen, die auf die Freigabe warten (PART-045). */
+  offeneFragen: OffeneFragen[];
+  /** Bezeichnungen der Antwortarten. */
+  frageTypen: Record<string, string>;
   deliverables: AdminDeliverable[];
   deals: AdminDeal[];
   /** Aktive `standbuehne_editor`-Zuweisungen dieser Organisation, je Person. */
@@ -520,6 +527,13 @@ export function OrgDetail({
             t={guestTexts}
             rpcMessages={rpcMessages}
           />
+        </Card>
+      )}
+
+      {offeneFragen.length > 0 && (
+        <Card id="fragen">
+          <CardHeader title={t.questionsTitle} description={t.questionsLead} />
+          <FragenFreigabe offen={offeneFragen} typLabels={frageTypen} t={t} rpcMessages={rpcMessages} />
         </Card>
       )}
 
