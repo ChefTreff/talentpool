@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/Input";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { cn } from "@/components/ui/cn";
 import { NewSpeakerDrawer } from "./NewSpeakerDrawer";
-import { SpeakerDrawer } from "./SpeakerDrawer";
+import type { EinordnungOptionen } from "@/components/speaker/Einordnung";
+import { SpeakerFenster } from "./SpeakerFenster";
 import {
   PIPELINE_BESTAETIGT,
   PIPELINE_ORDER,
@@ -40,9 +41,11 @@ export function PipelineView({
   speakers,
   managers,
   labels,
+  einordnungOptionen,
   locale,
   dateLocale,
   t,
+  te,
   common,
   rpcMessages,
 }: {
@@ -52,9 +55,13 @@ export function PipelineView({
   speakers: ManagedSpeaker[];
   managers: ManagerOption[];
   labels: Record<string, Record<string, string>>;
+  /** Auswahllisten der Einordnung im Fenster (LEAD-039). */
+  einordnungOptionen: EinordnungOptionen;
   locale: Locale;
   dateLocale: string;
   t: Strings;
+  /** `speakerEinordnung`-Texte. */
+  te: Strings;
   common: {
     cancel: string;
     choose: string;
@@ -239,16 +246,18 @@ export function PipelineView({
       )}
 
       {selected && (
-        <SpeakerDrawer
+        <SpeakerFenster
           key={selected.id}
           speaker={selected}
           isTeam={scope.team}
           managers={managers}
           meId={scope.person_id}
           labels={labels}
+          einordnungOptionen={einordnungOptionen}
           locale={locale}
           dateLocale={dateLocale}
           t={t}
+          te={te}
           common={common}
           rpcMessages={rpcMessages}
           onClose={() => setOpenId(null)}

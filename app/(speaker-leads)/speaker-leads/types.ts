@@ -1,3 +1,5 @@
+import type { Einordnung } from "@/lib/speaker/einordnung";
+
 /** Antwort aus `my_manager_scope()`. */
 export type ManagerScope = {
   /** Die eigene Person (seit Migration 0104) — entscheidet, ob die Übergabe angeboten wird. */
@@ -43,8 +45,12 @@ export type SpeakerSession = {
   stage_name: string | null;
 };
 
-/** Zeile aus `manager_speakers()`. */
-export type ManagedSpeaker = {
+/**
+ * Zeile aus `manager_speakers()`. Die Einordnung (LEAD-039: Kategorie, Cluster,
+ * Thema/Rolle, Prio, Format, Kontakt via, Outreach, Bühnen in Frage) kommt über
+ * `Einordnung` dazu.
+ */
+export type ManagedSpeaker = Einordnung & {
   id: string;
   person_id: string;
   first_name: string | null;

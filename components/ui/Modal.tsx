@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Button } from "./Button";
+import { cn } from "./cn";
 
 /**
  * `<dialog showModal>` — Fokusfalle, Escape und die Abdunklung kommen vom
@@ -11,6 +12,7 @@ export function Modal({
   label,
   onCancel,
   blocking,
+  size = "default",
   children,
 }: {
   /** Zugänglicher Name des Dialogs; sichtbar ist die Überschrift darin. */
@@ -24,6 +26,12 @@ export function Modal({
    * Speichern scheitert — deshalb muss er selbst einen Ausweg anbieten.
    */
   blocking?: boolean;
+  /**
+   * `wide` für ein Arbeitsfenster mit zwei Spalten statt einer Rückfrage — der
+   * Speaker-Kontakt der Leads (LEAD-026: „die Seitenleiste ist zu schmal für die
+   * Informationsfülle“). Auf dem Telefon bleibt es eine Spalte.
+   */
+  size?: "default" | "wide";
   children: ReactNode;
 }) {
   return (
@@ -39,7 +47,10 @@ export function Modal({
         }
         onCancel();
       }}
-      className="w-full max-w-[560px] rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40"
+      className={cn(
+        "w-full rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40",
+        size === "wide" ? "max-w-5xl" : "max-w-[560px]",
+      )}
     >
       {children}
     </dialog>

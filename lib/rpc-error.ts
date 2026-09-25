@@ -242,6 +242,14 @@ const BUSINESS_KEYS = new Set([
   "contact_not_editable",
   "email_in_use",
   "position_required",
+  // Einordnung der Speaker-Pipeline (Vorschlag v6_lead039_einordnung, LEAD-039);
+  // `invalid_category` und `invalid_format` stehen schon oben.
+  "invalid_topic_cluster",
+  "invalid_priority",
+  "invalid_outreach_channel",
+  "text_too_long",
+  "contact_details_not_allowed",
+  "stage_not_in_edition",
 ]);
 
 const BY_CODE: Record<string, string> = {

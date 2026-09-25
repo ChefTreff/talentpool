@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { boardEvents } from "@/components/programme/events";
 import { PipelineView } from "./PipelineView";
 import type { ManagedSpeaker, ManagerOption, ManagerScope, PipelineAnsicht } from "./types";
 
@@ -39,6 +40,18 @@ export async function PipelineSeite({ ansicht, path }: { ansicht: PipelineAnsich
   const speakers = (speakerRows ?? []) as ManagedSpeaker[];
   const managers = (managerRows ?? []) as ManagerOption[];
 
+  // Bühnen in Frage (LEAD-039): die Bühnen des Summits der eigenen Editionen —
+  // dieselbe Auswahl wie im Board (`boardEvents`, LEAD-014).
+  const events = await boardEvents(supabase, scope.all ? [] : scope.editions.map((e) => e.id));
+  const { data: stageRows } = events.length
+    ? await supabase
+        .from("stage")
+        .select("id, name")
+        .in("event_id", events.map((e) => e.id))
+        .eq("active", true)
+        .order("sort_order")
+    : { data: [] };
+
   return (
     <>
       <PageHeader
@@ -63,6 +76,18 @@ export async function PipelineSeite({ ansicht, path }: { ansicht: PipelineAnsich
             declineReason: vgroup(vocab, "speaker_decline_reason"),
             publishStatus: vgroup(vocab, "publish_status"),
           }}
+          einordnungOptionen={{
+            category: vgroup(vocab, "speaker_category"),
+            topic_cluster: vgroup(vocab, "topic_cluster"),
+            priority: vgroup(vocab, "speaker_priority"),
+            recommended_format: vgroup(vocab, "session_format"),
+            outreach_channel: vgroup(vocab, "outreach_channel"),
+            stages: ((stageRows ?? []) as { id: string; name: string }[]).map((st) => ({
+              value: st.id,
+              label: st.name,
+            })),
+          }}
+          te={t.speakerEinordnung}
           locale={locale}
           dateLocale={t.meta.dateLocale}
           t={t.leads}

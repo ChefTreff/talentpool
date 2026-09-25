@@ -83,6 +83,22 @@ export async function updateSpeaker(
   return { ok: true, data: undefined };
 }
 
+/**
+ * Bühnen in Frage (LEAD-039) — ersetzt die ganze Menge. Die RPC prüft
+ * `can_manage_speaker` und dass jede Bühne zur Edition gehört
+ * (`stage_not_in_edition`).
+ */
+export async function setStageCandidates(profileId: string, stageIds: string[]): Promise<LeadResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_speaker_stage_candidates", {
+    p_profile_id: profileId,
+    p_stage_ids: stageIds,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
+
 export async function setPipeline(
   profileId: string,
   status: string,
