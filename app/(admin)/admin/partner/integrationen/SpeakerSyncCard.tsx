@@ -11,6 +11,7 @@ type Antwort = {
   errors: number; refs: number; mitFoto: number; skipped?: string; error?: string;
   zurueckgehalten: { name: string; grund: "kein_name" }[];
   ohneFoto: string[];
+  alsNutzer: string[];
   runs: { name: string; outcome: string; detail?: string }[];
 };
 
@@ -110,6 +111,20 @@ export function SpeakerSyncCard({ t }: { t: Record<string, string> }) {
                 {t.speakerNoPhotoTitle.replace("{n}", String(antwort.ohneFoto.length))}
               </div>
               <p className="ct-help">{t.speakerNoPhotoHint}</p>
+            </div>
+          )}
+
+          {antwort.alsNutzer.length > 0 && (
+            <div>
+              {/* Kein neues Konto, aber eine Abweichung von dem, was wir
+                  schicken wollten — die gehört sichtbar in den Lauf. */}
+              <div className="ct-label text-ink">
+                {t.speakerAsUserTitle.replace("{n}", String(antwort.alsNutzer.length))}
+              </div>
+              <p className="ct-help">{t.speakerAsUserHint}</p>
+              <ul className="ct-help">
+                {antwort.alsNutzer.map((n) => <li key={n}>{n}</li>)}
+              </ul>
             </div>
           )}
 

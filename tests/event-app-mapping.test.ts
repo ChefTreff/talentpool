@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { exhibitorChanged, exhibitorDescription, exhibitorTier, matchRemote, normalizeWebsite, publicLogoPath, toExhibitorUpsert } from "@/lib/event-app/mapping";
+import { alsNutzer, exhibitorChanged, exhibitorDescription, exhibitorTier, istIsUserKonflikt, matchRemote, normalizeWebsite, publicLogoPath, toExhibitorUpsert } from "@/lib/event-app/mapping";
 import { toSwapcardInput } from "@/lib/event-app/swapcard/queries";
 import type { ExhibitorRow } from "@/lib/event-app/types";
 
@@ -106,5 +106,44 @@ describe("Event-App-Abbildung", () => {
   it("legt die öffentliche Logo-Kopie je Fassung ab", () => {
     assert.equal(publicLogoPath(row), null);
     assert.equal(publicLogoPath({ ...row, logo_png_asset_id: "a1" }), "fls27/org1/a1.png");
+  });
+});
+
+describe("Swapcard: isUser-Konflikt erkennen (QS-036)", () => {
+  it("erkennt die Beanstandung am Pfad, nicht am Fehlerschlüssel", () => {
+    // Gemessen am 25.09.2026 gegen das Livekonto: der Schlüssel lautet
+    // `EMAIL_EMPTY` und führt in die Irre — mit der Adresse hat es nichts zu tun.
+    assert.equal(istIsUserKonflikt({ path: ["data", "0", "isUser"] }), true);
+  });
+
+  it("hält gewöhnliche Beanstandungen auseinander", () => {
+    // Würde hier true herauskommen, schriebe der Lauf still `isUser: true` an
+    // eine Person, die aus einem ganz anderen Grund abgewiesen wurde.
+    assert.equal(istIsUserKonflikt({ path: ["data", "0", "email"] }), false);
+    assert.equal(istIsUserKonflikt({ path: [] }), false);
+    assert.equal(istIsUserKonflikt({}), false);
+    assert.equal(istIsUserKonflikt({ path: null }), false);
+  });
+
+  it("setzt isUser nur im create-Zweig und lässt alles andere stehen", () => {
+    const eintrag = {
+      clientId: "p1", inputId: "p1",
+      create: { firstName: "A", lastName: "B", isUser: false },
+      update: { firstName: "A", lastName: "B" },
+      actions: { updateGroups: { action: "ADD", groupIds: ["g"] } },
+    };
+    const neu = alsNutzer(eintrag) as typeof eintrag;
+    assert.equal(neu.create.isUser, true);
+    assert.equal(neu.create.firstName, "A");
+    assert.deepEqual(neu.update, eintrag.update);
+    assert.deepEqual(neu.actions, eintrag.actions);
+    // Das Original bleibt unberührt — der Lauf baut die Liste neu auf.
+    assert.equal(eintrag.create.isUser, false);
+  });
+
+  it("ein Eintrag ohne create bleibt, wie er ist", () => {
+    // Beim reinen Ändern gibt es kein `isUser`; etwas zu erfinden wäre falsch.
+    const nur = { clientId: "p1", inputId: "p1", update: { firstName: "A" } };
+    assert.deepEqual(alsNutzer(nur), nur);
   });
 });

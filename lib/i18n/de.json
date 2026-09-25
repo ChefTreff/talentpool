@@ -1215,6 +1215,8 @@
     "showPayload": "Nutzdaten zeigen",
     "skipped": "ausgelassen",
     "skuHint": "Format I-00000.",
+    "speakerAsUserHint": "Diese Personen gehören in Swapcard schon zu einem Aussteller. Ein Profil ohne Konto lässt Swapcard dort nicht zu — ein neues Konto entsteht dadurch nicht, wir beschreiben nur den Ist-Zustand.",
+    "speakerAsUserTitle": "Als bestehende Nutzerin übertragen ({n})",
     "speakerHeldHint": "Diese Speaker gehen nicht hinaus — Swapcard verlangt Vor- und Nachnamen. Sie stehen hier, damit niemand unbemerkt fehlt.",
     "speakerHeldTitle": "Zurückgehalten ({n})",
     "speakerHeld_kein_name": "Name fehlt",

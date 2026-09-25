@@ -2,7 +2,7 @@ import "server-only";
 import type { EventAppAdapter, RemoteExhibitor, RemoteSponsor, RemoteSponsorCategory, SponsorUpsert, UpsertOutcome } from "@/lib/event-app/types";
 import { SwapcardError, gql } from "@/lib/event-app/swapcard/client";
 import { EVENT_QUERY, LIST_EXHIBITORS, UPSERT_EXHIBITORS, DELETE_EXHIBITORS, SPONSOR_CATEGORIES, LIST_SPONSORS, CREATE_SPONSOR, UPDATE_SPONSOR, DELETE_SPONSORS, toSwapcardInput, EVENT_GROUPS, IMPORT_PEOPLE } from "@/lib/event-app/swapcard/queries";
-import { chunks } from "@/lib/event-app/mapping";
+import { alsNutzer, chunks, istIsUserKonflikt } from "@/lib/event-app/mapping";
 
 type Node = {
   id: string; name: string; description?: string | null; websiteUrl?: string | null; logoUrl?: string | null;
@@ -186,13 +186,34 @@ export async function importSpeakers(
   ids: Map<string, string>;
   updated: Set<string>;
   errors: { inputId: string; code: string; message: string }[];
+  /** Wer als bestehende Nutzerin übertragen wurde (siehe `istIsUserKonflikt`). */
+  alsNutzerUebertragen: Set<string>;
 }> {
   const ids = new Map<string, string>();
   const updated = new Set<string>();
   const errors: { inputId: string; code: string; message: string }[] = [];
+  const alsNutzerUebertragen = new Set<string>();
   // Paketweise: eine Mutation kostet 1 000 Punkte vom Minutenbudget (60 000).
   for (const teil of chunks(eintraege, 50)) {
-    const d = await gql<ImportAntwort>("importEventPeople", IMPORT_PEOPLE, { eventId, data: teil, validateOnly });
+    // **Erst fragen, dann schreiben.** Wir schicken `isUser: false`, weil niemand
+    // durch unseren Export ein Konto bekommen soll. Für Personen, die in
+    // Swapcard längst Nutzerinnen sind (Ausstellermitglieder), ist das aber kein
+    // gültiger Zustand — und statt zu raten, welche das sind, fragen wir
+    // Swapcard mit einem Trockenlauf. Der schreibt nichts und kostet eine Runde.
+    let daten = teil;
+    const probe = await gql<ImportAntwort>("importEventPeople", IMPORT_PEOPLE,
+                                           { eventId, data: teil, validateOnly: true });
+    const konflikt = new Set((probe.importEventPeople?.errors ?? [])
+      .filter(istIsUserKonflikt).map((e) => e.inputId).filter((x): x is string => Boolean(x)));
+    if (konflikt.size > 0) {
+      for (const id of konflikt) alsNutzerUebertragen.add(id);
+      // `true` ist hier keine Ausweitung: diese Personen **sind** bereits
+      // Nutzerinnen, wir beschreiben nur den Ist-Zustand. Ein neues Konto
+      // entsteht dadurch nicht.
+      daten = teil.map((e) => (konflikt.has(String(e.inputId)) ? alsNutzer(e) : e));
+    }
+
+    const d = await gql<ImportAntwort>("importEventPeople", IMPORT_PEOPLE, { eventId, data: daten, validateOnly });
     const res = d.importEventPeople;
     if (!res) continue;
     for (const e of res.errors ?? []) {
@@ -208,5 +229,5 @@ export async function importSpeakers(
       if (!angelegt.has(r.eventPerson.id)) updated.add(r.inputId);
     }
   }
-  return { ids, updated, errors };
+  return { ids, updated, errors, alsNutzerUebertragen };
 }

@@ -125,7 +125,22 @@ Der Fehlerschlüssel führt in die Irre: mit einer leeren Adresse hat das nichts
 
 **Empfehlung, und warum sie eine Entscheidung braucht.** Technisch ist der Weg klar: die abgewiesenen Einträge einmal mit `isUser: true` wiederholen. Das ist bei genau diesen Personen auch keine Rechteausweitung — sie **sind** bereits Nutzerinnen in Swapcard, `true` beschreibt nur den Ist-Zustand. Trotzdem hängt daran K-32/K-38: `isUser: false` war ein Baustein der Antwort „der Import löst keine Einladung aus". Ob eine Person in Swapcard zur Nutzerin wird, entscheidet Konrad, nicht der Ingest. Sobald die Freigabe steht, ist der Wiederholungslauf ein kleiner Schnitt in `lib/event-app/speakers.ts` mit Vermerk im Laufprotokoll — der Fall bleibt sichtbar und wird nicht stillschweigend geglättet.
 
-**Bis dahin ist nichts kaputt:** Der Lauf meldet solche Personen heute schon einzeln als Fehler; niemand verschwindet unbemerkt.
+**Erledigt am 25.09.2026.** Entscheidung der Architektur-Session: vor dem Import je Person nachschlagen, ob sie in Swapcard schon Nutzerin ist, und nur dann `isUser: true` schicken — das ändert ihren Stand nicht, ein neues Konto entsteht nicht, und die Antwort auf K-32 bleibt gültig.
+
+Umgesetzt **ohne zu raten, wer betroffen ist**: `importSpeakers` fragt Swapcard mit einem `validateOnly`-Durchgang selbst, wo `isUser: false` nicht geht, und berichtigt nur diese Einträge. Erkannt wird die Beanstandung am **Pfad** (`data.N.isUser`), nicht am irreführenden Schlüssel `EMAIL_EMPTY`. Ändert Swapcard den Pfad, greift die Erkennung nicht mehr und der Eintrag erscheint als gewöhnlicher Fehler — die richtige Richtung: ein sichtbarer Fehlschlag statt einer stillen Änderung an `isUser`.
+
+Wer so übertragen wurde, steht namentlich im Lauf (Kachel „Als bestehende Nutzerin übertragen"); ins Protokoll `integration.sync_job` geht nur die Anzahl, wie bei den übrigen Namenslisten.
+
+**Erneuter Trockenlauf am 25.09.2026, nach dem Schnitt:**
+
+```
+Vorprüfung: 1 Person(en) sind in Swapcard schon Nutzerin — werden als solche übertragen:
+  Konrad Gruner
+Antwort: 0 Beanstandung(en)
+  keine Beanstandung — alle Einträge gültig
+```
+
+Der echte Import wartet weiter auf K-38.
 
 **Fotos:** beide Einträge ohne Bild (`has_photo = false`), die öffentliche Kopie war also nicht Teil dieses Laufs. Die Fotoübertragung bleibt ungeprüft, bis ein Testprofil ein Porträt hat.
 

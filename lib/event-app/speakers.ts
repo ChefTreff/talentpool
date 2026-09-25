@@ -41,6 +41,13 @@ export type SpeakerSummary = {
   zurueckgehalten: { name: string; grund: "kein_name" }[];
   /** Ohne Profilfoto — in der App bleibt der Platzhalter. */
   ohneFoto: string[];
+  /**
+   * Als **bestehende** Nutzerinnen übertragen: Swapcard lässt `isUser: false`
+   * nicht zu, wenn die Person dort schon zu einem Aussteller gehört. Ein neues
+   * Konto entsteht dadurch nicht — aber der Lauf sagt, bei wem es so war,
+   * statt die Abweichung zu verschlucken.
+   */
+  alsNutzer: string[];
   runs: { name: string; outcome: string; detail?: string }[];
   skipped?: string;
 };
@@ -78,7 +85,7 @@ export async function syncSpeakers(opts: {
   const { admin, dryRun } = opts;
   const out: SpeakerSummary = {
     dryRun, eventId: null, rows: 0, eligible: 0, create: 0, update: 0, errors: 0, refs: 0, mitFoto: 0,
-    zurueckgehalten: [], ohneFoto: [], runs: [],
+    zurueckgehalten: [], ohneFoto: [], alsNutzer: [], runs: [],
   };
 
   const { data, error } = await admin.rpc("event_app_speakers", { p_edition_id: opts.editionId ?? null });
@@ -151,6 +158,10 @@ export async function syncSpeakers(opts: {
   });
 
   const ergebnis = await importSpeakers(eventId, eintraege, dryRun);
+  for (const id of ergebnis.alsNutzerUebertragen) {
+    const r = gehen.find((x) => x.person_id === id);
+    out.alsNutzer.push(r ? name(r) : id);
+  }
   for (const f of ergebnis.errors) {
     const r = gehen.find((x) => x.person_id === f.inputId);
     out.errors += 1;

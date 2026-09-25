@@ -99,3 +99,32 @@ export function chunks<T>(items: T[], size: number): T[][] {
 export function publicLogoPath(row: Pick<ExhibitorRow, "edition_slug" | "org_id" | "logo_png_asset_id">): string | null {
   return row.logo_png_asset_id ? `${row.edition_slug}/${row.org_id}/${row.logo_png_asset_id}.png` : null;
 }
+
+/**
+ * Ist das eine Beanstandung an `isUser`?
+ *
+ * Swapcard weist `isUser: false` ab, sobald die Person dort schon zu einem
+ * Aussteller gehört: „Cannot turn an exhibitor member into a non-user person".
+ * Der Fehlerschlüssel lautet dabei `EMAIL_EMPTY` und führt in die Irre — mit der
+ * Adresse hat das nichts zu tun. Verlässlich ist der **Pfad** (gemessen am
+ * 25.09.2026 gegen das Livekonto: `data.0.isUser`).
+ *
+ * Ändert Swapcard den Pfad, greift die Erkennung nicht mehr, und der Eintrag
+ * erscheint als gewöhnlicher Fehler im Lauf. Das ist die richtige Richtung: ein
+ * sichtbarer Fehlschlag statt einer stillen Änderung an `isUser`.
+ */
+export function istIsUserKonflikt(e: { path?: string[] | null }): boolean {
+  return (e.path ?? []).includes("isUser");
+}
+
+/**
+ * Denselben Eintrag, aber als bestehende Nutzerin.
+ *
+ * Keine Rechteausweitung: die Person **ist** schon Nutzerin, `true` beschreibt
+ * den Ist-Zustand. Ein Eintrag ohne `create` bleibt unberührt — beim reinen
+ * Ändern gibt es kein `isUser`.
+ */
+export function alsNutzer(eintrag: Record<string, unknown>): Record<string, unknown> {
+  const create = eintrag.create as Record<string, unknown> | undefined;
+  return create ? { ...eintrag, create: { ...create, isUser: true } } : eintrag;
+}
