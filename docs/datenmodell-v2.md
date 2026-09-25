@@ -121,6 +121,7 @@
 | Welle 6 · 0192 | **Ticket-Mail ticket_final beim Ausstellen (SPK-068 Teil 2)** (`20260925093316`, `v6_ticket_final_mail`; Details im Migrationskopf) | — |
 | Welle 6 · 0193 | **Gäste in den Team-Listen kennzeichnen, Listen und Mails ohne Gäste (SPK-070)** (`20260925094227`, `v6_gaeste_team_listen`; Details im Migrationskopf) | — |
 | Welle 6 · 0194 | **Tour-Begleitung im Company-Tour-Abschnitt: Gate in upsert_edition_contact (ADM-059)** (`20260925094908`, `v6_tour_leads`; Details im Migrationskopf) | — |
+| Welle 6 · 0195 | **Standbühnen-Fenster = Öffnungszeiten der Bühne, Rückfall Tagesrahmen (PART-090, ersetzt PART-079)** (`20260925095914`, `v6_standbuehne_oeffnungszeiten`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

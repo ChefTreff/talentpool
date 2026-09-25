@@ -1,3 +1,5 @@
+-- 0195 · Standbühnen-Fenster = Öffnungszeiten der Bühne, Rückfall Tagesrahmen (PART-090, ersetzt PART-079)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925095914.
 -- Standbühne: Zeitfenster = Öffnungszeiten der Bühne (PART-090, ersetzt PART-079)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
