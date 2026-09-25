@@ -1,3 +1,5 @@
+-- 0208 · Company Tour: bis zu fünf Wünsche je Stopp (PART-092, K-41)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925165937.
 -- Company Tour: bis zu fünf Wünsche je Stopp (PART-092, K-41)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.

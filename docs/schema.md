@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 11:03 UTC · 102 Tabellen · 6 Views · 559 Funktionen
+> Stand: 2026-09-25 16:59 UTC · 103 Tabellen · 6 Views · 561 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -177,6 +177,16 @@ Eine Station einer Company Tour. Der Partner bucht den Stopp und beantwortet daz
 | `filled_at` | timestamp with time zone |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `company_tour_wish`
+PART-092: Wünsche des Partners eines Tour-Stopps unter den Bewerbungen der Tour (höchstens fünf je Stopp, nur mit Einwilligung). Keine Entscheidung — die trifft das Team. Nur über partner_set_tour_wish, partner_tour_applications und tour_wishes_for_session.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `stop_id` | uuid | PK |  | `company_tour_stop.id` |  |
+| `application_id` | uuid | PK |  | `application.id` |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `consent_record`
 Jede Einwilligung/Widerruf als eigene Zeile (Nachweis). Aktueller Stand: View consent_current.
@@ -2286,6 +2296,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_sessions_pending` | p_edition_id: uuid |
 | `partner_set_onboarding_status` | p_edition_id: uuid, p_org_id: uuid, p_status: text |
 | `partner_set_session_questions` | p_question_ids: uuid[], p_session_id: uuid |
+| `partner_set_tour_wish` | p_application_id: uuid, p_stop_id: uuid, p_wish: boolean |
 | `partner_speakers` | p_edition_id: uuid, p_org_id: uuid |
 | `partner_stage_guest_files` | p_profile_id: uuid |
 | `partner_stage_guests` | p_edition_id: uuid, p_org_id: uuid |
@@ -2497,6 +2508,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `ticket_allocations_pending` | args: ? |
 | `ticket_final_mail` | p_t: public.ticket |
 | `ticket_requests_admin` | p_edition_id: uuid |
+| `tour_wishes_for_session` | p_session_id: uuid |
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
 | `unassign_shift` | p_assignment_id: uuid |
 | `unassigned_speakers` | p_edition_id: uuid |

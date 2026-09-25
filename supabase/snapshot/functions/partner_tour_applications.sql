@@ -1,5 +1,5 @@
 create or replace function partner_tour_applications(p_stop_id uuid)
- RETURNS TABLE(id uuid, person_id uuid, display_name text, status text, rank integer, answers jsonb, consent_share boolean, confirm_by timestamp with time zone, confirmed_at timestamp with time zone, decided_at timestamp with time zone, created_at timestamp with time zone, profile jsonb)
+ RETURNS TABLE(id uuid, person_id uuid, display_name text, status text, rank integer, answers jsonb, consent_share boolean, confirm_by timestamp with time zone, confirmed_at timestamp with time zone, decided_at timestamp with time zone, created_at timestamp with time zone, profile jsonb, wished boolean)
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -40,7 +40,9 @@ begin
            case when a.consent_share then jsonb_strip_nulls(jsonb_build_object(
              'occupation_status', p.occupation_status, 'career_level', p.career_level,
              'employer_name', p.employer_name, 'university', p.university,
-             'study_field', p.study_field, 'city', p.city, 'linkedin_url', p.linkedin_url)) end
+             'study_field', p.study_field, 'city', p.city, 'linkedin_url', p.linkedin_url)) end,
+           -- PART-092: vom Partner dieses Stopps gewünscht (höchstens fünf).
+           exists (select 1 from company_tour_wish w where w.stop_id = p_stop_id and w.application_id = a.id)
       from application a
       join person p on p.id = a.person_id
      where a.session_id = v_session
