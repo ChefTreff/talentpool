@@ -11,9 +11,11 @@ declare
   v_kontakt_tel text; v_kontakt_art text; v_kontakt_ok date; v_hat_kontakt boolean;
 begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
+  -- SPK-071: ohne `id` das gewählte Profil (sonst wie bisher).
   select * into v_sp from speaker_profile sp
-   where (v_id is null or sp.id = v_id) and (sp.person_id = v_me or is_speaker_assistant(sp.id, v_me))
-   order by (sp.person_id = v_me) desc, sp.created_at desc limit 1 for update;
+   where sp.id = coalesce(v_id, my_speaker_profile_id())
+     and (sp.person_id = v_me or is_speaker_assistant(sp.id, v_me))
+   for update;
   if not found then raise exception 'speaker_not_found' using errcode = 'P0002'; end if;
 
   -- Kontakt ohne Portalzugang (0127). Die sechs Felder gehoeren zusammen:

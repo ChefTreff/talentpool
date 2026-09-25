@@ -7,11 +7,8 @@ AS $$
 declare v_me uuid := current_person_id(); v_sp speaker_profile%rowtype; v_p person%rowtype;
 begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
-  select * into v_sp from speaker_profile sp
-   where (sp.person_id = v_me or is_speaker_assistant(sp.id, v_me))
-     and (p_edition_id is null or sp.edition_id = p_edition_id)
-   order by (sp.person_id = v_me) desc, sp.created_at desc
-   limit 1;
+  -- SPK-071: das Profil, das die Person im Portal gewählt hat (sonst wie bisher).
+  select * into v_sp from speaker_profile sp where sp.id = my_speaker_profile_id(p_edition_id);
   if not found then return null; end if;
   select * into v_p from person where id = v_sp.person_id;
   return jsonb_build_object(

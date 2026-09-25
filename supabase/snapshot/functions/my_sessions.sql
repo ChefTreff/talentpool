@@ -27,6 +27,8 @@ AS $$
   join event e on e.id = se.event_id and (e.edition_id = sp.edition_id or e.id = sp.edition_id)
   left join slot sl on sl.id = se.slot_id
   left join stage st on st.id = sl.stage_id
-  where sp.person_id = current_person_id() or is_speaker_assistant(sp.id, current_person_id())
+  where (sp.person_id = current_person_id() or is_speaker_assistant(sp.id, current_person_id()))
+    -- SPK-071: die Sessions der gewählten Person, nicht die aller Profile gemischt.
+    and sp.person_id = (select x.person_id from speaker_profile x where x.id = my_speaker_profile_id())
   order by sl.start_at nulls last, se.title_de
 $$;
