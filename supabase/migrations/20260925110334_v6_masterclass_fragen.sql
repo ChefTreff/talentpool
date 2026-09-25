@@ -1,3 +1,5 @@
+-- 0206 · Masterclass im Partner-Portal: Katalogfragen wählen, ohne die Fragen des Teams zu verlieren (PART-045)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925110334.
 -- Masterclass im Partner-Portal: Katalogfragen wählen, ohne die Fragen des Teams zu verlieren (PART-045)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
