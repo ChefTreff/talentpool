@@ -8,7 +8,8 @@
 
 ## Runde 26.09. — nach Konrads Feedback vom 25.09. (Pause beendet; Ziel: nächste Woche alles fertig)
 
-Konrads Antworten zum Durchgang (`docs/konrad-durchgang-2026-09-25.md`) stehen je Zeile in `docs/feedback/*.md`. Laufende Chats (Speaker-Domäne, Partner, Admin & Schnittstellen) haben ihre Reihenfolge per Nachricht. **Neue Sitzungen startet Konrad mit einer Zeile:**
+Konrads Antworten zum Durchgang (`docs/konrad-durchgang-2026-09-25.md`) stehen je Zeile in `docs/feedback/*.md`. Partner und Admin & Schnittstellen laufen weiter und haben ihre Reihenfolge per Nachricht; die Speaker-Sitzung ist beendet. **Neue Sitzungen startet Konrad mit einer Zeile:**
+- Speaker-Domäne: „Weiter als Speaker-Chat, Runde 26.09.: siehe docs/chat-startpakete.md (Tabelle „Runde 26.09.“) und docs/entscheidungen.md ab 25.09.; Ausgangspunkt ist Draft-PR #231 (speaker/port3, Rechte-Review); Worktree auf origin/main.“
 - Design: „Weiter als Design-Chat, Runde 26.09.: siehe docs/chat-startpakete.md (Tabelle „Runde 26.09.“) und docs/entscheidungen.md ab 25.09.; Skill /portal-design laden; Worktree auf origin/main.“
 - Talent, Hackathon & Volunteers: „Weiter als Talent-Chat (Talent, Hackathon, Volunteers), Runde 26.09.: siehe docs/chat-startpakete.md (Tabelle „Runde 26.09.“) und docs/entscheidungen.md ab 25.09.; Worktree auf origin/main.“
 
