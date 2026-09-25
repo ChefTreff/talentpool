@@ -12,10 +12,10 @@ Alle Chats wurden angewiesen, den laufenden Baustein abzuschließen und nichts N
 
 | Chat | Stand bei der Pause | Weiter nach der Pause |
 |---|---|---|
-| Talent & Hackathon | TAL-008/015/002/003 gebaut (#177–#179, #185), Luma schreibt seit K-30b; Chat war beim Setzen offline | Abgleich-Protokoll `integration.sync_job` (system `luma`) prüfen, TAL-007 auf gebaut; dann Konzepte TAL-009…011 erst nach Konrads Runde |
+| Talent & Hackathon | TAL-008/015/002/003 gebaut (#177–#179, #185); Luma schreibt seit K-30b, Abgleich läuft stündlich fehlerfrei (346 Gäste, 0 zugeordnet — Testbestand) | TAL-007 auf gebaut setzen; Konzepte TAL-009…011 erst nach Konrads Runde; K-34 (Luma-Gäste als Leads?) wartet auf Konrad |
 | Speaker-Domäne | SPK-049…062 und SPK-052 gebaut (#184, #186, #188; 0174, 0176, 0178) | **Zuerst LEAD-032 (Sicherheit, P1: Partner lesen fremde Entwürfe — Leserolle nur intern, Policy `session_read` je Rolle)**, dann QS-048, LEAD-028/031, Board-Rest inkl. Partner-Bedarf LEAD-033…038 |
 | Partner | PART-083 gebaut (#181, 0172), PART-081 als Vorschlag (#182); PART-078…080 als Zwischenstand auf `partner/standbuehne` (3 Commits, kein PR: Vorschlag `v6_standbuehne_regeln` 13/13, Tabellen-Reiter, Partner-Status) | PR für PART-078…080 nach Mobil-Sichtprüfung, „Slot anlegen“ im Browser und zweitem Blick; dann K-32 (Konrads Antwort) → PART-081 bauen |
-| Admin & Schnittstellen | SPK-068 gebaut (#183, 0175), ADM-057 (#187) | PORT1b nach ADM-056; vivenu-Kettenprüfung nach K-33 (Sandbox-Schlüssel); QS-036/EA3, ADM-054, ADM-052, F4 |
+| Admin & Schnittstellen | SPK-068 gebaut (#183, 0175), ADM-057 gebaut (#187, 0177); PORT1b nicht begonnen | 1. PORT1b nach ADM-056 · 2. **ADM-058 (K-31, Konrad 25.09.): eigene Admin-Sektion „Company Tours“** — Tour anlegen/pflegen und mit der Session verknüpfen (`upsert_company_tour` bekommt `session_id`, 0173), zusammen mit ADM-052 · 3. vivenu-Kettenprüfung, sobald K-33 gesetzt ist · 4. Swapcard: Standbühnen-Gäste werden als Speaker exportiert (K-32) — prüfen, ob der Import eine Einladungsmail auslöst, Ergebnis an die Architektur-Session · dann QS-036/EA3, ADM-054, F4 |
 | Design | QS-047 gebaut (#180), Statuskorrekturen übernommen | wartet auf Konrads Feedback-Runde |
 | Architektur-Session | 0169–0177 live, Vorfall `db.sh test` gehärtet | CSP-Logs nach Konrads Klickrunde → `CSP_ENFORCE=true`; Security-Check Teil 2 (Rollenkonten als SQL-Tests); K-31/K-32/K-33 verteilen |
 
