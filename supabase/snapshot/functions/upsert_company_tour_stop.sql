@@ -6,7 +6,7 @@ create or replace function upsert_company_tour_stop(p_data jsonb)
 AS $$
 declare v_id uuid := nullif(p_data->>'id', '')::uuid; v_tour uuid := nullif(p_data->>'tour_id', '')::uuid;
 begin
-  if not (is_partner_team() or is_programme_editor(null)) then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not has_admin_section('companyTours') then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_id is null then
     if v_tour is null then raise exception 'fields_required' using errcode = '22023', detail = 'tour_id'; end if;
     insert into company_tour_stop (tour_id, sort_order, arrival_at, departure_at, host_org_id, address)

@@ -5,8 +5,9 @@ create or replace function upsert_company_tour(p_data jsonb)
  SET search_path TO 'public', 'extensions'
 AS $$
 declare v_id uuid := nullif(p_data->>'id', '')::uuid; v_ed uuid := nullif(p_data->>'edition_id', '')::uuid;
+        v_session uuid;
 begin
-  if not (is_partner_team() or is_programme_editor(null)) then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not has_admin_section('companyTours') then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_id is null then
     if v_ed is null or nullif(btrim(coalesce(p_data->>'name', '')), '') is null then
       raise exception 'fields_required' using errcode = '22023', detail = 'edition_id,name';
@@ -31,6 +32,19 @@ begin
       notes = case when p_data ? 'notes' then nullif(btrim(p_data->>'notes'),'') else notes end
     where id = v_id;
     if not found then raise exception 'tour_not_found' using errcode = 'P0002'; end if;
+  end if;
+  -- K-31: die Session, auf die sich Teilnehmende bewerben. Nur Sessions **dieser
+  -- Edition** — eine Tour, die auf das Programm eines anderen Jahres zeigt,
+  -- faellt erst im Portal auf, und dann als leere Bewerbungsseite.
+  if p_data ? 'session_id' then
+    v_session := nullif(p_data->>'session_id','')::uuid;
+    if v_session is not null and not exists (
+         select 1 from session se
+          where se.id = v_session
+            and se.event_id = (select edition_id from company_tour where id = v_id)) then
+      raise exception 'session_not_found' using errcode = 'P0002', detail = v_session::text;
+    end if;
+    update company_tour set session_id = v_session where id = v_id;
   end if;
   -- Die Begleitperson muss vom richtigen Typ und aus derselben Edition sein.
   if (select lead_contact_id from company_tour where id = v_id) is not null then

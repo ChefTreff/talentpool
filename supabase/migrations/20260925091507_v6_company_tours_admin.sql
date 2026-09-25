@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Company Tours als eigener Admin-Bereich (ADM-058, K-31) + ADM-052
+-- 0189 · Company-Tour-Sektion im Admin: Tour ↔ Session, Stopps, has_admin_section (ADM-058, ADM-052)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925091507.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --
