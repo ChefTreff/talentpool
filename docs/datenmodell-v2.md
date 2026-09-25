@@ -106,6 +106,7 @@
 | Welle 6 · 0177 | **Kundennummer aus HubSpot übernehmen (ADM-057)** (`20260924193812`, `v6_kundennummer_ingest`; Details im Migrationskopf) | — |
 | Welle 6 · 0178 | **Eine Sprache je Session: „Gemischt“ fällt weg (SPK-052)** (`20260924194015`, `v6_eine_sprache`; Details im Migrationskopf) | — |
 | Welle 6 · 0179 | **Standbühne: Zeitfenster und Partner-Status (PART-079, PART-080)** (`20260925070346`, `v6_standbuehne_regeln`; Details im Migrationskopf) | — |
+| Welle 6 · 0180 | **Programm lesen: Entwürfe nur intern und für die eigenen Bühnen (LEAD-032, F10)** (`20260925070949`, `v6_programm_lesen`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 07:03 UTC · 98 Tabellen · 6 Views · 520 Funktionen
+> Stand: 2026-09-25 07:09 UTC · 98 Tabellen · 6 Views · 522 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2092,6 +2092,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_partner_of` | p_org_id: uuid |
 | `is_partner_team` | args: ? |
 | `is_production_team` | args: ? |
+| `is_programme_board_user` | args: ? |
 | `is_programme_editor` | p_event_id: uuid |
 | `is_programme_reader` | args: ? |
 | `is_session_visible` | p_session_id: uuid |
@@ -2101,6 +2102,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_speaker_side_of` | p_session_id: uuid |
 | `is_speaker_team` | p_edition_id: uuid |
 | `is_staff` | args: ? |
+| `is_standbuehne_editor_of` | p_org_id: uuid |
 | `is_suppressed` | p_email: text |
 | `is_u35` | p_birthdate: date, p_ref: date |
 | `is_vocab_key` | p_key: text, p_vocabulary: text |

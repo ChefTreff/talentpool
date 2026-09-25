@@ -1,4 +1,5 @@
--- Vorschlag ohne Nummer · Welle 6 · Programm lesen: Entwürfe nur intern und für die eigenen Bühnen (LEAD-032)
+-- 0180 · Programm lesen: Entwürfe nur intern und für die eigenen Bühnen (LEAD-032, F10)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925070949.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
