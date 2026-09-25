@@ -207,6 +207,7 @@
     },
     "nav": {
       "applications": "Bewerbungen",
+      "auditLog": "Protokoll",
       "catering": "Catering",
       "checkin": "Check-in",
       "communityEvents": "Community-Events",
@@ -237,6 +238,7 @@
       "regie": "Regie",
       "roles": "Rollen",
       "sections": {
+        "administration": "Verwaltung",
         "crossCutting": "Übergreifend",
         "participants": "Teilnehmende",
         "partner": "Partner",
@@ -635,6 +637,7 @@
     },
     "words": {
       "applications": "Talente",
+      "auditLog": "Nachvollziehbarkeit",
       "catering": "Verpflegung",
       "checkin": "Einlass",
       "communityEvents": "Community",
@@ -1778,6 +1781,29 @@
       "name": "Volunteers",
       "portal": "Volunteer-Portal"
     }
+  },
+  "auditLog": {
+    "after": "Nachher",
+    "apply": "Filtern",
+    "before": "Vorher",
+    "count": "{n} Einträge",
+    "detail": "Vorher und Nachher",
+    "empty": "Keine Einträge",
+    "emptyBody": "Mit diesen Filtern gibt es nichts. Ohne Filter steht hier alles, was seit dem Start protokolliert wurde.",
+    "filterAction": "Aktion",
+    "filterActor": "Person",
+    "filterAll": "— alle —",
+    "filterFrom": "Ab",
+    "filterObject": "Objekttyp",
+    "filterTo": "Bis (ohne diesen Tag)",
+    "lead": "Jede Admin-Aktion mit Vorher und Nachher. Zum Nachsehen, nicht zum Mitnehmen — deshalb kein Export.",
+    "next": "Weiter",
+    "nothing": "—",
+    "page": "Seite {seite} von {seiten}",
+    "prev": "Zurück",
+    "reset": "Zurücksetzen",
+    "system": "System",
+    "title": "Protokoll"
   },
   "catering": {
     "adminLead": "Ernährung nach Gruppe, dazu der Stand der Rückmeldungen.",

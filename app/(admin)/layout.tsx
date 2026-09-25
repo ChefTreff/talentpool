@@ -120,8 +120,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       label: nav.sections.crossCutting,
       items: eintrag("catering", "/admin/catering", nav.catering),
     },
+    // PORT4: **Verwaltung** — Personen, Zugänge, Rechte und das Protokoll. Alle
+    // diese Abschnitte tragen `roles: []`, sind also ohnehin nur für `admin`
+    // offen; die eigene Gruppe macht aus der Regel eine sichtbare Ordnung.
+    // Die Pfade bleiben, wo sie sind: ein Umzug bräche gemerkte Adressen für
+    // einen reinen Navigationsgewinn.
     {
-      label: nav.sections.system,
+      label: nav.sections.administration,
       items: [
         ...eintrag("persons", "/admin/personen", nav.persons),
         // Das Team zuerst: „wer gehoert dazu" ist die Frage, mit der man
@@ -129,11 +134,17 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         // jede einzelne Zuweisung, auch ausserhalb des Teams.
         ...eintrag("team", "/admin/team", nav.team),
         ...eintrag("roles", "/admin/rollen", nav.roles),
+        ...eintrag("duplicates", "/admin/dubletten", nav.duplicates),
+        ...eintrag("deletions", "/admin/loeschantraege", nav.deletions),
+        ...eintrag("auditLog", "/admin/verwaltung/protokoll", nav.auditLog),
+      ],
+    },
+    {
+      label: nav.sections.system,
+      items: [
         ...eintrag("deadlines", "/admin/fristen", nav.deadlines),
         ...eintrag("contacts", "/admin/ansprechpartner", nav.contacts),
         ...eintrag("vocab", "/admin/vokabular", nav.vocab),
-        ...eintrag("duplicates", "/admin/dubletten", nav.duplicates),
-        ...eintrag("deletions", "/admin/loeschantraege", nav.deletions),
         ...eintrag("mail", "/admin/mail", nav.mail),
         ...eintrag("wiki", "/admin/wiki", nav.wiki),
         ...eintrag("videos", "/admin/videos", nav.videos),
