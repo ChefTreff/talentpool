@@ -134,6 +134,15 @@ describe("Standbühne in der Oberfläche (PART-078…080)", () => {
     }
   });
 
+  it("Felder bleiben beim Speichern bearbeitbar, ein leerer Slot bekommt nur eine Session", () => {
+    const tabelle = src("app/(partner)/partner/buehne/StandTabelle.tsx");
+    // Hinge `bearbeitbar` an `pending`, würden die Felder während jeder Speicherung zu Text.
+    assert.match(tabelle, /const bearbeitbar = z\.can_edit;/);
+    // Zweites Feld vor dem Neuladen: dieselbe Session, keine zweite (verwaiste) im Backlog.
+    assert.match(tabelle, /neuAngelegt\.current\.get\(z\.slot_id\)/);
+    assert.match(tabelle, /neuAngelegt\.current\.set\(z\.slot_id, anlegen\)/);
+  });
+
   it("jeder Text der Standbühne steht in beiden Wörterbüchern", () => {
     const code = ["StandTabelle.tsx", "StandInfo.tsx"].map((d) => src(`app/(partner)/partner/buehne/${d}`)).join("\n");
     const benutzt = [...new Set([...code.matchAll(/\bt\.([a-zA-Z]+)/g)].map((m) => m[1]))];

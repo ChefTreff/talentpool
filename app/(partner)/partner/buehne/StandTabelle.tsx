@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState, useTransition } from "react";
+import { Fragment, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -106,6 +106,9 @@ export function StandTabelle({
   const [offen, setOffen] = useState<string | null>(null);
   const [fehlt, setFehlt] = useState<{ slotId: string; felder: FehlendesFeld[] } | null>(null);
   const [bestaetigen, setBestaetigen] = useState<StandZeile | null>(null);
+  // Laufende Neuanlagen je Slot: wer vor dem Neuladen gleich das zweite Feld
+  // ausfüllt, schreibt in dieselbe Session statt eine zweite anzulegen.
+  const neuAngelegt = useRef(new Map<string, Promise<string | null>>());
 
   const message = (key: string, detail?: string) =>
     (rpcMessages[key] ?? rpcMessages.unknown ?? key) + (detail ? ` (${detail})` : "");
@@ -133,15 +136,31 @@ export function StandTabelle({
 
   function speichern(z: StandZeile, felder: { title_de?: string; title_en?: string; format?: string }) {
     run(async () => {
-      if (z.session_id) {
-        const res = await upsertSession({ id: z.session_id, ...felder });
+      const sessionId = z.session_id ?? (await neuAngelegt.current.get(z.slot_id)) ?? null;
+      if (sessionId) {
+        const res = await upsertSession({ id: sessionId, ...felder });
         return res.ok ? { ok: true } : res;
       }
       // Leerer Slot: Session anlegen und gleich anhängen — wie der Drawer im Board.
-      const neu = await upsertSession({ event_id: eventId, format: FORMAT_NEU, host_org_id: hostOrgId, ...felder });
-      if (!neu.ok) return neu;
-      const dran = await attachSession(neu.data.sessionId, z.slot_id);
-      return dran.ok ? { ok: true } : dran;
+      let fehler: Ergebnis = { ok: false, key: "unknown" };
+      const anlegen = (async () => {
+        const neu = await upsertSession({ event_id: eventId, format: FORMAT_NEU, host_org_id: hostOrgId, ...felder });
+        if (!neu.ok) {
+          fehler = neu;
+          return null;
+        }
+        const dran = await attachSession(neu.data.sessionId, z.slot_id);
+        if (!dran.ok) {
+          fehler = dran;
+          return null;
+        }
+        return neu.data.sessionId;
+      })();
+      neuAngelegt.current.set(z.slot_id, anlegen);
+      const id = await anlegen;
+      if (id) return { ok: true };
+      neuAngelegt.current.delete(z.slot_id);
+      return fehler;
     }, t.saved);
   }
 
@@ -388,7 +407,9 @@ function Zeile({
   const [beschreibungDe, setBeschreibungDe] = useEntwurf(z.description_de ?? "");
   const [beschreibungEn, setBeschreibungEn] = useEntwurf(z.description_en ?? "");
 
-  const bearbeitbar = z.can_edit && !pending;
+  // Nicht an `pending` hängen: sonst würden während jeder Speicherung alle Felder
+  // zu Text, und wer schon im nächsten Feld tippt, verlöre den Fokus.
+  const bearbeitbar = z.can_edit;
   // Eine veröffentlichte Session verschiebt man bewusst im Kalender — dort fragt
   // das Board nach (`confirmation_required`); in der Zeile bleibt die Zeit Text.
   const zeitBearbeitbar = bearbeitbar && z.publish_status !== "published";
@@ -684,6 +705,9 @@ function NeuerSlot({
       }
       toast("success", t.addDone);
       setTitel("");
+      // Nächster Vorschlag schliesst an den eben angelegten Slot an.
+      const dauer = buehnen.find((b) => b.id === buehne)?.default_duration_min ?? 30;
+      setZeit({ start: formatMinutes(e), ende: formatMinutes(e + dauer) });
       router.refresh();
     });
   }
