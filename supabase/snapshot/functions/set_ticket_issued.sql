@@ -23,6 +23,10 @@ begin
     perform log_audit('ticket.issued', 'ticket', p_ticket_id::text, jsonb_build_object('status', v_t.status),
                       jsonb_build_object('status', v_t.status, 'source', v_t.source,
                                          'vivenu_ticket_id', v_t.vivenu_ticket_id, 'via', 'webhook_first'));
+    -- Auch hier: das Ticket **ist** ausgestellt, die Inhaberin soll es erfahren.
+    -- Ohne diese Zeile bekaeme genau die Person keine Mail, bei der der Webhook
+    -- schneller war — ein Zufall der Laufzeit entschiede ueber die Post.
+    perform ticket_final_mail(v_t);
     return;
   end if;
   if v_t.source = 'speaker' and v_t.status <> 'requested' then raise exception 'not_pending' using errcode = 'P0001', detail = v_t.status; end if;
@@ -36,4 +40,9 @@ begin
    where id = p_ticket_id;
   perform log_audit('ticket.issued', 'ticket', p_ticket_id::text, jsonb_build_object('status', v_t.status),
                     jsonb_build_object('status', 'valid', 'source', v_t.source, 'vivenu_ticket_id', btrim(p_vivenu_ticket_id)));
+  -- Frisch gelesen: `v_t` ist der Stand **vor** dem Update und traegt weder
+  -- Status noch Kennung von eben. Fuer die Mail zaehlt der Halter, der sich
+  -- nicht aendert — die Zeile neu zu lesen kostet nichts und erspart die Frage.
+  select * into v_t from ticket where id = p_ticket_id;
+  perform ticket_final_mail(v_t);
 end $$;

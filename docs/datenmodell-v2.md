@@ -118,6 +118,7 @@
 | Welle 6 · 0189 | **Company-Tour-Sektion im Admin: Tour ↔ Session, Stopps, has_admin_section (ADM-058, ADM-052)** (`20260925091507`, `v6_company_tours_admin`; Details im Migrationskopf) | — |
 | Welle 6 · 0190 | **Verlauf und Aufgaben der Speaker-Pipeline: speaker_activity (LEAD-039 Schnitt 2, LEAD-025, LEAD-027)** (`20260925092258`, `v6_lead039_verlauf`; Details im Migrationskopf) | — |
 | Welle 6 · 0191 | **Standpakete Eigenproduktion: Stücklisten, Agency Area stillgelegt, booth_packages nur Stände (PART-085/086)** (`20260925093130`, `v6_standpakete_eigenproduktion`; Details im Migrationskopf) | — |
+| Welle 6 · 0192 | **Ticket-Mail ticket_final beim Ausstellen (SPK-068 Teil 2)** (`20260925093316`, `v6_ticket_final_mail`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

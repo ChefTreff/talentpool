@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Ticket-Mail `ticket_final` (SPK-068, zweiter Teil)
+-- 0192 · Ticket-Mail ticket_final beim Ausstellen (SPK-068 Teil 2)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925093316.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --
