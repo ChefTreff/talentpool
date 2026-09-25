@@ -24,6 +24,8 @@ export type DetailSession = {
 export type SpeakerDetail = Einordnung & {
   /** Gast eines Partners (0188, SPK-070) — keine Einladung, kein Onboarding. */
   stage_guest?: boolean;
+  /** PART-091: über wen die Speaker-Mails gehen, wenn der Partner alles verwaltet. */
+  mail_via?: { contact_id: string; name: string | null; has_access: boolean } | null;
   id: string;
   edition_id: string;
   person: {

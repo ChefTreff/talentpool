@@ -245,6 +245,8 @@ const BUSINESS_KEYS = new Set([
   "stage_guest",
   "already_speaker",
   "stage_guest_consent_required",
+  // Mail-Weiche: der Partner verwaltet alles (Vorschlag v6_speaker_mail_weiche, PART-091)
+  "speaker_managed_by_partner",
   // Partner-Kontakte bearbeiten (Vorschlag v6_kontakte_bearbeiten_cc, PART-062)
   "contact_not_editable",
   "email_in_use",

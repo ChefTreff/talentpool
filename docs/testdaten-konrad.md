@@ -42,6 +42,8 @@ Aus den gebuchten Leistungen entstehen von selbst: **Checklisten-Pflichten**, **
 
 **Öffnungszeiten im Board (LEAD-033):** `--apply --nur=buehne` trägt für `TEST — Bühne Stage Lead` Öffnungszeiten ein (`stage_day`, `notes = testdaten:konrad`): Freitag **14:00–19:00**, Samstag **13:00–18:00** — enger als der Programmrahmen, sonst läge die Schraffur außerhalb des Rasters. Konrad klickt `/speaker-leads/board` oder `/admin/programm`: im Spaltenkopf „Geöffnet 14:00–19:00“, davor und danach schraffiert, in der Legende „Außerhalb der Öffnungszeit“. Als Stage Lead ist die Grenze hart (`outside_stage_day`), im Admin eine Warnung. `--remove` nimmt die Zeiten mit der Bühne weg (ON DELETE CASCADE).
 
+**Mail-Weiche (PART-091):** `--apply --nur=verwaltet` legt einen TEST-Speaker an, den der Partner verwaltet: TEST-Person mit `+zztest-verwaltet`-Adresse, bestätigt; **Konrad ist ihr Kontakt** (Art `partner`, mit Zugang) und steht in `mail_via_contact_id`. Dazu `TEST — Verwaltet-Talk` auf der Stage-Lead-Testbühne (Samstag 15:00–15:30) ohne Bühnenfoto. Braucht `v6_talk_speaker_zugang` und `v6_speaker_mail_weiche` (beide live) sowie den Schritt `buehne`. Konrad klickt `/admin/speaker` → „TEST Verwaltet“: „Mails gehen an Konrad Gruner — der Partner verwaltet alles“, kein Einladen-Knopf. Dann `/admin/grafiken` → `TEST — Verwaltet-Talk` → erstes Bühnenfoto hochladen: „Bühnenfotos bereit“ kommt bei **ihm** an, oben „Diese Mail betrifft TEST Verwaltet.“ (im Mail-Protokoll unter `/admin/mail`). `--remove` entfernt die TEST-Person samt Profil und Kontakt; die Session geht mit dem Präfix.
+
 ## Kennzeichnung
 
 - Rollen tragen `role_assignment.note = 'testdaten:konrad'` und laufen mit der Edition ab.

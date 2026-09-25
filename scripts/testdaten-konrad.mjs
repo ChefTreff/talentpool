@@ -29,6 +29,10 @@
  *   … --apply --nur=standstatus    (LEAD-035/036/037: drei TEST-Sessions auf der
  *                                   Teststandbühne in den Partner-Ständen, braucht
  *                                   den Schritt partner)
+ *   … --apply --nur=verwaltet      (PART-091: TEST-Speaker, den der Partner verwaltet —
+ *                                   Konrad ist der Kontakt, an den die Mails gehen;
+ *                                   braucht v6_talk_speaker_zugang und
+ *                                   v6_speaker_mail_weiche sowie den Schritt buehne)
  *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage, mit
  *                                   Einordnung, Bühne in Frage und Verlauf samt
  *                                   überfälliger Aufgabe — LEAD-039)
@@ -1209,6 +1213,88 @@ async function pipelineEintraege(me, ed) {
 }
 
 /**
+ * PART-091: ein Speaker, den der Partner verwaltet. Eine TEST-Person mit
+ * `+zztest-verwaltet`-Adresse (Konrads Postfach) als bestätigter Speaker;
+ * Konrad ist ihr Kontakt der Art `partner` mit Zugang und steht in
+ * `mail_via_contact_id` — die Speaker-Mails gehen also an ihn, mit der Zeile
+ * „Diese Mail betrifft TEST Verwaltet“. Dazu `TEST — Verwaltet-Talk` auf der
+ * Stage-Lead-Testbühne (Samstag 15:00–15:30, in ihren Öffnungszeiten) ohne
+ * Bühnenfoto: lädt Konrad unter `/admin/grafiken` das erste hoch, geht
+ * „Bühnenfotos bereit“ an ihn statt an den Speaker.
+ *
+ * Braucht `v6_talk_speaker_zugang` (Spalte, Kontaktart `partner`) und
+ * `v6_speaker_mail_weiche`, dazu den Schritt `buehne`.
+ */
+const verwaltetAdresse = () => email.replace("@", "+zztest-verwaltet@");
+
+async function verwalteterSpeaker(me, ed) {
+  const ziel = await summit(ed);
+  const tag = ziel?.tage?.[ziel.tage.length - 1];
+  if (!ziel || !tag) return fail("Verwalteter Speaker", "kein Summit mit Tagen");
+  const { data: st } = await admin.from("stage").select("id").eq("slug", "zz-test-stagelead").maybeSingle();
+  if (!st) return fail("Verwalteter Speaker", "Stage-Lead-Testbühne fehlt — zuerst --nur=buehne");
+
+  await write("Verwalteter Speaker (TEST-Person, Profil, Konrad als Kontakt)", async () => {
+    const { data: personId, error } = await admin.rpc("testdaten_person", {
+      p_first_name: "TEST", p_last_name: "Verwaltet", p_email: verwaltetAdresse(),
+    });
+    if (error) return { data: null, error };
+    const profil = await admin.from("speaker_profile").upsert({
+      person_id: personId, edition_id: ed.id, speaker_type: "panelist", pipeline_status: "confirmed",
+      confirmed_at: new Date().toISOString(), owner_person_id: me.id, internal_notes: MARK,
+    }, { onConflict: "person_id,edition_id" }).select("id").single();
+    if (profil.error) return profil;
+    const profileId = profil.data.id;
+    const { data: da } = await admin.from("speaker_contact").select("id")
+      .eq("profile_id", profileId).eq("person_id", me.id).maybeSingle();
+    let kontaktId = da?.id ?? null;
+    if (!kontaktId) {
+      const { data: k, error: ke } = await admin.from("speaker_contact").insert({
+        profile_id: profileId, kind: "partner", person_id: me.id,
+        first_name: me.first_name, last_name: me.last_name, email,
+        has_access: true, consent_at: new Date().toISOString().slice(0, 10),
+      }).select("id").single();
+      if (ke) return { data: null, error: ke };
+      kontaktId = k.id;
+    }
+    return admin.from("speaker_profile").update({ mail_via_contact_id: kontaktId }).eq("id", profileId).select("id").single();
+  });
+
+  const titel = `${PREFIX}Verwaltet-Talk`;
+  const start = new Date(`${tag.day_date}T15:00:00+02:00`).toISOString();
+  const ende = new Date(`${tag.day_date}T15:30:00+02:00`).toISOString();
+  await write(`${titel} (Samstag 15:00, ohne Bühnenfoto)`, async () => {
+    const { data: adresse } = await admin.from("person_email").select("person_id").eq("email", verwaltetAdresse()).maybeSingle();
+    if (!adresse) return { data: null, error: { message: "TEST-Person fehlt" } };
+    const { data: da } = await admin.from("session").select("id, slot_id")
+      .eq("event_id", ziel.id).eq("title_de", titel).maybeSingle();
+    let slotId = da?.slot_id ?? null;
+    if (!slotId) {
+      const { data: sl, error } = await admin.from("slot").insert({
+        stage_id: st.id, event_day_id: tag.id, start_at: start, end_at: ende,
+        slot_type: "content", status: "confirmed_title_open", internal_title: titel,
+      }).select("id").single();
+      if (error) return { data: null, error };
+      slotId = sl.id;
+    }
+    let sessionId = da?.id ?? null;
+    if (!sessionId) {
+      const { data, error } = await admin.from("session").insert({
+        event_id: ziel.id, slot_id: slotId, format: "talk", title_de: titel, title_en: titel,
+        description_de: "Testsession für die Mail-Weiche (PART-091).", language: "de",
+        access_mode: "open", publish_status: "draft",
+      }).select("id").single();
+      if (error) return { data: null, error };
+      sessionId = data.id;
+    }
+    return admin.from("session_speaker").upsert(
+      { session_id: sessionId, person_id: adresse.person_id, role: "speaker", confirmed: true },
+      { onConflict: "session_id,person_id,role" },
+    );
+  });
+}
+
+/**
  * PART-081: ein Gast der Standbühne — eine TEST-Person mit `+zztest`-Adresse
  * (Konrads eigenes Postfach, über `testdaten_person` aus 0183), als Gast der
  * Test-Organisation mit Einwilligung, am ersten TEST-Programmpunkt der
@@ -1520,6 +1606,7 @@ const SCHRITTE = {
   "ticket-zurueck": ticketZurueck,
   buehne: stageLeadBuehne,
   standstatus: standStatus,
+  verwaltet: verwalteterSpeaker,
   pipeline: pipelineEintraege,
   summit: umzugSummit,
   tour: companyTour,
@@ -1656,6 +1743,12 @@ async function remove(me) {
     if (ids.length === 0) return { data: null, error: null };
     // Profile und Adressen hängen mit ON DELETE CASCADE an der Person.
     return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  await write("Verwalteter TEST-Speaker entfernt (Profil und Kontakt gehen mit)", async () => {
+    const { data: adresse } = await admin.from("person_email").select("person_id")
+      .eq("email", verwaltetAdresse()).maybeSingle();
+    if (!adresse) return { data: null, error: null };
+    return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
   });
   await write("TEST-Stage-Lead der Moderation entfernt (Rolle geht mit)", async () => {
     const { data: adresse } = await admin.from("person_email").select("person_id")

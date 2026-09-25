@@ -266,6 +266,15 @@ export function SpeakerDetailView({
           <Badge>{labels.speakerType[speaker.speaker_type] ?? speaker.speaker_type}</Badge>
           {speaker.stage_guest && <Badge>{tg.badge}</Badge>}
           {speaker.stage_guest && <span className="ct-help text-muted">{tg.hint}</span>}
+          {/* PART-091: der Partner verwaltet alles — die Mails gehen an seinen Kontakt. */}
+          {speaker.mail_via && (
+            <span className="ct-help text-muted">
+              {(speaker.mail_via.has_access ? t.mailVia : t.mailViaNoAccess).replace(
+                "{name}",
+                speaker.mail_via.name ?? "—",
+              )}
+            </span>
+          )}
           {speaker.confirmed_at && (
             <span className="ct-help text-muted">
               {t.confirmedOn} {datum.format(new Date(speaker.confirmed_at))}
@@ -327,8 +336,9 @@ export function SpeakerDetailView({
               >
                 {t.setStatus}
               </Button>
-              {/* SPK-070: `invite_speaker` weist Gäste ab (0188) — kein Knopf dafür. */}
-              {!speaker.stage_guest && (
+              {/* SPK-070: `invite_speaker` weist Gäste ab (0188) — kein Knopf dafür.
+                  PART-091: ebenso, wenn der Partner alles verwaltet. */}
+              {!speaker.stage_guest && !speaker.mail_via && (
                 <Button
                   variant="ghost"
                   disabled={pending}

@@ -1,6 +1,7 @@
 import "server-only";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n/shared";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { mitBetrifftZeile } from "./betrifft";
 import { ccPersonIds } from "./cc";
 import { sendViaResend } from "./client";
 import { portalUrl } from "./portal-url";
@@ -123,7 +124,8 @@ async function deliver(
     programme_url: `${base}/programm`,
   };
   const subject = fillVars(template.subject, vars);
-  const bodyMd = fillVars(template.body_md, vars);
+  // PART-091: für eine Speakerin an ihren Kontakt umgeleitet — oben steht, wen die Mail betrifft.
+  const bodyMd = mitBetrifftZeile(fillVars(template.body_md, vars), vars, locale);
   const html = wrapHtml(subject, markdownToHtml(bodyMd), locale);
   const text = markdownToText(bodyMd);
 
