@@ -3384,7 +3384,7 @@
   "partnerStage": {
     "addDay": "Day",
     "addDone": "Slot added",
-    "addLead": "Your time window on this day: {fenster}.",
+    "addLead": "Opening hours on this day: {fenster}.",
     "addStage": "Stage",
     "addSubmit": "Add slot",
     "addTitle": "Add a slot",
@@ -3452,8 +3452,8 @@
     "timeSaved": "Time changed",
     "title": "Your stage",
     "titlePlaceholder": "Add a title",
-    "windowRule": "Slots on your stand stage start 90 minutes after opening at the earliest and end by 19:00.",
-    "windowTitle": "Your time window",
+    "windowRule": "Within the opening hours you add and move slots as you like. Our team sets the opening hours.",
+    "windowTitle": "Opening hours of your stand stage",
     "windowUntil": "until {bis}",
     "withdraw": "Withdraw",
     "withdrawDone": "Request withdrawn"
@@ -3985,7 +3985,7 @@
     "org_edition_not_found": "This organisation has no such edition.",
     "org_not_found": "No such organisation.",
     "out_of_stock": "There is not enough left of that.",
-    "outside_partner_window": "Outside your time window: on the stand stage a slot starts 90 minutes after opening at the earliest and ends by 19:00",
+    "outside_partner_window": "Outside the opening hours of your stand stage",
     "outside_stage_day": "That is outside this stage's opening hours on this day",
     "partner_host_mismatch": "The session is already hosted by another partner — the booking partner has to be the same one.",
     "partner_not_in_edition": "This organisation is not a partner in this edition.",

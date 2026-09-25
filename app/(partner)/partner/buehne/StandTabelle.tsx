@@ -71,7 +71,7 @@ const fensterSchluessel = (stageId: string, dayId: string) => `${stageId}|${dayI
  *
  * Geschrieben wird über dieselben RPCs wie im Board (`create_slot`,
  * `move_slot`, `upsert_session`, `attach_session_to_slot`) — die Datenbank
- * prüft Recht und Zeitfenster (PART-079). Das Fenster wird hier nur gezeigt
+ * prüft Recht und Zeitfenster (Öffnungszeiten der Bühne, PART-090). Das Fenster wird hier nur gezeigt
  * und vor dem Absenden geprüft, damit niemand erst an der Fehlermeldung
  * merkt, wo die Grenze liegt. Statt des internen Slot-Status steht der
  * Partner-Status da (PART-080); „Veröffentlichen“ ist die Anfrage an die
