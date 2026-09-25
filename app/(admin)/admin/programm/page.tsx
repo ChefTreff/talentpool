@@ -57,6 +57,7 @@ export default async function ProgrammPage({
         slots={board.slots}
         backlog={board.backlog}
         stats={board.stats}
+        stageDays={board.stageDays}
         labels={board.labels}
         locale={board.locale}
         t={t.admin.programme}

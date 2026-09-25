@@ -24,7 +24,11 @@
  *                                   Öffnungszeiten der Teststandbühne — PART-090)
  *   … --apply --nur=gaeste         (PART-081: ein TEST-Gast der Standbühne, braucht
  *                                   v6_standbuehnen_gaeste und den Schritt partner)
- *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist)
+ *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist,
+ *                                   mit Öffnungszeiten für die Markierung — LEAD-033)
+ *   … --apply --nur=standstatus    (LEAD-035/036/037: drei TEST-Sessions auf der
+ *                                   Teststandbühne in den Partner-Ständen, braucht
+ *                                   den Schritt partner)
  *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage, mit
  *                                   Einordnung, Bühne in Frage und Verlauf samt
  *                                   überfälliger Aufgabe — LEAD-039)
@@ -1028,7 +1032,98 @@ async function stageLeadBuehne(me, ed) {
       }).select("id").single();
     });
   }
+  // LEAD-033: Öffnungszeiten, enger als das Programm (Freitag 13:00–20:30,
+  // Samstag 12:00–19:30) — sonst läge die Schraffur außerhalb des Rasters, und
+  // Konrad sähe die Markierung nicht. Die drei Slots oben liegen darin.
+  const oeffnungen = [
+    { tag: tage[0], von: "14:00", bis: "19:00" },
+    { tag: tage[tage.length - 1], von: "13:00", bis: "18:00" },
+  ];
+  for (const o of oeffnungen) {
+    await write(`Öffnungszeit Stage-Lead-Bühne ${o.tag.day_date} ${o.von}–${o.bis}`, () =>
+      admin.from("stage_day").upsert(
+        { stage_id: stageId, event_day_id: o.tag.id, open_from: o.von, open_to: o.bis, notes: MARK },
+        { onConflict: "stage_id,event_day_id" },
+      ),
+    );
+  }
   await role(me.id, "speaker_manager", "stage", stageId, ed.id, validTo);
+}
+
+/**
+ * LEAD-035/036/037: die Partner-Sicht im Board. Auf der Teststandbühne drei
+ * TEST-Sessions in den Ständen „In Bearbeitung“, „Zur Freigabe“ und
+ * „Zurückgegeben“ (Rückmeldung der Programmleitung als
+ * `partner_session_return`), Tag 1, 17:30–18:50 Uhr Hamburg — frei neben der
+ * Test-Masterclass (16–17 Uhr) und im alten wie im neuen Fenster der
+ * Standbühne (PART-079/090). Gastgeberin ist die Test-Organisation: nur dann
+ * nimmt `partner_request_publish` die Anfrage an. Der zurückgegebenen Session
+ * fehlt der englische Titel — so zeigt das Schubfach, was für die Anfrage fehlt.
+ * Konrads eigene Slots und Sessions auf der Bühne bleiben unberührt; `--remove`
+ * nimmt die Sessions mit dem Präfix und die Bühne samt Slots.
+ */
+async function standStatus(me, ed) {
+  const ziel = await summit(ed);
+  const tag = ziel?.tage?.[0];
+  if (!ziel || !tag) return fail("Stand-Status", "kein Summit mit Tagen");
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) return fail("Stand-Status", "Test-Organisation fehlt — zuerst --nur=partner");
+  const { data: st } = await admin.from("stage").select("id")
+    .eq("event_id", ziel.id).eq("slug", "zz-test-standbuehne").maybeSingle();
+  if (!st) return fail("Stand-Status", "keine Teststandbühne — zuerst --nur=partner");
+
+  const eintraege = [
+    { von: "17:30", bis: "17:50", titel: `${PREFIX}Standbühne in Bearbeitung`, stand: "draft", titelEn: true },
+    { von: "18:00", bis: "18:20", titel: `${PREFIX}Standbühne zur Freigabe`, stand: "review", titelEn: true },
+    {
+      von: "18:30", bis: "18:50", titel: `${PREFIX}Standbühne zurückgegeben`, stand: "draft", titelEn: false,
+      rueckgabe: "TEST — Bitte den englischen Titel ergänzen.",
+    },
+  ];
+  for (const e of eintraege) {
+    // Ortszeit Hamburg im April: UTC+2.
+    const start = new Date(`${tag.day_date}T${e.von}:00+02:00`).toISOString();
+    const ende = new Date(`${tag.day_date}T${e.bis}:00+02:00`).toISOString();
+    await write(`Standbühne ${e.von}: ${e.titel}`, async () => {
+      // Am Titel wiederfinden, nicht an der Uhrzeit — ein zweiter Lauf legt
+      // nichts doppelt an und setzt den Stand zurück.
+      const { data: da } = await admin.from("session").select("id, slot_id")
+        .eq("event_id", ziel.id).eq("title_de", e.titel).maybeSingle();
+      let slotId = da?.slot_id ?? null;
+      if (!slotId) {
+        const { data: sl, error } = await admin.from("slot").insert({
+          stage_id: st.id, event_day_id: tag.id, start_at: start, end_at: ende,
+          slot_type: "content", status: "open", internal_title: e.titel,
+        }).select("id").single();
+        if (error) return { data: null, error };
+        slotId = sl.id;
+      }
+      const felder = {
+        slot_id: slotId, format: "talk", host_org_id: org.id,
+        title_de: e.titel, title_en: e.titelEn ? e.titel : null,
+        description_de: "Testsession für die Partner-Sicht im Board.",
+        language: "de", access_mode: "open", publish_status: e.stand,
+      };
+      let sessionId = da?.id ?? null;
+      if (sessionId) {
+        const { error } = await admin.from("session").update(felder).eq("id", sessionId);
+        if (error) return { data: null, error };
+      } else {
+        const { data, error } = await admin.from("session").insert({ event_id: ziel.id, ...felder })
+          .select("id").single();
+        if (error) return { data: null, error };
+        sessionId = data.id;
+      }
+      if (!e.rueckgabe) {
+        return admin.from("partner_session_return").delete().eq("session_id", sessionId);
+      }
+      return admin.from("partner_session_return").upsert(
+        { session_id: sessionId, note: e.rueckgabe, returned_at: new Date().toISOString(), returned_by: me.id },
+        { onConflict: "session_id" },
+      );
+    });
+  }
 }
 
 /**
@@ -1424,6 +1519,7 @@ const SCHRITTE = {
   fotos: stagePhotos,
   "ticket-zurueck": ticketZurueck,
   buehne: stageLeadBuehne,
+  standstatus: standStatus,
   pipeline: pipelineEintraege,
   summit: umzugSummit,
   tour: companyTour,

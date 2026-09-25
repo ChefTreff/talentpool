@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup, vlabel } from "@/lib/vocab";
 import type { Locale } from "@/lib/i18n/shared";
 import { boardEvents, type BoardEvent } from "./events";
+import type { BoardStageDay } from "./oeffnung";
 import type {
   BacklogSession,
   BoardDay,
@@ -42,6 +43,8 @@ export type BoardData = {
   slots: BoardSlot[];
   backlog: BacklogSession[];
   stats: BoardStats[];
+  /** Öffnungszeiten der Bühnen am gezeigten Tag (LEAD-033). */
+  stageDays: BoardStageDay[];
   labels: BoardLabels;
 };
 
@@ -101,6 +104,7 @@ export async function loadBoard(input: {
     slots: [],
     backlog: [],
     stats: [],
+    stageDays: [],
     labels: boardLabels(await loadVocabMap(supabase, locale)),
   };
   if (events.length === 0) return empty;
@@ -125,7 +129,7 @@ export async function loadBoard(input: {
   const days = (dayRows ?? []) as BoardDay[];
   const currentDay = days.find((d) => d.day_date === input.day) ?? days[0] ?? null;
 
-  const [{ data: slotRows }, { data: backlogRows }, { data: statsRows }] = await Promise.all([
+  const [{ data: slotRows }, { data: backlogRows }, { data: statsRows }, { data: stageDayRows }] = await Promise.all([
     currentDay
       ? supabase
           .from("programme_board")
@@ -142,6 +146,11 @@ export async function loadBoard(input: {
     currentDay
       ? supabase.from("stage_day_slot_stats").select("*").eq("event_day_id", currentDay.id)
       : Promise.resolve({ data: [] }),
+    // LEAD-033: dieselben Öffnungszeiten, gegen die `create_slot` und
+    // `move_slot` prüfen — `stage_day` ist für Angemeldete lesbar.
+    currentDay
+      ? supabase.from("stage_day").select("stage_id, open_from, open_to").eq("event_day_id", currentDay.id)
+      : Promise.resolve({ data: [] }),
   ]);
 
   return {
@@ -154,6 +163,7 @@ export async function loadBoard(input: {
     slots: (slotRows ?? []) as BoardSlot[],
     backlog: (backlogRows ?? []) as BacklogSession[],
     stats: (statsRows ?? []) as BoardStats[],
+    stageDays: (stageDayRows ?? []) as BoardStageDay[],
     labels: boardLabels(vocab),
   };
 }

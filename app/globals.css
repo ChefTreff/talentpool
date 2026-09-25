@@ -131,7 +131,7 @@
 
   /* Zwei Muster, die einen Zustand als **Form** zeigen, nicht nur als Farbe
      (Design-Regel 4; Vorschläge vom 24.09., docs/design-vorschlaege-2026-09-24.md).
-     Als Utilities unten: `bg-hatch-pending`, `bg-pattern-transparent`.
+     Als Utilities unten: `bg-hatch-pending`, `bg-hatch-closed`, `bg-pattern-transparent`.
 
      Schraffur für „angefragt, noch nicht bestätigt" (Programm-Board, LEAD-017):
      die dunklere Streifenfarbe ist so gemischt, dass `text-warning-ink` darauf
@@ -140,6 +140,14 @@
     135deg,
     var(--ct-warning-soft) 0 6px,
     color-mix(in srgb, var(--ct-warning) 30%, var(--ct-warning-soft)) 6px 12px
+  );
+  /* Schraffur für „außerhalb der Öffnungszeit" (Programm-Board, LEAD-033):
+     neutral und ohne Text darauf — die Zeit steht als Text im Kopf der
+     Spalte. Hebt sich auch vom `canvas`-Grund fremder Bühnen ab. */
+  --ct-hatch-closed: repeating-linear-gradient(
+    135deg,
+    var(--ct-canvas) 0 6px,
+    var(--ct-border) 6px 12px
   );
   /* Karomuster hinter Logos und Bildern mit Transparenz (Logo-Upload,
      PART-060): nur darauf sieht man, ob ein PNG wirklich freigestellt ist. */
@@ -151,6 +159,10 @@
 
 @utility bg-hatch-pending {
   background-image: var(--ct-hatch-pending);
+}
+
+@utility bg-hatch-closed {
+  background-image: var(--ct-hatch-closed);
 }
 
 @utility bg-pattern-transparent {

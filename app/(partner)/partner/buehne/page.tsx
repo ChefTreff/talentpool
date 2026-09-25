@@ -13,6 +13,8 @@ import { formatDay } from "@/lib/tz";
 import type { PartnerFormatSession } from "../talk/types";
 import { RueckgabeHinweis, rueckgabeOffen } from "../Rueckgabe";
 import { getPartnerScope } from "../org";
+import { assignStageGuest, requestStagePublish, withdrawStagePublish } from "../actions";
+import type { PartnerSicht } from "@/components/programme/partnerSicht";
 import { ladeEigeneBuehnen, ladeFenster } from "./daten";
 import { StandInfo } from "./StandInfo";
 
@@ -27,7 +29,9 @@ const PATH = "/partner/buehne";
  *
  * Freigeben kann hier niemand — `publish_session` verlangt das Programm-Team.
  * „Veröffentlichen“ als Anfrage an die Programmleitung steht in der Tabelle
- * (PART-080, zweiter Reiter); im Board-Drawer folgt es über den Speaker-Chat.
+ * (PART-080, zweiter Reiter) und im Board-Schubfach (LEAD-036): das Board
+ * bekommt dafür die Partner-Sicht mit Rückgaben, Gästen und den Wegen dieses
+ * Portals (LEAD-035/037).
  */
 export default async function PartnerStagePage({
   searchParams,
@@ -110,6 +114,28 @@ export default async function PartnerStagePage({
     .filter(rueckgabeOffen)
     .filter((x) => x.stage_id && eigeneIds.has(x.stage_id));
 
+  // Partner-Sicht im Board (LEAD-035/036/037): offene Rückgaben machen den
+  // Stand „Zurückgegeben“, die Gäste der Organisation stehen im Schubfach zur
+  // Auswahl (PART-081) — dieselben Quellen wie die Tabelle.
+  const { data: gastZeilen } = await supabase.rpc("partner_stage_guests", {
+    p_org_id: current.org_id,
+    p_edition_id: current.edition_id,
+  });
+  const partnerSicht: PartnerSicht = {
+    rueckgaben: Object.fromEntries(
+      ((sessionRows ?? []) as PartnerFormatSession[])
+        .filter(rueckgabeOffen)
+        .map((x) => [x.id, x.return_note]),
+    ),
+    gaeste: ((gastZeilen ?? []) as { profile_id: string; person_id: string; first_name: string | null; last_name: string | null }[]).map(
+      (g) => ({ profile_id: g.profile_id, person_id: g.person_id, name: [g.first_name, g.last_name].filter(Boolean).join(" ") }),
+    ),
+    anfragen: requestStagePublish,
+    zuruecknehmen: withdrawStagePublish,
+    gastZuordnen: assignStageGuest,
+    t: t.partnerStage,
+  };
+
   return (
     <>
       <PageHeader word={t.partner.wordProgramme} title={t.partnerStage.title} description={t.partnerStage.lead} />
@@ -152,6 +178,8 @@ export default async function PartnerStagePage({
         slots={board.slots}
         backlog={board.backlog}
         stats={board.stats}
+        stageDays={board.stageDays}
+        partner={partnerSicht}
         labels={board.labels}
         locale={board.locale}
         t={t.admin.programme}
