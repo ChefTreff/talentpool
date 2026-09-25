@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · SevDesk-Belege ueber die Kundennummer finden (ADM-050)
+-- 0205 · SevDesk-Belege über die Kundennummer finden (ADM-050)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925105054.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --

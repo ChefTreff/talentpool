@@ -1,5 +1,5 @@
 create or replace function sevdesk_document_targets(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(org_id uuid, org_edition_id uuid, edition_id uuid, org_name text, sevdesk_contact_id text, bekannt text[])
+ RETURNS TABLE(org_id uuid, org_edition_id uuid, edition_id uuid, org_name text, sevdesk_contact_id text, customer_number text, bekannt text[])
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -22,11 +22,20 @@ begin
     select o.id, oe.id, oe.edition_id,
            coalesce(nullif(btrim(o.communication_name), ''), o.legal_name),
            o.sevdesk_contact_id,
+           o.customer_number,
            coalesce((select array_agg(a.filename order by a.filename)
                        from partner_asset a
                       where a.org_edition_id = oe.id and a.kind in ('offer', 'invoice')), '{}')
       from org_edition oe
       join organization o on o.id = oe.org_id
-     where oe.edition_id = v_ed and nullif(btrim(o.sevdesk_contact_id), '') is not null
+     -- ADM-050: **oder** die Kundennummer. Bisher stand hier nur die
+     -- SevDesk-Kennung, und die schreibt allein `record_shop_invoice` — ein
+     -- Partner mit Angebot und Rechnung, aber ohne Messeshop-Bestellung, fiel
+     -- deshalb still aus dem Abruf. Wer weder das eine noch das andere hat,
+     -- bleibt draussen: fuer ihn gibt es drueben nichts zu suchen. Dass er fehlt,
+     -- meldet der Lauf (`ohneKennung`), statt es zu verschweigen.
+     where oe.edition_id = v_ed
+       and (nullif(btrim(o.sevdesk_contact_id), '') is not null
+            or nullif(btrim(o.customer_number), '') is not null)
      order by 4;
 end $$;

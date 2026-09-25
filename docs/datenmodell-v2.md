@@ -131,6 +131,7 @@
 | Welle 6 · 0202 | **Profilwahl im Speaker-Portal für Konten mit mehreren Profilen (SPK-071)** (`20260925103950`, `v6_speaker_profilwahl`; Details im Migrationskopf) | — |
 | Welle 6 · 0203 | **Company Tour im Partner-Portal: Bewerbungen auf die Tour lesen (PART-046)** (`20260925104410`, `v6_tour_bewerbungen_partner`; Details im Migrationskopf) | — |
 | Welle 6 · 0204 | **Mail-Umleitung im Speaker-Admin setzen oder aufheben (SPK-072)** (`20260925104718`, `v6_speaker_mail_via_admin`; Details im Migrationskopf) | — |
+| Welle 6 · 0205 | **SevDesk-Belege über die Kundennummer finden (ADM-050)** (`20260925105054`, `v6_sevdesk_kundennummer`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
