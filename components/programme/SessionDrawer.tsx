@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
 import { Field } from "@/components/ui/Field";
 import { ConfirmDialog } from "@/components/ui/Modal";
+import { formatMinutes, parseClock } from "@/lib/tz";
 import { Input, Textarea } from "@/components/ui/Input";
 import { MehrfachAuswahl } from "@/components/ui/MehrfachAuswahl";
 import { Select } from "@/components/ui/Select";
@@ -81,7 +82,55 @@ export type SlotInfo = {
   when: string;
   status: string;
   slotType: string;
+  /** Beginn und Ende in Minuten seit Mitternacht — für die Zeitfelder (LEAD-018). */
+  startMin?: number;
+  endMin?: number;
 };
+
+/**
+ * Freie Start- und Endzeit (LEAD-018, Konrad 24.09.: „45-Minuten-Panel,
+ * 20-Minuten-Keynote“). Eigene Komponente mit eigenem Entwurf: das Board gibt
+ * über `key` die Zeit des Slots herein, und nach dem Verschieben beginnt der
+ * Entwurf neu — ohne Effekt, der Server-Stand in den Zustand kopiert.
+ */
+function ZeitFelder({
+  startMin,
+  endMin,
+  pending,
+  t,
+  onApply,
+}: {
+  startMin: number;
+  endMin: number;
+  pending: boolean;
+  t: ProgrammeStrings;
+  onApply: (startMin: number, endMin: number) => void;
+}) {
+  const [von, setVon] = useState(formatMinutes(startMin));
+  const [bis, setBis] = useState(formatMinutes(endMin));
+  const a = parseClock(von);
+  const b = parseClock(bis);
+  const ungueltig = a === null || b === null || b <= a;
+  const unveraendert = a === startMin && b === endMin;
+  return (
+    <div className="flex flex-wrap items-end gap-3 sm:col-span-2">
+      <Field label={t.timeStart} htmlFor="slot_von" className="w-32">
+        <Input id="slot_von" type="time" step={300} value={von} onChange={(e) => setVon(e.target.value)} />
+      </Field>
+      <Field label={t.timeEnd} htmlFor="slot_bis" className="w-32">
+        <Input id="slot_bis" type="time" step={300} value={bis} onChange={(e) => setBis(e.target.value)} />
+      </Field>
+      <Button
+        variant="secondary"
+        disabled={pending || ungueltig || unveraendert}
+        onClick={() => a !== null && b !== null && onApply(a, b)}
+      >
+        {t.timeApply}
+      </Button>
+      {a !== null && b !== null && b <= a && <p className="ct-help w-full text-error-ink">{t.timeInvalid}</p>}
+    </div>
+  );
+}
 
 /** Speakerliste für `set_session_speakers` — mit Reihenfolge und `confirmed`. */
 function speakerPayload(list: SessionSpeaker[]) {
@@ -132,6 +181,7 @@ export function SessionDrawer({
   slotInfo,
   stageOptions,
   onChangeStage,
+  onChangeTime,
   labels,
   locale,
   t,
@@ -165,6 +215,11 @@ export function SessionDrawer({
   stageOptions?: { id: string; name: string }[];
   /** Bühne wechseln: das Board verschiebt den Slot (`move_slot`, gleiche Zeit). */
   onChangeStage?: (stageId: string) => void;
+  /**
+   * Zeit ändern (LEAD-018): das Board verschiebt den Slot auf derselben Bühne.
+   * Nur, wo diese Sicht den Slot bearbeiten darf — sonst fehlt die Funktion.
+   */
+  onChangeTime?: (startMin: number, endMin: number) => void;
   labels: BoardLabels;
   locale: "de" | "en";
   t: ProgrammeStrings;
@@ -629,6 +684,16 @@ export function SessionDrawer({
                 <p className="ct-label text-ink">{slotInfo.stageName}</p>
                 <p className="ct-help tabular-nums">{slotInfo.when}</p>
               </div>
+            )}
+            {onChangeTime && slotInfo.startMin !== undefined && slotInfo.endMin !== undefined && (
+              <ZeitFelder
+                key={`${slotInfo.startMin}-${slotInfo.endMin}`}
+                startMin={slotInfo.startMin}
+                endMin={slotInfo.endMin}
+                pending={pending}
+                t={t}
+                onApply={onChangeTime}
+              />
             )}
             {/* Der interne Slot-Status ist Sprache der Programmleitung (PART-080) —
                 in der Partner-Sicht steht der Partner-Status darunter. */}

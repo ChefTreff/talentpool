@@ -11,6 +11,7 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragMoveEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -181,6 +182,19 @@ export function Board({
   const [confirmMove, setConfirmMove] = useState<Parameters<typeof moveSlot>[0] | null>(
     null,
   );
+  /**
+   * LEAD-050 (Konrad 25.09.): beim Ziehen „Wirklich verschieben?“ mit Von →
+   * Nach — man verzieht sich schnell. Bei einer veröffentlichten Session steht
+   * die Warnung gleich mit darin, statt danach einen zweiten Dialog zu öffnen.
+   */
+  const [rueckfrage, setRueckfrage] = useState<{
+    input: Parameters<typeof moveSlot>[0];
+    von: string;
+    nach: string;
+    veroeffentlicht: boolean;
+  } | null>(null);
+  /** LEAD-051: wohin die gezogene Karte fiele — Bühne und Zeit, bevor losgelassen wird. */
+  const [vorschau, setVorschau] = useState<{ stageId: string; startMin: number; endMin: number } | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const day = days.find((d) => d.id === currentDayId) ?? null;
@@ -415,6 +429,35 @@ export function Board({
     [windowEnd, windowStart],
   );
 
+  /** Wohin ein Zug fiele: Bühne, Beginn und Ende — `null` außerhalb einer bearbeitbaren Spalte. */
+  function zugZiel(event: DragMoveEvent | DragEndEvent): { stageId: string; startMin: number; endMin: number } | null {
+    const overId = String(event.over?.id ?? "");
+    if (!overId.startsWith("stage:")) return null;
+    const stageId = overId.slice("stage:".length);
+    if (!bearbeitbar(stageId)) return null;
+    const startMin = minutesFromDrop(event);
+    if (startMin === null) return null;
+    const data = event.active.data.current as
+      | { kind: "slot"; slot: BoardSlot }
+      | { kind: "backlog"; session: BacklogSession }
+      | undefined;
+    if (!data) return null;
+    const dauer =
+      data.kind === "slot"
+        ? minutesOfDay(data.slot.end_at, timezone) - minutesOfDay(data.slot.start_at, timezone)
+        : stages.find((st) => st.id === stageId)?.default_duration_min || 30;
+    return { stageId, startMin, endMin: startMin + dauer };
+  }
+
+  function onDragMove(event: DragMoveEvent) {
+    const ziel = zugZiel(event);
+    setVorschau((alt) =>
+      alt?.stageId === ziel?.stageId && alt?.startMin === ziel?.startMin && alt?.endMin === ziel?.endMin
+        ? alt
+        : ziel,
+    );
+  }
+
   function onDragStart(event: DragStartEvent) {
     const data = event.active.data.current as
       | { kind: "slot"; slot: BoardSlot }
@@ -425,6 +468,7 @@ export function Board({
 
   function onDragEnd(event: DragEndEvent) {
     setDragging(null);
+    setVorschau(null);
     const overId = String(event.over?.id ?? "");
     if (!overId.startsWith("stage:") || !day) return;
     const stageId = overId.slice("stage:".length);
@@ -451,15 +495,22 @@ export function Board({
       ) {
         return; // nichts bewegt
       }
-      runMove({
-        slotId: slot.slot_id,
-        stageId,
-        startAt: zonedTimeToInstant(day.day_date, startMin, timezone).toISOString(),
-        endAt: zonedTimeToInstant(
-          day.day_date,
-          startMin + duration,
-          timezone,
-        ).toISOString(),
+      const wo = (id: string, von: number, bis: number) =>
+        `${stages.find((st) => st.id === id)?.name ?? "—"} ${formatMinutes(von)}–${formatMinutes(bis)}`;
+      setRueckfrage({
+        input: {
+          slotId: slot.slot_id,
+          stageId,
+          startAt: zonedTimeToInstant(day.day_date, startMin, timezone).toISOString(),
+          endAt: zonedTimeToInstant(
+            day.day_date,
+            startMin + duration,
+            timezone,
+          ).toISOString(),
+        },
+        von: wo(slot.stage_id, minutesOfDay(slot.start_at, timezone), minutesOfDay(slot.end_at, timezone)),
+        nach: wo(stageId, startMin, startMin + duration),
+        veroeffentlicht: slot.publish_status === "published",
       });
       return;
     }
@@ -535,6 +586,14 @@ export function Board({
     [windowEnd, windowStart],
   );
 
+  // LEAD-018: die Zeit im Schubfach ist nur änderbar, wo diese Sicht den Slot
+  // bearbeiten darf — sonst bekommt das Schubfach die Funktion gar nicht.
+  const zeitSlot = editing?.slotId ? slots.find((x) => x.slot_id === editing.slotId) : undefined;
+  const zeitAenderbar =
+    !!editing?.slotId &&
+    !!day &&
+    (zeitSlot ? zeitSlot.can_edit && bearbeitbar(zeitSlot.stage_id) : !!editing.neu && bearbeitbar(editing.neu.stageId));
+
   if (days.length === 0) {
     return <EmptyState title={t.noDayTitle} description={t.noDayBody} />;
   }
@@ -605,7 +664,12 @@ export function Board({
         id="programme-board"
         sensors={sensors}
         onDragStart={onDragStart}
+        onDragMove={onDragMove}
         onDragEnd={onDragEnd}
+        onDragCancel={() => {
+          setDragging(null);
+          setVorschau(null);
+        }}
       >
         {/* Backlog */}
         <section
@@ -755,6 +819,7 @@ export function Board({
                   editable={bearbeitbar(stage.id)}
                   own={eigen(stage.id)}
                   zu={zuJeBuehne.get(stage.id) ?? []}
+                  vorschau={vorschau?.stageId === stage.id ? vorschau : null}
                   windowStart={windowStart}
                   hourMarks={hourMarks}
                   onDoubleClick={(e) => onColumnDoubleClick(stage, e)}
@@ -802,6 +867,25 @@ export function Board({
         </DragOverlay>
       </DndContext>
 
+      {/* LEAD-050: Rückfrage nach dem Ziehen */}
+      {rueckfrage && (
+        <ConfirmDialog
+          title={t.dragConfirmTitle}
+          body={
+            t.dragConfirmBody.replace("{von}", rueckfrage.von).replace("{nach}", rueckfrage.nach) +
+            (rueckfrage.veroeffentlicht ? ` ${t.dragConfirmPublished}` : "")
+          }
+          confirmLabel={t.dragConfirmAction}
+          cancelLabel={t.cancel}
+          onCancel={() => setRueckfrage(null)}
+          onConfirm={() => {
+            const { input, veroeffentlicht } = rueckfrage;
+            setRueckfrage(null);
+            runMove({ ...input, confirm: veroeffentlicht });
+          }}
+        />
+      )}
+
       {/* Bestätigung: veröffentlichter Slot wird verschoben */}
       {confirmMove && (
         <ConfirmDialog
@@ -847,8 +931,28 @@ export function Board({
               )}–${formatMinutes(minutesOfDay(lage.endAt, timezone))}`,
               status: sl?.slot_status ?? "open",
               slotType: sl?.slot_type ?? "content",
+              startMin: minutesOfDay(lage.startAt, timezone),
+              endMin: minutesOfDay(lage.endAt, timezone),
             };
           })()}
+          // LEAD-018: freie Start- und Endzeit im Schubfach — nur, wo diese
+          // Sicht den Slot bearbeiten darf. Veröffentlichte Sessions fragt
+          // `move_slot` wie beim Ziehen nach (`confirmation_required`).
+          onChangeTime={
+            zeitAenderbar
+              ? (startMin, endMin) => {
+                  const sl = slots.find((x) => x.slot_id === editing.slotId);
+                  const stageId = sl?.stage_id ?? editing.neu?.stageId;
+                  if (!editing.slotId || !stageId || !day) return;
+                  runMove({
+                    slotId: editing.slotId,
+                    stageId,
+                    startAt: zonedTimeToInstant(day.day_date, startMin, timezone).toISOString(),
+                    endAt: zonedTimeToInstant(day.day_date, endMin, timezone).toISOString(),
+                  });
+                }
+              : undefined
+          }
           // LEAD-044: im Admin lässt sich die Bühne im Schubfach tauschen — die
           // Sicht ohne `editableStageIds` ist die des Programm-Teams. Stage
           // Leads und Partner sehen die Bühne nur (ihre Sicht verengt).
@@ -892,6 +996,7 @@ function StageColumn({
   editable,
   own,
   zu,
+  vorschau,
   windowStart,
   hourMarks,
   onDoubleClick,
@@ -904,6 +1009,8 @@ function StageColumn({
   own: boolean;
   /** Außerhalb der Öffnungszeit (LEAD-033), Minuten seit Mitternacht. */
   zu: { von: number; bis: number }[];
+  /** LEAD-051: wohin die gezogene Karte in dieser Spalte fiele. */
+  vorschau: { startMin: number; endMin: number } | null;
   windowStart: number;
   hourMarks: number[];
   onDoubleClick: (e: React.MouseEvent<HTMLDivElement>) => void;
@@ -944,6 +1051,17 @@ function StageColumn({
         />
       ))}
       {children}
+      {/* LEAD-051 (Konrad 25.09.: „wie im Google-Kalender“): die Karte zeigt
+          ihr Ziel, bevor losgelassen wird — gestrichelt, mit der Zielzeit. */}
+      {vorschau && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-1 z-10 rounded-ct-sm border-2 border-dashed border-accent bg-accent-soft/70 px-2 py-1 ct-help tabular-nums text-accent-deep"
+          style={slotBox(vorschau.startMin, vorschau.endMin, windowStart)}
+        >
+          {formatMinutes(vorschau.startMin)}–{formatMinutes(vorschau.endMin)}
+        </div>
+      )}
     </div>
   );
 }
@@ -992,7 +1110,11 @@ function SlotCard({
   });
 
   const startMin = minutesOfDay(slot.start_at, timezone);
-  const endMin = minutesOfDay(slot.end_at, timezone);
+  const serverEnde = minutesOfDay(slot.end_at, timezone);
+  // LEAD-052: beim Ziehen am unteren Rand folgt die Karte der Maus und zeigt
+  // das neue Ende — gespeichert wird erst beim Loslassen.
+  const [vorschauEnde, setVorschauEnde] = useState<number | null>(null);
+  const endMin = vorschauEnde ?? serverEnde;
   const title =
     (locale === "en" ? slot.title_en : slot.title_de) ??
     slot.title_de ??
@@ -1006,11 +1128,12 @@ function SlotCard({
     e.stopPropagation();
     const startY = e.clientY;
     setResizing(true);
-    const move = () => {};
+    const move = (ev: PointerEvent) => setVorschauEnde(resizedEnd(startMin, serverEnde, ev.clientY - startY));
     const up = (ev: PointerEvent) => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       setResizing(false);
+      setVorschauEnde(null);
       onResize(ev.clientY - startY);
     };
     window.addEventListener("pointermove", move);
@@ -1023,7 +1146,7 @@ function SlotCard({
       data-slot-card
       style={slotBox(startMin, endMin, windowStart)}
       className={cn(
-        "absolute inset-x-1 overflow-hidden rounded-ct-sm border ct-help",
+        "group absolute inset-x-1 overflow-hidden rounded-ct-sm border ct-help",
         stil,
         isDragging && "opacity-40",
         resizing && "ring-2 ring-accent",
@@ -1063,13 +1186,21 @@ function SlotCard({
           </div>
         )}
       </div>
+      {/* LEAD-052: der Griff am unteren Rand ist sichtbar, sobald man über der
+          Karte ist — vorher war er eine unsichtbare Zwei-Pixel-Kante. */}
       {ziehbar && (
         <div
           onPointerDown={startResize}
           role="separator"
           aria-label={t.resize}
-          className="absolute inset-x-0 bottom-0 h-2 cursor-ns-resize bg-transparent hover:bg-accent/30"
-        />
+          title={t.resize}
+          className="absolute inset-x-0 bottom-0 flex h-3 cursor-ns-resize items-end justify-center bg-transparent hover:bg-accent/20"
+        >
+          <span
+            aria-hidden
+            className="mb-0.5 h-0.5 w-8 rounded-full bg-border-strong opacity-0 transition-opacity group-hover:opacity-100"
+          />
+        </div>
       )}
     </div>
   );
