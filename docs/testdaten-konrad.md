@@ -9,9 +9,10 @@ node --env-file=.env.local scripts/testdaten-konrad.mjs --dry-run   # zeigt nur,
 node --env-file=.env.local scripts/testdaten-konrad.mjs --apply
 node --env-file=.env.local scripts/testdaten-konrad.mjs --remove
 node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --email=jemand@chef-treff.de
+node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=partner   # nur einzelne Schritte, siehe SCHRITTE im Skript
 ```
 
-Das Skript ist wiederholbar: ein zweiter `--apply` legt nichts doppelt an.
+Das Skript ist wiederholbar: ein zweiter `--apply` legt nichts doppelt an. `--nur=<schritt>` zieht einzelne Bereiche nach, ohne Profil, Bewerbungen und Rollen der anderen zurückzusetzen (Regel „Konrads Konto sieht alles“, AGENTS.md, 25.09.2026: jeder PR ergänzt seinen Schritt und führt ihn gegen live aus).
 
 ## Was angelegt wird
 
@@ -19,13 +20,17 @@ Das Skript ist wiederholbar: ein zweiter `--apply` legt nichts doppelt an.
 |---|---|---|
 | Speaker | `speaker_profile` (keynote, bestätigt, Reception und Lounge, Reisekosten übernommen) | `speaker` |
 | Speaker-Leads | — | `speaker_manager` |
-| Partner | Organisation `TEST — Partner GmbH` mit `org_edition` (eingeladen, Sponsoring premium), Konrad als **Hauptkontakt**, vier gebuchte Leistungen | `partner_contact` (Scope Org) |
+| Partner | Organisation `TEST — Partner GmbH` mit `org_edition` (eingeladen, Sponsoring premium), Konrad als **Hauptkontakt**; gebucht sind **alle Format-Produkte** (je eins für `booth`, `stage`, `masterclass`, `company_tour`, `side_event`, `interview_table`, `hackathon`, `branding`, `talk`, Schritt `partner`) und die Ticket-Produkte aus dem ersten Lauf; `TEST — Standbühne` am Summit, `TEST — Talk` (ohne Slot, zum Eintragen von Speakern), `TEST — Masterclass` mit Konrads Bewerbung | `partner_contact`, `standbuehne_editor` (beide Scope Org) |
 | Volunteers | `volunteer_profile` (angenommen, Shirt L), Testschicht mit Zuteilung | `volunteer` |
 | Hackathon | — (Datenmodell kommt mit PR 28) | `hackathon_participant` |
 | Produktion | — (Datenmodell kommt mit PR 25) | `production_team` |
 | Admin | unverändert (Konrad ist Bootstrap-Admin) | `admin` |
 
 Aus den gebuchten Leistungen entstehen von selbst: **Checklisten-Pflichten**, **Ticket-Kontingente** und die Rolle `standbuehne_editor`, wenn ein Bühnenprodukt dabei ist (Trigger aus 0041/0049/0058). Das ist kein Zufall, sondern der Beweis, dass die Ingest-Automatik greift.
+
+**Vorsicht bei Produkten mit Pass-Typ:** Ein gebuchtes Produkt mit `pass_type` legt über `sync_ticket_allocations` ein Kontingent ohne `synced_at` an, und der vivenu-Cron macht daraus einen echten Coupon. Der Schritt `partner` bucht deshalb nur Produkte ohne Pass-Typ (die Format-Produkte haben keinen) und bricht für ein Produkt mit Pass-Typ ab. Die Kontingente `partner`/`talent` der Testorganisation zeigen seit dem ersten Lauf auf vivenu-Coupons; `--remove` lässt sie deshalb stehen und meldet sie.
+
+**Was Konrad unter `/partner` sieht** (bei mehreren Organisationen „TEST — Partner“ im Organisations-Wechsler wählen): Übersicht, Wiki · Unternehmen, Kontakte · Checkliste, Dateien, Tickets, Event-App, Messeshop · unter „Eure Formate“ Messestand, Side-Event, Interview Tables, Talk, Hackathon, Branding, Standbühne (Kalender und Tabelle), Bewerber. Masterclass und Company Tour erscheinen mit ihren Seiten (PART-045/046); die Produkte sind schon gebucht.
 
 ## Kennzeichnung
 
