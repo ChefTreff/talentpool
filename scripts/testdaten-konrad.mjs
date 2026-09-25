@@ -24,6 +24,8 @@
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist)
  *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage, mit
  *                                   Einordnung und Bühne in Frage — LEAD-039)
+ *   … --apply --nur=moderation     (LEAD-042: TEST-Person als Stage Lead ohne
+ *                                   Speaker-Profil, für die Moderationssuche)
  *   … --apply --nur=summit         (LEAD-014: Teststandbühne und Test-Keynote
  *                                   vom Hackathon aufs Summit, nichts gelöscht)
  *   … --apply --nur=ticket-zurueck (SPK-068: Freiticket zurueck auf `requested`,
@@ -1124,6 +1126,28 @@ async function umzugSummit(me, ed) {
   }
 }
 
+/**
+ * LEAD-042: eine TEST-Person als **Stage Lead ohne Speaker-Profil**. Nur so zeigt
+ * die Moderationssuche im Board den Treffer „Stage Lead · ohne Speaker-Profil“ —
+ * Konrad selbst hat ein Test-Speaker-Profil und erscheint dort als Speaker.
+ * Adresse in Konrads Postfach (`+zztest-stagelead`), Rolle an der
+ * Stage-Lead-Testbühne; `--remove` löscht die Person, die Rolle geht mit.
+ */
+const moderationAdresse = () => email.replace("@", "+zztest-stagelead@");
+
+async function moderationStageLead(me, ed) {
+  const validTo = ed.end_date ? new Date(new Date(ed.end_date).getTime() + 86400000).toISOString() : null;
+  const { data: st } = await admin.from("stage").select("id").eq("slug", "zz-test-stagelead").maybeSingle();
+  if (!st) return fail("Stage Lead für die Moderation", "Stage-Lead-Testbühne fehlt — erst --nur=buehne");
+  const personId = await write("TEST-Person als Stage Lead (Moderation)", () =>
+    admin.rpc("testdaten_person", {
+      p_first_name: "TEST", p_last_name: "Stage Lead (Moderation)", p_email: moderationAdresse(),
+    }),
+  );
+  if (!personId) return; // Probelauf oder Fehler — dann auch keine Rolle
+  await role(personId, "speaker_manager", "stage", st.id, ed.id, validTo);
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
@@ -1133,6 +1157,7 @@ const SCHRITTE = {
   buehne: stageLeadBuehne,
   pipeline: pipelineEintraege,
   summit: umzugSummit,
+  moderation: moderationStageLead,
 };
 
 async function teilschritte(me, ed, namen) {
@@ -1241,6 +1266,12 @@ async function remove(me) {
     if (ids.length === 0) return { data: null, error: null };
     // Profile und Adressen hängen mit ON DELETE CASCADE an der Person.
     return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  await write("TEST-Stage-Lead der Moderation entfernt (Rolle geht mit)", async () => {
+    const { data: adresse } = await admin.from("person_email").select("person_id")
+      .eq("email", moderationAdresse()).maybeSingle();
+    if (!adresse) return { data: null, error: null };
+    return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
   });
   await write("Stage-Lead-Bühne entfernt (Slots und Cues gehen mit)", () =>
     admin.from("stage").delete().eq("slug", "zz-test-stagelead"),
