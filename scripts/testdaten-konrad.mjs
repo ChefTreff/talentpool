@@ -19,6 +19,8 @@
  *   node --env-file=.env.local scripts/testdaten-konrad.mjs --apply
  *   node --env-file=.env.local scripts/testdaten-konrad.mjs --remove
  *   … --apply --nur=ticket,fotos   (nur diese Schritte, siehe `SCHRITTE`)
+ *   … --apply --nur=partner        (Test-Organisation mit allen Format-Produkten,
+ *                                   Konrad Hauptkontakt und Standbühnen-Editor, Talk)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist)
  *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage)
  *   … --apply --nur=summit         (LEAD-014: Teststandbühne und Test-Keynote
@@ -142,8 +144,209 @@ async function role(personId, roleKey, scopeType, scopeId, editionId, validTo) {
   );
 }
 
+/** Testrollen laufen einen Tag nach dem Ende der Edition ab. */
+function gueltigBis(ed) {
+  return ed.end_date ? new Date(new Date(ed.end_date).getTime() + 86400000).toISOString() : null;
+}
+
+/**
+ * Konrads Test-Organisation und ihre Org-Edition — finden oder anlegen. Gemeinsam
+ * für das volle `--apply` und den Schritt `partner`.
+ */
+async function partnerOrg(ed) {
+  let orgId = null;
+  const { data: existingOrg } = await admin
+    .from("organization")
+    .select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`)
+    .maybeSingle();
+  orgId = existingOrg?.id ?? null;
+  if (!orgId && mode === "apply") {
+    const { data, error } = await admin
+      .from("organization")
+      .insert({
+        legal_name: `${PREFIX}Partner GmbH`,
+        communication_name: `${PREFIX}Partner`,
+        type: "corporate",
+        website: "https://chef-treff.de",
+        description: "Testorganisation für die Feedback-Runden.",
+      })
+      .select("id")
+      .single();
+    if (error) fail("Partner-Organisation", error);
+    else {
+      orgId = data.id;
+      note("Partner-Organisation");
+    }
+  } else if (!orgId) {
+    note("Partner-Organisation");
+  }
+  // Im Trockenlauf gibt es keine neue Id — mit einer Platzhalter-Id laufen die
+  // folgenden Schritte trotzdem durch und werden aufgelistet.
+  if (!orgId && mode === "dry-run") orgId = "00000000-0000-0000-0000-000000000000";
+
+  let oeId = null;
+  if (orgId) {
+    const { data: oe } = await admin
+      .from("org_edition")
+      .select("id")
+      .eq("org_id", orgId)
+      .eq("edition_id", ed.id)
+      .maybeSingle();
+    oeId = oe?.id ?? null;
+    if (!oeId && mode === "apply") {
+      const { data, error } = await admin
+        .from("org_edition")
+        .insert({
+          org_id: orgId,
+          edition_id: ed.id,
+          onboarding_status: "invited",
+          description_de: "Testorganisation für die Feedback-Runden.",
+          invoice_email: email,
+          sponsoring_level: "premium",
+        })
+        .select("id")
+        .single();
+      if (error) fail("Org-Edition", error);
+      else {
+        oeId = data.id;
+        note("Org-Edition");
+      }
+    } else if (!oeId) {
+      note("Org-Edition");
+    }
+  }
+  return { orgId, oeId };
+}
+
+/**
+ * Konrad als Hauptkontakt. Vorhandene Rollen bleiben stehen, `primary_ops` kommt
+ * dazu — ein Nachziehen soll nicht zurücksetzen, was im Walkthrough gesetzt wurde.
+ * `cc` schließt `primary_ops` aus (PART-063) und fällt dabei weg.
+ */
+async function partnerKontakt(me, ed, orgId, validTo) {
+  const { data: da } = await admin
+    .from("org_membership")
+    .select("id, roles")
+    .eq("org_id", orgId)
+    .eq("person_id", me.id)
+    .maybeSingle();
+  if (da?.roles?.includes("primary_ops")) {
+    note("Partner-Kontakt (Hauptkontakt)", "schon eingetragen");
+  } else {
+    await write("Partner-Kontakt (Hauptkontakt)", () =>
+      da
+        ? admin
+            .from("org_membership")
+            .update({ roles: [...new Set([...(da.roles ?? []).filter((r) => r !== "cc"), "primary_ops"])] })
+            .eq("id", da.id)
+        : admin
+            .from("org_membership")
+            .insert({ org_id: orgId, person_id: me.id, roles: ["primary_ops"], contact_position: "Geschäftsführer" }),
+    );
+  }
+  await role(me.id, "partner_contact", "org", orgId, ed.id, validTo);
+}
+
+/**
+ * Ein Produkt je Menüpunkt der Formate. Welcher Artikel welche Seite öffnet,
+ * steht am Produkt (`format_key`, Migration 0110) — hier steht nur die Auswahl,
+ * mit Ersatz, falls ein Artikel stillgelegt wird.
+ */
+const PARTNER_PRODUKTE = {
+  booth: "I-50131", // All-Inclusive Stand – General (9qm)
+  stage: "I-79895", // Standbühne (18qm), vergibt standbuehne_editor
+  masterclass: "I-33783",
+  company_tour: "I-85973", // Company Tour Spot
+  side_event: "I-81745",
+  interview_table: "I-66084",
+  hackathon: "I-10729", // Hackathon Stand
+  branding: "I-21634", // Partner Branding
+  talk: "I-87007", // Main Stage Speaking
+};
+
+/**
+ * Nur Produkte **ohne Pass-Typ**: ein Pass-Typ legt über `sync_ticket_allocations`
+ * ein Ticket-Kontingent ohne `synced_at` an, und der vivenu-Cron machte daraus
+ * einen echten Coupon (siehe `ticketAllocation`). Die Format-Produkte tragen
+ * keinen; die Sperre bleibt, falls sich das im Produktstamm ändert.
+ */
+async function partnerProdukte(oeId) {
+  const felder = "sku, format_key, pass_type, net_price_cents, active";
+  for (const [key, sku] of Object.entries(PARTNER_PRODUKTE)) {
+    const { data: wunsch } = await admin.from("product").select(felder).eq("sku", sku).maybeSingle();
+    let produkt = wunsch?.active && wunsch.format_key === key ? wunsch : null;
+    if (!produkt) {
+      const { data: ersatz } = await admin.from("product").select(felder)
+        .eq("format_key", key).eq("active", true).is("pass_type", null).order("sku").limit(1).maybeSingle();
+      produkt = ersatz ?? null;
+    }
+    if (!produkt) {
+      fail(`Produkt ${key}`, "kein aktives Produkt mit diesem format_key");
+      continue;
+    }
+    if (produkt.pass_type) {
+      fail(`Produkt ${key} (${produkt.sku})`, "trägt einen Pass-Typ — würde ein vivenu-Kontingent auslösen, übersprungen");
+      continue;
+    }
+    const { data: gebucht } = await admin.from("org_product").select("id")
+      .eq("org_edition_id", oeId).eq("product_sku", produkt.sku).maybeSingle();
+    if (gebucht) {
+      note(`Produkt ${key} (${produkt.sku})`, "schon gebucht");
+      continue;
+    }
+    await write(`Produkt ${key} (${produkt.sku})`, () =>
+      admin.from("org_product").insert({
+        org_edition_id: oeId,
+        product_sku: produkt.sku,
+        qty: 1,
+        unit_price_cents: produkt.net_price_cents ?? 0,
+        status: "booked",
+      }),
+    );
+  }
+}
+
+/**
+ * Ein Talk der Test-Organisation ohne Slot — so, wie ihn das Team nach der
+ * Buchung anlegt. Erst damit zeigt `/partner/talk` einen Termin, an dem Konrad
+ * „Speaker eintragen“ durchklickt; ohne Session steht dort nur „wird eingeplant“.
+ */
+async function partnerTalk(ed, orgId) {
+  const eventId = (await summit(ed))?.id ?? ed.id;
+  await write("Talk der Test-Organisation (ohne Slot)", async () => {
+    const { data: da } = await admin.from("session").select("id")
+      .eq("event_id", eventId).eq("title_de", `${PREFIX}Talk`).maybeSingle();
+    if (da) return { data: da, error: null };
+    return admin.from("session").insert({
+      event_id: eventId, format: "talk", partner_org_id: orgId,
+      title_de: `${PREFIX}Talk`, title_en: `${PREFIX}Talk`,
+      description_de: "Testformat für die Feedback-Runden.",
+      description_en: "Test format for the feedback rounds.",
+      language: "de", access_mode: "open", publish_status: "draft",
+    }).select("id").single();
+  });
+}
+
+/**
+ * Schritt `partner` (Regel „Konrads Konto sieht alles“, 25.09.2026): Konrads
+ * Test-Organisation führt alle Produkte, an denen Partner-Seiten hängen, Konrad
+ * ist Hauptkontakt und Standbühnen-Editor (Scope Organisation), und es gibt einen
+ * Talk zum Durchklicken. Idempotent; Profil, Bewerbungen und Tickets bleiben
+ * unberührt.
+ */
+async function partnerSchritt(me, ed) {
+  const validTo = gueltigBis(ed);
+  const { orgId, oeId } = await partnerOrg(ed);
+  if (!orgId) return;
+  if (oeId) await partnerProdukte(oeId);
+  await partnerKontakt(me, ed, orgId, validTo);
+  await partnerStage(me, ed, orgId, validTo);
+  await partnerTalk(ed, orgId);
+}
+
 async function apply(me, ed) {
-  const validTo = ed.end_date ? new Date(new Date(ed.end_date).getTime() + 86400000).toISOString() : null;
+  const validTo = gueltigBis(ed);
 
   if (!me.first_name || !me.last_name) {
     await write("Name ergänzt (war leer)", () =>
@@ -182,68 +385,8 @@ async function apply(me, ed) {
   await role(me.id, "speaker_manager", "edition", null, ed.id, validTo);
 
   // --- Partner ------------------------------------------------------------
-  let orgId = null;
-  const { data: existingOrg } = await admin
-    .from("organization")
-    .select("id")
-    .eq("legal_name", `${PREFIX}Partner GmbH`)
-    .maybeSingle();
-  orgId = existingOrg?.id ?? null;
-  if (!orgId && mode === "apply") {
-    const { data, error } = await admin
-      .from("organization")
-      .insert({
-        legal_name: `${PREFIX}Partner GmbH`,
-        communication_name: `${PREFIX}Partner`,
-        type: "corporate",
-        website: "https://chef-treff.de",
-        description: "Testorganisation für die Feedback-Runden.",
-      })
-      .select("id")
-      .single();
-    if (error) fail("Partner-Organisation", error);
-    else {
-      orgId = data.id;
-      note("Partner-Organisation");
-    }
-  } else if (!orgId) {
-    note("Partner-Organisation");
-  }
-  // Im Trockenlauf gibt es keine neue Id — mit einer Platzhalter-Id laufen die
-  // folgenden Schritte trotzdem durch und werden aufgelistet.
-  if (!orgId && mode === "dry-run") orgId = "00000000-0000-0000-0000-000000000000";
-
+  const { orgId, oeId } = await partnerOrg(ed);
   if (orgId) {
-    let oeId = null;
-    const { data: oe } = await admin
-      .from("org_edition")
-      .select("id")
-      .eq("org_id", orgId)
-      .eq("edition_id", ed.id)
-      .maybeSingle();
-    oeId = oe?.id ?? null;
-    if (!oeId && mode === "apply") {
-      const { data, error } = await admin
-        .from("org_edition")
-        .insert({
-          org_id: orgId,
-          edition_id: ed.id,
-          onboarding_status: "invited",
-          description_de: "Testorganisation für die Feedback-Runden.",
-          invoice_email: email,
-          sponsoring_level: "premium",
-        })
-        .select("id")
-        .single();
-      if (error) fail("Org-Edition", error);
-      else {
-        oeId = data.id;
-        note("Org-Edition");
-      }
-    } else if (!oeId) {
-      note("Org-Edition");
-    }
-
     // Gebuchte Leistungen: damit im Partner-Menü Tickets, Bühne und Shop auftauchen.
     if (oeId && mode === "apply") {
       const { data: products } = await admin
@@ -274,13 +417,9 @@ async function apply(me, ed) {
       note("Gebuchte Leistungen");
     }
 
-    await write("Partner-Kontakt (Hauptkontakt)", () =>
-      admin.from("org_membership").upsert(
-        { org_id: orgId, person_id: me.id, roles: ["primary_ops"], contact_position: "Geschäftsführer" },
-        { onConflict: "org_id,person_id" },
-      ),
-    );
-    await role(me.id, "partner_contact", "org", orgId, ed.id, validTo);
+    // Alle Formate (Regel „Konrads Konto sieht alles“) — derselbe Weg wie `--nur=partner`.
+    if (oeId) await partnerProdukte(oeId);
+    await partnerKontakt(me, ed, orgId, validTo);
   }
 
   // --- Volunteers ---------------------------------------------------------
@@ -379,6 +518,7 @@ async function apply(me, ed) {
   await speakerTicket(me, ed);
   await stagePhotos(me, ed);
   if (orgId) await partnerStage(me, ed, orgId, validTo);
+  if (orgId) await partnerTalk(ed, orgId);
   if (orgId) await formatApplication(me, ed, orgId);
 }
 
@@ -954,6 +1094,7 @@ async function umzugSummit(me, ed) {
 
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
+  partner: partnerSchritt,
   ticket: speakerTicket,
   fotos: stagePhotos,
   "ticket-zurueck": ticketZurueck,
