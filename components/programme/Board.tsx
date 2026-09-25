@@ -196,7 +196,8 @@ export function Board({
     let channel: RealtimeChannel | null = null;
     let abgebrochen = false;
 
-    // Der private Kanal prüft `is_programme_reader()` gegen das Token. Der Socket
+    // Der private Kanal prüft `is_programme_board_user()` gegen das Token (seit
+    // LEAD-032; vorher `is_programme_reader()`, das Externen alles zeigte). Der Socket
     // verbindet aber schneller, als die Session aus den Cookies gelesen ist —
     // ohne dieses `setAuth` autorisiert Realtime als anon und lehnt ab
     // ("Unauthorized: You do not have permissions to read from this Channel topic").
