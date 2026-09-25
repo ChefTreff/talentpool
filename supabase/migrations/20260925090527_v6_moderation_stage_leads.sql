@@ -1,4 +1,5 @@
--- 00NN · LEAD-042: Stage Leads als Moderation im Programm-Board wählbar
+-- 0187 · Moderation durch Stage Leads: board_search_people mit p_moderation (LEAD-042)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925090527.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
