@@ -191,7 +191,6 @@ export default async function PartnerDashboard() {
   const sichtbar = new Set(
     visibleNavKeys({
       products: o.products,
-      sessions_count: o.sessions_count,
       has_stage: o.has_stage,
       has_booth: o.booth != null,
       has_allocations: o.ticket_allocations.length > 0,

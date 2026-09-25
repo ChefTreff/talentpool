@@ -88,7 +88,6 @@ const product = (p: Partial<PartnerProduct>): PartnerProduct => ({
 const nav = (input: Partial<NavInput>) =>
   visibleNavKeys({
     products: [],
-    sessions_count: 0,
     has_stage: false,
     has_booth: false,
     has_allocations: false,
@@ -100,7 +99,6 @@ describe("Menü folgt den gebuchten Leistungen", () => {
     const keys = nav({});
     assert.equal(keys.includes("tickets"), false);
     assert.equal(keys.includes("stage"), false);
-    assert.equal(keys.includes("applicants"), false);
     // Seit PART-037 gehört der Messeshop zum Messestand.
     assert.equal(keys.includes("shop"), false);
     for (const always of ["dashboard", "onboarding", "contacts", "checklist", "files"]) {
@@ -146,22 +144,18 @@ describe("Menü folgt den gebuchten Leistungen", () => {
   });
 
   /**
-   * Review PR #14: Bewerber hängen nicht an Produktkategorien. `stage_products`
-   * enthält auch reine Speaking-Slots ohne Bewerbungsverfahren, und die
-   * Kategorien hießen im Code ohnehin anders als im Vokabular.
+   * PART-082 (Konrad 21./24.09.): die Sammelseite „Bewerber“ ist in den
+   * Formatseiten aufgegangen — Masterclass, Side-Event, Interview Tables und
+   * Company Tour tragen die Bewerbungen als Reiter. Einen eigenen Menüpunkt
+   * gibt es nicht mehr, egal was gebucht ist.
    */
-  it("blendet Bewerber an den Sessions der Org ein, nicht an Kategorien", () => {
-    assert.equal(nav({ sessions_count: 1 }).includes("applicants"), true);
-    assert.equal(nav({ sessions_count: 0 }).includes("applicants"), false);
-    assert.equal(
-      nav({ products: [product({ category: "stage_products" })] }).includes("applicants"),
-      false,
-      "Kategorie allein reicht nicht",
-    );
-    assert.equal(
-      nav({ products: [product({ category: "company_tours" })] }).includes("applicants"),
-      false,
-    );
+  it("Bewerber ist kein eigener Menüpunkt mehr, die Formate tragen sie", () => {
+    const alles = nav({
+      products: ["masterclass", "side_event", "interview_table", "company_tour"].map((k) => product({ format_key: k })),
+      has_stage: true,
+    }) as string[];
+    assert.equal(alles.includes("applicants"), false);
+    for (const k of ["masterclass", "side_event", "interview_table", "company_tour"]) assert.ok(alles.includes(k), k);
   });
 
   it("blendet die Bühne bei eigener Bühne oder Bühnenprodukt ein", () => {

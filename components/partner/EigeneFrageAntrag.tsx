@@ -8,7 +8,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { EIGENE_FRAGE_TYPEN, optionenAusText, type EigeneFrageTyp } from "@/components/partner/fragen";
-import { requestSessionQuestion } from "../actions";
+import { requestSessionQuestion } from "@/app/(partner)/partner/actions";
 
 const LEER = { labelDe: "", labelEn: "", type: "textarea" as EigeneFrageTyp, optionen: "", purpose: "" };
 

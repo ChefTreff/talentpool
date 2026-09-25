@@ -10,6 +10,7 @@ import { getPartnerScope } from "../org";
 import { ladeFlaechen } from "../formate";
 import { canEditOnboarding, type PartnerOverview } from "../types";
 import type { PartnerFormatSession } from "../talk/types";
+import { FormatReiter } from "../FormatReiter";
 import { TischeView } from "./TischeView";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +63,14 @@ export default async function PartnerInterviewTablesPage() {
   return (
     <>
       <PageHeader word={t.partner.wordConversations} title={s.title} description={s.lead} />
+      {/* PART-082: Bewerbungen, Teilnehmende und Fragen als Reiter, sobald es Slots gibt. */}
+      {sessions.length > 0 && (
+        <FormatReiter
+          basis="/partner/interview-tables"
+          erster={s.tabMain}
+          t={{ label: s.title, tabApplications: t.partnerBewerbung.tabApplications, tabParticipants: t.partnerBewerbung.tabParticipants, tabQuestions: t.partnerBewerbung.tabQuestions }}
+        />
+      )}
 
       {!gebucht ? (
         <EmptyState

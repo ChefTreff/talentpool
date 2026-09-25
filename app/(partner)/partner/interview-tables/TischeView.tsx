@@ -386,7 +386,7 @@ export function TischeView({
         <h2 className="ct-h2 text-ink">{t.applicantsTitle}</h2>
         <p className="ct-small mt-1 leading-6">{t.applicantsLead}</p>
         <p className="mt-3">
-          <Link href="/partner/bewerber" className="ct-link">
+          <Link href="/partner/interview-tables/bewerbungen" className="ct-link">
             {t.toApplicants}
           </Link>
         </p>

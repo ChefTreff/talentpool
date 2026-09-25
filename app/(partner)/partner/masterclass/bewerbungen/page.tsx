@@ -1,6 +1,6 @@
 import { requireArea } from "@/lib/auth";
+import { FormatBewerbungen } from "../../FormatBewerbungen";
 import { ladeMasterclass } from "../daten";
-import { MasterclassBewerbungen } from "../MasterclassBewerbungen";
 import { MasterclassKopf } from "../MasterclassKopf";
 
 export const dynamic = "force-dynamic";
@@ -9,18 +9,20 @@ export const dynamic = "force-dynamic";
 export default async function PartnerMasterclassApplicationsPage() {
   await requireArea("partner", "/partner/masterclass/bewerbungen");
   const { supabase, locale, t, current, sessions, gebucht, canEdit } = await ladeMasterclass();
+  const s = t.partnerMasterclass;
   return (
     <>
-      <MasterclassKopf gebucht={gebucht} sessions={sessions.length} word={t.partner.wordInvitation} t={t.partnerMasterclass} />
+      <MasterclassKopf gebucht={gebucht} sessions={sessions.length} word={t.partner.wordInvitation} t={s} b={t.partnerBewerbung} />
       {sessions.length > 0 && (
-        <MasterclassBewerbungen
+        <FormatBewerbungen
           supabase={supabase}
           orgId={current.org_id}
           sessions={sessions}
           nurTeilnehmende={false}
           canEdit={canEdit}
           locale={locale}
-          t={{ masterclass: t.partnerMasterclass, applicants: t.partnerApplicants, rpc: t.rpc, dateLocale: t.meta.dateLocale }}
+          titel={(x) => (locale === "en" ? x.title_en : x.title_de) ?? x.title_de ?? s.untitled}
+          t={{ bewerbung: t.partnerBewerbung, applicants: t.partnerApplicants, rpc: t.rpc, dateLocale: t.meta.dateLocale }}
         />
       )}
     </>

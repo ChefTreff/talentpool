@@ -5,28 +5,34 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApplicantList } from "@/components/partner/ApplicantList";
 import { antwortenMitText } from "@/components/partner/fragen";
-import { decideApplication } from "../actions";
-import type { PartnerFormatSession } from "../talk/types";
-import type { PartnerApplication, PartnerSession } from "../types";
-import { ladeFragen } from "./daten";
+import { decideApplication } from "./actions";
+import { ladeFragen } from "./bewerbungen";
+import type { PartnerFormatSession } from "./talk/types";
+import type { PartnerApplication, PartnerSession } from "./types";
 
-/** Status, mit denen jemand an der Masterclass teilnimmt. */
+/** Status, mit denen jemand teilnimmt. */
 const DABEI = new Set(["accepted", "promoted", "confirmed"]);
 
 /**
- * Bewerbungen einer Masterclass (PART-045): Liste mit Entscheidungen
- * (`partner_applications`, jeder Abruf im Audit) oder — im Reiter
- * Teilnehmende — nur, wer zugesagt ist, ohne Knöpfe. Antworten stehen unter
- * ihrem Fragetext. Ob die Entscheidungen schon verschickt sind, sagt
+ * Bewerbungen eigener Formate — Masterclass, Side-Event, Interview Tables
+ * (PART-045, PART-082: die Sammelseite unter /partner/bewerber ist in den
+ * Formatseiten aufgegangen). Je Session eine Liste: mit Entscheidungen
+ * (`partner_applications`, jeder Abruf im Audit) oder — im Reiter Teilnehmende
+ * — nur, wer zugesagt ist, ohne Knöpfe. Antworten stehen unter ihrem
+ * Fragetext; ob die Entscheidungen schon verschickt sind, sagt
  * `partner_sessions.released`.
+ *
+ * Die Company Tour hat ihre eigene, nur lesende Liste (`TourBewerbungen`):
+ * dort entscheidet das Team für die ganze Tour.
  */
-export async function MasterclassBewerbungen({
+export async function FormatBewerbungen({
   supabase,
   orgId,
   sessions,
   nurTeilnehmende,
   canEdit,
   locale,
+  titel,
   t,
 }: {
   supabase: SupabaseClient;
@@ -35,14 +41,16 @@ export async function MasterclassBewerbungen({
   nurTeilnehmende: boolean;
   canEdit: boolean;
   locale: Locale;
+  /** Überschrift je Session — etwa Titel und Zeit bei Interview Tables. */
+  titel: (x: PartnerFormatSession) => string;
   t: {
-    masterclass: Record<string, string>;
+    bewerbung: Record<string, string>;
     applicants: Record<string, string>;
     rpc: Record<string, string>;
     dateLocale: string;
   };
 }) {
-  const s = t.masterclass;
+  const s = t.bewerbung;
   const [vocab, { data: freigabeZeilen }] = await Promise.all([
     loadVocabMap(supabase, locale),
     supabase.rpc("partner_sessions", { p_org_id: orgId }),
@@ -63,11 +71,11 @@ export async function MasterclassBewerbungen({
       </p>
       {sessions.map((x, i) => {
         const { bewerbungen, fragen } = ergebnisse[i];
-        const titel = (locale === "en" ? x.title_en : x.title_de) ?? x.title_de ?? s.untitled;
         if (bewerbungen.error) {
+          // 42501: die Rolle reicht nicht (etwa nur Event-App). Kein Fehlerdialog, sondern die Auskunft.
           return (
             <Card key={x.id}>
-              <CardHeader title={titel} />
+              <CardHeader title={titel(x)} />
               <EmptyState title={t.applicants.noRightsTitle} description={t.applicants.noRightsBody} />
             </Card>
           );
@@ -78,7 +86,7 @@ export async function MasterclassBewerbungen({
         return (
           <Card key={x.id}>
             <CardHeader
-              title={titel}
+              title={titel(x)}
               description={`${nurTeilnehmende ? s.tabParticipants : s.tabApplications} · ${zeilen.length}`}
             />
             {!nurTeilnehmende && (
