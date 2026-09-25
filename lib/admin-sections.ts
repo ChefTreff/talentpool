@@ -77,6 +77,7 @@ export type AdminSectionKey =
   | "graphics"
   | "partner"
   | "initiatives"
+  | "logoWall"
   | "companyTours"
   | "volunteers"
   | "checkin"
@@ -165,6 +166,9 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // ja nicht mehr Verkauf sondern Operations." Deshalb Produktion **und** Partner,
   // dazu das Programm-Team wegen der Session-Verknüpfung. Dieselbe Liste steht in
   // `admin_section_role` und wird von `has_admin_section('companyTours')` gefragt.
+  // Logo-Produktionsliste für die Foto-Wand (ADM-048). Nicht nur Partner:
+  // gedruckt wird die Wand von Produktion und Marketing.
+  { key: "logoWall", path: "/admin/partner/logos", roles: ["area_lead_partner", "partner_team", "area_lead_production", "production_team", "marketing_team"] },
   { key: "companyTours", path: "/admin/company-tours", roles: ["area_lead_partner", "partner_team", "programme_team", "area_lead_production", "production_team"] },
 
   // Volunteers
