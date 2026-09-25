@@ -41,7 +41,6 @@ type Draft = {
   language: string;
   access_mode: string;
   capacity: string;
-  ticket_required: boolean;
   application_deadline: string;
   confirm_by_hours: string;
   /** Themen aus `session_topic` (LEAD-019). */
@@ -57,7 +56,6 @@ const EMPTY: Draft = {
   language: "de",
   access_mode: "open",
   capacity: "",
-  ticket_required: true,
   application_deadline: "",
   confirm_by_hours: "72",
   tags: [],
@@ -65,12 +63,26 @@ const EMPTY: Draft = {
 
 /** Was der Drawer vom Slot wissen muss, ohne ihn selbst zu laden (LEAD-019). */
 export type SlotInfo = {
+  /** Die Bühne des Slots — im Admin wählbar (LEAD-044). */
+  stageId: string;
   stageName: string;
   /** Tag und Uhrzeit, fertig formatiert. */
   when: string;
   status: string;
   slotType: string;
 };
+
+/** Speakerliste für `set_session_speakers` — mit Reihenfolge und `confirmed`. */
+function speakerPayload(list: SessionSpeaker[]) {
+  return list.map((s, i) => ({
+    person_id: s.person_id,
+    role: s.role ?? "speaker",
+    sort_order: i,
+    // Ohne `confirmed` müsste die RPC raten; sie behält dann den alten
+    // Wert, und die Oberfläche zeigte womöglich einen anderen.
+    confirmed: s.confirmed ?? false,
+  }));
+}
 
 /** Reihenfolge lückenlos halten — `set_session_questions` übernimmt sie 1:1. */
 function renumber<T>(list: T[]): (T & { sort_order: number })[] {
@@ -93,12 +105,15 @@ export function SessionDrawer({
   canPublish = true,
   hostOrgId,
   slotInfo,
+  stageOptions,
+  onChangeStage,
   labels,
   locale,
   t,
   rpcMessages,
   onClose,
   onChanged,
+  onSaved,
 }: {
   open: boolean;
   eventId: string;
@@ -110,12 +125,25 @@ export function SessionDrawer({
   hostOrgId?: string;
   /** Bühne, Zeit und Status des Slots — oben sichtbar statt versteckt (LEAD-019). */
   slotInfo?: SlotInfo | null;
+  /**
+   * Bühnen, zwischen denen der Slot hier getauscht werden darf (LEAD-044) —
+   * nur im Admin. Bei Stage Leads und Partnern bleibt die Bühne gesetzt und
+   * nur zu lesen: dort gibt es die Liste nicht.
+   */
+  stageOptions?: { id: string; name: string }[];
+  /** Bühne wechseln: das Board verschiebt den Slot (`move_slot`, gleiche Zeit). */
+  onChangeStage?: (stageId: string) => void;
   labels: BoardLabels;
   locale: "de" | "en";
   t: ProgrammeStrings;
   rpcMessages: Record<string, string>;
   onClose: () => void;
   onChanged: () => void;
+  /**
+   * Nach dem Speichern: Titel und Session an das Board, damit die Karte den
+   * Titel sofort zeigt und nicht erst nach dem Nachladen (LEAD-048).
+   */
+  onSaved?: (info: { sessionId: string; title_de: string | null; title_en: string | null }) => void;
 }) {
   const toast = useToast();
   const [pending, startTransition] = useTransition();
@@ -186,7 +214,6 @@ export function SessionDrawer({
         language: d.language ?? "de",
         access_mode: d.access_mode ?? "open",
         capacity: d.capacity != null ? String(d.capacity) : "",
-        ticket_required: d.ticket_required,
         application_deadline: toLocalInput(d.application_deadline),
         confirm_by_hours: d.confirm_by_hours != null ? String(d.confirm_by_hours) : "72",
         tags: d.tags ?? [],
@@ -243,13 +270,13 @@ export function SessionDrawer({
   // bestehenden Session ist er einen Wimpernschlag lang leer, und „ohne Titel
   // nicht speicherbar" wäre da schlicht falsch.
   const titleMissing = draft.title_de.trim() === "";
+  // LEAD-043 (Konrad 25.09.): die deutsche Beschreibung ist Pflicht wie der
+  // Titel — ohne sie fehlt dem Programm auf Website und in der App der Text.
+  const descriptionMissing = draft.description_de.trim() === "";
   const draftLoaded = sessionId === null || detail !== null;
 
   function save() {
-    if (titleMissing) {
-      toast("error", t.titleRequired);
-      return;
-    }
+    if (titleMissing || descriptionMissing) return;
     startTransition(async () => {
       const res = await upsertSession({
         ...(id ? { id } : { event_id: eventId }),
@@ -261,7 +288,10 @@ export function SessionDrawer({
         language: draft.language,
         access_mode: draft.access_mode,
         capacity: draft.capacity,
-        ticket_required: draft.ticket_required,
+        // LEAD-041 (Konrad 25.09.): „Ticket erforderlich“ gilt für alle Slots
+        // des Summits — das Board zeigt nur noch den Summit (LEAD-014), also
+        // steht es hier fest und nicht mehr in der Maske.
+        ticket_required: true,
         application_deadline: draft.application_deadline
           ? new Date(draft.application_deadline).toISOString()
           : "",
@@ -291,20 +321,37 @@ export function SessionDrawer({
         }
       }
       // Neu angelegt und aus einem leeren Slot heraus geöffnet: gleich anhängen.
+      // Scheitert das, steht die Session im Backlog — das sagt die Meldung,
+      // statt danach „Gespeichert“ zu zeigen, als läge sie im Slot (LEAD-048).
       if (!id && slotId) {
         const attached = await attachSession(newId, slotId);
-        if (!attached.ok) toast("error", fehlerText(message, attached));
+        if (!attached.ok) {
+          toast("error", `${t.attachFailed} (${fehlerText(message, attached)})`);
+          onChanged();
+          return;
+        }
+      }
+      // Speaker und Moderation, die vor dem ersten Speichern gewählt wurden
+      // (LEAD-040): erst jetzt gibt es die Session, an der sie hängen.
+      if (!id && speakers.length > 0) {
+        const gesetzt = await setSessionSpeakers(newId, speakerPayload(speakers));
+        if (!gesetzt.ok) {
+          toast("error", fehlerText(message, gesetzt));
+          onChanged();
+          return;
+        }
       }
       toast("success", t.saved);
+      onSaved?.({
+        sessionId: newId,
+        title_de: draft.title_de.trim() || null,
+        title_en: draft.title_en.trim() || null,
+      });
       onChanged();
     });
   }
 
   function addSpeaker(person: { id: string; name: string }) {
-    if (!id) {
-      toast("error", t.saveFirst);
-      return;
-    }
     if (speakers.some((s) => s.person_id === person.id)) return;
     const [first, ...rest] = person.name.split(" ");
     const next: SessionSpeaker[] = [
@@ -327,20 +374,19 @@ export function SessionDrawer({
     persistSpeakers(speakers.filter((s) => s.person_id !== personId));
   }
 
+  /**
+   * Vor dem ersten Speichern gibt es keine Session, an der ein Speaker hängen
+   * könnte — die Auswahl bleibt dann hier stehen und geht mit dem Speichern
+   * mit (LEAD-040, Konrad 25.09.: „erst nach dem ersten Speichern — nicht
+   * intuitiv“). Danach wird jede Änderung sofort geschrieben.
+   */
   function persistSpeakers(next: SessionSpeaker[]) {
-    if (!id) return;
+    if (!id) {
+      setSpeakers(next);
+      return;
+    }
     startTransition(async () => {
-      const res = await setSessionSpeakers(
-        id,
-        next.map((s, i) => ({
-          person_id: s.person_id,
-          role: s.role ?? "speaker",
-          sort_order: i,
-          // Ohne `confirmed` müsste die RPC raten; sie behält dann den alten
-          // Wert, und die Oberfläche zeigte womöglich einen anderen.
-          confirmed: s.confirmed ?? false,
-        })),
-      );
+      const res = await setSessionSpeakers(id, speakerPayload(next));
       if (res.ok) setSpeakers(next);
       report(res, t.speakersSaved);
     });
@@ -358,7 +404,7 @@ export function SessionDrawer({
       title={id ? t.editSession : t.newSession}
       footer={
         <div className="flex flex-wrap gap-2">
-          <Button onClick={save} loading={pending} disabled={titleMissing}>
+          <Button onClick={save} loading={pending} disabled={titleMissing || descriptionMissing}>
             {t.save}
           </Button>
           {canPublish && id && !isPublished && (
@@ -410,15 +456,28 @@ export function SessionDrawer({
       <div className="flex flex-col gap-4">
         {/* Bühne, Zeit und Status oben (LEAD-019). Der Status stand ganz unten
             als fünf gleich aussehende Knöpfe — welcher gilt, sah man nicht.
-            Die Bühne ist gesetzt, weil der Slot auf ihr liegt; sie steht hier,
-            damit man sieht, worauf man gerade schaut. */}
+            Die Bühne ist gesetzt, weil der Slot auf ihr liegt (LEAD-044): bei
+            Stage Leads und Partnern nur zu lesen, im Admin wählbar — so lässt
+            sich ein Slot einfach zwischen Bühnen tauschen. */}
         {slotId && slotInfo && (
           <div className="grid gap-3 rounded-ct-md border bg-canvas p-3 sm:grid-cols-2">
-            <div>
-              <p className="ct-help">{t.stage}</p>
-              <p className="ct-label text-ink">{slotInfo.stageName}</p>
-              <p className="ct-help tabular-nums">{slotInfo.when}</p>
-            </div>
+            {stageOptions && onChangeStage ? (
+              <Field label={t.stage} htmlFor="slot_stage" hint={`${slotInfo.when} · ${t.stageChangeHint}`}>
+                <Select
+                  id="slot_stage"
+                  value={slotInfo.stageId}
+                  disabled={pending}
+                  onChange={(e) => onChangeStage(e.target.value)}
+                  options={stageOptions.map((st) => ({ value: st.id, label: st.name }))}
+                />
+              </Field>
+            ) : (
+              <div>
+                <p className="ct-help">{t.stage}</p>
+                <p className="ct-label text-ink">{slotInfo.stageName}</p>
+                <p className="ct-help tabular-nums">{slotInfo.when}</p>
+              </div>
+            )}
             <Field label={t.slotStatus} htmlFor="slot_status">
               <Select
                 id="slot_status"
@@ -473,7 +532,13 @@ export function SessionDrawer({
             onChange={(e) => set("title_en", e.target.value)}
           />
         </Field>
-        <Field label={t.descriptionDe} htmlFor="desc_de">
+        <Field
+          label={t.descriptionDe}
+          htmlFor="desc_de"
+          required
+          requiredLabel={t.required}
+          hint={draftLoaded && descriptionMissing ? t.descriptionRequired : undefined}
+        >
           <Textarea
             id="desc_de"
             rows={3}
@@ -547,16 +612,6 @@ export function SessionDrawer({
           )}
         </div>
 
-        <label className="flex items-center gap-2 ct-label">
-          <input
-            type="checkbox"
-            checked={draft.ticket_required}
-            onChange={(e) => set("ticket_required", e.target.checked)}
-            className="size-4"
-          />
-          {t.ticketRequired}
-        </label>
-
         {/* Themen als Mehrfachauswahl (LEAD-019) — dieselbe Liste wie bei der
             Einreichung (SPK-027), damit Board und Speaker-Portal dieselben
             Wörter benutzen. */}
@@ -595,10 +650,6 @@ export function SessionDrawer({
             disabled={pending}
             suchen={(q) => searchBoardPeople(eventId, q)}
             onChange={(h) => {
-              if (!id) {
-                toast("error", t.saveFirst);
-                return;
-              }
               const ohne = speakers.filter((sp) => sp.role !== "moderator");
               const [first, ...rest] = (h?.name ?? "").split(" ");
               // Wer schon als Speaker dabei ist und nun moderiert, wechselt die
@@ -660,14 +711,12 @@ export function SessionDrawer({
               ))}
             </ul>
           )}
-          {/* Ohne gespeicherte Session gibt es nichts, woran ein Speaker hängen
-              könnte. Vorher war das Feld dann einfach grau — und das hiess im
-              Board „die Suche funktioniert nicht" (LEAD-020). */}
-          <Field label={t.addSpeaker} htmlFor="speaker_search" hint={id ? t.addSpeakerHint : t.saveFirst}>
+          {/* Vor dem ersten Speichern merkt sich das Feld die Auswahl und
+              schreibt sie mit dem Speichern (LEAD-040). */}
+          <Field label={t.addSpeaker} htmlFor="speaker_search" hint={id ? t.addSpeakerHint : t.speakersOnSave}>
             <Input
               id="speaker_search"
               value={query}
-              disabled={!id}
               onChange={(e) => setQuery(e.target.value)}
             />
           </Field>

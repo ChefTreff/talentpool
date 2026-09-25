@@ -125,8 +125,40 @@ export function Board({
     { kind: "slot"; slot: BoardSlot } | { kind: "backlog"; session: BacklogSession } | null
   >(null);
   const [editing, setEditing] = useState<
-    { sessionId: string | null; slotId: string | null } | null
+    {
+      sessionId: string | null;
+      slotId: string | null;
+      /**
+       * Ein eben per Doppelklick angelegter Slot (LEAD-021/044): er steht erst
+       * nach dem Nachladen in `slots`. Bis dahin zeigt das Schubfach Bühne und
+       * Zeit aus diesen Angaben — sonst fehlte die Bühne in der Maske.
+       */
+      neu?: { stageId: string; startAt: string; endAt: string };
+    } | null
   >(null);
+  /**
+   * Titel, die gerade gespeichert wurden, bis das Board sie vom Server hat
+   * (LEAD-048, Konrad 25.09.: „nach dem ersten Speichern erscheint der Titel
+   * nicht in der Slot-Vorschau“). Je Slot und nur, solange der Server am Slot
+   * noch keine Session meldet — danach gilt, was der Server sagt, auch wenn
+   * die Session später wieder abgelöst wird.
+   */
+  const [vorlaeufig, setVorlaeufig] = useState<
+    Record<string, { session_id: string; title_de: string | null; title_en: string | null }>
+  >({});
+  // Aufräumen beim Wechsel der Server-Daten, im Rendern statt im Effekt
+  // (React: „Informationen aus früheren Renderings speichern“).
+  const [slotsStand, setSlotsStand] = useState(slots);
+  if (slots !== slotsStand) {
+    setSlotsStand(slots);
+    setVorlaeufig((v) =>
+      Object.fromEntries(
+        Object.entries(v).filter(([slotId]) =>
+          slots.some((sl) => sl.slot_id === slotId && sl.session_id === null),
+        ),
+      ),
+    );
+  }
   const [confirmMove, setConfirmMove] = useState<Parameters<typeof moveSlot>[0] | null>(
     null,
   );
@@ -441,7 +473,15 @@ export function Board({
       });
       if (!handle(res) || !res.ok) return;
       toast("success", t.slotCreated);
-      setEditing({ sessionId: null, slotId: res.data.slotId });
+      setEditing({
+        sessionId: null,
+        slotId: res.data.slotId,
+        neu: {
+          stageId: stage.id,
+          startAt: zonedTimeToInstant(day.day_date, startMin, timezone).toISOString(),
+          endAt: zonedTimeToInstant(day.day_date, startMin + duration, timezone).toISOString(),
+        },
+      });
     });
   }
 
@@ -638,7 +678,10 @@ export function Board({
                   hourMarks={hourMarks}
                   onDoubleClick={(e) => onColumnDoubleClick(stage, e)}
                 >
-                  {(slotsByStage.get(stage.id) ?? []).map((slot) => (
+                  {(slotsByStage.get(stage.id) ?? []).map((serverSlot) => {
+                    const v = serverSlot.session_id === null ? vorlaeufig[serverSlot.slot_id] : undefined;
+                    const slot = v ? { ...serverSlot, ...v } : serverSlot;
+                    return (
                     <SlotCard
                       key={slot.slot_id}
                       slot={slot}
@@ -653,7 +696,8 @@ export function Board({
                       }
                       onResize={(delta) => resize(slot, delta)}
                     />
-                  ))}
+                    );
+                  })}
                 </StageColumn>
               ))}
             </div>
@@ -711,19 +755,49 @@ export function Board({
           hostOrgId={hostOrgId}
           slotInfo={(() => {
             // Was der Drawer oben zeigt (LEAD-019): der Slot ist hier schon
-            // geladen, ein zweiter Abruf im Drawer wäre doppelte Arbeit.
+            // geladen, ein zweiter Abruf im Drawer wäre doppelte Arbeit. Ein
+            // eben angelegter Slot kommt aus `editing.neu` (LEAD-044).
             const sl = slots.find((x) => x.slot_id === editing.slotId);
-            if (!sl) return null;
-            const stage = stages.find((x) => x.id === sl.stage_id);
+            const lage = sl
+              ? { stageId: sl.stage_id, startAt: sl.start_at, endAt: sl.end_at }
+              : editing.slotId
+                ? editing.neu
+                : undefined;
+            if (!lage) return null;
+            const stage = stages.find((x) => x.id === lage.stageId);
             return {
+              stageId: lage.stageId,
               stageName: stage?.name ?? "—",
               when: `${day ? formatDay(day.day_date, dateLocale) + " · " : ""}${formatMinutes(
-                minutesOfDay(sl.start_at, timezone),
-              )}–${formatMinutes(minutesOfDay(sl.end_at, timezone))}`,
-              status: sl.slot_status,
-              slotType: sl.slot_type,
+                minutesOfDay(lage.startAt, timezone),
+              )}–${formatMinutes(minutesOfDay(lage.endAt, timezone))}`,
+              status: sl?.slot_status ?? "open",
+              slotType: sl?.slot_type ?? "content",
             };
           })()}
+          // LEAD-044: im Admin lässt sich die Bühne im Schubfach tauschen — die
+          // Sicht ohne `editableStageIds` ist die des Programm-Teams. Stage
+          // Leads und Partner sehen die Bühne nur (ihre Sicht verengt).
+          stageOptions={editableStageIds ? undefined : stages.map((st) => ({ id: st.id, name: st.name }))}
+          onChangeStage={
+            editableStageIds
+              ? undefined
+              : (stageId) => {
+                  const sl = slots.find((x) => x.slot_id === editing.slotId);
+                  const lage = sl ? { startAt: sl.start_at, endAt: sl.end_at } : editing.neu;
+                  if (!editing.slotId || !lage) return;
+                  runMove({ slotId: editing.slotId, stageId, startAt: lage.startAt, endAt: lage.endAt });
+                  if (!sl && editing.neu) setEditing({ ...editing, neu: { ...editing.neu, stageId } });
+                }
+          }
+          onSaved={(info) => {
+            const slotId = editing.slotId;
+            if (!slotId) return;
+            setVorlaeufig((v) => ({
+              ...v,
+              [slotId]: { session_id: info.sessionId, title_de: info.title_de, title_en: info.title_en },
+            }));
+          }}
           labels={labels}
           locale={locale}
           t={t}
