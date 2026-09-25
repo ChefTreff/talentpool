@@ -32,7 +32,7 @@ Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Secu
 
 | Nr. | Aufgabe | Empfehlung |
 |---|---|---|
-| K-13 | **F3 CSP scharf schalten** (`CSP_ENFORCE=true` in Vercel) nach Prüfung der Reports (`[csp]` in den Vercel-Logs) | vor dem Go-live 14.10. — **Stand 25.09.:** Klickrunde vereinbart (Liste im Chat), danach Log-Prüfung durch die Architektur-Session, dann `CSP_ENFORCE=true` in Production + Redeploy |
+| K-13 | **F3 CSP scharf schalten** (`CSP_ENFORCE=true` in Vercel) nach Prüfung der Reports (`[csp]` in den Vercel-Logs) | vor dem Go-live 14.10. — **Stand 25.09.:** Klickrunde vereinbart (Liste im Chat), danach Log-Prüfung durch die Architektur-Session, dann `CSP_ENFORCE=true` in Production + Redeploy — **Konrad 25.09.: CSP erst, wenn alles gebaut ist** (Klickrunde dann) |
 | K-14 | **F5 Supabase-Auth-Rate-Limits** im Dashboard kontrollieren (E-Mail-OTP je Stunde, Abstand je Adresse) | Standardwerte reichen, einmal ansehen |
 | K-15 | **F6 `ip_hash`** in `audit_log`/`consent_record`: befüllen (Nachweis) oder streichen (Datenminimierung) | streichen |
 | K-16 | **Schlüsselrotation Supabase Secret Key** (offen seit 18.09.) und HubSpot-Service-Schlüssel (7 Tage Karenz) | Runbook `key-rotation.md`, Termin setzen |
@@ -75,7 +75,7 @@ Datenschutz und Sicherheit macht Konrad in den nächsten Tagen; vorab entschiede
 | K-08 | Empfehlung folgen: leer lassen | erledigt |
 | K-10 | Sichtprüfung Speaker: 20 Punkte | SPK-048…067; global QS-042…044; Speaker-Leads-Übersicht LEAD-024 bestätigt; Talent/Partner/Stage Leads später |
 | K-11 | Weiterleitung funktioniert, darf bleiben; Admin-Feedback | ADM-054 (Unterseiten Produktion), QS-045 (Menü-Ebenen, Portalauswahl unten), QS-046 (Admin-Farbe Lila) |
-| K-13 | `CSP_ENFORCE` in Vercel gesetzt, nichts geprüft | **Stand 24.09. abends: der Header läuft weiter Report-Only** — die Variable greift erst mit einem Redeploy und nur, wenn sie in *Production* exakt `true` heißt. Nichts zu löschen. Vor dem Scharfschalten prüft die Architektur-Session die `[csp]`-Meldungen in den Vercel-Logs; steht auf der finalen Checkliste — **Stand 25.09.:** Klickrunde vereinbart (Liste im Chat), danach Log-Prüfung durch die Architektur-Session, dann `CSP_ENFORCE=true` in Production + Redeploy |
+| K-13 | `CSP_ENFORCE` in Vercel gesetzt, nichts geprüft | **Stand 24.09. abends: der Header läuft weiter Report-Only** — die Variable greift erst mit einem Redeploy und nur, wenn sie in *Production* exakt `true` heißt. Nichts zu löschen. Vor dem Scharfschalten prüft die Architektur-Session die `[csp]`-Meldungen in den Vercel-Logs; steht auf der finalen Checkliste — **Stand 25.09.:** Klickrunde vereinbart (Liste im Chat), danach Log-Prüfung durch die Architektur-Session, dann `CSP_ENFORCE=true` in Production + Redeploy — **Konrad 25.09.: CSP erst, wenn alles gebaut ist** (Klickrunde dann) |
 | K-14 | Screenshot Rate Limits (E-Mails 30/h; Verifikationen, Anmeldungen 30 je 5 Min je IP) | **Empfehlung:** vor dem Go-live E-Mails ≥ 200/h, Anmeldungen und Verifikationen ≥ 100 je 5 Min — am Summit teilen sich hunderte Geräte eine IP; steht auf der finalen Checkliste |
 | K-15 | streichen, sofern kein Sicherheitsrisiko | kein Risiko (Spalten leer, Nachweis über Zeitpunkt, Fassung, User-Agent) → Migration durch die Architektur-Session nach der Pause |
 | K-17 | erledigt | — |
