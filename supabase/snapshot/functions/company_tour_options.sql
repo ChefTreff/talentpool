@@ -25,7 +25,10 @@ begin
                             'id', c.id, 'name', c.display_name,
                             'email', c.email::text, 'phone', c.phone,
                             'role_label_de', c.role_label_de, 'role_label_en', c.role_label_en,
-                            'contract_consent_at', c.contract_consent_at)
+                            'contract_consent_at', c.contract_consent_at,
+                            -- ADM-060: an wie vielen Touren haengt sie? Wer loeschen
+                            -- will, soll vorher sehen, was dabei leer wird.
+                            'tours', (select count(*) from company_tour ct where ct.lead_contact_id = c.id))
                           order by c.sort_order, c.display_name)
                          from edition_contact c where c.edition_id = v_ed and c.type = 'tour_lead'), '[]'::jsonb),
     -- Sessions im Format `company_tour` — **plus** jede, die schon an einer Tour
