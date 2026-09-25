@@ -21,6 +21,7 @@ import {
   saveSpeakerContact,
   setContacts,
   setExpenseMode,
+  setMailVia,
   setPipeline,
   setStageCandidates,
   type AdminResult,
@@ -122,6 +123,9 @@ export function SpeakerDetailView({
   const [owner, setOwner] = useState(speaker.owner_person_id ?? "");
   const [lead, setLead] = useState(speaker.lead_contact_id ?? "");
   const [buddy, setBuddy] = useState(speaker.buddy_contact_id ?? "");
+  // SPK-072: an wen die Speaker-Mails gehen ("" = den Speaker selbst).
+  const [mailVia, setMailViaWahl] = useState(speaker.mail_via?.contact_id ?? "");
+  const mitZugang = (speaker.speaker_contacts ?? []).filter((k) => k.has_access);
   // Einordnung (LEAD-039): Ausgangsstand aus dem geladenen Speaker — nach
   // `router.refresh()` kommt ein neuer herein, und der Balken verschwindet.
   const einordnungVorher = useMemo(() => einordnungEntwurf(speaker), [speaker]);
@@ -439,6 +443,47 @@ export function SpeakerDetailView({
               message={message}
             />
           </div>
+
+          {/* SPK-072 (PART-091): über wen die Speaker-Mails gehen. Zur Wahl
+              stehen nur Kontakte mit Zugang — ohne ihn liefe die Weiche ohnehin
+              auf den Speaker zurück. Aufheben geht jederzeit. */}
+          {(mitZugang.length > 0 || speaker.mail_via) && (
+            <div className="mt-5 flex flex-wrap items-end gap-3 border-t pt-4">
+              <Field label={t.mailViaLabel} htmlFor="mail-via" hint={t.mailViaHint} className="min-w-64">
+                <Select
+                  id="mail-via"
+                  value={mailVia}
+                  disabled={pending}
+                  onChange={(e) => setMailViaWahl(e.target.value)}
+                  options={[
+                    { value: "", label: t.mailViaSelf },
+                    ...mitZugang.map((k) => ({
+                      value: k.id,
+                      label: [k.first_name, k.last_name].filter(Boolean).join(" ") || k.email || k.kind,
+                    })),
+                    // Eingetragen, aber ohne Zugang: steht gekennzeichnet da, damit
+                    // sich die Umleitung aufheben lässt — sonst zeigte die Liste
+                    // „den Speaker selbst“, und eine Auswahl änderte nichts.
+                    ...(speaker.mail_via && !speaker.mail_via.has_access
+                      ? [{
+                          value: speaker.mail_via.contact_id,
+                          label: t.mailViaNoAccessOption.replace("{name}", speaker.mail_via.name ?? "—"),
+                        }]
+                      : []),
+                  ]}
+                />
+              </Field>
+              <Button
+                variant="secondary"
+                disabled={pending || mailVia === (speaker.mail_via?.contact_id ?? "")}
+                onClick={() =>
+                  startTransition(async () => report(await setMailVia(speaker.id, mailVia || null), t.mailViaSaved))
+                }
+              >
+                {t.mailViaApply}
+              </Button>
+            </div>
+          )}
         </Card>
 
           </div>
