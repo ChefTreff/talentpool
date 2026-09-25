@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · PORT1b: Abschnitt → Rolle einmal in der Datenbank
+-- 0186 · Admin-Abschnitte → Rollen in der Datenbank: admin_section_role, has_admin_section (PORT1b, ADM-056)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925085557.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --

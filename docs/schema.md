@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 08:45 UTC · 99 Tabellen · 6 Views · 527 Funktionen
+> Stand: 2026-09-25 08:55 UTC · 100 Tabellen · 6 Views · 529 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -22,6 +22,14 @@ ADM-053: Ausnahmen zur Abschnitts-Vorgabe aus lib/admin-sections.ts. Je Zeile en
 | `created_by` | uuid |  |  | `person.id` |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `admin_section_role`
+Vorgabe: welche Rolle oeffnet welchen Admin-Abschnitt (PORT1b). Spiegelung von lib/admin-sections.ts, gehalten von tests/admin-sections.test.ts; Ausnahmen stehen in admin_section_override.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `section` | text | PK |  |  |  |
+| `role` | text | PK |  |  |  |
 
 ### `ai_rate_limit`
 Aufrufzähler je Person, Assistent und Stunde (0126). Bremse für Modellaufrufe; wird vom Housekeeping aufgeräumt. Kein Inhalt, keine Frage — nur Zahlen.
@@ -2084,6 +2092,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_text` | p_de: text, p_en: text, p_language: text |
 | `handover_speaker` | p_profile_id: uuid, p_to_person_id: uuid |
 | `harden_definer_functions` | args: ? |
+| `has_admin_section` | p_key: text |
 | `has_role` | p_edition_id: uuid, p_role: text, p_scope_id: uuid, p_scope_type: text |
 | `hospitality_admin_overview` | p_edition_id: uuid |
 | `hospitality_block_reason` | p_profile_id: uuid |
@@ -2157,6 +2166,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `merch_problem` | p_qty: numeric, p_schema: jsonb, p_values: jsonb |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_admin_section_overrides` | args: ? |
+| `my_admin_sections` | args: ? |
 | `my_applications` | args: ? |
 | `my_community_registrations` | args: ? |
 | `my_contacts` | p_edition_id: uuid |
