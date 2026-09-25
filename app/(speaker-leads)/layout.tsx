@@ -25,6 +25,7 @@ export default async function SpeakerLeadsLayout({ children }: { children: React
           label: "",
           items: [
             { href: "/speaker-leads", label: t.leads.navPipeline },
+            { href: "/speaker-leads/bestaetigt", label: t.leads.navConfirmed },
             { href: "/speaker-leads/anreise", label: t.leads.navTravel },
             { href: "/speaker-leads/shuttle", label: t.leads.navShuttle },
             { href: "/speaker-leads/regie", label: t.leads.navRegie },

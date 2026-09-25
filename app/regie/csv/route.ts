@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     minute: "2-digit",
     timeZone: "Europe/Berlin",
   });
-  const head = ["Von", "Bis", "Umbau (min)", "Aktion", "Titel", "Speaker", "Moderation", "Regie", "Backstage", "Mobiliar", "Notiz"];
+  const head = ["Von", "Bis", "Umbau (min)", "Aktion", "Titel", "Speaker", "Moderation", "Regie", "Backstage", "Personen auf der Bühne", "Mikrofon", "Medien", "Mobiliar", "Besondere Anforderungen (z. B. Technik)"];
   const lines = [
     head.map(csvCell).join(";"),
     ...cues.map((c) =>
@@ -55,6 +55,10 @@ export async function GET(request: Request) {
         c.moderation ?? "",
         c.regie ?? "",
         c.backstage ?? "",
+        // Angaben der Stage Leads (LEAD-031); Mikrofon und Medien als Text aus dem jsonb.
+        c.people_on_stage ?? "",
+        typeof c.mic_assignments?.text === "string" ? c.mic_assignments.text : "",
+        typeof c.media?.text === "string" ? c.media.text : "",
         c.mobiliar ?? "",
         c.notes ?? "",
       ]

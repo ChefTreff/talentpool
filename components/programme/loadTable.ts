@@ -4,7 +4,7 @@ import { loadVocabMap, vgroup, vlabel } from "@/lib/vocab";
 import { getI18n } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n/shared";
 import type { BoardDay, BoardLabels, BoardSlot, BoardStage } from "./types";
-import type { BoardEvent } from "./load";
+import { boardEvents, type BoardEvent } from "./events";
 
 /**
  * Dieselben Daten wie das Kalender-Board, nur **über alle Tage** der
@@ -57,20 +57,8 @@ export async function loadProgrammeTable(input: {
   const { locale } = await getI18n(input.fallbackLocale);
   const supabase = await createSupabaseServerClient();
 
-  const { data: eventRows } = await supabase
-    .from("event")
-    .select("id, slug, name, timezone, edition_id, is_edition, stage(id)")
-    .order("start_date");
-
-  const scoped = new Set(input.editionIds ?? []);
-  const events = ((eventRows ?? []) as (BoardEvent & {
-    edition_id: string | null;
-    is_edition: boolean;
-    stage: { id: string }[] | null;
-  })[])
-    .filter((e) => !e.is_edition && (e.stage?.length ?? 0) > 0)
-    .filter((e) => scoped.size === 0 || (e.edition_id !== null && scoped.has(e.edition_id)))
-    .map(({ id, slug, name, timezone }) => ({ id, slug, name, timezone }));
+  // Dieselbe Auswahl wie im Board: nur der Summit (LEAD-014).
+  const events = await boardEvents(supabase, input.editionIds);
 
   const vocab = await loadVocabMap(supabase, locale);
   const empty: TableData = {

@@ -22,7 +22,10 @@ begin
   if v_stage is null then
     raise exception 'invalid_cue' using errcode = '22023', detail = 'stage_id fehlt';
   end if;
-  if not can_edit_regie(v_stage) then raise exception 'not allowed' using errcode = '42501'; end if;
+  -- LEAD-031: Den Regieplan (Cues, Zeiten, Ablauf, Auf- und Abgang) führen die
+  -- Produktion und das interne Team. Externe Stage Leads und Standbühnen
+  -- schreiben ihre Anweisungen über `set_regie_anweisungen`, nicht den Plan.
+  if not can_plan_regie(v_stage) then raise exception 'not allowed' using errcode = '42501'; end if;
 
   if v_id is null then
     if v_day is null or v_start is null or v_end is null then

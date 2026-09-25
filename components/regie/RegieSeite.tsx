@@ -9,7 +9,12 @@ import { loadRegieAxes, loadRegieCues } from "./load";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 /**
- * Die Regie-Tabelle als **eine** Seite für zwei Wege.
+ * Die Regie-Tabelle der Produktion (`/admin/regie`).
+ *
+ * Bis LEAD-031 hing dieselbe Seite auch im Lead-Portal. Seitdem haben die Stage
+ * Leads ihre eigene Liste (`Anweisungsliste`): jeder Slot ihrer Bühnen, nur die
+ * Anweisungen — den Plan mit Zeiten und Ablauf führen hier Produktion und
+ * internes Team (`can_plan_regie`).
  *
  * Die Anweisungen entstehen bei der Person, die die Bühne programmiert
  * (Lead-Portal), und werden am Veranstaltungstag von der Produktion benutzt.

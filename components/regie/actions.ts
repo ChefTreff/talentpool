@@ -39,11 +39,16 @@ export type CueInput = {
   backstage?: string;
   mobiliar?: string;
   notes?: string;
+  /** `{ text }` — was die Regie am Mikrofon tatsächlich stellt (LEAD-012, LEAD-031). */
+  mic_assignments?: Record<string, unknown>;
+  /** `{ text }` — Präsentation und Medien. */
+  media?: Record<string, unknown>;
 };
 
 /** Beide Ansichten neu laden — sie zeigen dieselben Zeilen. */
 function refresh() {
   revalidatePath("/admin/produktion");
+  revalidatePath("/admin/regie");
   revalidatePath("/speaker-leads/regie");
 }
 
@@ -63,4 +68,23 @@ export async function deleteCue(id: string): Promise<RegieResult> {
   if (error) return fail(error);
   refresh();
   return { ok: true, data: undefined };
+}
+
+/**
+ * Die Anweisungen eines Slots — aus der Liste der Stage Leads (LEAD-031).
+ *
+ * Nur die fünf Felder; Zeiten und Ablauf lehnt `set_regie_anweisungen` mit
+ * `not_editable` ab. Gibt es zum Slot noch keinen Cue, legt die Funktion einen
+ * mit den Zeiten des Slots an.
+ */
+export async function saveAnweisungen(
+  slotId: string,
+  data: Partial<Record<"people_on_stage" | "mic" | "media" | "mobiliar" | "notes", string>>,
+): Promise<RegieResult<{ id: string }>> {
+  await requireUser("/speaker-leads/regie");
+  const supabase = await createSupabaseServerClient();
+  const { data: id, error } = await supabase.rpc("set_regie_anweisungen", { p_slot_id: slotId, p_data: data });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: { id: id as string } };
 }

@@ -1,6 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { OpenSlot, RegieCue, RegieStage } from "./types";
+import type { AnweisungsSlot, OpenSlot, RegieCue, RegieStage } from "./types";
 
 export type RegieDay = {
   id: string;
@@ -43,4 +43,16 @@ export async function loadRegieCues(
   ]);
   if (error) console.error("[regie] regie_view:", error.message);
   return { cues: (cues ?? []) as RegieCue[], open: (open ?? []) as OpenSlot[] };
+}
+
+/**
+ * Alle Slots der Bühnen, an denen man Regie machen darf, über alle Tage
+ * (LEAD-031). Welche das sind, entscheidet `can_edit_regie` in der Datenbank;
+ * die Seite filtert nur noch auf die Bühnen ihres Portals.
+ */
+export async function loadAnweisungsSlots(): Promise<AnweisungsSlot[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("lead_regie_slots");
+  if (error) console.error("[regie] lead_regie_slots:", error.message);
+  return (data ?? []) as AnweisungsSlot[];
 }

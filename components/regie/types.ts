@@ -48,3 +48,37 @@ export type RegieStage = {
   event_id: string;
   edition_id: string;
 };
+
+/**
+ * Zeile aus `lead_regie_slots()` (LEAD-031): ein Slot einer Bühne, an der man
+ * Regie machen darf, mit den Anweisungen aus dem ersten Cue des Slots. Mikrofon
+ * und Medien sind der Text aus `mic_assignments.text` bzw. `media.text`.
+ */
+export type AnweisungsSlot = {
+  slot_id: string;
+  stage_id: string;
+  stage_name: string;
+  event_day_id: string;
+  day_date: string;
+  start_at: string;
+  end_at: string;
+  slot_type: string;
+  session_id: string | null;
+  title: string | null;
+  format: string | null;
+  /** Aus `session_speakers_public` — `role = 'moderator'` ist die Moderation (K-35). */
+  speakers:
+    | { person_id: string; first_name: string | null; last_name: string | null; role?: string | null }[]
+    | null;
+  tech: Record<string, string | boolean> | null;
+  cue_id: string | null;
+  people_on_stage: string | null;
+  mic: string | null;
+  media: string | null;
+  mobiliar: string | null;
+  notes: string | null;
+};
+
+/** Die Felder, die Stage Leads je Slot schreiben (`set_regie_anweisungen`). */
+export const ANWEISUNG_FELDER = ["people_on_stage", "mic", "media", "mobiliar", "notes"] as const;
+export type AnweisungFeld = (typeof ANWEISUNG_FELDER)[number];

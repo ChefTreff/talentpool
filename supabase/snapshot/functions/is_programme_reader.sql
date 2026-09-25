@@ -4,5 +4,7 @@ create or replace function is_programme_reader()
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
 AS $$
-  select is_staff() or has_role('speaker_manager') or has_role('standbuehne_editor')
+  -- LEAD-032: nur intern. Externe lesen über Veröffentlichung, eigene Auftritte,
+  -- ihre Organisation oder die Bühnen, die sie bearbeiten dürfen.
+  select is_staff()
 $$;

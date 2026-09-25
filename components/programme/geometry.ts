@@ -11,9 +11,12 @@ const FALLBACK_END = 20 * 60;
 /**
  * Sichtbares Zeitfenster eines Tages, in Minuten seit Mitternacht.
  *
- * Erste Wahl sind die Programmzeiten des Tages. Fehlen sie, spannt das Fenster
- * die vorhandenen Slots mit einer Stunde Luft ein — sonst klebt der erste Slot
- * am oberen Rand. Ohne beides: 08–20 Uhr.
+ * Erste Wahl sind die Programmzeiten des Tages. Liegt ein Slot davor oder
+ * danach, wächst das Fenster bis zur vollen Stunde um ihn herum: vorher stand
+ * er ausserhalb des Rasters und war schlicht nicht zu sehen (25.09.: drei
+ * Slots um 10 Uhr bei Programmbeginn 13 Uhr). Fehlen die Programmzeiten,
+ * spannt das Fenster die Slots mit einer Stunde Luft ein — sonst klebt der
+ * erste Slot am oberen Rand. Ohne beides: 08–20 Uhr.
  */
 export function dayWindow(
   slotRanges: { startMin: number; endMin: number }[],
@@ -25,7 +28,13 @@ export function dayWindow(
     programmeEnd !== null &&
     programmeEnd > programmeStart
   ) {
-    return { start: programmeStart, end: programmeEnd };
+    if (slotRanges.length === 0) return { start: programmeStart, end: programmeEnd };
+    const frueh = Math.min(...slotRanges.map((s) => s.startMin));
+    const spaet = Math.max(...slotRanges.map((s) => s.endMin));
+    return {
+      start: frueh < programmeStart ? Math.max(0, Math.floor(frueh / 60) * 60) : programmeStart,
+      end: spaet > programmeEnd ? Math.min(1440, Math.ceil(spaet / 60) * 60) : programmeEnd,
+    };
   }
   if (slotRanges.length > 0) {
     const lo = Math.max(

@@ -3,6 +3,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup, vlabel } from "@/lib/vocab";
 import type { Locale } from "@/lib/i18n/shared";
+import { boardEvents, type BoardEvent } from "./events";
 import type {
   BacklogSession,
   BoardDay,
@@ -22,7 +23,7 @@ import type {
  * driften.
  */
 
-export type BoardEvent = { id: string; slug: string; name: string; timezone: string };
+export type { BoardEvent };
 
 export type BoardStats = {
   stage_id: string;
@@ -87,21 +88,8 @@ export async function loadBoard(input: {
   const { locale } = await getI18n(input.fallbackLocale);
   const supabase = await createSupabaseServerClient();
 
-  // Bespielbare Events der Edition: alles, was Bühnen hat.
-  const { data: eventRows } = await supabase
-    .from("event")
-    .select("id, slug, name, timezone, edition_id, is_edition, stage(id)")
-    .order("start_date");
-
-  const scoped = new Set(input.editionIds ?? []);
-  const events = ((eventRows ?? []) as (BoardEvent & {
-    edition_id: string | null;
-    is_edition: boolean;
-    stage: { id: string }[] | null;
-  })[])
-    .filter((e) => !e.is_edition && (e.stage?.length ?? 0) > 0)
-    .filter((e) => scoped.size === 0 || (e.edition_id !== null && scoped.has(e.edition_id)))
-    .map(({ id, slug, name, timezone }) => ({ id, slug, name, timezone }));
+  // Nur der Summit, in allen drei Sichten (LEAD-014) — siehe `boardEvents`.
+  const events = await boardEvents(supabase, input.editionIds);
 
   const empty: BoardData = {
     locale,

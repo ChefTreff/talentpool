@@ -4,7 +4,20 @@
 
 > Konrads Entscheidung vom 17.09.: fünf Build-Chats nach Datenverbund plus ein Design-Chat, dazu die Architektur-/Security-Session (`talentpool-a9`, arbeitet nur für `main`). Höchstens **zwei bis drei Chats gleichzeitig aktiv** — das Wochenkontingent gilt für alle Sessions gemeinsam, und Konrads Review-Zeit ist der Engpass. Ein ruhender Chat verliert nichts: sein Gedächtnis ist das Backlog in `docs/feedback/`.
 
-> **Aktuell gilt die Tabelle „Pause 24.09. spät“ direkt darunter** (Fortsetzung in bestehenden Chats); „Freigabe nach der Pause 24.09. (Nacht)“ sind die Texte vom Abend. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+> **Aktuell gilt die Tabelle „Neustart 25.09.“ direkt darunter**; die Tabelle „Pause 24.09. spät“ und die Texte vom Abend sind überholt. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+
+## Neustart 25.09. (Konrad startet Claude neu) — Stand und Fortsetzung je Chat
+
+Konrad startet Claude wegen Verbindungsproblemen neu. Nach dem Neustart je Chat **eine Zeile** senden („Weiter nach dem Neustart vom 25.09., siehe docs/chat-startpakete.md und docs/entscheidungen.md ab „2026-09-25“); die Aufträge stehen in der Doku. Nachrichten der Architektur-Session aus der Warteschlange können beim Neustart verloren gehen — die Doku ist die Wahrheit.
+
+| Chat | Stand beim Neustart | Weiter |
+|---|---|---|
+| Speaker-Domäne | #190–#196 gemergt (0180 Leseregel, 0182 Regie, 0183 Testdaten; Board-Rest Schnitt 1, LEAD-012-Nachtrag); LEAD-039 Schnitt 1 als Zwischenstand auf `speaker/lead039-einordnung` (WIP 5e2b534, kein PR; Vorschlag `v6_lead039_einordnung` 13/13, Einordnung und `SpeakerFenster` gebaut; offen Pipeline-Spalten/Filter, Admin-Detail, Testdaten-Schritt, PR) | LEAD-039 Schnitt 1 zu Ende (Einordnung, `speaker_stage_candidate`, LEAD-026 Modal; Schnitt 2 auch frei, K-36), dann Masken-Punkte LEAD-040/041/043/044/048, dann LEAD-042/046/047/049, LEAD-039 Schnitt 2, LEAD-017/018/033/035/036/045 |
+| Partner | #189 gemergt (0179 Standbühne); Verbindungsprobleme, Nachrichten evtl. nicht angekommen | **Zuerst** Testdaten-Schritt `partner` (Konrads Test-Organisation mit allen Produkten, Kontakt mit vollen Rechten, `standbuehne_editor`; die Teststandbühne hängt seit #195 am Summit-Freitag), gegen live, kurzer PR; dann PART-081 (K-32 beantwortet: Ticket aus dem Partner-Kontingent, Gäste als Swapcard-Speaker, Porträt Pflicht, Person bleibt, Einwilligungs-Haken), dann PART-045 Masterclass, PART-046 Company Tour, PART-082, PART-051; nach 0180 einmal `/partner/buehne` und `/partner/buehne/tabelle` gegen live prüfen |
+| Admin & Schnittstellen | #183 (0175), #187 (0177) gemergt; Verbindungsprobleme | **Zuerst** vivenu-Kettenprüfung am Sandbox-Ticket (K-33 gesetzt; Konrads Freiticket mit `--nur=ticket-zurueck` zurücksetzen, ausstellen, QR, Wallet, Swapcard-Export; Nachtrag in `docs/schnittstellen-pruefung-2026-09.md`; danach wieder auf `requested` für Konrads Test), dann PORT1b, ADM-058 Company-Tour-Sektion mit Tour↔Session (K-31), Swapcard-Einladungsfrage für Standbühnen-Gäste (K-32) |
+| Talent & Hackathon | pausiert; Luma-Abgleich läuft (0 Zuordnungen im Testbestand, K-34 offen) | erst nach Konrads nächster Runde (TAL-009…011 Konzepte) |
+| Design | pausiert seit #180 | erst nach Konrads Design-Runde (LEAD-017 CI-Farben, Board moderner) |
+| Architektur-Session | Migrationen 0169–0183 live, Security-Check Teil 2 fertig, Rollen-Probe 5/5 | Merges und Migrationen; CSP nach Konrads Klickrunde (K-13); Security-Check Teil 3; K-34; Import der Speaker-Arbeitstabelle als letzter Schritt vor dem 01.11. (K-36 F5) |
 
 ## Pause 24.09. spät (zweites Sitzungslimit) — Stand und Fortsetzung je Chat
 
