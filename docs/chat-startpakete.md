@@ -4,7 +4,20 @@
 
 > Konrads Entscheidung vom 17.09.: fünf Build-Chats nach Datenverbund plus ein Design-Chat, dazu die Architektur-/Security-Session (`talentpool-a9`, arbeitet nur für `main`). Höchstens **zwei bis drei Chats gleichzeitig aktiv** — das Wochenkontingent gilt für alle Sessions gemeinsam, und Konrads Review-Zeit ist der Engpass. Ein ruhender Chat verliert nichts: sein Gedächtnis ist das Backlog in `docs/feedback/`.
 
-> **Aktuell gilt die Tabelle „Neustart 25.09.“ direkt darunter**; die Tabelle „Pause 24.09. spät“ und die Texte vom Abend sind überholt. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+> **Aktuell gilt die Tabelle „Pause 25.09. Mittag“ direkt darunter**; „Neustart 25.09.“, die Tabelle „Pause 24.09. spät“ und die Texte vom Abend sind überholt. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+
+## Pause 25.09. Mittag (drittes Sitzungslimit) — Stand und Fortsetzung je Chat
+
+Alle Chats wurden angewiesen, Begonnenes abzuschließen und nichts Neues zu beginnen. Bei der Rückkehr reicht je Chat **eine Zeile**: „Weiter nach der Pause vom 25.09. Mittag, siehe docs/chat-startpakete.md (Tabelle „Pause 25.09. Mittag“) und docs/entscheidungen.md ab 25.09.“ — Worktree vorher auf origin/main ziehen.
+
+| Chat | Stand bei der Pause | Weiter nach der Pause |
+|---|---|---|
+| Speaker-Domäne | #221 (0200 Mail-Weiche), #222 (0202 Profilwahl), #225 (0204 Umleitung im Admin), #227 (Board-Interaktion LEAD-018/050–052) gemergt; PORT3 als **Variante A** entschieden (speaker_manager bleibt die externe Rolle, nur Bühnen-Scope), Rechte-Review begonnen — Startpaket des Chats folgt | PORT3 (A) → SPK-073 + SPK-069 → SPK-047 → SPK-074 → LEAD-030/029/023; LEAD-010 gegen #217/0155 prüfen; LEAD-017/024 nach Konrads Design-Runde |
+| Partner | #219 (0198 Talk-Speaker), #224 (0203 Company Tour), #228 (0206 Masterclass, Datenverlust in partner_set_session_questions behoben) gemergt; PART-082 begonnen — Startpaket folgt | PART-082 → PART-092 (fünf Wünsche je Stopp, K-41) → PART-051 (Export aller Formate) |
+| Admin & Schnittstellen | #220 (0199 Check-in), #223 (0201 Logo-Liste), #226 (0205 SevDesk-Kundennummer), #229 (0207 Audit-Einsicht) gemergt; PORT4b Zugänge begonnen — Startpaket folgt | PORT4b → Swapcard-Import-Nachweis (K-38 frei, K-37 beachten) → QS-023 Fehlergrenzen → ADM-045 prüfen → ADM-061 Katalogpflege; ADM-055 nach dem Hackathon |
+| Talent & Hackathon | pausiert (K-34 offen) | erst nach Konrads nächster Runde |
+| Design | pausiert | erst nach Konrads Design-Runde (LEAD-017, LEAD-024) |
+| Architektur-Session | Migrationen 0198–0207 live, Snapshot 592 Funktionen, Rollen-Probe 5/5, 0 offene PRs; K-37…K-41 entschieden und verteilt (SPK-073/074, PART-092, ADM-061) | Merges und Migrationen; CSP: nach Konrads Klickrunde die Vercel-Logs prüfen, dann `CSP_ENFORCE=true` (K-13); Security-Check Teil 3 (Stage-Lead-Schritt in der Rollen-Probe nach PORT3, Storage-Policies, K-14); K-34; K-36 F5 Import vor 01.11. |
 
 ## Neustart 25.09. (Konrad startet Claude neu) — Stand und Fortsetzung je Chat
 

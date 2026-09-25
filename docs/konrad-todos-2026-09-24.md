@@ -1,8 +1,10 @@
-# Konrads offene Entscheidungen und Aufgaben — Stand 24.09.2026 (abends)
+# Konrads offene Entscheidungen und Aufgaben — Stand 25.09.2026 (Mittag, Pause)
 
 Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Security-Check, Datenschutz-Checkliste und Abschluss-Checkliste. Antworten bitte gesammelt mit der Kennung (z. B. „K-01: Seitengruppe“). Erledigtes streiche ich nach deiner Antwort hier und im jeweiligen Dokument.
 
-**Bereits entschieden heute:** Close kommt nicht, HubSpot bleibt (Konrad, 24.09.) → die HubSpot-Einbindungen laufen weiter (Produktabgleich INV0, Deal-Ingest scharf schalten, Sales-Labels).
+**Bereits entschieden 25.09.:** K-30…K-33, K-35…K-41 (Antworten stehen in den Zeilen und im Entscheidungslog). **Weiter offen:** K-13 (CSP-Klickrunde, Ablauf unten), K-34 (Luma-Gäste ohne Profil), dazu die älteren Punkte K-16…K-29.
+
+**Bereits entschieden 24.09.:** Close kommt nicht, HubSpot bleibt (Konrad, 24.09.) → die HubSpot-Einbindungen laufen weiter (Produktabgleich INV0, Deal-Ingest scharf schalten, Sales-Labels).
 
 ## A · Entscheidungen zum Bau (blockieren Bausteine der Chats)
 
@@ -101,3 +103,13 @@ Datenschutz und Sicherheit macht Konrad in den nächsten Tagen; vorab entschiede
 - **K-30 erledigt (24.09. Nacht):** `LUMA_API_KEY` und `LUMA_CALENDAR_ID` sind gesetzt (Vercel und lokal). K-30b (`LUMA_WRITE_ENABLED`) wartet auf die grüne Lese-Probe des Talent-Chats — die Architektur-Session sagt Konrad Bescheid.
 - **K-30c (24.09. Nacht):** Lese-Probe rot mit 403 (kein aktives Luma Plus auf dem Kalender des Schlüssels). Konrad prüft Plus auf `cal-B49jJXx8bsvPDo0`, erzeugt den Schlüssel dort neu und setzt ihn mit demselben Befehl wie bei K-30 erneut; K-30b wartet weiter.
 - **K-30c erledigt, K-30b jetzt (24.09. Nacht):** Probe grün nach Reaktivierung des Abos. Befehl für K-30b (Wert `true`): `sh /Users/konradgruner/Developer/talentpool/scripts/env-set.sh LUMA_WRITE_ENABLED --config` — danach Redeploy nicht nötig für den Cron (liest Vercel-Env beim nächsten Lauf), die Events-Seite schreibt ab dem nächsten Deployment.
+
+
+## CSP-Klickrunde (K-13) — Ablauf
+
+Die Richtlinie läuft **Report-Only** (`proxy.ts`); Verstöße meldet der Browser an `/api/csp-report`, sie stehen als `[csp]` in den Vercel-Logs. Scharf wird sie erst mit `CSP_ENFORCE=true` in *Production* **und** einem Redeploy.
+
+1. Auf portal.chef-treff.de mit deinem Konto alles durchklicken, was Ressourcen lädt — am Rechner und einmal am Handy: Login per Magic-Link; Admin (Übersicht, Programm-Board mit Ziehen und Schubfach, Speaker-Detail mit Foto, Grafiken mit Bühnenfoto-Upload, Partner-Detail, Integrationen mit einer Kachel, Check-in-Kiosk `/checkin` mit Kamera, Wiki-Assistent mit einer Frage, Verwaltung → Protokoll); Partner-Portal der Test-Organisation (Übersicht, Messeshop mit Warenkorb, Standbühne, Talk, Company Tour, Masterclass, Logo-Upload); Speaker-Portal (Profilwechsler, Foto-Upload, Präsentation, Reise); Volunteers und Hackathon je eine Seite; `/tickets/bestaetigung`; Community-Events.
+2. Mir Uhrzeit von–bis nennen. Die Architektur-Session liest die Logs der Production-Deployment nach `[csp]` und behebt Verstöße in `proxy.ts`.
+3. Ohne Verstöße: Vercel → Project → Settings → Environment Variables → `CSP_ENFORCE` für **Production** exakt `true` (klein, ohne Anführungszeichen) → Deployments → aktuelle Production → Redeploy.
+4. Dieselben Klicks noch einmal kurz. Fehlt etwas (Bild, Schrift, Kamera), sofort melden: Variable entfernen, Redeploy — die Seite läuft dann wieder Report-Only.
