@@ -109,8 +109,13 @@ begin
     -- in einem Verteiler, das Portal kann an sie gar nicht senden (`queue_mail`
     -- braucht eine `person_id`, und eine hat sie nicht).
     contact_first_name = null, contact_last_name = null, contact_email = null,
-    contact_phone = null, contact_kind = null, contact_consent_at = null
+    contact_phone = null, contact_kind = null, contact_consent_at = null,
+    -- LEAD-039: die Einordnung ist eine Einschätzung über die Person, und
+    -- `contact_via` nennt, über wen sie läuft.
+    category = null, topic_cluster = null, topic_role = null, priority = null,
+    recommended_format = null, contact_via = null, outreach_channel = null
    where person_id = p_person_id;
+  delete from speaker_stage_candidate where profile_id = any (v_profile);
   -- Titel und Beschreibung sind der veröffentlichte Programmpunkt und gehören
   -- zur Veranstaltung, nicht zur Person; die interne Notiz nicht.
   update session_submission  set notes = null      where speaker_profile_id = any (v_profile);

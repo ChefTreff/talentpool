@@ -1,5 +1,5 @@
 create or replace function manager_speakers(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(id uuid, person_id uuid, first_name text, last_name text, title text, email text, job_title text, organization_name text, speaker_type text, pipeline_status text, owner_person_id uuid, owner_name text, reception_eligible boolean, travel_costs_covered boolean, travel_costs_approved boolean, hospitality_status text, hotel_tier text, pass_type text, lounge_access boolean, invited_at timestamp with time zone, confirmed_at timestamp with time zone, declined_at timestamp with time zone, decline_reason text, assistant_name text, sessions jsonb, next_open jsonb, updated_at timestamp with time zone, internal_notes text)
+ RETURNS TABLE(id uuid, person_id uuid, first_name text, last_name text, title text, email text, job_title text, organization_name text, speaker_type text, pipeline_status text, owner_person_id uuid, owner_name text, reception_eligible boolean, travel_costs_covered boolean, travel_costs_approved boolean, hospitality_status text, hotel_tier text, pass_type text, lounge_access boolean, invited_at timestamp with time zone, confirmed_at timestamp with time zone, declined_at timestamp with time zone, decline_reason text, assistant_name text, sessions jsonb, next_open jsonb, updated_at timestamp with time zone, internal_notes text, category text, topic_cluster text, topic_role text, priority text, recommended_format text, contact_via text, outreach_channel text, stage_candidates jsonb)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -30,7 +30,14 @@ begin
                      left join slot sl on sl.id = se.slot_id left join stage st on st.id = sl.stage_id
                      where ss.person_id = sp.person_id and (e.edition_id = sp.edition_id or e.id = sp.edition_id)), '[]'::jsonb),
            speaker_next_steps(sp.id)->'open',
-           sp.updated_at, sp.internal_notes
+           sp.updated_at, sp.internal_notes,
+           -- LEAD-039: Einordnung und Bühnen in Frage.
+           sp.category, sp.topic_cluster, sp.topic_role, sp.priority, sp.recommended_format,
+           sp.contact_via, sp.outreach_channel,
+           coalesce((select jsonb_agg(jsonb_build_object('stage_id', st.id, 'name', st.name)
+                                      order by st.sort_order, st.name)
+                       from speaker_stage_candidate c join stage st on st.id = c.stage_id
+                      where c.profile_id = sp.id), '[]'::jsonb)
     from speaker_profile sp
     join person p on p.id = sp.person_id
     left join vocab_term v on v.vocabulary = 'speaker_pipeline' and v.key = sp.pipeline_status

@@ -1,3 +1,5 @@
+-- 0184 · Einordnung der Speaker-Pipeline und Bühnen in Frage (LEAD-039 Schnitt 1, LEAD-026)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925084552.
 -- 00NN · LEAD-039 Schnitt 1: Einordnung der Speaker-Pipeline und Bühnen in Frage
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und

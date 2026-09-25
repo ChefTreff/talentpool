@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 07:28 UTC · 98 Tabellen · 6 Views · 525 Funktionen
+> Stand: 2026-09-25 08:45 UTC · 99 Tabellen · 6 Views · 527 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1518,6 +1518,13 @@ Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality,
 | `partner_editable_until_login` | boolean | ja | `false` |  | Solange wahr, darf der eintragende Partner die Stammdaten pflegen — gedacht für den Fall, dass der Speaker (z. B. ein CEO) es nicht selbst tut. Fällt beim ersten Login des Speakers; danach nur noch lesen. |
 | `expense_mode` | text | ja | `receipts` |  | Wie Reisekosten abgerechnet werden: receipts oder lump_sum (Vokabular expense_mode, SPK-042). |
 | `expense_lump_sum_cents` | integer |  |  |  | Pauschalbetrag in Cent. Pflicht bei lump_sum, sonst leer. |
+| `category` | text |  |  |  | Vokabular speaker_category (LEAD-039): Sektor der Person, einer je Speaker. Intern wie internal_notes (can_manage_speaker). |
+| `topic_cluster` | text |  |  |  | Vokabular topic_cluster (LEAD-039): Themencluster, in dem die Person spricht. Nicht dasselbe wie die Programmthemen (session_topic). |
+| `topic_role` | text |  |  |  | Thema oder programmatische Rolle, Freitext bis 300 Zeichen (LEAD-039). |
+| `priority` | text |  |  |  | Vokabular speaker_priority (LEAD-039): A/B/C wie 2026. Nicht person.tier — das ist der Login-Stand. |
+| `recommended_format` | text |  |  |  | Vokabular session_format (LEAD-039): unsere Idee während der Akquise. speaker_type bleibt die Rolle auf der Bühne nach der Zusage; beide dürfen abweichen. |
+| `contact_via` | text |  |  |  | Wer den Draht hat oder über wen der Kontakt läuft, bis 200 Zeichen, ohne @ (LEAD-039). Keine Kontaktdaten Dritter — die gehören nach speaker_contact, mit Einverständnis. |
+| `outreach_channel` | text |  |  |  | Vokabular outreach_channel (LEAD-039): der Weg, über den wir die Person ansprechen. |
 
 ### `speaker_reception`
 Speaker Reception je Edition (A7.4): Zeit, Ort, Beschreibung, Obergrenze. Anmeldung in speaker_reception_rsvp. Sichtbar nur für Speaker mit reception_eligible.
@@ -1554,6 +1561,16 @@ Zu- und Absagen zur Reception. Eine Zeile je Profil; eine Absage bleibt stehen, 
 | `responded_at` | timestamp with time zone | ja | `now()` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `speaker_stage_candidate`
+Bühnen, die für einen Speaker in Frage kommen (LEAD-039) — konkrete Bühnen der Edition. Intern wie das Profil: lesen mit can_manage_speaker, schreiben nur über set_speaker_stage_candidates.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `profile_id` | uuid | PK |  | `speaker_profile.id` |  |
+| `stage_id` | uuid | PK |  | `stage.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `created_by` | uuid |  |  | `person.id` |  |
 
 ### `speaker_task`
 Aufgaben, die der Speaker selbst abhakt (SPK-024, 0149) — je Edition, im Admin gepflegt. Nur für Erledigungen, die das Portal nicht selbst beobachten kann; Abgeleitetes bleibt in `next_steps`.
@@ -2335,6 +2352,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
 | `set_speaker_contacts` | p_buddy: uuid, p_lead: uuid, p_profile_id: uuid |
 | `set_speaker_pipeline` | p_profile_id: uuid, p_reason: text, p_status: text |
+| `set_speaker_stage_candidates` | p_profile_id: uuid, p_stage_ids: uuid[] |
 | `set_speaker_task_tick` | p_done: boolean, p_profile_id: uuid, p_task_id: uuid |
 | `set_team_challenge` | p_challenge_id: uuid, p_team_id: uuid |
 | `set_tech_check` | p_asset_id: uuid, p_note: text, p_status: text |
@@ -2405,6 +2423,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `team_members` | args: ? |
 | `team_role_keys` | args: ? |
 | `template_applies` | p_org_edition_id: uuid, p_template: public.deliverable_template |
+| `testdaten_person` | p_email: text, p_first_name: text, p_last_name: text |
 | `ticket_allocations_admin` | p_edition_id: uuid |
 | `ticket_allocations_of_orgs` | p_event_id: uuid, p_org_ids: uuid[] |
 | `ticket_allocations_pending` | args: ? |

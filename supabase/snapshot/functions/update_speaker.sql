@@ -29,6 +29,15 @@ begin
     socials              = case when p_data ? 'socials'    and jsonb_typeof(p_data->'socials') = 'object'    then p_data->'socials'    else socials end,
     tech_rider           = case when p_data ? 'tech_rider' and jsonb_typeof(p_data->'tech_rider') = 'object' then p_data->'tech_rider' else tech_rider end,
     internal_notes       = case when p_data ? 'internal_notes'    then nullif(btrim(p_data->>'internal_notes'), '')    else internal_notes end,
+    -- LEAD-039: Einordnung, für alle mit `can_manage_speaker` (K-36 F1). Geprüft
+    -- im Trigger `speaker_profile_check`.
+    category             = case when p_data ? 'category'           then nullif(btrim(p_data->>'category'), '')           else category end,
+    topic_cluster        = case when p_data ? 'topic_cluster'      then nullif(btrim(p_data->>'topic_cluster'), '')      else topic_cluster end,
+    topic_role           = case when p_data ? 'topic_role'         then nullif(btrim(p_data->>'topic_role'), '')         else topic_role end,
+    priority             = case when p_data ? 'priority'           then nullif(btrim(p_data->>'priority'), '')           else priority end,
+    recommended_format   = case when p_data ? 'recommended_format' then nullif(btrim(p_data->>'recommended_format'), '') else recommended_format end,
+    contact_via          = case when p_data ? 'contact_via'        then nullif(btrim(p_data->>'contact_via'), '')        else contact_via end,
+    outreach_channel     = case when p_data ? 'outreach_channel'   then nullif(btrim(p_data->>'outreach_channel'), '')   else outreach_channel end,
     reception_eligible   = coalesce((p_data->>'reception_eligible')::boolean, reception_eligible),
     travel_costs_covered = coalesce((p_data->>'travel_costs_covered')::boolean, travel_costs_covered),
     lounge_access        = coalesce((p_data->>'lounge_access')::boolean, lounge_access),

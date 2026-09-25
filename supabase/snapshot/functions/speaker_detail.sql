@@ -89,5 +89,20 @@ begin
     'internal_notes_visible', v_team,
     'created_at', v_sp.created_at,
     'updated_at', v_sp.updated_at
-  ) || case when v_team then jsonb_build_object('internal_notes', v_sp.internal_notes) else '{}'::jsonb end;
+  )
+  -- LEAD-039: als zweites Objekt — das erste hat 44 Paare, und
+  -- `jsonb_build_object` nimmt höchstens 100 Argumente.
+  || jsonb_build_object(
+    'category', v_sp.category,
+    'topic_cluster', v_sp.topic_cluster,
+    'topic_role', v_sp.topic_role,
+    'priority', v_sp.priority,
+    'recommended_format', v_sp.recommended_format,
+    'contact_via', v_sp.contact_via,
+    'outreach_channel', v_sp.outreach_channel,
+    'stage_candidates', coalesce((select jsonb_agg(jsonb_build_object('stage_id', st.id, 'name', st.name)
+                                                   order by st.sort_order, st.name)
+                                    from speaker_stage_candidate c join stage st on st.id = c.stage_id
+                                   where c.profile_id = v_sp.id), '[]'::jsonb))
+  || case when v_team then jsonb_build_object('internal_notes', v_sp.internal_notes) else '{}'::jsonb end;
 end $$;
