@@ -42,6 +42,7 @@ export function SpeakerListe({
   dateLocale,
   t,
   te,
+  tg,
 }: {
   rows: AdminSpeakerRow[];
   labels: Record<string, Record<string, string>>;
@@ -49,6 +50,8 @@ export function SpeakerListe({
   t: Strings;
   /** `speakerEinordnung`-Texte für die Filter nach Prio und Kategorie (LEAD-039). */
   te: Strings;
+  /** `speakerGast`-Texte (SPK-070). */
+  tg: Strings;
 }) {
   const [suche, setSuche] = useState("");
   const [status, setStatus] = useState("");
@@ -56,6 +59,9 @@ export function SpeakerListe({
   const [betreuung, setBetreuung] = useState("");
   const [prio, setPrio] = useState("");
   const [kategorie, setKategorie] = useState("");
+  // SPK-070: Gäste der Partner stehen erst auf Wunsch in der Liste.
+  const [gaesteZeigen, setGaesteZeigen] = useState(false);
+  const gaeste = rows.filter((r) => r.stage_guest).length;
 
   const datum = new Intl.DateTimeFormat(dateLocale, { dateStyle: "short" });
   const name = (r: AdminSpeakerRow) =>
@@ -73,6 +79,7 @@ export function SpeakerListe({
     return rows.filter((r) => {
       if (status && r.pipeline_status !== status) return false;
       if (typ && r.speaker_type !== typ) return false;
+      if (!gaesteZeigen && r.stage_guest) return false;
       if (prio && r.priority !== prio) return false;
       if (kategorie && r.category !== kategorie) return false;
       if (betreuung === "none" && r.owner_person_id) return false;
@@ -86,10 +93,12 @@ export function SpeakerListe({
       }
       return true;
     });
-  }, [rows, suche, status, typ, betreuung, prio, kategorie]);
+  }, [rows, suche, status, typ, betreuung, prio, kategorie, gaesteZeigen]);
 
-  const ohneBetreuung = rows.filter((r) => !r.owner_person_id).length;
-  const zugesagt = rows.filter((r) => r.confirmed_at !== null && r.declined_at === null).length;
+  // Die Zähler meinen die Speaker des Teams — Gäste der Partner zählen nicht mit (SPK-070).
+  const team = rows.filter((r) => !r.stage_guest);
+  const ohneBetreuung = team.filter((r) => !r.owner_person_id).length;
+  const zugesagt = team.filter((r) => r.confirmed_at !== null && r.declined_at === null).length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -133,6 +142,17 @@ export function SpeakerListe({
               ]}
             />
           </label>
+          {gaeste > 0 && (
+            <label className="flex min-h-10 items-center gap-2 self-end ct-label text-ink">
+              <input
+                type="checkbox"
+                className="size-4"
+                checked={gaesteZeigen}
+                onChange={(e) => setGaesteZeigen(e.target.checked)}
+              />
+              {tg.show} ({gaeste})
+            </label>
+          )}
           {/* Einordnung aus der Arbeitstabelle (LEAD-039) */}
           <label className="flex flex-col gap-1">
             <span className="ct-label text-ink">{te.priority}</span>
@@ -183,6 +203,7 @@ export function SpeakerListe({
                     <Link href={`/admin/speaker/${r.id}`} className="ct-link font-medium">
                       {name(r)}
                     </Link>
+                    {r.stage_guest && <Badge className="ml-2">{tg.badge}</Badge>}
                     {r.email && <span className="ct-help block text-muted">{r.email}</span>}
                   </Td>
                   <Td>
@@ -213,11 +234,14 @@ export function SpeakerListe({
                     )}
                   </Td>
                   <Td>
-                    {r.owner_name ?? <span className="text-muted">{t.withoutOwner}</span>}
+                    {r.owner_name ?? (
+                      <span className="text-muted">{r.stage_guest ? tg.viaPartner : t.withoutOwner}</span>
+                    )}
                   </Td>
                   <Td numeric>{r.sessions?.length ?? 0}</Td>
                   <Td numeric>
-                    {offen === 0 ? (
+                    {/* SPK-070: das Onboarding eines Gasts ist keine offene Aufgabe. */}
+                    {offen === 0 || r.stage_guest ? (
                       <span className="text-muted">—</span>
                     ) : (
                       <Badge tone="warning">{offen}</Badge>

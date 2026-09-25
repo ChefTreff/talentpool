@@ -51,6 +51,7 @@ export default async function AdminSpeakerPage() {
         dateLocale={t.meta.dateLocale}
         t={t.adminSpeaker}
         te={t.speakerEinordnung}
+        tg={t.speakerGast}
       />
     </>
   );

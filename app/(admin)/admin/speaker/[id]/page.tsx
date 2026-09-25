@@ -79,6 +79,7 @@ export default async function AdminSpeakerDetail({
       meId={ctx.personId ?? ""}
       verlaufArten={vgroup(vocab, "speaker_activity_kind")}
       tv={t.speakerVerlauf}
+      tg={t.speakerGast}
       dateLocale={t.meta.dateLocale}
       word={t.admin.words.speakers}
       t={t.adminSpeaker}

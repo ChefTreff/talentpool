@@ -85,6 +85,8 @@ export type ManagedSpeaker = Einordnung & VerlaufStand & {
   updated_at: string;
   /** Seit Migration 0037 liest die RPC die Notiz auch zurück. */
   internal_notes: string | null;
+  /** Gast eines Partners (0188, SPK-070): ohne Portal, Ticket und Onboarding. */
+  stage_guest: boolean;
 };
 
 /**
