@@ -24,8 +24,9 @@ const BACKDROP_KEY = "backdrop_print";
  * Messestand (F10). Im alten Portal war das die Seite, auf der die meisten
  * Rückfragen entstanden — Maße, Standnummer, Druckdatei, jedes Jahr dieselben.
  *
- * Vier Abschnitte in der Reihenfolge, in der die Fragen kommen: was ist das
- * hier, was ist in meinem Stand drin, was muss ich schicken, wo stehe ich.
+ * Vier Abschnitte: was ist das hier, was muss ich schicken (die Rückwand steht
+ * seit PART-084 oben — sie ist am wichtigsten), was ist in meinem Stand drin
+ * (nur der gebuchte, PART-085), wo stehe ich.
  *
  * Nichts davon wird hier gepflegt: die Ausstattung kommt aus dem Produktmodell,
  * die Standnummer aus der Produktion, die Frist aus `deadline`. Die Seite
@@ -78,7 +79,9 @@ export default async function MessestandPage() {
   // Wahrheit, falls noch keine Pflicht entstanden ist.
   const dueAt = backdrop?.due_at ?? deadlineRow?.due_at ?? null;
 
-  const ownSkus = overview.products.map((p) => p.sku);
+  const ownSkus = new Set(overview.products.map((p) => p.sku));
+  // PART-085: nur der gebuchte Stand; die übrigen Pakete sind für den Partner irrelevant.
+  const eigenePakete = packages.filter((p) => ownSkus.has(p.sku));
   const plan = files.find((f) => f.kind === "hallenplan") ?? null;
   // Der Bucket ist privat — ohne signierte URL zeigt der Browser nichts. Eine
   // Stunde reicht für einen Seitenbesuch und ist kurz genug, damit ein
@@ -98,8 +101,8 @@ export default async function MessestandPage() {
       <AbschnittsNavigation
         label={t.common.onThisPage}
         items={[
-          { id: "ausstattung", label: b.equipTitle },
           { id: "rueckwand", label: b.backTitle },
+          { id: "ausstattung", label: b.equipTitle },
           { id: "hallenplan", label: b.planTitle },
         ]}
       />
@@ -109,27 +112,6 @@ export default async function MessestandPage() {
           <h2 className="ct-h2 text-ink">{b.introTitle}</h2>
           <p className="ct-small mt-1 leading-6">{b.introBody}</p>
         </Card>
-
-        <section aria-labelledby="ausstattung">
-          <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
-            <h2 id="ausstattung" className="ct-h2 scroll-mt-20 text-ink">
-              {b.equipTitle}
-            </h2>
-          </div>
-          <p className="ct-small mb-3 leading-6">{b.equipBody}</p>
-          {packages.length === 0 ? (
-            <EmptyState title={b.equipEmptyTitle} description={b.equipEmptyBody} />
-          ) : (
-            <>
-              <Ausstattung packages={packages} ownSkus={ownSkus} locale={locale} t={b} />
-              <div className="mt-3">
-                <ButtonLink href="/partner/shop" variant="secondary">
-                  {b.equipToShop}
-                </ButtonLink>
-              </div>
-            </>
-          )}
-        </section>
 
         <section aria-labelledby="rueckwand">
           {/* Die Frist im Kopf des Abschnitts, rechts (QS-044). Europe/Berlin
@@ -171,6 +153,29 @@ export default async function MessestandPage() {
             common={{ save: t.common.save, cancel: t.common.cancel, upload: t.common.upload, chooseOtherFile: t.common.chooseOtherFile }}
             rpcMessages={t.rpc}
           />
+        </section>
+
+        <section aria-labelledby="ausstattung">
+          <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
+            <h2 id="ausstattung" className="ct-h2 scroll-mt-20 text-ink">
+              {b.equipTitle}
+            </h2>
+          </div>
+          <p className="ct-small mb-3 leading-6">{b.equipBody}</p>
+          {eigenePakete.length === 0 ? (
+            <EmptyState title={b.equipNoneTitle} description={b.equipNoneBody} />
+          ) : (
+            <>
+              <Ausstattung packages={eigenePakete} locale={locale} t={b} />
+              {/* PART-087: der Hinweis vor dem Knopf sagt, wofür der Shop da ist. */}
+              <p className="ct-small mt-3 leading-6">{b.equipShopHint}</p>
+              <div className="mt-2">
+                <ButtonLink href="/partner/shop" variant="secondary">
+                  {b.equipToShop}
+                </ButtonLink>
+              </div>
+            </>
+          )}
         </section>
 
         <section aria-labelledby="hallenplan">

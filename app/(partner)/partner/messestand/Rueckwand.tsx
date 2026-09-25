@@ -15,6 +15,7 @@ import { useToast } from "@/components/ui/Toast";
 import { registerPartnerAsset, shopRequestProduct, submitDeliverable } from "../actions";
 import { uploadDeliverableFile } from "../upload";
 import type { Deliverable, PartnerOverview } from "../types";
+import { rueckwandMeter } from "./masse";
 
 type Strings = Record<string, string>;
 
@@ -135,14 +136,15 @@ export function Rueckwand({
 
         <p className="ct-label mt-4 text-ink">
           {booth?.backdrop_w_mm && booth?.backdrop_h_mm
-            ? t.backSize
-                .replace("{w}", String(booth.backdrop_w_mm))
-                .replace("{h}", String(booth.backdrop_h_mm))
+            ? t.backSize.replace("{masse}", rueckwandMeter(booth.backdrop_w_mm, booth.backdrop_h_mm, dateLocale))
             : t.backSizeSoon}
         </p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <ButtonLink href="/partner/wiki" variant="secondary">
+        {/* PART-084: beide Knöpfe gleich hoch. Der Hochladen-Knopf ist 44 px (Touch-Ziel), der
+            Wiki-Knopf zieht mit `min-h-11` nach; oben ausgerichtet, damit der Hinweis unter dem
+            Hochladen den Wiki-Knopf nicht verschiebt. */}
+        <div className="mt-4 flex flex-wrap items-start gap-3">
+          <ButtonLink href="/partner/wiki" variant="secondary" className="min-h-11">
             {t.backToWiki}
           </ButtonLink>
 
