@@ -85,3 +85,15 @@ export async function saveTourLead(
   revalidatePath("/admin/company-tours");
   return { ok: true, id: id as string };
 }
+
+/**
+ * Eine Begleitung entfernen (ADM-060).
+ *
+ * `delete_edition_contact` prüft selbst, dass wer nur diesen Abschnitt hat,
+ * ausschliesslich `tour_lead`-Zeilen entfernt. Die Zuordnung an den Touren löst
+ * der Fremdschlüssel (`on delete set null`); wie viele Touren dabei ohne
+ * Begleitung dastehen, steht im Audit-Log — und vorher in der Liste.
+ */
+export async function removeTourLead(id: string): Promise<Ergebnis> {
+  return ruf("delete_edition_contact", { p_id: id });
+}

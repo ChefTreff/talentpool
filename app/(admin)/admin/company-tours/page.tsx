@@ -31,7 +31,7 @@ export default async function CompanyToursPage() {
         touren={(touren.data ?? []) as AdminTour[]}
         optionen={(optionen.data ?? { edition_id: null, days: [], leads: [], sessions: [], orgs: [] }) as Optionen}
         t={t.companyTours}
-        common={{ save: t.common.save, cancel: t.common.cancel, close: t.common.close }}
+        common={{ save: t.common.save, cancel: t.common.cancel, close: t.common.close, delete: t.common.delete }}
         rpcMessages={t.rpc}
       />
     </>
