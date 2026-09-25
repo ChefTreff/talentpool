@@ -54,6 +54,8 @@ Aus den gebuchten Leistungen entstehen von selbst: **Checklisten-Pflichten**, **
 
 **Profilwahl im Speaker-Portal (SPK-071):** `--apply --nur=assistenz` legt einen zweiten Speaker an, für den Konrad arbeitet: TEST-Person mit `+zztest-assistenz`-Adresse, bestätigt; Konrad ist ihre **Assistenz** mit Zugang. Dazu `TEST — Assistenz-Talk` auf der Stage-Lead-Testbühne (Freitag 17:00–17:30). Braucht den Schritt `buehne` und die Migration `v6_speaker_profilwahl` (vorher zeigte `my_sessions` beide Profile gemischt). Konrad klickt `/speaker`: oben in der Leiste „Working for / Du arbeitest für“ mit „Konrad Gruner (du)“ und „TEST Assistenz“; nach dem Wechsel zeigen Übersicht, Session (jetzt `TEST — Assistenz-Talk`), Profil, Reise und Tickets den TEST-Speaker. Die Wahl bleibt beim nächsten Besuch. Mit `--nur=verwaltet` (PART-091) kommt ein drittes Profil dazu. `--remove` entfernt die TEST-Person samt Profil und Kontakt; die Session geht mit dem Präfix.
 
+**Verantwortliche je Session (ADM-018):** `--nur=buehne` (Konrad) und `--nur=moderation` (TEST-Person) machen beide zu Stage Leads von `TEST — Bühne Stage Lead`. `/admin/programm/tabelle` zeigt deshalb in der Spalte „Verantwortlich“ für die TEST-Sessions dort „Aus den Stage Leads: …“ mit beiden Namen; eine Person auswählen übersteuert für diese Session (Audit), leer wählen setzt zurück. `/speaker-leads/board/tabelle` zeigt die Spalte nur lesend.
+
 ## Kennzeichnung
 
 - Rollen tragen `role_assignment.note = 'testdaten:konrad'` und laufen mit der Edition ab.

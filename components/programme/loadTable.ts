@@ -5,6 +5,7 @@ import { getI18n } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n/shared";
 import type { BoardDay, BoardLabels, BoardSlot, BoardStage } from "./types";
 import { boardEvents, type BoardEvent } from "./events";
+import type { OwnerCandidate, SessionVerantwortung } from "./verantwortung";
 
 /**
  * Dieselben Daten wie das Kalender-Board, nur **über alle Tage** der
@@ -25,6 +26,14 @@ export type TableData = {
   stages: BoardStage[];
   rows: BoardSlot[];
   labels: BoardLabels;
+  /**
+   * ADM-018, nur mit `mitVerantwortlichen`: Verantwortung je Session (nach
+   * `session_id`), die Auswahl für die Übersteuerung und ob der Blick sie
+   * setzen darf (Programmleitung).
+   */
+  verantwortliche?: Record<string, SessionVerantwortung>;
+  ownerCandidates?: OwnerCandidate[];
+  canSetOwner?: boolean;
 };
 
 function tableLabels(vocab: Awaited<ReturnType<typeof loadVocabMap>>): BoardLabels {
@@ -53,6 +62,8 @@ export async function loadProgrammeTable(input: {
   fallbackLocale?: Locale;
   /** Vorauswahl wie im Board: nur Veranstaltungen dieser Editionen. */
   editionIds?: string[];
+  /** ADM-018: Spalte „Verantwortlich“ laden (Admin und Stage Leads, nicht Partner). */
+  mitVerantwortlichen?: boolean;
 }): Promise<TableData> {
   const { locale } = await getI18n(input.fallbackLocale);
   const supabase = await createSupabaseServerClient();
@@ -90,6 +101,26 @@ export async function loadProgrammeTable(input: {
     supabase.from("programme_board").select("*").eq("event_id", currentEvent.id).order("start_at"),
   ]);
 
+  // ADM-018: Übersteuerung und Ableitung je Session. Die Programmleitung sieht
+  // alle Sessions und bekommt die Auswahl; ein Stage Lead nur seine Slots.
+  let verantwortung: Pick<TableData, "verantwortliche" | "ownerCandidates" | "canSetOwner"> = {};
+  if (input.mitVerantwortlichen) {
+    const [{ data: zeilen }, { data: editor }] = await Promise.all([
+      supabase.rpc("session_responsibles", { p_event_id: currentEvent.id }),
+      supabase.rpc("is_programme_editor", { p_event_id: currentEvent.id }),
+    ]);
+    const { data: kandidaten } = editor === true
+      ? await supabase.rpc("session_owner_candidates", { p_event_id: currentEvent.id })
+      : { data: [] };
+    verantwortung = {
+      verantwortliche: Object.fromEntries(
+        ((zeilen ?? []) as SessionVerantwortung[]).map((z) => [z.session_id, z]),
+      ),
+      ownerCandidates: (kandidaten ?? []) as OwnerCandidate[],
+      canSetOwner: editor === true,
+    };
+  }
+
   return {
     locale,
     events,
@@ -98,5 +129,6 @@ export async function loadProgrammeTable(input: {
     stages: (stageRows ?? []) as BoardStage[],
     rows: (slotRows ?? []) as BoardSlot[],
     labels: tableLabels(vocab),
+    ...verantwortung,
   };
 }

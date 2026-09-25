@@ -260,6 +260,8 @@ const BUSINESS_KEYS = new Set([
   "contact_without_access",
   // Stage Leads nur je Bühne (Vorschlag v6_port3_stage_leads, PORT3)
   "stage_scope_required",
+  // Verantwortliche je Session (Vorschlag v6_session_verantwortliche, ADM-018)
+  "owner_not_lead",
   // Speaker eines gebuchten Slots (Vorschlag v6_talk_speaker_zugang, PART-091);
   // `contact_is_speaker` kommt als 23514, gilt auch für die Kontakte im Speaker-Portal.
   "speaker_has_access",

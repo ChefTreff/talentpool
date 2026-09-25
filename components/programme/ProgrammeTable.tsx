@@ -10,9 +10,10 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
-import { searchBoardPeople, setSessionSpeakers, setSlotStatus, upsertSession } from "./actions";
+import { searchBoardPeople, setSessionOwner, setSessionSpeakers, setSlotStatus, upsertSession } from "./actions";
 import { fehlerText } from "./fehler";
 import { speakerName, SLOT_STATUS_ORDER, type BoardDay, type BoardLabels, type BoardSlot, type BoardStage } from "./types";
+import { abgeleiteteNamen, ownerOptionen, verantwortlich, type OwnerCandidate, type SessionVerantwortung } from "./verantwortung";
 
 type Strings = Record<string, string>;
 
@@ -53,6 +54,9 @@ export function ProgrammeTable({
   labels,
   locale,
   timezone,
+  verantwortliche,
+  ownerCandidates = [],
+  canSetOwner = false,
   t,
   rpcMessages,
 }: {
@@ -62,6 +66,13 @@ export function ProgrammeTable({
   labels: BoardLabels;
   locale: string;
   timezone: string;
+  /**
+   * ADM-018: Verantwortung je Session. Ohne diese Angabe (Partner-Sicht) fehlt
+   * die Spalte ganz; setzen darf nur die Programmleitung (`canSetOwner`).
+   */
+  verantwortliche?: Record<string, SessionVerantwortung>;
+  ownerCandidates?: OwnerCandidate[];
+  canSetOwner?: boolean;
   t: Strings;
   rpcMessages: Record<string, string>;
 }) {
@@ -216,6 +227,7 @@ export function ProgrammeTable({
             {head("title", t.colTitle)}
             {head("format", t.colFormat)}
             <Th>{t.colSpeakers}</Th>
+            {verantwortliche && <Th>{t.colOwner}</Th>}
             {head("status", t.colStatus)}
             <Th>{t.colPublish}</Th>
           </Thead>
@@ -233,6 +245,11 @@ export function ProgrammeTable({
                 title={title(r)}
                 speakersOpen={openSpeakers === r.slot_id}
                 onToggleSpeakers={() => setOpenSpeakers((id) => (id === r.slot_id ? null : r.slot_id))}
+                verantwortung={
+                  verantwortliche
+                    ? { zeile: r.session_id ? verantwortliche[r.session_id] : undefined, kandidaten: ownerCandidates, darfSetzen: canSetOwner }
+                    : null
+                }
                 run={run}
               />
             ))}
@@ -254,6 +271,7 @@ function Row({
   title,
   speakersOpen,
   onToggleSpeakers,
+  verantwortung,
   run,
 }: {
   row: BoardSlot;
@@ -266,6 +284,8 @@ function Row({
   title: string;
   speakersOpen: boolean;
   onToggleSpeakers: () => void;
+  /** ADM-018; `null` = Spalte ausgeblendet. */
+  verantwortung: { zeile: SessionVerantwortung | undefined; kandidaten: OwnerCandidate[]; darfSetzen: boolean } | null;
   run: (action: Promise<{ ok: boolean; key?: string; detail?: string }>, okText: string) => void;
 }) {
   const [draft, setDraft] = useState(title);
@@ -320,6 +340,11 @@ function Row({
           run={run}
         />
       </Td>
+      {verantwortung && (
+        <Td>
+          <OwnerCell row={row} {...verantwortung} pending={pending} t={t} run={run} />
+        </Td>
+      )}
       <Td>
         {row.can_edit ? (
           <Select
@@ -346,6 +371,60 @@ function Row({
         )}
       </Td>
     </Tr>
+  );
+}
+
+/**
+ * Verantwortlich (ADM-018): für die Programmleitung eine Auswahl — leer heisst
+ * „aus den Stage Leads“, sonst ein Lead der Veranstaltung —, für alle anderen
+ * der Name mit dem Hinweis, woher er kommt. Ohne Session gibt es nichts zu
+ * verantworten.
+ */
+function OwnerCell({
+  row,
+  zeile,
+  kandidaten,
+  darfSetzen,
+  pending,
+  t,
+  run,
+}: {
+  row: BoardSlot;
+  zeile: SessionVerantwortung | undefined;
+  kandidaten: OwnerCandidate[];
+  darfSetzen: boolean;
+  pending: boolean;
+  t: Strings;
+  run: (action: Promise<{ ok: boolean; key?: string; detail?: string }>, okText: string) => void;
+}) {
+  const sessionId = row.session_id;
+  if (!sessionId) return <span className="text-muted">—</span>;
+  if (darfSetzen) {
+    // Kurzer Eintrag in der Auswahl, die Namen darunter — sonst schneidet das
+    // Feld sie ab, sobald zwei Leads an der Bühne stehen.
+    const namen = abgeleiteteNamen(zeile);
+    return (
+      <div className="flex flex-col gap-1">
+        <Select
+          aria-label={t.colOwner}
+          className="w-52"
+          value={zeile?.owner_person_id ?? ""}
+          disabled={pending}
+          placeholder={t.ownerDerived}
+          options={ownerOptionen(zeile, kandidaten)}
+          onChange={(e) => run(setSessionOwner(sessionId, e.target.value || null), t.ownerSaved)}
+        />
+        <span className="ct-help">{zeile?.owner_person_id ? t.ownerOverridden : namen || t.ownerNobody}</span>
+      </div>
+    );
+  }
+  const v = verantwortlich(zeile);
+  if (!v) return <span className="ct-help">{t.ownerNobody}</span>;
+  return (
+    <span className="ct-small">
+      {v.namen}
+      <span className="ct-help block">{v.uebersteuert ? t.ownerOverridden : t.ownerDerivedHelp}</span>
+    </span>
   );
 }
 

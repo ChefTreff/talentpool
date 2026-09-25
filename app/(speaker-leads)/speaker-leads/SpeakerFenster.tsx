@@ -93,6 +93,8 @@ export function SpeakerFenster({
   const [pending, startTransition] = useTransition();
   /** Offener Absage-Dialog: `null` = zu, sonst der gewählte Grund. */
   const [absage, setAbsage] = useState<string | null>(null);
+  // ADM-062: Fehler stehen im Fenster, nicht als Toast am Bildschirmrand.
+  const [fehler, setFehler] = useState<string | null>(null);
   /** Empfänger einer Übergabe. */
   const [nachfolge, setNachfolge] = useState("");
 
@@ -123,11 +125,12 @@ export function SpeakerFenster({
 
   function report(res: LeadResult, okText: string) {
     if (res.ok) {
+      setFehler(null);
       toast("success", okText);
       router.refresh();
       return;
     }
-    toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+    setFehler(message(res.key) + (res.detail ? ` (${res.detail})` : ""));
   }
 
   function onSave() {
@@ -177,7 +180,7 @@ export function SpeakerFenster({
     Object.entries(map).map(([value, label]) => ({ value, label }));
 
   return (
-    <Modal label={name} onCancel={onClose} size="wide">
+    <Modal label={name} onCancel={onClose} size="wide" error={fehler}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-2">
           <h2 className="ct-h3 text-ink">{name}</h2>

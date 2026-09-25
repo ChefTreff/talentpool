@@ -22,7 +22,7 @@ export default async function ProgrammeTablePage({
   await requireAdminSection("programme", `${BASE}/tabelle`);
   const { t } = await getI18n();
   const { event } = await searchParams;
-  const data = await loadProgrammeTable({ eventSlug: event });
+  const data = await loadProgrammeTable({ eventSlug: event, mitVerantwortlichen: true });
 
   return (
     <>
@@ -41,6 +41,9 @@ export default async function ProgrammeTablePage({
           labels={data.labels}
           locale={data.locale}
           timezone={data.currentEvent.timezone}
+          verantwortliche={data.verantwortliche}
+          ownerCandidates={data.ownerCandidates}
+          canSetOwner={data.canSetOwner}
           t={t.admin.programmeTable}
           rpcMessages={t.rpc}
         />
