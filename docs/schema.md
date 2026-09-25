@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 16:59 UTC · 103 Tabellen · 6 Views · 561 Funktionen
+> Stand: 2026-09-25 17:02 UTC · 103 Tabellen · 6 Views · 564 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -912,6 +912,7 @@ Eine natürliche Person = ein Datensatz. Login-Verknüpfung über auth_user_id.
 | `availability` | text |  |  |  | vocab availability (C2). |
 | `mobility` | text |  |  |  | vocab mobility (C2). |
 | `cv_path` | text |  |  |  | Lebenslauf im privaten Bucket person-cv (<person_id>/<datei>); gesetzt nur über set_my_cv (B3). |
+| `access_blocked_at` | timestamp with time zone |  |  |  | Zugang gesperrt seit (PORT4b). Gesetzt heisst: keine Rollen, kein Bereich — die Person und ihre Geschichte bleiben. Zusaetzlich bannt die Anwendung das Auth-Konto (K-42); Entsperren hebt beides auf. Nur ueber set_person_access, mit Audit. |
 
 ### `person_acquisition_channel`
 
@@ -2002,6 +2003,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 
 | Funktion | Parameter |
 |---|---|
+| `access_accounts` | p_limit: integer, p_offset: integer, p_query: text |
 | `active_roles` | args: ? |
 | `add_speaker_activity` | p_data: jsonb, p_profile_id: uuid |
 | `admin_products` | p_only_active: boolean |
@@ -2195,6 +2197,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `lead_regie_slots` | args: ? |
 | `leave_hack_team` | p_edition_id: uuid |
 | `list_external_refs` | p_object_type: text, p_system: text |
+| `log_access_invite` | p_person_id: uuid |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
 | `luma_sync_event` | p_data: jsonb |
 | `luma_sync_registration` | p_checked_in: boolean, p_email: text, p_guest_id: text, p_luma_event_id: text, p_registered_at: timestamp with time zone, p_status: text |
@@ -2410,6 +2413,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_org_sevdesk_contact` | p_contact_id: text, p_org_id: uuid |
 | `set_org_step` | p_done: boolean, p_edition_id: uuid, p_key: text, p_org_id: uuid, p_topic: text |
 | `set_pass_type_choice` | p_choice: text, p_edition_id: uuid, p_org_id: uuid |
+| `set_person_access` | p_blocked: boolean, p_note: text, p_person_id: uuid |
 | `set_person_salutation` | p_de: text, p_en: text, p_person_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
 | `set_product_external_ref` | p_external_id: text, p_sku: text, p_system: text |

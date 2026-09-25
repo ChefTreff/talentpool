@@ -8,6 +8,7 @@ AS $$
     from role_assignment r
     join event e on e.id = r.edition_id and e.is_edition
    where r.person_id = current_person_id()
+     and not exists (select 1 from person zp where zp.id = current_person_id() and zp.access_blocked_at is not null)
      and r.role = 'checkin_operator'
      and r.scope_type = 'edition'
      and r.valid_from <= now()

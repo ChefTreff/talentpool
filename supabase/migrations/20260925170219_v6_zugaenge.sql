@@ -1,4 +1,5 @@
--- Vorschlag · Welle 6 · Zugaenge: Konten sperren statt loeschen (PORT4b)
+-- 0209 · Zugänge sperren und einladen in der Verwaltung, Sperrprüfung in den sechs Rollen-Funktionen (PORT4b)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925170219.
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
 --

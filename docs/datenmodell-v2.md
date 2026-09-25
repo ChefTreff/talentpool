@@ -135,6 +135,7 @@
 | Welle 6 · 0206 | **Masterclass im Partner-Portal: Katalogfragen wählen, ohne die Fragen des Teams zu verlieren (PART-045)** (`20260925110334`, `v6_masterclass_fragen`; Details im Migrationskopf) | — |
 | Welle 6 · 0207 | **Audit-Einsicht in der Verwaltung, Abschnitt auditLog (PORT4a)** (`20260925110347`, `v6_audit_einsicht`; Details im Migrationskopf) | — |
 | Welle 6 · 0208 | **Company Tour: bis zu fünf Wünsche je Stopp (PART-092, K-41)** (`20260925165937`, `v6_tour_wuensche`; Details im Migrationskopf) | — |
+| Welle 6 · 0209 | **Zugänge sperren und einladen in der Verwaltung, Sperrprüfung in den sechs Rollen-Funktionen (PORT4b)** (`20260925170219`, `v6_zugaenge`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

@@ -8,4 +8,5 @@ AS $$
   from role_assignment
   where person_id = current_person_id()
     and valid_from <= now() and (valid_to is null or valid_to > now())
+    and not exists (select 1 from person zp where zp.id = current_person_id() and zp.access_blocked_at is not null)
 $$;
