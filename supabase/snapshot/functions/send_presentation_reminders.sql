@@ -23,6 +23,8 @@ begin
     where se.publish_status <> 'cancelled'
       and sl.start_at > now()
       and speaker_is_confirmed(sp.pipeline_status)
+      -- SPK-070: Gäste laden keine Präsentation im Portal hoch, sie haben keins.
+      and not sp.stage_guest
       and now() >= least(d.due_at, sl.start_at - interval '48 hours') - make_interval(hours => coalesce(d.reminder_lead_hours, 48))
       and not exists (select 1 from speaker_asset a
                       where a.profile_id = sp.id and a.kind = 'presentation' and a.is_current

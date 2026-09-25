@@ -100,6 +100,8 @@ begin
     'recommended_format', v_sp.recommended_format,
     'contact_via', v_sp.contact_via,
     'outreach_channel', v_sp.outreach_channel,
+    -- SPK-070: Gast des Partners (0188) — das Detail bietet dann keine Einladung an.
+    'stage_guest', v_sp.stage_guest,
     'stage_candidates', coalesce((select jsonb_agg(jsonb_build_object('stage_id', st.id, 'name', st.name)
                                                    order by st.sort_order, st.name)
                                     from speaker_stage_candidate c join stage st on st.id = c.stage_id

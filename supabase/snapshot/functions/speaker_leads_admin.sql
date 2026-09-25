@@ -9,6 +9,8 @@ begin
   if not can_manage_speaker_leads() then raise exception 'not allowed' using errcode = '42501'; end if;
   select coalesce(p_edition_id, (select e.id from event e where e.is_edition order by e.start_date desc limit 1))
     into v_ed;
+  -- SPK-070: Gäste des Partners (0188) zählen in keiner Spalte — auch nicht,
+  -- wenn jemand einen als Owner übernommen hat.
   return query
     select p.id,
            nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), ''),
@@ -23,15 +25,16 @@ begin
                       and ra.role in ('speaker_manager', 'area_lead_speaker')
                       and ra.valid_from <= now() and (ra.valid_to is null or ra.valid_to > now())), '[]'::jsonb),
            (select count(*)::integer from speaker_profile sp
-             where sp.owner_person_id = p.id and sp.edition_id = v_ed),
+             where sp.owner_person_id = p.id and sp.edition_id = v_ed and not sp.stage_guest),
            (select count(*)::integer from speaker_profile sp
-             where sp.owner_person_id = p.id and sp.edition_id = v_ed
+             where sp.owner_person_id = p.id and sp.edition_id = v_ed and not sp.stage_guest
                and sp.confirmed_at is not null and sp.declined_at is null),
            (select count(*)::integer from speaker_profile sp
-             where sp.owner_person_id = p.id and sp.edition_id = v_ed and sp.declined_at is not null),
+             where sp.owner_person_id = p.id and sp.edition_id = v_ed and not sp.stage_guest
+               and sp.declined_at is not null),
            coalesce((select sum(jsonb_array_length(speaker_next_steps(sp.id)->'open'))::integer
                        from speaker_profile sp
-                      where sp.owner_person_id = p.id and sp.edition_id = v_ed), 0)
+                      where sp.owner_person_id = p.id and sp.edition_id = v_ed and not sp.stage_guest), 0)
       from person p
      where p.deleted_at is null and is_speaker_manager(p.id)
      order by 2 nulls last;

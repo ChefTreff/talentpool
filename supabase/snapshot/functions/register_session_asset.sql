@@ -44,7 +44,15 @@ begin
     for r in
       select ss.person_id, coalesce(se.title_de, se.title_en) as titel
         from session_speaker ss join session se on se.id = ss.session_id
+        join event ev on ev.id = se.event_id
        where ss.session_id = v_session
+         -- SPK-070 / LEAD-042: die Mail führt ins Speaker-Portal. Sie geht deshalb
+         -- nur an Speaker mit Profil dieser Edition — nicht an Gäste des Partners
+         -- und nicht an eine Moderation ohne Profil (etwa einen Stage Lead).
+         and exists (select 1 from speaker_profile sp
+                      where sp.person_id = ss.person_id
+                        and sp.edition_id = coalesce(ev.edition_id, ev.id)
+                        and not sp.stage_guest)
     loop
       perform queue_mail('stage_photos_ready', r.person_id,
                          jsonb_build_object('session_title', coalesce(r.titel, '')),

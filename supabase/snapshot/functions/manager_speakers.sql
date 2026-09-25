@@ -1,5 +1,5 @@
 create or replace function manager_speakers(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(id uuid, person_id uuid, first_name text, last_name text, title text, email text, job_title text, organization_name text, speaker_type text, pipeline_status text, owner_person_id uuid, owner_name text, reception_eligible boolean, travel_costs_covered boolean, travel_costs_approved boolean, hospitality_status text, hotel_tier text, pass_type text, lounge_access boolean, invited_at timestamp with time zone, confirmed_at timestamp with time zone, declined_at timestamp with time zone, decline_reason text, assistant_name text, sessions jsonb, next_open jsonb, updated_at timestamp with time zone, internal_notes text, category text, topic_cluster text, topic_role text, priority text, recommended_format text, contact_via text, outreach_channel text, stage_candidates jsonb, open_tasks integer, next_task jsonb, last_activity_at timestamp with time zone)
+ RETURNS TABLE(id uuid, person_id uuid, first_name text, last_name text, title text, email text, job_title text, organization_name text, speaker_type text, pipeline_status text, owner_person_id uuid, owner_name text, reception_eligible boolean, travel_costs_covered boolean, travel_costs_approved boolean, hospitality_status text, hotel_tier text, pass_type text, lounge_access boolean, invited_at timestamp with time zone, confirmed_at timestamp with time zone, declined_at timestamp with time zone, decline_reason text, assistant_name text, sessions jsonb, next_open jsonb, updated_at timestamp with time zone, internal_notes text, category text, topic_cluster text, topic_role text, priority text, recommended_format text, contact_via text, outreach_channel text, stage_candidates jsonb, open_tasks integer, next_task jsonb, last_activity_at timestamp with time zone, stage_guest boolean)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -52,7 +52,10 @@ begin
              order by a.due_on, a.created_at
              limit 1),
            (select max(case when a.kind = 'task' then a.done_at else a.occurred_at end)
-              from speaker_activity a where a.profile_id = sp.id)
+              from speaker_activity a where a.profile_id = sp.id),
+           -- SPK-070: vom Partner angelegter Gast (0188) — die Listen kennzeichnen
+           -- ihn und blenden ihn auf Wunsch aus.
+           sp.stage_guest
     from speaker_profile sp
     join person p on p.id = sp.person_id
     left join vocab_term v on v.vocabulary = 'speaker_pipeline' and v.key = sp.pipeline_status

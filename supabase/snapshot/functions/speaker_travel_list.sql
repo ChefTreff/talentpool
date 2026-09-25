@@ -27,6 +27,8 @@ begin
      where (p_edition_id is null or sp.edition_id = p_edition_id)
        -- Die Produktion braucht die Liste, ohne je Speaker zuständig zu sein.
        and (is_production_team() or can_manage_speaker(sp.id))
+       -- SPK-070: Gäste des Partners reisen nicht über uns.
+       and not sp.stage_guest
      order by t.arrival_date nulls last, t.arrival_time nulls last,
               p.last_name nulls last, p.first_name nulls last;
 end $$;

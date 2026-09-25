@@ -1,4 +1,5 @@
--- 00NN · SPK-070: Standbühnen- und Talk-Gäste in den Team-Listen kennzeichnen, keine Speaker-Mails an Gäste
+-- 0193 · Gäste in den Team-Listen kennzeichnen, Listen und Mails ohne Gäste (SPK-070)
+-- Angewendet von der Architektur-Session am 25.09.2026 als 20260925094227.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.

@@ -18,6 +18,8 @@ begin
      where sp.edition_id = v_ed
        and sp.owner_person_id is null
        and sp.declined_at is null
+       -- SPK-070: Gäste pflegt der Partner, sie brauchen keinen Speaker-Lead.
+       and not sp.stage_guest
        and p.deleted_at is null
      order by sp.created_at;
 end $$;
