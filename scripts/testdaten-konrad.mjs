@@ -1511,6 +1511,44 @@ async function verlaufEintraege(me, profileId, eintraege) {
   return null;
 }
 
+/**
+ * Ein gescanntes Ticket, damit `/admin/checkin` etwas zeigt (ADM-051).
+ *
+ * Konrads Speaker-Freiticket bleibt unberuehrt — das steht auf `requested`,
+ * damit er das Ausstellen selbst pruefen kann. Stattdessen ein eigenes
+ * ZZTEST-Ticket auf **seine** Person (keine erfundenen Dritten), gueltig, mit
+ * zwei Scans: einmal eingelassen, einmal zweiter Scan. So sieht er beide Faelle
+ * und findet sich in der Suche wieder.
+ */
+async function checkinScans(me, ed) {
+  const barcode = `${PREFIX_CODE}-CHECKIN`;
+  let { data: t } = await admin.from("ticket").select("id").eq("barcode", barcode).maybeSingle();
+  if (!t) {
+    t = await write("Ticket fuer den Check-in", () =>
+      admin.from("ticket").insert({
+        event_id: ed.id, person_id: me.id, pass_type: "talent",
+        holder_email: me.email, holder_first_name: me.first_name, holder_last_name: me.last_name,
+        barcode, status: "valid", personalization_status: "complete", price_cents: 0, source: "vivenu",
+      }).select("id").single(),
+    );
+  }
+  if (!t) return;
+
+  const { data: tag } = await admin.from("event_day").select("day_date, event_id")
+    .order("day_date").limit(1).maybeSingle();
+  if (!tag) return fail("Scans fuer den Check-in", "kein Veranstaltungstag");
+  const { count } = await admin.from("checkin").select("*", { count: "exact", head: true }).eq("ticket_id", t.id);
+  if (count && count > 0) return note("Scans fuer den Check-in", "stehen schon");
+  await write("Scans fuer den Check-in", () =>
+    admin.from("checkin").insert([
+      { ticket_id: t.id, edition_id: ed.id, scan_day: tag.day_date, result: "ok",
+        device_id: `${PREFIX_CODE}-Tablet-1`, location: "Haupteingang" },
+      { ticket_id: t.id, edition_id: ed.id, scan_day: tag.day_date, result: "duplicate",
+        device_id: `${PREFIX_CODE}-Tablet-2`, location: "Haupteingang" },
+    ]),
+  );
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
@@ -1523,6 +1561,7 @@ const SCHRITTE = {
   pipeline: pipelineEintraege,
   summit: umzugSummit,
   tour: companyTour,
+  checkin: checkinScans,
   moderation: moderationStageLead,
 };
 

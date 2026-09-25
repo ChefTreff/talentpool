@@ -79,6 +79,7 @@ export type AdminSectionKey =
   | "initiatives"
   | "companyTours"
   | "volunteers"
+  | "checkin"
   | "catering"
   | "production"
   | "productionBooths"
@@ -168,6 +169,12 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
 
   // Volunteers
   { key: "volunteers", path: "/admin/volunteers", roles: ["area_lead_volunteers", "volunteers_team"] },
+  // Check-in (ADM-051). **Ohne `checkin_operator`:** das ist das Tablet am
+  // Eingang, eine externe Rolle, die im Admin nichts zu suchen hat (siehe
+  // EXTERNAL_ROLES). Wer am Einlass verantwortet, sind Volunteers und
+  // Produktion; ein einzelner Mensch mit Geraetekonto kommt über eine
+  // Ausnahme in /admin/rollen dazu — sichtbar, statt als Regel für jedes Tablet.
+  { key: "checkin", path: "/admin/checkin", roles: ["area_lead_volunteers", "volunteers_team", "area_lead_production", "production_team"] },
 
   // Quer
   { key: "catering", path: "/admin/catering", roles: ["area_lead_production", "production_team", "area_lead_volunteers", "volunteers_team", "area_lead_speaker", "programme_team"] },
