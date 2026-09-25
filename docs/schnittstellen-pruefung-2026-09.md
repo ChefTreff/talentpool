@@ -56,6 +56,40 @@ Behoben: `findFreeTicketByBatch` nimmt nur ein **lebendes** Ticket (`VALID`, `DE
 
 **Wiederholen:** `node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=ticket-zurueck` (setzt zurück und storniert dabei ein vivenu-Ticket, das aus unserem Weg stammt — erkennbar an `batch`), dann `… scripts/vivenu-sandbox-lauf.mjs kette`.
 
+## Swapcard · Löst der Personen-Import eine Einladungsmail aus? (K-32, 25.09.2026)
+
+**Kurz: nein — nicht durch diese Schnittstelle.** Vier Belege, alle lesend am Live-Schema und am Event `FUTURE LEADER SUMMIT 2027` erhoben:
+
+1. **Die Mutation hat keinen Schalter dafür.** `importEventPeople` nimmt genau drei Argumente: `eventId`, `data`, `validateOnly`. Es gibt kein `sendInvitation`, kein `notify`, kein `silent`.
+2. **Die ganze Event-Admin-API kennt keine Mutation, die etwas verschickt.** Durchsucht nach `send`, `mail`, `code`, `campaign`, `notif`: übrig bleiben `createPushNotification` (App-Mitteilung, kein Versand an Nichtnutzer) und die Registrierungscodes (`createCode`, `updateCode`, `deleteCodes`, `accessCodesScan`). Einladungen werden in Swapcard **aus dem Backend** verschickt, nicht über diese API.
+3. **Unser Export legt ausdrücklich keinen Nutzer an.** `lib/event-app/speakers.ts` schickt im `create`-Zweig `isUser: false`. Swapcard legt damit ein **Profil** an, kein Konto — und ohne Konto gibt es nichts, wozu man einladen könnte.
+4. **`EventGroupFeatures.inviteMembers = true` ist kein Gegenbeweis.** Das Feld steht in einer Liste von Fähigkeiten, die *Mitglieder* einer Gruppe haben (`scanBadge`, `qualifyLeads`, `exhibitorCanExport…`): Mitglieder dürfen andere einladen. Es beschreibt nicht, was beim Import passiert. Der Irrtum liegt nahe, deshalb steht er hier.
+
+**Was diese Prüfung nicht ausschließen kann:** eine Automation auf Swapcard-Seite (Kampagne, Regel „neue Person → Mail"), die im Backend konfiguriert ist. Die API zeigt sie nicht. Wer sichergehen will, prüft das im Swapcard-Backend unter den E-Mail-Kampagnen des Events — oder fährt den entscheidenden Versuch: **eine** Wegwerf-Person mit einer Adresse, die wir mitlesen, importieren, eine Stunde warten, danach mit `deleteEventPeople` entfernen. Das legt etwas im Livekonto an und wartet deshalb auf Konrads Freigabe.
+
+**Stand des Events heute:** `totalSpeakers: 0` — es ist noch niemand importiert worden. Was auch immer die Antwort ist, bisher hat niemand Post bekommen.
+
+## Swapcard · Moderationen ohne Speaker-Profil (K-37, 25.09.2026)
+
+**Der Export kann das, mit einer echten Erweiterung — und Swapcard bringt sogar den passenden Begriff mit.**
+
+Heute liest `event_app_speakers` ausschliesslich `speaker_profile`. Eine Moderation durch eine Bühnenleitung steht aber als Zeile in `session_speaker` (`role`, Verweis auf `person`) und braucht **kein** Speaker-Profil — diese Person fiele also aus der Event-App heraus, obwohl sie auf der Bühne steht. Im Testbestand ist noch keine Zeile angelegt (`session_speaker` in der Edition: leer), der Fall ist also vorausschauend, nicht kaputt.
+
+Was Swapcard dafür anbietet:
+
+| | |
+|---|---|
+| `ImportEventPersonInput.create` | braucht nur `firstName`, `lastName`, `email`, `jobTitle` — kein Profil, kein Konto (`isUser: false`) |
+| `actions.isSpeakerOnPlannings` | hängt die Person als Speaker an eine Session (`action`, `planningIds`) |
+| `actions.isSpeakerRoleOnPlannings` | dasselbe **mit Rolle**: `planningIds` + `roleId` aus `EventSpeakerRole` (Etiketten je Session und je Profil) |
+| `speakersTypes` am Event | u. a. `speaker-pass` und **`crew-pass`** — für Bühnenleitungen der passendere Typ |
+
+Zu klären, bevor das gebaut wird:
+
+* **Welche `session_speaker`-Rollen gehen mit?** Moderation ja; „Host" und stille Mitwirkende sind eine Entscheidung, keine Technikfrage.
+* **Einwilligung.** Für Speaker gilt Konrads Regel „kommt automatisch mit der Zusage" (24.09.). Bühnenleitungen sind Externe mit Vertrag — ob dieselbe Regel gilt, entscheidet Konrad.
+* **Foto.** Porträts hängen an `speaker_asset.profile_id`, also am Profil. Ohne Profil gibt es kein Bild; entweder bleibt die Kachel ohne Foto, oder die Bilder brauchen einen zweiten Ort.
+
 ## Offen
 
 - **Swapcard (EA3):** Slot → Swapcard mit Speaker- und Partner-IDs, Pflichtfelder, Reihenfolge Speaker anlegen → Kennung zurück → Slot. Noch nicht geprüft. Der Export als Datenquelle ist geprüft (siehe oben), der Import nach Swapcard nicht.
