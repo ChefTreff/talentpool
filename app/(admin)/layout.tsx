@@ -91,6 +91,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       items: [
         ...eintrag("partner", "/admin/partner", nav.partnerCare),
         ...eintrag("initiatives", "/admin/initiativen", nav.initiatives),
+        ...eintrag("companyTours", "/admin/company-tours", nav.companyTours),
       ],
     },
     {

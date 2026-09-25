@@ -85,6 +85,9 @@ const BUSINESS_KEYS = new Set([
   "invalid_industry",
   "invalid_due_rule",
   "tour_not_found",
+  // PORT1b: Tippfehler im Abschnittsschlüssel — erreicht Nutzer nie, aber
+  // eine Meldung ohne Text hilft beim Melden auch nicht.
+  "unknown_section",
   "stop_not_found",
   "invalid_type",
   // Profilfelder mit Vokabular (TAL-013, Trigger person_vocab_guard)
