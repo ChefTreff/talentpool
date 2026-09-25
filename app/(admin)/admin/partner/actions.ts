@@ -682,3 +682,18 @@ export async function adminUpdateTourStop(stopId: string, fields: Record<string,
   revalidatePath("/admin/company-tours");
   return { ok: true, data: undefined };
 }
+
+/**
+ * Eigene Bewerbungsfragen eines Partners freigeben (PART-045). Bisher gab es für
+ * `approve_session_questions` keine Oberfläche — beantragte Fragen blieben für
+ * immer „beantragt“. Die RPC gibt alle offenen Fragen der Session frei und
+ * verlangt Admin oder Programm-Team (`is_programme_editor`).
+ */
+export async function adminApproveSessionQuestions(sessionId: string): Promise<AdminResult<{ count: number }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("approve_session_questions", { p_session_id: sessionId });
+  if (error) return fail(error);
+  revalidatePath(`${PATH}/[org]`, "page");
+  revalidatePath("/partner/masterclass/fragen");
+  return { ok: true, data: { count: Number(data ?? 0) } };
+}

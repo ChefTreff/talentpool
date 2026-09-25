@@ -30,6 +30,9 @@
  *   … --apply --nur=tour-bewerbung (PART-046: Bewerbungen auf die TEST-Tour ohne Mail,
  *                                   Konrad zugesagt, TEST-Person ohne Einwilligung;
  *                                   braucht den Schritt tour)
+ *   … --apply --nur=masterclass    (PART-045: TEST-Masterclass im TEST-Raum statt auf
+ *                                   der Standbühne, beantragte eigene Frage, Speakerin;
+ *                                   braucht partner und talk)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist,
  *                                   mit Öffnungszeiten für die Markierung — LEAD-033)
  *   … --apply --nur=standstatus    (LEAD-035/036/037: drei TEST-Sessions auf der
@@ -1618,6 +1621,83 @@ async function tourBewerbung(me, ed) {
 }
 
 /**
+ * Schritt `masterclass` (PART-045): die TEST-Masterclass so, wie sie im Partner-
+ * Portal aussehen soll.
+ * - Der Slot zieht von der Teststandbühne in einen TEST-Raum: eine Masterclass
+ *   ist kein Programmpunkt der Standbühne, und dort stand sie in der Tabelle und
+ *   im Weg (16:00–17:00 am ersten Tag).
+ * - Eine eigene Frage, **beantragt** (noch nicht freigegeben), und Konrads
+ *   Antwort darauf in seiner Bewerbung — geändert werden nur die Antworten, nicht
+ *   der Status, also löst der Mail-Trigger nichts aus.
+ * - Die TEST-Speakerin mit eigenem Zugang (Schritt `talk`) spricht auch hier.
+ * Braucht die Schritte `partner` und `talk` und die Masterclass aus dem vollen Lauf.
+ */
+async function masterclassSchritt(me, ed) {
+  const ziel = await summit(ed);
+  const eventId = ziel?.id ?? ed.id;
+  const { data: mc } = await admin.from("session").select("id, slot_id, partner_org_id")
+    .eq("event_id", eventId).eq("title_de", `${PREFIX}Masterclass`).maybeSingle();
+  if (!mc) {
+    fail("Masterclass", "TEST — Masterclass fehlt — zuerst ein voller Lauf (--apply)");
+    return;
+  }
+  const { data: raum } = await admin.from("stage").select("id")
+    .eq("event_id", eventId).eq("slug", "zz-test-masterclass-raum").maybeSingle();
+  const raumId = raum?.id ?? (await write("TEST-Raum für die Masterclass", () =>
+    admin.from("stage").insert({
+      event_id: eventId, name: `${PREFIX}Masterclass-Raum`, slug: "zz-test-masterclass-raum",
+      type: "room", capacity: 30, active: true,
+    }).select("id").single(),
+  ))?.id;
+  if (mc.slot_id && raumId) {
+    const { data: slot } = await admin.from("slot").select("stage_id").eq("id", mc.slot_id).maybeSingle();
+    if (slot && slot.stage_id !== raumId) {
+      await write("Slot der Masterclass in den TEST-Raum", () =>
+        admin.from("slot").update({ stage_id: raumId }).eq("id", mc.slot_id),
+      );
+    } else {
+      note("Slot der Masterclass", "liegt schon im TEST-Raum");
+    }
+  }
+
+  const frageText = `${PREFIX}Welche Erfahrung bringst du mit?`;
+  let { data: frage } = await admin.from("session_question").select("id")
+    .eq("session_id", mc.id).eq("label_de", frageText).maybeSingle();
+  if (!frage) {
+    frage = await write("Eigene Frage der Masterclass (beantragt)", () =>
+      admin.from("session_question").insert({
+        session_id: mc.id, label_de: frageText, label_en: "TEST — What experience do you bring?",
+        type: "textarea", required: false, sort_order: 90, purpose: "Testdaten: Auswahl nach Vorerfahrung",
+        requested_by: me.id,
+      }).select("id").single(),
+    );
+  }
+  if (frage) {
+    await write("Konrads Antwort auf die eigene Frage", async () => {
+      const { data: bew } = await admin.from("application").select("id, answers")
+        .eq("session_id", mc.id).eq("person_id", me.id).maybeSingle();
+      if (!bew) return { data: null, error: null };
+      return admin.from("application")
+        .update({ answers: { ...(bew.answers ?? {}), [frage.id]: "Zwei Jahre Produktmanagement." } })
+        .eq("id", bew.id);
+    });
+  }
+
+  const { data: adresse } = await admin.from("person_email").select("person_id")
+    .eq("email", talkSpeakerEigenAdresse()).maybeSingle();
+  if (!adresse) {
+    note("Speakerin der Masterclass", "erst nach dem Schritt talk");
+    return;
+  }
+  await write("TEST-Speakerin an der Masterclass", () =>
+    admin.from("session_speaker").upsert(
+      { session_id: mc.id, person_id: adresse.person_id, role: "speaker" },
+      { onConflict: "session_id,person_id,role" },
+    ),
+  );
+}
+
+/**
  * LEAD-014: zieht aufs Summit, was frühere Läufe auf die früheste Veranstaltung
  * gelegt haben (den Hackathon): die Teststandbühne mit allen Slots und den
  * Sessions darin, dazu Test-Sessions ohne Slot. **Gelöscht wird nichts** —
@@ -1918,6 +1998,7 @@ const SCHRITTE = {
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
+  masterclass: masterclassSchritt,
   ticket: speakerTicket,
   fotos: stagePhotos,
   "ticket-zurueck": ticketZurueck,
@@ -2101,6 +2182,12 @@ async function remove(me) {
   await write("Stage-Lead-Bühne entfernt (Slots und Cues gehen mit)", () =>
     admin.from("stage").delete().eq("slug", "zz-test-stagelead"),
   );
+  // PART-045: der TEST-Raum der Masterclass; die Sessions sind oben schon weg.
+  await write("TEST-Raum der Masterclass entfernt", async () => {
+    const { data: raeume } = await admin.from("stage").select("id").eq("slug", "zz-test-masterclass-raum");
+    for (const st of raeume ?? []) await admin.from("slot").delete().eq("stage_id", st.id);
+    return admin.from("stage").delete().eq("slug", "zz-test-masterclass-raum");
+  });
   // Die Öffnungszeiten (`stage_day`, PART-090) hängen mit ON DELETE CASCADE an der Bühne.
   await write("Teststandbühne, ihre Slots und Öffnungszeiten entfernt", async () => {
     const { data: stages } = await admin.from("stage").select("id").eq("slug", "zz-test-standbuehne");
