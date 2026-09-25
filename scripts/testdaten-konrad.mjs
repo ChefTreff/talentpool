@@ -314,6 +314,25 @@ async function partnerProdukte(oeId) {
 }
 
 /**
+ * PART-084: ein Test-Stand mit Rückwand-Maßen (Dummy), damit `/partner/messestand`
+ * Maße und Standnummer zeigt. Seit 0124 hängt der Stand über `booth_assignment`
+ * an der Org-Edition. Ist schon ein Stand zugeordnet, bleibt er, wie er ist —
+ * nur ein eigener Test-Stand (`notes = MARK`) bekommt die Dummy-Maße nachgezogen.
+ */
+async function partnerStand(oeId) {
+  const masse = { length_m: 3, width_m: 3, backdrop_w_mm: 3000, backdrop_h_mm: 2500 };
+  await write("Messestand mit Rückwand-Maßen (Dummy 3x3 m, Rückwand 3x2,5 m)", async () => {
+    const { data: zu } = await admin.from("booth_assignment").select("booth_id")
+      .eq("org_edition_id", oeId).limit(1).maybeSingle();
+    if (zu) return admin.from("booth").update(masse).eq("id", zu.booth_id).eq("notes", MARK);
+    const { data: stand, error } = await admin.from("booth")
+      .insert({ booth_number: `${PREFIX_CODE}-01`, ...masse, notes: MARK }).select("id").single();
+    if (error) return { data: null, error };
+    return admin.from("booth_assignment").insert({ booth_id: stand.id, org_edition_id: oeId, note: MARK });
+  });
+}
+
+/**
  * Ein Talk der Test-Organisation ohne Slot — so, wie ihn das Team nach der
  * Buchung anlegt. Erst damit zeigt `/partner/talk` einen Termin, an dem Konrad
  * „Speaker eintragen“ durchklickt; ohne Session steht dort nur „wird eingeplant“.
@@ -346,6 +365,7 @@ async function partnerSchritt(me, ed) {
   const { orgId, oeId } = await partnerOrg(ed);
   if (!orgId) return;
   if (oeId) await partnerProdukte(oeId);
+  if (oeId) await partnerStand(oeId);
   await partnerKontakt(me, ed, orgId, validTo);
   await partnerStage(me, ed, orgId, validTo);
   await partnerTalk(ed, orgId);
@@ -425,6 +445,7 @@ async function apply(me, ed) {
 
     // Alle Formate (Regel „Konrads Konto sieht alles“) — derselbe Weg wie `--nur=partner`.
     if (oeId) await partnerProdukte(oeId);
+    if (oeId) await partnerStand(oeId);
     await partnerKontakt(me, ed, orgId, validTo);
   }
 
@@ -1372,7 +1393,13 @@ async function remove(me) {
       await admin.from("shop_order").delete().eq("org_edition_id", oe.id);
       await admin.from("shop_request").delete().eq("org_edition_id", oe.id);
       await admin.from("deliverable").delete().eq("org_edition_id", oe.id);
-      await admin.from("booth").delete().eq("org_edition_id", oe.id);
+      // Stände hängen seit 0124 über `booth_assignment` an der Org-Edition (vorher
+      // `booth.org_edition_id`, die Spalte gibt es nicht mehr). Entfernt wird nur der
+      // eigene Test-Stand; ein vom Team zugeordneter Stand verliert nur die Zuordnung.
+      const { data: zuordnungen } = await admin.from("booth_assignment").select("booth_id").eq("org_edition_id", oe.id);
+      await admin.from("booth_assignment").delete().eq("org_edition_id", oe.id);
+      const standIds = (zuordnungen ?? []).map((z) => z.booth_id);
+      if (standIds.length > 0) await admin.from("booth").delete().in("id", standIds).eq("notes", MARK);
       await admin.from("org_product").delete().eq("org_edition_id", oe.id);
     }
     // Kontingente: **nur die eigenen**. An der Test-Organisation hängen auch

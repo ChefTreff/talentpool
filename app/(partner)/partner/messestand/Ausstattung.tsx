@@ -1,6 +1,6 @@
 import type { Locale } from "@/lib/i18n/shared";
-import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { meterAngabe } from "./masse";
 import type { BoothPackage } from "./types";
 
 type Strings = Record<string, string>;
@@ -13,26 +13,21 @@ type Strings = Record<string, string>;
  * Text zu pflegen, hiesse, zwei Wahrheiten zu haben; im zweiten Jahr stimmt
  * dann eine davon nicht mehr.
  *
- * Das eigene Paket steht **oben** und ist gekennzeichnet: die erste Frage an
- * dieser Tabelle lautet „was habe ich gebucht", nicht „was gibt es".
+ * Seit PART-085 (Konrad 25.09.) nur noch der **gebuchte** Stand — die übrigen
+ * Pakete sind für den Partner irrelevant; die Seite filtert, diese Tabelle
+ * zeigt. Die Größe steht als „3x3 m“.
  */
 export function Ausstattung({
   packages,
-  ownSkus,
   locale,
   t,
 }: {
+  /** Nur die gebuchten Stände dieser Organisation. */
   packages: BoothPackage[];
-  ownSkus: readonly string[];
   locale: Locale;
   t: Strings;
 }) {
   const name = (p: BoothPackage) => (locale === "en" ? (p.name_en ?? p.name_de) : p.name_de);
-  const own = new Set(ownSkus);
-  // Eigenes Paket zuerst, danach die übrigen in ihrer Reihenfolge (Fläche).
-  const sortiert = [...packages].sort(
-    (a, b) => Number(own.has(b.sku)) - Number(own.has(a.sku)),
-  );
 
   return (
     <Card className="p-0">
@@ -53,25 +48,11 @@ export function Ausstattung({
             </tr>
           </thead>
           <tbody>
-            {sortiert.map((p) => {
-              const meins = own.has(p.sku);
+            {packages.map((p) => {
               return (
-                <tr
-                  key={p.sku}
-                  className={
-                    "border-b border-l-2 last:border-b-0 " +
-                    (meins ? "border-l-accent bg-accent-soft/40" : "border-l-transparent")
-                  }
-                >
+                <tr key={p.sku} className="border-b last:border-b-0">
                   <td className="px-4 py-3 align-top">
-                    <span className={meins ? "ct-label text-ink" : "ct-small text-ink"}>
-                      {name(p)}
-                    </span>
-                    {meins && (
-                      <span className="ml-2 align-middle">
-                        <Badge tone="accent">{t.yours}</Badge>
-                      </span>
-                    )}
+                    <span className="ct-label text-ink">{name(p)}</span>
                   </td>
                   <td className="px-4 py-3 align-top">
                     {p.area_sqm != null ? (
@@ -79,7 +60,7 @@ export function Ausstattung({
                         <span className="ct-small tabular-nums text-ink">
                           {p.area_sqm} {t.sqm}
                         </span>
-                        {p.size_note && <span className="ct-help block">{p.size_note}</span>}
+                        {p.size_note && <span className="ct-help block">{meterAngabe(p.size_note)}</span>}
                       </>
                     ) : (
                       <span className="ct-help">—</span>

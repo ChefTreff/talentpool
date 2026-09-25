@@ -32,6 +32,8 @@ Aus den gebuchten Leistungen entstehen von selbst: **Checklisten-Pflichten**, **
 
 **Was Konrad unter `/partner` sieht** (bei mehreren Organisationen „TEST — Partner“ im Organisations-Wechsler wählen): Übersicht, Wiki · Unternehmen, Kontakte · Checkliste, Dateien, Tickets, Event-App, Messeshop · unter „Eure Formate“ Messestand, Side-Event, Interview Tables, Talk, Hackathon, Branding, Standbühne (Kalender und Tabelle), Bewerber. Masterclass und Company Tour erscheinen mit ihren Seiten (PART-045/046); die Produkte sind schon gebucht.
 
+**Messestand (PART-084):** der Schritt `partner` legt den Test-Stand `ZZTEST-01` (3x3 m, Rückwand 3x2,5 m, beide Tage) über `booth_assignment` an; `/partner/messestand` zeigt damit Maße und Standnummer. `--remove` löscht nur diesen eigenen Stand, einem vom Team zugeordneten nimmt es nur die Zuordnung.
+
 **Standbühnen-Gäste (PART-081):** `--apply --nur=gaeste` legt eine TEST-Person mit `+zztest-gast-1`-Adresse als Gast der Test-Organisation an (mit Einwilligung, ohne Porträt — die Liste zeigt „Porträt fehlt“) und ordnet sie dem ersten TEST-Programmpunkt der Teststandbühne zu. Braucht die Migration `v6_standbuehnen_gaeste` und den Schritt `partner`. Konrad klickt `/partner/buehne` → Reiter **Gäste** (Liste, Porträt hochladen, bearbeiten, entfernen) und Reiter **Tabelle** → „Details“ am Programmpunkt (Gast zuordnen und abnehmen); im Admin `/admin/partner/<Test-Organisation>` → Karte „Standbühnen-Gäste“. `--remove` entfernt Person, Profil, Zuordnung und hochgeladene Porträts. **Talk (PART-088):** unter `/partner/talk` steht `TEST — Talk` (Schritt `partner`); dort den TEST-Gast unter „Wer spricht“ zuordnen und abnehmen, darunter „Eure Speaker“ — dieselbe Liste wie unter Standbühne → Gäste.
 
 ## Kennzeichnung
