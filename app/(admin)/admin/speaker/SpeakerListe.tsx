@@ -41,16 +41,21 @@ export function SpeakerListe({
   labels,
   dateLocale,
   t,
+  te,
 }: {
   rows: AdminSpeakerRow[];
   labels: Record<string, Record<string, string>>;
   dateLocale: string;
   t: Strings;
+  /** `speakerEinordnung`-Texte für die Filter nach Prio und Kategorie (LEAD-039). */
+  te: Strings;
 }) {
   const [suche, setSuche] = useState("");
   const [status, setStatus] = useState("");
   const [typ, setTyp] = useState("");
   const [betreuung, setBetreuung] = useState("");
+  const [prio, setPrio] = useState("");
+  const [kategorie, setKategorie] = useState("");
 
   const datum = new Intl.DateTimeFormat(dateLocale, { dateStyle: "short" });
   const name = (r: AdminSpeakerRow) =>
@@ -68,6 +73,8 @@ export function SpeakerListe({
     return rows.filter((r) => {
       if (status && r.pipeline_status !== status) return false;
       if (typ && r.speaker_type !== typ) return false;
+      if (prio && r.priority !== prio) return false;
+      if (kategorie && r.category !== kategorie) return false;
       if (betreuung === "none" && r.owner_person_id) return false;
       if (betreuung && betreuung !== "none" && r.owner_person_id !== betreuung) return false;
       if (q) {
@@ -79,7 +86,7 @@ export function SpeakerListe({
       }
       return true;
     });
-  }, [rows, suche, status, typ, betreuung]);
+  }, [rows, suche, status, typ, betreuung, prio, kategorie]);
 
   const ohneBetreuung = rows.filter((r) => !r.owner_person_id).length;
   const zugesagt = rows.filter((r) => r.confirmed_at !== null && r.declined_at === null).length;
@@ -126,6 +133,25 @@ export function SpeakerListe({
               ]}
             />
           </label>
+          {/* Einordnung aus der Arbeitstabelle (LEAD-039) */}
+          <label className="flex flex-col gap-1">
+            <span className="ct-label text-ink">{te.priority}</span>
+            <Select
+              value={prio}
+              placeholder={te.all}
+              onChange={(e) => setPrio(e.target.value)}
+              options={Object.entries(labels.priority).map(([value, label]) => ({ value, label }))}
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="ct-label text-ink">{te.category}</span>
+            <Select
+              value={kategorie}
+              placeholder={te.all}
+              onChange={(e) => setKategorie(e.target.value)}
+              options={Object.entries(labels.category).map(([value, label]) => ({ value, label }))}
+            />
+          </label>
         </div>
         <p className="ct-help mt-3 text-muted">
           {gefiltert.length} {t.of} {rows.length} · {zugesagt} {t.confirmedCount} ·{" "}
@@ -142,6 +168,7 @@ export function SpeakerListe({
             <Th>{t.colRole}</Th>
             <Th>{t.colType}</Th>
             <Th>{t.colStatus}</Th>
+            <Th>{te.priority}</Th>
             <Th>{t.colOwner}</Th>
             <Th numeric>{t.colSessions}</Th>
             <Th numeric>{t.colOpen}</Th>
@@ -171,6 +198,18 @@ export function SpeakerListe({
                       <span className="ct-help block text-muted">
                         {labels.declineReason[r.decline_reason] ?? r.decline_reason}
                       </span>
+                    )}
+                  </Td>
+                  <Td>
+                    {r.priority ? (
+                      <Badge tone={r.priority === "a" ? "accent" : "neutral"}>
+                        {labels.priority[r.priority] ?? r.priority}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
+                    {r.category && (
+                      <span className="ct-help block text-muted">{labels.category[r.category] ?? r.category}</span>
                     )}
                   </Td>
                   <Td>

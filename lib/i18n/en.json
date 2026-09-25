@@ -4429,11 +4429,13 @@
     "slotNote": "Your talk at the Future Leaders Summit. Stage, time and everything else are always up to date in the portal:"
   },
   "speakerEinordnung": {
+    "all": "All",
     "category": "Category",
     "contactVia": "Contact via",
     "contactViaHint": "Who holds the contact or how it runs, e.g. “via Konrad” or “via agency” — no addresses or numbers.",
     "contactViaNoAddress": "Please don't enter an address: third-party contact details belong in the speaker's contacts, with consent.",
     "hint": "From the working sheet: where the person fits and who holds the contact. Internal only — the speaker never sees this.",
+    "noOwner": "No owner",
     "outreachChannel": "Outreach channel",
     "priority": "Priority",
     "recommendedFormat": "Recommended format",

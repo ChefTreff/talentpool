@@ -1,3 +1,4 @@
+import type { Einordnung } from "@/lib/speaker/einordnung";
 import type { SpeakerContact } from "@/app/(speaker)/speaker/types";
 
 import type { ManagedSpeaker } from "@/app/(speaker-leads)/speaker-leads/types";
@@ -16,7 +17,11 @@ export type DetailSession = {
 };
 
 /** Antwort aus `speaker_detail()` (Migration 0103). */
-export type SpeakerDetail = {
+/**
+ * Antwort aus `speaker_detail()`. Die Einordnung (LEAD-039) kommt über
+ * `Einordnung` dazu — dieselben Schlüssel wie in `manager_speakers`.
+ */
+export type SpeakerDetail = Einordnung & {
   id: string;
   edition_id: string;
   person: {

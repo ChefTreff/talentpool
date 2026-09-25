@@ -4429,11 +4429,13 @@
     "slotNote": "Dein Auftritt beim Future Leaders Summit. Bühne, Zeit und alles Weitere stehen immer aktuell im Portal:"
   },
   "speakerEinordnung": {
+    "all": "Alle",
     "category": "Kategorie",
     "contactVia": "Kontakt via",
     "contactViaHint": "Wer den Draht hat oder über wen es läuft, z. B. „über Konrad“ oder „über Agentur“ — keine Adressen oder Nummern.",
     "contactViaNoAddress": "Bitte keine Adresse eintragen: Kontaktdaten Dritter gehören zu den Kontakten des Speakers, mit Einverständnis.",
     "hint": "Aus der Arbeitstabelle: wohin die Person passt und über wen der Kontakt läuft. Nur intern — der Speaker sieht das nicht.",
+    "noOwner": "Ohne Betreuung",
     "outreachChannel": "Weg der Ansprache",
     "priority": "Prio",
     "recommendedFormat": "Empfohlenes Format",

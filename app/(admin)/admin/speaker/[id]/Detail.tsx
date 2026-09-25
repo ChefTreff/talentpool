@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
@@ -22,9 +22,17 @@ import {
   setContacts,
   setExpenseMode,
   setPipeline,
+  setStageCandidates,
   type AdminResult,
 } from "../actions";
 import { KontakteCard } from "@/components/speaker/KontakteCard";
+import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
+import {
+  buehnenGeaendert,
+  einordnungAenderungen,
+  einordnungEntwurf,
+  kontaktViaHatAdresse,
+} from "@/lib/speaker/einordnung";
 import { RIDER_FLAGS, SOCIAL_KEYS, type ContactOption, type SpeakerDetail, type SpeakerManager } from "../types";
 
 type Strings = Record<string, string>;
@@ -68,9 +76,11 @@ export function SpeakerDetailView({
   managers,
   contacts,
   labels,
+  einordnungOptionen,
   dateLocale,
   word,
   t,
+  te,
   common,
   rpcMessages,
 }: {
@@ -78,10 +88,14 @@ export function SpeakerDetailView({
   managers: SpeakerManager[];
   contacts: ContactOption[];
   labels: Record<string, Record<string, string>>;
+  /** Auswahllisten der Einordnung (LEAD-039): Vokabular und Bühnen der Edition. */
+  einordnungOptionen: EinordnungOptionen;
   dateLocale: string;
   /** Das kursive Wort des Abschnitts im Seitenkopf (QS-037). */
   word: string;
   t: Strings;
+  /** `speakerEinordnung`-Texte — dieselben wie im Fenster der Speaker-Leads. */
+  te: Strings;
   common: { cancel: string; choose: string; none: string; save: string };
   rpcMessages: Record<string, string>;
 }) {
@@ -95,6 +109,11 @@ export function SpeakerDetailView({
   const [owner, setOwner] = useState(speaker.owner_person_id ?? "");
   const [lead, setLead] = useState(speaker.lead_contact_id ?? "");
   const [buddy, setBuddy] = useState(speaker.buddy_contact_id ?? "");
+  // Einordnung (LEAD-039): Ausgangsstand aus dem geladenen Speaker — nach
+  // `router.refresh()` kommt ein neuer herein, und der Balken verschwindet.
+  const einordnungVorher = useMemo(() => einordnungEntwurf(speaker), [speaker]);
+  const [einordnung, setEinordnung] = useState(einordnungVorher);
+  const adresse = kontaktViaHatAdresse(einordnung.contact_via);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const datum = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
@@ -147,7 +166,15 @@ export function SpeakerDetailView({
       if (speaker.internal_notes_visible && draft.internal_notes !== (speaker.internal_notes ?? "")) {
         data.internal_notes = draft.internal_notes;
       }
-      report(await saveSpeaker(speaker.id, data), t.saved);
+      // Einordnung: nur, was sich geändert hat (ein stillgelegter Begriff wird
+      // so nicht erneut geprüft).
+      Object.assign(data, einordnungAenderungen(einordnungVorher, einordnung));
+      const res = await saveSpeaker(speaker.id, data);
+      if (!res.ok || !buehnenGeaendert(einordnungVorher, einordnung)) {
+        report(res, t.saved);
+        return;
+      }
+      report(await setStageCandidates(speaker.id, einordnung.stage_ids), t.saved);
     });
   }
 
@@ -182,7 +209,9 @@ export function SpeakerDetailView({
     draft.notes === (typeof rider0.notes === "string" ? rider0.notes : "") &&
     draft.own_laptop === (rider0.own_laptop === true) &&
     draft.video === (rider0.video === true) &&
-    SOCIAL_KEYS.every((k) => draft[k] === (socials0[k] ?? ""));
+    SOCIAL_KEYS.every((k) => draft[k] === (socials0[k] ?? "")) &&
+    Object.keys(einordnungAenderungen(einordnungVorher, einordnung)).length === 0 &&
+    !buehnenGeaendert(einordnungVorher, einordnung);
 
   return (
     <>
@@ -206,6 +235,7 @@ export function SpeakerDetailView({
           { id: "status", label: t.pipelineTitle },
           { id: "betreuung", label: t.careTitle },
           { id: "stammdaten", label: t.basicsTitle },
+          { id: "einordnung", label: te.title },
           { id: "bio", label: t.bioTitle },
           { id: "links", label: t.linksTitle },
           { id: "hospitality", label: t.hospitalityTitle },
@@ -435,6 +465,21 @@ export function SpeakerDetailView({
           </div>
         </Card>
 
+        {/* Einordnung aus der Arbeitstabelle (LEAD-039) — dieselben Felder wie im
+            Fenster der Speaker-Leads, im gemeinsamen Speichern-Balken. */}
+        <Card id="einordnung">
+          <CardHeader title={te.title} description={te.hint} />
+          <EinordnungFelder
+            idPrefix="einordnung"
+            value={einordnung}
+            onChange={setEinordnung}
+            optionen={einordnungOptionen}
+            t={te}
+            none={common.none}
+            disabled={pending}
+          />
+        </Card>
+
         <Card id="bio">
           <CardHeader title={t.bioTitle} description={t.bioHint} />
           <div className="grid gap-4 sm:grid-cols-2">
@@ -573,10 +618,18 @@ export function SpeakerDetailView({
           {!unveraendert && (
             <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center justify-end gap-3 border-t bg-canvas px-1 py-3">
               <span className="ct-help mr-auto">{t.unsaved}</span>
-              <Button variant="ghost" disabled={pending} onClick={() => setDraft(draftVon(speaker))}>
+              <Button
+                variant="ghost"
+                disabled={pending}
+                onClick={() => {
+                  setDraft(draftVon(speaker));
+                  setEinordnung(einordnungVorher);
+                }}
+              >
                 {t.discard}
               </Button>
-              <Button onClick={onSave} disabled={pending}>
+              {/* Mit einer Adresse in „Kontakt via“ nicht speichern — das Feld sagt, warum. */}
+              <Button onClick={onSave} disabled={pending || adresse}>
                 {common.save}
               </Button>
             </div>

@@ -38,9 +38,12 @@ export default async function AdminSpeakerPage() {
           pipeline: vgroup(vocab, "speaker_pipeline"),
           speakerType: vgroup(vocab, "speaker_type"),
           declineReason: vgroup(vocab, "speaker_decline_reason"),
+          priority: vgroup(vocab, "speaker_priority"),
+          category: vgroup(vocab, "speaker_category"),
         }}
         dateLocale={t.meta.dateLocale}
         t={t.adminSpeaker}
+        te={t.speakerEinordnung}
       />
     </>
   );

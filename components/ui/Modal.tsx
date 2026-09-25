@@ -47,8 +47,11 @@ export function Modal({
         }
         onCancel();
       }}
+      // `m-auto`: der Browser zentriert einen modalen Dialog über `margin: auto`,
+      // und Tailwinds Preflight setzt jedes `margin` auf 0 — ohne das stand
+      // jedes Modal links oben (25.09., beim breiten Fenster aufgefallen).
       className={cn(
-        "w-full rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40",
+        "m-auto w-full rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40",
         size === "wide" ? "max-w-5xl" : "max-w-[560px]",
       )}
     >

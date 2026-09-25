@@ -47,6 +47,21 @@ export async function saveSpeaker(
   return { ok: true, data: undefined };
 }
 
+/**
+ * Bühnen in Frage (LEAD-039) — ersetzt die ganze Menge, wie im Fenster der
+ * Speaker-Leads. Rechte und Edition prüft `set_speaker_stage_candidates`.
+ */
+export async function setStageCandidates(profileId: string, stageIds: string[]): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_speaker_stage_candidates", {
+    p_profile_id: profileId,
+    p_stage_ids: stageIds,
+  });
+  if (error) return fail(error);
+  refresh(profileId);
+  return { ok: true, data: undefined };
+}
+
 export async function setPipeline(
   profileId: string,
   status: string,

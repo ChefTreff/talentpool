@@ -510,7 +510,9 @@ export function SpeakerFenster({
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-2 border-t pt-4">
+      {/* Die Leiste klebt am unteren Rand des Fensters: es ist lang, und
+          „Speichern“ soll nicht erst nach dem Scrollen zu finden sein. */}
+      <div className="sticky -bottom-6 -mx-6 -mb-6 mt-6 flex flex-wrap gap-2 border-t bg-surface px-6 py-4">
         {/* Mit einer Adresse in „Kontakt via“ wird nicht gespeichert — das Feld
             sagt, warum (kein Toast für einen Formularfehler). */}
         <Button onClick={onSave} loading={pending} disabled={adresse}>
