@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 10:38 UTC · 101 Tabellen · 6 Views · 553 Funktionen
+> Stand: 2026-09-25 10:39 UTC · 102 Tabellen · 6 Views · 555 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1494,6 +1494,15 @@ Kontakte einer Speakerin (SPK-040, 0148): Assistenz, Agentur, Office … in eine
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `speaker_portal_selection`
+SPK-071: welches Speaker-Profil eine Person im Speaker-Portal gerade bearbeitet (eigenes oder als Assistenz/Kontakt). Nur über set_my_speaker_profile und my_speaker_profile_id — keine Grants.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `person_id` | uuid | PK |  | `person.id` |  |
+| `profile_id` | uuid | ja |  | `speaker_profile.id` |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `speaker_profile`
 Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality, Reisekosten), Tech-Rider, Assistenz. Schreiben nur per RPC.
 
@@ -2225,6 +2234,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_speaker_contacts` | p_profile_id: uuid |
 | `my_speaker_profile` | p_edition_id: uuid |
 | `my_speaker_profile_id` | p_edition_id: uuid |
+| `my_speaker_profiles` | args: ? |
 | `my_speaker_tasks` | p_profile_id: uuid |
 | `my_speaker_tickets` | p_edition_id: uuid |
 | `my_speaker_travel` | p_edition_id: uuid |
@@ -2379,6 +2389,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_logo_whitening_consent` | p_edition_id: uuid, p_granted: boolean, p_org_id: uuid |
 | `set_my_cv` | p_path: text |
 | `set_my_photo` | p_path: text |
+| `set_my_speaker_profile` | p_profile_id: uuid |
 | `set_my_speaker_travel` | p_data: jsonb, p_edition_id: uuid |
 | `set_org_contacts` | p_buddy: uuid, p_lead: uuid, p_org_edition_id: uuid |
 | `set_org_customer_number` | p_customer_number: text, p_org_id: uuid |

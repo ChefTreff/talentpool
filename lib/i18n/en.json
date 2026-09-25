@@ -4484,6 +4484,8 @@
     "presentationTitle": "Presentation",
     "previewInvoice": "View the expense invoice",
     "profileLead": "This is what appears in the programme and on the stage card.",
+    "profileOwn": "{name} (you)",
+    "profileSwitch": "Working for",
     "profileTitle": "Profile",
     "qrAlt": "QR code of your ticket",
     "qrHint": "Have it scanned at the entrance. The code is yours alone — please do not pass it on.",

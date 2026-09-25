@@ -34,6 +34,19 @@ function refresh() {
 }
 
 /**
+ * Für wen im Portal gearbeitet wird (SPK-071). Ob die Person das Profil wählen
+ * darf, prüft `set_my_speaker_profile`; danach zeigt das ganze Portal dieses
+ * Profil — deshalb wird das Layout mit allen Seiten neu geladen.
+ */
+export async function waehleSpeakerProfil(profileId: string): Promise<SpeakerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_my_speaker_profile", { p_profile_id: profileId });
+  if (error) return fail(error);
+  revalidatePath(PATH, "layout");
+  return { ok: true, data: undefined };
+}
+
+/**
  * Profil speichern. Was hier ankommt, ist nicht automatisch erlaubt — die RPC
  * übernimmt nur ihre Whitelist und ignoriert den Rest. Deshalb steht hier
  * keine zweite Prüfung, die auseinanderlaufen könnte.

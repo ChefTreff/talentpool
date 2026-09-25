@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SidebarShell } from "@/components/layout/SidebarShell";
 import { CONSENT_VERSION } from "@/lib/consent";
 import { EinwilligungsGate } from "./EinwilligungsGate";
+import { ProfilWechsler } from "./ProfilWechsler";
 import { SPEAKER_CONSENTS, type SpeakerProfile } from "./speaker/types";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,27 @@ export default async function SpeakerLayout({ children }: { children: ReactNode 
   const { data } = await supabase.rpc("my_speaker_profile");
   const profile = (data ?? null) as SpeakerProfile | null;
   const zeigeReisekosten = profile?.travel_costs_covered === true;
+
+  // --- Profilwahl (SPK-071) ---------------------------------------------------
+  // Wer für mehrere Speaker arbeitet (eigenes Profil plus Assistenz oder Kontakt
+  // eines Partners), wählt oben in der Leiste, für wen. Bei einem Profil steht
+  // da nichts. Die Edition erscheint nur, wenn es mehrere gibt.
+  const { data: profilZeilen } = await supabase.rpc("my_speaker_profiles");
+  const profilListe = ((profilZeilen ?? []) as {
+    profile_id: string;
+    edition_name: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    own: boolean;
+    selected: boolean;
+  }[]);
+  const mehrereEditionen = new Set(profilListe.map((p) => p.edition_name)).size > 1;
+  const wahl = profilListe.map((p) => {
+    const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || "—";
+    const wer = p.own ? t.speaker.profileOwn.replace("{name}", name) : name;
+    return { id: p.profile_id, label: mehrereEditionen && p.edition_name ? `${wer} · ${p.edition_name}` : wer };
+  });
+  const gewaehlt = profilListe.find((p) => p.selected)?.profile_id ?? profilListe[0]?.profile_id ?? "";
 
   // --- Einwilligung beim ersten Anmelden (SPK-024) --------------------------
   // Gefragt wird, solange **nicht jede** der vier Einwilligungen in der
@@ -60,6 +82,9 @@ export default async function SpeakerLayout({ children }: { children: ReactNode 
       label={t.areas.speaker.portal}
       rootHref="/speaker"
       locale="en"
+      header={
+        <ProfilWechsler profile={wahl} currentId={gewaehlt} label={t.speaker.profileSwitch} rpcMessages={t.rpc} />
+      }
       groups={[
         {
           label: "",
