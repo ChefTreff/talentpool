@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Drawer } from "@/components/ui/Drawer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ConfirmDialog } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { ladeStopps, saveStop, saveTour, saveTourLead, type Stopp } from "./actions";
+import { ladeStopps, removeTourLead, saveStop, saveTour, saveTourLead, type Stopp } from "./actions";
 
 export type AdminTour = {
   tour_id: string;
@@ -35,6 +36,8 @@ export type Optionen = {
   leads: {
     id: string; name: string; email: string | null; phone: string | null;
     role_label_de: string | null; role_label_en: string | null; contract_consent_at: string | null;
+    /** An wie vielen Touren sie hängt — vor dem Löschen sichtbar. */
+    tours: number;
   }[];
   sessions: { id: string; title: string; format: string }[];
   orgs: { id: string; name: string }[];
@@ -114,6 +117,7 @@ export function CompanyTours({
   const [stopps, setStopps] = useState<Stopp[] | null>(null);
   const [stopp, setStopp] = useState<StoppEntwurf | null>(null);
   const [lead, setLead] = useState<LeadEntwurf | null>(null);
+  const [leadWeg, setLeadWeg] = useState<Optionen["leads"][number] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
@@ -131,6 +135,14 @@ export function CompanyTours({
   const setT = <K extends keyof TourEntwurf>(k: K, v: TourEntwurf[K]) => setTour((o) => (o ? { ...o, [k]: v } : o));
   const setL = <K extends keyof LeadEntwurf>(k: K, v: LeadEntwurf[K]) => setLead((o) => (o ? { ...o, [k]: v } : o));
   const setS = <K extends keyof StoppEntwurf>(k: K, v: StoppEntwurf[K]) => setStopp((o) => (o ? { ...o, [k]: v } : o));
+
+  const leadBearbeiten = (l: Optionen["leads"][number]) => {
+    setFehler(null);
+    setLead({
+      id: l.id, display_name: l.name, email: l.email ?? "", phone: l.phone ?? "",
+      role_label_de: l.role_label_de ?? "", contract_consent_at: l.contract_consent_at ?? "",
+    });
+  };
 
   const stoppsOeffnen = (x: AdminTour) => {
     setFehler(null);
@@ -188,6 +200,63 @@ export function CompanyTours({
             ))}
           </ul>
         </Card>
+      )}
+
+      {/* ADM-060: die Begleitungen als eigene Sektion — die Tour-Maske wählt aus
+          derselben Liste, aber wer eine pflegen will, soll dafür keine Tour
+          öffnen müssen. */}
+      <section className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="ct-h3 text-ink">{t.leadsTitle}</h2>
+          <Button size="sm" variant="secondary" onClick={() => { setFehler(null); setLead({ ...LEERE_BEGLEITUNG }); }}>
+            {t.addLead}
+          </Button>
+        </div>
+        <p className="ct-help">{t.leadsHint}</p>
+        {optionen.leads.length === 0 ? (
+          <EmptyState title={t.emptyLeads} description={t.emptyLeadsBody} />
+        ) : (
+          <Card>
+            <ul className="flex flex-col divide-y">
+              {optionen.leads.map((l) => (
+                <li key={l.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3">
+                  <span className="ct-label text-ink">{l.name}</span>
+                  {l.role_label_de && <span className="ct-help">{l.role_label_de}</span>}
+                  {l.phone && <span className="ct-help">{l.phone}</span>}
+                  <span className="ml-auto flex flex-wrap items-center gap-2">
+                    <Badge tone={l.tours > 0 ? "success" : "neutral"}>
+                      {t.leadTours.replace("{n}", String(l.tours))}
+                    </Badge>
+                    <Button size="sm" variant="ghost" onClick={() => leadBearbeiten(l)}>{t.edit}</Button>
+                    <Button size="sm" variant="ghost" disabled={pending} onClick={() => { setFehler(null); setLeadWeg(l); }}>
+                      {common.delete}
+                    </Button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+      </section>
+
+      {leadWeg && (
+        <ConfirmDialog
+          title={t.deleteLeadTitle}
+          // Sagt, was dabei leer wird — sonst merkt es erst, wer die Tour aufmacht.
+          body={leadWeg.tours > 0 ? t.deleteLeadBodyTours.replace("{n}", String(leadWeg.tours)) : t.deleteLeadBody}
+          detail={leadWeg.name}
+          confirmLabel={common.delete}
+          cancelLabel={common.cancel}
+          pending={pending}
+          onCancel={() => setLeadWeg(null)}
+          onConfirm={() =>
+            start(async () => {
+              const res = await removeTourLead(leadWeg.id);
+              setLeadWeg(null);
+              if (!res.ok) melden(res.key, res.detail);
+            })
+          }
+        />
       )}
 
       {tour && (
@@ -268,12 +337,7 @@ export function CompanyTours({
                       type="button" size="sm" variant="ghost"
                       onClick={() => {
                         const l = optionen.leads.find((x) => x.id === tour.lead_contact_id);
-                        if (!l) return;
-                        setFehler(null);
-                        setLead({
-                          id: l.id, display_name: l.name, email: l.email ?? "", phone: l.phone ?? "",
-                          role_label_de: l.role_label_de ?? "", contract_consent_at: l.contract_consent_at ?? "",
-                        });
+                        if (l) leadBearbeiten(l);
                       }}
                     >
                       {t.editLead}
