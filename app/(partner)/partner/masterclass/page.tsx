@@ -1,6 +1,8 @@
 import { requireArea } from "@/lib/auth";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { GoodiesFrage } from "@/components/partner/GoodiesFrage";
+import { updateFormatDetails } from "../actions";
 import { RueckgabeHinweis, SessionStatusBadge, rueckgabeOffen, type RueckgabeTexte } from "../Rueckgabe";
 import { SpeakerHinzufuegen } from "../talk/SpeakerHinzufuegen";
 import { SpeakerKarte } from "../talk/SpeakerKarte";
@@ -12,6 +14,9 @@ import { MasterclassKopf } from "./MasterclassKopf";
 
 export const dynamic = "force-dynamic";
 
+/** Versandadresse und Fristen für vorab geschickte Pakete (Wiki-Artikel `anlieferung-aufbau`). */
+const WIKI_ANLIEFERUNG = "/partner/wiki#anlieferung-aufbau";
+
 /**
  * Masterclass (PART-045). Die Seite erscheint bei gebuchtem Produkt
  * `format_key = 'masterclass'`.
@@ -21,6 +26,9 @@ export const dynamic = "force-dynamic";
  * Speaker kommen über denselben Weg wie dort (`partner_add_speaker`, eigener
  * Zugang oder verwaltet, PART-091). Bewerbungen, Teilnehmende und die
  * Bewerbungsfragen stehen in den weiteren Reitern.
+ *
+ * Unter jedem Inhalt die Frage nach Goodies (PART-054): die Antwort sieht das
+ * Team im Admin beim Partner und hält nach.
  */
 export default async function PartnerMasterclassPage() {
   await requireArea("partner", "/partner/masterclass");
@@ -75,6 +83,27 @@ export default async function PartnerMasterclassPage() {
               <Card>
                 <CardHeader title={s.contentTitle} description={s.contentLead} />
                 <MasterclassInhalt session={x} sprachen={sprachen} canEdit={canEdit} t={s} rpcMessages={t.rpc} />
+              </Card>
+
+              <Card>
+                <CardHeader title={s.goodiesTitle} description={s.goodiesLead} />
+                <GoodiesFrage
+                  sessionId={x.id}
+                  details={x.format_details}
+                  canEdit={canEdit}
+                  save={updateFormatDetails.bind(null, x.id)}
+                  wikiHref={WIKI_ANLIEFERUNG}
+                  t={{
+                    question: s.goodiesQuestion,
+                    yes: s.goodiesYes,
+                    no: s.goodiesNo,
+                    none: s.goodiesNone,
+                    hintYes: s.goodiesHintYes,
+                    wiki: s.goodiesWiki,
+                    saved: s.goodiesSaved,
+                  }}
+                  rpcMessages={t.rpc}
+                />
               </Card>
 
               <Card>

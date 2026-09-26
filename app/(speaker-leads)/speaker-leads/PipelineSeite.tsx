@@ -55,7 +55,8 @@ export async function PipelineSeite({ ansicht, path }: { ansicht: PipelineAnsich
   return (
     <>
       <PageHeader
-        word={t.leads.wordLineup}
+        // Das Wort der Einstiegskarte, die hierher führt (LEAD-024, Talent-Muster).
+        word={ansicht === "pipeline" ? t.leads.wordLineup : t.leads.wordOnboarding}
         title={ansicht === "pipeline" ? t.leads.title : t.leads.confirmedTitle}
         description={ansicht === "pipeline" ? t.leads.pipelineLead : t.leads.confirmedLead}
       />

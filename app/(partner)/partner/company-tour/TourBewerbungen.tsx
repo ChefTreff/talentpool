@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Locale } from "@/lib/i18n/shared";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import { ButtonDownload } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApplicantList } from "@/components/partner/ApplicantList";
@@ -29,7 +30,9 @@ type TourBewerbung = Omit<PartnerApplication, "answers"> & {
  *
  * Im Reiter Bewerbungen markiert der Partner bis zu fünf Wünsche (PART-092);
  * die Auswahl trifft weiter das Team, das die Wünsche in seiner
- * Entscheidungssicht sieht.
+ * Entscheidungssicht sieht. Im selben Reiter lädt er die Bewerbungen je Stopp
+ * als CSV (PART-051, `/partner/export/tour/<Stopp>`): nur mit Einwilligung,
+ * mit seinen Wünschen und dem Datenschutzhinweis, jeder Export im Audit.
  */
 export async function TourBewerbungen({
   supabase,
@@ -47,6 +50,7 @@ export async function TourBewerbungen({
   locale: Locale;
   t: {
     tour: Record<string, string>;
+    bewerbung: Record<string, string>;
     applicants: Record<string, string>;
     rpc: Record<string, string>;
     dateLocale: string;
@@ -63,6 +67,7 @@ export async function TourBewerbungen({
     <div className="flex flex-col gap-6">
       <p className="ct-help max-w-text">
         {nurTeilnehmende ? s.participantsLead : s.applicationsLead} {t.applicants.auditNotice}
+        {!nurTeilnehmende && canEdit && ` ${t.bewerbung.exportHint}`}
       </p>
       {stopps.map((x, i) => {
         const { data, error } = ergebnisse[i];
@@ -96,6 +101,14 @@ export async function TourBewerbungen({
                 </span>{" "}
                 {s.wishLead.replace("{max}", String(MAX_WUENSCHE))}
               </p>
+            )}
+            {/* Eigene Zeile statt im Kartenkopf: auf 375 px bliebe dem Titel sonst nur eine schmale Spalte. */}
+            {!nurTeilnehmende && canEdit && roh.some((a) => a.consent_share) && (
+              <div className="mb-4">
+                <ButtonDownload href={`/partner/export/tour/${x.stop_id}`}>
+                  {t.bewerbung.exportCsv}
+                </ButtonDownload>
+              </div>
             )}
             {zeilen.length === 0 ? (
               <EmptyState

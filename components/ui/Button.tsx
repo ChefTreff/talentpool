@@ -81,6 +81,25 @@ export function ButtonLink({
   );
 }
 
+/**
+ * Gleiche Optik als **Download** — ein echtes `<a download>`, kein Next-`Link`:
+ * `Link` lädt Ziele im Sichtbereich vor, und eine Export-Route liefe dabei
+ * schon — samt Audit-Eintrag, ohne dass jemand geklickt hat (PART-051).
+ */
+export function ButtonDownload({
+  variant = "secondary",
+  size = "md",
+  className,
+  children,
+  ...rest
+}: Omit<OwnProps, "loading"> & Omit<ComponentProps<"a">, "download"> & { href: string }) {
+  return (
+    <a {...rest} download className={cn(base, variants[variant], sizes[size], className)}>
+      {children}
+    </a>
+  );
+}
+
 function Spinner() {
   return (
     <span

@@ -19,6 +19,9 @@ export const dynamic = "force-dynamic";
 /** Adresse der Event-App. Swapcard, je Edition dieselbe Anmeldung. */
 const APP_URL = "https://app.swapcard.com";
 
+/** Der Wiki-Artikel zur Event-App (Slug `event-app`). */
+const WIKI_EVENT_APP = "/partner/wiki#event-app";
+
 /**
  * Event-App (F9.8). Die Seite fehlte ganz — der F4-Abgleich hatte sie als
  * zweitteuerste Lücke geführt.
@@ -79,7 +82,7 @@ export default async function EventAppPage() {
           <ButtonLink href={APP_URL} {...neuesFenster}>
             {s.appAction}
           </ButtonLink>
-          <Link className="ct-link ct-small" href="/partner/wiki">
+          <Link className="ct-link ct-small" href={WIKI_EVENT_APP}>
             {s.wikiHint}
           </Link>
         </div>
@@ -137,9 +140,18 @@ export default async function EventAppPage() {
         rpcMessages={t.rpc}
       />
 
-      {video && (
-        <div className="mt-8 max-w-form">
+      {/* PART-075 (Konrad 24.09.): die Anleitung wird erst im November
+          aufgenommen — die Sektion steht trotzdem schon da und sagt, wann das
+          Video kommt und wo es bis dahin steht. Den Link pflegt Konrad unter
+          /admin/videos am Schlüssel `partner_event_app` (ADM-009); dann steht
+          hier das Video. */}
+      <section aria-labelledby="h-anleitung" className="mt-8 max-w-form">
+        <h2 id="h-anleitung" className="ct-h2 text-ink">
+          {s.videoSectionTitle}
+        </h2>
+        {video ? (
           <EmbedGate
+            className="mt-3"
             src={loomEmbedUrl(video.url)}
             title={(locale === "en" ? video.title_en : video.title_de) ?? s.videoTitle}
             provider="Loom"
@@ -147,8 +159,15 @@ export default async function EventAppPage() {
             notice={t.common.embedNotice}
             openLabel={t.common.openAtProvider}
           />
-        </div>
-      )}
+        ) : (
+          <p className="ct-small mt-1 leading-6">
+            {s.videoPending}{" "}
+            <Link className="ct-link" href={WIKI_EVENT_APP}>
+              {s.wikiHint}
+            </Link>
+          </p>
+        )}
+      </section>
     </>
   );
 }

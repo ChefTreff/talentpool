@@ -100,6 +100,40 @@ export function publicLogoPath(row: Pick<ExhibitorRow, "edition_slug" | "org_id"
   return row.logo_png_asset_id ? `${row.edition_slug}/${row.org_id}/${row.logo_png_asset_id}.png` : null;
 }
 
+const FOTO_ENDUNG: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+/**
+ * Pfad der Fotokopie für die Event-App im Bucket `speaker-photos`:
+ * `<edition>/<asset_id>.<endung>` (0136).
+ *
+ * Bewusst **ohne** Namen und ohne Personen-Kennung — die Adresse selbst soll
+ * nichts über die Person verraten. Die Asset-Kennung ist eine UUID, also nicht
+ * erratbar und nicht aufzählbar; eine neue Fassung bekommt eine neue Adresse
+ * (Konrad, 22.09.2026). Seit SPK-047 ist der Bucket privat, Swapcard bekommt
+ * eine signierte Adresse.
+ */
+export function speakerPhotoPath(row: { edition_slug: string; photo_asset_id: string | null; photo_mime: string | null }): string | null {
+  if (!row.photo_asset_id) return null;
+  const endung = FOTO_ENDUNG[(row.photo_mime ?? "").toLowerCase()];
+  // Unbekannter Medientyp: keine Kopie, statt eine Datei mit falscher Endung
+  // abzulegen, die der Browser dann nicht anzeigt.
+  if (!endung) return null;
+  return `${row.edition_slug}/${row.photo_asset_id}.${endung}`;
+}
+
+/**
+ * SPK-047, der Weg hinaus: die Kopien, die zu keinem Speaker mehr gehören, der
+ * in die App geht — nach Absage, neuer Fotofassung oder gelöschtem Profil.
+ */
+export function veralteteFotoKopien(dateien: string[], behalten: ReadonlySet<string>): string[] {
+  return dateien.filter((d) => !behalten.has(d));
+}
+
 /**
  * Ist das eine Beanstandung an `isUser`?
  *

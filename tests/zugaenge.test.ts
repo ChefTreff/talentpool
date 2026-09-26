@@ -58,6 +58,10 @@ describe("PORT4b: die Sperre gilt überall", () => {
   it("die Sperre räumt keine Rollen ab", () => {
     // Entsperren muss wiederherstellen, was vorher galt. Wer beim Sperren
     // `role_assignment` anfasst, hat gelöscht und nennt es deaktiviert.
+    // Über `migrationText`, nicht über den Vorschlagspfad: die
+    // Architektur-Session benennt Vorschläge beim Anwenden um, und ein fest
+    // verdrahteter Pfad ist danach rot (24.09., 0161/0162 — und am 26.09. hier
+    // prompt wieder passiert).
     const sql = migrationText("v6_zugaenge");
     const setter = sql.slice(sql.indexOf("function set_person_access"));
     assert.equal(/update\s+role_assignment/i.test(setter), false, "set_person_access fasst Rollen an");
