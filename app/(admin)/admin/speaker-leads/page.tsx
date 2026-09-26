@@ -4,6 +4,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { boardEvents } from "@/components/programme/events";
 import { LeadsView, type LeadRow, type UnassignedRow } from "./LeadsView";
 
 export const dynamic = "force-dynamic";
@@ -32,10 +33,15 @@ export default async function SpeakerLeadsAdminPage() {
   // Auswahllisten wäre irreführender als „gibt es nicht".
   if (!edition) notFound();
 
-  const [{ data: leads }, { data: unassigned }, vocab] = await Promise.all([
+  // PORT3: Stage Leads gelten je Bühne — zur Wahl stehen die Bühnen des Summits.
+  const events = await boardEvents(supabase, [edition.id]);
+  const [{ data: leads }, { data: unassigned }, vocab, { data: stageRows }] = await Promise.all([
     supabase.rpc("speaker_leads_admin", { p_edition_id: edition.id }),
     supabase.rpc("unassigned_speakers", { p_edition_id: edition.id }),
     loadVocabMap(supabase, locale),
+    events.length > 0
+      ? supabase.from("stage").select("id, name").in("event_id", events.map((e) => e.id)).eq("active", true).order("sort_order")
+      : Promise.resolve({ data: [] }),
   ]);
 
   return (
@@ -44,7 +50,7 @@ export default async function SpeakerLeadsAdminPage() {
       <LeadsView
         leads={(leads ?? []) as LeadRow[]}
         unassigned={(unassigned ?? []) as UnassignedRow[]}
-        editionId={edition.id}
+        stages={(stageRows ?? []) as { id: string; name: string }[]}
         labels={{
           role: vgroup(vocab, "role"),
           pipeline: vgroup(vocab, "speaker_pipeline"),

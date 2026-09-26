@@ -474,7 +474,9 @@ async function apply(me, ed) {
     ),
   );
   await role(me.id, "speaker", "edition", null, ed.id, validTo);
-  await role(me.id, "speaker_manager", "edition", null, ed.id, validTo);
+  // PORT3: `speaker_manager` gibt es nur noch je Bühne, Tag oder Slot — die
+  // Stage-Lead-Rolle kommt aus `--nur=buehne` (Bühnen-Scope). Eine Edition-Zeile
+  // wiese die CHECK-Regel `role_assignment_stage_lead_scope_chk` ab.
 
   // --- Partner ------------------------------------------------------------
   const { orgId, oeId } = await partnerOrg(ed);
@@ -1068,6 +1070,12 @@ async function stageLeadBuehne(me, ed) {
     );
   }
   await role(me.id, "speaker_manager", "stage", stageId, ed.id, validTo);
+  // PORT3: die alte Edition-Zeile aus früheren Läufen (nur Testdaten, MARK) —
+  // sie gibt seit v6_port3_stage_leads keine Rechte mehr und verwirrt nur.
+  await write("Alte Edition-Rolle speaker_manager entfernt (PORT3)", () =>
+    admin.from("role_assignment").delete()
+      .eq("person_id", me.id).eq("role", "speaker_manager").eq("scope_type", "edition").eq("note", MARK),
+  );
 }
 
 /**

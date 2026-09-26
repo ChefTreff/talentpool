@@ -19,7 +19,7 @@ Das Skript ist wiederholbar: ein zweiter `--apply` legt nichts doppelt an. `--nu
 | Bereich | Datensatz | Rolle |
 |---|---|---|
 | Speaker | `speaker_profile` (keynote, bestätigt, Reception und Lounge, Reisekosten übernommen) | `speaker` |
-| Speaker-Leads | — | `speaker_manager` |
+| Speaker-Leads | Stage-Lead-Testbühne (`--nur=buehne`) | `speaker_manager` **je Bühne** (PORT3: keine Edition-Zeile mehr) |
 | Partner | Organisation `TEST — Partner GmbH` mit `org_edition` (eingeladen, Sponsoring premium), Konrad als **Hauptkontakt**; gebucht sind **alle Format-Produkte** (je eins für `booth`, `stage`, `masterclass`, `company_tour`, `side_event`, `interview_table`, `hackathon`, `branding`, `talk`, Schritt `partner`) und die Ticket-Produkte aus dem ersten Lauf; `TEST — Standbühne` am Summit, `TEST — Talk` (ohne Slot, zum Eintragen von Speakern), `TEST — Masterclass` mit Konrads Bewerbung | `partner_contact`, `standbuehne_editor` (beide Scope Org) |
 | Volunteers | `volunteer_profile` (angenommen, Shirt L), Testschicht mit Zuteilung | `volunteer` |
 | Hackathon | — (Datenmodell kommt mit PR 28) | `hackathon_participant` |

@@ -50,20 +50,22 @@ export async function findPeople(query: string): Promise<FoundPerson[]> {
 }
 
 /**
- * Jemanden zum Speaker-Lead machen.
+ * Jemanden zum Stage Lead einer Bühne machen (PORT3).
  *
- * Immer im Scope der Edition und nie global: eine globale Rolle gilt auch für
- * jede künftige Edition, und niemand denkt im nächsten Jahr daran, sie wieder
- * zu entziehen.
+ * `speaker_manager` sind die externen Stage Leads: die Rolle gilt nur für eine
+ * Bühne (oder einen Tag, einen Slot) — nie für die Edition oder global, sonst
+ * sähe die Person alle Speaker. `assign_role` weist das ab (22023
+ * `stage_scope_required`) und setzt die Edition aus der Bühne. Mehrere Bühnen
+ * heißen mehrere Zuweisungen.
  */
-export async function makeLead(personId: string, editionId: string): Promise<LeadsResult> {
+export async function makeLead(personId: string, stageId: string): Promise<LeadsResult> {
   const supabase = await client();
   const { error } = await supabase.rpc("assign_role", {
     p_person_id: personId,
     p_role: "speaker_manager",
-    p_scope_type: "edition",
-    p_scope_id: null,
-    p_edition_id: editionId,
+    p_scope_type: "stage",
+    p_scope_id: stageId,
+    p_edition_id: null,
     p_portal: null,
     p_valid_from: null,
     p_valid_to: null,

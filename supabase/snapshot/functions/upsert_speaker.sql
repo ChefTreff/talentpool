@@ -23,6 +23,11 @@ begin
   if not v_team and (p_data ?| array['lounge_access', 'pass_type', 'hotel_tier', 'hospitality_status', 'org_id', 'owner_person_id']) then
     raise exception 'team_only_fields' using errcode = '42501';
   end if;
+  -- PORT3 / L5: Nicht-Team legt nur über die Adresse an — eine fremde
+  -- Person-ID öffnete sonst jedes Profil der Person.
+  if not v_team and v_pid is not null then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
 
   if v_pid is null then
     if v_email is null then raise exception 'email_or_person_required' using errcode = '22023'; end if;
@@ -41,6 +46,12 @@ begin
   end if;
 
   select id into v_existing from speaker_profile where person_id = v_pid and edition_id = v_edition;
+  -- PORT3 / L5: ein bestehendes Profil, das die Person nicht verwaltet, bleibt
+  -- unberührt — vorher überschrieb `on conflict` es für jeden `speaker_manager`.
+  -- 42501 ohne Hinweis, ob es die Adresse schon gibt (F1).
+  if v_existing is not null and not v_team and not can_manage_speaker(v_existing) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
 
   insert into speaker_profile (person_id, edition_id, speaker_type, pipeline_status, owner_person_id, job_title, organization_name, org_id,
                                internal_notes, reception_eligible, travel_costs_covered, pass_type, lounge_access, hotel_tier, hospitality_status, created_by)
