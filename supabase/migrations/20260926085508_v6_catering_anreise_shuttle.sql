@@ -1,4 +1,5 @@
--- 00NN · SPK-073 + SPK-069: kein Speaker-Catering für Gäste; Anreise mit Shuttle statt Abhol-Haken
+-- 0211 · Kein Speaker-Catering für Gäste, Anreise mit Shuttle-Stand statt Abhol-Haken (SPK-073, SPK-069)
+-- Angewendet von der Architektur-Session am 26.09.2026 als 20260926085508.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
