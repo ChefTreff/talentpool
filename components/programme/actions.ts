@@ -95,6 +95,25 @@ export async function setSlotStatus(
   return { ok: true, data: undefined };
 }
 
+/**
+ * ADM-018: verantwortliche Person je Session übersteuern — `null` heisst
+ * „aus den Stage Leads abgeleitet“. Nur die Programmleitung; die RPC prüft
+ * das und dass die Person Stage Lead der Veranstaltung ist.
+ */
+export async function setSessionOwner(
+  sessionId: string,
+  personId: string | null,
+): Promise<ActionResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_session_owner", {
+    p_session_id: sessionId,
+    p_person_id: personId,
+  });
+  if (error) return fail(error);
+  revalidateBoard();
+  return { ok: true, data: undefined };
+}
+
 export type SessionInput = {
   id?: string;
   event_id?: string;

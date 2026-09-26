@@ -7,12 +7,18 @@ import { cn } from "./cn";
 /**
  * `<dialog showModal>` — Fokusfalle, Escape und die Abdunklung kommen vom
  * Browser. Deshalb kein eigenes Overlay und keine Tastatur-Logik.
+ *
+ * `error` wie beim `Drawer` (ADM-041, ADM-062): die Meldung zur Aktion gehört
+ * in den Dialog, nicht als Toast an den Bildschirmrand. Sie klebt am unteren
+ * Rand — sichtbar, wie weit der Inhalt auch gescrollt ist, und am Ende direkt
+ * unter den Knöpfen. `role="alert"` sagt sie an, ohne den Fokus zu verschieben.
  */
 export function Modal({
   label,
   onCancel,
   blocking,
   size = "default",
+  error,
   children,
 }: {
   /** Zugänglicher Name des Dialogs; sichtbar ist die Überschrift darin. */
@@ -32,6 +38,8 @@ export function Modal({
    * Informationsfülle“). Auf dem Telefon bleibt es eine Spalte.
    */
   size?: "default" | "wide";
+  /** Fehlermeldung zur Aktion im Dialog. Siehe oben. */
+  error?: string | null;
   children: ReactNode;
 }) {
   return (
@@ -56,6 +64,14 @@ export function Modal({
       )}
     >
       {children}
+      {error && (
+        <p
+          role="alert"
+          className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-error-soft bg-error-soft px-6 py-3 ct-small text-error-ink"
+        >
+          {error}
+        </p>
+      )}
     </dialog>
   );
 }

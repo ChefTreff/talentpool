@@ -264,6 +264,8 @@ const BUSINESS_KEYS = new Set([
   "consent_not_managed",
   "consent_type_not_allowed",
   "invalid_consents",
+  // Verantwortliche je Session (Vorschlag v6_session_verantwortliche, ADM-018)
+  "owner_not_lead",
   // Speaker eines gebuchten Slots (Vorschlag v6_talk_speaker_zugang, PART-091);
   // `contact_is_speaker` kommt als 23514, gilt auch für die Kontakte im Speaker-Portal.
   "speaker_has_access",

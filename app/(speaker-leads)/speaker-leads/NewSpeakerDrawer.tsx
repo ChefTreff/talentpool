@@ -52,6 +52,7 @@ export function NewSpeakerDrawer({
   const [pending, startTransition] = useTransition();
 
   const [editionId, setEditionId] = useState(editions[0]?.id ?? "");
+  const [fehler, setFehler] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
@@ -90,9 +91,11 @@ export function NewSpeakerDrawer({
         personId: linked?.id ?? null,
       });
       if (!res.ok) {
-        toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+        // ADM-062: am Formular, nicht als Toast am Bildschirmrand.
+        setFehler(message(res.key) + (res.detail ? ` (${res.detail})` : ""));
         return;
       }
+      setFehler(null);
       toast("success", t.speakerCreated);
       router.refresh();
       onClose();
@@ -103,7 +106,7 @@ export function NewSpeakerDrawer({
     editionId !== "" && (linked !== null || (email.trim() !== "" && first.trim() !== ""));
 
   return (
-    <Drawer open onClose={onClose} closeLabel={common.close} title={t.newSpeaker}>
+    <Drawer open onClose={onClose} closeLabel={common.close} title={t.newSpeaker} error={fehler}>
       <div className="flex flex-col gap-4">
         {editions.length > 1 ? (
           <Field label={t.fieldEdition} htmlFor="edition">

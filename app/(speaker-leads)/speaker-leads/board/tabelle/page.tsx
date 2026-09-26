@@ -33,7 +33,7 @@ export default async function LeadProgrammeTablePage({
   if (!scope?.is_manager) notFound();
 
   const editionIds = scope.all ? [] : [...new Set(scope.editions.map((e) => e.id))];
-  const data = await loadProgrammeTable({ eventSlug: event, fallbackLocale: "de", editionIds });
+  const data = await loadProgrammeTable({ eventSlug: event, fallbackLocale: "de", editionIds, mitVerantwortlichen: true });
 
   return (
     <>
@@ -52,6 +52,9 @@ export default async function LeadProgrammeTablePage({
           labels={data.labels}
           locale={data.locale}
           timezone={data.currentEvent.timezone}
+          verantwortliche={data.verantwortliche}
+          ownerCandidates={data.ownerCandidates}
+          canSetOwner={data.canSetOwner}
           t={t.admin.programmeTable}
           rpcMessages={t.rpc}
         />
