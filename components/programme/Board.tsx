@@ -23,6 +23,7 @@ import {
   minutesFromOffset,
   resizedEnd,
   slotBox,
+  zeilenInKarte,
   PX_PER_MIN,
 } from "./geometry";
 import type { Locale } from "@/lib/i18n/shared";
@@ -47,9 +48,11 @@ import {
 } from "./partnerSicht";
 import { SessionDrawer } from "./SessionDrawer";
 import {
+  KARTE_NEUTRAL,
   SLOT_STATUS_ORDER,
   SLOT_STATUS_STYLE,
   type BacklogSession,
+  type KartenStil,
   type BoardDay,
   type BoardLabels,
   type BoardSlot,
@@ -277,15 +280,36 @@ export function Board({
 
   // LEAD-035: in der Partner-Sicht spricht die Karte die Sprache des Partners.
   const statusTexte = partner ? partnerStatusTexte(partner.t) : null;
-  const kartenStil = (slot: BoardSlot): { stil: string; stand?: string } => {
+  const kartenStil = (slot: BoardSlot): { stil: KartenStil; stand?: string; wort?: string } => {
     if (!partner || !statusTexte) {
-      return { stil: SLOT_STATUS_STYLE[slot.slot_status] ?? SLOT_STATUS_STYLE.open };
+      return {
+        stil: SLOT_STATUS_STYLE[slot.slot_status] ?? SLOT_STATUS_STYLE.open,
+        wort: labels.slotStatus[slot.slot_status],
+      };
     }
     // Fremde Bühnen: belegt, aber ohne den Status der Programmleitung.
-    if (!eigen(slot.stage_id)) return { stil: SLOT_STATUS_STYLE.open };
+    if (!eigen(slot.stage_id)) return { stil: KARTE_NEUTRAL };
     const stand = boardPartnerStatus(slot, partner.rueckgaben);
     return { stil: PARTNER_KARTE[stand], stand: statusTexte[stand] };
   };
+
+  /**
+   * Die Legende zählt (LEAD-017): „4 angefragt“ ist eine Aufgabe, „2
+   * ungenutzt“ eine Frage. In der Partner-Sicht nur die eigenen Bühnen — nur
+   * dort zeigt die Karte den Partner-Status.
+   */
+  const anzahl = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of slots) {
+      const key = partner
+        ? eigen(s.stage_id)
+          ? boardPartnerStatus(s, partner.rueckgaben)
+          : null
+        : s.slot_status;
+      if (key) m.set(key, (m.get(key) ?? 0) + 1);
+    }
+    return m;
+  }, [eigen, partner, slots]);
 
   const statsByStage = useMemo(
     () => new Map(stats.map((s) => [s.stage_id, s])),
@@ -708,24 +732,27 @@ export function Board({
         {/* Legende über dem Kalender (LEAD-045, Konrad 25.09.): erst lesen, was
             die Farben heißen, dann planen. In der Partner-Sicht die Stände des
             Partners (LEAD-035) — dieselben Wörter wie in der Tabelle. */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="ct-eyebrow text-muted">{partner ? partner.t.colStatus : t.legend}</span>
-          {partner && statusTexte
-            ? PARTNER_LEGENDE.map((s) => (
-                <span key={s} className="flex items-center gap-1.5 ct-help">
-                  <span aria-hidden className={cn("inline-block size-3 rounded-sm border", PARTNER_KARTE[s])} />
-                  {statusTexte[s]}
-                </span>
-              ))
-            : SLOT_STATUS_ORDER.map((s) => (
-                <span key={s} className="flex items-center gap-1.5 ct-help">
-                  <span aria-hidden className={cn("inline-block size-3 rounded-sm border", SLOT_STATUS_STYLE[s])} />
-                  {labels.slotStatus[s]}
-                </span>
-              ))}
+        {/* Jedes Musterfeld zeigt Fläche **und** Form wie im Raster
+            (Schraffur, Leiste, Strichelung) — sonst lernt man in der Legende
+            etwas anderes, als man im Raster sieht (LEAD-017). */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="ct-eyebrow mr-2 text-muted">{partner ? partner.t.colStatus : t.legend}</span>
+          {(partner && statusTexte
+            ? PARTNER_LEGENDE.map((s) => ({ key: s, stil: PARTNER_KARTE[s], text: statusTexte[s] }))
+            : SLOT_STATUS_ORDER.map((s) => ({ key: s, stil: SLOT_STATUS_STYLE[s], text: labels.slotStatus[s] }))
+          ).map(({ key, stil, text }) => (
+            <span
+              key={key}
+              className="inline-flex min-h-8 items-center gap-2 rounded-ct-sm border border-border bg-surface py-1 pl-1 pr-2 ct-help text-ink"
+            >
+              <span aria-hidden className={cn("inline-block h-5 w-6 rounded-ct-sm", stil.flaeche)} />
+              {text}
+              <span className="ct-label tabular-nums text-ink">{anzahl.get(key) ?? 0}</span>
+            </span>
+          ))}
           {irgendwoZu && (
-            <span className="flex items-center gap-1.5 ct-help">
-              <span aria-hidden className="inline-block size-3 rounded-sm border border-border bg-hatch-closed" />
+            <span className="inline-flex min-h-8 items-center gap-2 py-1 pl-1 pr-2 ct-help text-ink">
+              <span aria-hidden className="inline-block h-5 w-6 rounded-ct-sm border border-border bg-hatch-closed" />
               {t.closedLegend}
             </span>
           )}
@@ -765,13 +792,17 @@ export function Board({
                           muss auch da sein, wo Farben nicht unterschieden
                           werden (Design-Regel 4). */}
                       {istEigen && <Badge tone="accent">{t.ownStage}</Badge>}
-                      {!bearbeitbar(s.id) && <Badge>{t.stageReadOnly}</Badge>}
                     </div>
+                    {/* „nur lesen“ als Text in der Zahlenzeile statt als
+                        Badge neben dem Namen: dort brach es bei schmalen
+                        Spalten in eine eigene Zeile, und die Köpfe wurden
+                        ungleich hoch (LEAD-017). */}
                     <div className={cn("ct-help", istEigen && "text-white")}>
                       {st
                         ? `${st.slots_used}${st.slot_quota ? ` / ${st.slot_quota}` : ""} ${t.slotsUsed}`
                         : `0 ${t.slotsUsed}`}
                       {s.changeover_min > 0 && ` · ${t.changeover} ${s.changeover_min}′`}
+                      {!bearbeitbar(s.id) && ` · ${t.stageReadOnly}`}
                     </div>
                     {/* LEAD-033: die Öffnungszeit als Text — die Schraffur im
                         Raster wiederholt sie nur. */}
@@ -827,13 +858,14 @@ export function Board({
                   {(slotsByStage.get(stage.id) ?? []).map((serverSlot) => {
                     const v = serverSlot.session_id === null ? vorlaeufig[serverSlot.slot_id] : undefined;
                     const slot = v ? { ...serverSlot, ...v } : serverSlot;
-                    const { stil, stand } = kartenStil(slot);
+                    const { stil, stand, wort } = kartenStil(slot);
                     return (
                     <SlotCard
                       key={slot.slot_id}
                       slot={slot}
                       stil={stil}
                       stand={stand}
+                      wort={wort}
                       editable={bearbeitbar(slot.stage_id)}
                       timezone={timezone}
                       windowStart={windowStart}
@@ -1070,6 +1102,7 @@ function SlotCard({
   slot,
   stil,
   stand,
+  wort,
   editable,
   timezone,
   windowStart,
@@ -1080,10 +1113,12 @@ function SlotCard({
   onResize,
 }: {
   slot: BoardSlot;
-  /** Rand und Grund der Karte: Slot-Status, in der Partner-Sicht der Partner-Status (LEAD-035). */
-  stil: string;
+  /** Fläche, Form und Schrift der Karte: Slot-Status, in der Partner-Sicht der Partner-Status (LEAD-035). */
+  stil: KartenStil;
   /** Partner-Status als Text — die Farbe allein trägt keine Information. */
   stand?: string;
+  /** Slot-Status als Wort für Screenreader; sehend tragen ihn Fläche und Form, erklärt in der Legende. */
+  wort?: string;
   /**
    * Ob die Sicht diese Bühne bearbeiten lässt (LEAD-016). Zusammen mit
    * `slot.can_edit` — **beides** muss gelten. `can_edit` kommt aus der
@@ -1140,16 +1175,34 @@ function SlotCard({
     window.addEventListener("pointerup", up);
   }
 
+  const format = slot.format ? (labels.format[slot.format] ?? null) : null;
+  const veroeffentlicht = !stand && slot.publish_status === "published";
+  const namen = slot.speakers && slot.speakers.length > 0 ? slot.speakers.map(speakerName).join(", ") : null;
+
+  // Die Karte zeigt nur, was ganz hineinpasst (LEAD-017). Vorher stand bei 20
+  // Minuten nur die Uhrzeit, und bei 30 Minuten war die zweite Zeile halb
+  // abgeschnitten. Reicht es nicht für zwei Zeilen, stehen Beginn und Titel
+  // in einer.
+  const box = slotBox(startMin, endMin, windowStart);
+  const zeilen = zeilenInKarte(startMin, endMin);
+  const kurz = zeilen < 2;
+  const mitNamen = !!namen && zeilen >= 3;
+  const titelZweizeilig = zeilen - 1 - (mitNamen ? 1 : 0) >= 2;
+
   return (
     <div
       ref={setNodeRef}
       data-slot-card
-      style={slotBox(startMin, endMin, windowStart)}
+      style={box}
       className={cn(
-        "group absolute inset-x-1 overflow-hidden rounded-ct-sm border ct-help",
-        stil,
+        // Kein `overflow-hidden` hier: es schnitt den Fokusrahmen ab, der 2 px
+        // ausserhalb des Knopfs darin liegt — die Karte war mit der Tastatur
+        // nicht zu sehen. Abgeschnitten wird im Knopf.
+        "group absolute inset-x-1 rounded-ct-md ct-help",
+        stil.flaeche,
+        stil.text,
         isDragging && "opacity-40",
-        resizing && "ring-2 ring-accent",
+        resizing && "ring-2 ring-accent ring-offset-1",
         ziehbar ? "cursor-grab" : "cursor-default",
       )}
     >
@@ -1168,23 +1221,42 @@ function SlotCard({
             onOpen();
           }
         }}
-        className="h-full px-2 py-1 text-left"
-      >
-        <div className="flex items-center gap-1 tabular-nums text-muted">
-          {formatMinutes(startMin)}–{formatMinutes(endMin)}
-          {stand && <span className="truncate text-ink">· {stand}</span>}
-          {!stand && slot.publish_status === "published" && (
-            <span aria-label={labels.publishStatus.published} title={labels.publishStatus.published}>
-              ●
-            </span>
-          )}
-        </div>
-        <div className="truncate font-semibold text-ink">{title}</div>
-        {slot.speakers && slot.speakers.length > 0 && (
-          <div className="truncate text-muted">
-            {slot.speakers.map(speakerName).join(", ")}
-          </div>
+        className={cn(
+          "flex h-full flex-col overflow-hidden rounded-ct-md px-2 text-left",
+          kurz ? "justify-center" : "py-0.5",
         )}
+      >
+        {kurz ? (
+          <div className="flex min-w-0 items-center gap-1.5">
+            <span className="shrink-0 tabular-nums">{formatMinutes(startMin)}</span>
+            <span className={cn("truncate font-semibold", stil.durchgestrichen && "line-through")}>{title}</span>
+            {stand && <span className="shrink-0">· {stand}</span>}
+            {veroeffentlicht && <Veroeffentlicht label={labels.publishStatus.published} />}
+          </div>
+        ) : (
+          <>
+            {/* Zeit · Format, wie die Vorlage „Kategorie · Nummer“ über dem
+                Titel; in der Partner-Sicht steht dort der Stand. */}
+            <div className="flex min-w-0 items-center gap-1.5 tabular-nums">
+              <span className="shrink-0">
+                {formatMinutes(startMin)}–{formatMinutes(endMin)}
+              </span>
+              {(stand ?? format) && <span className="truncate">· {stand ?? format}</span>}
+              {veroeffentlicht && <Veroeffentlicht label={labels.publishStatus.published} className="ml-auto" />}
+            </div>
+            <div
+              className={cn(
+                "ct-label",
+                titelZweizeilig ? "line-clamp-2" : "truncate",
+                stil.durchgestrichen && "line-through",
+              )}
+            >
+              {title}
+            </div>
+            {mitNamen && <div className="truncate">{namen}</div>}
+          </>
+        )}
+        {wort && <span className="sr-only">{wort}</span>}
       </div>
       {/* LEAD-052: der Griff am unteren Rand ist sichtbar, sobald man über der
           Karte ist — vorher war er eine unsichtbare Zwei-Pixel-Kante. */}
@@ -1203,6 +1275,29 @@ function SlotCard({
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * „Veröffentlicht“ als Zeichen: Haken im Kreis in der Schriftfarbe der Karte.
+ * Vorher ein Punkt „●“ — Farbe ohne Form, und auf der vollen Akzentfläche
+ * kaum zu sehen (LEAD-017). Das Wort steht als Name und als Tooltip.
+ */
+function Veroeffentlicht({ label, className }: { label: string; className?: string }) {
+  return (
+    <svg
+      role="img"
+      aria-label={label}
+      viewBox="0 0 16 16"
+      className={cn("size-4 shrink-0", className)}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    >
+      <title>{label}</title>
+      <circle cx="8" cy="8" r="6.25" />
+      <path d="M5.25 8.25 7.25 10.25 10.75 6" />
+    </svg>
   );
 }
 
@@ -1236,7 +1331,13 @@ function BacklogChip({
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === "Enter") onOpen();
+          // Enter und Leertaste wie bei einem Knopf — `role="button"`
+          // verspricht beides (QS-014, Web Interface Guidelines); vorher
+          // reagierte die Karte nur auf Enter, die Leertaste scrollte die Seite.
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpen();
+          }
         }}
         className={cn(
           "inline-flex items-center gap-2 rounded-ct-md border px-2.5 py-1.5 ct-help",
