@@ -10,8 +10,12 @@ cleanup() { cd "$R"; git worktree remove --force "$T" >/dev/null 2>&1 || true; g
 trap cleanup EXIT
 cd "$R"; git fetch -q origin "$BR"
 git worktree add -q "$T" "origin/$BR"
+SHA="$(git rev-parse --short "origin/$BR")"
 [ -f "$R/.env.local" ] && cp "$R/.env.local" "$T/.env.local"
 cd "$T"
+# Geprüft wird, was landen würde: der Branch zusammengeführt mit main (26.09.2026 — nach 0209 war ein Test auf main rot,
+# und jeder Branch ohne den Fix fiel im Gate durch, obwohl der Merge ihn bekommen hätte). Konflikt = rot.
+git merge --no-edit -q origin/main >/dev/null 2>&1 || { echo "merge mit main: KONFLIKT"; git diff --name-only --diff-filter=U; exit 1; }
 # Repo-Hygiene vor allem anderen: Finder-/Sync-Duplikate („name 2.sql“) und Migrationsdateien ohne Server-Version
 # dürfen nie auf main landen — beides bricht die Reproduktion aus dem Repo (14.09.2026).
 dups="$(git ls-files | grep -E ' [0-9]+\.[A-Za-z0-9]+$' || true)"
@@ -39,4 +43,4 @@ npx tsc --noEmit >/dev/null 2>&1 && echo "tsc: ok" || { echo "tsc: FEHLER"; npx 
 out="$(npm test 2>&1 || true)"; echo "$out" | grep -E "tests |pass |fail " | tr -s ' ' | tr '\n' ' '; echo
 echo "$out" | grep -qE "fail 0" || { echo "test: FEHLER"; echo "$out" | tail -20; exit 1; }
 npm run build >/dev/null 2>&1 && echo "build: ok" || { echo "build: FEHLER"; npm run build 2>&1 | grep -E -A6 "Build error|Error" | head -30; exit 1; }
-echo "GATE GRÜN ($BR @ $(git rev-parse --short HEAD))"
+echo "GATE GRÜN ($BR @ $SHA)"
