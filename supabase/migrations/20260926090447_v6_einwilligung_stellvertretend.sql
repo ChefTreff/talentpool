@@ -1,4 +1,5 @@
--- 00NN · SPK-074 (K-40): Einwilligungen im Verwaltet-Fall stellvertretend bestätigen
+-- 0215 · Einwilligungen im Verwaltet-Fall stellvertretend durch den Kontakt, protokolliert (SPK-074, K-40)
+-- Angewendet von der Architektur-Session am 26.09.2026 als 20260926090447.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
