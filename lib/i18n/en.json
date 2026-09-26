@@ -1202,7 +1202,7 @@
     "merchType_textarea": "Multi-line",
     "net": "net",
     "no": "no",
-    "noAccessBody": "The partner admin is for admins and the partner area lead. If you should work here, Konrad will grant the role.",
+    "noAccessBody": "The partner admin is for admins and the partner team. If you should work here, Konrad will grant the role.",
     "noAccessTitle": "This area belongs to the partner team",
     "noEditionBody": "Without an edition there is nothing to show. Create an edition first.",
     "noEditionTitle": "No edition set up",
@@ -3232,7 +3232,7 @@
         "title": "Complete your profile"
       },
       {
-        "body": "Best through the partner portal under “Contacts”. You can also add team members directly in the app — but only once they have personalised a ticket to their email address.",
+        "body": "Best through the partner portal under “Contacts”: we create these team members through the interface, and the contacts they scan go to your company profile automatically. You can also add team members directly in the app — but only once they have personalised a ticket to their email address, and they have to turn on contact sharing themselves (step 4).",
         "key": "team",
         "title": "Add your team"
       },
@@ -3242,7 +3242,7 @@
         "title": "Complete your colleagues’ profiles"
       },
       {
-        "body": "Important: in each profile, make sure contacts are shared with the team. Otherwise you will not be able to access your leads afterwards. The wiki explains how.",
+        "body": "Important: Team members added under “Contacts” in the partner portal are created through the interface — they share scanned contacts with your company profile automatically. Anyone added directly in the app has to turn on sharing contacts with the team in their own profile. Otherwise you will not be able to access those leads afterwards. The wiki explains how.",
         "important": true,
         "key": "leads_teilen",
         "title": "Turn on contact sharing"
@@ -3262,6 +3262,8 @@
     "stepsLead": "{done} of {total} done",
     "stepsTitle": "What to do in the app",
     "title": "Event app",
+    "videoPending": "We record the video guide in November and will add it here. Until then, the wiki has everything you need.",
+    "videoSectionTitle": "Video guide",
     "videoTitle": "How to set up your presence",
     "wikiHint": "More in the wiki under Event app"
   },
@@ -3502,7 +3504,15 @@
     "emptyTitle": "The shop is not open yet",
     "fieldRequired": "Please fill this in.",
     "gross": "Gross",
+    "guideBody": "The wiki explains how ordering, deadlines and delivery work. The partner team is happy to help with any questions.",
+    "guideTitle": "Guide & support",
+    "guideVideo": "Watch the video guide",
+    "guideVideoTitle": "How to order in the exhibitor shop",
+    "guideWiki": "Open the wiki",
     "inCart": "in cart",
+    "introBody": "In a few minutes, the video shows you how to order and by when. You can find it later at the bottom of every shop page under “Guide & support”.",
+    "introStart": "Let’s go",
+    "introTitle": "Welcome to the exhibitor shop",
     "invoiceConfirm": "These invoice details are correct.",
     "invoiceConfirmFirst": "Confirm the invoice details, then you can order.",
     "invoiceEdit": "Change invoice details (under “Your data”)",
@@ -5209,6 +5219,10 @@
     "edit": "Edit",
     "empty": "No video added yet",
     "emptyBody": "Add one and embed it on a page through its key.",
+    "expectedLead": "If a link is missing, the page leaves the video out or says when it is coming. Add it with exactly this key and the page’s audience.",
+    "expectedMissing": "Link missing",
+    "expectedSet": "Video set",
+    "expectedTitle": "Keys that pages embed",
     "fieldAudience": "Audiences",
     "fieldAudienceHint": "Comma separated: partner, speaker, talent, volunteer, hackathon.",
     "fieldEdition": "Edition",
