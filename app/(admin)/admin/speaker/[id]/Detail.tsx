@@ -735,16 +735,20 @@ export function SpeakerDetailView({
           </div>
         <Card id="reise">
           <CardHeader title={t.travelTitle} description={t.travelHint} />
-          {speaker.travel ? (
+          <div className="flex flex-col gap-3">
+            {!speaker.travel && <p className="ct-small text-muted">{t.noTravel}</p>}
             <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
-              <Zeile label={t.arrival} value={reise(speaker.travel.arrival_date, speaker.travel.arrival_time, speaker.travel.arrival_mode, speaker.travel.arrival_ref, labels.travelMode, datum, common.none)} />
-              <Zeile label={t.departure} value={reise(speaker.travel.departure_date, speaker.travel.departure_time, speaker.travel.departure_mode, speaker.travel.departure_ref, labels.travelMode, datum, common.none)} />
-              <Zeile label={t.pickup} value={speaker.travel.needs_pickup ? t.yes : t.no} />
-              <Zeile label={t.travelNote} value={speaker.travel.note ?? common.none} />
+              {speaker.travel && (
+                <>
+                  <Zeile label={t.arrival} value={reise(speaker.travel.arrival_date, speaker.travel.arrival_time, speaker.travel.arrival_mode, speaker.travel.arrival_ref, labels.travelMode, datum, common.none)} />
+                  <Zeile label={t.departure} value={reise(speaker.travel.departure_date, speaker.travel.departure_time, speaker.travel.departure_mode, speaker.travel.departure_ref, labels.travelMode, datum, common.none)} />
+                </>
+              )}
+              {/* SPK-069: was gebucht ist, statt des alten Abhol-Hakens — auch ohne eingetragene Anreise. */}
+              <Zeile label={t.shuttle} value={shuttleStand(speaker.shuttle, t)} />
+              {speaker.travel && <Zeile label={t.travelNote} value={speaker.travel.note ?? common.none} />}
             </dl>
-          ) : (
-            <p className="ct-small text-muted">{t.noTravel}</p>
-          )}
+          </div>
         </Card>
 
         <Card id="sessions">
@@ -839,6 +843,18 @@ function reise(
   ]
     .filter(Boolean)
     .join(" · ");
+}
+
+/**
+ * Shuttle-Stand (SPK-069) in derselben Reihenfolge wie die Anreise-Liste:
+ * erst, was bestätigt ist, dann, was noch offen ist — nur, was es gibt.
+ */
+function shuttleStand(s: { requested: number; confirmed: number } | undefined, t: Strings): string {
+  const teile = [
+    s && s.confirmed > 0 ? t.shuttleConfirmed.replace("{n}", String(s.confirmed)) : null,
+    s && s.requested > 0 ? t.shuttleRequested.replace("{n}", String(s.requested)) : null,
+  ].filter(Boolean);
+  return teile.length > 0 ? teile.join(" · ") : t.shuttleNone;
 }
 
 /**
