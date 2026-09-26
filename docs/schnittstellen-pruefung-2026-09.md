@@ -164,6 +164,42 @@ Wer weder Kennung noch Nummer hat, steht **namentlich** im Lauf („Ohne Beleg g
 
 **Vorbedingung, heute noch offen:** `organization.customer_number` ist bei **0 von allen** Organisationen gefüllt — der HubSpot-Ingest mit `company_id` (0177) ist noch gegen keinen echten Deal gelaufen. Der Abruf findet deshalb aktuell nichts über die Nummer; er ist gebaut und geprüft, aber seine Datenquelle füllt sich erst mit dem ersten Ingest.
 
+## Swapcard · Der Import-Nachweis am Livekonto (K-38, 26.09.2026)
+
+Konrad hat es am 25.09. freigegeben. Gefahren mit `node --env-file=.env.local scripts/swapcard-import-nachweis.mjs` — **eine** Wegwerf-Person, gebaut wie der echte Lauf sie baut, mit einer Plus-Adresse von Konrad selbst; danach drüben gelöscht. Keine Massenübertragung.
+
+**Was ankam** (zurückgelesen, nicht behauptet):
+
+```
+Angelegt: RXZlbnRQZW9wbGVf… · created 1
+Zurückgelesen: ZZTEST K38-Nachweis · k…@chef-treff.de · Typ Speaker Pass
+               · Gruppen Speakers · clientIds zztest-k38-nachweis · sichtbar true
+userId (Konto): null — kein Konto angelegt
+```
+
+**Befund 9 — K-32 ist damit empirisch beantwortet: es entsteht kein Konto.** `EventPerson.userId` ist `null`. Ohne Konto gibt es nichts, wozu Swapcard einladen könnte; die Antwort aus der Schema-Prüfung („der Import verschickt nichts") ist am echten Eintrag bestätigt. Das gilt für `isUser: false` — für die Personen, die Swapcard als bestehende Nutzerinnen führt (Befund 7), bleibt es beim Ist-Zustand.
+
+**Befund 10 — `deleteEventPeople` braucht Unterfelder, und das kostete beinahe die Aufräumung.** Die naheliegende Form `deleteEventPeople(eventId, eventPeopleIds)` weist Swapcard ab („must have a selection of subfields"); richtig ist `{ eventPeopleDeleted }`. Beim ersten Lauf scheiterte deshalb genau der Schritt, der aufräumen sollte — der Eintrag stand im Livekonto, bis die Abfrage stimmte. Das Skript trägt die richtige Form jetzt fest; wer eine Löschung schreibt, prüft sie **vor** dem Anlegen.
+
+**Befund 11 — die Löschung wirkt am Event, nicht an der Community.** Ein zweiter Lauf mit derselben `clientId` meldete `created 0, updated 1` und **dieselbe Kennung** wie vorher. Swapcard führt hinter der `clientId` ein Community-Profil, das die Entfernung aus dem Event überlebt. Folge für den echten Lauf: Wer einmal entfernt und später wieder übertragen wird, zählt als **Änderung**, nicht als Neuanlage — `eventPeopleCreated` nennt ihn nicht. Der Lauf zählt ihn dann als „aktualisiert"; das ist richtig, sieht in einer Auswertung aber aus wie „war schon da".
+
+**Aufgeräumt, nachgeprüft:** `eventPeopleDeleted` bestätigt, Suche im Event 0 Treffer, `totalSpeakers: 0` — der Stand von vorher.
+
+## Swapcard · Keine Moderation ohne Profil (K-37, 26.09.2026)
+
+Konrad, 25.09.: Moderationen stehen nicht als Speaker in der Event-App; nimmt eine echte Panel-Moderation teil, wird die Person regulär als Speaker angelegt.
+
+Belegt mit `supabase/tests/k37_moderation_ohne_profil.sql` (`sh scripts/db.sh test …`, rollt zurück):
+
+| Schritt | Ergebnis |
+|---|---|
+| Vorbedingung: Person mit `session_speaker.role = 'moderator'`, **ohne** Profil | angelegt, `speaker_profile` vorhanden: false |
+| im Export | **0 Treffer** |
+| Export insgesamt | 4 Speaker, vorher 4 — unverändert |
+| Gegenprobe **mit** Profil | 1 Treffer |
+
+Die Gegenprobe ist der Punkt: ohne sie hiesse „0 Treffer" nur, dass der Export überhaupt niemanden findet.
+
 ## Offen
 
 - **Swapcard (EA3):** Slot → Swapcard mit Speaker- und Partner-IDs, Pflichtfelder, Reihenfolge Speaker anlegen → Kennung zurück → Slot. Noch nicht geprüft. Der Export als Datenquelle ist geprüft (siehe oben), der Import nach Swapcard nicht.
