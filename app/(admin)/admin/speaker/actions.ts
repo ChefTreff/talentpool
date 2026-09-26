@@ -33,7 +33,6 @@ function refresh(profileId?: string) {
   if (profileId) revalidatePath(`${PATH}/${profileId}`);
 }
 
-/** Alle Felder aus der Whitelist von `update_speaker`. */
 /** LEAD-029 (Admin-Vollständigkeit): das Profilfoto auch im Admin-Detail hochladen. */
 export async function registerSpeakerPhotoAsAdmin(input: FotoEingang): Promise<AdminResult> {
   const supabase = await client();
@@ -43,6 +42,7 @@ export async function registerSpeakerPhotoAsAdmin(input: FotoEingang): Promise<A
   return { ok: true, data: undefined };
 }
 
+/** Alle Felder aus der Whitelist von `update_speaker`. */
 export async function saveSpeaker(
   profileId: string,
   data: Record<string, unknown>,
