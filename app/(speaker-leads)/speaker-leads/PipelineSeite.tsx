@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { boardEvents } from "@/components/programme/events";
 import { PipelineView } from "./PipelineView";
+import { fotoTexte } from "@/components/speaker/foto-texte";
 import type { ManagedSpeaker, ManagerOption, ManagerScope, PipelineAnsicht } from "./types";
 
 /**
@@ -92,6 +93,7 @@ export async function PipelineSeite({ ansicht, path }: { ansicht: PipelineAnsich
           verlaufArten={vgroup(vocab, "speaker_activity_kind")}
           tv={t.speakerVerlauf}
           tg={t.speakerGast}
+          tf={fotoTexte(t.speaker)}
           locale={locale}
           dateLocale={t.meta.dateLocale}
           t={t.leads}

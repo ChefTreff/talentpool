@@ -16,6 +16,7 @@ import {
   approveTravelCosts,
   handoverSpeaker,
   inviteSpeaker,
+  registerSpeakerPhotoAsAdmin,
   removeSpeakerContact,
   saveSpeaker,
   saveSpeakerContact,
@@ -29,6 +30,7 @@ import {
 import { KontakteCard } from "@/components/speaker/KontakteCard";
 import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
 import { Verlauf } from "@/components/speaker/Verlauf";
+import { PhotoUpload } from "@/components/speaker/PhotoUpload";
 import {
   buehnenGeaendert,
   einordnungAenderungen,
@@ -76,6 +78,8 @@ const TONE: Record<string, BadgeTone> = {
 export function SpeakerDetailView({
   speaker,
   consents,
+  fotoUrl,
+  tf,
   managers,
   contacts,
   labels,
@@ -94,6 +98,10 @@ export function SpeakerDetailView({
   speaker: SpeakerDetail;
   /** SPK-074: Stand je Einwilligung, mit Namen bei stellvertretender Bestätigung. */
   consents: SpeakerConsentRow[];
+  /** LEAD-029: signierte Adresse des aktuellen Fotos, `null` ohne Foto. */
+  fotoUrl: string | null;
+  /** Foto-Texte, Auszug aus `speaker`. */
+  tf: Strings;
   managers: SpeakerManager[];
   contacts: ContactOption[];
   labels: Record<string, Record<string, string>>;
@@ -489,6 +497,16 @@ export function SpeakerDetailView({
           )}
         </Card>
 
+        {/* LEAD-029: das Foto wirkt sofort, also ins Handlungsband. */}
+        <PhotoUpload
+          profileId={speaker.id}
+          editionId={speaker.edition_id}
+          photoUrl={fotoUrl}
+          register={registerSpeakerPhotoAsAdmin}
+          ansicht="betreut"
+          t={tf}
+          rpcMessages={rpcMessages}
+        />
           </div>
         </section>
 
