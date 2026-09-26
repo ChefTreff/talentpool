@@ -1,3 +1,5 @@
+-- 0217 · Media Kit und Partnergrafik: Pflege im Admin (marketing_team), Partner lesen (PART-041, ADM-023)
+-- Angewendet von der Architektur-Session am 26.09.2026 als 20260926090609.
 -- Media Kit und Partnergrafik (PART-041, ADM-023)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
