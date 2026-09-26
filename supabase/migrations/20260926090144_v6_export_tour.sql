@@ -1,3 +1,5 @@
+-- 0212 · Company Tour: Export der Bewerbungen für den Partner eines Stopps (PART-051)
+-- Angewendet von der Architektur-Session am 26.09.2026 als 20260926090144.
 -- Company Tour: Export der Bewerbungen für den Partner eines Stopps (PART-051)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
