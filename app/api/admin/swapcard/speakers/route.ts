@@ -18,7 +18,8 @@ export const maxDuration = 300;
  * **Grundlage ist die Zusage** (Konrad, 22.09.2026): das Profil in der Event-App
  * wird mit ihr gegeben, also geht jedes bestätigte Profil hinaus. Zurückgehalten
  * wird nur, wer keinen vollständigen Namen hat, und der kommt namentlich zurück,
- * damit niemand unbemerkt fehlt. Das Profilfoto geht als öffentliche Kopie mit.
+ * damit niemand unbemerkt fehlt. Das Profilfoto geht als signierte Adresse mit
+ * (SPK-047: privater Bucket, sieben Tage); veraltete Kopien räumt der Echtlauf weg.
  */
 export async function POST(request: Request) {
   await requireAdminSection("speakers", "/admin/partner/integrationen");

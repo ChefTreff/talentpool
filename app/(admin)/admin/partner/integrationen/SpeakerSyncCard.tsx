@@ -11,6 +11,8 @@ type Antwort = {
   errors: number; refs: number; mitFoto: number; skipped?: string; error?: string;
   zurueckgehalten: { name: string; grund: "kein_name" }[];
   ohneFoto: string[];
+  /** SPK-047: entfernte (im Trockenlauf: zu entfernende) Fotokopien ohne Speaker in der App. */
+  fotosEntfernt?: number;
   alsNutzer: string[];
   runs: { name: string; outcome: string; detail?: string }[];
 };
@@ -112,6 +114,15 @@ export function SpeakerSyncCard({ t }: { t: Record<string, string> }) {
               </div>
               <p className="ct-help">{t.speakerNoPhotoHint}</p>
             </div>
+          )}
+
+          {(antwort.fotosEntfernt ?? 0) > 0 && (
+            <p className="ct-help">
+              {(antwort.dryRun ? t.speakerPhotosRemovedDry : t.speakerPhotosRemoved).replace(
+                "{n}",
+                String(antwort.fotosEntfernt),
+              )}
+            </p>
           )}
 
           {antwort.alsNutzer.length > 0 && (

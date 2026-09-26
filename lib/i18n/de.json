@@ -1298,6 +1298,8 @@
     "speakerHeld_kein_name": "Name fehlt",
     "speakerNoPhotoHint": "In der App bleibt bei ihnen der Platzhalter. Wer ein Foto hochlädt, ist beim nächsten Lauf dabei.",
     "speakerNoPhotoTitle": "Ohne Foto ({n})",
+    "speakerPhotosRemoved": "{n} alte Fotokopien entfernt — Absage, neues Foto oder gelöschtes Profil.",
+    "speakerPhotosRemovedDry": "Würde {n} alte Fotokopien entfernen — Absage, neues Foto oder gelöschtes Profil.",
     "speakerSyncConfirmBody": "{create} Personen werden angelegt, {update} geändert. {held} bleiben zurück.",
     "speakerSyncConfirmTitle": "Speaker übertragen?",
     "speakerSyncFailed": "Das hat nicht geklappt. Einzelheiten stehen im Server-Log.",

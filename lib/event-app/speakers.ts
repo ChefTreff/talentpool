@@ -1,7 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { importSpeakers, speakerGroupId } from "@/lib/event-app/swapcard/adapter";
-import { ensurePublicPhoto, publicPhotoUrl } from "@/lib/event-app/logos";
+import { entferneVeralteteFotos, photoUrlForApp } from "@/lib/event-app/logos";
+import { speakerPhotoPath } from "@/lib/event-app/mapping";
 
 /** Zeile aus `event_app_speakers()` (0136). */
 export type SpeakerRow = {
@@ -42,6 +43,11 @@ export type SpeakerSummary = {
   /** Ohne Profilfoto — in der App bleibt der Platzhalter. */
   ohneFoto: string[];
   /**
+   * SPK-047: Fotokopien entfernt, die zu keinem Speaker in der App mehr gehören
+   * (Absage, neue Fassung, gelöschtes Profil) — im Trockenlauf: würden entfernt.
+   */
+  fotosEntfernt: number;
+  /**
    * Als **bestehende** Nutzerinnen übertragen: Swapcard lässt `isUser: false`
    * nicht zu, wenn die Person dort schon zu einem Aussteller gehört. Ein neues
    * Konto entsteht dadurch nicht — aber der Lauf sagt, bei wem es so war,
@@ -53,6 +59,17 @@ export type SpeakerSummary = {
 };
 
 const name = (r: SpeakerRow) => `${(r.first_name ?? "").trim()} ${(r.last_name ?? "").trim()}`.trim();
+// Swapcard verlangt Vor- **und** Nachnamen.
+const vollerName = (r: SpeakerRow) => Boolean((r.first_name ?? "").trim() && (r.last_name ?? "").trim());
+
+/** Ordner (Edition-Kürzel), in denen aufgeräumt wird: die gewählte Edition, ohne Wahl alle. */
+async function fotoOrdner(admin: SupabaseClient, editionId: string | null, rows: SpeakerRow[]): Promise<string[] | null> {
+  if (!editionId) return null;
+  if (rows.length > 0) return [rows[0].edition_slug];
+  // Niemand mehr bestätigt: aufgeräumt wird trotzdem, das Kürzel kommt aus der Edition.
+  const { data } = await admin.from("event").select("slug").eq("id", editionId).maybeSingle();
+  return data?.slug ? [data.slug as string] : [];
+}
 
 /**
  * Bestätigte Speaker als Personen mit Speaker-Pass nach Swapcard (EA2).
@@ -72,9 +89,11 @@ const name = (r: SpeakerRow) => `${(r.first_name ?? "").trim()} ${(r.last_name ?
  * Der Pass-Typ ist `speaker-pass` (Wert aus `event.speakersTypes`, geprüft am
  * 22.09.2026); die Gruppe ist „Speakers". Im Trockenlauf gibt Swapcard — wie beim
  * Ausstellerlauf — nur Beanstandungen zurück, keine Kennungen: „keine Fehler"
- * heisst „alles gültig". **Kein Foto**: `speaker_asset` liegt im
- * privaten Bucket, und ob Personenfotos eine öffentliche Kopie bekommen wie die
- * Partnerlogos, ist eine Datenschutzentscheidung — offen, siehe Migrationskopf.
+ * heisst „alles gültig".
+ *
+ * **Foto** (SPK-047): als Kopie im privaten Bucket `speaker-photos`; Swapcard
+ * bekommt eine signierte Adresse mit sieben Tagen Laufzeit. Kopien, die zu
+ * keinem Speaker in der App mehr gehören, räumt jeder Echtlauf weg.
  */
 export async function syncSpeakers(opts: {
   admin: SupabaseClient;
@@ -85,13 +104,26 @@ export async function syncSpeakers(opts: {
   const { admin, dryRun } = opts;
   const out: SpeakerSummary = {
     dryRun, eventId: null, rows: 0, eligible: 0, create: 0, update: 0, errors: 0, refs: 0, mitFoto: 0,
-    zurueckgehalten: [], ohneFoto: [], alsNutzer: [], runs: [],
+    zurueckgehalten: [], ohneFoto: [], fotosEntfernt: 0, alsNutzer: [], runs: [],
   };
 
   const { data, error } = await admin.rpc("event_app_speakers", { p_edition_id: opts.editionId ?? null });
   if (error) throw new Error(`event_app_speakers: ${error.message}`);
   const rows = (data ?? []) as SpeakerRow[];
   out.rows = rows.length;
+
+  // SPK-047, der Weg hinaus — vor den Abbrüchen unten, damit auch ein Lauf ohne
+  // Schlüssel, ohne Event oder ohne Speaker aufräumt. Behalten wird genau, was
+  // dieser Lauf schickt.
+  const behalten = new Set(
+    rows.filter((r) => r.has_photo && vollerName(r)).map((r) => speakerPhotoPath(r)).filter((p): p is string => p !== null),
+  );
+  try {
+    out.fotosEntfernt = await entferneVeralteteFotos(admin, await fotoOrdner(admin, opts.editionId ?? null, rows), behalten, dryRun);
+  } catch (e) {
+    out.errors += 1;
+    out.runs.push({ name: "—", outcome: "foto_aufraeumen_fehler", detail: (e instanceof Error ? e.message : String(e)).slice(0, 200) });
+  }
   if (rows.length === 0) return out;
   if (!opts.hatSchluessel) return { ...out, skipped: "SWAPCARD_API_KEY fehlt – nichts übertragen" };
 
@@ -101,9 +133,9 @@ export async function syncSpeakers(opts: {
 
   const gehen: SpeakerRow[] = [];
   for (const r of rows) {
-    // Swapcard verlangt Vor- **und** Nachnamen. Eine Person ohne beides würde
-    // drüben als Fehler zurückkommen; hier steht sie mit Grund in der Liste.
-    if (!(r.first_name ?? "").trim() || !(r.last_name ?? "").trim()) {
+    // Eine Person ohne Vor- und Nachnamen würde drüben als Fehler
+    // zurückkommen; hier steht sie mit Grund in der Liste.
+    if (!vollerName(r)) {
       out.zurueckgehalten.push({ name: name(r) || r.person_id, grund: "kein_name" });
       continue;
     }
@@ -116,14 +148,14 @@ export async function syncSpeakers(opts: {
 
   const gruppe = await speakerGroupId(eventId);
 
-  // Im Echtlauf zuerst die öffentliche Kopie anlegen, dann schicken — sonst
-  // zeigte die App auf eine Adresse, unter der noch nichts liegt. Im Trockenlauf
-  // zählt die Adresse, unter der sie liegen wird.
+  // Im Echtlauf zuerst die Kopie anlegen, dann signieren und schicken — sonst
+  // holte Swapcard eine Adresse, unter der noch nichts liegt. Im Trockenlauf
+  // wird nur signiert, was schon liegt.
   const fotoUrl = new Map<string, string>();
   for (const r of gehen) {
     if (!r.has_photo) continue;
     try {
-      const url = dryRun ? publicPhotoUrl(admin, r) : await ensurePublicPhoto(admin, r);
+      const url = await photoUrlForApp(admin, r, dryRun);
       if (url) fotoUrl.set(r.person_id, url);
     } catch (e) {
       out.errors += 1;
