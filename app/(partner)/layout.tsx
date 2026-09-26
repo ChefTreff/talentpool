@@ -51,9 +51,9 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     }),
   );
 
-  // Was in diesem Baustein schon existiert. Der Rest steht in `visibleNavKeys`
-  // bereit und wird hier freigeschaltet, sobald die Seite dazukommt — deshalb
-  // fehlt das Media Kit hier noch (PART-041, Baustein B10).
+  // Was schon existiert. Neue Punkte stehen in `visibleNavKeys` bereit und
+  // werden hier freigeschaltet, sobald die Seite dazukommt — zuletzt das Media
+  // Kit (PART-041).
   const PAGES: Partial<Record<PartnerNavKey, { href: string; label: string }>> = {
     dashboard: { href: "/partner", label: t.partner.navDashboard },
     onboarding: { href: "/partner/onboarding", label: t.partner.navCompany },
@@ -72,6 +72,7 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
     interview_table: { href: "/partner/interview-tables", label: t.partner.navInterviewTables },
     stage: { href: "/partner/buehne", label: t.partner.navStage },
     shop: { href: "/partner/shop", label: t.partner.navShop },
+    media: { href: "/partner/media", label: t.partner.navMedia },
     wiki: { href: "/partner/wiki", label: t.partner.navWiki },
   };
 
