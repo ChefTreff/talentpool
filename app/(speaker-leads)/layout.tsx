@@ -24,7 +24,10 @@ export default async function SpeakerLeadsLayout({ children }: { children: React
         {
           label: "",
           items: [
-            { href: "/speaker-leads", label: t.leads.navPipeline },
+            // Übersicht als Startseite wie in den anderen Portalen (LEAD-024);
+            // die Pipeline steht seitdem unter /speaker-leads/pipeline.
+            { href: "/speaker-leads", label: t.leads.navOverview },
+            { href: "/speaker-leads/pipeline", label: t.leads.navPipeline },
             { href: "/speaker-leads/bestaetigt", label: t.leads.navConfirmed },
             { href: "/speaker-leads/anreise", label: t.leads.navTravel },
             { href: "/speaker-leads/shuttle", label: t.leads.navShuttle },

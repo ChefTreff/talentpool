@@ -367,7 +367,8 @@ Wer im Namen eines anderen arbeitet (Assistenz), wird nicht mit dessen Vornamen 
 | Partner | Side-Event | Einladung / Invitation |
 | Partner | Interview Tables | Gespräche / Conversations |
 | Partner | Standbühne | Programm / Programme |
-| Speaker-Leads | Pipeline | Line-up / Line-up |
+| Speaker-Leads | Startseite (Leerzustand), Pipeline | Line-up / Line-up |
+| Speaker-Leads | Bestätigte Speaker | Onboarding / Onboarding |
 | Speaker-Leads | An- und Abreise | Unterwegs / Journey |
 | Speaker-Leads | Shuttle | Transfer / Transfer |
 | Speaker-Leads | Programm-Board (auch Tabelle) | Programm / Programme |

@@ -29,7 +29,9 @@ async function client() {
 }
 
 function refresh() {
+  // Übersicht (Wurzel, LEAD-024) und Pipeline zeigen dieselben Zahlen.
   revalidatePath(PATH);
+  revalidatePath(`${PATH}/pipeline`);
 }
 
 export type NewSpeaker = {
