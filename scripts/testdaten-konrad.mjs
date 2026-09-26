@@ -58,6 +58,9 @@
  *                                   vom Hackathon aufs Summit, nichts gelöscht)
  *   … --apply --nur=ticket-zurueck (SPK-068: Freiticket zurueck auf `requested`,
  *                                   damit das Ausstellen im Admin pruefbar ist)
+ *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
+ *                                   Speaker-Profil, angefragt und bestätigt — für
+ *                                   die Abzeichen in der Anreise; ohne Mail)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -2149,6 +2152,48 @@ async function zugangTestperson(me, ed) {
   await role(personId, "volunteers_team", "global", null, ed.id, validTo);
 }
 
+/**
+ * SPK-069: zwei TEST-Shuttle-Fahrten an Konrads eigenem Speaker-Profil — eine
+ * angefragt (Anreise am ersten Summit-Tag), eine bestätigt (Abreise am letzten).
+ * Erst damit zeigen `/admin/anreise` und `/speaker-leads/anreise` die Abzeichen
+ * „Shuttle angefragt“ und „Shuttle bestätigt“ samt Filter, und das Admin-Detail
+ * (`/admin/speaker/<id>`, Abschnitt Anreise) den Shuttle-Stand. Direkt
+ * geschrieben, nicht über `request_shuttle`: so geht keine Mail an den
+ * Fahrdienst. Erkennbar an `note = testdaten:konrad`; `--remove` nimmt sie weg.
+ */
+async function shuttleFahrten(me, ed) {
+  const { data: sp } = await admin.from("speaker_profile").select("id")
+    .eq("person_id", me.id).eq("edition_id", ed.id).maybeSingle();
+  if (!sp) return fail("Shuttle-Fahrten", "kein Speaker-Profil — zuerst ein volles --apply");
+  const tage = (await summit(ed))?.tage ?? [];
+  if (tage.length === 0) return fail("Shuttle-Fahrten", "kein Summit mit Tagen");
+  const name = `${PREFIX}${[me.first_name, me.last_name].filter(Boolean).join(" ") || "Konrad"}`;
+  const fahrten = [
+    { tag: tage[0], um: "09:30", von: "Hamburg Hbf", nach: "Messe Hamburg", status: "requested" },
+    { tag: tage[tage.length - 1], um: "18:30", von: "Messe Hamburg", nach: "Flughafen Hamburg", status: "confirmed" },
+  ];
+  for (const f of fahrten) {
+    // Ortszeit Hamburg im April: UTC+2.
+    const abholung = new Date(`${f.tag.day_date}T${f.um}:00+02:00`).toISOString();
+    await write(`Shuttle ${f.tag.day_date} ${f.um} (${f.status})`, async () => {
+      // Am Abholort wiederfinden: ein zweiter Lauf zieht Zeit und Status nach.
+      const { data: da } = await admin.from("shuttle_booking").select("id, status")
+        .eq("profile_id", sp.id).eq("note", MARK).eq("pickup_location", f.von).maybeSingle();
+      const zeile = {
+        passenger_name: name, passengers: 1, pickup_at: abholung,
+        pickup_location: f.von, dropoff_location: f.nach, status: f.status, cancelled_at: null,
+      };
+      // Bestätigt wie über `confirm_shuttle`: mit wem und wann — beim Nachziehen bleibt beides.
+      const bestaetigt = f.status === "confirmed" && da?.status !== "confirmed"
+        ? { confirmed_by: me.id, confirmed_at: new Date().toISOString() } : {};
+      if (f.status !== "confirmed") Object.assign(bestaetigt, { confirmed_by: null, confirmed_at: null });
+      return da
+        ? admin.from("shuttle_booking").update({ ...zeile, ...bestaetigt }).eq("id", da.id)
+        : admin.from("shuttle_booking").insert({ ...zeile, ...bestaetigt, profile_id: sp.id, note: MARK, created_by: me.id });
+    });
+  }
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
@@ -2160,6 +2205,7 @@ const SCHRITTE = {
   ticket: speakerTicket,
   fotos: stagePhotos,
   "ticket-zurueck": ticketZurueck,
+  shuttle: shuttleFahrten,
   buehne: stageLeadBuehne,
   standstatus: standStatus,
   verwaltet: verwalteterSpeaker,
@@ -2376,6 +2422,11 @@ async function remove(me) {
     }
     return admin.from("ticket").delete().in("speaker_profile_id", ids).is("vivenu_ticket_id", null);
   });
+  // SPK-069: hängen per `on delete cascade` am Profil — ausdrücklich, falls das
+  // Profil ohne Kennzeichnung stehen bleibt.
+  await write("TEST-Shuttle-Fahrten entfernt", () =>
+    admin.from("shuttle_booking").delete().eq("note", MARK),
+  );
   await write("Speaker-Profil entfernt", () =>
     admin.from("speaker_profile").delete().eq("person_id", me.id).eq("internal_notes", MARK),
   );

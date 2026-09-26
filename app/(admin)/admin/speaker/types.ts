@@ -86,9 +86,10 @@ export type SpeakerDetail = Einordnung & {
     departure_time: string | null;
     departure_mode: string | null;
     departure_ref: string | null;
-    needs_pickup: boolean;
     note: string | null;
   } | null;
+  /** SPK-069: nicht stornierte Shuttle-Fahrten (fehlt vor der Migration). */
+  shuttle?: { requested: number; confirmed: number };
   sessions: DetailSession[];
   /**
    * `false` heisst: es gibt vielleicht eine Notiz, du siehst sie nur nicht.
