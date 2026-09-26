@@ -1,4 +1,5 @@
--- 00NN · SPK-047: Bucket `speaker-photos` privat (Security-Check F2)
+-- 0213 · Speaker-Fotos privat, Swapcard mit befristeten signierten Adressen (SPK-047)
+-- Angewendet von der Architektur-Session am 26.09.2026 als 20260926090200.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.
