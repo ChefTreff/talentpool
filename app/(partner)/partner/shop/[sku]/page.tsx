@@ -69,7 +69,9 @@ export default async function ShopProductPage({
             <img
               src={image.url}
               alt=""
-              className="w-full rounded-ct-sm object-cover sm:w-70"
+              // Feste Form (4:3), damit der Text beim Laden des Bilds nicht
+              // springt (QS-014, Web Interface Guidelines „Images“).
+              className="aspect-4/3 w-full rounded-ct-sm object-cover sm:w-70"
             />
           )}
           <div className="min-w-0 flex-1">

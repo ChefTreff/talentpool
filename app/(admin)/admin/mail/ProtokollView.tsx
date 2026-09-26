@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { Drawer } from "@/components/ui/Drawer";
@@ -213,9 +213,11 @@ export function ProtokollView({
         <div className="mt-3 flex items-center gap-3">
           <span className="ct-help text-muted">{t.count.replace("{n}", String(gesamt))}</span>
           {gefiltert && (
-            <Button size="sm" variant="ghost" onClick={() => router.push(pfad)}>
+            // Ein Link, kein Knopf: Zurücksetzen heißt „zur Seite ohne Filter“ —
+            // so geht auch Strg-/Cmd-Klick (QS-014, Web Interface Guidelines).
+            <ButtonLink href={pfad} size="sm" variant="ghost">
               {t.reset}
-            </Button>
+            </ButtonLink>
           )}
         </div>
       </Card>

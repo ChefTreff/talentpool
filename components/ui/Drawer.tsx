@@ -67,7 +67,9 @@ export function Drawer({
           {closeLabel}
         </button>
       </header>
-      <div className="flex-1 overflow-y-auto px-6 py-6">{children}</div>
+      {/* `overscroll-contain`: am Ende des Schubfachs scrollt nicht die Seite
+          dahinter weiter (QS-014, Web Interface Guidelines „Touch“). */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6">{children}</div>
       {error && (
         <p
           role="alert"
