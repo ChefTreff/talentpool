@@ -21,6 +21,19 @@ export type DetailSession = {
  * Antwort aus `speaker_detail()`. Die Einordnung (LEAD-039) kommt über
  * `Einordnung` dazu — dieselben Schlüssel wie in `manager_speakers`.
  */
+/**
+ * SPK-074 (K-40): letzter Stand je Einwilligung aus `speaker_consents_admin`
+ * (nur Team). `by_name` steht nur bei stellvertretender Bestätigung.
+ */
+export type SpeakerConsentRow = {
+  consent_type: string;
+  granted: boolean;
+  version: string;
+  granted_at: string;
+  source: string;
+  by_name: string | null;
+};
+
 export type SpeakerDetail = Einordnung & {
   /** Gast eines Partners (0188, SPK-070) — keine Einladung, kein Onboarding. */
   stage_guest?: boolean;

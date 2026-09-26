@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireArea } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { consentRowsToWrite, type ConsentState } from "@/lib/consent";
+import { CONSENT_VERSION, consentRowsToWrite, type ConsentState } from "@/lib/consent";
 import { toRpcFailure } from "@/lib/rpc-error";
 
 /**
@@ -97,6 +97,28 @@ export async function saveSpeakerConsents(
     const { error } = await supabase.from("consent_record").insert(rows);
     if (error) return fail(error);
   }
+  refresh();
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Stellvertretend bestätigen (SPK-074, K-40): im Verwaltet-Fall gibt der
+ * Kontakt mit Zugang Foto-, Veröffentlichungs- und Folien-Einwilligung für die
+ * Speakerin. Nicht über `consent_record` direkt — dort gehen nur eigene Zeilen
+ * —, sondern über die RPC: sie prüft Verwaltet-Fall, Kontakt und Art und
+ * protokolliert, wer wann für wen bestätigt hat.
+ */
+export async function saveSpeakerConsentsOnBehalf(
+  profileId: string,
+  consents: Record<string, boolean>,
+): Promise<SpeakerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("record_speaker_consent_on_behalf", {
+    p_profile_id: profileId,
+    p_consents: consents,
+    p_version: CONSENT_VERSION,
+  });
+  if (error) return fail(error);
   refresh();
   return { ok: true, data: undefined };
 }

@@ -4,7 +4,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { SpeakerDetailView } from "./Detail";
-import type { ContactOption, SpeakerDetail, SpeakerManager } from "../types";
+import type { ContactOption, SpeakerConsentRow, SpeakerDetail, SpeakerManager } from "../types";
 import { boardEvents } from "@/components/programme/events";
 
 export const dynamic = "force-dynamic";
@@ -32,13 +32,15 @@ export default async function AdminSpeakerDetail({
   if (error || !data) notFound();
   const speaker = data as SpeakerDetail;
 
-  const [{ data: managers }, { data: contacts }, vocab, events] = await Promise.all([
+  const [{ data: managers }, { data: contacts }, vocab, events, { data: consentRows }] = await Promise.all([
     supabase.rpc("speaker_managers"),
     supabase.rpc("edition_contacts_admin", { p_edition_id: speaker.edition_id }),
     loadVocabMap(supabase, locale),
     // Bühnen in Frage (LEAD-039): die Bühnen des Summits dieser Edition —
     // dieselbe Auswahl wie im Board (`boardEvents`, LEAD-014).
     boardEvents(supabase, [speaker.edition_id]),
+    // SPK-074: Einwilligungen mit Quelle — wer stellvertretend bestätigt hat.
+    supabase.rpc("speaker_consents_admin", { p_profile_id: id }),
   ]);
   const { data: stageRows } = events.length
     ? await supabase
@@ -52,6 +54,7 @@ export default async function AdminSpeakerDetail({
   return (
     <SpeakerDetailView
       speaker={speaker}
+      consents={(consentRows ?? []) as SpeakerConsentRow[]}
       managers={(managers ?? []) as SpeakerManager[]}
       contacts={(contacts ?? []) as ContactOption[]}
       labels={{

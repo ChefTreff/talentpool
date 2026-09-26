@@ -38,9 +38,13 @@ export default async function SpeakerProfilPage() {
   // leeres Formular und würde beim Speichern eine hinterlegte Allergie
   // löschen. Deshalb wird sie für sie gar nicht erst geladen.
   const zeigtDiet = !profile.is_assistant;
-  const [{ data: dietJson }, vocab] = await Promise.all([
+  const [{ data: dietJson }, vocab, { data: stellvertretend }] = await Promise.all([
     zeigtDiet ? supabase.rpc("my_diet") : Promise.resolve({ data: null }),
     loadVocabMap(supabase, locale),
+    // SPK-074 (K-40): im Verwaltet-Fall bestätigt der Kontakt mit Zugang stellvertretend.
+    profile.is_assistant
+      ? supabase.rpc("can_confirm_consent_on_behalf", { p_profile_id: profile.id })
+      : Promise.resolve({ data: false }),
   ]);
   const diet = (dietJson ?? null) as { diet: string | null; diet_note: string | null } | null;
 
@@ -93,6 +97,7 @@ export default async function SpeakerProfilPage() {
       </div>
       <SpeakerProfileForm
         profile={profile}
+        consentOnBehalf={stellvertretend === true}
         t={t.speaker}
         common={{
           cancel: t.common.cancel,
