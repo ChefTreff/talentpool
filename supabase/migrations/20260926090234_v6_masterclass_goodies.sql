@@ -1,3 +1,5 @@
+-- 0214 · Masterclass: Goodies-Frage als Formatdetail (PART-054)
+-- Angewendet von der Architektur-Session am 26.09.2026 als 20260926090234.
 -- Masterclass: Goodies einsenden ja/nein (PART-054)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
