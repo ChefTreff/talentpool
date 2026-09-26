@@ -29,11 +29,16 @@ export type TravelRow = {
   departure_time: string | null;
   departure_mode: string | null;
   departure_ref: string | null;
-  needs_pickup: boolean;
   note: string | null;
   hotel_label: string | null;
   updated_at: string | null;
+  /** SPK-069: nicht stornierte Shuttle-Fahrten — ersetzt den alten Abhol-Haken. */
+  shuttle_requested: number;
+  shuttle_confirmed: number;
 };
+
+/** Wie in der Shuttle-Verwaltung: angefragt ist offen, bestätigt ist erledigt. */
+const SHUTTLE_TONE = { requested: "accent", confirmed: "success" } as const;
 
 /**
  * Wer kommt wann. Dieselbe Liste für die Lead-Person und für den
@@ -46,6 +51,9 @@ export type TravelRow = {
  *
  * Standard ist **nach Ankunft sortiert**: das ist die Frage, mit der man auf
  * diese Seite kommt.
+ *
+ * Shuttle (SPK-069): Speaker setzen seit SPK-058 keinen Abhol-Haken mehr, sie
+ * buchen die Fahrt. Die Spalte zeigt deshalb, was gebucht ist.
  */
 export function TravelList({
   rows,
@@ -64,7 +72,7 @@ export function TravelList({
 }) {
   const [tag, setTag] = useState("");
   const [mittel, setMittel] = useState("");
-  const [nurAbholung, setNurAbholung] = useState(false);
+  const [nurShuttle, setNurShuttle] = useState(false);
   const [nurOffen, setNurOffen] = useState(false);
   const [suche, setSuche] = useState("");
 
@@ -83,13 +91,15 @@ export function TravelList({
 
   const name = (r: TravelRow) =>
     [r.first_name, r.last_name].filter(Boolean).join(" ") || "—";
+  // `?? 0`: vor der Migration fehlen die Spalten — dann eben keine Fahrten.
+  const fahrten = (r: TravelRow) => (r.shuttle_requested ?? 0) + (r.shuttle_confirmed ?? 0);
 
   const gefiltert = useMemo(() => {
     const q = suche.trim().toLowerCase();
     return rows.filter((r) => {
       if (tag && r.arrival_date !== tag && r.departure_date !== tag) return false;
       if (mittel && r.arrival_mode !== mittel && r.departure_mode !== mittel) return false;
-      if (nurAbholung && !r.needs_pickup) return false;
+      if (nurShuttle && fahrten(r) === 0) return false;
       // „Noch offen" heisst: kein Ankunftstag eingetragen. Das ist die Liste,
       // hinter der man hinterhertelefoniert.
       if (nurOffen && r.arrival_date !== null) return false;
@@ -102,7 +112,7 @@ export function TravelList({
       }
       return true;
     });
-  }, [rows, tag, mittel, nurAbholung, nurOffen, suche]);
+  }, [rows, tag, mittel, nurShuttle, nurOffen, suche]);
 
   const offen = rows.filter((r) => r.arrival_date === null).length;
   const zeit = (v: string | null) => (v ? v.slice(0, 5) : null);
@@ -146,10 +156,10 @@ export function TravelList({
             <input
               type="checkbox"
               className="h-5 w-5"
-              checked={nurAbholung}
-              onChange={(e) => setNurAbholung(e.target.checked)}
+              checked={nurShuttle}
+              onChange={(e) => setNurShuttle(e.target.checked)}
             />
-            <span className="ct-small">{t.onlyPickup}</span>
+            <span className="ct-small">{t.onlyShuttle}</span>
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -172,12 +182,13 @@ export function TravelList({
       ) : (
         <Card className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-225 border-collapse">
+            <table className="w-full min-w-250 border-collapse">
               <thead>
                 <tr className="border-b">
                   <th scope="col" className="ct-label px-4 py-2.5 text-left text-muted">{t.colPerson}</th>
                   <th scope="col" className="ct-label px-4 py-2.5 text-left text-muted">{t.colArrival}</th>
                   <th scope="col" className="ct-label px-4 py-2.5 text-left text-muted">{t.colDeparture}</th>
+                  <th scope="col" className="ct-label px-4 py-2.5 text-left text-muted">{t.colShuttle}</th>
                   <th scope="col" className="ct-label px-4 py-2.5 text-left text-muted">{t.colHotel}</th>
                   <th scope="col" className="ct-label px-4 py-2.5 text-left text-muted">{t.colOwner}</th>
                 </tr>
@@ -216,11 +227,6 @@ export function TravelList({
                               .filter(Boolean)
                               .join(" · ") || "—"}
                           </span>
-                          {r.needs_pickup && (
-                            <span className="mt-1 inline-block">
-                              <Badge tone="accent">{t.pickup}</Badge>
-                            </span>
-                          )}
                         </>
                       ) : (
                         <span className="ct-help">{t.notYet}</span>
@@ -241,6 +247,24 @@ export function TravelList({
                         </>
                       ) : (
                         <span className="ct-help">{t.notYet}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {fahrten(r) === 0 ? (
+                        <span className="ct-small text-muted">{common.none}</span>
+                      ) : (
+                        <span className="flex flex-wrap gap-1">
+                          {(r.shuttle_confirmed ?? 0) > 0 && (
+                            <Badge tone={SHUTTLE_TONE.confirmed}>
+                              {t.shuttleConfirmed.replace("{n}", String(r.shuttle_confirmed))}
+                            </Badge>
+                          )}
+                          {(r.shuttle_requested ?? 0) > 0 && (
+                            <Badge tone={SHUTTLE_TONE.requested}>
+                              {t.shuttleRequested.replace("{n}", String(r.shuttle_requested))}
+                            </Badge>
+                          )}
+                        </span>
                       )}
                     </td>
                     <td className="ct-small px-4 py-3 text-muted">{r.hotel_label ?? common.none}</td>
