@@ -743,11 +743,30 @@ export function SessionDrawer({
           </div>
         ) : (
           detail && (
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge tone={isPublished ? "success" : "neutral"}>
-                {labels.publishStatus[detail.publish_status ?? "draft"]}
-              </Badge>
-              {!detail.slot_id && <Badge tone="warning">{t.inBacklog}</Badge>}
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone={isPublished ? "success" : "neutral"}>
+                  {labels.publishStatus[detail.publish_status ?? "draft"]}
+                </Badge>
+                {!detail.slot_id && <Badge tone="warning">{t.inBacklog}</Badge>}
+              </div>
+              {/* LEAD-038: was die Programmleitung bei der Rückgabe geschrieben hat —
+                  bis zur Veröffentlichung, auch wenn der Partner neu angefragt hat. */}
+              {detail.rueckgabe && !isPublished && (
+                <p className="rounded-ct-md border border-warning-soft bg-warning-soft px-3 py-2 ct-small">
+                  <span className="ct-label">
+                    {t.returnedBy
+                      .replace("{name}", detail.rueckgabe.returned_by_name ?? "—")
+                      .replace(
+                        "{date}",
+                        new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "de-DE", { dateStyle: "medium" }).format(
+                          new Date(detail.rueckgabe.returned_at),
+                        ),
+                      )}
+                  </span>{" "}
+                  {detail.rueckgabe.note}
+                </p>
+              )}
             </div>
           )
         )}

@@ -251,6 +251,12 @@ export type SessionDetail = {
    * `moderator` in `speakers`.
    */
   refs: { partner: { id: string; name: string | null } | null };
+  /**
+   * LEAD-038: der Grund, mit dem die Programmleitung die Partner-Session
+   * zurückgegeben hat (`partner_session_return`) — nur für die
+   * Programmleitung; alle anderen bekommen `null`.
+   */
+  rueckgabe: { note: string; returned_at: string; returned_by_name: string | null } | null;
 };
 
 /** Details einer Session für den Editor. Lesen unter RLS, kein service_role. */
@@ -267,17 +273,21 @@ export async function loadSession(
     .maybeSingle();
   if (error || !data) return null;
 
-  const [{ data: speakers }, { data: refs }] = await Promise.all([
+  const [{ data: speakers }, { data: refs }, { data: rueckgaben }] = await Promise.all([
     supabase.rpc("session_speakers_public", { p_session_id: sessionId }),
     // Fehlt die Funktion noch (Migration nicht live) oder das Recht, bleiben
     // die Namen leer — der Drawer zeigt dann die Kennung nicht, sondern nichts.
     supabase.rpc("board_session_refs", { p_session_id: sessionId }),
+    // LEAD-038: nur die Programmleitung; für alle anderen 42501 — dann eben keiner.
+    supabase.rpc("board_session_return", { p_session_id: sessionId }),
   ]);
+  const rueckgabe = Array.isArray(rueckgaben) && rueckgaben.length > 0 ? (rueckgaben[0] as SessionDetail["rueckgabe"]) : null;
 
   return {
-    ...(data as Omit<SessionDetail, "speakers" | "refs">),
+    ...(data as Omit<SessionDetail, "speakers" | "refs" | "rueckgabe">),
     speakers: Array.isArray(speakers) ? (speakers as SessionSpeaker[]) : [],
     refs: (refs as SessionDetail["refs"] | null) ?? { partner: null },
+    rueckgabe,
   };
 }
 

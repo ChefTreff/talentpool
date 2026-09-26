@@ -3,6 +3,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
 import { TechCheckQueue, type CheckAsset, type SpeakerHint } from "./TechCheckQueue";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +51,12 @@ export default async function AdminTechPage() {
         title={t.admin.tech.title}
         description={`${t.admin.tech.lead} · ${open} ${t.admin.tech.openCount}`}
       />
+      {/* LEAD-023: der Blick nach Slots — was fehlt, und Upload für Dateien per Mail. */}
+      <div className="mb-4">
+        <ButtonLink href="/admin/technik/praesentationen" variant="secondary" size="sm">
+          {t.presentationsList.bySlots}
+        </ButtonLink>
+      </div>
       {assets.length === 0 ? (
         <EmptyState title={t.admin.tech.emptyTitle} description={t.admin.tech.emptyBody} />
       ) : (

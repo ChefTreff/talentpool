@@ -54,7 +54,11 @@ export function FileButton({
   hint?: string;
   icon?: ReactNode;
   className?: string;
-  /** Primär (Standard) oder als Umriss-Knopf wie `<Button variant="secondary">`. */
+  /**
+   * `secondary` für Listen mit einem Knopf je Zeile (LEAD-023): sonst stünden
+   * viele primäre Aktionen untereinander (Skill-Regel 1). Dieselben Farben wie
+   * `<Button variant="secondary">`.
+   */
   variant?: "primary" | "secondary";
 }) {
   const id = useId();
