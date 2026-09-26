@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { removeVideo, saveVideo } from "./actions";
+import { removeVideo, saveVideo, type Ergebnis } from "./actions";
 
 export type AdminVideo = {
   id: string;
@@ -33,15 +33,23 @@ const leer: AdminVideo = {
  * Die Videoliste. Der **Schlüssel** steht vorn und nicht der Titel: er ist
  * das, was die Seiten einbinden, und wer ihn ändert, nimmt das Video von der
  * Seite. Der Titel ist Beiwerk.
+ *
+ * Dieselbe Maske pflegt seit PART-072 die **Links** (`portal_link`, zuerst die
+ * Store-Links der Event-App): gleiche Spalten, andere Aktionen und Texte —
+ * `save`/`remove` und `idPrefix` sind dafür da.
  */
 export function VideoAdmin({
-  videos, editions, t, common, rpcMessages,
+  videos, editions, t, common, rpcMessages, save = saveVideo, remove = removeVideo, idPrefix = "v",
 }: {
   videos: AdminVideo[];
   editions: { id: string; slug: string; name: string }[];
   t: Strings;
   common: Strings;
   rpcMessages: Strings;
+  save?: (data: Record<string, unknown>) => Promise<Ergebnis>;
+  remove?: (id: string) => Promise<Ergebnis>;
+  /** Vorsilbe der Feld-Kennungen, damit zwei Masken auf einer Seite sich nicht in die Quere kommen. */
+  idPrefix?: string;
 }) {
   const [offen, setOffen] = useState<AdminVideo | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -78,7 +86,7 @@ export function VideoAdmin({
                   <Button size="sm" variant="ghost" onClick={() => setOffen(v)}>{t.edit}</Button>
                   <Button size="sm" variant="ghost" disabled={pending}
                     onClick={() => start(async () => {
-                      const res = await removeVideo(v.id);
+                      const res = await remove(v.id);
                       if (!res.ok) melden(res.key, res.detail);
                     })}>
                     {common.delete}
@@ -98,7 +106,7 @@ export function VideoAdmin({
               e.preventDefault();
               setFehler(null);
               start(async () => {
-                const res = await saveVideo({
+                const res = await save({
                   ...(offen.id ? { id: offen.id } : {}),
                   key: offen.key, url: offen.url,
                   title_de: offen.title_de, title_en: offen.title_en,
@@ -111,29 +119,29 @@ export function VideoAdmin({
               });
             }}
           >
-            <Field label={t.fieldKey} htmlFor="v-key" hint={t.fieldKeyHint} required>
-              <Input id="v-key" value={offen.key} required
+            <Field label={t.fieldKey} htmlFor={`${idPrefix}-key`} hint={t.fieldKeyHint} required>
+              <Input id={`${idPrefix}-key`} value={offen.key} required
                 onChange={(e) => setOffen({ ...offen, key: e.target.value })} />
             </Field>
-            <Field label={t.fieldUrl} htmlFor="v-url" hint={t.fieldUrlHint} required>
-              <Input id="v-url" type="url" value={offen.url} required
+            <Field label={t.fieldUrl} htmlFor={`${idPrefix}-url`} hint={t.fieldUrlHint} required>
+              <Input id={`${idPrefix}-url`} type="url" value={offen.url} required
                 onChange={(e) => setOffen({ ...offen, url: e.target.value })} />
             </Field>
-            <Field label={t.fieldTitleDe} htmlFor="v-title">
-              <Input id="v-title" value={offen.title_de ?? ""}
+            <Field label={t.fieldTitleDe} htmlFor={`${idPrefix}-title`}>
+              <Input id={`${idPrefix}-title`} value={offen.title_de ?? ""}
                 onChange={(e) => setOffen({ ...offen, title_de: e.target.value })} />
             </Field>
-            <Field label={t.fieldTitleEn} htmlFor="v-title-en">
-              <Input id="v-title-en" value={offen.title_en ?? ""}
+            <Field label={t.fieldTitleEn} htmlFor={`${idPrefix}-title-en`}>
+              <Input id={`${idPrefix}-title-en`} value={offen.title_en ?? ""}
                 onChange={(e) => setOffen({ ...offen, title_en: e.target.value })} />
             </Field>
-            <Field label={t.fieldAudience} htmlFor="v-aud" hint={t.fieldAudienceHint} required>
-              <Input id="v-aud" value={offen.audience.join(", ")} required
+            <Field label={t.fieldAudience} htmlFor={`${idPrefix}-aud`} hint={t.fieldAudienceHint} required>
+              <Input id={`${idPrefix}-aud`} value={offen.audience.join(", ")} required
                 onChange={(e) => setOffen({ ...offen, audience: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) })} />
             </Field>
-            <Field label={t.fieldEdition} htmlFor="v-ed" hint={t.fieldEditionHint}>
+            <Field label={t.fieldEdition} htmlFor={`${idPrefix}-ed`} hint={t.fieldEditionHint}>
               <Select
-                id="v-ed"
+                id={`${idPrefix}-ed`}
                 value={offen.edition_id ?? ""}
                 placeholder={t.allEditions}
                 options={editions.map((e) => ({ value: e.id, label: e.name }))}

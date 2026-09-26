@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { EmbedGate } from "@/components/ui/EmbedGate";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { loadVideo, loomEmbedUrl } from "@/components/video/load";
+import { loadStoreLinks } from "@/lib/event-app/load-store-links";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type PartnerContact, type PartnerOverview } from "../types";
 import { Schritte, type SchrittStand } from "./Schritte";
@@ -40,7 +41,7 @@ export default async function EventAppPage() {
   if (!current) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const [{ data: standRows }, { data: overviewJson }, { data: contactRows }, video] =
+  const [{ data: standRows }, { data: overviewJson }, { data: contactRows }, video, storeLinks] =
     await Promise.all([
       supabase.rpc("my_org_steps", {
         p_org_id: current.org_id,
@@ -53,6 +54,8 @@ export default async function EventAppPage() {
       }),
       supabase.rpc("partner_contacts", { p_org_id: current.org_id }),
       loadVideo("partner_event_app", "partner", current.edition_id),
+      // PART-072: dieselben Store-Links wie im Teilnehmer-Programm, gepflegt unter /admin/videos.
+      loadStoreLinks("partner", current.edition_id),
     ]);
   const stand = (standRows ?? []) as SchrittStand[];
   const overview = (overviewJson ?? null) as PartnerOverview | null;
@@ -83,6 +86,21 @@ export default async function EventAppPage() {
             {s.wikiHint}
           </Link>
         </div>
+        {(storeLinks.appStore || storeLinks.googlePlay) && (
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t pt-4">
+            <span className="ct-small text-muted">{s.storeLabel}</span>
+            {storeLinks.appStore && (
+              <ButtonLink variant="secondary" size="sm" href={storeLinks.appStore} {...neuesFenster}>
+                {t.programme.eventAppIos}
+              </ButtonLink>
+            )}
+            {storeLinks.googlePlay && (
+              <ButtonLink variant="secondary" size="sm" href={storeLinks.googlePlay} {...neuesFenster}>
+                {t.programme.eventAppAndroid}
+              </ButtonLink>
+            )}
+          </div>
+        )}
       </Card>
 
       {/* PART-002: Der alte Hub hatte hier ein Formular „Team-Mitglieder

@@ -28,3 +28,11 @@ export async function saveVideo(data: Record<string, unknown>) {
 export async function removeVideo(id: string) {
   return ruf("delete_portal_video", { p_id: id });
 }
+
+/** PART-072: Links je Schlüssel (`portal_link`), zuerst die Store-Links der Event-App. */
+export async function saveLink(data: Record<string, unknown>) {
+  return ruf("upsert_portal_link", { p_data: data });
+}
+export async function removeLink(id: string) {
+  return ruf("delete_portal_link", { p_id: id });
+}

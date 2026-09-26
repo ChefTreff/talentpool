@@ -1,7 +1,8 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import { APPLICATION_FORMATS, isApplicationFormat } from "@/app/(talent)/programm/types";
-import { EVENT_APP_STORE_LINKS } from "@/lib/event-app/store-links";
+import { STORE_LINK_SCHLUESSEL, storeLinksAus } from "@/lib/event-app/store-links";
+import { migrationText } from "@/tests/migration-datei";
 
 describe("Teilnehmer-Programm zeigt nur Formate mit Bewerbung (TAL-014)", () => {
   it("lässt die vier Bewerbungsformate durch", () => {
@@ -17,8 +18,17 @@ describe("Teilnehmer-Programm zeigt nur Formate mit Bewerbung (TAL-014)", () => 
     }
   });
 
+  // Seit PART-072 pflegt das Team die Store-Links im Admin (`portal_link`); die Startwerte stehen
+  // in der Migration, die Seiten lesen über `loadStoreLinks`.
   it("verlinkt beide Stores über https", () => {
-    assert.match(EVENT_APP_STORE_LINKS.appStore, /^https:\/\/apps\.apple\.com\//);
-    assert.match(EVENT_APP_STORE_LINKS.googlePlay, /^https:\/\/play\.google\.com\/.*cheftreffdeutsch$/);
+    const sql = migrationText("v6_portal_links");
+    assert.match(sql, /'event_app_app_store', 'App Store', 'App Store',\s*'https:\/\/apps\.apple\.com\//);
+    assert.match(sql, /'event_app_google_play', 'Google Play', 'Google Play',\s*'https:\/\/play\.google\.com\/[^']*cheftreffdeutsch'/);
+    const links = storeLinksAus([
+      { key: STORE_LINK_SCHLUESSEL.appStore, url: "https://apps.apple.com/de/app/x" },
+      { key: STORE_LINK_SCHLUESSEL.googlePlay, url: "http://unsicher.example" },
+    ]);
+    assert.equal(links.appStore, "https://apps.apple.com/de/app/x");
+    assert.equal(links.googlePlay, null, "nur https");
   });
 });

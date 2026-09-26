@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Card } from "@/components/ui/Card";
 import { ButtonLink } from "@/components/ui/Button";
-import { EVENT_APP_STORE_LINKS } from "@/lib/event-app/store-links";
+import { loadStoreLinks } from "@/lib/event-app/load-store-links";
 import { ProgrammeView } from "./ProgrammeView";
 import { isApplicationFormat, targetProfileLabels, type FormatDetails } from "./types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -25,6 +25,8 @@ export default async function ProgrammPage() {
   await requireArea("talent", "/programm");
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
+  // PART-072: die Store-Links pflegt das Team im Admin unter Videos → Links.
+  const storeLinks = await loadStoreLinks("talent");
 
   const [
     { data: sessionRows },
@@ -239,22 +241,16 @@ export default async function ProgrammPage() {
         <p className="ct-help">{t.programme.eventAppBody}</p>
       </div>
       <div className="flex flex-wrap gap-2">
-        <ButtonLink
-          variant="secondary"
-          size="sm"
-          href={EVENT_APP_STORE_LINKS.appStore}
-          {...neuesFenster}
-        >
-          {t.programme.eventAppIos}
-        </ButtonLink>
-        <ButtonLink
-          variant="secondary"
-          size="sm"
-          href={EVENT_APP_STORE_LINKS.googlePlay}
-          {...neuesFenster}
-        >
-          {t.programme.eventAppAndroid}
-        </ButtonLink>
+        {storeLinks.appStore && (
+          <ButtonLink variant="secondary" size="sm" href={storeLinks.appStore} {...neuesFenster}>
+            {t.programme.eventAppIos}
+          </ButtonLink>
+        )}
+        {storeLinks.googlePlay && (
+          <ButtonLink variant="secondary" size="sm" href={storeLinks.googlePlay} {...neuesFenster}>
+            {t.programme.eventAppAndroid}
+          </ButtonLink>
+        )}
       </div>
     </Card>
   );
