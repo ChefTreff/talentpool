@@ -1,4 +1,5 @@
--- 00NN · LEAD-038: Rückgabegrund im Board-Drawer für die Programmleitung
+-- 0218 · Rückgabegrund im Board-Drawer für die Programmleitung (LEAD-038)
+-- Angewendet von der Architektur-Session am 26.09.2026 als 20260926091024.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.

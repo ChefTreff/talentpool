@@ -9,6 +9,8 @@ begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   if not partner_can_edit(p_org_id) then raise exception 'not allowed' using errcode = '42501'; end if;
   if p_kind !~ '^[a-z][a-z0-9_]{1,40}$' then raise exception 'invalid_kind' using errcode = '22023'; end if;
+  -- PART-041: die Partnergrafik legt das Team über set_partner_graphic an, nicht der Partner.
+  if p_kind = 'partner_graphic' then raise exception 'not allowed' using errcode = '42501'; end if;
   v_oe := current_org_edition(p_org_id, p_edition_id);
   if v_oe.id is null then raise exception 'org_edition_not_found' using errcode = 'P0002'; end if;
   if p_storage_path not like v_oe.edition_id::text || '/' || p_org_id::text || '/' || p_kind || '/%' then raise exception 'path_mismatch' using errcode = '22023'; end if;

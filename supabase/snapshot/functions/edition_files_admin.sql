@@ -5,13 +5,15 @@ create or replace function edition_files_admin(p_edition_id uuid DEFAULT NULL::u
  SET search_path TO 'public', 'extensions'
 AS $$
 begin
-  if not (is_staff() or is_production_team()) then
+  if not (is_staff() or is_production_team() or is_marketing_team()) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   return query
     select f.id, f.edition_id, e.slug, f.kind, f.storage_path, f.filename, f.mime, f.size_bytes,
            f.label_de, f.label_en, f.audience, f.sort_order, f.created_at
       from edition_file f join event e on e.id = f.edition_id
-     where p_edition_id is null or f.edition_id = p_edition_id
+     where (p_edition_id is null or f.edition_id = p_edition_id)
+       -- PART-041: wer nur das Media Kit pflegt, sieht auch nur dessen Dateien.
+       and (is_staff() or is_production_team() or f.kind = 'media_kit')
      order by e.start_date desc nulls last, f.kind, f.sort_order;
 end $$;

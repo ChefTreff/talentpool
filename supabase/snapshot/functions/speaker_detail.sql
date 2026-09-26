@@ -102,6 +102,10 @@ begin
     'outreach_channel', v_sp.outreach_channel,
     -- SPK-070: Gast des Partners (0188) — das Detail bietet dann keine Einladung an.
     'stage_guest', v_sp.stage_guest,
+    -- SPK-069: gebuchte Shuttle-Fahrten statt des alten Abhol-Hakens.
+    'shuttle', jsonb_build_object(
+      'requested', (select count(*) from shuttle_booking b where b.profile_id = v_sp.id and b.status = 'requested'),
+      'confirmed', (select count(*) from shuttle_booking b where b.profile_id = v_sp.id and b.status = 'confirmed')),
     -- PART-091: über wen die Speaker-Mails gehen, wenn der Partner alles verwaltet.
     'mail_via', (select jsonb_build_object(
                           'contact_id', c.id,

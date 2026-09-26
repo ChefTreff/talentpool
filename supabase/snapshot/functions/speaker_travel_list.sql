@@ -1,5 +1,5 @@
 create or replace function speaker_travel_list(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(profile_id uuid, person_id uuid, first_name text, last_name text, job_title text, organization_name text, pipeline_status text, owner_person_id uuid, owner_name text, arrival_date date, arrival_time time without time zone, arrival_mode text, arrival_ref text, departure_date date, departure_time time without time zone, departure_mode text, departure_ref text, needs_pickup boolean, needs_dropoff boolean, note text, hotel_label text, updated_at timestamp with time zone)
+ RETURNS TABLE(profile_id uuid, person_id uuid, first_name text, last_name text, job_title text, organization_name text, pipeline_status text, owner_person_id uuid, owner_name text, arrival_date date, arrival_time time without time zone, arrival_mode text, arrival_ref text, departure_date date, departure_time time without time zone, departure_mode text, departure_ref text, needs_pickup boolean, needs_dropoff boolean, note text, hotel_label text, updated_at timestamp with time zone, shuttle_requested integer, shuttle_confirmed integer)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -20,7 +20,10 @@ begin
            (select q.label_de from hospitality_booking b join hospitality_quota q on q.id = b.quota_id
              where b.profile_id = sp.id and b.kind = 'hotel' and b.status = 'confirmed'
              order by b.confirmed_at desc limit 1),
-           t.updated_at
+           t.updated_at,
+           -- SPK-069: was wirklich gebucht ist, statt des alten Abhol-Hakens.
+           (select count(*)::integer from shuttle_booking b where b.profile_id = sp.id and b.status = 'requested'),
+           (select count(*)::integer from shuttle_booking b where b.profile_id = sp.id and b.status = 'confirmed')
       from speaker_profile sp
       join person p on p.id = sp.person_id and p.deleted_at is null
       left join speaker_travel t on t.profile_id = sp.id

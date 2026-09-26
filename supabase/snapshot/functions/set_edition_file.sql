@@ -6,11 +6,15 @@ create or replace function set_edition_file(p_data jsonb)
 AS $$
 declare v_id uuid; v_kind text; v_ed uuid; v_aud text[];
 begin
-  if not (is_staff() or is_production_team()) then
-    raise exception 'not allowed' using errcode = '42501';
-  end if;
   v_id := nullif(p_data->>'id', '')::uuid;
   v_kind := coalesce(nullif(p_data->>'kind', ''), 'sonstiges');
+  -- PART-041/ADM-023: das Marketing pflegt die Dateien des Media Kits — nur diese Art, und eine
+  -- bestehende Zeile nur, wenn sie schon zum Media Kit gehört (kein Umwidmen des Hallenplans).
+  if not (is_staff() or is_production_team()
+          or (is_marketing_team() and v_kind = 'media_kit'
+              and (v_id is null or exists (select 1 from edition_file f where f.id = v_id and f.kind = 'media_kit')))) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
   if not is_vocab_key('edition_file_kind', v_kind) then
     raise exception 'invalid_kind' using errcode = '22023', detail = v_kind;
   end if;

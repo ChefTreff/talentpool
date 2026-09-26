@@ -1,4 +1,5 @@
--- 00NN · ADM-018: Verantwortliche je Session — aus den Stage Leads abgeleitet, je Session übersteuerbar
+-- 0220 · Verantwortliche je Session: aus dem Bühnen-Lead abgeleitet, je Session übersteuerbar (ADM-018)
+-- Angewendet von der Architektur-Session am 26.09.2026 als 20260926091026.
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
 -- der Eintrag ins Entscheidungslog gehören der Architektur-Session.

@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-25 17:04 UTC · 103 Tabellen · 6 Views · 566 Funktionen
+> Stand: 2026-09-26 09:10 UTC · 104 Tabellen · 6 Views · 583 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -975,6 +975,22 @@ Sprachkenntnisse je Person mit Niveau (TAL-013 B4). Pflege durch die Person selb
 | `actor` | text |  |  |  |  |
 | `payload` | jsonb |  |  |  |  |
 
+### `portal_link`
+Links je Schlüssel (PART-072: Store-Links der Event-App). Seiten lesen über portal_links_for, gepflegt unter /admin/videos. Anders als portal_video nicht nur Loom — hier wird verlinkt, nicht eingebettet.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `key` | text | ja |  |  |  |
+| `title_de` | text |  |  |  |  |
+| `title_en` | text |  |  |  |  |
+| `url` | text | ja |  |  |  |
+| `audience` | text[] | ja |  |  |  |
+| `edition_id` | uuid |  |  | `event.id` |  |
+| `sort_order` | integer | ja | `0` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `portal_video`
 Eingebettete Videos je Schlüssel (F9.4). Seiten binden über `key` ein, der Link ist Redaktionssache. Nur Loom — der CHECK und die CSP gehören zusammen.
 
@@ -1211,6 +1227,7 @@ Programmpunkt (öffentliche Felder für App/Website/Swapcard). Interne Regie-Wer
 | `tech` | jsonb | ja |  |  | Technik-Ansage des Speakers je Slot (A7.2): people_on_stage, microphone, presentation_media, special_requirements, furniture — feste Schlüssel, Werte als Freitext. Die Disposition der Regie steht in regie_cue. |
 | `partner_org_id` | uuid |  |  | `organization.id` | Der Partner, der dieses Format gebucht hat. Unterschied zu host_org_id: host = richtet aus (Masterclass, Company Tour, Side-Event, Interview Table — zählt in sessions_count und öffnet /partner/bewerber); partner_org_id = hat gebucht, auch beim Talk, wo die Bühne uns gehört und der Partner nur den Speaker stellt. |
 | `format_details` | jsonb | ja |  |  | Formatspezifische Angaben mit festen Schlüsseln, geprüft in den Partner-RPCs (Teil 2). Nie freie Schlüssel; contact_* der Company Tour gehen nicht nach programme_public. |
+| `owner_person_id` | uuid |  |  | `person.id` | Verantwortliche Person, wenn sie von der Ableitung aus den Stage Leads abweicht (ADM-018). Leer = abgeleitet (Slot, Bühnentag, Bühne). Gesetzt nur über set_session_owner. |
 
 ### `session_asset`
 Bilder, die an einem Auftritt haengen: Buehnenfoto und Slot-Grafik (0111). Die Speaker-Grafik gehoert an den Menschen und bleibt in speaker_asset.
@@ -2031,11 +2048,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `board_search_partners` | p_event_id: uuid, p_limit: integer, p_query: text |
 | `board_search_people` | p_event_id: uuid, p_limit: integer, p_moderation: boolean, p_query: text |
 | `board_session_refs` | p_session_id: uuid |
+| `board_session_return` | p_session_id: uuid |
 | `book_hospitality` | p_details: jsonb, p_guests: integer, p_quota_id: uuid |
 | `booth_checklist` | p_edition_id: uuid, p_org_id: uuid |
 | `booth_day_plan` | p_edition_id: uuid |
 | `booth_packages` | args: ? |
 | `booths_free` | p_edition_id: uuid |
+| `can_confirm_consent_on_behalf` | p_profile_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
 | `can_edit_edition_contacts` | args: ? |
 | `can_edit_edition_info` | args: ? |
@@ -2099,6 +2118,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_kb_article` | p_id: uuid |
 | `delete_my_profile` | args: ? |
 | `delete_next_up_item` | p_id: uuid |
+| `delete_portal_link` | p_id: uuid |
 | `delete_portal_video` | p_id: uuid |
 | `delete_reception` | p_id: uuid |
 | `delete_regie_cue` | p_id: uuid |
@@ -2123,6 +2143,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `ensure_speaker_ticket` | p_profile_id: uuid |
 | `event_app_exhibitors` | p_edition_id: uuid |
 | `event_app_speakers` | p_edition_id: uuid |
+| `event_stage_leads` | p_event_id: uuid |
 | `exhibitor_list` | p_edition_id: uuid |
 | `expense_bank_details` | p_claim_id: uuid |
 | `expense_eligibility` | p_profile_id: uuid |
@@ -2130,6 +2151,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `expire_overdue_applications` | args: ? |
 | `export_privacy_notice` | p_language: text |
 | `export_session_applications` | p_session_id: uuid |
+| `export_tour_applications` | p_stop_id: uuid |
 | `finish_sync_job` | p_error: text, p_id: bigint, p_stats: jsonb, p_status: text |
 | `finish_webhook_event` | p_error: text, p_id: bigint, p_related_id: uuid, p_related_type: text, p_status: text |
 | `fmt_cents` | p_cents: integer, p_locale: text |
@@ -2285,6 +2307,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_digest_items` | p_org_edition_id: uuid |
 | `partner_entitlement` | p_format: text, p_org_edition_id: uuid |
 | `partner_format_sessions` | p_edition_id: uuid, p_format: text, p_org_id: uuid |
+| `partner_graphics_admin` | p_edition_id: uuid |
 | `partner_ingest_log` | p_limit: integer |
 | `partner_logo_production` | p_edition_id: uuid |
 | `partner_mail_cc` | p_mail_id: bigint, p_org_id: uuid |
@@ -2315,6 +2338,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `person_cv_path_allowed` | p_name: text, p_write: boolean |
 | `person_photo_path_allowed` | p_name: text, p_write: boolean |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
+| `portal_links_admin` | args: ? |
+| `portal_links_for` | p_audience: text, p_edition_id: uuid, p_keys: text[] |
 | `portal_video_for` | p_audience: text, p_edition_id: uuid, p_key: text |
 | `portal_videos_admin` | args: ? |
 | `presentation_window` | p_session_id: uuid |
@@ -2336,6 +2361,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `reception_taken` | p_reception_id: uuid |
 | `receptions_admin` | p_edition_id: uuid |
 | `record_shop_invoice` | p_meta: jsonb, p_order_ids: uuid[], p_org_id: uuid, p_sevdesk_contact_id: text, p_sevdesk_invoice_id: text |
+| `record_speaker_consent_on_behalf` | p_consents: jsonb, p_profile_id: uuid, p_version: text |
 | `record_sync_error` | p_job_id: bigint, p_message: text, p_object_id: text, p_object_type: text, p_payload: jsonb |
 | `record_webhook_event` | p_event_type: text, p_external_id: text, p_headers: jsonb, p_payload: jsonb, p_signature_valid: boolean, p_source: text |
 | `recount_allocation_usage` | p_allocation_id: uuid |
@@ -2383,6 +2409,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
 | `session_needs_release` | p_edition_id: uuid |
+| `session_owner_candidates` | p_event_id: uuid |
+| `session_responsibles` | p_event_id: uuid |
 | `session_speakers_public` | p_session_id: uuid |
 | `session_tech_keys` | args: ? |
 | `sessions_for_assets` | p_event_id: uuid |
@@ -2414,6 +2442,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_org_customer_number` | p_customer_number: text, p_org_id: uuid |
 | `set_org_sevdesk_contact` | p_contact_id: text, p_org_id: uuid |
 | `set_org_step` | p_done: boolean, p_edition_id: uuid, p_key: text, p_org_id: uuid, p_topic: text |
+| `set_partner_graphic` | p_edition_id: uuid, p_filename: text, p_mime: text, p_org_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `set_pass_type_choice` | p_choice: text, p_edition_id: uuid, p_org_id: uuid |
 | `set_person_access` | p_blocked: boolean, p_note: text, p_person_id: uuid |
 | `set_person_salutation` | p_de: text, p_en: text, p_person_id: uuid |
@@ -2422,6 +2451,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_reception_rsvp` | p_guests: integer, p_note: text, p_reception_id: uuid, p_status: text |
 | `set_regie_anweisungen` | p_data: jsonb, p_slot_id: uuid |
 | `set_session_asset` | p_data: jsonb, p_id: uuid |
+| `set_session_owner` | p_person_id: uuid, p_session_id: uuid |
 | `set_session_partner` | p_org_id: uuid, p_session_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
 | `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
@@ -2474,12 +2504,15 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_upsert_line` | p_edition_id: uuid, p_merch_config: jsonb, p_org_id: uuid, p_qty: numeric, p_sku: text |
 | `shuttle_bookings_admin` | p_edition_id: uuid |
 | `slot_has_published_session` | p_slot_id: uuid |
+| `slot_stage_leads` | p_slot_id: uuid |
 | `speaker_access_revoke` | p_edition_id: uuid, p_person_id: uuid |
 | `speaker_activities` | p_profile_id: uuid |
 | `speaker_activity_assignee_ok` | p_person: uuid, p_profile_id: uuid |
 | `speaker_activity_edit_right` | p_id: uuid |
 | `speaker_activity_overview` | p_edition_id: uuid |
 | `speaker_asset_path_allowed` | p_name: text |
+| `speaker_consent_contact` | p_person_id: uuid, p_profile_id: uuid |
+| `speaker_consents_admin` | p_profile_id: uuid |
 | `speaker_detail` | p_profile_id: uuid |
 | `speaker_is_confirmed` | p_status: text |
 | `speaker_leads_admin` | p_edition_id: uuid |
@@ -2541,6 +2574,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_mail_template` | p_data: jsonb |
 | `upsert_next_up_item` | p_data: jsonb |
 | `upsert_partner_contact` | p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_position: text, p_roles: text[] |
+| `upsert_portal_link` | p_data: jsonb |
 | `upsert_portal_video` | p_data: jsonb |
 | `upsert_product` | p_data: jsonb |
 | `upsert_product_component` | p_bundle_sku: text, p_component_sku: text, p_qty: numeric |

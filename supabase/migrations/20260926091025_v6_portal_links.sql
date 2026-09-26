@@ -1,3 +1,5 @@
+-- 0219 · Portal-Links (Store-Links der Event-App) im Admin pflegen (PART-072)
+-- Angewendet von der Architektur-Session am 26.09.2026 als 20260926091025.
 -- Links je Schlüssel, gepflegt im Admin unter Videos — zuerst die Store-Links der Event-App (PART-072)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.

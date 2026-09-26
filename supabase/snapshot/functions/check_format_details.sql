@@ -68,6 +68,17 @@ begin
     v_out := v_out || jsonb_build_object('target_profile', v_prof);
   end if;
 
+  -- Goodies (PART-054, Konrad 22.09.): ja oder nein; `null` heißt „noch keine Angabe“ und
+  -- fällt weg. Kein Text, keine Zahl — sonst stünde „vielleicht“ im Feld, das das Team nachhält.
+  if p_details ? 'goodies_planned' then
+    if jsonb_typeof(p_details->'goodies_planned') not in ('boolean', 'null') then
+      raise exception 'invalid_format_details' using errcode = '22023', detail = 'goodies_planned';
+    end if;
+    if jsonb_typeof(p_details->'goodies_planned') = 'boolean' then
+      v_out := v_out || jsonb_build_object('goodies_planned', (p_details->'goodies_planned')::boolean);
+    end if;
+  end if;
+
   -- Hintergrundbild: eine Datei **dieser** Organisation, sonst zeigte ein Programmpunkt auf
   -- den Upload eines fremden Partners.
   if p_details ? 'image_asset_id' then

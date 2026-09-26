@@ -137,6 +137,15 @@
 | Welle 6 · 0208 | **Company Tour: bis zu fünf Wünsche je Stopp (PART-092, K-41)** (`20260925165937`, `v6_tour_wuensche`; Details im Migrationskopf) | — |
 | Welle 6 · 0209 | **Zugänge sperren und einladen in der Verwaltung, Sperrprüfung in den sechs Rollen-Funktionen (PORT4b)** (`20260925170219`, `v6_zugaenge`; Details im Migrationskopf) | — |
 | Welle 6 · 0210 | **PORT3: Stage Leads nur mit Bühnen-Scope, Lücken L1–L7 geschlossen (Variante A)** (`20260925170401`, `v6_port3_stage_leads`; Details im Migrationskopf) | — |
+| Welle 6 · 0211 | **Kein Speaker-Catering für Gäste, Anreise mit Shuttle-Stand statt Abhol-Haken (SPK-073, SPK-069)** (`20260926085508`, `v6_catering_anreise_shuttle`; Details im Migrationskopf) | — |
+| Welle 6 · 0212 | **Company Tour: Export der Bewerbungen für den Partner eines Stopps (PART-051)** (`20260926090144`, `v6_export_tour`; Details im Migrationskopf) | — |
+| Welle 6 · 0213 | **Speaker-Fotos privat, Swapcard mit befristeten signierten Adressen (SPK-047)** (`20260926090200`, `v6_speaker_fotos_privat`; Details im Migrationskopf) | — |
+| Welle 6 · 0214 | **Masterclass: Goodies-Frage als Formatdetail (PART-054)** (`20260926090234`, `v6_masterclass_goodies`; Details im Migrationskopf) | — |
+| Welle 6 · 0215 | **Einwilligungen im Verwaltet-Fall stellvertretend durch den Kontakt, protokolliert (SPK-074, K-40)** (`20260926090447`, `v6_einwilligung_stellvertretend`; Details im Migrationskopf) | — |
+| Welle 6 · 0217 | **Media Kit und Partnergrafik: Pflege im Admin (marketing_team), Partner lesen (PART-041, ADM-023)** (`20260926090609`, `v6_media_kit`; Details im Migrationskopf) | — |
+| Welle 6 · 0218 | **Rückgabegrund im Board-Drawer für die Programmleitung (LEAD-038)** (`20260926091024`, `v6_board_rueckgabe_team`; Details im Migrationskopf) | — |
+| Welle 6 · 0219 | **Portal-Links (Store-Links der Event-App) im Admin pflegen (PART-072)** (`20260926091025`, `v6_portal_links`; Details im Migrationskopf) | — |
+| Welle 6 · 0220 | **Verantwortliche je Session: aus dem Bühnen-Lead abgeleitet, je Session übersteuerbar (ADM-018)** (`20260926091026`, `v6_session_verantwortliche`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

@@ -15,5 +15,11 @@ begin
   if v_kind !~ '^[a-z][a-z0-9_]{1,40}$' or split_part(p_name, '/', 4) = '' then return false; end if;
   if not exists (select 1 from org_edition oe where oe.org_id = v_org and oe.edition_id = v_edition) then return false; end if;
   if is_staff() then return true; end if;
+  -- PART-041: die Partnergrafik („Wir sind dabei“) legt das Marketing oder das Partner-Team an;
+  -- der Partner lädt sie nur herunter und kann sie nicht überschreiben.
+  if v_kind = 'partner_graphic' then
+    return case when p_write then (is_marketing_team() or is_partner_team())
+                else (is_partner_of(v_org) or is_marketing_team() or is_partner_team()) end;
+  end if;
   return case when p_write then partner_can_edit(v_org) else is_partner_of(v_org) end;
 end $$;
