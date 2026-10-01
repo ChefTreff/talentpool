@@ -20,24 +20,13 @@ export default async function HackTeamsPage() {
   const { data, error } = await supabase.rpc("hack_admin_overview", { p_language: locale });
   if (error) notFound();
 
-  // Eingereichte Challenge-Formulare, die noch keine Challenge sind.
-  const { data: open } = await supabase
-    .from("deliverable")
-    .select("id, answers, status, org_edition:org_edition_id(org:org_id(legal_name, communication_name)), template:template_id(key)")
-    .eq("status", "submitted");
-
-  const openChallenges = ((open ?? []) as unknown as {
-    id: string;
-    answers: Record<string, string> | null;
-    template: { key: string } | null;
-    org_edition: { org: { legal_name: string | null; communication_name: string | null } | null } | null;
-  }[])
-    .filter((d) => d.template?.key === "hackathon_challenge")
-    .map((d) => ({
-      deliverable_id: d.id,
-      org_name: d.org_edition?.org?.communication_name ?? d.org_edition?.org?.legal_name ?? "—",
-      title: d.answers?.title_en ?? d.answers?.title_de ?? null,
-    }));
+  // Eingereichte Challenge-Formulare, die noch keine Challenge sind — über die
+  // Leserolle (ADM-055): der direkte Griff auf `deliverable` scheiterte für das
+  // Hackathon-Team an der RLS.
+  const { data: open } = await supabase.rpc("hack_open_challenges");
+  const openChallenges = ((open ?? []) as { deliverable_id: string; org_name: string; title: string | null }[]).map(
+    (c) => ({ deliverable_id: c.deliverable_id, org_name: c.org_name, title: c.title }),
+  );
 
   return (
     <>
