@@ -36,8 +36,8 @@ begin
       'id', v_ch.id, 'title', hack_text(v_ch.title_de, v_ch.title_en, p_language),
       'description', hack_text(v_ch.description_de, v_ch.description_en, p_language),
       'prizes', v_ch.prizes, 'resources', v_ch.resources, 'criteria', v_ch.criteria,
-      'track', v_ch.track) end,
+      'track', v_ch.track, 'submission_deadline', v_ch.submission_deadline) end,
     'submission', case when v_sub.id is null then null else jsonb_build_object(
       'url', v_sub.url, 'repo_url', v_sub.repo_url, 'notes', v_sub.notes,
-      'submitted_at', v_sub.submitted_at) end);
+      'submitted_at', v_sub.submitted_at, 'late', v_sub.late) end);
 end $$;
