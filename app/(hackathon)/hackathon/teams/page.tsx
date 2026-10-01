@@ -2,9 +2,10 @@ import { notFound } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { TeamsView } from "./TeamsView";
-import type { HackTeamRow } from "../types";
+import type { HackOpenChallenge, HackTeamRow } from "../types";
 
 export const dynamic = "force-dynamic";
 
@@ -23,10 +24,11 @@ export default async function HackTeamsPage() {
   // Eingereichte Challenge-Formulare, die noch keine Challenge sind — über die
   // Leserolle (ADM-055): der direkte Griff auf `deliverable` scheiterte für das
   // Hackathon-Team an der RLS.
-  const { data: open } = await supabase.rpc("hack_open_challenges");
-  const openChallenges = ((open ?? []) as { deliverable_id: string; org_name: string; title: string | null }[]).map(
-    (c) => ({ deliverable_id: c.deliverable_id, org_name: c.org_name, title: c.title }),
-  );
+  const [{ data: open }, vocab] = await Promise.all([
+    supabase.rpc("hack_open_challenges"),
+    loadVocabMap(supabase, locale),
+  ]);
+  const openChallenges = (open ?? []) as HackOpenChallenge[];
 
   return (
     <>
@@ -34,6 +36,7 @@ export default async function HackTeamsPage() {
       <TeamsView
         rows={(data ?? []) as HackTeamRow[]}
         openChallenges={openChallenges}
+        trackLabels={vgroup(vocab, "hack_track")}
         locale={locale}
         t={t.hackathon}
         rpcMessages={t.rpc}

@@ -22,3 +22,17 @@ export async function decideApplication(id: string, status: "applied" | "accepte
   revalidatePath("/admin/hackathon");
   return { ok: true };
 }
+
+/** Track einer freigegebenen Challenge ändern (HACK-008). Gate hier und in der RPC. */
+export async function setChallengeTrack(challengeId: string, track: string): Promise<Ergebnis> {
+  await requireAdminSection("hackathon");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("set_hack_challenge_track", { p_challenge_id: challengeId, p_track: track });
+  if (error) {
+    const f = toRpcFailure(error);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  revalidatePath("/admin/hackathon");
+  revalidatePath("/hackathon/challenges");
+  return { ok: true };
+}
