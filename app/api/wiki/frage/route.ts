@@ -3,19 +3,23 @@ import { requireUser } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { currentEditionId } from "@/components/wiki/load";
 import { toRpcFailure } from "@/lib/rpc-error";
+import { verlaufAusBrowser } from "@/lib/speaker/titel-assistent";
 import {
-  frageOk,
   kontextWaehlen,
-  nachricht,
+  MAX_FRAGE_ZEICHEN,
+  modellNachrichten,
+  nichtImWiki,
   quellen,
+  suchplan,
   systemText,
+  trefferVereinen,
   type Treffer,
 } from "@/lib/wiki/assistent";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Eine Frage an die Wissensbasis.
+ * Eine Frage an die Wissensbasis — seit ADM-044 als Zug eines Gesprächs.
  *
  * Der Weg ist bewusst dreistufig, und die ersten beiden Stufen brauchen kein
  * Modell:
@@ -23,13 +27,19 @@ export const dynamic = "force-dynamic";
  * 1. **Zähler** (`kb_take_question_slot`) — 20 Fragen je Person und Stunde, in
  *    der Datenbank gezählt. Im Speicher der Instanz gezählt wäre es kein Limit:
  *    jede Vercel-Region hätte ihren eigenen Zähler.
- * 2. **Suchen** (`kb_search`) — findet nichts, ist die Antwort ein fester Satz.
- *    Ohne Quelle wird **nicht** gefragt: ein Modell, das ohne Beleg antwortet,
+ * 2. **Suchen** (`kb_search`) — bei **jeder** Frage neu und nur in den
+ *    Zielgruppen der Person; der Verlauf liefert höchstens Suchwörter dazu,
+ *    eine englische Frage sucht zusätzlich deutsch zerlegt (`suchplan`).
+ *    Findet nichts, ist die Antwort ein fester Satz. Ohne
+ *    Quelle wird **nicht** gefragt: ein Modell, das ohne Beleg antwortet,
  *    klingt zuverlässig und ist es nicht. Das spart nebenbei den Aufruf.
  * 3. **Formulieren** — nur mit Treffern, nur aus ihnen.
  *
- * An Anthropic gehen ausschließlich die Frage und die gefundenen Abschnitte.
- * Kein Name, keine Rolle, keine ID, kein Verlauf.
+ * An Anthropic gehen die gefundenen Abschnitte und **dieses Gespräch**: die
+ * Fragen der Person und die Antworten darauf, höchstens zwölf Züge. Der
+ * Verlauf kommt aus dem Browser und wird wie beim Titel-Assistenten geprüft
+ * (`verlaufAusBrowser`); gespeichert wird er nirgends. Kein Name, keine Rolle,
+ * keine ID.
  */
 const MODELL = process.env.CHATBOT_MODEL || "claude-sonnet-5";
 const LIMIT_PRO_STUNDE = 20;
@@ -44,12 +54,18 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
-  const { question, audience, language } = (body ?? {}) as Record<string, unknown>;
+  const { messages, question, audience, language } = (body ?? {}) as Record<string, unknown>;
   const sprache: "de" | "en" = language === "en" ? "en" : "de";
-  if (!frageOk(question) || typeof audience !== "string" || audience === "") {
+  // Ein Tab, der noch die Seite von vor ADM-044 zeigt, schickt `question`
+  // allein — das ist ein Gespräch mit einem Zug.
+  const verlauf = verlaufAusBrowser(
+    messages ?? (typeof question === "string" ? [{ role: "user", content: question }] : null),
+    MAX_FRAGE_ZEICHEN,
+  );
+  if (!verlauf || typeof audience !== "string" || audience === "") {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
-  const frage = question.trim();
+  const frage = verlauf[verlauf.length - 1].content.trim();
   const start = Date.now();
 
   // 1 · Zähler
@@ -65,17 +81,25 @@ export async function POST(request: Request) {
   // 2 · Suchen. Ohne die Edition bliebe die Fassung „für diese Edition" aus
   // dem Kontext — die Suche fände nur den evergreen, und die Antwort wäre
   // jedes Jahr die vom Vorjahr (Review Architektur-Session 17.09.).
-  const { data: rows, error: suchFehler } = await supabase.rpc("kb_search", {
-    p_query: frage,
-    p_audience: audience,
-    p_language: sprache,
-    p_edition_id: await currentEditionId(),
-  });
-  if (suchFehler) {
-    const f = toRpcFailure(suchFehler);
-    return NextResponse.json({ error: f.key }, { status: f.key === "empty_query" ? 400 : 403 });
+  const editionId = await currentEditionId();
+  const listen: Treffer[][] = [];
+  for (const { anfrage, sprache: zerlegung } of suchplan(verlauf, sprache)) {
+    const { data: rows, error: suchFehler } = await supabase.rpc("kb_search", {
+      p_query: anfrage,
+      p_audience: audience,
+      p_language: zerlegung,
+      p_edition_id: editionId,
+    });
+    if (suchFehler) {
+      const f = toRpcFailure(suchFehler);
+      // Nur Füllwörter („und dann?") ergeben keine Suche — im Gespräch kein
+      // Fehler, die nächste Anfrage nimmt die Frage davor mit.
+      if (f.key === "empty_query") continue;
+      return NextResponse.json({ error: f.key }, { status: 403 });
+    }
+    listen.push((rows ?? []) as Treffer[]);
   }
-  const treffer = (rows ?? []) as Treffer[];
+  const treffer = trefferVereinen(listen);
 
   if (treffer.length === 0) {
     await supabase.rpc("kb_log_question", {
@@ -113,7 +137,7 @@ export async function POST(request: Request) {
         model: MODELL,
         max_tokens: 600,
         system: systemText(sprache, audience),
-        messages: [{ role: "user", content: nachricht(frage, kontext, sprache) }],
+        messages: modellNachrichten(verlauf, kontext, sprache),
       }),
       // Eine Frage ist eine Interaktion: wer 30 Sekunden wartet, hat das
       // Vertrauen verloren, bevor die Antwort kommt.
@@ -134,6 +158,14 @@ export async function POST(request: Request) {
     console.error("[wiki/frage] Anthropic:", fehler);
   }
 
+  // Die Suche fand etwas, aber es deckt die Frage nicht: dann ist es ein
+  // Fehltreffer. Links zu Artikeln, die nicht passen, hülfen niemandem, und im
+  // Bericht soll die Frage als Lücke im Wiki stehen.
+  if (antwort !== null && nichtImWiki(antwort)) {
+    await protokoll(supabase, audience, sprache, frage, kontext, start, false);
+    return NextResponse.json({ hit: false, answer: null, sources: [] });
+  }
+
   await protokoll(supabase, audience, sprache, frage, kontext, start);
   return NextResponse.json({
     hit: true,
@@ -151,13 +183,14 @@ async function protokoll(
   frage: string,
   kontext: Treffer[],
   start: number,
+  treffer = true,
 ) {
   const { error } = await supabase.rpc("kb_log_question", {
     p_audience: audience,
     p_language: sprache,
     p_question: frage,
     p_article_ids: [...new Set(kontext.map((t) => t.article_id))],
-    p_hit: true,
+    p_hit: treffer,
     p_duration_ms: Date.now() - start,
   });
   if (error) console.error("[wiki/frage] kb_log_question:", error.message);
