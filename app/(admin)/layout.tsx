@@ -146,6 +146,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         ...eintrag("deadlines", "/admin/fristen", nav.deadlines),
         ...eintrag("contacts", "/admin/ansprechpartner", nav.contacts),
         ...eintrag("vocab", "/admin/vokabular", nav.vocab),
+        ...eintrag("questionCatalog", "/admin/fragenkatalog", nav.questionCatalog),
         ...eintrag("mail", "/admin/mail", nav.mail),
         ...eintrag("wiki", "/admin/wiki", nav.wiki),
         ...eintrag("videos", "/admin/videos", nav.videos),
