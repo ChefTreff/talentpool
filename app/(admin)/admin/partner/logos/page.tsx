@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonDownload } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { loadActiveKeys, loadVocabMap, vgroup } from "@/lib/vocab";
+import { KategorieWahl } from "./KategorieWahl";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +16,8 @@ export type LogoZeile = {
   vektor_datei: string | null; vektor_status: string | null; vektor_seit: string | null;
   pixel_datei: string | null; einwilligung: string | null;
   druckbar: boolean; fehlt: string | null;
+  /** ADM-046: nie leer — Feld am Partner, sonst aus der Stufe, sonst `official`. */
+  logo_category: string; logo_category_source: "manual" | "level" | "fallback";
 };
 
 /**
@@ -25,15 +29,25 @@ export type LogoZeile = {
  * und was fehlt, ist eine leere Zelle mit einem Satz daneben, der sagt, was zu
  * tun ist.
  *
- * Die Logokategorie fehlt absichtlich: sie ist ein eigenes Feld (ADM-046) und
- * noch nicht gebaut. Sie hier aus dem Sponsoring-Level abzuleiten hiesse, der
- * Druckerei eine Angabe zu liefern, die später nicht stimmt.
+ * Die Logokategorie (ADM-046) steht je Partner und lässt sich hier setzen;
+ * ohne eigenen Wert kommt sie aus der Sponsoring-Stufe, sonst ist sie
+ * „Official" — dieselbe Ableitung wie für Website und Swapcard
+ * (`logo_category_of`), damit die drei nie auseinanderlaufen. Die Liste ist
+ * nach Kategorie sortiert, so wie gedruckt wird.
  */
 export default async function LogoWandPage() {
   await requireAdminSection("logoWall", "/admin/partner/logos");
-  const { t } = await getI18n("de");
+  const { t, locale } = await getI18n("de");
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.rpc("partner_logo_production");
+  const [{ data }, vocab, aktiv] = await Promise.all([
+    supabase.rpc("partner_logo_production"),
+    loadVocabMap(supabase, locale),
+    loadActiveKeys(supabase, "logo_category"),
+  ]);
+  const kategorien = vgroup(vocab, "logo_category");
+  const optionen = Object.entries(kategorien)
+    .filter(([key]) => aktiv.has(key))
+    .map(([value, label]) => ({ value, label }));
   const zeilen = (data ?? []) as LogoZeile[];
   const fertig = zeilen.filter((z) => z.druckbar).length;
 
@@ -60,6 +74,21 @@ export default async function LogoWandPage() {
                 <li key={z.org_edition_id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3">
                   <span className="ct-label text-ink">{z.org_name}</span>
                   {z.sponsoring_level && <span className="ct-help">{z.sponsoring_level}</span>}
+                  <KategorieWahl
+                    orgEditionId={z.org_edition_id}
+                    wert={z.logo_category}
+                    quelle={z.logo_category_source}
+                    optionen={optionen}
+                    t={{
+                      label: t.logoWall.colCategory,
+                      derived: t.logoWall.categoryDerived.replace("{kategorie}", kategorien[z.logo_category] ?? z.logo_category),
+                      auto: t.logoWall.categoryAuto,
+                      sourceLevel: t.logoWall.categoryFromLevel,
+                      sourceFallback: t.logoWall.categoryFallback,
+                      saved: t.common.saved,
+                    }}
+                    rpcMessages={t.rpc as Record<string, string>}
+                  />
                   {/* Leere Zelle statt Auslassung: dass hier nichts steht, ist
                       die Information. */}
                   <span className="ct-help">{z.vektor_datei ?? "—"}</span>

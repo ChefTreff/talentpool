@@ -2837,6 +2837,11 @@
     "titleLead": "Welcome"
   },
   "logoWall": {
+    "categoryAuto": "Automatic (from the level)",
+    "categoryDerived": "Automatic: {kategorie}",
+    "categoryFallback": "no level — fallback Official",
+    "categoryFromLevel": "from the sponsoring level",
+    "colCategory": "Logo category",
     "colConsent": "Consent",
     "colLevel": "Tier",
     "colMissing": "What is missing",
@@ -2848,7 +2853,7 @@
     "csv": "List as CSV",
     "empty": "No partner in this edition yet",
     "emptyBody": "As soon as the first deal is imported it appears here — logo or not.",
-    "hintCategory": "The logo category follows with its own field (ADM-046) — deriving it from the tier here would hand the print shop a value that will later be wrong.",
+    "hintCategory": "The logo category applies to the website, Swapcard and the photo wall alike. “Automatic” means: from the sponsoring level, and anyone without one is Official — nobody falls through.",
     "lead": "Every partner of the edition — including those without a file. Only logos with a vector file **and** consent to print them in white go on the wall.",
     "notPrintable": "no",
     "printable": "ready",

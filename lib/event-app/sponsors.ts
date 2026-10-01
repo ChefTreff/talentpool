@@ -29,9 +29,10 @@ export function fremdeEintraege(alle: RemoteSponsor[], unsere: Set<string>): Rem
  * Die Logo-Wand aus dem Portal füllen (Bereich „Sponsoring & Werbung").
  *
  * Quelle ist dieselbe Ausstellerliste wie beim Standsync: Name, freigegebenes
- * PNG-Logo und die Kategorie, die sich aus dem gebuchten Paket ergibt (0139) —
- * mit `official_partner` als Auffangnetz, damit niemand fehlt, der nur eine
- * Masterclass oder eine Company Tour gebucht hat.
+ * PNG-Logo und die Kategorie aus der Logokategorie des Partners (ADM-046:
+ * Feld am Partner, sonst aus dem gebuchten Paket) — mit `official_partner` als
+ * Auffangnetz, damit niemand fehlt, der nur eine Masterclass oder eine Company
+ * Tour gebucht hat.
  *
  * **Idempotent über `external_ref`** (System `swapcard`, `object_type`
  * `sponsor`): der erste Lauf legt an und merkt sich die Kennung, jeder weitere

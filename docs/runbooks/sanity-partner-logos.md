@@ -22,6 +22,8 @@ defineType({
     { name: "sponsoringLevel", type: "string" },  // Schlüssel aus der Werteliste unten, z. B. "premium"
     { name: "sponsoringRank", type: "number" },   // Sortierung aufsteigend: 10 = oben … 999 = ohne Zuordnung
     { name: "partnerCategory", type: "string" },  // "talent" | "startup", kann fehlen
+    { name: "logoCategory", type: "string" },     // ADM-046: Grösse und Platz auf der Wand, Werteliste unten — immer gesetzt
+    { name: "logoCategoryRank", type: "number" }, // Sortierung nach Logokategorie: 10 = Presenting … 50 = Startup
     { name: "logoSvg", type: "image" },           // freigegebene SVG-Fassung als Asset (Maske auf Navy)
     { name: "logoSvgPath", type: "string" },      // Kennung der Fassung im Portal
     { name: "logoTransparent", type: "boolean" }, // false = Hintergrundfläche erkannt ⇒ Website lässt das Logo aus
@@ -53,6 +55,17 @@ GROQ für die Logo-Wand:
   | `gemeinschaftsstand` | Gemeinschaftsstand | 80 |
 
   Ein Level, das im Vokabular fehlt, kommt normalisiert mit (klein, Nicht-Alphanumerisches zu `_`) und erhält Rang **999**; ohne Level fehlt `sponsoringLevel`, der Rang ist 999. Die Reihenfolge ist Konrads Entscheidung und wird im Vokabular gepflegt (Daten, kein Code); die Website übernimmt nur den Rang.
+- **`logoCategory`** (ADM-046, seit Kontrakt v3 — **additiv**, ältere Abfragen laufen unverändert) = Vokabular `logo_category`. Je Partner und Edition am Partner gesetzt, sonst aus der Sponsoring-Stufe abgeleitet, sonst `official` — das Feld fehlt nie. Die Kategorie steuert Grösse und Platz des Logos; Swapcard und die Foto-Wand lesen dieselbe Ableitung (`logo_category_of`).
+
+  | Schlüssel | Bezeichnung | `logoCategoryRank` | aus der Stufe |
+  |---|---|---|---|
+  | `presenting` | Presenting | 10 | Signature |
+  | `premium` | Premium | 20 | Lounge, Premium |
+  | `official` | Official | 30 | General, Intro, Gemeinschaftsstand · **Auffangsatz** ohne Stufe |
+  | `small` | Small | 40 | — (nur von Hand) |
+  | `startup` | Startup | 50 | Start-Up |
+
+  GROQ nach Kategorie: `| order(logoCategoryRank asc, name asc)`. Bereits veröffentlichte Dokumente bekommen das Feld beim nächsten Lauf (die Änderungserkennung zählt die Kategorie mit); der Lauf bleibt ein Knopf im Admin.
 - **`logoTransparent`**: `true`, wenn die Heuristik (`lib/sanity/svg.ts`) keine deckende Hintergrundfläche findet — geprüft werden `background` im `style` des Wurzelelements sowie `<rect>`, `<polygon>` und gerade `<path>`-Rechtecke über die ganze Zeichenfläche mit Füllung (außerhalb von `defs`/`clipPath`/`mask`/`pattern`). Nicht erkannt: Hintergründe aus `<style>`-Regeln, transformierte Flächen, eingebettete Rasterbilder (werden im Trockenlauf gemeldet). Der eigentliche Schutz ist die Freigabe der Pflicht `logo_vector` durch das Team — ihre Beschreibung verlangt seit 0097 „freigestellt, transparenter Hintergrund“.
 
 ## Einrichtung
