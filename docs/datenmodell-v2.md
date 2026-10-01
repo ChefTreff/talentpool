@@ -147,6 +147,9 @@
 | Welle 6 · 0219 | **Portal-Links (Store-Links der Event-App) im Admin pflegen (PART-072)** (`20260926091025`, `v6_portal_links`; Details im Migrationskopf) | — |
 | Welle 6 · 0220 | **Verantwortliche je Session: aus dem Bühnen-Lead abgeleitet, je Session übersteuerbar (ADM-018)** (`20260926091026`, `v6_session_verantwortliche`; Details im Migrationskopf) | — |
 | Welle 6 · 0222 | **Löschantrag durch das Team für Personen ohne Konto, Hürden der betroffenen Person (ADM-031)** (`20261001081110`, `v6_loeschung_durch_team`; Details im Migrationskopf) | — |
+| Welle 6 · 0223 | **Hackathon Challenge (I-37220) vergibt die Rolle hackathon_partner, Storno entzieht (HACK-005)** (`20261001081703`, `v6_hackathon_challenge_rolle`; Details im Migrationskopf) | — |
+| Welle 6 · 0224 | **Fragenkatalog pflegen: Abschnitt questionCatalog, upsert/reorder mit Audit, kein Löschen (ADM-061)** (`20261001082105`, `v6_fragenkatalog_pflege`; Details im Migrationskopf) | — |
+| Welle 6 · 0225 | **Hackathon Stand I-10729 aus dem Vertriebskatalog, bleibt aktiv (ADM-047)** (`20261001082329`, `v6_hackathon_stand_kein_vertrieb`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

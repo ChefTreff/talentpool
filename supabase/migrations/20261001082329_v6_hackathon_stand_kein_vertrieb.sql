@@ -1,4 +1,5 @@
--- 00NN · Hackathon Stand aus dem Vertriebskatalog (ADM-047, Konrad 22./25.09.2026)
+-- 0225 · Hackathon Stand I-10729 aus dem Vertriebskatalog, bleibt aktiv (ADM-047)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001082329.
 --
 -- Zweck: `I-10729 Hackathon Stand` ist kein eigenes Produkt. Der Stand gehört
 -- automatisch zur Hackathon Challenge (`I-37220`) und braucht auch kein
