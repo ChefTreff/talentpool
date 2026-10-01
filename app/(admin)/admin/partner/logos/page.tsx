@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { ButtonDownload } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +49,10 @@ export default async function LogoWandPage() {
             <p className="ct-label text-ink">
               {t.logoWall.summary.replace("{n}", String(fertig)).replace("{gesamt}", String(zeilen.length))}
             </p>
-            <Link className="ct-link ct-small" href="/admin/partner/logos/csv">{t.logoWall.csv}</Link>
+            {/* Echter Download statt `Link` — sonst lädt Next die CSV-Route vor (Skill-Regel 3). */}
+            <ButtonDownload href="/admin/partner/logos/csv" variant="ghost" size="sm">
+              {t.logoWall.csv}
+            </ButtonDownload>
           </div>
           <Card>
             <ul className="flex flex-col divide-y">
