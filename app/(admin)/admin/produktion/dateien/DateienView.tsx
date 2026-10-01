@@ -14,6 +14,7 @@ import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { postJson } from "@/lib/fetch-json";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { setzeZielgruppe } from "./actions";
 
 export type EditionFileRow = {
   id: string;
@@ -56,6 +57,7 @@ export function DateienView({
   editionId,
   files,
   kinds,
+  audiences = {},
   dateLocale,
   t,
   common,
@@ -63,6 +65,12 @@ export function DateienView({
   editionId: string;
   files: EditionFileRow[];
   kinds: Record<string, string>;
+  /**
+   * PROD-009: Zielgruppen aus dem Vokabular `kb_audience` — wer die Datei im
+   * Portal sieht. Optional, damit eine Seite ohne Auswahl weiter funktioniert
+   * (dann gilt beim Hochladen wie bisher: alle).
+   */
+  audiences?: Record<string, string>;
   dateLocale: string;
   t: Strings;
   common: { cancel: string; delete: string; upload: string; chooseOtherFile: string };
@@ -74,6 +82,10 @@ export function DateienView({
   const [label, setLabel] = useState("");
   const [busy, setBusy] = useState(false);
   const [loeschen, setLoeschen] = useState<EditionFileRow | null>(null);
+  // PROD-009: Zielgruppe beim Hochladen (Vorgabe wie bisher: alle) und je Zeile änderbar.
+  const [zielgruppe, setZielgruppe] = useState<string[]>(Object.keys(audiences));
+  const [bearbeiten, setBearbeiten] = useState<{ id: string; audience: string[] } | null>(null);
+  const mitZielgruppe = Object.keys(audiences).length > 0;
 
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium", timeStyle: "short" });
 
@@ -97,6 +109,7 @@ export function DateienView({
       // der Upload schon begonnen — und das dauert bei 20 MB.
       if (!ERLAUBT.includes(file.type)) return melden("wrong_type");
       if (file.size > MAX_BYTES) return melden("too_large");
+      if (mitZielgruppe && zielgruppe.length === 0) { toast("error", t.audienceRequired); return; }
 
       const platz = await postJson<{ path: string; token: string }>(
         "/api/produktion/edition-files?step=url",
@@ -123,6 +136,7 @@ export function DateienView({
         filename: file.name,
         mime: file.type,
         size_bytes: file.size,
+        ...(mitZielgruppe ? { audience: zielgruppe } : {}),
         ...(label.trim() !== "" ? { label_de: label.trim() } : {}),
       });
       if (!zeile.ok) return melden(zeile.key, zeile.detail);
@@ -138,6 +152,34 @@ export function DateienView({
       setBusy(false);
     }
   }
+
+  function zielgruppeSpeichern(row: EditionFileRow) {
+    if (!bearbeiten) return;
+    startTransition(async () => {
+      const r = await setzeZielgruppe(row.id, row.kind, bearbeiten.audience);
+      if (!r.ok) { toast("error", r.key === "invalid_audience" ? t.audienceRequired : t.audienceFailed); return; }
+      toast("success", t.audienceSaved);
+      setBearbeiten(null);
+      router.refresh();
+    });
+  }
+
+  const auswahl = (wert: string[], setze: (n: string[]) => void, idPrefix: string) => (
+    <div className="flex flex-wrap gap-x-4 gap-y-1">
+      {Object.entries(audiences).map(([key, l]) => (
+        <label key={key} htmlFor={`${idPrefix}-${key}`} className="flex min-h-11 items-center gap-2 ct-small">
+          <input
+            id={`${idPrefix}-${key}`}
+            type="checkbox"
+            className="h-4 w-4 accent-accent"
+            checked={wert.includes(key)}
+            onChange={(e) => setze(e.target.checked ? [...wert, key] : wert.filter((x) => x !== key))}
+          />
+          {l}
+        </label>
+      ))}
+    </div>
+  );
 
   function onDelete(row: EditionFileRow) {
     startTransition(async () => {
@@ -181,6 +223,13 @@ export function DateienView({
             onFile={(file) => void onUpload(file)}
           />
         </div>
+        {mitZielgruppe && (
+          <fieldset className="mt-4">
+            <legend className="ct-label">{t.audience}</legend>
+            <p className="ct-help">{t.audienceHint}</p>
+            {auswahl(zielgruppe, setZielgruppe, "neu")}
+          </fieldset>
+        )}
         {busy && <p className="ct-help mt-2">{t.uploading}</p>}
       </Card>
 
@@ -201,10 +250,31 @@ export function DateienView({
                     {f.filename} · {dateTime.format(new Date(f.created_at))}
                   </span>
                 </span>
+                <span className="flex flex-wrap gap-1">
+                  {f.audience.map((a) => <Badge key={a}>{audiences[a] ?? a}</Badge>)}
+                </span>
                 <span className="ct-help">{f.edition_slug}</span>
+                {mitZielgruppe && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={pending}
+                    onClick={() => setBearbeiten(bearbeiten?.id === f.id ? null : { id: f.id, audience: f.audience })}
+                  >
+                    {t.audienceEdit}
+                  </Button>
+                )}
                 <Button size="sm" variant="ghost" disabled={pending} onClick={() => setLoeschen(f)}>
                   {common.delete}
                 </Button>
+                {bearbeiten?.id === f.id && (
+                  <div className="flex w-full flex-wrap items-center gap-3 pb-1">
+                    {auswahl(bearbeiten.audience, (n) => setBearbeiten({ id: f.id, audience: n }), `z-${f.id}`)}
+                    <Button size="sm" disabled={pending || bearbeiten.audience.length === 0} onClick={() => zielgruppeSpeichern(f)}>
+                      {t.audienceSave}
+                    </Button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
