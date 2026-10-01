@@ -10,6 +10,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { applyHackathon, createTeam, joinTeam, leaveTeam, submitProject } from "./actions";
 import type { MyHack } from "./types";
+import { MetricForm } from "./MetricForm";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
@@ -31,6 +32,7 @@ const STATUS_TONE: Record<string, BadgeTone> = {
  */
 export function HackView({
   data,
+  metric,
   skills,
   tracks,
   discordUrl,
@@ -39,6 +41,8 @@ export function HackView({
   rpcMessages,
 }: {
   data: MyHack;
+  /** HACK-009: nur bei einer Metrik-Challenge des eigenen Teams. */
+  metric: { label: string; value: number | null; confirmed: boolean } | null;
   skills: Record<string, string>;
   /** vocab hack_track (HACK-008/010): Schlüssel → Bezeichnung. */
   tracks: Record<string, string>;
@@ -174,7 +178,22 @@ export function HackView({
                   <span className="text-muted">{data.challenge.resources}</span>
                 </p>
               )}
-              {(data.challenge.criteria ?? []).length > 0 && (
+              {/* Metrik-Challenge (HACK-009): kein Pitch nach Kriterien, sondern ein Wert. */}
+              {metric && data.team && accepted && (
+                <div className="flex flex-col gap-2">
+                  <p className="ct-label">{t.judgingMetric.replace("{metric}", metric.label)}</p>
+                  <p className="ct-help">{t.metricTeamHint}</p>
+                  <MetricForm
+                    teamId={data.team.id}
+                    metricLabel={metric.label}
+                    value={metric.value}
+                    confirmed={metric.confirmed}
+                    t={t}
+                    rpcMessages={rpcMessages}
+                  />
+                </div>
+              )}
+              {!metric && (data.challenge.criteria ?? []).length > 0 && (
                 <div>
                   <p className="ct-label">{t.judgedBy}</p>
                   <ul className="ml-5 list-disc">

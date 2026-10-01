@@ -36,3 +36,41 @@ export async function setChallengeTrack(challengeId: string, track: string): Pro
   revalidatePath("/hackathon/challenges");
   return { ok: true };
 }
+
+/** Auswertungsart einer Challenge setzen (HACK-009). Gate hier und in der RPC. */
+export async function setChallengeJudging(input: {
+  challengeId: string;
+  mode: "jury" | "metric";
+  metricLabel: string;
+  higherBetter: boolean;
+}): Promise<Ergebnis> {
+  await requireAdminSection("hackathon");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("set_hack_challenge_judging", {
+    p_challenge_id: input.challengeId,
+    p_mode: input.mode,
+    p_metric_label: input.metricLabel || null,
+    p_higher_better: input.higherBetter,
+  });
+  if (error) {
+    const f = toRpcFailure(error);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  revalidatePath("/admin/hackathon");
+  revalidatePath("/hackathon/challenges");
+  return { ok: true };
+}
+
+/** Metrik-Wert bestätigen oder zurücknehmen (HACK-009); erst bestätigt zählt er im Leaderboard. */
+export async function confirmMetric(teamId: string, confirm: boolean): Promise<Ergebnis> {
+  await requireAdminSection("hackathon");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("confirm_hack_metric", { p_team_id: teamId, p_confirm: confirm });
+  if (error) {
+    const f = toRpcFailure(error);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  revalidatePath("/admin/hackathon");
+  revalidatePath("/hackathon/challenges");
+  return { ok: true };
+}
