@@ -1,4 +1,4 @@
--- Test „Wunschprofil je Challenge“ (HACK-015, vorschlag/v6_hack_wunschprofil.sql). Belegt:
+-- Test „Wunschprofil je Challenge“ (HACK-015, 20261001132202_v6_hack_wunschprofil.sql). Belegt:
 --   01 Spalten mit Prüfsatz (9 Studienfelder abgewiesen), vocab_binding für beide Listen;
 --   02 set_hack_challenge_profile: fremde Person 42501; Partner mit Bearbeitungsrecht setzt
 --      (Doppelte fallen weg), Audit;

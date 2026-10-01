@@ -1,4 +1,5 @@
--- 0000 · Wunschprofil je Hackathon-Challenge (HACK-015): Studienfelder, Skills, kurzer Freitext.
+-- 0247 · Wunschprofil je Challenge: Studienfelder und Skills aus dem Vokabular, Partner und Hack-Team pflegen, Passung in der Auswahl (HACK-015)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001132202.
 --
 -- Anlass: Konrad im Call 24.09. (HACK-014-Abgleich): Partner sagen nicht, wen sie für ihre
 -- Challenge suchen. Der Partner beschreibt das gewünschte Profil; Teilnehmende sehen es auf

@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 13:20 UTC · 113 Tabellen · 6 Views · 642 Funktionen
+> Stand: 2026-10-01 13:22 UTC · 113 Tabellen · 6 Views · 644 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -528,6 +528,9 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `metric_label` | text |  |  |  | Bezeichnung der Metrik, z. B. „Prediction accuracy“ (nur bei judging_mode = metric). |
 | `metric_higher_better` | boolean | ja | `true` |  | Rangfolge: true = höherer Wert gewinnt. |
 | `submission_deadline` | timestamp with time zone |  |  |  | Abgabefrist der Challenge (HACK-011); danach gelten Abgaben als verspätet. Gesetzt über set_hack_challenge_deadline. |
+| `target_study_fields` | text[] | ja |  |  | Wunschprofil (HACK-015): gesuchte Studienfelder, vocab study_field. |
+| `target_skills` | text[] | ja |  |  | Wunschprofil (HACK-015): gesuchte Skills, vocab skill (wie im Profil, TAL-013). |
+| `target_profile` | text |  |  |  | Wunschprofil (HACK-015): „Wen sucht ihr?“, Freitext bis 500 Zeichen. |
 
 ### `hack_dataset`
 Datensatz je Hackathon-Challenge (HACK-012) im privaten Bucket hack-datasets (<challenge_id>/<datei>). Zugriff nur über can_manage_hack_dataset, can_read_hack_dataset, register_hack_dataset, hack_challenge_dataset.
@@ -2336,6 +2339,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_admin_overview` | p_edition_id: uuid, p_language: text |
 | `hack_applications_admin` | p_edition_id: uuid |
 | `hack_challenge_dataset` | p_challenge_id: uuid |
+| `hack_challenge_profiles` | p_edition_id: uuid, p_language: text |
 | `hack_challenges` | p_edition_id: uuid, p_language: text |
 | `hack_dataset_path_allowed` | p_name: text |
 | `hack_dataset_targets` | p_edition_id: uuid, p_language: text |
@@ -2635,6 +2639,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_hack_application_status` | p_id: uuid, p_note: text, p_status: text |
 | `set_hack_challenge_deadline` | p_challenge_id: uuid, p_deadline: timestamp with time zone |
 | `set_hack_challenge_judging` | p_challenge_id: uuid, p_higher_better: boolean, p_metric_label: text, p_mode: text |
+| `set_hack_challenge_profile` | p_challenge_id: uuid, p_skills: text[], p_study_fields: text[], p_text: text |
 | `set_hack_challenge_track` | p_challenge_id: uuid, p_track: text |
 | `set_hack_metric` | p_note: text, p_team_id: uuid, p_value: numeric |
 | `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
