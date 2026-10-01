@@ -5831,6 +5831,8 @@
   "talentEvents": {
     "approval": "Requires approval",
     "back": "All events",
+    "copyFailed": "Copying did not work. Please copy the link in Luma.",
+    "copyLink": "Copy sign-up link",
     "emptyBody": "As soon as the next community event is in the calendar, you'll find it here.",
     "emptyTitle": "No events planned right now",
     "errorBody": "The calendar isn't responding at the moment. Please try again in a few minutes.",
@@ -5842,6 +5844,7 @@
     "full": "Fully booked",
     "fullWaitlist": "Fully booked · waitlist",
     "lead": "Our community events. Register with your profile — Luma sends you the confirmation and reminder.",
+    "linkCopied": "Link copied",
     "navLabel": "Events",
     "notConnectedBody": "We're connecting the community calendar. Until then, all dates are on luma.com.",
     "notConnectedTitle": "Events coming soon",
