@@ -1,4 +1,5 @@
 import { strict as assert } from "node:assert";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { zeilenInKarte } from "@/components/programme/geometry";
 import { PARTNER_KARTE, PARTNER_LEGENDE } from "@/components/programme/partnerSicht";
@@ -54,5 +55,19 @@ describe("Board-Karten (LEAD-017)", () => {
     // Der kürzeste Slot (5 Minuten, Mindesthöhe 22 px) fasst mit Innenabstand
     // keine ganze Zeile; die einzeilige Fassung kommt ohne ihn aus und passt.
     assert.equal(zeilenInKarte(600, 605), 0);
+  });
+
+  it("Tabelle, Schubfach und Partner-Tabelle zeigen den Status mit dem Musterfeld des Boards, nicht mit Badge-Tönen", () => {
+    // Sonst liefe es wieder auseinander: „Final“ im Board Akzent, in der Tabelle grün (#238).
+    for (const datei of [
+      "components/programme/ProgrammeTable.tsx",
+      "components/programme/SessionDrawer.tsx",
+      "app/(partner)/partner/buehne/StandTabelle.tsx",
+      "app/(partner)/partner/buehne/StandInfo.tsx",
+    ]) {
+      const src = readFileSync(datei, "utf8");
+      assert.ok(/StatusMarke|StatusMuster/.test(src), `${datei}: StatusMarke fehlt`);
+      assert.ok(!/<Badge[^>]*tone=\{(STATUS_TONE|PARTNER_STATUS_TON)\[/.test(src), `${datei}: Status wieder als Badge-Ton`);
+    }
   });
 });

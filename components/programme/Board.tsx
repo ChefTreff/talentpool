@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
+import { StatusMarke } from "@/components/programme/StatusMarke";
 import {
   createSlot,
   moveSlot,
@@ -741,14 +742,7 @@ export function Board({
             ? PARTNER_LEGENDE.map((s) => ({ key: s, stil: PARTNER_KARTE[s], text: statusTexte[s] }))
             : SLOT_STATUS_ORDER.map((s) => ({ key: s, stil: SLOT_STATUS_STYLE[s], text: labels.slotStatus[s] }))
           ).map(({ key, stil, text }) => (
-            <span
-              key={key}
-              className="inline-flex min-h-8 items-center gap-2 rounded-ct-sm border border-border bg-surface py-1 pl-1 pr-2 ct-help text-ink"
-            >
-              <span aria-hidden className={cn("inline-block h-5 w-6 rounded-ct-sm", stil.flaeche)} />
-              {text}
-              <span className="ct-label tabular-nums text-ink">{anzahl.get(key) ?? 0}</span>
-            </span>
+            <StatusMarke key={key} stil={stil} text={text} anzahl={anzahl.get(key) ?? 0} />
           ))}
           {irgendwoZu && (
             <span className="inline-flex min-h-8 items-center gap-2 py-1 pl-1 pr-2 ct-help text-ink">

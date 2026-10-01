@@ -11,6 +11,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { MehrfachAuswahl } from "@/components/ui/MehrfachAuswahl";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { StatusMarke, StatusMuster } from "@/components/programme/StatusMarke";
 import {
   attachSession,
   detachSession,
@@ -30,15 +31,14 @@ import {
   type CatalogQuestion,
   type SessionDetail,
 } from "./actions";
-import { SLOT_STATUS_ORDER, speakerName, type BoardLabels, type SessionSpeaker } from "./types";
+import { SLOT_STATUS_ORDER, SLOT_STATUS_STYLE, speakerName, type BoardLabels, type SessionSpeaker } from "./types";
 import { SuchAuswahl } from "./SuchAuswahl";
 import { fehlerText } from "./fehler";
-import { boardPartnerStatus, partnerStatusTexte, type PartnerSicht } from "./partnerSicht";
+import { PARTNER_KARTE, boardPartnerStatus, partnerStatusTexte, type PartnerSicht } from "./partnerSicht";
 import type { ProgrammeStrings } from "./Board";
 import { GastZuordnung } from "@/components/partner/GastZuordnung";
 import type { GastWahl } from "@/components/partner/gaeste";
 import {
-  PARTNER_STATUS_TON,
   fehlendAusDetail,
   fehlendFuerFreigabe,
   type FehlendesFeld,
@@ -699,20 +699,24 @@ export function SessionDrawer({
                 in der Partner-Sicht steht der Partner-Status darunter. */}
             {!partnerSicht && (
             <Field label={t.slotStatus} htmlFor="slot_status">
-              <Select
-                id="slot_status"
-                value={status}
-                disabled={pending}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  const vorher = status;
-                  setStatus(next);
-                  startTransition(async () => {
-                    if (!report(await setSlotStatus(slotId, next), t.statusSaved)) setStatus(vorher);
-                  });
-                }}
-                options={SLOT_STATUS_ORDER.map((st) => ({ value: st, label: labels.slotStatus[st] ?? st }))}
-              />
+              {/* Musterfeld wie im Board (LEAD-017) vor der Auswahl. */}
+              <span className="flex items-center gap-2">
+                <StatusMuster stil={SLOT_STATUS_STYLE[status] ?? SLOT_STATUS_STYLE.open} />
+                <Select
+                  id="slot_status"
+                  value={status}
+                  disabled={pending}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    const vorher = status;
+                    setStatus(next);
+                    startTransition(async () => {
+                      if (!report(await setSlotStatus(slotId, next), t.statusSaved)) setStatus(vorher);
+                    });
+                  }}
+                  options={SLOT_STATUS_ORDER.map((st) => ({ value: st, label: labels.slotStatus[st] ?? st }))}
+                />
+              </span>
             </Field>
             )}
           </div>
@@ -727,7 +731,7 @@ export function SessionDrawer({
         {partnerSicht && partnerStand && partnerTexte ? (
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge tone={PARTNER_STATUS_TON[partnerStand]}>{partnerTexte[partnerStand]}</Badge>
+              <StatusMarke stil={PARTNER_KARTE[partnerStand]} text={partnerTexte[partnerStand]} />
               {detail && !detail.slot_id && <Badge tone="warning">{t.inBacklog}</Badge>}
             </div>
             {partnerStand === "zurueckgegeben" && id && partnerSicht.rueckgaben[id] && (

@@ -11,20 +11,13 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
+import { StatusMarke, StatusMuster } from "@/components/programme/StatusMarke";
 import { searchBoardPeople, setSessionOwner, setSessionSpeakers, setSlotStatus, upsertSession } from "./actions";
 import { fehlerText } from "./fehler";
-import { speakerName, SLOT_STATUS_ORDER, type BoardDay, type BoardLabels, type BoardSlot, type BoardStage } from "./types";
+import { speakerName, SLOT_STATUS_ORDER, SLOT_STATUS_STYLE, type BoardDay, type BoardLabels, type BoardSlot, type BoardStage } from "./types";
 import { abgeleiteteNamen, ownerOptionen, verantwortlich, type OwnerCandidate, type SessionVerantwortung } from "./verantwortung";
 
 type Strings = Record<string, string>;
-
-const STATUS_TONE: Record<string, BadgeTone> = {
-  open: "neutral",
-  requested: "warning",
-  confirmed_title_open: "accent",
-  final: "success",
-  unused: "neutral",
-};
 
 const PUBLISH_TONE: Record<string, BadgeTone> = {
   draft: "neutral",
@@ -362,19 +355,26 @@ function Row({
         </Td>
       )}
       <Td>
+        {/* Status mit dem Musterfeld des Boards (LEAD-017) — dieselbe Form und
+            Farbe wie die Karte im Raster, nicht mehr ein eigener Badge-Ton. */}
         {row.can_edit ? (
-          <Select
-            aria-label={t.colStatus}
-            className="w-44"
-            value={row.slot_status}
-            disabled={pending}
-            options={SLOT_STATUS_ORDER.map((s) => ({ value: s, label: labels.slotStatus[s] ?? s }))}
-            onChange={(e) => run(setSlotStatus(row.slot_id, e.target.value), t.saved)}
-          />
+          <span className="flex items-center gap-2">
+            <StatusMuster stil={SLOT_STATUS_STYLE[row.slot_status] ?? SLOT_STATUS_STYLE.open} />
+            <Select
+              aria-label={t.colStatus}
+              className="w-44"
+              value={row.slot_status}
+              disabled={pending}
+              options={SLOT_STATUS_ORDER.map((s) => ({ value: s, label: labels.slotStatus[s] ?? s }))}
+              onChange={(e) => run(setSlotStatus(row.slot_id, e.target.value), t.saved)}
+            />
+          </span>
         ) : (
-          <Badge tone={STATUS_TONE[row.slot_status] ?? "neutral"}>
-            {labels.slotStatus[row.slot_status] ?? row.slot_status}
-          </Badge>
+          <StatusMarke
+            rahmen={false}
+            stil={SLOT_STATUS_STYLE[row.slot_status] ?? SLOT_STATUS_STYLE.open}
+            text={labels.slotStatus[row.slot_status] ?? row.slot_status}
+          />
         )}
       </Td>
       <Td>
