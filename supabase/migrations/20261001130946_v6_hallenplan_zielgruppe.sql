@@ -1,3 +1,5 @@
+-- 0243 · Hallenplan nach Zielgruppe: Bestandsplan nicht mehr für Speaker, Zielgruppe im Dateien-Formular (PROD-009, SPK-030)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001130946.
 -- Partner-Hallenplan nicht mehr für Speaker (PROD-009, aus SPK-030)
 --
 -- Zweck: `set_edition_file` setzt ohne Zielgruppe alle fünf — der heutige
