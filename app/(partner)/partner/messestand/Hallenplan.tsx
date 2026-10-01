@@ -23,6 +23,7 @@ type Strings = Record<string, string>;
 export function Hallenplan({
   plan,
   planUrl,
+  bildUrl,
   exhibitors,
   ownOrgId,
   ownBoothNumber,
@@ -32,6 +33,8 @@ export function Hallenplan({
   plan: EditionFile | null;
   /** Signierte URL, serverseitig erzeugt — der Bucket ist privat. */
   planUrl: string | null;
+  /** Was angezeigt wird: die Vorschau, sonst das Original (ADM-042). */
+  bildUrl: string | null;
   exhibitors: Exhibitor[];
   ownOrgId: string;
   ownBoothNumber: string | null;
@@ -57,10 +60,10 @@ export function Hallenplan({
             // Bildoptimierer gereicht, würde sie zwischengespeichert und wäre
             // nach Ablauf tot.
             <Image
-              src={planUrl}
+              src={bildUrl ?? planUrl}
               alt={(locale === "en" ? plan.label_en : plan.label_de) ?? plan.filename}
-              width={1600}
-              height={1000}
+              width={plan.preview_width ?? 1600}
+              height={plan.preview_height ?? 1000}
               unoptimized
               className="h-auto w-full rounded-ct-sm border"
             />

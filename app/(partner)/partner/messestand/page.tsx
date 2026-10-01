@@ -90,6 +90,12 @@ export default async function MessestandPage() {
     ? ((await supabase.storage.from("edition-files").createSignedUrl(plan.storage_path, 3600)).data
         ?.signedUrl ?? null)
     : null;
+  // ADM-042: angezeigt wird die verkleinerte Fassung, das Original bleibt der
+  // Link zum Öffnen. Ohne Vorschau zeigt die Seite das Original wie bisher.
+  const bildUrl = plan?.preview_path
+    ? ((await supabase.storage.from("edition-files").createSignedUrl(plan.preview_path, 3600)).data
+        ?.signedUrl ?? planUrl)
+    : planUrl;
 
   const b = t.partnerBooth;
 
@@ -187,6 +193,7 @@ export default async function MessestandPage() {
           <Hallenplan
             plan={plan}
             planUrl={planUrl}
+            bildUrl={bildUrl}
             exhibitors={exhibitors}
             ownOrgId={current.org_id}
             ownBoothNumber={overview.booth?.booth_number ?? null}
