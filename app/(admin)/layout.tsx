@@ -4,6 +4,7 @@ import { ADMIN_SECTIONS, type AdminSectionKey } from "@/lib/admin-sections";
 import { mayEnterAdminSection } from "@/lib/admin-access";
 import { getI18n } from "@/lib/i18n";
 import { SidebarShell, type SidebarGroup } from "@/components/layout/SidebarShell";
+import { sichtbareNavigation } from "@/lib/admin-navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,9 @@ export const dynamic = "force-dynamic";
  *
  * Die Produktion ist mit PORT2 hierher gezogen (`/admin/produktion`); ihre
  * Reiter bleiben in der Seite, wie bei Partner und Volunteers.
+ *
+ * Die Liste selbst steht seit QS-032 in `lib/admin-navigation.ts` — die
+ * Rollenverwaltung zeigt mit derselben Liste, was eine Rolle sähe.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const { roleNames } = await requireArea("admin");
@@ -46,118 +50,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     ).filter((k): k is AdminSectionKey => k !== null),
   );
 
-  /** Ein Punkt der Leiste, der nur erscheint, wenn der Abschnitt offen ist. */
-  const eintrag = (section: AdminSectionKey, href: string, label: string) =>
-    offen.has(section) ? [{ href, label }] : [];
-
-  const alleGruppen: SidebarGroup[] = [
-    { label: "", items: eintrag("overview", "/admin", nav.overview) },
-    {
-      label: nav.sections.participants,
-      items: [
-        ...eintrag("applications", "/admin/bewerbungen", nav.applications),
-        ...eintrag("nextUp", "/admin/next-up", nav.nextUp),
-        ...eintrag("communityEvents", "/admin/community-events", nav.communityEvents),
-        ...eintrag("programme", "/admin/programm", nav.programme),
-        // Das Geruest steht neben dem Programm, nicht unter System: wer
-        // eine Buehne anlegt, kommt vom Board und will dorthin zurueck.
-        ...eintrag("edition", "/admin/edition", nav.edition),
-      ],
-    },
-    {
-      label: nav.sections.speaker,
-      items: [
-        // Der Einstieg in die Domäne steht oben: von hier aus geht es zu jedem
-        // einzelnen Speaker, die Listen darunter beantworten Einzelfragen.
-        ...eintrag("speakers", "/admin/speaker", nav.speakers),
-        ...eintrag("speakers", "/admin/speaker/aufgaben", nav.speakerTasks),
-        ...eintrag("speakerLeads", "/admin/speaker-leads", nav.speakerLeads),
-        ...eintrag("speakerTickets", "/admin/speaker-tickets", nav.speakerTickets),
-        ...eintrag("expenses", "/admin/reisekosten", nav.expenses),
-        ...eintrag("hospitality", "/admin/hospitality", nav.hospitality),
-        ...eintrag("reception", "/admin/reception", nav.reception),
-        ...eintrag("travel", "/admin/anreise", nav.travel),
-        // Beides hing bisher nur im Lead-Portal. Seit der Regel
-        // „Admin-Vollständigkeit" (22.09.) gibt es jeden Team-Weg auch hier —
-        // dieselbe Seite, nur ein anderes Bereichsgate.
-        ...eintrag("submissions", "/admin/einreichungen", nav.submissions),
-        ...eintrag("regie", "/admin/regie", nav.regie),
-        ...eintrag("tech", "/admin/technik", nav.tech),
-        ...eintrag("graphics", "/admin/grafiken", nav.graphics),
-      ],
-    },
-    {
-      label: nav.sections.partner,
-      items: [
-        ...eintrag("partner", "/admin/partner", nav.partnerCare),
-        ...eintrag("initiatives", "/admin/initiativen", nav.initiatives),
-        ...eintrag("logoWall", "/admin/partner/logos", nav.logoWall),
-        ...eintrag("companyTours", "/admin/company-tours", nav.companyTours),
-      ],
-    },
-    {
-      label: nav.sections.volunteers,
-      items: [
-        ...eintrag("volunteers", "/admin/volunteers", nav.volunteersWork),
-        ...eintrag("checkin", "/admin/checkin", nav.checkin),
-      ],
-    },
-    // Produktion (PORT2): war bis zum 22.09.2026 ein eigenes Portal unter
-    // `/produktion`. Die Reiter Regie, Stände, Bestellungen, Catering und
-    // Dateien bleiben in der Seite.
-    {
-      label: nav.sections.production,
-      items: [
-        ...eintrag("production", "/admin/produktion", nav.productionRegie),
-        ...eintrag("productionBooths", "/admin/produktion/staende", nav.productionBooths),
-        ...eintrag("productionOrders", "/admin/produktion/bestellungen", nav.productionOrders),
-        ...eintrag("productionFiles", "/admin/produktion/dateien", nav.productionFiles),
-      ],
-    },
-    // Catering steht für sich: es betrifft Speaker **und** Volunteers, und die
-    // Zahlen sind bewusst ohne Personenbezug (Migration 0100).
-    {
-      label: nav.sections.crossCutting,
-      items: eintrag("catering", "/admin/catering", nav.catering),
-    },
-    // PORT4: **Verwaltung** — Personen, Zugänge, Rechte und das Protokoll. Alle
-    // diese Abschnitte tragen `roles: []`, sind also ohnehin nur für `admin`
-    // offen; die eigene Gruppe macht aus der Regel eine sichtbare Ordnung.
-    // Die Pfade bleiben, wo sie sind: ein Umzug bräche gemerkte Adressen für
-    // einen reinen Navigationsgewinn.
-    {
-      label: nav.sections.administration,
-      items: [
-        ...eintrag("persons", "/admin/personen", nav.persons),
-        // Das Team zuerst: „wer gehoert dazu" ist die Frage, mit der man
-        // herkommt; die Rollenverwaltung darunter ist das Werkzeug fuer
-        // jede einzelne Zuweisung, auch ausserhalb des Teams.
-        ...eintrag("team", "/admin/team", nav.team),
-        ...eintrag("roles", "/admin/rollen", nav.roles),
-        ...eintrag("duplicates", "/admin/dubletten", nav.duplicates),
-        ...eintrag("deletions", "/admin/loeschantraege", nav.deletions),
-        ...eintrag("access", "/admin/verwaltung/zugaenge", nav.access),
-        ...eintrag("auditLog", "/admin/verwaltung/protokoll", nav.auditLog),
-      ],
-    },
-    {
-      label: nav.sections.system,
-      items: [
-        ...eintrag("deadlines", "/admin/fristen", nav.deadlines),
-        ...eintrag("contacts", "/admin/ansprechpartner", nav.contacts),
-        ...eintrag("vocab", "/admin/vokabular", nav.vocab),
-        ...eintrag("questionCatalog", "/admin/fragenkatalog", nav.questionCatalog),
-        ...eintrag("mail", "/admin/mail", nav.mail),
-        ...eintrag("wiki", "/admin/wiki", nav.wiki),
-        ...eintrag("videos", "/admin/videos", nav.videos),
-        ...eintrag("ui", "/admin/ui", nav.ui),
-      ],
-    },
-  ];
-
-  // Eine Gruppe ohne sichtbaren Punkt verschwindet mit — sonst stünde bei einem
-  // Produktionsmitglied eine leere Überschrift „Speaker" in der Leiste.
-  const groups = alleGruppen.filter((g) => g.items.length > 0);
+  const groups: SidebarGroup[] = sichtbareNavigation((k) => offen.has(k), nav);
 
   return (
     <SidebarShell area="admin" label={t.areas.admin.portal} rootHref="/admin" groups={groups}>
