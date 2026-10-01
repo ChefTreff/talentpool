@@ -16,6 +16,8 @@ export type MyHack = {
     github_url?: string | null;
     website_url?: string | null;
     behance_url?: string | null;
+    /** Gewünschte Tracks (vocab hack_track, HACK-010). */
+    track_prefs?: string[];
   } | null;
   team: {
     id: string;
@@ -32,6 +34,7 @@ export type MyHack = {
     prizes: string | null;
     resources: string | null;
     criteria: HackCriterion[];
+    track?: string | null;
   } | null;
   submission: {
     url: string | null;
@@ -52,6 +55,17 @@ export type HackChallenge = {
   criteria: HackCriterion[];
   org_name: string | null;
   teams: number;
+  /** vocab hack_track (HACK-008); ältere Challenges können ohne sein. */
+  track: string | null;
+};
+
+/** Eingereichtes, noch nicht freigegebenes Challenge-Formular (`hack_open_challenges`). */
+export type HackOpenChallenge = {
+  deliverable_id: string;
+  org_name: string;
+  title: string | null;
+  /** Track aus der Formularantwort, falls erkennbar. */
+  track: string | null;
 };
 
 export type HackTeamRow = {

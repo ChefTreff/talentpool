@@ -53,3 +53,22 @@ describe("Sanity: Partner-Logo-Dokument (Kontrakt v2)", () => {
     assert.equal(partnerLogoChanged(meta, { ...row, website: "other.example" }), false);
   });
 });
+
+describe("Sanity: Logokategorie (ADM-046)", () => {
+  it("geht als logoCategory mit Rang hinaus und löst eine neue Veröffentlichung aus, wenn sie sich ändert", () => {
+    const mit = { ...row, logo_category: "premium", logo_category_rank: 20 };
+    const doc = partnerLogoDocument(mit, { transparent: true });
+    assert.equal(doc?.logoCategory, "premium");
+    assert.equal(doc?.logoCategoryRank, 20);
+    const meta = partnerLogoRefMeta(mit, null, true);
+    assert.equal(meta.logo_category, "premium");
+    assert.equal(partnerLogoChanged(meta, mit), false);
+    assert.equal(partnerLogoChanged(meta, { ...mit, logo_category: "small" }), true);
+  });
+
+  it("ohne das Feld (älterer Aufrufer) kein logoCategory und keine Scheinänderung", () => {
+    const doc = partnerLogoDocument(row, { transparent: true });
+    assert.equal(doc?.logoCategory, undefined);
+    assert.equal(partnerLogoChanged(partnerLogoRefMeta(row, null, true), row), false);
+  });
+});

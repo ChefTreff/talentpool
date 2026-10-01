@@ -50,7 +50,7 @@ Auftrag (Konrad, 22.09.2026): „Wir überprüfen einmal, welche Felder wir habe
 | `event` | `parent_event_id` | Nebenevents hängen über `edition_id`; Spalte ohne Nutzung → streichen oder Masterplan-Rest? Entscheidung Architektur |
 | `hack_team` | `note_internal` | Hackathon ruht; bleibt bis zur Feature-Übersicht |
 | `person` | `is_ambassador`, `referred_by_person_id` | Empfehlungs-/Botschafter-Logik nie gebaut → Talent-Chat, Leitbild Community-Portal (TAL-005ff.) oder streichen |
-| `person_merge_log` | `actor`, `merged_at`, `merged_person_id`, `surviving_person_id` | Tabelle ohne Funktion → ADM-036 (Dubletten zusammenführen) |
+| `person_merge_log` | `actor`, `merged_at`, `merged_person_id`, `surviving_person_id` | Tabelle ohne Funktion → ADM-036 (Dubletten zusammenführen): geschrieben von `merge_persons`, gelesen von `person_merges_admin`, zurückgenommen von `unmerge_persons` (#278) |
 | `registration` | `external_source` | ohne Nutzung → mit EA4 (vivenu-Personalisierung) klären |
 | `session` | `swapcard_id` | wird mit EA3 (Slot → Swapcard) belegt |
 | `slot` | `responsible_person_id` | ADM-018 (Verantwortliche je Session) offen |
@@ -190,3 +190,24 @@ Vollständiges Review in `docs/rechte-review-speaker-leads-2026-09-25.md` (Draft
 Bereits dicht: Board-Lesewege und fremde Entwürfe (`security_invoker`, `session_read`, 0180). **Entscheidungen der Architektur-Session (25.09.):** F1 42501 für Nicht-Team, `speaker_exists` nur Team · F2 nein, nur eigene Bühne und eigene Einträge · F3 Slot- und Tag-Scope bleiben erlaubt, `is_stage_lead_of(stage)` gilt für die ganze Bühne (Slot/Tag sind Teilmengen derselben Bühne; Schreibrechte folgen weiter `can_edit_stage`). Nach „Migration live“ von PORT3 bekommt `supabase/tests/sicherheit_rollenkonten.sql` einen Stage-Lead-Schritt (fremde Bühne 0 Zeilen mit gesetzter Vorbedingung, `upsert_speaker` auf fremdes Profil 42501).
 
 **Stand 25.09. abends: L1–L7 behoben mit Migration 0210 (`v6_port3_stage_leads`, #231).** Externe Stage-Lead-Zugänge sind seitdem erlaubt, nur mit Bühnen-Scope. Stage-Lead-Schritt in `sicherheit_rollenkonten.sql` gebaut (06: eigener Entwurf sichtbar, fremder 0 Zeilen mit Vorbedingung, Suche nur eigene Bühne, `upsert_speaker` auf fremdes Profil per Adresse und per person_id 42501) — Probe jetzt **6/6**. Offen: Storage-Policies je Rolle, K-14.
+
+## Teil 3 (01.10.2026) — Storage-Policies je Rolle (Architektur-Session)
+
+Inventur gegen die Live-Datenbank (`storage.buckets`, `pg_policies` auf `storage.objects`), nur lesend. RLS auf `storage.objects` und `storage.buckets` ist aktiv; **keine Policy nennt `anon`** — ohne Anmeldung ist kein Objekt lesbar oder schreibbar. Die Tabellen-Grants für `anon`/`authenticated` auf `storage.objects` sind die Supabase-Standardgrants und bleiben (die Storage-API braucht sie; wirksam ist die RLS).
+
+| Bucket | öffentlich | Limit | Lesen | Schreiben | Bewertung |
+|---|---|---|---|---|---|
+| `contact-photos` | ja | 5 MB, png/jpeg/webp | alle (Serviceversprechen: Ansprechpersonen mit Foto) | nur Server (keine Policy) | in Ordnung |
+| `partner-logos` | ja | 20 MB, png/svg | alle (Website, Logo-Wand) | nur Server | in Ordnung |
+| `product-images` | ja | 10 MB, Bildformate | alle (Shop) | nur Server | in Ordnung |
+| `edition-files` | nein | 25 MB, pdf/zip/Bilder | **vorher:** jede angemeldete Person, alle Objekte — **jetzt (0232):** `edition_file_path_allowed(name)`: Team alles, sonst nur Dateien (und Vorschau) mit passender `audience` | nur Server (signierte Upload-Adressen, service_role) | **L-S1 behoben mit 0232** |
+| `partner-assets` | nein | 50 MB, Grafikformate | `partner_asset_path_allowed(name,false)`: Mitglied der Organisation, Marketing/Partner-Team, Staff | `…(name,true)`: `partner_can_edit`, Partnergrafik nur Marketing/Partner-Team | in Ordnung (Pfad = Edition/Organisation/Art/Datei, Zeile in `org_edition` Pflicht) |
+| `person-cv` | nein | 10 MB, pdf | eigene Datei; Staff; Partner der gastgebenden Organisation **nur bei `consent_share`** | nur eigene Datei | in Ordnung (Test v6_profilfelder 08/09) |
+| `person-photos` | nein | 5 MB, Bildformate | eigene Datei; Staff | nur eigene Datei | in Ordnung |
+| `session-assets` | nein | 25 MB, Bildformate | Marketing, Bearbeiter der Session (`can_edit_session`), Sprecher der Session | nur Marketing (Insert); kein Update/Delete per Client | in Ordnung |
+| `speaker-assets` | nein | 100 MB, pdf/pptx/… | Speaker selbst, Assistenz, `can_manage_speaker` (Bühnen-Scope seit 0210), Staff; Foto zusätzlich Partner mit Bühnengast; `invoice` nur Speaker/Assistenz/Freigabe | wie Lesen, **`invoice` nie per Client** (Server-Weg) | in Ordnung |
+| `speaker-photos` | nein | 10 MB, Bildformate | nur Server (signierte Adressen, 7 Tage; 0213) | nur Server | in Ordnung |
+
+**Befund L-S1 (mittel, behoben):** Die Policy „edition files read“ aus v5_messestand (15.09.) erlaubte jeder angemeldeten Person — auch Talents ohne weitere Rolle — das Lesen und Signieren jedes Objekts im Bucket `edition-files`; die Zielgruppe (`edition_file.audience`) griff nur in der Listenfunktion `edition_files(p_audience)`. Betroffen waren Hallenpläne, Editionsdateien und das Media Kit (keine Personendaten, aber Partner-Inhalte vor Veröffentlichung). Fix 0232 (20261001121907): Pfadregel nach dem Muster der übrigen privaten Buckets; Test mit echtem Rollenwechsel 6/6 (ohne Rolle 0, partner nur Datei A samt Vorschau, speaker nur Datei B, admin alles, anon nichts). Die Server-Routen (`/api/produktion/edition-files`, `/api/admin/media-kit`, Vorschau-Erzeugung) signieren mit service_role und sind unberührt.
+
+**Offen in Teil 3:** K-14 Rate Limits (Konrad, Dashboard); CSP-Klickrunde K-13 nach Bauende; neue Buckets der laufenden Runde (Hackathon-Datensätze und -Abgaben, HACK-011/012) werden beim Merge nach demselben Muster geprüft (privat, Pfadregel, Schreiben nur über signierte Adressen).

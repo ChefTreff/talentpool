@@ -31,7 +31,7 @@ export type ExhibitorRow = {
   categories: string[];
   /** Branche aus dem Vokabular `industry` (0138) — Schlüssel = Optionswert des Swapcard-Feldes „Branche". */
   industry: string | null;
-  /** Kategorie der Logo-Wand (0139). Nie null: wer keine Stufe trägt, ist `official_partner`. */
+  /** Kategorie der Logo-Wand in Swapcard (0141, seit ADM-046 aus `logo_category`). Nie null: Auffangsatz `official_partner`. */
   sponsor_category: string;
   partner_category: string | null;
   org_type: string | null;
@@ -43,6 +43,14 @@ export type ExhibitorRow = {
   logo_png_asset_id: string | null;
   swapcard_exhibitor_id: string | null;
   members: { person_id: string; first_name: string | null; last_name: string | null; email: string | null; position: string | null }[];
+  /**
+   * Logokategorie (ADM-046, Vokabular `logo_category`): `presenting`, `premium`, `official`, `small`, `startup`.
+   * Nie null — Feld am Partner, sonst aus der Stufe, sonst `official` (`logo_category_of`). `sponsor_category` kommt aus ihr.
+   */
+  logo_category: string;
+  logo_category_rank: number | null;
+  /** `manual` = am Partner gesetzt, `level` = aus der Sponsoring-Stufe, `fallback` = Auffangsatz. */
+  logo_category_source: "manual" | "level" | "fallback";
 };
 
 /**

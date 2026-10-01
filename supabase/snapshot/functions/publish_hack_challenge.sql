@@ -1,16 +1,29 @@
-create or replace function publish_hack_challenge(p_deliverable_id uuid)
+create or replace function publish_hack_challenge(p_deliverable_id uuid, p_track text DEFAULT NULL::text)
  RETURNS uuid
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
 AS $$
 declare v_d deliverable; v_oe org_edition; v_a jsonb; v_id uuid; v_crit jsonb := '[]'::jsonb; i integer;
+        v_track text;
 begin
   if not is_hack_team() then raise exception 'not allowed' using errcode = '42501'; end if;
   select * into v_d from deliverable where id = p_deliverable_id;
   if not found then raise exception 'deliverable_not_found' using errcode = 'P0002'; end if;
   select * into v_oe from org_edition where id = v_d.org_edition_id;
   v_a := coalesce(v_d.answers, '{}'::jsonb);
+
+  -- Track (HACK-008): Angabe des Hack-Teams › Formularantwort › bisheriger Wert.
+  if nullif(btrim(coalesce(p_track, '')), '') is not null then
+    if not is_vocab_key('hack_track', btrim(p_track)) then
+      raise exception 'invalid_vocab_value' using errcode = '22023', detail = 'track';
+    end if;
+    v_track := btrim(p_track);
+  else
+    v_track := coalesce(hack_track_key(v_a->>'track'),
+                        (select c.track from hack_challenge c where c.deliverable_id = p_deliverable_id));
+  end if;
+  if v_track is null then raise exception 'track_missing' using errcode = '22023'; end if;
 
   -- Vier Kriterien als feste Felder: die Formular-Engine kennt keine
   -- Wiederholgruppen. Leere Zeilen fallen weg.
@@ -24,7 +37,7 @@ begin
   end loop;
 
   insert into hack_challenge (edition_id, org_id, deliverable_id, title_en, title_de,
-                              description_en, description_de, prizes, resources, mentors, criteria, status)
+                              description_en, description_de, prizes, resources, mentors, criteria, status, track)
   values (v_oe.edition_id, v_oe.org_id, p_deliverable_id,
           coalesce(nullif(btrim(v_a->>'title_en'), ''), nullif(btrim(v_a->>'title'), ''), 'Challenge'),
           nullif(btrim(v_a->>'title_de'), ''),
@@ -35,15 +48,18 @@ begin
                    case when nullif(btrim(coalesce(v_a->>'mentor_names', '')), '') is not null
                         then to_jsonb(array_remove(regexp_split_to_array(btrim(v_a->>'mentor_names'), '\s*\n\s*'), ''))
                         else '[]'::jsonb end),
-          v_crit, 'published')
-  on conflict (deliverable_id) do update set
+          v_crit, 'published', v_track)
+  -- Der eindeutige Index ist partiell (0085: where deliverable_id is not null); ohne
+  -- dasselbe Prädikat findet Postgres ihn nicht (42P10) — die Freigabe scheiterte live immer.
+  on conflict (deliverable_id) where deliverable_id is not null do update set
     title_en = excluded.title_en, title_de = excluded.title_de,
     description_en = excluded.description_en, description_de = excluded.description_de,
     prizes = excluded.prizes, resources = excluded.resources,
     mentors = excluded.mentors, criteria = excluded.criteria,
-    status = 'published', updated_at = now()
+    status = 'published', track = excluded.track, updated_at = now()
   returning id into v_id;
 
-  perform log_audit('hack.challenge_published', 'hack_challenge', v_id::text, null, null);
+  perform log_audit('hack.challenge_published', 'hack_challenge', v_id::text, null,
+                    jsonb_build_object('track', v_track));
   return v_id;
 end $$;

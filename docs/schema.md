@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 08:55 UTC · 104 Tabellen · 6 Views · 595 Funktionen
+> Stand: 2026-10-01 12:38 UTC · 104 Tabellen · 6 Views · 607 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -449,6 +449,7 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `github_url` | text |  |  |  | GitHub-Profil (HACK-007), nur in der Hackathon-Bewerbung. |
 | `website_url` | text |  |  |  |  |
 | `behance_url` | text |  |  |  |  |
+| `track_prefs` | text[] | ja |  |  | Gewünschte Tracks (vocab hack_track, HACK-010), 1–3, geprüft in apply_hackathon. |
 
 ### `hack_challenge`
 
@@ -470,6 +471,7 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `sort_order` | integer | ja | `0` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `track` | text |  |  |  | vocab hack_track (HACK-008). Pflicht bei der Freigabe (publish_hack_challenge), änderbar über set_hack_challenge_track. |
 
 ### `hack_judging_score`
 
@@ -716,6 +718,7 @@ Partner-Organisation je Edition: Onboarding-Stand, Rechnungsdaten, Pass-Typ-Wahl
 | `source` | text | ja | `hubspot` |  | Woher diese Teilnahme kommt (0116): hubspot (Bestand und Vertrieb), portal (im Admin angelegt, z. B. Initiativen), import (Altdaten). Der HubSpot-Abgleich fasst nur hubspot-Zeilen an. |
 | `logo_whitening_consent_at` | timestamp with time zone |  |  |  | Der Partner erlaubt, sein Logo für die Foto-Wand auf dem Summit einfarbig weiß zu drucken (Konrad, 22.09.2026). NULL heißt: keine Erlaubnis, das Logo kommt nicht auf die Wand — hochladen und anderweitig nutzen bleibt davon unberührt. Gilt je Edition und **nicht je Datei**: wer sein Logo korrigiert, soll nicht stillschweigend von der Wand fallen. |
 | `logo_whitening_consent_by` | uuid |  |  | `person.id` | Wer die Erlaubnis erteilt hat. Nachweis, kein Anzeigefeld. |
+| `logo_category` | text |  |  |  | ADM-046: Logokategorie (Vokabular logo_category) je Partner und Edition. Leer = aus der Sponsoring-Stufe, sonst official (logo_category_of). |
 
 ### `org_membership`
 
@@ -979,7 +982,9 @@ Sprachkenntnisse je Person mit Niveau (TAL-013 B4). Pflege durch die Person selb
 | `merged_person_id` | uuid | ja |  |  |  |
 | `merged_at` | timestamp with time zone | ja | `now()` |  |  |
 | `actor` | text |  |  |  |  |
-| `payload` | jsonb |  |  |  |  |
+| `payload` | jsonb |  |  |  | ADM-036: {report, undo}. undo = Zeile der zweiten Person, umgehängte Schlüssel je Tabelle, gefallene Zeilen, gefüllte Felder, Konto. Fällt mit anonymize_person der bleibenden Person (dann kein Rückweg). |
+| `undone_at` | timestamp with time zone |  |  |  | ADM-036: Zusammenführung zurückgenommen (unmerge_persons). |
+| `undone_by` | uuid |  |  | `person.id` |  |
 
 ### `portal_link`
 Links je Schlüssel (PART-072: Store-Links der Event-App). Seiten lesen über portal_links_for, gepflegt unter /admin/videos. Anders als portal_video nicht nur Loom — hier wird verlinkt, nicht eingebettet.
@@ -2143,7 +2148,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `deletion_requests_admin` | p_status: text |
 | `deliverable_due` | p_oe: public.org_edition, p_template: public.deliverable_template |
 | `detach_session` | p_session_id: uuid |
+| `duplicate_candidates_admin` | p_status: text |
+| `duplicate_scan` | args: ? |
 | `edition_contacts_admin` | p_edition_id: uuid |
+| `edition_file_path_allowed` | p_name: text |
 | `edition_files` | p_audience: text, p_edition_id: uuid |
 | `edition_files_admin` | p_edition_id: uuid |
 | `edition_infos` | p_audience: text, p_edition_id: uuid |
@@ -2175,6 +2183,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_judging` | p_edition_id: uuid, p_language: text |
 | `hack_open_challenges` | p_edition_id: uuid |
 | `hack_text` | p_de: text, p_en: text, p_language: text |
+| `hack_track_key` | p_value: text |
 | `handover_speaker` | p_profile_id: uuid, p_to_person_id: uuid |
 | `harden_definer_functions` | args: ? |
 | `has_admin_section` | p_key: text |
@@ -2235,6 +2244,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `list_external_refs` | p_object_type: text, p_system: text |
 | `log_access_invite` | p_person_id: uuid |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
+| `logo_category_of` | p_org_edition_id: uuid |
 | `luma_sync_event` | p_data: jsonb |
 | `luma_sync_registration` | p_checked_in: boolean, p_email: text, p_guest_id: text, p_luma_event_id: text, p_registered_at: timestamp with time zone, p_status: text |
 | `mail_cc_recipients` | p_person_ids: uuid[] |
@@ -2251,6 +2261,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `mark_volunteer_coupon_revoked` | p_error: text, p_id: bigint |
 | `merch_fields` | p_config: jsonb |
 | `merch_problem` | p_qty: numeric, p_schema: jsonb, p_values: jsonb |
+| `merge_persons` | p_merged: uuid, p_survivor: uuid |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_admin_section_overrides` | args: ? |
 | `my_admin_sections` | args: ? |
@@ -2350,6 +2361,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_withdraw_publish` | p_session_id: uuid |
 | `pending_submissions` | p_event_id: uuid |
 | `person_cv_path_allowed` | p_name: text, p_write: boolean |
+| `person_merge_core` | p_merged: uuid, p_survivor: uuid |
+| `person_merge_preview` | p_merged: uuid, p_survivor: uuid |
+| `person_merges_admin` | p_limit: integer |
 | `person_photo_path_allowed` | p_name: text, p_write: boolean |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
 | `portal_links_admin` | args: ? |
@@ -2362,7 +2376,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `programme_skeleton` | p_event_id: uuid |
 | `promote_shift_waitlist` | p_shift_id: uuid |
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |
-| `publish_hack_challenge` | p_deliverable_id: uuid |
+| `publish_hack_challenge` | p_deliverable_id: uuid, p_track: text |
 | `publish_kb_article` | p_id: uuid, p_published: boolean |
 | `publish_session` | p_session_id: uuid |
 | `purge_ai_rate_limit` | args: ? |
@@ -2447,8 +2461,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_expense_mode` | p_amount_cents: integer, p_mode: text, p_profile_id: uuid |
 | `set_external_ref` | p_external_id: text, p_meta: jsonb, p_object_id: uuid, p_object_type: text, p_system: text |
 | `set_hack_application_status` | p_id: uuid, p_note: text, p_status: text |
+| `set_hack_challenge_track` | p_challenge_id: uuid, p_track: text |
 | `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
 | `set_initiative_stage` | p_org_edition_id: uuid, p_stage: text |
+| `set_logo_category` | p_category: text, p_org_edition_id: uuid |
 | `set_logo_whitening_consent` | p_edition_id: uuid, p_granted: boolean, p_org_id: uuid |
 | `set_my_cv` | p_path: text |
 | `set_my_photo` | p_path: text |
@@ -2569,6 +2585,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
 | `unassign_shift` | p_assignment_id: uuid |
 | `unassigned_speakers` | p_edition_id: uuid |
+| `unmerge_persons` | p_log_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
 | `update_my_speaker_profile` | p_data: jsonb |
 | `update_my_volunteer_profile` | p_data: jsonb, p_edition_id: uuid |

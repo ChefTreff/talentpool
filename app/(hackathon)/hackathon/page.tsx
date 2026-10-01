@@ -33,6 +33,7 @@ export default async function HackathonPage() {
       <HackView
         data={(mine ?? { edition_id: null, application: null, team: null, challenge: null, submission: null }) as MyHack}
         skills={vgroup(vocab, "hack_skill")}
+        tracks={vgroup(vocab, "hack_track")}
         discordUrl={process.env.HACKATHON_DISCORD_URL?.trim() || null}
         t={t.hackathon}
         common={{ save: t.common.save, cancel: t.common.cancel }}

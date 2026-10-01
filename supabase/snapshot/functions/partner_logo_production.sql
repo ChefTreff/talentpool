@@ -1,5 +1,5 @@
 create or replace function partner_logo_production(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(org_id uuid, org_edition_id uuid, org_name text, sponsoring_level text, vektor_datei text, vektor_status text, vektor_seit timestamp with time zone, pixel_datei text, einwilligung timestamp with time zone, druckbar boolean, fehlt text)
+ RETURNS TABLE(org_id uuid, org_edition_id uuid, org_name text, sponsoring_level text, vektor_datei text, vektor_status text, vektor_seit timestamp with time zone, pixel_datei text, einwilligung timestamp with time zone, druckbar boolean, fehlt text, logo_category text, logo_category_source text)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -45,7 +45,9 @@ begin
          nullif(concat_ws(' · ',
            case when b.vektor is null then 'Vektordatei fehlt' end,
            case when b.logo_whitening_consent_at is null then 'Einwilligung zum Weissen fehlt' end,
-           case when b.vektor is not null and b.vektor_status = 'pending' then 'Datei noch ungeprueft' end), '')
+           case when b.vektor is not null and b.vektor_status = 'pending' then 'Datei noch ungeprueft' end), ''),
+         lc.category, lc.category_source
     from basis b
-   order by b.name;
+    cross join lateral logo_category_of(b.oe_id) lc
+   order by lc.category_rank nulls last, b.name;
 end $$;
