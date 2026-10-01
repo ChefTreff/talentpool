@@ -101,7 +101,9 @@ export type AdminSectionKey =
   | "duplicates"
   | "deletions"
   | "auditLog"
-  | "access";
+  | "access"
+  | "consents"
+  | "suppression";
 
 /** Alle Teamrollen ausser `admin` — für Abschnitte, die jede Rolle im Haus braucht. */
 export const INTERNE_ROLLEN = [
@@ -227,6 +229,10 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // PORT4b: Zugänge — wer ein Konto hat, welche Rollen er trägt, und der
   // Weg, ihm den Zugang zu nehmen, ohne ihn zu löschen.
   { key: "access", path: "/admin/verwaltung/zugaenge", roles: [] },
+  // ADM-033/035: Nachweis der Einwilligungen und die Sperrliste — beides
+  // Datenschutz, beides nur Konrad.
+  { key: "consents", path: "/admin/verwaltung/einwilligungen", roles: [] },
+  { key: "suppression", path: "/admin/verwaltung/sperrliste", roles: [] },
 ];
 
 const NACH_KEY = new Map(ADMIN_SECTIONS.map((s) => [s.key, s]));

@@ -104,6 +104,8 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
       { section: "deletions", href: "/admin/loeschantraege", label: "deletions" },
       { section: "access", href: "/admin/verwaltung/zugaenge", label: "access" },
       { section: "auditLog", href: "/admin/verwaltung/protokoll", label: "auditLog" },
+      { section: "consents", href: "/admin/verwaltung/einwilligungen", label: "consents" },
+      { section: "suppression", href: "/admin/verwaltung/sperrliste", label: "suppression" },
     ],
   },
   {

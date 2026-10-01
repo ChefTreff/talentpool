@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadVocabMap, vlabel } from "@/lib/vocab";
+import { loadVocabMap, vgroup, vlabel } from "@/lib/vocab";
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -11,6 +11,7 @@ import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Badge } from "@/components/ui/Badge";
 import { Anrede } from "./Anrede";
 import { Loeschung } from "./Loeschung";
+import { EinwilligungsTabelle, type Einwilligung } from "../../verwaltung/einwilligungen/EinwilligungsTabelle";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 export const dynamic = "force-dynamic";
@@ -71,6 +72,12 @@ export default async function PersonDetail({
     .eq("person_id", id)
     .eq("status", "pending")
     .maybeSingle();
+  // ADM-033: die Einwilligungen dieser Person als Folge — über die Sitzung,
+  // damit `consent_records_admin` den Abschnitt prüft.
+  const { data: einwilligungen } = await (await createSupabaseServerClient()).rpc("consent_records_admin", {
+    p_person_id: id,
+    p_limit: 200,
+  });
 
   if (!person) notFound();
 
@@ -125,6 +132,7 @@ export default async function PersonDetail({
             { id: "interessen", label: d.interests },
             { id: "kanaele", label: d.channels },
             { id: "anmeldungen", label: d.registrations },
+            { id: "einwilligungen", label: d.consentsTitle },
             { id: "loeschung", label: d.deletionTitle },
           ]}
         />
@@ -316,6 +324,21 @@ export default async function PersonDetail({
             <li className="text-muted">{d.noRegistrations}</li>
           )}
         </ul>
+      </Card>
+
+      <Card id="einwilligungen" className="mt-4">
+        <h2 className="ct-h2 mb-3 text-ink">{d.consentsTitle}</h2>
+        {(einwilligungen ?? []).length === 0 ? (
+          <p className="ct-small text-muted">{d.consentsNone}</p>
+        ) : (
+          <EinwilligungsTabelle
+            zeilen={(einwilligungen ?? []) as Einwilligung[]}
+            typen={vgroup(vocab, "consent_type")}
+            mitPerson={false}
+            dateLocale={t.meta.dateLocale}
+            t={t.consentsAdmin as Record<string, string>}
+          />
+        )}
       </Card>
 
       <Loeschung
