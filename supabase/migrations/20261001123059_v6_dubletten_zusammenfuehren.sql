@@ -1,3 +1,5 @@
+-- 0234 · Dubletten zusammenführen mit Vorschau, Protokoll und Rückweg, nur admin (ADM-036)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001123059.
 -- Dubletten zusammenführen: Vorschau, Protokoll, Rückweg; Dublettensuche; Liste mit Namen (ADM-036)
 --
 -- Zweck: `/admin/dubletten` zeigte Paare als ID-Fragmente und konnte nur

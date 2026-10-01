@@ -8,7 +8,7 @@
 
 ## Fortsetzung 01.10. abends (ohne Konrad) — Aufträge je Chat
 
-> Konrad (01.10. abends, nach dem Komprimieren aller Sitzungen): „alles weitermachen, sodass 100 % dessen erreicht sind, was ohne mein Feedback geht“. Alles mit offener Frage an Konrad wartet (K-03 nur der Schlüssel, K-43, K-44, K-47–K-50, Oktober-Preise); alles andere wird gebaut — 80 % je Punkt, Konrad kann beim Abnehmen streichen. Startzeile je Chat: „Weiter nach docs/chat-startpakete.md, Tabelle „Fortsetzung 01.10. abends“, und docs/entscheidungen.md ab 01.10.“ — Worktree vorher auf origin/main.
+> Konrad (01.10. abends, nach dem Komprimieren aller Sitzungen): „alles weitermachen, sodass 100 % dessen erreicht sind, was ohne mein Feedback geht“. Alles mit offener Frage an Konrad wartet (K-03 nur der Schlüssel, K-43, K-44, K-47–K-50, Oktober-Preise); alles andere wird gebaut — 80 % je Punkt, Konrad kann beim Abnehmen streichen. **Regel seit 01.10. abends:** unmittelbar vor „PR fertig“ `origin/main` in den Branch holen und Konflikte selbst lösen (Doku-Tabellen beide Zeilen, Wörterbücher `node scripts/i18n-zusammenfuehren.mjs`, `lib/rpc-error.ts` beide Seiten), dann pushen und melden. Startzeile je Chat: „Weiter nach docs/chat-startpakete.md, Tabelle „Fortsetzung 01.10. abends“, und docs/entscheidungen.md ab 01.10.“ — Worktree vorher auf origin/main.
 
 | Chat | Auftrag (Reihenfolge, ein PR je Punkt) | Wartet auf Konrad |
 |---|---|---|

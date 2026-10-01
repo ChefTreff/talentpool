@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 12:26 UTC · 104 Tabellen · 6 Views · 598 Funktionen
+> Stand: 2026-10-01 12:31 UTC · 104 Tabellen · 6 Views · 605 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -980,7 +980,9 @@ Sprachkenntnisse je Person mit Niveau (TAL-013 B4). Pflege durch die Person selb
 | `merged_person_id` | uuid | ja |  |  |  |
 | `merged_at` | timestamp with time zone | ja | `now()` |  |  |
 | `actor` | text |  |  |  |  |
-| `payload` | jsonb |  |  |  |  |
+| `payload` | jsonb |  |  |  | ADM-036: {report, undo}. undo = Zeile der zweiten Person, umgehängte Schlüssel je Tabelle, gefallene Zeilen, gefüllte Felder, Konto. Fällt mit anonymize_person der bleibenden Person (dann kein Rückweg). |
+| `undone_at` | timestamp with time zone |  |  |  | ADM-036: Zusammenführung zurückgenommen (unmerge_persons). |
+| `undone_by` | uuid |  |  | `person.id` |  |
 
 ### `portal_link`
 Links je Schlüssel (PART-072: Store-Links der Event-App). Seiten lesen über portal_links_for, gepflegt unter /admin/videos. Anders als portal_video nicht nur Loom — hier wird verlinkt, nicht eingebettet.
@@ -2144,6 +2146,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `deletion_requests_admin` | p_status: text |
 | `deliverable_due` | p_oe: public.org_edition, p_template: public.deliverable_template |
 | `detach_session` | p_session_id: uuid |
+| `duplicate_candidates_admin` | p_status: text |
+| `duplicate_scan` | args: ? |
 | `edition_contacts_admin` | p_edition_id: uuid |
 | `edition_file_path_allowed` | p_name: text |
 | `edition_files` | p_audience: text, p_edition_id: uuid |
@@ -2254,6 +2258,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `mark_volunteer_coupon_revoked` | p_error: text, p_id: bigint |
 | `merch_fields` | p_config: jsonb |
 | `merch_problem` | p_qty: numeric, p_schema: jsonb, p_values: jsonb |
+| `merge_persons` | p_merged: uuid, p_survivor: uuid |
 | `move_slot` | p_confirm: boolean, p_end: timestamp with time zone, p_slot_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone |
 | `my_admin_section_overrides` | args: ? |
 | `my_admin_sections` | args: ? |
@@ -2353,6 +2358,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_withdraw_publish` | p_session_id: uuid |
 | `pending_submissions` | p_event_id: uuid |
 | `person_cv_path_allowed` | p_name: text, p_write: boolean |
+| `person_merge_core` | p_merged: uuid, p_survivor: uuid |
+| `person_merge_preview` | p_merged: uuid, p_survivor: uuid |
+| `person_merges_admin` | p_limit: integer |
 | `person_photo_path_allowed` | p_name: text, p_write: boolean |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
 | `portal_links_admin` | args: ? |
@@ -2573,6 +2581,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
 | `unassign_shift` | p_assignment_id: uuid |
 | `unassigned_speakers` | p_edition_id: uuid |
+| `unmerge_persons` | p_log_id: uuid |
 | `unpublish_session` | p_reason: text, p_session_id: uuid |
 | `update_my_speaker_profile` | p_data: jsonb |
 | `update_my_volunteer_profile` | p_data: jsonb, p_edition_id: uuid |
