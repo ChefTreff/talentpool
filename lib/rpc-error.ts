@@ -99,6 +99,8 @@ const BUSINESS_KEYS = new Set([
   "invalid_type",
   // Profilfelder mit Vokabular (TAL-013, Trigger person_vocab_guard)
   "invalid_vocab_value",
+  // Track-Wunsch in der Hackathon-Bewerbung (HACK-010)
+  "track_pref_missing",
   // Hackathon-Tracks (HACK-008): Freigabe ohne Track
   "track_missing",
   // „Next Up" (TAL-006)

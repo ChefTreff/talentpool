@@ -35,8 +35,6 @@ export default async function AdminHackathonPage() {
   ]);
   const trackLabels = vgroup(vocab, "hack_track");
 
-  const skillLabels: Record<string, string> = {};
-  for (const [k, v] of vocab) if (k.startsWith("hack_skill:")) skillLabels[k.slice("hack_skill:".length)] = v;
 
   return (
     <>
@@ -46,7 +44,12 @@ export default async function AdminHackathonPage() {
           <CardHeader title={tt.appsTitle} description={tt.appsLead} />
           <ApplicationsTable
             rows={(apps ?? []) as AdminApplication[]}
-            skillLabels={skillLabels}
+            labels={{
+              skills: vgroup(vocab, "hack_skill"),
+              tracks: trackLabels,
+              studyFields: vgroup(vocab, "study_field"),
+              profileSkills: vgroup(vocab, "skill"),
+            }}
             t={tt}
             rpcMessages={t.rpc}
           />
