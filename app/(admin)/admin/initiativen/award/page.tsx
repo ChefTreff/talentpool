@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -62,7 +63,7 @@ export default async function AwardAdminPage() {
         description={a.lead}
         actions={
           <>
-            <ButtonLink href="/award" variant="secondary" size="sm" target="_blank">{a.publicPage}</ButtonLink>
+            <ButtonLink href="/award" variant="secondary" size="sm" {...neuesFenster}>{a.publicPage}</ButtonLink>
             <ButtonLink href="/admin/fristen" variant="ghost" size="sm">{a.deadlines}</ButtonLink>
           </>
         }
@@ -105,7 +106,7 @@ export default async function AwardAdminPage() {
                   {z.website && (
                     <>
                       {" · "}
-                      <a href={z.website.startsWith("http") ? z.website : `https://${z.website}`} className="ct-link" target="_blank" rel="noopener noreferrer">{a.website}</a>
+                      <a href={z.website.startsWith("http") ? z.website : `https://${z.website}`} className="ct-link" {...neuesFenster}>{a.website}</a>
                     </>
                   )}
                 </p>
@@ -127,7 +128,7 @@ export default async function AwardAdminPage() {
                 {z.images.length > 0 ? (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {z.images.map((p, n) => signiert.get(p) ? (
-                      <a key={p} href={signiert.get(p)} target="_blank" rel="noopener noreferrer" className="ct-link ct-small">
+                      <a key={p} href={signiert.get(p)} {...neuesFenster} className="ct-link ct-small">
                         {a.image.replace("{n}", String(n + 1))}
                       </a>
                     ) : null)}

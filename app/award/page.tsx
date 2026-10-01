@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
@@ -109,7 +110,7 @@ export default async function AwardPage() {
                         <p className="whitespace-pre-line">{e.project}</p>
                         {e.website && (
                           <p className="mt-3">
-                            <a href={e.website.startsWith("http") ? e.website : `https://${e.website}`} className="ct-link" rel="noopener noreferrer nofollow" target="_blank">
+                            <a href={e.website.startsWith("http") ? e.website : `https://${e.website}`} className="ct-link" {...neuesFenster}>
                               {a.website}
                             </a>
                           </p>

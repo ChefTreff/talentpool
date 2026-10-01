@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { neuesFenster } from "@/components/ui/neues-fenster";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -183,7 +184,7 @@ export function BewerbungsFormular({
           <input type="checkbox" className="mt-1 h-4 w-4 accent-accent" checked={einwilligung} onChange={(e) => setEinwilligung(e.target.checked)} />
           <span>
             {t.consent}{" "}
-            <a href={PRIVACY_URL} className="ct-link" target="_blank" rel="noopener noreferrer">{privacyLabel}</a>
+            <a href={PRIVACY_URL} className="ct-link" {...neuesFenster}>{privacyLabel}</a>
           </span>
         </label>
         {fehlerFuer("privacy_consent") && <p className="ct-small text-error-ink" role="alert">{fehlerFuer("privacy_consent")}</p>}
