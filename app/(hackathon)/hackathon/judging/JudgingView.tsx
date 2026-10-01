@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { saveScore } from "../actions";
 import type { JudgingRow } from "../types";
+import { MetricForm } from "../MetricForm";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
@@ -84,63 +85,77 @@ function TeamCard({
           <p className="ct-help">{t.notSubmitted}</p>
         )}
 
-        <div className="flex flex-wrap gap-4">
-          {(row.criteria ?? []).map((c) => (
-            <Field key={c.key} label={`${c.label} · ${c.weight} %`} htmlFor={`${row.team_id}-${c.key}`}>
-              <Input
-                id={`${row.team_id}-${c.key}`}
-                type="number"
-                min={0}
-                max={10}
-                className="w-24"
-                value={scores[c.key] ?? ""}
+        {/* Metrik-Challenge (HACK-009): ein Wert je Team statt Kriterien. */}
+        {row.judging_mode === "metric" ? (
+          <MetricForm
+            teamId={row.team_id}
+            metricLabel={row.metric_label ?? t.metric}
+            value={row.metric_value}
+            confirmed={row.metric_confirmed}
+            t={t}
+            rpcMessages={rpcMessages}
+          />
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-4">
+              {(row.criteria ?? []).map((c) => (
+                <Field key={c.key} label={`${c.label} · ${c.weight} %`} htmlFor={`${row.team_id}-${c.key}`}>
+                  <Input
+                    id={`${row.team_id}-${c.key}`}
+                    type="number"
+                    min={0}
+                    max={10}
+                    className="w-24"
+                    value={scores[c.key] ?? ""}
+                    disabled={pending}
+                    onChange={(e) => setScores((s) => ({ ...s, [c.key]: e.target.value }))}
+                  />
+                </Field>
+              ))}
+              {(row.criteria ?? []).length === 0 && <p className="ct-help">{t.challengeNone}</p>}
+            </div>
+
+            <Field label={t.noteToTeam} htmlFor={`${row.team_id}-note`}>
+              <Textarea
+                id={`${row.team_id}-note`}
+                rows={2}
+                value={note}
                 disabled={pending}
-                onChange={(e) => setScores((s) => ({ ...s, [c.key]: e.target.value }))}
+                onChange={(e) => setNote(e.target.value)}
               />
             </Field>
-          ))}
-          {(row.criteria ?? []).length === 0 && <p className="ct-help">{t.challengeNone}</p>}
-        </div>
 
-        <Field label={t.noteToTeam} htmlFor={`${row.team_id}-note`}>
-          <Textarea
-            id={`${row.team_id}-note`}
-            rows={2}
-            value={note}
-            disabled={pending}
-            onChange={(e) => setNote(e.target.value)}
-          />
-        </Field>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            disabled={pending || (row.criteria ?? []).length === 0}
-            onClick={() =>
-              startTransition(async () => {
-                const numeric = Object.fromEntries(
-                  Object.entries(scores)
-                    .filter(([, v]) => v.trim() !== "")
-                    .map(([k, v]) => [k, Number(v)]),
-                );
-                const res = await saveScore({ teamId: row.team_id, criteria: numeric, note });
-                if (!res.ok) {
-                  toast("error", message(res.key ?? "unknown") + (res.detail ? ` (${res.detail})` : ""));
-                  return;
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                disabled={pending || (row.criteria ?? []).length === 0}
+                onClick={() =>
+                  startTransition(async () => {
+                    const numeric = Object.fromEntries(
+                      Object.entries(scores)
+                        .filter(([, v]) => v.trim() !== "")
+                        .map(([k, v]) => [k, Number(v)]),
+                    );
+                    const res = await saveScore({ teamId: row.team_id, criteria: numeric, note });
+                    if (!res.ok) {
+                      toast("error", message(res.key ?? "unknown") + (res.detail ? ` (${res.detail})` : ""));
+                      return;
+                    }
+                    setTotal(res.data.total);
+                    toast("success", t.scoreSaved);
+                    router.refresh();
+                  })
                 }
-                setTotal(res.data.total);
-                toast("success", t.scoreSaved);
-                router.refresh();
-              })
-            }
-          >
-            {t.saveScore}
-          </Button>
-          {total != null && (
-            <Badge tone="accent">
-              {t.total}: {total.toFixed(2)}
-            </Badge>
-          )}
-        </div>
+              >
+                {t.saveScore}
+              </Button>
+              {total != null && (
+                <Badge tone="accent">
+                  {t.total}: {total.toFixed(2)}
+                </Badge>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </Card>
   );

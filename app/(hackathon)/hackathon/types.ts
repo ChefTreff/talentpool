@@ -57,6 +57,20 @@ export type HackChallenge = {
   teams: number;
   /** vocab hack_track (HACK-008); ältere Challenges können ohne sein. */
   track: string | null;
+  /** Auswertungsart (HACK-009): Jury (Pitch) oder Metrik (Leaderboard). */
+  judging_mode: "jury" | "metric";
+  metric_label: string | null;
+  metric_higher_better: boolean;
+};
+
+/** Eine Zeile aus `hack_leaderboard` (HACK-009). Rang nur bei bestätigten Werten. */
+export type LeaderboardRow = {
+  rank: number | null;
+  team_id: string;
+  team_name: string;
+  value: number;
+  confirmed: boolean;
+  is_mine: boolean;
 };
 
 /** Eingereichtes, noch nicht freigegebenes Challenge-Formular (`hack_open_challenges`). */
@@ -93,4 +107,8 @@ export type JudgingRow = {
   my_criteria: Record<string, number> | null;
   my_total: number | null;
   my_note: string | null;
+  judging_mode: "jury" | "metric";
+  metric_label: string | null;
+  metric_value: number | null;
+  metric_confirmed: boolean;
 };
