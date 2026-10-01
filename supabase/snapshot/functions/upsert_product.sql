@@ -28,6 +28,11 @@ begin
      and not is_vocab_key('sponsoring_level', btrim(p_data->>'sponsoring_level_key')) then
     raise exception 'invalid_sponsoring_level' using errcode = '22023', detail = coalesce(p_data->>'sponsoring_level_key', 'null');
   end if;
+  -- Neu (ADM-022): Stand fuer einen oder beide Tage; leerer Text heisst „kein Stand".
+  if p_data ? 'stand_days' and nullif(btrim(p_data->>'stand_days'), '') is not null
+     and btrim(p_data->>'stand_days') not in ('1', '2') then
+    raise exception 'invalid_stand_days' using errcode = '22023', detail = p_data->>'stand_days';
+  end if;
   if p_data ? 'pass_type' and nullif(p_data->>'pass_type', '') is not null and (p_data->>'pass_type') not in ('partner', 'talent', 'investor') then raise exception 'invalid_pass_type' using errcode = '22023'; end if;
   if p_data ? 'grants_role' and nullif(p_data->>'grants_role', '') is not null and not is_vocab_key('role', p_data->>'grants_role') then raise exception 'invalid_role' using errcode = '22023'; end if;
   select exists (select 1 from product where sku = v_sku) into v_exists;
@@ -35,7 +40,7 @@ begin
     insert into product (sku, name_de, name_en, description_de, description_en, type, category, unit, net_price_cents, purchase_price_cents, margin, vat_rate,
                          supplier, supplier_sku, supplier_url, stock_total, track_stock, available_until, shop_visible, shop_sort, late_orderable,
                          shop_hint_de, shop_hint_en, purchase_note_de, purchase_note_en, merch_config, images, source_hubspot, source_shop, internal_comment, active, edition_id,
-                         pass_type, grants_role, format_key, sponsoring_level_key)
+                         pass_type, grants_role, format_key, sponsoring_level_key, stand_days)
     values (v_sku, p_data->>'name_de', p_data->>'name_en', p_data->>'description_de', p_data->>'description_en', coalesce(p_data->>'type', 'shop_item'), p_data->>'category',
             coalesce(p_data->>'unit', 'piece'), (p_data->>'net_price_cents')::integer, (p_data->>'purchase_price_cents')::integer, (p_data->>'margin')::numeric,
             coalesce((p_data->>'vat_rate')::numeric, 7), p_data->>'supplier', p_data->>'supplier_sku', p_data->>'supplier_url', (p_data->>'stock_total')::integer,
@@ -45,7 +50,7 @@ begin
             coalesce((p_data->>'source_hubspot')::boolean, false), coalesce((p_data->>'source_shop')::boolean, false), p_data->>'internal_comment',
             coalesce((p_data->>'active')::boolean, true), (p_data->>'edition_id')::uuid,
             nullif(p_data->>'pass_type', ''), nullif(p_data->>'grants_role', ''), nullif(btrim(p_data->>'format_key'), ''),
-            nullif(btrim(p_data->>'sponsoring_level_key'), ''));
+            nullif(btrim(p_data->>'sponsoring_level_key'), ''), nullif(btrim(p_data->>'stand_days'), '')::smallint);
   else
     update product set
       name_de = case when p_data ? 'name_de' then p_data->>'name_de' else name_de end,
@@ -79,7 +84,8 @@ begin
       pass_type = case when p_data ? 'pass_type' then nullif(p_data->>'pass_type', '') else pass_type end,
       grants_role = case when p_data ? 'grants_role' then nullif(p_data->>'grants_role', '') else grants_role end,
       format_key = case when p_data ? 'format_key' then nullif(btrim(p_data->>'format_key'), '') else format_key end,
-      sponsoring_level_key = case when p_data ? 'sponsoring_level_key' then nullif(btrim(p_data->>'sponsoring_level_key'), '') else sponsoring_level_key end
+      sponsoring_level_key = case when p_data ? 'sponsoring_level_key' then nullif(btrim(p_data->>'sponsoring_level_key'), '') else sponsoring_level_key end,
+      stand_days = case when p_data ? 'stand_days' then nullif(btrim(p_data->>'stand_days'), '')::smallint else stand_days end
     where sku = v_sku;
   end if;
   perform log_audit('product.upsert', 'product', v_sku, null, p_data - 'description_de' - 'description_en');

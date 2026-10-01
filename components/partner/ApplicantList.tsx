@@ -2,36 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
-import { neuesFenster } from "@/components/ui/neues-fenster";
+import { BEWERBUNG_STATUS_TON, istVerdeckt } from "@/components/partner/bewerbung";
+import { BewerbungDetails } from "@/components/partner/BewerbungDetails";
 import type { PartnerResult } from "@/app/(partner)/partner/actions";
 import { APPLICATION_DECISIONS, type PartnerApplication } from "@/app/(partner)/partner/types";
 
 type Strings = Record<string, string>;
-
-const TONE: Record<string, BadgeTone> = {
-  applied: "neutral",
-  shortlisted: "accent",
-  accepted: "success",
-  confirmed: "success",
-  waitlisted: "warning",
-  declined: "error",
-  withdrawn: "neutral",
-  expired: "neutral",
-};
-
-/** Profilfelder in fester Reihenfolge — was leer ist, fällt weg. */
-const PROFILE_FIELDS = [
-  "occupation_status",
-  "career_level",
-  "employer_name",
-  "university",
-  "study_field",
-  "city",
-] as const;
 
 /**
  * Bewerbungen einer Session als Liste (Kontrakt B6) — auf der Bewerberseite mit
@@ -45,6 +25,9 @@ const PROFILE_FIELDS = [
  * markieren (PART-092, höchstens fünf) — nur mit Einwilligung sichtbare, denn
  * wen er nicht sehen darf, kann er nicht wünschen. Die Grenze prüft die
  * Datenbank; hier ist der Knopf nur gesperrt, wenn sie erreicht ist.
+ *
+ * Profil und Antworten zeigt `BewerbungDetails` — derselbe Baustein steht in
+ * den aufgeklappten Zeilen der Admin-Liste (ADM-003).
  */
 export function ApplicantList({
   applications,
@@ -114,10 +97,7 @@ export function ApplicantList({
         // Ohne Einwilligung liefert die RPC weder Name noch Antworten. Die
         // Zeile bleibt trotzdem stehen — sonst zählte die Liste anders als
         // die Kennzahlen, und der Partner wüsste nicht, dass es sie gibt.
-        const hidden = !a.consent_share;
-        const profileEntries = PROFILE_FIELDS.map(
-          (key) => [key, a.profile?.[key] ?? null] as const,
-        ).filter(([, value]) => value);
+        const hidden = istVerdeckt(a);
 
         return (
           <Card as="li" key={a.id}>
@@ -127,7 +107,7 @@ export function ApplicantList({
                   <span className="ct-label text-ink">
                     {a.display_name ?? t.hiddenName}
                   </span>
-                  <Badge tone={TONE[a.status] ?? "neutral"}>
+                  <Badge tone={BEWERBUNG_STATUS_TON[a.status] ?? "neutral"}>
                     {statusLabels[a.status] ?? a.status}
                   </Badge>
                   {a.rank != null && <span className="ct-help">#{a.rank}</span>}
@@ -138,41 +118,7 @@ export function ApplicantList({
                   {a.decided_at && ` · ${t.decidedOn} ${dateTime.format(new Date(a.decided_at))}`}
                 </p>
 
-                {hidden ? (
-                  <p className="ct-help mt-2">{t.hiddenBody}</p>
-                ) : (
-                  <>
-                    {profileEntries.length > 0 && (
-                      <dl className="ct-help mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                        {profileEntries.map(([key, value]) => (
-                          <div key={key} className="flex gap-1">
-                            <dt className="font-semibold">{t[`profile_${key}`] ?? key}:</dt>
-                            <dd>{String(value)}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    )}
-                    {a.profile?.linkedin_url && (
-                      <a
-                        className="ct-link mt-1 inline-block"
-                        href={a.profile.linkedin_url}
-                        {...neuesFenster}
-                      >
-                        LinkedIn
-                      </a>
-                    )}
-                    {a.answers && Object.keys(a.answers).length > 0 && (
-                      <dl className="ct-help mt-2 flex flex-col gap-1">
-                        {Object.entries(a.answers).map(([key, value]) => (
-                          <div key={key}>
-                            <dt className="font-semibold">{key}</dt>
-                            <dd className="whitespace-pre-line">{String(value)}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    )}
-                  </>
-                )}
+                <BewerbungDetails application={a} t={t} />
               </div>
 
               {wunsch && !hidden && (

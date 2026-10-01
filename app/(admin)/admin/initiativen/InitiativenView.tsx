@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Drawer } from "@/components/ui/Drawer";
 import { Field } from "@/components/ui/Field";
-import { Input } from "@/components/ui/Input";
+import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
-import { setProducts, setStage } from "./actions";
+import { ladeVerlauf, setProducts, setStage, type VerlaufZeile } from "./actions";
 import { STAGES, type IniProdukt, type Initiative } from "./types";
 
 type Strings = Record<string, string>;
@@ -52,6 +52,9 @@ export function InitiativenView({
   const [pending, start] = useTransition();
   const [offen, setOffen] = useState<Initiative | null>(null);
   const [mengen, setMengen] = useState<Record<string, number>>({});
+  // ADM-022: Verlauf und Notiz je Initiative.
+  const [verlauf, setVerlauf] = useState<{ i: Initiative; zeilen: VerlaufZeile[] } | null>(null);
+  const [notiz, setNotiz] = useState("");
 
   const zeit = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
@@ -61,6 +64,29 @@ export function InitiativenView({
       const res = await setStage(i.org_edition_id, wert);
       if (!res.ok) toast("error", message(res.key));
       else router.refresh();
+    });
+  }
+
+  function oeffneVerlauf(i: Initiative) {
+    start(async () => {
+      const res = await ladeVerlauf(i.org_edition_id);
+      if (!res.ok) { toast("error", message(res.key)); return; }
+      setNotiz("");
+      setVerlauf({ i, zeilen: res.zeilen });
+    });
+  }
+
+  function notizSpeichern() {
+    if (!verlauf || !notiz.trim()) return;
+    const { i } = verlauf;
+    start(async () => {
+      const res = await setStage(i.org_edition_id, i.pipeline_stage ?? "", notiz);
+      if (!res.ok) { toast("error", message(res.key)); return; }
+      const neu = await ladeVerlauf(i.org_edition_id);
+      setNotiz("");
+      if (neu.ok) setVerlauf({ i, zeilen: neu.zeilen });
+      toast("success", t.noteSaved);
+      router.refresh();
     });
   }
 
@@ -135,10 +161,51 @@ export function InitiativenView({
               >
                 {t.editProducts}
               </Button>
+              <Button size="sm" variant="ghost" className="ml-2" disabled={pending} onClick={() => oeffneVerlauf(i)}>
+                {t.history}
+              </Button>
             </div>
           </Card>
         ))}
       </div>
+
+      <Drawer
+        open={verlauf !== null}
+        onClose={() => setVerlauf(null)}
+        title={verlauf ? t.historyTitle.replace("{name}", verlauf.i.org_name) : t.historyTitle}
+        footer={
+          <div className="flex gap-2">
+            <Button onClick={notizSpeichern} disabled={pending || !notiz.trim()}>
+              {t.noteSave}
+            </Button>
+            <Button variant="ghost" onClick={() => setVerlauf(null)}>
+              {common.cancel}
+            </Button>
+          </div>
+        }
+      >
+        <Field label={t.note} htmlFor="ini-notiz" hint={t.noteHint}>
+          <Textarea id="ini-notiz" rows={4} maxLength={2000} value={notiz} onChange={(e) => setNotiz(e.target.value)} />
+        </Field>
+        {verlauf && verlauf.zeilen.length === 0 ? (
+          <p className="ct-small mt-4 text-muted">{t.historyEmpty}</p>
+        ) : (
+          <ol className="mt-4 flex flex-col divide-y">
+            {verlauf?.zeilen.map((z, n) => (
+              <li key={n} className="py-3">
+                <p className="ct-help text-muted">
+                  {zeit.format(new Date(z.changed_at))}
+                  {z.changed_by_name ? ` · ${z.changed_by_name}` : ""}
+                </p>
+                <p className="ct-small">
+                  {z.stage ? (stageLabels[z.stage] ?? z.stage) : t.noStage}
+                </p>
+                {z.note && <p className="ct-small mt-1 whitespace-pre-line">{z.note}</p>}
+              </li>
+            ))}
+          </ol>
+        )}
+      </Drawer>
 
       <Drawer
         open={offen !== null}

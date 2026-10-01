@@ -205,6 +205,8 @@ const BUSINESS_KEYS = new Set([
   "request_not_found",
   "invalid_reason",
   "invalid_state",
+  // ADM-022: Stand-Tage am Produkt.
+  "invalid_stand_days",
   // ADM-036: Dubletten zusammenführen (`person_not_found` steht schon oben).
   "same_person",
   "person_deleted",
@@ -336,6 +338,8 @@ const BUSINESS_KEYS = new Set([
   // Links je Schlüssel (Vorschlag v6_portal_links, PART-072)
   "portal_link_url",
   "portal_link_key",
+  // Sammelentscheidung (Vorschlag v6_bewerbungen_uebersicht, ADM-003)
+  "too_many_applications",
 ]);
 
 const BY_CODE: Record<string, string> = {
