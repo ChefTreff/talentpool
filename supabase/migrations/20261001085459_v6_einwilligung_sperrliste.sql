@@ -1,4 +1,5 @@
--- 00NN · Einwilligungen und Sperrliste einsehen (ADM-033 + ADM-035, Konrad 25.09.2026: „passt")
+-- 0230 · Einwilligungs-Ansicht und Sperrliste in der Verwaltung, nur admin, Audit ohne Klartextadresse (ADM-033, ADM-035)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001085459.
 --
 -- Zweck:
 --   * ADM-033: Einwilligungen werden versioniert in `consent_record` erfasst,

@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 08:38 UTC · 104 Tabellen · 6 Views · 589 Funktionen
+> Stand: 2026-10-01 08:55 UTC · 104 Tabellen · 6 Views · 595 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -446,6 +446,9 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `decided_at` | timestamp with time zone |  |  |  |  |
 | `decided_by` | uuid |  |  | `person.id` |  |
 | `note` | text |  |  |  |  |
+| `github_url` | text |  |  |  | GitHub-Profil (HACK-007), nur in der Hackathon-Bewerbung. |
+| `website_url` | text |  |  |  |  |
+| `behance_url` | text |  |  |  |  |
 
 ### `hack_challenge`
 
@@ -2027,6 +2030,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `access_accounts` | p_limit: integer, p_offset: integer, p_query: text |
 | `active_roles` | args: ? |
 | `add_speaker_activity` | p_data: jsonb, p_profile_id: uuid |
+| `add_suppression` | p_email: text, p_reason: text |
 | `admin_products` | p_only_active: boolean |
 | `admin_section_overrides` | args: ? |
 | `ai_take_slot` | p_kind: text, p_limit: integer |
@@ -2104,6 +2108,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `confirm_hospitality` | p_booking_id: uuid, p_note: text |
 | `confirm_shift` | p_assignment_id: uuid |
 | `confirm_shuttle` | p_booking_id: uuid |
+| `consent_records_admin` | p_limit: integer, p_offset: integer, p_person_id: uuid, p_query: text, p_state: text, p_type: text |
 | `create_hack_team` | p_edition_id: uuid, p_name: text |
 | `create_kiosk_account` | p_edition_id: uuid, p_email: text, p_label: text |
 | `create_slot` | p_end: timestamp with time zone, p_session_id: uuid, p_slot_type: text, p_source_ref: text, p_stage_id: uuid, p_start: timestamp with time zone |
@@ -2163,10 +2168,12 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `fmt_cents` | p_cents: integer, p_locale: text |
 | `format_detail_keys` | p_format: text |
 | `hack_admin_overview` | p_edition_id: uuid, p_language: text |
+| `hack_applications_admin` | p_edition_id: uuid |
 | `hack_challenges` | p_edition_id: uuid, p_language: text |
 | `hack_edition` | p_edition_id: uuid |
 | `hack_join_code` | args: ? |
 | `hack_judging` | p_edition_id: uuid, p_language: text |
+| `hack_open_challenges` | p_edition_id: uuid |
 | `hack_text` | p_de: text, p_en: text, p_language: text |
 | `handover_speaker` | p_profile_id: uuid, p_to_person_id: uuid |
 | `harden_definer_functions` | args: ? |
@@ -2544,6 +2551,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `submit_session_content` | p_data: jsonb, p_session_id: uuid |
 | `suggest_salutation` | p_locale: text, p_person_id: uuid |
 | `supplier_order_list` | p_edition_id: uuid, p_supplier: text |
+| `suppression_check` | p_email: text |
+| `suppression_overview` | args: ? |
 | `sync_deliverables` | p_org_edition_id: uuid |
 | `sync_granted_roles` | p_org_id: uuid |
 | `sync_ticket_allocations` | p_org_edition_id: uuid |

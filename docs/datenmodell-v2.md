@@ -153,6 +153,8 @@
 | Welle 6 · 0226 | **Kiosk-Gerätekonto im Admin anlegen: nur Team-Adressen, Rolle checkin_operator je Edition (ADM-038)** (`20261001082940`, `v6_kiosk_konto`; Details im Migrationskopf) | — |
 | Welle 6 · 0227 | **Verkleinerte Vorschau für Editionsbilder (Hallenplan), nur Server setzt sie (ADM-042)** (`20261001083829`, `v6_editionsdatei_vorschau`; Details im Migrationskopf) | — |
 | Welle 6 · 0228 | **Portfolio-Links nur in der Hackathon-Bewerbung, anonymisiert bei Löschung (HACK-007)** (`20261001084716`, `v6_hack_portfolio`; Details im Migrationskopf) | — |
+| Welle 6 · 0229 | **Admin-Abschnitt Hackathon für area_lead_hackathon und hackathon_team, is_hack_team ohne Admin-Sonderweg (ADM-055)** (`20261001085426`, `v6_admin_hackathon`; Details im Migrationskopf) | — |
+| Welle 6 · 0230 | **Einwilligungs-Ansicht und Sperrliste in der Verwaltung, nur admin, Audit ohne Klartextadresse (ADM-033, ADM-035)** (`20261001085459`, `v6_einwilligung_sperrliste`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
