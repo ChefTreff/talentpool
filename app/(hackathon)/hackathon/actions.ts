@@ -31,10 +31,21 @@ export async function applyHackathon(input: {
   skills: string[];
   motivation?: string;
   teamPref?: string;
+  /** Portfolio-Links (HACK-007) — nur hier, nicht im allgemeinen Profil. */
+  githubUrl?: string;
+  websiteUrl?: string;
+  behanceUrl?: string;
 }): Promise<ActionResult> {
   const supabase = await client();
   const { error } = await supabase.rpc("apply_hackathon", {
-    p_data: { skills: input.skills, motivation: input.motivation ?? null, team_pref: input.teamPref ?? null },
+    p_data: {
+      skills: input.skills,
+      motivation: input.motivation ?? null,
+      team_pref: input.teamPref ?? null,
+      github_url: input.githubUrl ?? null,
+      website_url: input.websiteUrl ?? null,
+      behance_url: input.behanceUrl ?? null,
+    },
   });
   if (error) return fail(error);
   revalidateAll();
