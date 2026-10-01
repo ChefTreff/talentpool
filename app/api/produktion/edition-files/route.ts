@@ -133,6 +133,9 @@ async function eintragen(
       size_bytes: Number.isFinite(size) && size > 0 ? String(size) : null,
       label_de: labelDe || null,
       label_en: labelEn || null,
+      // PROD-009: Zielgruppe aus dem Formular; die Funktion prüft sie gegen
+      // `kb_audience`. Ohne Angabe gilt wie bisher: alle.
+      ...(Array.isArray(body.audience) ? { audience: (body.audience as unknown[]).map(String) } : {}),
     },
   });
   if (error) {

@@ -9,7 +9,7 @@ import { Select } from "@/components/ui/Select";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import type { HackChallenge } from "@/app/(hackathon)/hackathon/types";
-import { setChallengeJudging, setChallengeTrack } from "./actions";
+import { setChallengeDeadline, setChallengeJudging, setChallengeTrack } from "./actions";
 
 type Strings = Record<string, string>;
 
@@ -57,6 +57,7 @@ export function ChallengeTracks({
             <Th>{t.challengeColumn}</Th>
             <Th>{t.trackColumn}</Th>
             <Th>{t.judgingColumn}</Th>
+            <Th>{t.deadlineColumn}</Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -79,6 +80,9 @@ export function ChallengeTracks({
               </Td>
               <Td>
                 <JudgingCell challenge={c} t={t} rpcMessages={rpcMessages} />
+              </Td>
+              <Td>
+                <DeadlineCell challenge={c} t={t} rpcMessages={rpcMessages} />
               </Td>
             </Tr>
           ))}
@@ -146,6 +150,56 @@ function JudgingCell({ challenge, t, rpcMessages }: { challenge: HackChallenge; 
             if (!res.ok) toast("error", rpcMessages[res.key] ?? rpcMessages.unknown ?? res.key);
             else {
               toast("success", t.judgingSaved);
+              router.refresh();
+            }
+          })
+        }
+      >
+        {t.judgingSave}
+      </Button>
+    </div>
+  );
+}
+
+/** ISO-Zeitpunkt → Wert für `datetime-local` in der Zeitzone des Browsers. */
+function lokal(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const z = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`;
+}
+
+/**
+ * Abgabefrist je Challenge (HACK-011). Danach geht die Abgabe weiter, wird aber
+ * als „verspätet“ markiert — die Prüfung macht die Datenbank beim Einreichen.
+ */
+function DeadlineCell({ challenge, t, rpcMessages }: { challenge: HackChallenge; t: Strings; rpcMessages: Strings }) {
+  const router = useRouter();
+  const toast = useToast();
+  const [pending, start] = useTransition();
+  const [wert, setWert] = useState(lokal(challenge.submission_deadline));
+  const geaendert = wert !== lokal(challenge.submission_deadline);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Input
+        type="datetime-local"
+        aria-label={`${t.deadlineColumn}: ${challenge.title}`}
+        className="w-auto"
+        value={wert}
+        disabled={pending}
+        onChange={(e) => setWert(e.target.value)}
+      />
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled={pending || !geaendert}
+        onClick={() =>
+          start(async () => {
+            const res = await setChallengeDeadline(challenge.id, wert ? new Date(wert).toISOString() : null);
+            if (!res.ok) toast("error", rpcMessages[res.key] ?? rpcMessages.unknown ?? res.key);
+            else {
+              toast("success", t.deadlineSaved);
               router.refresh();
             }
           })
