@@ -12,6 +12,9 @@ import { FristMarke } from "@/components/ui/FristMarke";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
 import { DatasetUpload } from "@/components/hackathon/DatasetUpload";
+import { WunschprofilForm } from "@/components/hackathon/WunschprofilForm";
+import type { Wunschprofil } from "@/lib/hackathon/wunschprofil";
+import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { datasetUrl, type DatasetTarget } from "@/lib/hackathon/datensatz-server";
 import { getPartnerScope } from "../org";
 import { PflichtUpload } from "../PflichtUpload";
@@ -56,6 +59,12 @@ export default async function PartnerHackathonPage() {
     p_edition_id: current.edition_id,
     p_language: locale,
   });
+  // Wunschprofil (HACK-015): nur die Challenges, die die Person pflegen darf.
+  const [{ data: profilRows }, vocab] = await Promise.all([
+    supabase.rpc("hack_challenge_profiles", { p_edition_id: current.edition_id, p_language: locale }),
+    loadVocabMap(supabase, locale),
+  ]);
+  const wunschprofile = ((profilRows ?? []) as Wunschprofil[]).filter((p) => p.can_edit);
   const datensaetze = await Promise.all(
     ((targetRows ?? []) as DatasetTarget[]).map(async (d) => ({
       ...d,
@@ -176,6 +185,32 @@ export default async function PartnerHackathonPage() {
                   labelFirst={s.backdropUpload}
                   labelNew={s.backdropUploadNew}
                 />
+              </div>
+            </Card>
+          )}
+
+          {/* Wunschprofil (HACK-015): nach der Freigabe, wie der Datensatz. */}
+          {challenge && (
+            <Card>
+              <h2 className="ct-h3 text-ink">{t.hackWish.wishPartnerTitle}</h2>
+              <p className="ct-small mt-2 leading-6">{t.hackWish.wishPartnerLead}</p>
+              <div className="mt-4 flex flex-col gap-6">
+                {wunschprofile.length === 0 ? (
+                  <p className="ct-help">{s.datasetAfterPublish}</p>
+                ) : (
+                  wunschprofile.map((w) => (
+                    <div key={w.challenge_id} className="flex flex-col gap-2">
+                      {wunschprofile.length > 1 && <p className="ct-label">{w.title}</p>}
+                      <WunschprofilForm
+                        profil={w}
+                        studyFields={vgroup(vocab, "study_field")}
+                        skills={vgroup(vocab, "skill")}
+                        t={t.hackWish}
+                        rpcMessages={t.rpc}
+                      />
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
           )}
