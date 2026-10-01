@@ -193,6 +193,13 @@ const BUSINESS_KEYS = new Set([
   "note_required",
   "allocation_not_found",
   "request_not_found",
+  // ADM-038: Kiosk-Gerätekonto.
+  "label_required",
+  "team_address_required",
+  "kiosk_email_in_use",
+  "access_blocked",
+  "edition_over",
+  "kiosk_invite_failed",
   "edition_not_found",
   "template_not_found",
   "sync_error_not_found",

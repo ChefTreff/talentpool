@@ -84,3 +84,41 @@ export async function ladeEin(personId: string): Promise<Ergebnis> {
   revalidatePath(PFAD);
   return { ok: true };
 }
+
+export type GeraeteErgebnis =
+  | { ok: true; eingeladen: boolean; email: string }
+  | { ok: false; key: string; detail?: string };
+
+/**
+ * Kiosk-Gerätekonto anlegen (ADM-038).
+ *
+ * 1. `create_kiosk_account` über die Sitzung: prüft Abschnitt, Team-Adresse und
+ *    Edition, legt Person und Rolle an und schreibt das Audit.
+ * 2. Hat die Person noch kein Login, geht die Einladung an **die Adresse aus der
+ *    Datenbank** — dieselbe, die Schritt 1 gerade geprüft hat, nicht die aus dem
+ *    Formular. Beim ersten Klick verknüpft der Login-Rückweg das Konto.
+ *
+ * Scheitert die Einladung, sagt die Antwort das: Rolle und Person stehen, die
+ * Mail ist nicht raus — „Einladen" in der Liste holt sie nach.
+ */
+export async function legeGeraetAn(label: string, email: string, editionId: string): Promise<GeraeteErgebnis> {
+  await requireAdminSection("access", PFAD);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("create_kiosk_account", {
+    p_label: label,
+    p_email: email,
+    p_edition_id: editionId,
+  });
+  if (error) {
+    const f = toRpcFailure(error);
+    if (f.key === "unknown") console.error("[zugaenge] create_kiosk_account:", f.raw);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  const r = data as { person_id: string; email: string; has_login: boolean };
+  revalidatePath(PFAD);
+  if (r.has_login) return { ok: true, eingeladen: false, email: r.email };
+
+  const einladung = await ladeEin(r.person_id);
+  if (!einladung.ok) return { ok: false, key: "kiosk_invite_failed", detail: einladung.detail };
+  return { ok: true, eingeladen: true, email: r.email };
+}
