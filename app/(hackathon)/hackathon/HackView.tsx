@@ -83,6 +83,20 @@ export function HackView({
         <p className="ct-help mt-2">
           {t[`status${data.application.status[0].toUpperCase()}${data.application.status.slice(1)}Body`] ?? ""}
         </p>
+        {/* Portfolio-Links aus der Bewerbung (HACK-007). */}
+        {(data.application.github_url || data.application.website_url || data.application.behance_url) && (
+          <p className="ct-small mt-2 flex flex-wrap gap-x-4 gap-y-1">
+            {data.application.github_url && (
+              <a href={data.application.github_url} {...neuesFenster} className="ct-link">{t.githubUrl}</a>
+            )}
+            {data.application.website_url && (
+              <a href={data.application.website_url} {...neuesFenster} className="ct-link">{t.websiteUrl}</a>
+            )}
+            {data.application.behance_url && (
+              <a href={data.application.behance_url} {...neuesFenster} className="ct-link">{t.behanceUrl}</a>
+            )}
+          </p>
+        )}
       </Card>
 
       {accepted && (
@@ -202,6 +216,9 @@ function ApplyCard({
   const [chosen, setChosen] = useState<string[]>([]);
   const [motivation, setMotivation] = useState("");
   const [teamPref, setTeamPref] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [behanceUrl, setBehanceUrl] = useState("");
 
   return (
     <Card>
@@ -234,10 +251,28 @@ function ApplyCard({
           <Input id="teampref" value={teamPref} onChange={(e) => setTeamPref(e.target.value)} />
         </Field>
 
+        {/* Portfolio-Links (HACK-007): nur in der Hackathon-Bewerbung, nicht im Profil. */}
+        <fieldset className="flex flex-col gap-3">
+          <legend className="ct-label mb-1">{t.portfolio}</legend>
+          <p className="ct-help">{t.portfolioHint}</p>
+          <Field label={t.githubUrl} htmlFor="github">
+            <Input id="github" type="url" inputMode="url" placeholder="https://github.com/…" value={githubUrl}
+              onChange={(e) => setGithubUrl(e.target.value)} />
+          </Field>
+          <Field label={t.websiteUrl} htmlFor="website">
+            <Input id="website" type="url" inputMode="url" placeholder="https://…" value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)} />
+          </Field>
+          <Field label={t.behanceUrl} htmlFor="behance">
+            <Input id="behance" type="url" inputMode="url" placeholder="https://www.behance.net/…" value={behanceUrl}
+              onChange={(e) => setBehanceUrl(e.target.value)} />
+          </Field>
+        </fieldset>
+
         <div>
           <Button
             disabled={pending}
-            onClick={() => run(applyHackathon({ skills: chosen, motivation, teamPref }), t.applied)}
+            onClick={() => run(applyHackathon({ skills: chosen, motivation, teamPref, githubUrl, websiteUrl, behanceUrl }), t.applied)}
           >
             {t.apply}
           </Button>

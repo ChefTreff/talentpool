@@ -13,6 +13,9 @@ export type MyHack = {
     motivation: string | null;
     team_pref: string | null;
     applied_at: string;
+    github_url?: string | null;
+    website_url?: string | null;
+    behance_url?: string | null;
   } | null;
   team: {
     id: string;

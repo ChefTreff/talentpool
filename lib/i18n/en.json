@@ -2284,6 +2284,7 @@
     "applyTitle": "Apply",
     "assign": "Assign challenges",
     "assigned": "{n} teams got a challenge",
+    "behanceUrl": "Behance",
     "captain": "captain",
     "challengeLead": "We assign the challenges so every one gets a team.",
     "challengeNone": "Your challenge comes once teams are complete. Until then: get to know each other.",
@@ -2304,6 +2305,7 @@
     "createTeam": "Create a team",
     "discord": "Discord",
     "discordHint": "Everything else happens on Discord.",
+    "githubUrl": "GitHub",
     "join": "Join",
     "joinCode": "Join code",
     "joinHint": "Ask your captain for the code.",
@@ -2326,6 +2328,8 @@
     "navTeams": "Teams",
     "notSubmitted": "No submission yet",
     "noteToTeam": "Note",
+    "portfolio": "Portfolio (optional)",
+    "portfolioHint": "Links to your work help us form teams. We only ask for them here, not in your general profile.",
     "prizes": "Prizes",
     "projectUrl": "Project link",
     "repoUrl": "Repository",
@@ -2365,6 +2369,7 @@
     "title": "Hackathon",
     "tooSmall": "You need at least 3 people before you can submit.",
     "total": "Total",
+    "websiteUrl": "Website",
     "yourCode": "Your join code"
   },
   "home": {
