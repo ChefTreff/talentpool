@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 12:19 UTC · 104 Tabellen · 6 Views · 596 Funktionen
+> Stand: 2026-10-01 12:26 UTC · 104 Tabellen · 6 Views · 598 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -470,6 +470,7 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `sort_order` | integer | ja | `0` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `track` | text |  |  |  | vocab hack_track (HACK-008). Pflicht bei der Freigabe (publish_hack_challenge), änderbar über set_hack_challenge_track. |
 
 ### `hack_judging_score`
 
@@ -2176,6 +2177,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_judging` | p_edition_id: uuid, p_language: text |
 | `hack_open_challenges` | p_edition_id: uuid |
 | `hack_text` | p_de: text, p_en: text, p_language: text |
+| `hack_track_key` | p_value: text |
 | `handover_speaker` | p_profile_id: uuid, p_to_person_id: uuid |
 | `harden_definer_functions` | args: ? |
 | `has_admin_section` | p_key: text |
@@ -2363,7 +2365,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `programme_skeleton` | p_event_id: uuid |
 | `promote_shift_waitlist` | p_shift_id: uuid |
 | `promote_waitlist` | p_count: integer, p_session_id: uuid |
-| `publish_hack_challenge` | p_deliverable_id: uuid |
+| `publish_hack_challenge` | p_deliverable_id: uuid, p_track: text |
 | `publish_kb_article` | p_id: uuid, p_published: boolean |
 | `publish_session` | p_session_id: uuid |
 | `purge_ai_rate_limit` | args: ? |
@@ -2448,6 +2450,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_expense_mode` | p_amount_cents: integer, p_mode: text, p_profile_id: uuid |
 | `set_external_ref` | p_external_id: text, p_meta: jsonb, p_object_id: uuid, p_object_type: text, p_system: text |
 | `set_hack_application_status` | p_id: uuid, p_note: text, p_status: text |
+| `set_hack_challenge_track` | p_challenge_id: uuid, p_track: text |
 | `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
 | `set_initiative_stage` | p_org_edition_id: uuid, p_stage: text |
 | `set_logo_whitening_consent` | p_edition_id: uuid, p_granted: boolean, p_org_id: uuid |
