@@ -339,7 +339,7 @@ Wer im Namen eines anderen arbeitet (Assistenz), wird nicht mit dessen Vornamen 
 
 **Abschnitte**
 
-- Ein `<h2>` ist `.ct-h2` (Versalien, ExtraBold, 18/24) — auch in Karten. Vorher trug jede Abschnittskarte `.ct-h3` (16/24 SemiBold), also fast Fliesstextgrösse; H1 und Fliesstext hatten nichts dazwischen.
+- Ein `<h2>` ist `.ct-h2` (Versalien, ExtraBold, 18/24) — auch in Karten. Vorher trug jede Abschnittskarte `.ct-h3` (16/24 SemiBold), also fast Fliesstextgrösse; H1 und Fliesstext hatten nichts dazwischen. Ist eine Karte selbst ein Abschnitt der Seite, trägt ihr Kopf das: `<CardHeader ebene="h2" …>` (QS-054); ohne Angabe bleibt er `h3` für Karten unter einem Abschnittskopf.
 - `.ct-h3` bleibt für Titel **innerhalb** eines Abschnitts, für Meldungskarten (Zustände wie „noch nicht freigeschaltet", „Erfassung gesperrt"), für Dialog- und Paneltitel, für Werkzeugschritte (Grafik-Maske) und für dynamische Objekttitel (Einladung, Buchung).
 - **Eine** Karte je Seite darf den Akzent-Umriss tragen (`border-accent`): die, um die es auf der Seite geht — auf der Session-Seite der Slot. Mehr als eine, und keine ist mehr hervorgehoben (Website-Karte, `website-bloecke.md`).
 

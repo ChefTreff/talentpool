@@ -42,7 +42,8 @@ export default async function PartnerCompanyTourPage() {
           return (
           <section key={x.stop_id} aria-label={titel} className="flex flex-col gap-4">
             <Card>
-              <CardHeader title={titel} description={x.track ?? undefined} />
+              {/* Der Stopp ist der Abschnitt: sein Titel ist die h2, Tour Lead und Maske stehen darunter (QS-054). */}
+              <CardHeader ebene="h2" title={titel} description={x.track ?? undefined} />
               <dl className="ct-small grid gap-x-6 gap-y-3 sm:grid-cols-3">
                 <div>
                   <dt className="ct-label text-muted">{s.stopTime}</dt>
