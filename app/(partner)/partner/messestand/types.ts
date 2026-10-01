@@ -39,4 +39,8 @@ export type EditionFile = {
   label_de: string | null;
   label_en: string | null;
   created_at: string;
+  /** ADM-042: verkleinerte Anzeigefassung, leer = keine (PDF, SVG, Erzeugung gescheitert). */
+  preview_path: string | null;
+  preview_width: number | null;
+  preview_height: number | null;
 };

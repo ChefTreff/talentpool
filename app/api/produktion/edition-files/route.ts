@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { erzeugeVorschau } from "@/lib/edition-files/vorschau";
+import { vorschauPfad } from "@/lib/edition-files/verkleinern.mjs";
 
 export const dynamic = "force-dynamic";
 
@@ -141,7 +143,14 @@ async function eintragen(
     await createSupabaseAdminClient().storage.from(BUCKET).remove([path]);
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
-  return NextResponse.json({ ok: true, id: data, path });
+  // ADM-042: Rasterbilder bekommen eine verkleinerte Anzeigefassung. Scheitert
+  // das, bleibt der Upload gültig und die Portale zeigen das Original.
+  const vorschau = await erzeugeVorschau(createSupabaseAdminClient(), {
+    id: String(data),
+    storage_path: path,
+    mime,
+  });
+  return NextResponse.json({ ok: true, id: data, path, preview: vorschau });
 }
 
 /** Eintrag **und** Datei entfernen. */
@@ -156,7 +165,9 @@ export async function DELETE(request: Request) {
   const { data: path, error } = await supabase.rpc("delete_edition_file", { p_id: id });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   if (typeof path === "string") {
-    await createSupabaseAdminClient().storage.from(BUCKET).remove([path]);
+    // Die Vorschau hat einen festen Namen neben dem Original (ADM-042); fehlt
+    // sie, ignoriert der Speicher den zweiten Pfad.
+    await createSupabaseAdminClient().storage.from(BUCKET).remove([path, vorschauPfad(path)]);
   }
   return NextResponse.json({ ok: true });
 }

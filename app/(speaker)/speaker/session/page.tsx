@@ -23,6 +23,9 @@ type EditionFile = {
   mime: string | null;
   label_de: string | null;
   label_en: string | null;
+  preview_path: string | null;
+  preview_width: number | null;
+  preview_height: number | null;
 };
 
 export default async function SpeakerSessionPage() {
@@ -71,6 +74,11 @@ export default async function SpeakerSessionPage() {
     ? (await supabase.storage.from("edition-files").createSignedUrl(plan.storage_path, 3600)).data
         ?.signedUrl ?? null
     : null;
+  // ADM-042: anzeigen die Vorschau, öffnen das Original.
+  const bildUrl = plan?.preview_path
+    ? (await supabase.storage.from("edition-files").createSignedUrl(plan.preview_path, 3600)).data
+        ?.signedUrl ?? planUrl
+    : planUrl;
 
   return (
     <div className="max-w-detail">
@@ -142,10 +150,10 @@ export default async function SpeakerSessionPage() {
                 // Bildoptimierer gereicht, würde sie zwischengespeichert und wäre
                 // nach Ablauf tot (dieselbe Regel wie im Partner-Portal).
                 <Image
-                  src={planUrl}
+                  src={bildUrl ?? planUrl}
                   alt={(locale === "en" ? plan.label_en : plan.label_de) ?? plan.filename}
-                  width={1600}
-                  height={1000}
+                  width={plan.preview_width ?? 1600}
+                  height={plan.preview_height ?? 1000}
                   unoptimized
                   className="mt-3 h-auto w-full rounded-ct-sm border"
                 />
