@@ -3,6 +3,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ZugaengeListe, type Konto } from "./ZugaengeListe";
+import { Geraetekonto } from "./Geraetekonto";
 
 export const dynamic = "force-dynamic";
 
@@ -36,10 +37,24 @@ export default async function ZugaengePage({
     p_offset: (seite - 1) * SEITE,
   });
   const konten = (data ?? []) as Konto[];
+  // ADM-038: Gerätekonten gibt es nur für Editionen, die noch nicht vorbei sind.
+  const heute = new Date().toISOString().slice(0, 10);
+  const { data: editionen } = await supabase
+    .from("event")
+    .select("id, name")
+    .eq("is_edition", true)
+    .gte("end_date", heute)
+    .order("start_date");
 
   return (
     <>
       <PageHeader word={t.admin.words.access} title={t.accessAdmin.title} description={t.accessAdmin.lead} />
+      <Geraetekonto
+        editionen={(editionen ?? []) as { id: string; name: string }[]}
+        t={t.accessAdmin as Record<string, string>}
+        common={{ save: t.common.save, required: t.common.required }}
+        rpcMessages={t.rpc as Record<string, string>}
+      />
       <ZugaengeListe
         konten={konten}
         suche={suche}
