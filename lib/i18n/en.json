@@ -663,6 +663,11 @@
       "colors": "Colours",
       "drawerTitle": "Example panel",
       "empty": "Empty state",
+      "errorProbe": "Try the error page",
+      "errorProbeBrowser": "Cause an error in the browser",
+      "errorProbeLead": "Causes an error on purpose so you can see the error page in the real portal. Both errors carry a made-up server detail in their text. It must not appear on the error page, only the error ID.",
+      "errorProbeServer": "Cause an error on the server",
+      "errorProbeTitle": "Error probe",
       "forms": "Forms",
       "lead": "Every building block of the portal in one place — reference for reviews and new areas.",
       "openDrawer": "Open drawer",
@@ -2187,6 +2192,11 @@
     "title": "Dietary requirements"
   },
   "errors": {
+    "boundaryBody": "This page couldn't be shown. Reload it, that usually helps. If the error stays, write to {mailbox} and include the error ID.",
+    "boundaryHome": "Go to start page",
+    "boundaryId": "Error ID",
+    "boundaryRetry": "Reload",
+    "boundaryTitle": "Something went wrong here",
     "forbiddenBody": "You don't have a role for this area. If that looks wrong, contact the ChefTreff team.",
     "forbiddenTitle": "No access"
   },
@@ -2385,6 +2395,7 @@
     "sButtons": "Buttons and chips",
     "sDates": "Dates and deadlines",
     "sEmpty": "Empty state",
+    "sError": "Error",
     "sFaq": "Questions",
     "sPersons": "People",
     "sPhotos": "Entry points",

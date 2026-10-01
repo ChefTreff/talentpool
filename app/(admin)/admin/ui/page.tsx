@@ -2,6 +2,8 @@ import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { KitSchau } from "@/components/ui/KitSchau";
+import { ButtonLink } from "@/components/ui/Button";
+import { fehlerTexte } from "@/components/fehler/fehler";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +23,20 @@ export default async function UiKitPage() {
 
   return (
     <>
-      <PageHeader word={t.admin.words.ui} title={t.admin.ui.title} description={t.admin.ui.lead} />
-      <KitSchau t={t.kit} />
+      <PageHeader
+        word={t.admin.words.ui}
+        title={t.admin.ui.title}
+        description={t.admin.ui.lead}
+        // Die Fehlergrenze lässt sich nur sehen, wenn etwas ausfällt (QS-023).
+        // Die Probe löst es absichtlich aus — im Admin, nicht unter `/design`,
+        // das jede angemeldete Person öffnet.
+        actions={
+          <ButtonLink href="/admin/ui/fehlerprobe" variant="secondary">
+            {t.admin.ui.errorProbe}
+          </ButtonLink>
+        }
+      />
+      <KitSchau t={t.kit} fehler={fehlerTexte(t.errors)} />
     </>
   );
 }
