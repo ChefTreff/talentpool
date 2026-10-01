@@ -1,4 +1,4 @@
--- Test „Auswertungsart je Challenge“ (HACK-009, vorschlag/v6_hack_auswertung.sql). Belegt:
+-- Test „Auswertungsart je Challenge“ (HACK-009, 20261001124252_v6_hack_auswertung.sql). Belegt:
 --   01 Standard jury; Prüfsatz: metric ohne Bezeichnung abgewiesen; Formular hat die drei
 --      Felder hinter track;
 --   02 Freigabe übernimmt Metric/Bezeichnung/Richtung aus dem Formular; Metric ohne

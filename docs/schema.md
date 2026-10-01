@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 12:38 UTC · 104 Tabellen · 6 Views · 607 Funktionen
+> Stand: 2026-10-01 12:42 UTC · 105 Tabellen · 6 Views · 611 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -472,6 +472,9 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `track` | text |  |  |  | vocab hack_track (HACK-008). Pflicht bei der Freigabe (publish_hack_challenge), änderbar über set_hack_challenge_track. |
+| `judging_mode` | text | ja | `jury` |  | Auswertungsart (HACK-009): jury = Pitch mit Kriterien, metric = Leaderboard nach metric_label. |
+| `metric_label` | text |  |  |  | Bezeichnung der Metrik, z. B. „Prediction accuracy“ (nur bei judging_mode = metric). |
+| `metric_higher_better` | boolean | ja | `true` |  | Rangfolge: true = höherer Wert gewinnt. |
 
 ### `hack_judging_score`
 
@@ -485,6 +488,19 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `note` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `hack_metric_result`
+Metrik-Wert je Team (HACK-009): eingetragen von Team oder Jury der Challenge, bestätigt vom Hack-Team. Zugriff nur über set_hack_metric, confirm_hack_metric, hack_leaderboard, hack_judging.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `team_id` | uuid | PK |  | `hack_team.id` |  |
+| `value` | numeric | ja |  |  |  |
+| `note` | text |  |  |  |  |
+| `entered_by` | uuid |  |  | `person.id` |  |
+| `entered_at` | timestamp with time zone | ja | `now()` |  |  |
+| `confirmed_by` | uuid |  |  | `person.id` |  |
+| `confirmed_at` | timestamp with time zone |  |  |  |  |
 
 ### `hack_submission`
 
@@ -2110,6 +2126,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `company_tours_admin` | p_edition_id: uuid |
 | `confirm_application` | p_application_id: uuid, p_replace_conflicting: boolean |
 | `confirm_companion_ticket` | p_note: text, p_ticket_id: uuid |
+| `confirm_hack_metric` | p_confirm: boolean, p_team_id: uuid |
 | `confirm_hospitality` | p_booking_id: uuid, p_note: text |
 | `confirm_shift` | p_assignment_id: uuid |
 | `confirm_shuttle` | p_booking_id: uuid |
@@ -2181,6 +2198,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_edition` | p_edition_id: uuid |
 | `hack_join_code` | args: ? |
 | `hack_judging` | p_edition_id: uuid, p_language: text |
+| `hack_leaderboard` | p_challenge_id: uuid |
 | `hack_open_challenges` | p_edition_id: uuid |
 | `hack_text` | p_de: text, p_en: text, p_language: text |
 | `hack_track_key` | p_value: text |
@@ -2461,7 +2479,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_expense_mode` | p_amount_cents: integer, p_mode: text, p_profile_id: uuid |
 | `set_external_ref` | p_external_id: text, p_meta: jsonb, p_object_id: uuid, p_object_type: text, p_system: text |
 | `set_hack_application_status` | p_id: uuid, p_note: text, p_status: text |
+| `set_hack_challenge_judging` | p_challenge_id: uuid, p_higher_better: boolean, p_metric_label: text, p_mode: text |
 | `set_hack_challenge_track` | p_challenge_id: uuid, p_track: text |
+| `set_hack_metric` | p_note: text, p_team_id: uuid, p_value: numeric |
 | `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
 | `set_initiative_stage` | p_org_edition_id: uuid, p_stage: text |
 | `set_logo_category` | p_category: text, p_org_edition_id: uuid |

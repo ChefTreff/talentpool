@@ -1,4 +1,5 @@
--- 0000 · Auswertungsart je Hackathon-Challenge: Jury oder Metrik, Leaderboard (HACK-009).
+-- 0237 · Auswertungsart je Challenge (Jury oder Metrik), Metrik-Werte mit Bestätigung, Leaderboard (HACK-009)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001124252.
 --
 -- Anlass: Emilio (Call 24.09., HACK-006): lange Abschluss-Pitches aller Teams, Gewinner nach
 -- Präsentation. Backlog-Empfehlung: Feld `judging_mode` je Challenge — *Jury* (Pitch, heutige
