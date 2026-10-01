@@ -3,6 +3,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { HeroBand } from "@/components/ui/HeroBand";
+import { datasetUrl } from "@/lib/hackathon/datensatz-server";
 import { HackView } from "./HackView";
 import type { HackChallenge, LeaderboardRow, MyHack } from "./types";
 
@@ -35,6 +36,15 @@ export default async function HackathonPage() {
     metric = { label: meine.metric_label ?? t.hackathon.metric, value: eigene?.value ?? null, confirmed: eigene?.confirmed ?? false };
   }
 
+  // Datensatz der eigenen Challenge (HACK-012): nur Teams dieser Challenge
+  // bekommen ihn (Leserolle + Bucket-Policy), alle anderen sehen nichts.
+  let dataset: { filename: string; size_bytes: number | null; url: string | null } | null = null;
+  if (data.team && data.challenge) {
+    const { data: ds } = await supabase.rpc("hack_challenge_dataset", { p_challenge_id: data.challenge.id });
+    const row = ((ds ?? []) as { storage_path: string; filename: string; size_bytes: number | null }[])[0];
+    if (row) dataset = { filename: row.filename, size_bytes: row.size_bytes, url: await datasetUrl(supabase, row.storage_path, row.filename) };
+  }
+
   return (
     <>
       <HeroBand
@@ -45,6 +55,7 @@ export default async function HackathonPage() {
       <HackView
         data={data}
         metric={metric}
+        dataset={dataset}
         skills={vgroup(vocab, "hack_skill")}
         tracks={vgroup(vocab, "hack_track")}
         discordUrl={process.env.HACKATHON_DISCORD_URL?.trim() || null}
