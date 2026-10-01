@@ -1,5 +1,5 @@
 create or replace function applications_overview(p_event_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(session_id uuid, event_id uuid, title_de text, title_en text, start_at timestamp with time zone, end_at timestamp with time zone, stage_name text, capacity integer, publish_status text, application_deadline timestamp with time zone, released boolean, counts jsonb)
+ RETURNS TABLE(session_id uuid, event_id uuid, title_de text, title_en text, start_at timestamp with time zone, end_at timestamp with time zone, stage_name text, capacity integer, publish_status text, application_deadline timestamp with time zone, released boolean, counts jsonb, format text)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -9,7 +9,8 @@ AS $$
          exists (select 1 from decision_release d where d.session_id = se.id),
          coalesce((select jsonb_object_agg(x.status, x.n)
                    from (select a.status, count(*) as n from application a where a.session_id = se.id group by a.status) x),
-                  '{}'::jsonb)
+                  '{}'::jsonb),
+         se.format
   from session se
   left join slot sl on sl.id = se.slot_id
   left join stage st on st.id = sl.stage_id

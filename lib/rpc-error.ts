@@ -336,6 +336,8 @@ const BUSINESS_KEYS = new Set([
   // Links je Schlüssel (Vorschlag v6_portal_links, PART-072)
   "portal_link_url",
   "portal_link_key",
+  // Sammelentscheidung (Vorschlag v6_bewerbungen_uebersicht, ADM-003)
+  "too_many_applications",
 ]);
 
 const BY_CODE: Record<string, string> = {
