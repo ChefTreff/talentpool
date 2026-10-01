@@ -64,6 +64,8 @@
  *                                   vom Hackathon aufs Summit, nichts gelöscht)
  *   … --apply --nur=ticket-zurueck (SPK-068: Freiticket zurueck auf `requested`,
  *                                   damit das Ausstellen im Admin pruefbar ist)
+ *   … --apply --nur=loeschung      (ADM-031: TEST-Person ohne Konto für den Löschantrag
+ *                                   durch das Team; der Antrag selbst bleibt Konrads Klick)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -300,7 +302,10 @@ const PARTNER_PRODUKTE = {
   company_tour: "I-85973", // Company Tour Spot
   side_event: "I-81745",
   interview_table: "I-66084",
-  hackathon: "I-10729", // Hackathon Stand
+  // Die Challenge, nicht der Stand: nur I-37220 trägt das Challenge-Formular und
+  // (HACK-005) die Rolle hackathon_partner — mit dem Stand stünde auf
+  // /partner/hackathon nur die Rückwand.
+  hackathon: "I-37220", // Hackathon Challenge
   branding: "I-21634", // Partner Branding
   talk: "I-87007", // Main Stage Speaking
 };
@@ -2325,6 +2330,23 @@ async function zugangTestperson(me, ed) {
 }
 
 /**
+ * ADM-031: eine TEST-Person **ohne Konto**, an der Konrad den neuen Weg
+ * „Löschantrag durch das Team" ausprobiert. Angelegt über `testdaten_person`
+ * mit einer `+zztest-loeschung`-Adresse seines eigenen Postfachs; es entsteht
+ * kein Login und keine Mail. Der Antrag selbst wird **nicht** angelegt — das ist
+ * der Klick, den Konrad prüfen soll. Wird die Person in der Warteschlange
+ * gelöscht, ist ihre Adresse anonymisiert; der nächste Lauf legt eine neue an.
+ */
+async function loeschungTestperson() {
+  const personId = await write("TEST-Person ohne Konto fuer den Loeschantrag", () =>
+    admin.rpc("testdaten_person", {
+      p_first_name: "TEST", p_last_name: "Loeschung", p_email: email.replace("@", "+zztest-loeschung@"),
+    }),
+  );
+  if (personId) note("Löschantrag ausprobieren", `/admin/personen/${personId} → Abschnitt „Löschung"`);
+}
+
+/**
  * SPK-069: zwei TEST-Shuttle-Fahrten an Konrads eigenem Speaker-Profil — eine
  * angefragt (Anreise am ersten Summit-Tag), eine bestätigt (Abreise am letzten).
  * Erst damit zeigen `/admin/anreise` und `/speaker-leads/anreise` die Abzeichen
@@ -2391,6 +2413,7 @@ const SCHRITTE = {
   media: mediaSchritt,
   zugang: zugangTestperson,
   moderation: moderationStageLead,
+  loeschung: loeschungTestperson,
 };
 
 async function teilschritte(me, ed, namen) {

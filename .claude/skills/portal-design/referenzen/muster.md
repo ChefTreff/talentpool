@@ -55,7 +55,7 @@ Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
 - Zahlen rechts: `<Th numeric>` / `<Td numeric>` (`tabular-nums` liegt global auf `body`).
 - Zeilenhöhe 44, Bedienelemente in Zeilen `size="sm"`.
 - Breite Tabellen gehören in einen `overflow-x-auto`-Container, die Seite scrollt nie horizontal.
-- Filterleiste oben, Zustand in der URL, damit ein Link denselben Ausschnitt zeigt.
+- Filterleiste oben, Zustand in der URL, damit ein Link denselben Ausschnitt zeigt — über `useUrlFilter` (`components/ui`, QS-050): lesbare Werte statt IDs (Slug, Datum, Vokabel-Schlüssel), Suche als `q`, Sortierung als Spalte mit „-“ für absteigend, Schalter als `1`; nur, was von der Vorgabe abweicht, steht in der Adresse. Geschrieben wird per `history.replaceState`, ohne Server-Rundlauf.
 - Status als `<Badge>` mit Wortlaut, nie als farbiger Punkt allein.
 
 ## Zustände
@@ -67,6 +67,7 @@ Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
 | Fehler im Formular | `Field error` |
 | Ergebnis einer Aktion | `useToast()` — kurz, sachlich, kein Ausrufezeichen |
 | gefährlich | `<ConfirmDialog>` mit Klartext, was passiert; Button `variant="destructive"` |
+| Seite fällt aus | `error.tsx` je Bereich → `<Fehlergrenze>` (`components/fehler/`), Baustein `<ErrorState>`: was passiert ist, Fehler-ID, „Neu laden“ als einzige primäre Aktion, Weg zur Startseite. Nie die Meldung des Fehlers zeigen, nur `fehlerId(error)` (QS-023). Neue Bereiche bekommen ihre `error.tsx` mit — `tests/fehlergrenzen.test.ts` prüft es |
 
 ## Wizard
 

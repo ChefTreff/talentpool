@@ -14,6 +14,7 @@ import { TicketCard } from "./TicketCard";
 import { Accordion, AccordionItem } from "./Accordion";
 import { DateRow, DateList } from "./DateRow";
 import { EmptyState } from "./EmptyState";
+import { ErrorState } from "./ErrorState";
 import { Field } from "./Field";
 import { Input } from "./Input";
 import { AbschnittsNavigation } from "./Abschnitte";
@@ -23,6 +24,7 @@ import { KalenderKnoepfe } from "./KalenderKnoepfe";
 import { SuchFeld } from "./SuchFeld";
 import { MehrfachAuswahl } from "./MehrfachAuswahl";
 import { PortalFooter } from "@/components/layout/PortalFooter";
+import type { FehlerTexte } from "@/components/fehler/fehler";
 
 export type KitTexte = Record<string, string>;
 
@@ -38,7 +40,7 @@ export type KitTexte = Record<string, string>;
  * zeigt Form, nicht Inhalt. Die Beschriftungen kommen als Props herein,
  * damit auch diese Seite DE und EN kann.
  */
-export function KitSchau({ t }: { t: KitTexte }) {
+export function KitSchau({ t, fehler }: { t: KitTexte; fehler: FehlerTexte }) {
   const [schritt, setSchritt] = useState(1);
   const [themen, setThemen] = useState<string[]>([]);
 
@@ -254,6 +256,24 @@ export function KitSchau({ t }: { t: KitTexte }) {
 
       <Abschnitt titel={t.sEmpty}>
         <EmptyState title={t.emptyTitle} description={t.emptyBody} action={<Button>{t.emptyAction}</Button>} />
+      </Abschnitt>
+
+      {/* Die Fehlergrenze (QS-023) mit einer erfundenen Fehler-ID. Die echte
+          Seite zeigt `/admin/ui/fehlerprobe` im Admin-Bereich. */}
+      <Abschnitt titel={t.sError}>
+        <ErrorState
+          level={3}
+          title={fehler.boundaryTitle}
+          description={fehler.boundaryBody.replace("{mailbox}", "portal@chef-treff.de")}
+          idLabel={fehler.boundaryId}
+          id="1784632415"
+          actions={
+            <>
+              <Button>{fehler.boundaryRetry}</Button>
+              <Button variant="secondary">{fehler.boundaryHome}</Button>
+            </>
+          }
+        />
       </Abschnitt>
 
       <Abschnitt titel={t.sButtons}>

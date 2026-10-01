@@ -92,6 +92,7 @@ export type AdminSectionKey =
   | "videos"
   | "ui"
   | "vocab"
+  | "questionCatalog"
   | "mail"
   | "persons"
   | "team"
@@ -205,6 +206,9 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // Der Bausteinkatalog zeigt nur Beispiele, keine Daten.
   { key: "ui", path: "/admin/ui", roles: TEAM_ROLES },
   { key: "vocab", path: "/admin/vokabular", roles: [] },
+  // ADM-061: der Fragenkatalog speist Talent-Bewerbungen und Partner-Formate —
+  // also wer mit Bewerbungen arbeitet (wie `applications`) und das Partner-Team.
+  { key: "questionCatalog", path: "/admin/fragenkatalog", roles: ["area_lead_talent", "talent_team", "programme_team", "area_lead_partner", "partner_team"] },
   { key: "mail", path: "/admin/mail", roles: [] },
 
   // Verwaltung (PORT4): Personen, Zugänge, Rechte — nur Konrad

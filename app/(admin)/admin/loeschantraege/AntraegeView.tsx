@@ -28,6 +28,8 @@ export type Antrag = {
   handled_by_name: string | null;
   handled_at: string | null;
   handled_note: string | null;
+  /** ADM-031: vom Team angelegt (Mail, kein Konto). Leer = die Person selbst. */
+  opened_by_name: string | null;
 };
 
 const TONES: Record<string, BadgeTone> = {
@@ -121,6 +123,8 @@ export function AntraegeView({
               <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
                 <dt className="ct-label text-muted">{t.colRequested}</dt>
                 <dd>{zeit.format(new Date(a.requested_at))}</dd>
+                <dt className="ct-label text-muted">{t.colOpenedBy}</dt>
+                <dd>{a.opened_by_name ? t.openedByTeam.replace("{name}", a.opened_by_name) : t.openedBySelf}</dd>
                 <dt className="ct-label text-muted">{t.colBlockers}</dt>
                 <dd>
                   {a.blockers.length === 0

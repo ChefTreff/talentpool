@@ -1,168 +1,102 @@
 /**
- * Volunteer-Wiki aus dem Notion-Export in `kb_article` übernehmen.
+ * Wissensbasis aus den Quelldateien in `content/wiki` nach `kb_article` bringen.
  *
- *   node --env-file=.env.local scripts/wiki-import.mjs <ordner> [--apply] [--zielgruppe volunteer]
+ *   node --env-file=.env.local scripts/wiki-import.mjs [--ordner content/wiki] [--apply]
  *
- * Erwartet den **Markdown-Export** von Notion (Export → Markdown & CSV,
- * entpackt). Jede `.md`-Datei wird ein Artikel:
+ * Ohne `--apply` wird **nichts geschrieben** — der Lauf zeigt nur, was er täte.
+ * Ein zweiter Lauf aktualisiert denselben Slug, statt zu doppeln.
  *
- * - **Slug** aus dem Dateinamen ohne Notions Id-Anhang
- *   (`Einlass 2c017aa69eee80… .md` ⇒ `einlass`).
- * - **Titel** aus der ersten `# `-Zeile, sonst aus dem Dateinamen.
- * - **Rollen** aus einer Zeile `Rolle: Einlass, Garderobe` im Kopf, sonst leer
- *   („gilt für alle"). Die Rollen-Seiten sind der Grund für `kb_article.roles`.
- * - **Phase** aus `Phase: aufbau`, sonst `evergreen`.
- * - Notion-interne Links (`[Text](Seite%20abc123.md)`) werden zu einfachem
- *   Text: sie zeigen auf Dateien, die es im Portal nicht gibt. Lieber ein Wort
- *   ohne Link als ein Link ins Leere.
+ * Warum Quelldateien und kein Notion-Export mehr (ADM-008, 01.10.2026):
+ * Die Artikel aus dem Wiki 2026 liessen sich nicht mechanisch übernehmen. Sie
+ * tragen Fristen, Preise, Dienstleisterkontakte und Dateilinks des Vorjahres;
+ * ein Skript, das Jahreszahlen ersetzt, hätte daraus Artikel gemacht, die
+ * falsche Angaben als Tatsache behaupten. Jede Datei unter `content/wiki` ist
+ * deshalb redaktionell geprüft, trägt ihre Notion-Herkunft im Kopf und nennt
+ * unter `pruefen`, was für 2027 noch offen ist. Der Import schreibt diese
+ * offenen Punkte **sichtbar** in den Artikel.
  *
- * Ohne `--apply` wird **nichts geschrieben** — das Skript zeigt, was es täte.
- * Artikel kommen als Entwurf (`status = draft`) an; veröffentlicht wird im
- * Editor, nachdem jemand daraufgeschaut hat. Ein zweiter Lauf aktualisiert
- * denselben Slug, statt zu doppeln.
+ * Der Weg geht bewusst über den Admin-Client an `upsert_kb_article` vorbei:
+ * das RPC verlangt eine angemeldete Person mit Bereichsleitung, und ein
+ * Importlauf hat keine. Die Pflichtkategorie hängt deshalb nicht an diesem
+ * Skript, sondern am Prüfsatz der Tabelle (`kb_article_audience_nicht_leer`).
  */
-import fs from "node:fs";
-import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { url as supabaseUrl, secretKey, requireEnv } from "./supabase-env.mjs";
+import { leseQuellen } from "./wiki-quelle.mjs";
 
 requireEnv(true);
 
 const args = process.argv.slice(2);
-const dir = args.find((a) => !a.startsWith("--"));
 const apply = args.includes("--apply");
-const audience = args[args.indexOf("--zielgruppe") + 1] ?? "volunteer";
-
-if (!dir) {
-  console.error("Aufruf: node --env-file=.env.local scripts/wiki-import.mjs <ordner> [--apply]");
-  process.exit(2);
-}
+const ordner = args.includes("--ordner") ? args[args.indexOf("--ordner") + 1] : "content/wiki";
 
 const admin = createClient(supabaseUrl, secretKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-/** Notion hängt an jeden Namen eine 32-stellige Id — die gehört nicht in den Slug. */
-function slugOf(file) {
-  return path
-    .basename(file, ".md")
-    .replace(/\s+[0-9a-f]{32}$/i, "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
+const artikel = leseQuellen(ordner);
+console.log(`${artikel.length} Quelldateien aus ${ordner}, ${apply ? "SCHREIBEND" : "Trockenlauf"}\n`);
 
-function parse(file) {
-  const raw = fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
-  const lines = raw.split("\n");
-
-  let title = null;
-  const roles = [];
-  let phase = "evergreen";
-  const body = [];
-
-  for (const line of lines) {
-    if (title === null) {
-      const h1 = /^#\s+(.*)$/.exec(line);
-      if (h1) { title = h1[1].trim(); continue; }
-    }
-    const rolle = /^\s*Rolle[n]?\s*:\s*(.+)$/i.exec(line);
-    if (rolle) {
-      roles.push(...rolle[1].split(/[,;]/).map((r) => r.trim().toLowerCase()).filter(Boolean));
-      continue;
-    }
-    const ph = /^\s*Phase\s*:\s*(.+)$/i.exec(line);
-    if (ph) { phase = ph[1].trim().toLowerCase(); continue; }
-    body.push(line);
-  }
-
-  const text = body
-    .join("\n")
-    // Notion-interne Links auf .md-Dateien: Text behalten, Ziel wegwerfen.
-    .replace(/\[([^\]]+)\]\((?!https?:)[^)]*\.md[^)]*\)/gi, "$1")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-
-  return {
-    slug: slugOf(file),
-    title: title ?? path.basename(file, ".md").replace(/\s+[0-9a-f]{32}$/i, ""),
-    body_md: text,
-    roles: [...new Set(roles)],
-    phase,
-  };
-}
-
-const files = fs
-  .readdirSync(dir, { recursive: true })
-  .filter((f) => typeof f === "string" && f.endsWith(".md"))
-  .map((f) => path.join(dir, f));
-
-if (files.length === 0) {
-  console.error(`Keine .md-Dateien unter ${dir}.`);
-  process.exit(1);
-}
-
-console.log(`${files.length} Dateien, Zielgruppe ${audience}, ${apply ? "SCHREIBEND" : "Trockenlauf"}\n`);
-
-const seen = new Map();
 let neu = 0;
 let aktualisiert = 0;
-let uebersprungen = 0;
+let unveraendert = 0;
+const offenGesamt = [];
 
-for (const file of files) {
-  const a = parse(file);
-  if (!a.slug) { console.log(`  übersprungen (kein Slug): ${file}`); uebersprungen++; continue; }
-  if (seen.has(a.slug)) {
-    console.log(`  übersprungen (Slug doppelt: ${a.slug}): ${file}`);
-    uebersprungen++;
-    continue;
-  }
-  seen.set(a.slug, file);
-
-  const { data: vorhanden } = await admin
+for (const a of artikel) {
+  const { data: vorhanden, error: leseFehler } = await admin
     .from("kb_article")
-    .select("id, status")
+    .select("id, title, body_md, audience, phase, status")
     .eq("slug", a.slug)
-    .is("edition_id", null)
     .eq("language", "de")
+    .is("edition_id", null)
     .maybeSingle();
+  if (leseFehler) throw leseFehler;
 
-  const was = vorhanden ? "aktualisiert" : "neu";
-  if (was === "neu") neu++; else aktualisiert++;
+  const gleich =
+    vorhanden &&
+    vorhanden.title === a.titel &&
+    vorhanden.body_md === a.koerper &&
+    vorhanden.phase === a.phase &&
+    vorhanden.status === a.status &&
+    [...vorhanden.audience].sort().join(",") === [...a.zielgruppe].sort().join(",");
+
+  const was = !vorhanden ? "neu" : gleich ? "unverändert" : "aktualisiert";
+  if (was === "neu") neu++;
+  else if (was === "aktualisiert") aktualisiert++;
+  else unveraendert++;
+
   console.log(
-    `  ${was.padEnd(12)} ${a.slug.padEnd(32)} ${JSON.stringify(a.title).slice(0, 40)}` +
-      `${a.roles.length ? ` Rollen=${a.roles.join("/")}` : ""}` +
-      `${a.phase !== "evergreen" ? ` Phase=${a.phase}` : ""} ${a.body_md.length} Zeichen`,
+    `  ${was.padEnd(12)} ${a.slug.padEnd(30)} ${a.zielgruppe.join("/").padEnd(26)} ` +
+      `${a.status.padEnd(10)} ${String(a.koerper.length).padStart(5)}z` +
+      `${a.pruefen.length ? `  offen: ${a.pruefen.length}` : ""}`,
   );
+  for (const p of a.pruefen) offenGesamt.push(`${a.slug}: ${p}`);
 
-  if (!apply) continue;
+  if (!apply || gleich) continue;
+
+  const felder = {
+    title: a.titel,
+    body_md: a.koerper,
+    audience: a.zielgruppe,
+    phase: a.phase,
+    status: a.status,
+    published_at: a.status === "published" ? new Date().toISOString() : null,
+    updated_at: new Date().toISOString(),
+  };
 
   if (vorhanden) {
-    const { error } = await admin
-      .from("kb_article")
-      .update({ title: a.title, body_md: a.body_md, roles: a.roles, phase: a.phase, updated_at: new Date().toISOString() })
-      .eq("id", vorhanden.id);
+    // `roles` bleibt unangetastet: Rollen-Seiten kommen aus dem Volunteer-Wiki,
+    // nicht aus dieser Quelle, und ein Import darf sie nicht leerräumen.
+    const { error } = await admin.from("kb_article").update(felder).eq("id", vorhanden.id);
     if (error) throw error;
   } else {
-    const { error } = await admin.from("kb_article").insert({
-      slug: a.slug,
-      language: "de",
-      audience: [audience],
-      roles: a.roles,
-      phase: a.phase,
-      title: a.title,
-      body_md: a.body_md,
-      // Entwurf: veröffentlicht wird erst, wenn jemand daraufgeschaut hat.
-      status: "draft",
-    });
+    const { error } = await admin
+      .from("kb_article")
+      .insert({ slug: a.slug, language: "de", roles: [], sort_order: 0, ...felder });
     if (error) throw error;
   }
 }
 
-console.log(`\nneu ${neu} · aktualisiert ${aktualisiert} · übersprungen ${uebersprungen}`);
-if (!apply) console.log("Nichts geschrieben. Mit --apply übernehmen.");
-else console.log("Alle Artikel liegen als Entwurf in /admin/wiki — dort prüfen und veröffentlichen.");
+console.log(`\nneu ${neu} · aktualisiert ${aktualisiert} · unverändert ${unveraendert}`);
+console.log(`offene Punkte für Konrad: ${offenGesamt.length}`);
+if (!apply) console.log("\nNichts geschrieben. Mit --apply übernehmen.");

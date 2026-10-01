@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Locale } from "@/lib/i18n/shared";
+import { useUrlFilter } from "@/components/ui/useUrlFilter";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -94,17 +95,25 @@ export function PipelineView({
   };
   rpcMessages: Record<string, string>;
 }) {
-  const [status, setStatus] = useState("");
-  const [query, setQuery] = useState("");
-  // Filter der Einordnung (LEAD-039) und nach Betreuung — nebeneinander, nicht
-  // untereinander (dieselbe Bitte wie LEAD-049 für die Programmtabelle).
-  const [prio, setPrio] = useState("");
-  const [kategorie, setKategorie] = useState("");
-  const [cluster, setCluster] = useState("");
-  const [betreuung, setBetreuung] = useState("");
+  // Filter und Suche in der Adresszeile (QS-050): nach dem Neuladen, über ein
+  // Lesezeichen oder einen geteilten Link steht die Liste wieder so da —
+  // „Prio A in der Ansprache“ ist ein Link. Die Einordnung (LEAD-039) und die
+  // Betreuung stehen nebeneinander, nicht untereinander (wie LEAD-049).
+  const [filter, setFilter] = useUrlFilter(
+    { status: "", query: "", prio: "", kategorie: "", cluster: "", betreuung: "", gaeste: "" },
+    { query: "q" },
+  );
+  const { status, query, prio, kategorie, cluster, betreuung } = filter;
+  const setStatus = (wert: string) => setFilter({ status: wert });
+  const setQuery = (wert: string) => setFilter({ query: wert });
+  const setPrio = (wert: string) => setFilter({ prio: wert });
+  const setKategorie = (wert: string) => setFilter({ kategorie: wert });
+  const setCluster = (wert: string) => setFilter({ cluster: wert });
+  const setBetreuung = (wert: string) => setFilter({ betreuung: wert });
   // SPK-070: Gäste der Partner (0188) sind zugesagt, aber kein Fall fürs Team —
-  // sie stehen erst auf Wunsch in der Liste, dann mit „Gast“.
-  const [gaesteZeigen, setGaesteZeigen] = useState(false);
+  // sie stehen erst auf Wunsch in der Liste, dann mit „Gast“ (`?gaeste=1`).
+  const gaesteZeigen = filter.gaeste === "1";
+  const setGaesteZeigen = (an: boolean) => setFilter({ gaeste: an ? "1" : "" });
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 

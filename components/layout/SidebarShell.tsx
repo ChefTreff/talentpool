@@ -6,6 +6,8 @@ import { PortalSwitcher } from "./PortalSwitcher";
 import { SidebarNav, type SidebarGroup } from "./SidebarNav";
 import { PortalFooter, mailboxFor } from "./PortalFooter";
 import { AssistentBubble } from "@/components/wiki/AssistentBubble";
+import { FehlerKontextGeber } from "@/components/fehler/Fehlergrenze";
+import { fehlerTexte } from "@/components/fehler/fehler";
 import { getMyAreas, getSessionContext } from "@/lib/auth";
 import { getI18n, type Locale } from "@/lib/i18n";
 import type { AreaKey } from "@/lib/areas";
@@ -206,7 +208,12 @@ export async function SidebarShell({
             width === "table" ? "max-w-table" : "max-w-content"
           }`}
         >
-          {children}
+          {/* Die `error.tsx` des Bereichs steht in `children` (QS-023): Sie
+              bekommt hier Sprache und Postfach des Bereichs mit, und Leiste
+              und Fuß bleiben stehen, wenn eine Seite ausfällt. */}
+          <FehlerKontextGeber texte={fehlerTexte(t.errors)} mailbox={mailbox ?? mailboxFor(area)}>
+            {children}
+          </FehlerKontextGeber>
           <PortalFooter
             mailbox={mailbox ?? mailboxFor(area)}
             mailboxLabel={t.common.supportMailbox}
