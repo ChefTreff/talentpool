@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
+import { sammelErgebnis, type Entscheidung } from "@/lib/bewerbungen/liste";
 
 /**
  * Bewerbungs-Queue. Alle drei Wege sind RPCs mit dem Session-Client:
@@ -67,6 +68,26 @@ export async function releaseDecisions(
   if (error) return fail(error);
   refresh(sessionId);
   return { ok: true, data: { accepted: typeof data === "number" ? data : 0 } };
+}
+
+/**
+ * Mehrere Bewerbungen auf einmal entscheiden (ADM-003). `decide_applications`
+ * ruft je Bewerbung `decide_application` auf — Rechte, Regeln und Audit wie
+ * beim Einzelklick — und meldet je Kennung zurück; hier wird daraus „n
+ * entschieden, so viele aus welchem Grund nicht“.
+ */
+export async function decideApplicationsBulk(
+  applicationIds: string[],
+  status: Entscheidung,
+): Promise<AdminResult<{ ok: number; fehler: [string, number][] }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("decide_applications", {
+    p_application_ids: applicationIds,
+    p_status: status,
+  });
+  if (error) return fail(error);
+  revalidatePath(PATH, "layout");
+  return { ok: true, data: sammelErgebnis((data ?? []) as { ok: boolean; error_key: string | null }[]) };
 }
 
 /** Von der Warteliste nachrücken lassen — nach Rang, dann nach Eingang. */
