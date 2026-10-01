@@ -4630,6 +4630,13 @@
   "productionFiles": {
     "addBody": "PDF or image, at most 25 MB. The file appears in the portals right away — the floor plan, for example, on the partners' booth page.",
     "addTitle": "Add a file",
+    "audience": "Who sees the file?",
+    "audienceEdit": "Change audience",
+    "audienceFailed": "The audience could not be saved.",
+    "audienceHint": "The portals show the file only to these audiences — e.g. a separate hall plan for speakers only.",
+    "audienceRequired": "Please choose at least one audience.",
+    "audienceSave": "Save audience",
+    "audienceSaved": "Audience saved.",
     "deleteBody": "“{name}” disappears from all portals and is deleted from storage.",
     "deleteFailed": "Removing did not work",
     "deleteTitle": "Remove file?",
