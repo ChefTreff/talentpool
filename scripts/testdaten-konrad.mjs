@@ -72,6 +72,8 @@
  *                                   durch das Team; der Antrag selbst bleibt Konrads Klick)
  *   … --apply --nur=dubletten      (ADM-036: zwei TEST-Personen als Dublettenpaar, für
  *                                   Vorschau, Zusammenführen und Rückweg; ohne Konto)
+ *   … --apply --nur=award          (ADM-024: TEST-Bewerbung zum Initiativen-Award, Status
+ *                                   „Neu" — nicht öffentlich, bis Konrad sie annimmt)
  *   … --apply --nur=hackathon      (HACK-008: zwei freigegebene TEST-Challenges der
  *                                   Test-Organisation in zwei Tracks — Filter auf
  *                                   /hackathon/challenges, Track-Liste in /admin/hackathon;
@@ -2604,6 +2606,31 @@ async function dublettenPaar() {
 }
 
 /**
+ * ADM-024: eine TEST-Bewerbung zum Initiativen-Award mit Status „Neu" — sie
+ * steht unter /admin/initiativen/award, aber **nicht** auf der öffentlichen
+ * Seite /award, bis Konrad sie annimmt (dann ist sie dort für alle sichtbar;
+ * zurück auf „Neu" oder Löschen nimmt sie wieder weg). Direkt geschrieben, nicht
+ * über die öffentliche Route: so zählt sie nicht zur Ratenbegrenzung. Ansprechperson
+ * ist Konrads eigenes Postfach mit `+zztest-award`.
+ */
+async function awardBewerbung(me, ed) {
+  const name = `${PREFIX}Initiative für den Award`;
+  await write("TEST-Bewerbung zum Initiativen-Award", async () => {
+    const { data: da } = await admin.from("award_application").select("id").eq("edition_id", ed.id).eq("name", name).maybeSingle();
+    if (da) return { data: da, error: null };
+    return admin.from("award_application").insert({
+      edition_id: ed.id, name, topics: ["tech_ai", "sustainability"], location: "Hamburg",
+      description: "TEST — Beschreibung der Organisation für den Klickweg im Admin.",
+      mission: "TEST — Mission und Vision.", project: "TEST — ein Projekt, auf das wir stolz sind.",
+      contact_first_name: me.first_name ?? "Konrad", contact_last_name: me.last_name ?? "TEST",
+      contact_email: email.replace("@", "+zztest-award@"), founded_year: 2020, active_members: 25,
+      privacy_consent_at: new Date().toISOString(), source: "admin", status: "submitted",
+    });
+  });
+  note("Award ausprobieren", "/admin/initiativen/award → TEST-Bewerbung; Status „In der Abstimmung“ macht sie unter /award sichtbar");
+}
+
+/**
  * SPK-069: zwei TEST-Shuttle-Fahrten an Konrads eigenem Speaker-Profil — eine
  * angefragt (Anreise am ersten Summit-Tag), eine bestätigt (Abreise am letzten).
  * Erst damit zeigen `/admin/anreise` und `/speaker-leads/anreise` die Abzeichen
@@ -2675,6 +2702,7 @@ const SCHRITTE = {
   loeschung: loeschungTestperson,
   sperrliste: sperrlisteEintrag,
   dubletten: dublettenPaar,
+  award: awardBewerbung,
 };
 
 async function teilschritte(me, ed, namen) {
