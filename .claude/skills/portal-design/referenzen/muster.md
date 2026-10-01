@@ -53,7 +53,7 @@ Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
 - Zahlen rechts: `<Th numeric>` / `<Td numeric>` (`tabular-nums` liegt global auf `body`).
 - Zeilenhöhe 44, Bedienelemente in Zeilen `size="sm"`.
 - Breite Tabellen gehören in einen `overflow-x-auto`-Container, die Seite scrollt nie horizontal.
-- Filterleiste oben, Zustand in der URL, damit ein Link denselben Ausschnitt zeigt.
+- Filterleiste oben, Zustand in der URL, damit ein Link denselben Ausschnitt zeigt — über `useUrlFilter` (`components/ui`, QS-050): lesbare Werte statt IDs (Slug, Datum, Vokabel-Schlüssel), Suche als `q`, Sortierung als Spalte mit „-“ für absteigend, Schalter als `1`; nur, was von der Vorgabe abweicht, steht in der Adresse. Geschrieben wird per `history.replaceState`, ohne Server-Rundlauf.
 - Status als `<Badge>` mit Wortlaut, nie als farbiger Punkt allein.
 
 ## Zustände

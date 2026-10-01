@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useUrlFilter } from "@/components/ui/useUrlFilter";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -77,7 +78,11 @@ export function LeadShuttle({
   const [draft, setDraft] = useState<Record<string, string>>(LEER);
   const [fehler, setFehler] = useState<string | null>(null);
   const [askCancel, setAskCancel] = useState<ShuttleAdminRow | null>(null);
-  const [nurOffen, setNurOffen] = useState(false);
+  // Der Schalter steht in der Adresszeile (`?offen=1`, QS-050): die Liste der
+  // offenen Anfragen ist ein Link, den man weitergeben kann.
+  const [filter, setFilter] = useUrlFilter({ nurOffen: "" }, { nurOffen: "offen" });
+  const nurOffen = filter.nurOffen === "1";
+  const setNurOffen = (an: boolean) => setFilter({ nurOffen: an ? "1" : "" });
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
 

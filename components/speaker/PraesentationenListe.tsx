@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { useUrlFilter } from "@/components/ui/useUrlFilter";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FileButton } from "@/components/ui/FileButton";
 import { Select } from "@/components/ui/Select";
@@ -60,8 +61,13 @@ export function PraesentationenListe({
   const router = useRouter();
   const toast = useToast();
   const [pending, start] = useTransition();
-  const [buehne, setBuehne] = useState("");
-  const [nurFehlend, setNurFehlend] = useState(false);
+  // Filter in der Adresszeile (QS-050): „fehlende Präsentationen auf Bühne X“
+  // ist ein Link, den man an die Technik schicken kann.
+  const [filter, setFilter] = useUrlFilter({ buehne: "", fehlend: "" });
+  const { buehne } = filter;
+  const setBuehne = (wert: string) => setFilter({ buehne: wert });
+  const nurFehlend = filter.fehlend === "1";
+  const setNurFehlend = (an: boolean) => setFilter({ fehlend: an ? "1" : "" });
   const [laeuft, setLaeuft] = useState<string | null>(null);
   const [fehler, setFehler] = useState<Record<string, string>>({});
 
