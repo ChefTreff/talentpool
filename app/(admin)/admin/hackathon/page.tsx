@@ -11,7 +11,8 @@ import { ChallengeTracks } from "./ChallengeTracks";
 import { WunschprofilForm } from "@/components/hackathon/WunschprofilForm";
 import type { Wunschprofil } from "@/lib/hackathon/wunschprofil";
 import { DatasetUpload } from "@/components/hackathon/DatasetUpload";
-import { datasetUrl, type DatasetTarget } from "@/lib/hackathon/datensatz-server";
+import { abgabeUrls, datasetUrl, type AbgabeZeile, type DatasetTarget } from "@/lib/hackathon/datensatz-server";
+import { AbgabeDateien, type AbgabeDatei } from "@/components/hackathon/AbgabeDateien";
 import { MetricResults } from "./MetricResults";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +43,15 @@ export default async function AdminHackathonPage() {
   // HACK-015: Wunschprofile je Challenge — Pflege hier und Passung in der Auswahl.
   const { data: profilRows } = await supabase.rpc("hack_challenge_profiles", { p_language: locale });
   const wunschprofile = (profilRows ?? []) as Wunschprofil[];
+  // HACK-011: Abgabe-Dateien aller Teams (das Hack-Team liest alle).
+  const { data: abgabeRows } = await supabase.rpc("hack_submission_files");
+  const abgabeZeilen = (abgabeRows ?? []) as AbgabeZeile[];
+  const abgabeLinks = await abgabeUrls(supabase, abgabeZeilen);
+  const abgaben = new Map<string, AbgabeDatei[]>();
+  for (const z of abgabeZeilen) {
+    abgaben.set(z.team_id, [...(abgaben.get(z.team_id) ?? []), { file_id: z.file_id, filename: z.filename, size_bytes: z.size_bytes, late: z.late, url: abgabeLinks.get(z.storage_path) ?? null }]);
+  }
+  const teamNamen = new Map(((teams ?? []) as HackTeamRow[]).map((r) => [r.team_id, r.team_name]));
   // HACK-012: Datensatz je freigegebener Challenge (Hack-Team pflegt alle).
   const { data: targetRows } = await supabase.rpc("hack_dataset_targets", { p_language: locale });
   const datensaetze = await Promise.all(
@@ -145,6 +155,19 @@ export default async function AdminHackathonPage() {
                     dateLocale={locale}
                     t={t.hackDataset}
                   />
+                </section>
+              ))}
+            </div>
+          </Card>
+        )}
+        {abgaben.size > 0 && (
+          <Card>
+            <CardHeader title={tt.submissionsTitle} description={tt.submissionsLead} />
+            <div className="flex flex-col gap-6">
+              {[...abgaben.entries()].map(([teamId, dateien]) => (
+                <section key={teamId} className="flex flex-col gap-2">
+                  <h3 className="ct-h3">{teamNamen.get(teamId) ?? teamId}</h3>
+                  <AbgabeDateien teamId={teamId} dateien={dateien} editierbar={false} dateLocale={locale} t={t.hackathon} />
                 </section>
               ))}
             </div>

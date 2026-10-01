@@ -9,6 +9,7 @@ import { toPortalEvent } from "@/lib/luma/mapping";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 import { RegisterButton } from "../RegisterButton";
@@ -55,6 +56,12 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           <ButtonLink href={e.shareUrl} variant="secondary" size="sm" {...neuesFenster}>
             {tt.openLuma}
           </ButtonLink>
+          {/* TAL-007: öffentlich teilbarer Anmeldelink = die Luma-Event-Seite (D12);
+              dort melden sich auch Personen ohne Profil an. Ein Klick statt
+              „Luma öffnen, Adresse kopieren“. */}
+          {!vorbei && (
+            <CopyButton value={e.shareUrl} label={tt.copyLink} copiedLabel={tt.linkCopied} failedLabel={tt.copyFailed} variant="ghost" size="sm" />
+          )}
         </div>
         <p className="ct-help">{tt.shareHint}</p>
       </Card>
