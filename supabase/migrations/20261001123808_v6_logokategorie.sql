@@ -1,3 +1,5 @@
+-- 0236 · Logokategorie je Edition und Company (Presenting, Premium, Official, Small, Startup), Auffangsatz bleibt (ADM-046)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001123808.
 -- Logokategorie je Partner und Edition: Presenting, Premium, Official, Small, Startup (ADM-046)
 --
 -- Zweck: Website, Swapcard und der Druck der Logo-Wand brauchen dieselbe

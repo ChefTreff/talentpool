@@ -160,6 +160,7 @@
 | Welle 6 · 0233 | **Hackathon-Tracks je Challenge (HACK-008): Vokabular hack_track, Pflicht bei der Freigabe, Freigabe-Fehler 42P10 behoben** (`20261001122557`, `v6_hack_tracks`; Details im Migrationskopf) | — |
 | Welle 6 · 0234 | **Dubletten zusammenführen mit Vorschau, Protokoll und Rückweg, nur admin (ADM-036)** (`20261001123059`, `v6_dubletten_zusammenfuehren`; Details im Migrationskopf) | — |
 | Welle 6 · 0235 | **Track-Wunsch in der Hackathon-Bewerbung und Profilmerkmale in der Auswahl (HACK-010)** (`20261001123445`, `v6_hack_track_praeferenz`; Details im Migrationskopf) | — |
+| Welle 6 · 0236 | **Logokategorie je Edition und Company (Presenting, Premium, Official, Small, Startup), Auffangsatz bleibt (ADM-046)** (`20261001123808`, `v6_logokategorie`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
