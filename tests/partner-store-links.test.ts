@@ -69,8 +69,8 @@ describe("Links je Schlüssel (PART-072, Oberfläche)", () => {
     assert.match(lader, /rpc\("portal_links_for"/);
   });
 
-  it("Pflege im Admin unter Videos mit derselben Maske", () => {
-    const seite = src("app/(admin)/admin/videos/page.tsx");
+  it("Pflege im Admin unter Medien → Links mit derselben Maske", () => {
+    const seite = src("app/(admin)/admin/medien/page.tsx"); // ADM-063: Videos und Links in der Medienverwaltung
     assert.match(seite, /rpc\("portal_links_admin"\)/);
     assert.match(seite, /save=\{saveLink\}/);
     assert.match(seite, /remove=\{removeLink\}/);

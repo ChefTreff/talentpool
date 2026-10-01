@@ -1,4 +1,5 @@
--- 0000 · Datensatz je Hackathon-Challenge (HACK-012): privater Bucket hack-datasets, Pfadregel
+-- 0241 · Datensatz je Challenge: privater Bucket hack-datasets mit Pfadregel, Upload nur über den Server (HACK-012)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001130250.
 -- fürs Lesen, Schreiben nur über signierte Upload-Adressen des Servers.
 --
 -- Anlass: Emilio (Call 24.09., HACK-006): Daten für technische Challenges kommen per Mail oder

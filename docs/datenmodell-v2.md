@@ -165,6 +165,9 @@
 | Welle 6 · 0238 | **Bewerbungsliste im Admin über alle Sessions, skalierbar, Sammelentscheidung (ADM-003)** (`20261001125248`, `v6_bewerbungen_uebersicht`; Details im Migrationskopf) | — |
 | Welle 6 · 0239 | **Bucket partner-assets: Dateigrenze 100 MB für Druckdaten (HACK-018)** (`20261001125729`, `v6_partner_assets_grenze`; Details im Migrationskopf) | — |
 | Welle 6 · 0240 | **Initiativen-Funnel mit Verlauf, Stand-Tage, Initiativen-Award mit öffentlicher Abstimmung ohne Personendaten (ADM-022, ADM-024)** (`20261001125937`, `v6_initiativen_award`; Details im Migrationskopf) | — |
+| Welle 6 · 0241 | **Datensatz je Challenge: privater Bucket hack-datasets mit Pfadregel, Upload nur über den Server (HACK-012)** (`20261001130250`, `v6_hack_datensatz`; Details im Migrationskopf) | — |
+| Welle 6 · 0242 | **Medienverwaltung: zweites Loom der Event-App am Schlüssel partner_event_app (ADM-009, ADM-063)** (`20261001130657`, `v6_medien_event_app_loom`; Details im Migrationskopf) | — |
+| Welle 6 · 0243 | **Hallenplan nach Zielgruppe: Bestandsplan nicht mehr für Speaker, Zielgruppe im Dateien-Formular (PROD-009, SPK-030)** (`20261001130946`, `v6_hallenplan_zielgruppe`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
