@@ -46,6 +46,7 @@ export default async function HackathonPage() {
         data={data}
         metric={metric}
         skills={vgroup(vocab, "hack_skill")}
+        tracks={vgroup(vocab, "hack_track")}
         discordUrl={process.env.HACKATHON_DISCORD_URL?.trim() || null}
         t={t.hackathon}
         common={{ save: t.common.save, cancel: t.common.cancel }}

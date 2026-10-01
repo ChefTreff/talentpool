@@ -34,6 +34,7 @@ export function HackView({
   data,
   metric,
   skills,
+  tracks,
   discordUrl,
   t,
   common,
@@ -43,6 +44,8 @@ export function HackView({
   /** HACK-009: nur bei einer Metrik-Challenge des eigenen Teams. */
   metric: { label: string; value: number | null; confirmed: boolean } | null;
   skills: Record<string, string>;
+  /** vocab hack_track (HACK-008/010): Schlüssel → Bezeichnung. */
+  tracks: Record<string, string>;
   discordUrl: string | null;
   t: Strings;
   common: { save: string; cancel: string };
@@ -66,7 +69,7 @@ export function HackView({
   }
 
   if (!data.application) {
-    return <ApplyCard skills={skills} pending={pending} t={t} run={run} />;
+    return <ApplyCard skills={skills} tracks={tracks} pending={pending} t={t} run={run} />;
   }
 
   const accepted = data.application.status === "accepted";
@@ -84,6 +87,15 @@ export function HackView({
             {(data.application.skills ?? []).map((s) => skills[s] ?? s).join(" · ")}
           </span>
         </div>
+        {/* Track-Wunsch (HACK-010). */}
+        {(data.application.track_prefs ?? []).length > 0 && (
+          <p className="ct-small mt-2">
+            <span className="ct-label">{t.trackPrefs}: </span>
+            <span className="text-muted">
+              {(data.application.track_prefs ?? []).map((k) => tracks[k] ?? k).join(" · ")}
+            </span>
+          </p>
+        )}
         <p className="ct-help mt-2">
           {t[`status${data.application.status[0].toUpperCase()}${data.application.status.slice(1)}Body`] ?? ""}
         </p>
@@ -149,7 +161,10 @@ export function HackView({
           <CardHeader title={t.challengeTitle} description={t.challengeLead} />
           {data.challenge ? (
             <div className="flex flex-col gap-3">
-              <h3 className="ct-h3">{data.challenge.title}</h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="ct-h3">{data.challenge.title}</h3>
+                {data.challenge.track && <Badge tone="accent">{tracks[data.challenge.track] ?? data.challenge.track}</Badge>}
+              </div>
               {data.challenge.description && <p className="leading-6">{data.challenge.description}</p>}
               {data.challenge.prizes && (
                 <p>
@@ -223,16 +238,19 @@ export function HackView({
 
 function ApplyCard({
   skills,
+  tracks,
   pending,
   t,
   run,
 }: {
   skills: Record<string, string>;
+  tracks: Record<string, string>;
   pending: boolean;
   t: Strings;
   run: (a: Promise<{ ok: boolean; key?: string; detail?: string }>, okText: string) => void;
 }) {
   const [chosen, setChosen] = useState<string[]>([]);
+  const [trackPrefs, setTrackPrefs] = useState<string[]>([]);
   const [motivation, setMotivation] = useState("");
   const [teamPref, setTeamPref] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
@@ -261,6 +279,30 @@ function ApplyCard({
             ))}
           </div>
         </fieldset>
+
+        {/* Track-Wunsch (HACK-010): Pflicht, sobald es Tracks gibt; die Auswahl je
+            Track geschieht im Admin. */}
+        {Object.keys(tracks).length > 0 && (
+          <fieldset>
+            <legend className="ct-label mb-1">{t.trackPrefs}</legend>
+            <p className="ct-help mb-2">{t.trackPrefsHint}</p>
+            <div className="flex flex-wrap gap-3">
+              {Object.entries(tracks).map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5"
+                    checked={trackPrefs.includes(key)}
+                    onChange={() =>
+                      setTrackPrefs((c) => (c.includes(key) ? c.filter((x) => x !== key) : [...c, key]))
+                    }
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         <Field label={t.motivation} htmlFor="motivation">
           <Textarea id="motivation" rows={4} value={motivation} onChange={(e) => setMotivation(e.target.value)} />
@@ -291,7 +333,7 @@ function ApplyCard({
         <div>
           <Button
             disabled={pending}
-            onClick={() => run(applyHackathon({ skills: chosen, motivation, teamPref, githubUrl, websiteUrl, behanceUrl }), t.applied)}
+            onClick={() => run(applyHackathon({ skills: chosen, trackPrefs, motivation, teamPref, githubUrl, websiteUrl, behanceUrl }), t.applied)}
           >
             {t.apply}
           </Button>

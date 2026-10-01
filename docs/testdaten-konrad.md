@@ -22,7 +22,7 @@ Das Skript ist wiederholbar: ein zweiter `--apply` legt nichts doppelt an. `--nu
 | Speaker-Leads | Stage-Lead-Testbühne (`--nur=buehne`) | `speaker_manager` **je Bühne** (PORT3: keine Edition-Zeile mehr) |
 | Partner | Organisation `TEST — Partner GmbH` mit `org_edition` (eingeladen, Sponsoring premium), Konrad als **Hauptkontakt**; gebucht sind **alle Format-Produkte** (je eins für `booth`, `stage`, `masterclass`, `company_tour`, `side_event`, `interview_table`, `hackathon`, `branding`, `talk`, Schritt `partner`) und die Ticket-Produkte aus dem ersten Lauf; `TEST — Standbühne` am Summit, `TEST — Talk` (ohne Slot, zum Eintragen von Speakern), `TEST — Masterclass` mit Konrads Bewerbung | `partner_contact`, `standbuehne_editor` (beide Scope Org) |
 | Volunteers | `volunteer_profile` (angenommen, Shirt L), Testschicht mit Zuteilung | `volunteer` |
-| Hackathon | — (Datenmodell kommt mit PR 28) | `hackathon_participant` |
+| Hackathon | Schritt `hackathon`: zwei freigegebene TEST-Challenges der Test-Organisation in zwei Tracks (HACK-008), davon „Predict the queue“ als **Metrik-Challenge** (MAE, niedriger besser) mit TEST-Team „Queue Crushers“ und unbestätigtem Wert 4,2 zum Bestätigen in `/admin/hackathon` (HACK-009); zwei TEST-Bewerbungen ohne Konto (`+zztest-hack-N`) mit Track-Wunsch und Profil für den Track-Filter (HACK-010). Die Challenge-Pflicht der Test-Organisation bleibt offen, damit Konrad den Partner-Weg selbst geht | `hackathon_participant`; `hackathon_partner` über die gebuchte Challenge (Schritt `partner`) |
 | Produktion | — (Datenmodell kommt mit PR 25) | `production_team` |
 | Admin | unverändert (Konrad ist Bootstrap-Admin) | `admin` |
 

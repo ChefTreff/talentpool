@@ -67,11 +67,15 @@
  *   … --apply --nur=sperrliste     (ADM-035: Sperrlisten-Eintrag für +zztest-sperre, nur der Hash)
  *   … --apply --nur=loeschung      (ADM-031: TEST-Person ohne Konto für den Löschantrag
  *                                   durch das Team; der Antrag selbst bleibt Konrads Klick)
+ *   … --apply --nur=dubletten      (ADM-036: zwei TEST-Personen als Dublettenpaar, für
+ *                                   Vorschau, Zusammenführen und Rückweg; ohne Konto)
  *   … --apply --nur=hackathon      (HACK-008: zwei freigegebene TEST-Challenges der
  *                                   Test-Organisation in zwei Tracks — Filter auf
  *                                   /hackathon/challenges, Track-Liste in /admin/hackathon;
  *                                   HACK-009: „Predict the queue“ als Metrik-Challenge mit
- *                                   TEST-Team und unbestätigtem Wert zum Bestätigen)
+ *                                   TEST-Team und unbestätigtem Wert zum Bestätigen;
+ *                                   HACK-010: zwei TEST-Bewerbungen mit Track-Wunsch und
+ *                                   Profil für den Track-Filter in /admin/hackathon)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -2310,6 +2314,15 @@ const TEST_CHALLENGES = [
   { title_en: `${PREFIX}Pitch the canteen of 2030`, track: "concept", description_en: "Design a concept for a zero-waste canteen and pitch it in five minutes." },
 ];
 
+/** HACK-010: Bewerbungen ohne Konto (+zztest-hack-N), Track-Wunsch und Profil. */
+const hackAdresse = (i) => email.replace("@", `+zztest-hack-${i}@`);
+const TEST_BEWERBUNGEN = [
+  { nachname: "Datenbewerbung", tracks: ["data_science", "physical_ai"], skills: ["data_analysis"],
+    studium: "Wirtschaftsinformatik", jahr: 2027, motivation: "TEST — loves messy datasets." },
+  { nachname: "Konzeptbewerbung", tracks: ["concept"], skills: ["strategy"],
+    studium: "Management (M.Sc.)", jahr: 2026, motivation: "TEST — wants to pitch." },
+];
+
 async function hackathonChallenges() {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -2351,6 +2364,25 @@ async function hackathonChallenges() {
       const { data: da } = await admin.from("hack_metric_result").select("team_id").eq("team_id", team.data.id).maybeSingle();
       if (da) return { data: null, error: null };
       return admin.from("hack_metric_result").insert({ team_id: team.data.id, value: 4.2, note: "TEST" });
+    });
+  }
+
+  for (const [i, b] of TEST_BEWERBUNGEN.entries()) {
+    await write(`TEST-Bewerbung ${b.nachname} (${b.tracks.join(", ")})`, async () => {
+      const { data: personId, error } = await admin.rpc("testdaten_person", {
+        p_first_name: "TEST", p_last_name: b.nachname, p_email: hackAdresse(i + 1),
+      });
+      if (error) return { data: null, error };
+      const pr = await admin.from("person").update({ study_program_label: b.studium, graduation_year: b.jahr })
+        .eq("id", personId).eq("first_name", "TEST");
+      if (pr.error) return pr;
+      const sk = await admin.from("person_interest").upsert(
+        b.skills.map((k) => ({ person_id: personId, vocabulary: "skill", term_key: k })),
+        { onConflict: "person_id,vocabulary,term_key" });
+      if (sk.error) return sk;
+      return admin.from("hack_application").upsert({
+        person_id: personId, edition_id: hackEd, skills: [], motivation: b.motivation, track_prefs: b.tracks,
+      }, { onConflict: "person_id,edition_id" });
     });
   }
 }
@@ -2426,6 +2458,46 @@ async function sperrlisteEintrag() {
 }
 
 /**
+ * ADM-036: zwei TEST-Personen ohne Konto als Dublettenpaar — gleiche
+ * LinkedIn-Angabe, die zweite mit Telefon und einem Interesse mehr. Konrad
+ * öffnet unter `/admin/dubletten` die Vorschau, führt zusammen und nimmt es
+ * unter „Zusammengeführt" wieder zurück. Adressen aus seinem eigenen Postfach
+ * (`+zztest-dublette-a/-b`); es entsteht kein Login und keine Mail. Nach einem
+ * Zusammenführen gehört die zweite Adresse der ersten Person — dann sagt der
+ * Lauf das und legt nichts Neues an (erst den Rückweg nehmen).
+ */
+async function dublettenPaar() {
+  const ids = [];
+  for (const [teil, nachname] of [["a", "Dublette"], ["b", "Dublette"]]) {
+    ids.push(await write(`TEST-Person ${teil} fuer das Dublettenpaar`, () =>
+      admin.rpc("testdaten_person", {
+        p_first_name: "TEST", p_last_name: nachname, p_email: email.replace("@", `+zztest-dublette-${teil}@`),
+      }),
+    ));
+  }
+  const [a, b] = ids;
+  if (!a || !b) return;
+  if (a === b) return note("Dublettenpaar", "schon zusammengeführt — unter /admin/dubletten → Zusammengeführt zurücknehmen, dann erneut laufen lassen");
+  const linkedin = "zztest-dublette-konrad";
+  await write("LinkedIn-Angabe beider TEST-Personen", () =>
+    admin.from("person").update({ linkedin_normalized: linkedin }).in("id", [a, b]));
+  await write("Telefon der zweiten TEST-Person", () =>
+    admin.from("person").update({ phone: "+49 40 000000" }).eq("id", b).is("phone", null));
+  await write("Interessen des Paars", () =>
+    admin.from("person_interest").upsert([
+      { person_id: a, vocabulary: "interests", term_key: "engineering-tech" },
+      { person_id: b, vocabulary: "interests", term_key: "engineering-tech" },
+      { person_id: b, vocabulary: "interests", term_key: "finance-banking" },
+    ], { onConflict: "person_id,vocabulary,term_key", ignoreDuplicates: true }));
+  const [x, y] = a < b ? [a, b] : [b, a];
+  await write("Dublettenpaar in der Liste", () =>
+    admin.from("potential_duplicate").upsert(
+      { person_id_a: x, person_id_b: y, score: 0.9, signals: { linkedin: true } },
+      { onConflict: "person_id_a,person_id_b", ignoreDuplicates: true }));
+  note("Dubletten ausprobieren", "/admin/dubletten → „Zusammenführen prüfen“ beim Paar TEST Dublette");
+}
+
+/**
  * SPK-069: zwei TEST-Shuttle-Fahrten an Konrads eigenem Speaker-Profil — eine
  * angefragt (Anreise am ersten Summit-Tag), eine bestätigt (Abreise am letzten).
  * Erst damit zeigen `/admin/anreise` und `/speaker-leads/anreise` die Abzeichen
@@ -2495,6 +2567,7 @@ const SCHRITTE = {
   moderation: moderationStageLead,
   loeschung: loeschungTestperson,
   sperrliste: sperrlisteEintrag,
+  dubletten: dublettenPaar,
 };
 
 async function teilschritte(me, ed, namen) {
@@ -2519,6 +2592,13 @@ async function remove(me) {
   await write("TEST-Challenges entfernt", () =>
     admin.from("hack_challenge").delete().like("title_en", `${PREFIX}%`),
   );
+  await write("TEST-Bewerbungen Hackathon entfernt (Bewerbung und Interessen gehen mit)", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", TEST_BEWERBUNGEN.map((_, i) => hackAdresse(i + 1)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
+  });
   await write("Rollen entfernt", () =>
     admin.from("role_assignment").delete().eq("person_id", me.id).eq("note", MARK),
   );

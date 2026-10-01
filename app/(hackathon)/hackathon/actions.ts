@@ -35,6 +35,8 @@ export async function applyHackathon(input: {
   githubUrl?: string;
   websiteUrl?: string;
   behanceUrl?: string;
+  /** Gewünschte Tracks (HACK-010), Schlüssel aus vocab hack_track. */
+  trackPrefs?: string[];
 }): Promise<ActionResult> {
   const supabase = await client();
   const { error } = await supabase.rpc("apply_hackathon", {
@@ -45,6 +47,7 @@ export async function applyHackathon(input: {
       github_url: input.githubUrl ?? null,
       website_url: input.websiteUrl ?? null,
       behance_url: input.behanceUrl ?? null,
+      track_prefs: input.trackPrefs ?? [],
     },
   });
   if (error) return fail(error);

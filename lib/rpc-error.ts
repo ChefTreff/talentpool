@@ -99,6 +99,8 @@ const BUSINESS_KEYS = new Set([
   "invalid_type",
   // Profilfelder mit Vokabular (TAL-013, Trigger person_vocab_guard)
   "invalid_vocab_value",
+  // Track-Wunsch in der Hackathon-Bewerbung (HACK-010)
+  "track_pref_missing",
   // Hackathon-Tracks (HACK-008): Freigabe ohne Track
   "track_missing",
   // Auswertungsart je Challenge (HACK-009)
@@ -201,6 +203,14 @@ const BUSINESS_KEYS = new Set([
   "request_not_found",
   "invalid_reason",
   "invalid_state",
+  // ADM-036: Dubletten zusammenführen (`person_not_found` steht schon oben).
+  "same_person",
+  "person_deleted",
+  "merge_conflict",
+  "merge_not_found",
+  "merge_already_undone",
+  "merge_undo_unavailable",
+  "merge_undo_blocked",
   // ADM-038: Kiosk-Gerätekonto.
   "label_required",
   "team_address_required",
