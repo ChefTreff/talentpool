@@ -4,7 +4,20 @@
 
 > Konrads Entscheidung vom 17.09.: fünf Build-Chats nach Datenverbund plus ein Design-Chat, dazu die Architektur-/Security-Session (`talentpool-a9`, arbeitet nur für `main`). Höchstens **zwei bis drei Chats gleichzeitig aktiv** — das Wochenkontingent gilt für alle Sessions gemeinsam, und Konrads Review-Zeit ist der Engpass. Ein ruhender Chat verliert nichts: sein Gedächtnis ist das Backlog in `docs/feedback/`.
 
-> **Aktuell gilt die Tabelle „Runde 26.09.“ direkt darunter**; „Pause 25.09. Mittag“, „Neustart 25.09.“, die Tabelle „Pause 24.09. spät“ und die Texte vom Abend sind überholt. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+> **Aktuell gilt die Tabelle „Runde 01.10.“ direkt darunter**; „Runde 26.09.“, „Pause 25.09. Mittag“, „Neustart 25.09.“, die Tabelle „Pause 24.09. spät“ und die Texte vom Abend sind überholt. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+
+## Runde 01.10. — ohne Konrad finalisieren (Konrad ab spätem Nachmittag wieder da)
+
+Stand: alles bis #254 gemergt, Migrationen bis 0220 live, Snapshot 616 Funktionen, Rollen-Probe 6/6, offen nur Draft #238. Von den 77 Punkten des Durchgangs 32 erledigt. Konrads offene Antworten: K-03 (Dienstkonto Drive), K-13 (CSP nach Bauende), K-34, K-43/K-44 (Talent-Konzepte, Schichtmodell), K-45/K-46 (stellvertretende Einwilligungen) — alles, was daran hängt, wartet. Alle vier laufenden Chats haben ihre Reihenfolge per Nachricht; bei Rückkehr nach einer Komprimierung reicht: „Weiter Runde 01.10., siehe docs/chat-startpakete.md (Tabelle „Runde 01.10.“).“
+
+| Chat | Reihenfolge Runde 01.10. (je Punkt ein PR; Worktree vor jedem Branch auf origin/main) |
+|---|---|
+| Admin & Schnittstellen | 1. ADM-008 Wiki-Import aller Artikel 2026 aus Notion (Fristen/Jahreszahlen ersetzen, Kategorie Pflicht, alle veröffentlichen; ohne Notion-Zugriff: Architektur-Session exportiert) · 2. ADM-061, ADM-047, ADM-038, ADM-042, ADM-031 · 3. QS-032 · 4. ADM-033 + ADM-035 · 5. ADM-036 (vor der Altdaten-Migration) · 6. ADM-046 Logokategorie · 7. ADM-022 + ADM-024 (Fristen als Edition-Einstellung, Wert später von Konrad) · 8. ADM-063 · 9. ADM-003 · 10. PROD-004 + PROD-005, PROD-009, PROD-006 · 11. ADM-045 prüfen. **Nicht anfassen:** QS-023, ADM-044/PART-058 (Speaker), ADM-055 (Talent) |
+| Speaker-Domäne | 1. QS-023 Fehlergrenzen (app/error.tsx, global-error.tsx, je Bereich; Fehler-ID statt Stacktrace) · 2. ADM-044 + PART-058 Wiki-Assistent als echter Chat (Verlauf im Browser, Vorschläge je Bereich, Phasenfilter raus; Artikelzugriff weiter streng nach Kategorie und Rolle). Wartet auf Konrad: SPK-023 (K-03), SPK-046 (Website-Kontakte), LEAD-017 (#238) |
+| Talent, Hackathon & Volunteers | 1. HACK-006 Emilios Feedback aus der Granola-Notiz → Backlog HACK-008 ff. (nur erfassen) · 2. HACK-005 Partner-Verwaltung ins Partner-Portal (PART-033), Teilnehmer-App bleibt /hackathon · 3. HACK-007 Portfolio-Links nur in der Hackathon-Bewerbung · 4. ADM-055 Admin-Abschnitt hackathon (area_lead_hackathon, hackathon_team). Wartet auf Konrad: TAL-009/010/011 (K-43), VOL-002 (K-44); HACK-001 Pflege |
+| Design | 1. QS-050 Kit-Baustein „URL spiegelt Filter/Suche“ + Umstellung der Listen, die kein anderer Chat heute anfasst · 2. QS-051 Kit-Baustein useUngesichert + Einsatz in Speaker- und Partner-Formularen · 3. Sichtprüfung der seit 25.09. gebauten Seiten gegen den Skill, Befunde als QS-052 ff., kleine Korrekturen je Portal ein PR. Wartet auf Konrad: LEAD-017 (#238) |
+| Partner | nichts offen (PART-010 Oktober, PART-058 beim Speaker-Chat) — nicht starten |
+| Architektur-Session | Merges und Migrationen ab 0221; Doku-Tabellen-Konflikte: Doku vorab vereinigen; Security-Check Teil 3 Rest (Storage-Policies je Rolle); Prozentstand für Konrad am Nachmittag |
 
 ## Runde 26.09. — nach Konrads Feedback vom 25.09. (Pause beendet; Ziel: nächste Woche alles fertig)
 
