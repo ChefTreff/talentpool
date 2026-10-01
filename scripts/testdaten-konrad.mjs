@@ -64,6 +64,7 @@
  *                                   vom Hackathon aufs Summit, nichts gelöscht)
  *   … --apply --nur=ticket-zurueck (SPK-068: Freiticket zurueck auf `requested`,
  *                                   damit das Ausstellen im Admin pruefbar ist)
+ *   … --apply --nur=sperrliste     (ADM-035: Sperrlisten-Eintrag für +zztest-sperre, nur der Hash)
  *   … --apply --nur=loeschung      (ADM-031: TEST-Person ohne Konto für den Löschantrag
  *                                   durch das Team; der Antrag selbst bleibt Konrads Klick)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
@@ -2347,6 +2348,23 @@ async function loeschungTestperson() {
 }
 
 /**
+ * ADM-035: ein Eintrag in der Sperrliste für `+zztest-sperre` (Konrads eigenes
+ * Postfach). Die Adresse wird sonst nirgends benutzt — die Sperre trifft also
+ * niemanden, und Konrad sieht unter `/admin/verwaltung/sperrliste` eine Zeile
+ * „Von Hand" und kann die Prüfung mit genau dieser Adresse ausprobieren.
+ * Gespeichert wird wie überall nur der Hash; `--remove` nimmt ihn wieder weg.
+ */
+const sperrAdresse = () => email.replace("@", "+zztest-sperre@");
+async function sperrlisteEintrag() {
+  await write("TEST-Eintrag in der Sperrliste", async () => {
+    const { data: hash, error } = await admin.rpc("email_hash", { p_email: sperrAdresse() });
+    if (error) return { data: null, error };
+    return admin.from("suppression").upsert({ email_hash: hash, reason: "manual" }, { onConflict: "email_hash", ignoreDuplicates: true });
+  });
+  note("Sperrliste ausprobieren", `/admin/verwaltung/sperrliste → prüfen: ${sperrAdresse()}`);
+}
+
+/**
  * SPK-069: zwei TEST-Shuttle-Fahrten an Konrads eigenem Speaker-Profil — eine
  * angefragt (Anreise am ersten Summit-Tag), eine bestätigt (Abreise am letzten).
  * Erst damit zeigen `/admin/anreise` und `/speaker-leads/anreise` die Abzeichen
@@ -2414,6 +2432,7 @@ const SCHRITTE = {
   zugang: zugangTestperson,
   moderation: moderationStageLead,
   loeschung: loeschungTestperson,
+  sperrliste: sperrlisteEintrag,
 };
 
 async function teilschritte(me, ed, namen) {
@@ -2427,6 +2446,11 @@ async function teilschritte(me, ed, namen) {
 }
 
 async function remove(me) {
+  await write("TEST-Sperrlisten-Eintrag entfernt", async () => {
+    const { data: hash, error } = await admin.rpc("email_hash", { p_email: sperrAdresse() });
+    if (error) return { data: null, error };
+    return admin.from("suppression").delete().eq("email_hash", hash).eq("reason", "manual");
+  });
   await write("Rollen entfernt", () =>
     admin.from("role_assignment").delete().eq("person_id", me.id).eq("note", MARK),
   );
