@@ -1,4 +1,5 @@
--- 00NN · Verkleinerte Vorschau für Editionsbilder (ADM-042, Konrad 25.09.2026: „ja, passt")
+-- 0227 · Verkleinerte Vorschau für Editionsbilder (Hallenplan), nur Server setzt sie (ADM-042)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001083829.
 --
 -- Zweck: Konrads Hallenplan ist 8503 × 6062 Pixel (gut 51 Megapixel, 2,9 MB).
 -- Er wird richtig angezeigt, aber der Browser braucht Sekunden zum Dekodieren;

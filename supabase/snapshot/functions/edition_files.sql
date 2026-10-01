@@ -1,5 +1,5 @@
 create or replace function edition_files(p_audience text, p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(id uuid, kind text, storage_path text, filename text, mime text, size_bytes bigint, label_de text, label_en text, created_at timestamp with time zone)
+ RETURNS TABLE(id uuid, kind text, storage_path text, filename text, mime text, size_bytes bigint, label_de text, label_en text, created_at timestamp with time zone, preview_path text, preview_width integer, preview_height integer)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -18,7 +18,8 @@ begin
     into v_ed;
   return query
     select f.id, f.kind, f.storage_path, f.filename, f.mime, f.size_bytes,
-           f.label_de, f.label_en, f.created_at
+           f.label_de, f.label_en, f.created_at,
+           f.preview_path, f.preview_width, f.preview_height
       from edition_file f
      where f.edition_id = v_ed
        and f.audience && array[p_audience]

@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 08:23 UTC · 104 Tabellen · 6 Views · 587 Funktionen
+> Stand: 2026-10-01 08:38 UTC · 104 Tabellen · 6 Views · 589 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -320,6 +320,9 @@ Dateien, die einer Edition gehören und nicht einer Organisation: Hallenplan, An
 | `uploaded_by` | uuid |  |  | `person.id` |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `preview_path` | text |  |  |  | Verkleinerte WebP-Fassung für die Anzeige (ADM-042), immer <storage_path>.preview.webp. Leer = keine Vorschau, Portale zeigen das Original. |
+| `preview_width` | integer |  |  |  |  |
+| `preview_height` | integer |  |  |  |  |
 
 ### `edition_info`
 Allgemeine Auskünfte je Edition (F9.1): Öffnungszeiten, Einlass, Aufbau, Adresse. Text, kein Zeitstempel — eine Auskunft, kein Termin.
@@ -2102,6 +2105,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `confirm_shift` | p_assignment_id: uuid |
 | `confirm_shuttle` | p_booking_id: uuid |
 | `create_hack_team` | p_edition_id: uuid, p_name: text |
+| `create_kiosk_account` | p_edition_id: uuid, p_email: text, p_label: text |
 | `create_slot` | p_end: timestamp with time zone, p_session_id: uuid, p_slot_type: text, p_source_ref: text, p_stage_id: uuid, p_start: timestamp with time zone |
 | `current_org_edition` | p_edition_id: uuid, p_org_id: uuid |
 | `current_person_id` | args: ? |
@@ -2424,6 +2428,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
 | `set_diet` | p_diet: text, p_note: text |
 | `set_edition_file` | p_data: jsonb |
+| `set_edition_file_preview` | p_height: integer, p_id: uuid, p_path: text, p_width: integer |
 | `set_edition_hubspot` | p_done_stage_id: text, p_edition_id: uuid, p_pipeline_id: text, p_stage_id: text |
 | `set_edition_swapcard` | p_edition_id: uuid, p_swapcard_event_id: text |
 | `set_edition_vivenu` | p_edition_id: uuid, p_vivenu_event_id: text |
