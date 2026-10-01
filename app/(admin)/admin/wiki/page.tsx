@@ -39,7 +39,7 @@ export default async function AdminWikiPage({
         audiences={Object.fromEntries(KB_AUDIENCES.map((a) => [a, vlabel(vocab, "kb_audience", a)]))}
         phases={Object.fromEntries(KB_PHASES.map((p) => [p, vlabel(vocab, "kb_phase", p)]))}
         t={t.wiki}
-        common={{ save: t.common.save, cancel: t.common.cancel, close: t.common.close }}
+        common={{ save: t.common.save, cancel: t.common.cancel, close: t.common.close, required: t.common.required }}
         rpcMessages={t.rpc}
       />
     </>
