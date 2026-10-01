@@ -63,7 +63,7 @@ export default async function PartnerMediaPage() {
       <PageHeader word={t.partner.wordVisibility} title={s.title} description={s.lead} />
       <div className="flex flex-col gap-8">
         <Card>
-          <CardHeader title={s.graphicTitle} description={s.graphicLead} />
+          <CardHeader ebene="h2" title={s.graphicTitle} description={s.graphicLead} />
           {grafik && grafikDownload ? (
             <div className="flex flex-col gap-4">
               {grafikVorschau && (
@@ -87,7 +87,7 @@ export default async function PartnerMediaPage() {
         </Card>
 
         <Card>
-          <CardHeader title={s.kitTitle} description={s.kitLead} />
+          <CardHeader ebene="h2" title={s.kitTitle} description={s.kitLead} />
           {dateien.length === 0 ? (
             <EmptyState title={s.kitEmptyTitle} description={s.kitEmptyBody} />
           ) : (

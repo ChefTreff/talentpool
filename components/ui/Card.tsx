@@ -27,15 +27,24 @@ export function CardHeader({
   title,
   description,
   action,
+  ebene = "h3",
 }: {
   title: string;
   description?: string;
   action?: ReactNode;
+  /**
+   * `h2`, wenn die Karte ein **Abschnitt der Seite** ist (QS-054): dann
+   * `.ct-h2`, wie das Talent-Muster es für Abschnitte vorsieht („ein `<h2>`
+   * ist `.ct-h2` — auch in Karten“), und die Gliederung springt nicht von
+   * `h1` auf `h3`. `h3` (Vorgabe) bleibt für Karten unter einem Abschnittskopf.
+   */
+  ebene?: "h2" | "h3";
 }) {
+  const Kopf = ebene;
   return (
     <div className="mb-4 flex items-start justify-between gap-4">
       <div>
-        <h3 className="ct-h3 text-ink">{title}</h3>
+        <Kopf className={ebene === "h2" ? "ct-h2 text-ink" : "ct-h3 text-ink"}>{title}</Kopf>
         {description && <p className="ct-help mt-1">{description}</p>}
       </div>
       {action}
