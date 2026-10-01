@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 13:06 UTC · 110 Tabellen · 6 Views · 631 Funktionen
+> Stand: 2026-10-01 13:16 UTC · 111 Tabellen · 6 Views · 639 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -527,6 +527,7 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `judging_mode` | text | ja | `jury` |  | Auswertungsart (HACK-009): jury = Pitch mit Kriterien, metric = Leaderboard nach metric_label. |
 | `metric_label` | text |  |  |  | Bezeichnung der Metrik, z. B. „Prediction accuracy“ (nur bei judging_mode = metric). |
 | `metric_higher_better` | boolean | ja | `true` |  | Rangfolge: true = höherer Wert gewinnt. |
+| `submission_deadline` | timestamp with time zone |  |  |  | Abgabefrist der Challenge (HACK-011); danach gelten Abgaben als verspätet. Gesetzt über set_hack_challenge_deadline. |
 
 ### `hack_dataset`
 Datensatz je Hackathon-Challenge (HACK-012) im privaten Bucket hack-datasets (<challenge_id>/<datei>). Zugriff nur über can_manage_hack_dataset, can_read_hack_dataset, register_hack_dataset, hack_challenge_dataset.
@@ -582,6 +583,22 @@ Metrik-Wert je Team (HACK-009): eingetragen von Team oder Jury der Challenge, be
 | `submitted_at` | timestamp with time zone |  |  |  |  |
 | `submitted_by` | uuid |  |  | `person.id` |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `late` | boolean | ja | `false` |  | Abgabe nach der Frist der Challenge (HACK-011), gesetzt von submit_hack. |
+
+### `hack_submission_file`
+Dateien einer Hackathon-Abgabe (HACK-011) im privaten Bucket hack-submissions (<team_id>/<datei>). Zugriff nur über Funktionen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `team_id` | uuid | ja |  | `hack_team.id` |  |
+| `storage_path` | text | ja |  |  |  |
+| `filename` | text | ja |  |  |  |
+| `mime` | text |  |  |  |  |
+| `size_bytes` | bigint |  |  |  |  |
+| `late` | boolean | ja | `false` |  |  |
+| `uploaded_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `hack_team`
 
@@ -2190,9 +2207,11 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_plan_regie` | p_stage_id: uuid |
 | `can_read_checkin_stats` | p_edition_id: uuid |
 | `can_read_hack_dataset` | p_challenge_id: uuid |
+| `can_read_hack_submission` | p_team_id: uuid |
 | `can_request_shuttle` | p_profile_id: uuid |
 | `can_search_board` | p_event_id: uuid |
 | `can_view_community_events` | args: ? |
+| `can_write_hack_submission` | p_team_id: uuid |
 | `cancel_companion_ticket` | p_ticket_id: uuid |
 | `cancel_hospitality` | p_booking_id: uuid |
 | `cancel_registration` | p_session_id: uuid |
@@ -2296,6 +2315,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_judging` | p_edition_id: uuid, p_language: text |
 | `hack_leaderboard` | p_challenge_id: uuid |
 | `hack_open_challenges` | p_edition_id: uuid |
+| `hack_submission_files` | p_edition_id: uuid, p_team_id: uuid |
+| `hack_submission_is_late` | p_team_id: uuid |
+| `hack_submission_path_allowed` | p_name: text |
 | `hack_text` | p_de: text, p_en: text, p_language: text |
 | `hack_track_key` | p_value: text |
 | `handover_speaker` | p_profile_id: uuid, p_to_person_id: uuid |
@@ -2513,6 +2535,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `regie_view` | p_event_day_id: uuid, p_stage_id: uuid |
 | `register_for_session` | p_session_id: uuid |
 | `register_hack_dataset` | p_challenge_id: uuid, p_filename: text, p_mime: text, p_size_bytes: bigint, p_storage_path: text |
+| `register_hack_submission_file` | p_filename: text, p_mime: text, p_size_bytes: bigint, p_storage_path: text, p_team_id: uuid |
 | `register_partner_asset` | p_deliverable_id: uuid, p_edition_id: uuid, p_filename: text, p_kind: text, p_mime: text, p_org_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `register_session_asset` | p_data: jsonb |
 | `register_sevdesk_document` | p_filename: text, p_kind: text, p_org_edition_id: uuid, p_size_bytes: bigint, p_storage_path: text |
@@ -2524,6 +2547,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `remind_volunteer_tickets` | args: ? |
 | `remove_assistant` | p_profile_id: uuid |
 | `remove_booth_assignment` | p_id: uuid |
+| `remove_hack_submission_file` | p_file_id: uuid |
 | `remove_partner_contact` | p_org_id: uuid, p_person_id: uuid |
 | `remove_speaker_contact` | p_contact_id: uuid |
 | `reorder_question_catalog` | p_ids: uuid[] |
@@ -2579,6 +2603,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_expense_mode` | p_amount_cents: integer, p_mode: text, p_profile_id: uuid |
 | `set_external_ref` | p_external_id: text, p_meta: jsonb, p_object_id: uuid, p_object_type: text, p_system: text |
 | `set_hack_application_status` | p_id: uuid, p_note: text, p_status: text |
+| `set_hack_challenge_deadline` | p_challenge_id: uuid, p_deadline: timestamp with time zone |
 | `set_hack_challenge_judging` | p_challenge_id: uuid, p_higher_better: boolean, p_metric_label: text, p_mode: text |
 | `set_hack_challenge_track` | p_challenge_id: uuid, p_track: text |
 | `set_hack_metric` | p_note: text, p_team_id: uuid, p_value: numeric |

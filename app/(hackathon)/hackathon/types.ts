@@ -35,12 +35,16 @@ export type MyHack = {
     resources: string | null;
     criteria: HackCriterion[];
     track?: string | null;
+    /** Abgabefrist der Challenge (HACK-011). */
+    submission_deadline?: string | null;
   } | null;
   submission: {
     url: string | null;
     repo_url: string | null;
     notes: string | null;
     submitted_at: string | null;
+    /** Nach der Frist eingereicht (HACK-011). */
+    late?: boolean;
   } | null;
 };
 
@@ -61,6 +65,8 @@ export type HackChallenge = {
   judging_mode: "jury" | "metric";
   metric_label: string | null;
   metric_higher_better: boolean;
+  /** Abgabefrist (HACK-011). */
+  submission_deadline?: string | null;
 };
 
 /** Eine Zeile aus `hack_leaderboard` (HACK-009). Rang nur bei bestätigten Werten. */
@@ -93,6 +99,7 @@ export type HackTeamRow = {
   submitted_at: string | null;
   scores: number;
   avg_total: number | null;
+  late?: boolean;
 };
 
 export type JudgingRow = {
@@ -111,4 +118,5 @@ export type JudgingRow = {
   metric_label: string | null;
   metric_value: number | null;
   metric_confirmed: boolean;
+  late?: boolean;
 };

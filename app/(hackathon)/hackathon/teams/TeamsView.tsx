@@ -142,6 +142,11 @@ export function TeamsView({
                 </Td>
                 <Td className="text-muted tabular-nums">
                   {r.submitted_at ? date.format(new Date(r.submitted_at)) : "—"}
+                  {r.late && (
+                    <Badge tone="warning" className="ml-2">
+                      {t.late}
+                    </Badge>
+                  )}
                 </Td>
                 <Td numeric className="tabular-nums">{r.scores}</Td>
                 <Td numeric className="tabular-nums">{r.avg_total?.toFixed(2) ?? "—"}</Td>

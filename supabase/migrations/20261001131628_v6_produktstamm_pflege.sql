@@ -1,3 +1,46 @@
+-- 0245 · Produktstamm pflegen im Admin: Abschnitt productCatalog, Rechte für Produktion und Partner-Team (PROD-006)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001131628.
+-- Produktstamm pflegen auch aus der Produktion (PROD-006)
+--
+-- Zweck: Der Produktstamm (Messeshop-Artikel, Mietmöbel, Pakete) entsteht im
+-- Portal und geht von dort nach HubSpot und SevDesk (Runbook
+-- produktabgleich.md). Gepflegt werden konnte er bisher nur vom Partner-Team
+-- unter /admin/partner/produkte. Konrad (17.09., 25.09.: „ja, vor dem
+-- 01.11."): Pflege im Produktionsbereich — nach „Admin zuerst" unter
+-- /admin/produktion/produkte, Abschnitt `productCatalog`.
+--
+-- Umsetzung: neuer Abschnitt `productCatalog` (admin, area_lead_production,
+-- production_team, area_lead_partner, partner_team); `admin_products`,
+-- `upsert_product`, `upsert_product_component` lassen ihn zusätzlich zu
+-- `is_partner_team()` zu. Sonst nichts geändert — Basis jeweils
+-- snapshot/functions/<name>.sql, neu nur die Rechteprüfung. Der Abgleich
+-- nach HubSpot/SevDesk bleibt beim Partner-Team (Route prüft `partner`).
+set search_path = public, extensions;
+
+insert into admin_section_role (section, role) values
+  ('productCatalog', 'admin'),
+  ('productCatalog', 'area_lead_production'),
+  ('productCatalog', 'production_team'),
+  ('productCatalog', 'area_lead_partner'),
+  ('productCatalog', 'partner_team');
+
+create or replace function admin_products(p_only_active boolean DEFAULT false)
+ RETURNS SETOF product
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $$
+begin
+  -- PROD-006: auch der Abschnitt `productCatalog` (Produktion) pflegt den Stamm.
+  if not (is_partner_team() or (current_person_id() is not null and has_admin_section('productCatalog'))) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  return query
+    select p.* from product p
+    where (not p_only_active or p.active)
+    order by p.category, p.shop_sort nulls last, p.name_de;
+end $$;
+
 create or replace function upsert_product(p_data jsonb)
  RETURNS text
  LANGUAGE plpgsql
@@ -94,3 +137,25 @@ begin
   perform log_audit('product.upsert', 'product', v_sku, null, p_data - 'description_de' - 'description_en');
   return v_sku;
 end $$;
+
+create or replace function upsert_product_component(p_bundle_sku text, p_component_sku text, p_qty numeric)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $$
+begin
+  -- PROD-006: auch der Abschnitt `productCatalog` (Produktion) pflegt den Stamm.
+  if not (is_partner_team() or (current_person_id() is not null and has_admin_section('productCatalog'))) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  if p_qty is null or p_qty <= 0 then
+    delete from product_component where bundle_sku = p_bundle_sku and component_sku = p_component_sku;
+  else
+    insert into product_component (bundle_sku, component_sku, qty) values (p_bundle_sku, p_component_sku, p_qty)
+    on conflict (bundle_sku, component_sku) do update set qty = excluded.qty;
+  end if;
+  perform log_audit('product.component', 'product', p_bundle_sku, null, jsonb_build_object('component', p_component_sku, 'qty', p_qty));
+end $$;
+
+select harden_definer_functions();
