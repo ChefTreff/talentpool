@@ -74,6 +74,8 @@
  *   … --apply --nur=hackathon      (HACK-008: zwei freigegebene TEST-Challenges der
  *                                   Test-Organisation in zwei Tracks — Filter auf
  *                                   /hackathon/challenges, Track-Liste in /admin/hackathon;
+ *                                   HACK-009: „Predict the queue“ als Metrik-Challenge mit
+ *                                   TEST-Team und unbestätigtem Wert zum Bestätigen;
  *                                   HACK-010: zwei TEST-Bewerbungen mit Track-Wunsch und
  *                                   Profil für den Track-Filter in /admin/hackathon)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
@@ -2309,7 +2311,8 @@ async function mediaSchritt(me, ed) {
  * bleibt offen, damit er den Partner-Weg selbst gehen kann.
  */
 const TEST_CHALLENGES = [
-  { title_en: `${PREFIX}Predict the queue`, track: "data_science", description_en: "Predict waiting times at the summit entrance from last year's check-in data." },
+  { title_en: `${PREFIX}Predict the queue`, track: "data_science", description_en: "Predict waiting times at the summit entrance from last year's check-in data.",
+    judging: { judging_mode: "metric", metric_label: "MAE (minutes)", metric_higher_better: false } },
   { title_en: `${PREFIX}Pitch the canteen of 2030`, track: "concept", description_en: "Design a concept for a zero-waste canteen and pitch it in five minutes." },
 ];
 
@@ -2329,12 +2332,13 @@ async function hackathonChallenges() {
   const { data: hackEd, error: he } = await admin.rpc("hack_edition", { p_edition_id: null });
   if (he || !hackEd) return fail("Hackathon-Edition", he ?? "keine");
   for (const [i, c] of TEST_CHALLENGES.entries()) {
-    const { data: da } = await admin.from("hack_challenge").select("id, track")
+    const { data: da } = await admin.from("hack_challenge").select("id, track, judging_mode")
       .eq("edition_id", hackEd).eq("title_en", c.title_en).maybeSingle();
     if (da) {
-      if (da.track !== c.track) {
-        await write(`${c.title_en}: Track ${c.track}`, () =>
-          admin.from("hack_challenge").update({ track: c.track }).eq("id", da.id));
+      const soll = c.judging?.judging_mode ?? "jury";
+      if (da.track !== c.track || da.judging_mode !== soll) {
+        await write(`${c.title_en}: Track ${c.track}, Auswertung ${soll}`, () =>
+          admin.from("hack_challenge").update({ track: c.track, ...(c.judging ?? {}) }).eq("id", da.id));
       } else note(c.title_en, "steht schon");
       continue;
     }
@@ -2342,9 +2346,27 @@ async function hackathonChallenges() {
       admin.from("hack_challenge").insert({
         edition_id: hackEd, org_id: org.id, title_en: c.title_en, description_en: c.description_en,
         track: c.track, status: "published", sort_order: 900 + i, mentors: [],
-        criteria: [{ key: "c1", label: "Impact", weight: 100 }],
+        criteria: [{ key: "c1", label: "Impact", weight: 100 }], ...(c.judging ?? {}),
       }),
     );
+  }
+
+  // HACK-009: TEST-Team an der Metrik-Challenge mit unbestätigtem Wert — Konrad
+  // bestätigt ihn in /admin/hackathon, danach steht das Team im Leaderboard.
+  const { data: metrik } = await admin.from("hack_challenge").select("id")
+    .eq("edition_id", hackEd).eq("title_en", TEST_CHALLENGES[0].title_en).maybeSingle();
+  if (!metrik) {
+    note("TEST-Team an der Metrik-Challenge", "nach dem Anlegen der Challenge");
+  } else {
+    await write("TEST-Team „Queue Crushers“ mit Wert 4.2 (unbestätigt)", async () => {
+      const team = await admin.from("hack_team").upsert({
+        edition_id: hackEd, name: `${PREFIX}Queue Crushers`, join_code: `${PREFIX_CODE}Q`, challenge_id: metrik.id,
+      }, { onConflict: "edition_id,join_code" }).select("id").single();
+      if (team.error) return team;
+      const { data: da } = await admin.from("hack_metric_result").select("team_id").eq("team_id", team.data.id).maybeSingle();
+      if (da) return { data: null, error: null };
+      return admin.from("hack_metric_result").insert({ team_id: team.data.id, value: 4.2, note: "TEST" });
+    });
   }
 
   for (const [i, b] of TEST_BEWERBUNGEN.entries()) {
@@ -2592,6 +2614,9 @@ async function remove(me) {
     if (error) return { data: null, error };
     return admin.from("suppression").delete().eq("email_hash", hash).eq("reason", "manual");
   });
+  await write("TEST-Team Hackathon entfernt (Metrik-Wert geht mit)", () =>
+    admin.from("hack_team").delete().like("name", `${PREFIX}%`),
+  );
   await write("TEST-Challenges entfernt", () =>
     admin.from("hack_challenge").delete().like("title_en", `${PREFIX}%`),
   );
