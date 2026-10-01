@@ -2073,6 +2073,12 @@
     "saving": "Saving …",
     "shown": "shown",
     "supportMailbox": "Questions? Write to us:",
+    "unsaved": {
+      "body": "You have changes that are not saved yet. If you leave this page, they will be lost.",
+      "leave": "Leave page",
+      "stay": "Keep editing",
+      "title": "Discard changes?"
+    },
     "until": "until",
     "upload": "Upload",
     "venueAddress": "Congressplatz 1, 20355 Hamburg",

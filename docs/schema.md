@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-09-26 09:10 UTC · 104 Tabellen · 6 Views · 583 Funktionen
+> Stand: 2026-10-01 08:23 UTC · 104 Tabellen · 6 Views · 587 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1091,6 +1091,7 @@ Antraege auf Profilloeschung nach Art. 17 DSGVO (0115). Entsteht nur, wenn der L
 | `handled_by` | uuid |  |  | `person.id` |  |
 | `handled_at` | timestamp with time zone |  |  |  |  |
 | `handled_note` | text |  |  |  |  |
+| `opened_by` | uuid |  |  | `person.id` | Wer den Antrag angelegt hat (ADM-031). Leer = die Person selbst im Portal; gesetzt = das Team, etwa nach einer Mail oder für eine Person ohne Konto. |
 
 ### `programme_backlog`
 Sessions ohne Slot (Backlog-Leiste des Boards).
@@ -2129,6 +2130,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_stage` | p_id: uuid |
 | `delete_track` | p_id: uuid |
 | `delete_vocab_term` | p_key: text, p_vocabulary: text |
+| `deletion_blockers` | p_person_id: uuid |
 | `deletion_requests_admin` | p_status: text |
 | `deliverable_due` | p_oe: public.org_edition, p_template: public.deliverable_template |
 | `detach_session` | p_session_id: uuid |
@@ -2285,6 +2287,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `next_up_items_admin` | args: ? |
 | `notify_partner_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
+| `open_deletion_request` | p_note: text, p_person_id: uuid |
 | `order_lunch_package` | p_edition_id: uuid, p_org_id: uuid, p_qty: integer |
 | `org_editions_picker` | p_edition_id: uuid |
 | `org_has_booth` | p_org_edition_id: uuid |
@@ -2382,6 +2385,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `remove_booth_assignment` | p_id: uuid |
 | `remove_partner_contact` | p_org_id: uuid, p_person_id: uuid |
 | `remove_speaker_contact` | p_contact_id: uuid |
+| `reorder_question_catalog` | p_ids: uuid[] |
 | `request_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
 | `request_profile_deletion` | p_reason: text |
 | `request_shuttle` | p_data: jsonb, p_profile_id: uuid |
@@ -2578,6 +2582,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_portal_video` | p_data: jsonb |
 | `upsert_product` | p_data: jsonb |
 | `upsert_product_component` | p_bundle_sku: text, p_component_sku: text, p_qty: numeric |
+| `upsert_question_catalog` | p_data: jsonb |
 | `upsert_reception` | p_data: jsonb |
 | `upsert_regie_cue` | p_data: jsonb |
 | `upsert_session` | p_data: jsonb |

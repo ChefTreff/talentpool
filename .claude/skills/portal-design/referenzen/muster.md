@@ -43,6 +43,8 @@ Reihenfolge im Bereich: Shell (`SidebarShell` mit `area` und `width`) → `PageH
 </form>
 ```
 
+**Ungesicherte Änderungen** (QS-051): Lange Formulare mit Entwurf (Profil, Reise, Daten, Inhalte) warnen vor dem Verlassen — `const warnung = useUngesichert(geaendert, t.common.unsaved)` und `{warnung}` im Formular rendern. „Geändert“ heisst: anders als der **zuletzt gespeicherte** Stand (`basis` neben `entwurf`), nicht anders als die Server-Daten — der Server normalisiert, und eine eben gespeicherte Eingabe sähe sonst geändert aus. Neuladen und Tab schliessen fragt der Browser, Links im Portal der Kit-`ConfirmDialog`; der Zurück-Knopf bleibt ungefragt (der App Router bietet keine Sperre). Knöpfe in Dialogen tragen `type="button"`, sonst schicken sie ein umgebendes Formular ab.
+
 Label über dem Feld, Hilfetext darunter, Fehler am Feld (nicht im Toast), Pflicht mit „*" **und** Wort im Label. Feldhöhe 40, Radius 8, Fokusring 2 px Akzent. Keine Platzhalter als Ersatz für Labels.
 
 ## Tabelle
@@ -53,7 +55,7 @@ Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
 - Zahlen rechts: `<Th numeric>` / `<Td numeric>` (`tabular-nums` liegt global auf `body`).
 - Zeilenhöhe 44, Bedienelemente in Zeilen `size="sm"`.
 - Breite Tabellen gehören in einen `overflow-x-auto`-Container, die Seite scrollt nie horizontal.
-- Filterleiste oben, Zustand in der URL, damit ein Link denselben Ausschnitt zeigt.
+- Filterleiste oben, Zustand in der URL, damit ein Link denselben Ausschnitt zeigt — über `useUrlFilter` (`components/ui`, QS-050): lesbare Werte statt IDs (Slug, Datum, Vokabel-Schlüssel), Suche als `q`, Sortierung als Spalte mit „-“ für absteigend, Schalter als `1`; nur, was von der Vorgabe abweicht, steht in der Adresse. Geschrieben wird per `history.replaceState`, ohne Server-Rundlauf.
 - Status als `<Badge>` mit Wortlaut, nie als farbiger Punkt allein.
 
 ## Zustände

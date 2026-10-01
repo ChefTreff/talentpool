@@ -2,6 +2,7 @@
 
 import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { useUngesichert, type UngesichertTexte } from "@/components/ui/useUngesichert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -66,6 +67,8 @@ export function SpeakerProfileForm({
     required: string;
     save: string;
     saving: string;
+    /** Rückfrage vor dem Verlassen mit ungesicherten Änderungen (QS-051). */
+    unsaved: UngesichertTexte;
   };
   rpcMessages: Record<string, string>;
 }) {
@@ -98,6 +101,21 @@ export function SpeakerProfileForm({
     Object.fromEntries(SPEAKER_CONSENTS.map((c) => [c, profile.consents?.[c] === true])),
   );
 
+  // Der zuletzt gespeicherte Stand je Teil — „geändert“ heisst: anders als
+  // hier (QS-051). Nicht gegen `profile` verglichen: der Server normalisiert
+  // (Telefon, Links), und eine eben gespeicherte Eingabe sähe sonst geändert
+  // aus. Profil und Einwilligungen haben je einen eigenen Speichern-Knopf.
+  const [basis, setBasis] = useState(() => ({
+    draft: JSON.stringify(draft),
+    links: JSON.stringify(links),
+    consents: JSON.stringify(consents),
+  }));
+  const geaendert =
+    JSON.stringify(draft) !== basis.draft ||
+    JSON.stringify(links) !== basis.links ||
+    JSON.stringify(consents) !== basis.consents;
+  const warnung = useUngesichert(geaendert, common.unsaved);
+
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -123,8 +141,9 @@ export function SpeakerProfileForm({
   }
 
   function onSave() {
+    const gespeichert = { draft: JSON.stringify(draft), links: JSON.stringify(links) };
     startTransition(async () => {
-      report(
+      const ok = report(
         await saveSpeakerProfile({
           id: profile.id,
           ...draft,
@@ -134,24 +153,31 @@ export function SpeakerProfileForm({
         }),
         t.saved,
       );
+      if (ok) setBasis((b) => ({ ...b, ...gespeichert }));
     });
   }
 
   function onSaveConsents() {
+    const gespeichert = JSON.stringify(consents);
     startTransition(async () => {
       if (stellvertretend) {
         const erlaubt = Object.fromEntries(
           Object.entries(consents).filter(([key]) => SPEAKER_CONSENTS_ON_BEHALF.includes(key)),
         );
-        report(await saveSpeakerConsentsOnBehalf(profile.id, erlaubt), t.consentSaved);
+        if (report(await saveSpeakerConsentsOnBehalf(profile.id, erlaubt), t.consentSaved)) {
+          setBasis((b) => ({ ...b, consents: gespeichert }));
+        }
         return;
       }
-      report(await saveSpeakerConsents(consents), t.consentSaved);
+      if (report(await saveSpeakerConsents(consents), t.consentSaved)) {
+        setBasis((b) => ({ ...b, consents: gespeichert }));
+      }
     });
   }
 
   return (
     <div className="flex flex-col gap-6">
+      {warnung}
       <Card id="person" className="p-6">
         <h2 className="ct-h2 mb-4 text-ink">{t.sectionPerson}</h2>
         <div className="grid gap-4 sm:grid-cols-2">

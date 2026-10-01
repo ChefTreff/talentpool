@@ -167,6 +167,7 @@ export default async function AdminPartnerOrgPage({
         save: t.common.save,
         close: t.common.close,
         required: t.common.required,
+        unsaved: t.common.unsaved,
       }}
       rpcMessages={t.rpc}
     />,

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useUrlFilter } from "@/components/ui/useUrlFilter";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -33,6 +34,7 @@ const PUBLISH_TONE: Record<string, BadgeTone> = {
 };
 
 type SortKey = "stage" | "day" | "time" | "title" | "format" | "status";
+const SORT_KEYS: SortKey[] = ["stage", "day", "time", "title", "format", "status"];
 
 /**
  * Das Programm als Liste (Feedback-Runde 1, Punkt 6, Vorbild Airtable 2026).
@@ -80,11 +82,25 @@ export function ProgrammeTable({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
 
-  const [stage, setStage] = useState("");
-  const [day, setDay] = useState("");
-  const [status, setStatus] = useState("");
-  const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: "time", desc: false });
+  // Filter, Suche und Sortierung in der Adresszeile (QS-050) — lesbar statt
+  // IDs: die Bühne als Slug, der Tag als Datum wie im Board
+  // (`?tag=2027-04-16`), die Sortierung als Spalte, „-“ heisst absteigend.
+  const [filter, setFilter] = useUrlFilter(
+    { buehne: "", tag: "", status: "", query: "", sort: "time" },
+    { query: "q" },
+  );
+  const stage = stages.find((s) => s.slug === filter.buehne)?.id ?? "";
+  const day = days.find((d) => d.day_date === filter.tag)?.id ?? "";
+  const { status, query } = filter;
+  const sortSpalte = filter.sort.replace(/^-/, "");
+  const sortKey: SortKey = (SORT_KEYS as string[]).includes(sortSpalte) ? (sortSpalte as SortKey) : "time";
+  const sortDesc = filter.sort.startsWith("-");
+  const sort = useMemo(() => ({ key: sortKey, desc: sortDesc }), [sortKey, sortDesc]);
+  const setStage = (id: string) => setFilter({ buehne: stages.find((s) => s.id === id)?.slug ?? "" });
+  const setDay = (id: string) => setFilter({ tag: days.find((d) => d.id === id)?.day_date ?? "" });
+  const setStatus = (wert: string) => setFilter({ status: wert });
+  const setQuery = (wert: string) => setFilter({ query: wert });
+  const sortieren = (key: SortKey) => setFilter({ sort: sort.key === key && !sort.desc ? `-${key}` : key });
   const [openSpeakers, setOpenSpeakers] = useState<string | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
@@ -161,7 +177,7 @@ export function ProgrammeTable({
       <button
         type="button"
         className="inline-flex items-center gap-1 font-semibold text-ink transition-colors hover:text-accent-strong"
-        onClick={() => setSort((s) => ({ key, desc: s.key === key ? !s.desc : false }))}
+        onClick={() => sortieren(key)}
       >
         {label}
         <span aria-hidden="true" className="text-muted">
