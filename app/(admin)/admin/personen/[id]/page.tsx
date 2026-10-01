@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Badge } from "@/components/ui/Badge";
 import { Anrede } from "./Anrede";
+import { Loeschung } from "./Loeschung";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +63,14 @@ export default async function PersonDetail({
     admin.from("person_language").select("language, level").eq("person_id", id),
     loadVocabMap(admin, locale),
   ]);
+  // ADM-031: liegt schon ein offener Löschantrag vor? Dann zeigt die Karte ihn
+  // statt eines zweiten Knopfes.
+  const { data: offenerAntrag } = await admin
+    .from("profile_deletion_request")
+    .select("requested_at")
+    .eq("person_id", id)
+    .eq("status", "pending")
+    .maybeSingle();
 
   if (!person) notFound();
 
@@ -116,6 +125,7 @@ export default async function PersonDetail({
             { id: "interessen", label: d.interests },
             { id: "kanaele", label: d.channels },
             { id: "anmeldungen", label: d.registrations },
+            { id: "loeschung", label: d.deletionTitle },
           ]}
         />
 
@@ -307,6 +317,15 @@ export default async function PersonDetail({
           )}
         </ul>
       </Card>
+
+      <Loeschung
+        personId={id}
+        deletedAt={person.deleted_at}
+        pendingSince={offenerAntrag?.requested_at ?? null}
+        dateLocale={t.meta.dateLocale}
+        t={d}
+        rpcMessages={t.rpc}
+      />
     </div>
   );
 }

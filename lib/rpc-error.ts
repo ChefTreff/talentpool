@@ -245,6 +245,9 @@ const BUSINESS_KEYS = new Set([
   "invalid_contact_kind",
   // Profil loeschen (Migration 0115)
   "already_requested",
+  // ADM-031: Löschung durch das Team anlegen.
+  "deletion_already_open",
+  "person_already_deleted",
   "invalid_action",
   // Eure Daten: Kundennummer (Vorschlag v6_eure_daten, PART-059)
   "customer_number_taken",
