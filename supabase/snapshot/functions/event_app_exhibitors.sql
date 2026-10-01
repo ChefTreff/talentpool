@@ -1,5 +1,5 @@
 create or replace function event_app_exhibitors(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(org_edition_id uuid, org_id uuid, edition_id uuid, edition_slug text, swapcard_event_id text, name text, legal_name text, slug text, description_de text, description_en text, website text, sponsoring_level text, sponsoring_key text, sponsoring_rank integer, level_key text, level_rank integer, level_source text, categories text[], industry text, sponsor_category text, partner_category text, org_type text, booth_number text, onboarding_status text, logo_svg_path text, logo_png_path text, logo_png_asset_id uuid, swapcard_exhibitor_id text, members jsonb)
+ RETURNS TABLE(org_edition_id uuid, org_id uuid, edition_id uuid, edition_slug text, swapcard_event_id text, name text, legal_name text, slug text, description_de text, description_en text, website text, sponsoring_level text, sponsoring_key text, sponsoring_rank integer, level_key text, level_rank integer, level_source text, categories text[], industry text, sponsor_category text, partner_category text, org_type text, booth_number text, onboarding_status text, logo_svg_path text, logo_png_path text, logo_png_asset_id uuid, swapcard_exhibitor_id text, members jsonb, logo_category text, logo_category_rank integer, logo_category_source text)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -28,15 +28,13 @@ begin
            -- behält dann, was dort steht, statt eine tote Auswahl zu bekommen.
            (select v.key from vocab_term v
              where v.vocabulary = 'industry' and v.active and v.key = o.industry),
-           -- Kategorie der Logo-Wand (0139): aus der Stufe, sonst `official_partner`.
-           -- Das `coalesce` ist Konrads Auffangnetz — wer nur eine Masterclass,
-           -- eine Company Tour oder einen Speaking Slot gebucht hat, traegt keine
-           -- Stufe und wuerde sonst auf der Wand fehlen.
-           coalesce((select k.key from vocab_term l
-                       join vocab_term k on k.vocabulary = l.parent_vocabulary and k.key = l.parent_key and k.active
-                      where l.vocabulary = 'sponsoring_level' and l.active
-                        and l.key = coalesce(abl.level_key, sponsoring_level_key(oe.sponsoring_level))
-                        and l.parent_vocabulary = 'swapcard_sponsor_category'),
+           -- Kategorie der Logo-Wand in Swapcard (0141, ADM-046): aus der
+           -- Logokategorie, deren Elternbegriff der Swapcard-Name ist. Das
+           -- `coalesce` bleibt Konrads Auffangnetz — „es darf niemand durchrutschen".
+           coalesce((select k.key from vocab_term c
+                       join vocab_term k on k.vocabulary = c.parent_vocabulary and k.key = c.parent_key and k.active
+                      where c.vocabulary = 'logo_category' and c.key = lc.category
+                        and c.parent_vocabulary = 'swapcard_sponsor_category'),
                     'official_partner'),
            o.partner_category, o.type,
            (select b.booth_number from booth_assignment ba join booth b on b.id = ba.booth_id
@@ -55,7 +53,8 @@ begin
                      from org_membership m
                      join person p on p.id = m.person_id and p.deleted_at is null
                      left join person_email pe on pe.person_id = p.id and pe.is_primary
-                     where m.org_id = o.id and m.roles @> '{event_app_member}'), '[]'::jsonb)
+                     where m.org_id = o.id and m.roles @> '{event_app_member}'), '[]'::jsonb),
+           lc.category, lc.category_rank, lc.category_source
     from org_edition oe
     join organization o on o.id = oe.org_id
     join event e on e.id = oe.edition_id
@@ -85,6 +84,7 @@ begin
                   where op.org_edition_id = oe.id and op.status = 'booked'
                     and pr.type = 'package' and pr.category is not null) c) as categories
     ) abl on true
+    cross join lateral logo_category_of(oe.id) lc
     where o.active
       and (p_edition_id is null or oe.edition_id = p_edition_id)
       and (p_edition_id is not null or e.swapcard_event_id is not null)

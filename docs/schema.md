@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 12:34 UTC · 104 Tabellen · 6 Views · 605 Funktionen
+> Stand: 2026-10-01 12:38 UTC · 104 Tabellen · 6 Views · 607 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -718,6 +718,7 @@ Partner-Organisation je Edition: Onboarding-Stand, Rechnungsdaten, Pass-Typ-Wahl
 | `source` | text | ja | `hubspot` |  | Woher diese Teilnahme kommt (0116): hubspot (Bestand und Vertrieb), portal (im Admin angelegt, z. B. Initiativen), import (Altdaten). Der HubSpot-Abgleich fasst nur hubspot-Zeilen an. |
 | `logo_whitening_consent_at` | timestamp with time zone |  |  |  | Der Partner erlaubt, sein Logo für die Foto-Wand auf dem Summit einfarbig weiß zu drucken (Konrad, 22.09.2026). NULL heißt: keine Erlaubnis, das Logo kommt nicht auf die Wand — hochladen und anderweitig nutzen bleibt davon unberührt. Gilt je Edition und **nicht je Datei**: wer sein Logo korrigiert, soll nicht stillschweigend von der Wand fallen. |
 | `logo_whitening_consent_by` | uuid |  |  | `person.id` | Wer die Erlaubnis erteilt hat. Nachweis, kein Anzeigefeld. |
+| `logo_category` | text |  |  |  | ADM-046: Logokategorie (Vokabular logo_category) je Partner und Edition. Leer = aus der Sponsoring-Stufe, sonst official (logo_category_of). |
 
 ### `org_membership`
 
@@ -2243,6 +2244,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `list_external_refs` | p_object_type: text, p_system: text |
 | `log_access_invite` | p_person_id: uuid |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
+| `logo_category_of` | p_org_edition_id: uuid |
 | `luma_sync_event` | p_data: jsonb |
 | `luma_sync_registration` | p_checked_in: boolean, p_email: text, p_guest_id: text, p_luma_event_id: text, p_registered_at: timestamp with time zone, p_status: text |
 | `mail_cc_recipients` | p_person_ids: uuid[] |
@@ -2462,6 +2464,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_hack_challenge_track` | p_challenge_id: uuid, p_track: text |
 | `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
 | `set_initiative_stage` | p_org_edition_id: uuid, p_stage: text |
+| `set_logo_category` | p_category: text, p_org_edition_id: uuid |
 | `set_logo_whitening_consent` | p_edition_id: uuid, p_granted: boolean, p_org_id: uuid |
 | `set_my_cv` | p_path: text |
 | `set_my_photo` | p_path: text |
