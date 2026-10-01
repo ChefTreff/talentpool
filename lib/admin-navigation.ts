@@ -117,7 +117,8 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
       { section: "questionCatalog", href: "/admin/fragenkatalog", label: "questionCatalog" },
       { section: "mail", href: "/admin/mail", label: "mail" },
       { section: "wiki", href: "/admin/wiki", label: "wiki" },
-      { section: "videos", href: "/admin/videos", label: "videos" },
+      // ADM-063: zentrale Medienverwaltung (Videos, Links, Dateien, Bilder).
+      { section: "videos", href: "/admin/medien", label: "media" },
       { section: "ui", href: "/admin/ui", label: "ui" },
     ],
   },

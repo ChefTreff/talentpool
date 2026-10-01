@@ -259,6 +259,7 @@
       "initiatives": "Initiativen",
       "logoWall": "Logo-Wand",
       "mail": "Mail",
+      "media": "Medien",
       "nextUp": "Next Up",
       "overview": "Übersicht",
       "partnerCare": "Betreuung & Messeshop",
@@ -3029,6 +3030,23 @@
     "queued": "Wartet",
     "sent": "Versendet",
     "suppressed": "Gesperrt"
+  },
+  "media": {
+    "area_bilder": "Bilder",
+    "area_dateien": "Dateien",
+    "area_links": "Links",
+    "area_videos": "Videos",
+    "areasLabel": "Bereiche der Medienverwaltung",
+    "filesLead": "Editionsdateien wie Hallenplan, Anfahrt und Aufbauplan. Wer eine Datei sieht, entscheidet die Zielgruppe am Eintrag; die Produktion pflegt sie auch unter Produktion → Dateien.",
+    "graphicsEdit": "Zu den Grafiken",
+    "graphicsLead": "Speaker- und Partnergrafiken sowie das Media Kit.",
+    "graphicsTitle": "Grafiken und Media Kit",
+    "lead": "Videos, Links, Dateien und Bilder an einem Ort. Die Portale binden einzelne Elemente über ihren Schlüssel oder ihre Zielgruppe ein — hier ausgetauscht heißt dort ausgetauscht.",
+    "photosEdit": "Fotos bei den Ansprechpartnern pflegen",
+    "photosLead": "{mit} von {gesamt} Ansprechpartnern haben ein Foto. Partner und Speaker sehen es auf ihrer Startseite.",
+    "photosMissing": "Ohne Foto:",
+    "photosTitle": "Fotos der Ansprechpartner",
+    "title": "Medien"
   },
   "messages": {
     "invalid_email": "Das ist keine gültige E-Mail-Adresse.",
