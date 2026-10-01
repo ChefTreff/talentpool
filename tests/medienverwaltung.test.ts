@@ -19,6 +19,8 @@ describe("Medienverwaltung (ADM-063)", () => {
     assert.match(seite, /from "\.\.\/videos\/VideoAdmin"/);
     assert.match(seite, /from "\.\.\/produktion\/dateien\/DateienView"/);
     assert.match(seite, /rpc\("edition_files_admin"/);
+    // PROD-009: dieselbe Zielgruppen-Auswahl wie unter Produktion → Dateien.
+    assert.match(seite, /audiences=\{vgroup\(vocab, "kb_audience"\)\}/);
     assert.match(seite, /rpc\("edition_contacts_admin"\)/);
   });
 
