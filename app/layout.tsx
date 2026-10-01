@@ -3,6 +3,9 @@ import { sharpSans, sharpSansItalic, laica } from "@/lib/fonts";
 import { getI18n } from "@/lib/i18n";
 import { ToastProvider } from "@/components/ui/Toast";
 import { NEUES_FENSTER_ID } from "@/components/ui/neues-fenster";
+import { FehlerKontextGeber } from "@/components/fehler/Fehlergrenze";
+import { fehlerTexte } from "@/components/fehler/fehler";
+import { DEFAULT_MAILBOX } from "@/components/layout/PortalFooter";
 import "./globals.css";
 
 /** Auch der Tab-Titel folgt der Sprachwahl. */
@@ -37,7 +40,13 @@ export default async function RootLayout({
         <p id={NEUES_FENSTER_ID} hidden>
           {t.common.newTab}
         </p>
-        <ToastProvider>{children}</ToastProvider>
+        {/* Texte für `app/error.tsx` (QS-023): Fehlergrenzen bekommen keine
+            Props vom Server, aber alles, was ein Layout um sie legt. In den
+            Bereichen setzt `SidebarShell` denselben Kontext noch einmal, in
+            der Sprache und mit dem Postfach des Bereichs. */}
+        <FehlerKontextGeber texte={fehlerTexte(t.errors)} mailbox={DEFAULT_MAILBOX}>
+          <ToastProvider>{children}</ToastProvider>
+        </FehlerKontextGeber>
       </body>
     </html>
   );
