@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/Toast";
 import { saveScore } from "../actions";
 import type { JudgingRow } from "../types";
 import { MetricForm } from "../MetricForm";
+import { AbgabeDateien, type AbgabeDatei } from "@/components/hackathon/AbgabeDateien";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
@@ -24,10 +25,15 @@ type Strings = Record<string, string>;
  */
 export function JudgingView({
   rows,
+  dateien,
+  dateLocale,
   t,
   rpcMessages,
 }: {
   rows: JudgingRow[];
+  /** HACK-011: Abgabe-Dateien je Team, signiert. */
+  dateien: Record<string, AbgabeDatei[]>;
+  dateLocale: string;
   t: Strings;
   rpcMessages: Record<string, string>;
 }) {
@@ -37,7 +43,7 @@ export function JudgingView({
   return (
     <div className="flex flex-col gap-6">
       {rows.map((r) => (
-        <TeamCard key={r.team_id} row={r} t={t} rpcMessages={rpcMessages} />
+        <TeamCard key={r.team_id} row={r} dateien={dateien[r.team_id] ?? []} dateLocale={dateLocale} t={t} rpcMessages={rpcMessages} />
       ))}
     </div>
   );
@@ -45,10 +51,14 @@ export function JudgingView({
 
 function TeamCard({
   row,
+  dateien,
+  dateLocale,
   t,
   rpcMessages,
 }: {
   row: JudgingRow;
+  dateien: AbgabeDatei[];
+  dateLocale: string;
   t: Strings;
   rpcMessages: Record<string, string>;
 }) {
@@ -80,9 +90,18 @@ function TeamCard({
               </a>
             )}
             {row.notes && <p className="ct-help">{row.notes}</p>}
+            {row.late && (
+              <span>
+                <Badge tone="warning">{t.late}</Badge>
+              </span>
+            )}
           </div>
         ) : (
           <p className="ct-help">{t.notSubmitted}</p>
+        )}
+
+        {dateien.length > 0 && (
+          <AbgabeDateien teamId={row.team_id} dateien={dateien} editierbar={false} dateLocale={dateLocale} t={t} />
         )}
 
         {/* Metrik-Challenge (HACK-009): ein Wert je Team statt Kriterien. */}

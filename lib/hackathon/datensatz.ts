@@ -42,8 +42,11 @@ export function pruefeDatensatz(file: { name: string; size: number; type: string
   return { ok: true, mime };
 }
 
-/** Pfad im Bucket: `<challenge_id>/<uuid>-<name>`; der Name ist ein Schlüssel, kein Anzeigetext. */
-export function datasetPfad(challengeId: string, filename: string, uuid: string): string {
+/**
+ * Pfad `<ordner>/<uuid>-<name>` in einem Hackathon-Bucket; der Name ist ein
+ * Schlüssel, kein Anzeigetext (der Originalname steht an der Zeile).
+ */
+export function speicherPfad(ordner: string, filename: string, uuid: string, ersatz = "datei"): string {
   const sauber = filename
     .normalize("NFKD")
     .replace(/\p{M}/gu, "")
@@ -51,5 +54,10 @@ export function datasetPfad(challengeId: string, filename: string, uuid: string)
     .replace(/-+/g, "-")
     .replace(/^[-.]+/, "")
     .slice(-80);
-  return `${challengeId}/${uuid}-${sauber || "dataset"}`;
+  return `${ordner}/${uuid}-${sauber || ersatz}`;
+}
+
+/** Pfad im Bucket: `<challenge_id>/<uuid>-<name>`. */
+export function datasetPfad(challengeId: string, filename: string, uuid: string): string {
+  return speicherPfad(challengeId, filename, uuid, "dataset");
 }

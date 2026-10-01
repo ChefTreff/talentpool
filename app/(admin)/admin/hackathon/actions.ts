@@ -74,3 +74,17 @@ export async function confirmMetric(teamId: string, confirm: boolean): Promise<E
   revalidatePath("/hackathon/challenges");
   return { ok: true };
 }
+
+/** Abgabefrist einer Challenge setzen oder leeren (HACK-011). Gate hier und in der RPC. */
+export async function setChallengeDeadline(challengeId: string, deadline: string | null): Promise<Ergebnis> {
+  await requireAdminSection("hackathon");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("set_hack_challenge_deadline", { p_challenge_id: challengeId, p_deadline: deadline });
+  if (error) {
+    const f = toRpcFailure(error);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  revalidatePath("/admin/hackathon");
+  revalidatePath("/hackathon");
+  return { ok: true };
+}
