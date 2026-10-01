@@ -64,6 +64,16 @@ export function slotBox(
 }
 
 /**
+ * Wie viele Textzeilen à 20 px ganz in eine Slot-Karte passen (2 px
+ * Innenabstand oben und unten). Die Karte zeigt nur, was ganz hineinpasst
+ * (LEAD-017): 20 Minuten → 1 (Beginn und Titel in einer Zeile), 30 → 2,
+ * 45 → 3, 60 → 4.
+ */
+export function zeilenInKarte(startMin: number, endMin: number): number {
+  return Math.floor((slotBox(startMin, endMin, 0).height - 4) / 20);
+}
+
+/**
  * Y-Abstand zum oberen Rand der Spalte → Startminute, auf 5 Minuten gerastert
  * und in das sichtbare Fenster geklemmt.
  */

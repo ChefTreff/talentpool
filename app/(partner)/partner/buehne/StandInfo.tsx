@@ -1,7 +1,8 @@
 import { Fragment } from "react";
-import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { PARTNER_STATUS, PARTNER_STATUS_TON, type PartnerStatus } from "@/components/partner/standbuehne";
+import { PARTNER_STATUS, type PartnerStatus } from "@/components/partner/standbuehne";
+import { PARTNER_KARTE } from "@/components/programme/partnerSicht";
+import { StatusMarke } from "@/components/programme/StatusMarke";
 
 /**
  * Kopf beider Sichten auf die Standbühne (Kalender und Tabelle): welche Bühne,
@@ -67,7 +68,7 @@ export function StandInfo({
           {PARTNER_STATUS.map((s) => (
             <Fragment key={s}>
               <dt>
-                <Badge tone={PARTNER_STATUS_TON[s]}>{statusText[s]}</Badge>
+                <StatusMarke stil={PARTNER_KARTE[s]} text={statusText[s]} />
               </dt>
               <dd className="ct-help">{legendeText[s]}</dd>
             </Fragment>

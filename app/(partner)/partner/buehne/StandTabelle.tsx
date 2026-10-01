@@ -2,7 +2,6 @@
 
 import { Fragment, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Field } from "@/components/ui/Field";
@@ -25,6 +24,8 @@ import {
 import { formatMinutes, minutesOfDay, parseClock, zonedTimeToInstant } from "@/lib/tz";
 import { GastZuordnung } from "@/components/partner/GastZuordnung";
 import type { GastWahl } from "@/components/partner/gaeste";
+import { PARTNER_KARTE } from "@/components/programme/partnerSicht";
+import { StatusMarke } from "@/components/programme/StatusMarke";
 import { RueckgabeHinweis, type RueckgabeTexte } from "../Rueckgabe";
 import { assignStageGuest, requestStagePublish, withdrawStagePublish } from "../actions";
 
@@ -523,9 +524,9 @@ function Zeile({
           )}
         </Td>
         <Td>
-          <Badge tone={PARTNER_STATUS_TON[status]} className="whitespace-nowrap">
-            {statusText[status]}
-          </Badge>
+          {/* Musterfeld wie im Board (LEAD-017): „Veröffentlicht“ ist die volle
+              Akzentfläche, nicht mehr ein grüner Chip. */}
+          <StatusMarke rahmen={false} stil={PARTNER_KARTE[status]} text={statusText[status]} />
         </Td>
         <Td className="whitespace-nowrap">
           <div className="flex items-center justify-end gap-1">

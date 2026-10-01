@@ -1,5 +1,6 @@
 import type { GastWahl } from "@/components/partner/gaeste";
 import { PARTNER_STATUS, partnerStatus, type PartnerStatus } from "@/components/partner/standbuehne";
+import { SLOT_STATUS_STYLE, type KartenStil } from "@/components/programme/types";
 
 /**
  * Die Partner-Sicht im Board (LEAD-035/036/037): wer im Partner-Portal auf
@@ -45,17 +46,22 @@ export function boardPartnerStatus(
 }
 
 /**
- * Karte im Board je Partner-Status — dieselbe Farbsprache wie
- * `PARTNER_STATUS_TON`: Gelb heißt „ihr seid dran“, Akzent „die
- * Programmleitung ist dran“. Der Wortlaut steht zusätzlich in der Karte.
+ * Karte im Board je Partner-Status — dieselben Flächen und Formen wie der
+ * Slot-Status (LEAD-017): Gelb mit Schraffur heißt „ihr seid dran“, die
+ * Akzentleiste „die Programmleitung ist dran“, die volle Akzentfläche „steht
+ * im Programm“. Der Wortlaut steht zusätzlich in der Karte.
  */
-export const PARTNER_KARTE: Record<PartnerStatus, string> = {
-  offen: "border-border bg-surface",
-  in_bearbeitung: "border-border-strong bg-surface",
-  zurueckgegeben: "border-warning-soft bg-warning-soft",
-  zur_freigabe: "border-accent-soft bg-accent-soft",
-  veroeffentlicht: "border-success-soft bg-success-soft",
-  abgesagt: "border-dashed border-error-soft bg-error-soft",
+export const PARTNER_KARTE: Record<PartnerStatus, KartenStil> = {
+  offen: SLOT_STATUS_STYLE.open,
+  in_bearbeitung: { flaeche: "border border-border-strong bg-surface", text: "text-ink" },
+  zurueckgegeben: SLOT_STATUS_STYLE.requested,
+  zur_freigabe: SLOT_STATUS_STYLE.confirmed_title_open,
+  veroeffentlicht: SLOT_STATUS_STYLE.final,
+  abgesagt: {
+    flaeche: "border border-dashed border-error-ink bg-error-soft",
+    text: "text-error-ink",
+    durchgestrichen: true,
+  },
 };
 
 /** Die Texte der Stände aus `partnerStage`. */
