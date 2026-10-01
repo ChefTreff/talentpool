@@ -144,7 +144,15 @@ export function DriveSpiegel({
 
   return (
     <Card id="drive" className="mb-6">
-      <CardHeader title={t.title} description={t.lead} action={<Badge tone={kontoTon}>{kontoWort}</Badge>} />
+      <CardHeader
+        title={t.title}
+        description={t.lead}
+        action={
+          <Badge tone={kontoTon} className="whitespace-nowrap">
+            {kontoWort}
+          </Badge>
+        }
+      />
 
       <div className="flex flex-col gap-4">
         {!bereit && (
@@ -197,6 +205,9 @@ export function DriveSpiegel({
                 onChange={(e) => setOrdner(e.target.value)}
                 autoComplete="off"
                 spellCheck={false}
+                // `Field` vergibt die IDs `<id>-hint` und `<id>-error`.
+                aria-describedby={ordnerFehler ? `${ordnerFeld}-error` : `${ordnerFeld}-hint`}
+                aria-invalid={ordnerFehler ? true : undefined}
               />
             </Field>
             <div className="flex gap-2">
@@ -278,13 +289,11 @@ export function DriveSpiegel({
           <div className="overflow-x-auto">
             <Table>
               <Thead>
-                <Tr>
-                  <Th>{t.colSpeaker}</Th>
-                  <Th>{t.colSession}</Th>
-                  <Th>{t.colSlot}</Th>
-                  <Th>{t.colState}</Th>
-                  <Th>{t.colDrive}</Th>
-                </Tr>
+                <Th>{t.colSpeaker}</Th>
+                <Th>{t.colSession}</Th>
+                <Th>{t.colSlot}</Th>
+                <Th>{t.colState}</Th>
+                <Th>{t.colDrive}</Th>
               </Thead>
               <Tbody>
                 {sichtbar.map((z) => (
@@ -294,9 +303,11 @@ export function DriveSpiegel({
                       {z.session}
                       {z.version > 1 && <span className="ct-help"> · v{z.version}</span>}
                     </Td>
-                    <Td className="whitespace-nowrap">{slotTexte[z.schluessel] ?? "—"}</Td>
+                    <Td>{slotTexte[z.schluessel] ?? "—"}</Td>
                     <Td>
-                      <Badge tone={TON[z.zustand]}>{t[WORT[z.zustand]]}</Badge>
+                      <Badge tone={TON[z.zustand]} className="whitespace-nowrap">
+                        {t[WORT[z.zustand]]}
+                      </Badge>
                       {z.fehler && <p className="ct-help mt-1">{meldung(z.fehler, z.detail ?? undefined)}</p>}
                     </Td>
                     <Td>
