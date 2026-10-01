@@ -2,6 +2,8 @@ import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { partnerAdminShell } from "../shell";
 import type { AdminProduct, ProductComponent } from "../types";
 import { ProductEditor } from "./ProductEditor";
+import { ladeAbgleich } from "./abgleich";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +16,12 @@ export default async function AdminProductsPage() {
   if (!shell.ok) return shell.view;
   const { supabase, t, locale, frame } = shell;
 
-  const [{ data: rows }, { data: parts }, vocab] = await Promise.all([
+  const [{ data: rows }, { data: parts }, vocab, abgleich] = await Promise.all([
     supabase.rpc("admin_products"),
     supabase.from("product_component").select("bundle_sku,component_sku,qty"),
     loadVocabMap(supabase, locale),
+    // PROD-006: Abgleich je Artikel — `partnerAdminShell` hat den Abschnitt `partner` geprüft.
+    ladeAbgleich(createSupabaseAdminClient()),
   ]);
 
   const products = (rows ?? []) as AdminProduct[];
@@ -37,6 +41,7 @@ export default async function AdminProductsPage() {
       t={t.adminPartner}
       common={{ cancel: t.common.cancel, none: t.common.none, save: t.common.save }}
       rpcMessages={t.rpc}
+      abgleich={abgleich}
     />,
   );
 }
