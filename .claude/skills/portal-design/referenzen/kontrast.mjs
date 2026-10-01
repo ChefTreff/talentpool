@@ -52,6 +52,10 @@ const PAARE = [
   ["Feldrand auf Grund", "#7F8A9C", "#F5F4F2", 3.0],
   ["Trennlinie auf Karte (dekorativ)", "#DCDFE5", "#FFFFFF", 0],
   ["Text auf Akzent-Soft", "#081A35", "#E8E8FC", 4.5],
+  // Antwort im Wiki-Chat (ADM-044): Hilfstext und Links auf `accent-soft`.
+  // Links dort in `accent-deep` — `accent-strong` erreicht nur 4,41:1.
+  ["Chat-Antwort: Hilfstext auf Akzent-Soft", "#5C6878", "#E8E8FC", 4.5],
+  ["Chat-Antwort: Link (accent-deep) auf Akzent-Soft", "#4A4AC5", "#E8E8FC", 4.5],
   ["Success-Chip", "#0B7A5A", "#E7FAF3", 4.5],
   ["Warning-Chip", "#8A6100", "#FEF6DE", 4.5],
   ["Error-Chip", "#C22B2B", "#FDECEC", 4.5],
