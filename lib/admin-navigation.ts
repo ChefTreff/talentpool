@@ -65,6 +65,8 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
     punkte: [
       { section: "partner", href: "/admin/partner", label: "partnerCare" },
       { section: "initiatives", href: "/admin/initiativen", label: "initiatives" },
+      // ADM-024: Award-Bewerbungen und Auswertung — derselbe Abschnitt wie der Funnel.
+      { section: "initiatives", href: "/admin/initiativen/award", label: "award" },
       { section: "logoWall", href: "/admin/partner/logos", label: "logoWall" },
       { section: "companyTours", href: "/admin/company-tours", label: "companyTours" },
     ],
