@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 12:31 UTC · 104 Tabellen · 6 Views · 605 Funktionen
+> Stand: 2026-10-01 12:34 UTC · 104 Tabellen · 6 Views · 605 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -449,6 +449,7 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `github_url` | text |  |  |  | GitHub-Profil (HACK-007), nur in der Hackathon-Bewerbung. |
 | `website_url` | text |  |  |  |  |
 | `behance_url` | text |  |  |  |  |
+| `track_prefs` | text[] | ja |  |  | Gewünschte Tracks (vocab hack_track, HACK-010), 1–3, geprüft in apply_hackathon. |
 
 ### `hack_challenge`
 

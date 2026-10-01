@@ -71,7 +71,9 @@
  *                                   Vorschau, Zusammenführen und Rückweg; ohne Konto)
  *   … --apply --nur=hackathon      (HACK-008: zwei freigegebene TEST-Challenges der
  *                                   Test-Organisation in zwei Tracks — Filter auf
- *                                   /hackathon/challenges, Track-Liste in /admin/hackathon)
+ *                                   /hackathon/challenges, Track-Liste in /admin/hackathon;
+ *                                   HACK-010: zwei TEST-Bewerbungen mit Track-Wunsch und
+ *                                   Profil für den Track-Filter in /admin/hackathon)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -2309,6 +2311,15 @@ const TEST_CHALLENGES = [
   { title_en: `${PREFIX}Pitch the canteen of 2030`, track: "concept", description_en: "Design a concept for a zero-waste canteen and pitch it in five minutes." },
 ];
 
+/** HACK-010: Bewerbungen ohne Konto (+zztest-hack-N), Track-Wunsch und Profil. */
+const hackAdresse = (i) => email.replace("@", `+zztest-hack-${i}@`);
+const TEST_BEWERBUNGEN = [
+  { nachname: "Datenbewerbung", tracks: ["data_science", "physical_ai"], skills: ["data_analysis"],
+    studium: "Wirtschaftsinformatik", jahr: 2027, motivation: "TEST — loves messy datasets." },
+  { nachname: "Konzeptbewerbung", tracks: ["concept"], skills: ["strategy"],
+    studium: "Management (M.Sc.)", jahr: 2026, motivation: "TEST — wants to pitch." },
+];
+
 async function hackathonChallenges() {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -2332,6 +2343,25 @@ async function hackathonChallenges() {
         criteria: [{ key: "c1", label: "Impact", weight: 100 }],
       }),
     );
+  }
+
+  for (const [i, b] of TEST_BEWERBUNGEN.entries()) {
+    await write(`TEST-Bewerbung ${b.nachname} (${b.tracks.join(", ")})`, async () => {
+      const { data: personId, error } = await admin.rpc("testdaten_person", {
+        p_first_name: "TEST", p_last_name: b.nachname, p_email: hackAdresse(i + 1),
+      });
+      if (error) return { data: null, error };
+      const pr = await admin.from("person").update({ study_program_label: b.studium, graduation_year: b.jahr })
+        .eq("id", personId).eq("first_name", "TEST");
+      if (pr.error) return pr;
+      const sk = await admin.from("person_interest").upsert(
+        b.skills.map((k) => ({ person_id: personId, vocabulary: "skill", term_key: k })),
+        { onConflict: "person_id,vocabulary,term_key" });
+      if (sk.error) return sk;
+      return admin.from("hack_application").upsert({
+        person_id: personId, edition_id: hackEd, skills: [], motivation: b.motivation, track_prefs: b.tracks,
+      }, { onConflict: "person_id,edition_id" });
+    });
   }
 }
 
@@ -2537,6 +2567,13 @@ async function remove(me) {
   await write("TEST-Challenges entfernt", () =>
     admin.from("hack_challenge").delete().like("title_en", `${PREFIX}%`),
   );
+  await write("TEST-Bewerbungen Hackathon entfernt (Bewerbung und Interessen gehen mit)", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", TEST_BEWERBUNGEN.map((_, i) => hackAdresse(i + 1)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
+  });
   await write("Rollen entfernt", () =>
     admin.from("role_assignment").delete().eq("person_id", me.id).eq("note", MARK),
   );

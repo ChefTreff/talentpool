@@ -22,7 +22,8 @@ begin
     'application', case when v_app.id is null then null else jsonb_build_object(
       'id', v_app.id, 'status', v_app.status, 'skills', to_jsonb(v_app.skills),
       'motivation', v_app.motivation, 'team_pref', v_app.team_pref, 'applied_at', v_app.applied_at,
-      'github_url', v_app.github_url, 'website_url', v_app.website_url, 'behance_url', v_app.behance_url) end,
+      'github_url', v_app.github_url, 'website_url', v_app.website_url, 'behance_url', v_app.behance_url,
+      'track_prefs', to_jsonb(v_app.track_prefs)) end,
     'team', case when v_team.id is null then null else jsonb_build_object(
       'id', v_team.id, 'name', v_team.name, 'status', v_team.status,
       -- Den Beitrittscode sieht nur, wer schon drin ist.
@@ -34,7 +35,8 @@ begin
     'challenge', case when v_ch.id is null then null else jsonb_build_object(
       'id', v_ch.id, 'title', hack_text(v_ch.title_de, v_ch.title_en, p_language),
       'description', hack_text(v_ch.description_de, v_ch.description_en, p_language),
-      'prizes', v_ch.prizes, 'resources', v_ch.resources, 'criteria', v_ch.criteria) end,
+      'prizes', v_ch.prizes, 'resources', v_ch.resources, 'criteria', v_ch.criteria,
+      'track', v_ch.track) end,
     'submission', case when v_sub.id is null then null else jsonb_build_object(
       'url', v_sub.url, 'repo_url', v_sub.repo_url, 'notes', v_sub.notes,
       'submitted_at', v_sub.submitted_at) end);
