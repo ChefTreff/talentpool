@@ -128,3 +128,20 @@ export async function publishChallenge(deliverableId: string, track?: string): P
   revalidateAll();
   return { ok: true, data: undefined };
 }
+
+/**
+ * Metrik-Wert eines Teams eintragen (HACK-009). Dürfen Mitglieder des Teams und
+ * die Jury der Challenge — das prüft `set_hack_metric`; ein neuer Wert muss vom
+ * Hack-Team neu bestätigt werden.
+ */
+export async function saveMetric(input: { teamId: string; value: number; note?: string }): Promise<ActionResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_hack_metric", {
+    p_team_id: input.teamId,
+    p_value: input.value,
+    p_note: input.note ?? null,
+  });
+  if (error) return fail(error);
+  revalidateAll();
+  return { ok: true, data: undefined };
+}

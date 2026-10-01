@@ -101,6 +101,10 @@ const BUSINESS_KEYS = new Set([
   "invalid_vocab_value",
   // Hackathon-Tracks (HACK-008): Freigabe ohne Track
   "track_missing",
+  // Auswertungsart je Challenge (HACK-009)
+  "not_metric_challenge",
+  "metric_label_missing",
+  "invalid_metric",
   // „Next Up" (TAL-006)
   "invalid_link_url",
   "next_up_not_found",

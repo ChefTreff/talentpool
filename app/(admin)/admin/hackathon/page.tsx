@@ -5,9 +5,10 @@ import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { TeamsView } from "@/app/(hackathon)/hackathon/teams/TeamsView";
-import type { HackChallenge, HackOpenChallenge, HackTeamRow } from "@/app/(hackathon)/hackathon/types";
+import type { HackChallenge, HackOpenChallenge, HackTeamRow, LeaderboardRow } from "@/app/(hackathon)/hackathon/types";
 import { ApplicationsTable, type AdminApplication } from "./ApplicationsTable";
 import { ChallengeTracks } from "./ChallengeTracks";
+import { MetricResults } from "./MetricResults";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,14 @@ export default async function AdminHackathonPage() {
     loadVocabMap(supabase, locale),
   ]);
   const trackLabels = vgroup(vocab, "hack_track");
+  // HACK-009: Werte je Metrik-Challenge zum Bestätigen.
+  const metrikChallenges = ((challenges ?? []) as HackChallenge[]).filter((c) => c.judging_mode === "metric");
+  const boards = await Promise.all(
+    metrikChallenges.map(async (c) => {
+      const { data: lb } = await supabase.rpc("hack_leaderboard", { p_challenge_id: c.id });
+      return { challenge: c, rows: (lb ?? []) as LeaderboardRow[] };
+    }),
+  );
 
   const skillLabels: Record<string, string> = {};
   for (const [k, v] of vocab) if (k.startsWith("hack_skill:")) skillLabels[k.slice("hack_skill:".length)] = v;
@@ -60,6 +69,25 @@ export default async function AdminHackathonPage() {
             rpcMessages={t.rpc}
           />
         </Card>
+        {boards.length > 0 && (
+          <Card>
+            <CardHeader title={tt.metricTitle} description={tt.metricLead} />
+            <div className="flex flex-col gap-6">
+              {boards.map((b) => (
+                <MetricResults
+                  key={b.challenge.id}
+                  title={b.challenge.title}
+                  metricLabel={b.challenge.metric_label ?? t.hackathon.metric}
+                  rows={b.rows}
+                  locale={locale}
+                  t={tt}
+                  th={t.hackathon}
+                  rpcMessages={t.rpc}
+                />
+              ))}
+            </div>
+          </Card>
+        )}
         <Card>
           <CardHeader title={tt.teamsTitle} description={tt.teamsLead} />
           <TeamsView

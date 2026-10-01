@@ -8,7 +8,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import type { HackChallenge } from "../types";
+import type { HackChallenge, LeaderboardRow } from "../types";
+import { Leaderboard } from "../Leaderboard";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,17 @@ export default async function ChallengesPage({
     loadVocabMap(supabase, locale),
   ]);
   const alle = (data ?? []) as HackChallenge[];
+  // Leaderboard je Metrik-Challenge (HACK-009); es sind wenige Challenges.
+  const boards = new Map<string, LeaderboardRow[]>(
+    await Promise.all(
+      alle
+        .filter((c) => c.judging_mode === "metric")
+        .map(async (c) => {
+          const { data: lb } = await supabase.rpc("hack_leaderboard", { p_challenge_id: c.id });
+          return [c.id, (lb ?? []) as LeaderboardRow[]] as const;
+        }),
+    ),
+  );
   const trackLabels = vgroup(vocab, "hack_track");
   const tracks = Object.keys(trackLabels).filter((k) => alle.some((c) => c.track === k));
   const aktiv = track && tracks.includes(track) ? track : null;
@@ -96,13 +108,29 @@ export default async function ChallengesPage({
                 )}
                 <div className="flex flex-wrap gap-2">
                   {c.track && <Badge tone="accent">{trackLabels[c.track] ?? c.track}</Badge>}
+                  <Badge tone="neutral">
+                    {c.judging_mode === "metric"
+                      ? t.hackathon.judgingMetric.replace("{metric}", c.metric_label ?? t.hackathon.metric)
+                      : t.hackathon.judgingJury}
+                  </Badge>
                   <Badge>{t.hackathon.teamsOn.replace("{n}", String(c.teams))}</Badge>
-                  {(c.criteria ?? []).map((k) => (
+                  {c.judging_mode !== "metric" && (c.criteria ?? []).map((k) => (
                     <Badge key={k.key} tone="neutral">
                       {k.label} · {k.weight} %
                     </Badge>
                   ))}
                 </div>
+                {c.judging_mode === "metric" && (
+                  <section aria-label={t.hackathon.leaderboardTitle} className="mt-2 flex flex-col gap-2">
+                    <h3 className="ct-label">{t.hackathon.leaderboardTitle}</h3>
+                    <Leaderboard
+                      rows={boards.get(c.id) ?? []}
+                      metricLabel={c.metric_label ?? t.hackathon.metric}
+                      locale={locale}
+                      t={t.hackathon}
+                    />
+                  </section>
+                )}
               </div>
             </Card>
           ))}
