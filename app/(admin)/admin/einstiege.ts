@@ -31,7 +31,7 @@ export const EINSTIEGE: readonly Einstieg[] = [
   { key: "graphics", href: "/admin/grafiken", nav: "graphics" },
   { key: "catering", href: "/admin/catering", nav: "catering" },
   { key: "wiki", href: "/admin/wiki", nav: "wiki" },
-  { key: "videos", href: "/admin/videos", nav: "videos" },
+  { key: "videos", href: "/admin/medien", nav: "media" },
   { key: "deadlines", href: "/admin/fristen", nav: "deadlines" },
   { key: "contacts", href: "/admin/ansprechpartner", nav: "contacts" },
   { key: "persons", href: "/admin/personen", nav: "persons" },

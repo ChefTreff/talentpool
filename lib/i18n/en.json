@@ -305,6 +305,7 @@
       "initiatives": "Initiatives",
       "logoWall": "Logo wall",
       "mail": "Mail",
+      "media": "Media",
       "nextUp": "Next Up",
       "overview": "Overview",
       "partnerCare": "Support & trade-show shop",
@@ -3212,6 +3213,23 @@
     "queued": "Queued",
     "sent": "Sent",
     "suppressed": "Suppressed"
+  },
+  "media": {
+    "area_bilder": "Images",
+    "area_dateien": "Files",
+    "area_links": "Links",
+    "area_videos": "Videos",
+    "areasLabel": "Media management areas",
+    "filesLead": "Edition files such as the hall plan, directions and build-up plan. The audience on the entry decides who sees a file; production also maintains them under Production → Files.",
+    "graphicsEdit": "Go to graphics",
+    "graphicsLead": "Speaker and partner graphics and the media kit.",
+    "graphicsTitle": "Graphics and media kit",
+    "lead": "Videos, links, files and images in one place. The portals embed individual items by their key or audience — replaced here means replaced there.",
+    "photosEdit": "Maintain photos in contacts",
+    "photosLead": "{mit} of {gesamt} contacts have a photo. Partners and speakers see it on their start page.",
+    "photosMissing": "Without photo:",
+    "photosTitle": "Contact photos",
+    "title": "Media"
   },
   "messages": {
     "invalid_email": "That is not a valid email address.",
