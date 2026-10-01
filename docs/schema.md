@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 12:52 UTC · 105 Tabellen · 6 Views · 613 Funktionen
+> Stand: 2026-10-01 12:59 UTC · 109 Tabellen · 6 Views · 625 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -73,6 +73,58 @@ Admin-/Manager-Aktionen, Partner-Zugriffe auf Bewerberdaten, Exporte. Nur servic
 | `object_id` | text |  |  |  |  |
 | `before` | jsonb |  |  |  |  |
 | `after` | jsonb |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `award_application`
+ADM-024: Bewerbung zum Initiativen-Award (Felder nach dem Airtable-Formular). Ansprechperson nur hier, nie öffentlich. Bilder im privaten Bucket award-images.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `organization_id` | uuid |  |  | `organization.id` |  |
+| `name` | text | ja |  |  |  |
+| `topics` | text[] | ja |  |  |  |
+| `location` | text | ja |  |  |  |
+| `description` | text | ja |  |  |  |
+| `mission` | text | ja |  |  |  |
+| `project` | text | ja |  |  |  |
+| `contact_first_name` | text | ja |  |  |  |
+| `contact_last_name` | text | ja |  |  |  |
+| `contact_email` | extensions.citext | ja |  |  |  |
+| `founded_year` | smallint |  |  |  |  |
+| `active_members` | integer |  |  |  |  |
+| `website` | text |  |  |  |  |
+| `university` | text |  |  |  |  |
+| `notes` | text |  |  |  |  |
+| `images` | text[] | ja |  |  |  |
+| `privacy_consent_at` | timestamp with time zone | ja |  |  |  |
+| `status` | text | ja | `submitted` |  |  |
+| `source` | text | ja | `public` |  |  |
+| `submitter_hash` | text |  |  |  | ADM-024: Hash wie award_vote.voter_hash — nur für die Ratenbegrenzung, keine Adresse. |
+| `decided_by` | uuid |  |  | `person.id` |  |
+| `decided_at` | timestamp with time zone |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `award_secret`
+ADM-024: Salz für award_vote.voter_hash je Edition. Nur für die Award-Funktionen; nie auslesen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `edition_id` | uuid | PK |  | `event.id` |  |
+| `salt` | bytea | ja | `extensions.gen_random_bytes(32)` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `award_vote`
+ADM-024: öffentliche Stimme ohne Personendaten — voter_hash = sha256(IP, Edition, Salz), gebildet in award_hash(); die Adresse wird nicht gespeichert.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `application_id` | uuid | ja |  | `award_application.id` |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `voter_hash` | text | ja |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `booth`
@@ -587,6 +639,18 @@ Hospitality-Kontingente je Edition: Hotels nach Tier, Shuttles. Kapazität hotel
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `initiative_stage_log`
+ADM-022: Verlauf des Initiativen-Funnels — je Stufenwechsel oder Notiz eine Zeile. Die aktuelle Stufe steht in org_edition.pipeline_stage.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_edition_id` | uuid | ja |  | `org_edition.id` |  |
+| `stage` | text |  |  |  |  |
+| `note` | text |  |  |  |  |
+| `changed_at` | timestamp with time zone | ja | `now()` |  |  |
+| `changed_by` | uuid |  |  | `person.id` |  |
+
 ### `kb_article`
 Wissensbasis. `edition_id` NULL = jahresunabhängig; ein Artikel mit Edition überlagert ihn für diese Edition.
 
@@ -1094,6 +1158,7 @@ Produktstamm (Pakete, Zusatzleistungen, Shop-Artikel). SKU = Item-ID der Item-Li
 | `size_note` | text |  |  |  | Maß als sprachneutrale Notiz, z. B. „6 m × 3 m". Ergänzt `area_sqm` in der Übersichtstabelle. |
 | `format_key` | text |  |  |  | Vokabular partner_format: welche Seite der Gruppe „Eure Formate" dieses Produkt im Partner-Portal öffnet. NULL = keine eigene Seite (Mobiliar, Technik, Zusatzleistungen). |
 | `sponsoring_level_key` | text |  |  |  | Vokabular sponsoring_level (0135): welches Sponsoring-Level dieses Produkt dem Partner gibt. NULL = vergibt kein Level (Zusatzleistungen, Bühnenformate, Tickets). Gebucht ein Partner mehrere, gilt das beste (kleinster sort_order). |
+| `stand_days` | smallint |  |  |  | ADM-022: Stand für einen (1) oder beide Tage (2); null = kein Stand. Gelesen von Produktionsliste und Standcheckliste (PROD-004/005). |
 
 ### `product_component`
 Stückliste: was in einem Paket steckt (Messebau/Regie).
@@ -2073,6 +2138,14 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
 | `audit_log_admin` | p_action: text, p_actor: uuid, p_from: timestamp with time zone, p_limit: integer, p_object_id: text, p_object_type: text, p_offset: integer, p_to: timestamp with time zone |
 | `audit_log_filters` | args: ? |
+| `award_applications_admin` | p_edition_id: uuid |
+| `award_apply` | p_data: jsonb, p_ip_hash: text |
+| `award_current_edition` | args: ? |
+| `award_hash` | p_edition_id: uuid, p_ip_hash: text |
+| `award_public_entries` | p_ip_hash: text |
+| `award_set_images` | p_application_id: uuid, p_ip_hash: text, p_paths: text[] |
+| `award_vote_cast` | p_application_id: uuid, p_ip_hash: text |
+| `award_windows` | p_edition_id: uuid |
 | `backfill_ticket_pass_types` | args: ? |
 | `board_like_pattern` | p_query: text |
 | `board_search_partners` | p_event_id: uuid, p_limit: integer, p_query: text |
@@ -2145,6 +2218,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `decline_hospitality` | p_booking_id: uuid, p_note: text |
 | `decline_shift` | p_assignment_id: uuid, p_reason: text |
 | `delete_admin_section_override` | p_id: uuid |
+| `delete_award_application` | p_application_id: uuid |
 | `delete_edition_contact` | p_id: uuid, p_reason: text |
 | `delete_edition_file` | p_id: uuid |
 | `delete_edition_info` | p_id: uuid |
@@ -2219,6 +2293,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `immutable_unaccent` | : text |
 | `ingest_partner_deal` | p: jsonb |
 | `ingest_vivenu_ticket` | p_data: jsonb |
+| `initiative_stage_history` | p_org_edition_id: uuid |
 | `initiatives_admin` | p_edition_id: uuid |
 | `invite_assistant` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
 | `invite_speaker` | p_profile_id: uuid |
@@ -2464,6 +2539,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_tech_keys` | args: ? |
 | `sessions_for_assets` | p_event_id: uuid |
 | `set_admin_section_override` | p_allowed: boolean, p_note: text, p_person_id: uuid, p_role: text, p_section: text |
+| `set_award_organization` | p_application_id: uuid, p_org_id: uuid |
+| `set_award_status` | p_application_id: uuid, p_status: text |
 | `set_booth_assignment` | p_booth_id: uuid, p_event_day_id: uuid, p_note: text, p_org_edition_id: uuid |
 | `set_booth_service_check` | p_checked: boolean, p_note: text, p_org_edition_id: uuid, p_product_sku: text |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
@@ -2485,7 +2562,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_hack_challenge_track` | p_challenge_id: uuid, p_track: text |
 | `set_hack_metric` | p_note: text, p_team_id: uuid, p_value: numeric |
 | `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
-| `set_initiative_stage` | p_org_edition_id: uuid, p_stage: text |
+| `set_initiative_stage` | p_note: text, p_org_edition_id: uuid, p_stage: text |
 | `set_logo_category` | p_category: text, p_org_edition_id: uuid |
 | `set_logo_whitening_consent` | p_edition_id: uuid, p_granted: boolean, p_org_id: uuid |
 | `set_my_cv` | p_path: text |
