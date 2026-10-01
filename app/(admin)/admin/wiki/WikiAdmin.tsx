@@ -45,7 +45,7 @@ export function WikiAdmin({
   audiences: Record<string, string>;
   phases: Record<string, string>;
   t: Strings;
-  common: { save: string; cancel: string; close: string };
+  common: { save: string; cancel: string; close: string; required: string };
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
@@ -185,7 +185,7 @@ function ArticleForm({
   phases: Record<string, string>;
   pending: boolean;
   t: Strings;
-  common: { save: string; cancel: string; close: string };
+  common: { save: string; cancel: string; close: string; required: string };
   onSave: (input: Record<string, unknown>, okText: string) => void;
   onArchive: (id: string) => void;
 }) {
@@ -200,6 +200,8 @@ function ArticleForm({
     audience: article?.audience ?? ["volunteer"],
     valid_until: article?.valid_until?.slice(0, 10) ?? "",
   });
+
+  const ohneKategorie = form.audience.length === 0;
 
   const toggle = (key: string) =>
     setForm((f) => ({
@@ -222,8 +224,18 @@ function ArticleForm({
         <Input id="title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
       </Field>
 
+      {/* ADM-008: Die Kategorie ist Pflicht — sie steuert Sichtbarkeit und
+          Assistent. Ohne sie wies bisher erst das RPC ab (22023), nachdem
+          jemand den Artikel geschrieben hatte; jetzt sagt das Formular es
+          vorher. Die Tabelle prueft es weiterhin (kb_article_audience_chk). */}
       <fieldset className="flex flex-col gap-2">
-        <legend className="ct-label mb-1">{t.fieldAudience}</legend>
+        <legend className="ct-label mb-1 text-ink">
+          {t.fieldAudience}
+          <span aria-hidden className="ml-0.5 text-error-ink">
+            *
+          </span>
+          <span className="ml-1 ct-help font-semibold">({common.required})</span>
+        </legend>
         <div className="flex flex-wrap gap-3">
           {KB_AUDIENCES.map((a) => (
             <label key={a} className="flex items-center gap-2">
@@ -232,6 +244,7 @@ function ArticleForm({
             </label>
           ))}
         </div>
+        <p className={ohneKategorie ? "ct-help text-error-ink" : "ct-help"}>{t.audienceRequired}</p>
       </fieldset>
 
       <div className="flex flex-wrap gap-4">
@@ -293,7 +306,7 @@ function ArticleForm({
 
       <div className="flex flex-wrap gap-2">
         <Button
-          disabled={pending}
+          disabled={pending || ohneKategorie}
           onClick={() =>
             onSave(
               {

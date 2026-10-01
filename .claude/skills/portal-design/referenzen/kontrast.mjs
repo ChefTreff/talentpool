@@ -55,6 +55,9 @@ const PAARE = [
   ["Success-Chip", "#0B7A5A", "#E7FAF3", 4.5],
   ["Warning-Chip", "#8A6100", "#FEF6DE", 4.5],
   ["Error-Chip", "#C22B2B", "#FDECEC", 4.5],
+  // Warnzeichen der Fehlergrenze (`ErrorState`, QS-023): Strich und
+  // Ausrufezeichen auf der Karte — Grafik, also 3:1 (WCAG 1.4.11).
+  ["Warnzeichen (error-ink) auf Karte", "#C22B2B", "#FFFFFF", 3.0],
   ["Destructive-Fläche mit Weiß", "#FFFFFF", "#C22B2B", 4.5],
   ["Text auf Navy (Sidebar)", "#F5F4F2", "#081A35", 4.5],
   ["Hilfstext auf Navy", "#A0AAB9", "#081A35", 4.5],

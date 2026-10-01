@@ -32,3 +32,29 @@ export async function saveSalutation(
   revalidatePath(`/admin/personen/${personId}`);
   return { ok: true };
 }
+
+export type DeletionOpenResult = { ok: true } | { ok: false; key: string; detail?: string };
+
+/**
+ * Löschung für eine Person anlegen (ADM-031) — etwa wenn die Bitte per Mail
+ * kam oder die Person gar kein Konto hat. **Gelöscht wird hier nicht:** der
+ * Antrag landet in der Warteschlange und wird dort bestätigt, auf demselben
+ * Weg wie jeder andere. Über die Sitzung, damit `open_deletion_request` die
+ * Admin-Rolle prüft und das Protokoll die handelnde Person trägt.
+ */
+export async function openDeletion(personId: string, note: string): Promise<DeletionOpenResult> {
+  await requireAdminSection("persons", `/admin/personen/${personId}`);
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("open_deletion_request", {
+    p_person_id: personId,
+    p_note: note.trim() || null,
+  });
+  if (error) {
+    const f = toRpcFailure(error);
+    if (f.key === "unknown") console.error("[admin/personen] open_deletion_request:", f.raw);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  revalidatePath(`/admin/personen/${personId}`);
+  revalidatePath("/admin/loeschantraege");
+  return { ok: true };
+}
