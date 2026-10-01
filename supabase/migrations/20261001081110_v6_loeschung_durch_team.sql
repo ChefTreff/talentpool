@@ -1,4 +1,5 @@
--- 00NN · Löschung durch das Team anlegen (ADM-031, Art. 17 DSGVO)
+-- 0222 · Löschantrag durch das Team für Personen ohne Konto, Hürden der betroffenen Person (ADM-031)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001081110.
 --
 -- Zweck: Bisher entstand ein Löschantrag nur, wenn die Person ihn selbst im
 -- Portal stellte (`request_profile_deletion`). Zwei Fälle hatten damit keinen
