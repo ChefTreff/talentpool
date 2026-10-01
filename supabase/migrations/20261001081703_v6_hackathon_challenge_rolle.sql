@@ -1,4 +1,5 @@
--- 0000 · Hackathon-Challenge vergibt die Partner-Rolle (HACK-005).
+-- 0223 · Hackathon Challenge (I-37220) vergibt die Rolle hackathon_partner, Storno entzieht (HACK-005)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001081703.
 --
 -- Anlass: HACK-005 (Konrad 17.09., Runde 01.10.): Partner verwalten ihre Challenge im
 -- Partner-Portal (PART-033, gebaut #94), die Teilnehmer-App `/hackathon` bleibt für
