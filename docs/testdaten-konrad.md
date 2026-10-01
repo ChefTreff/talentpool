@@ -66,6 +66,8 @@ Aus den gebuchten Leistungen entstehen von selbst: **Checklisten-Pflichten**, **
 
 **Präsentationen je Slot (LEAD-023) und Rückgabegrund (LEAD-038):** ohne eigenen Schritt. `/speaker-leads/praesentationen` (Stage Leads: ihre Slots; Konrad als Team: alle) und `/admin/technik` → „Nach Slots“ zeigen je Session den Stand je Speaker; bei einem TEST-Speaker mit Profil (z. B. Konrads eigenem aus dem vollen Lauf) „Präsentation wählen“ → „Hochladen“ — die Datei steht danach auch in der Technik-Prüfung. Den Rückgabegrund zeigt im Admin-Board (`/admin/programm`) das Schubfach der zurückgegebenen TEST-Session aus `--nur=standstatus` („Zurückgegeben am … von …:“).
 
+**Folien in Drive (SPK-023):** `--apply --nur=folien` legt am `TEST — Assistenz-Talk` (Stage-Lead-Testbühne, Freitag 17:00) eine TEST-Präsentation des TEST-Assistenz-Speakers an: einseitiges PDF „TEST - keine echte Praesentation“, Dateiname `TEST — Folien.pdf`, im Bucket unter dem Profil. Braucht die Schritte `buehne` und `assistenz`. `/admin/technik` zeigt sie in der Karte „Folien in Drive“: ohne Dienstkonto als „Noch nicht gespiegelt“; nach dem Schlüssel (K-03) legt der erste Klick auf „Spiegelung nachholen“ im Technik-Ordner `TEST — Bühne Stage Lead / <Datum> · <Tag> / 1700_TEST Assistenz.pdf` an — das ist der erste echte Lauf. `--remove` entfernt Datei und Eintrag vor dem Profil; die Kopie in Drive räumt danach der Cron ab (`slide_mirror_orphans`). Gegen live gefahren am 01.10.2026.
+
 ## Kennzeichnung
 
 - Rollen tragen `role_assignment.note = 'testdaten:konrad'` und laufen mit der Edition ab.

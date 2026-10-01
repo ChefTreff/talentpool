@@ -74,6 +74,6 @@ export async function registrierePraesentation(supabase: SupabaseClient, input: 
     p_size_bytes: input.sizeBytes,
     p_session_id: input.sessionId,
   });
-  const result = (data ?? {}) as { version?: number; late?: boolean };
-  return { error, data: { version: result.version ?? 1, late: result.late === true } };
+  const result = (data ?? {}) as { id?: string; version?: number; late?: boolean };
+  return { error, data: { id: result.id ?? "", version: result.version ?? 1, late: result.late === true } };
 }

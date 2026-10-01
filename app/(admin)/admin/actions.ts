@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { requireAdminSection } from "@/lib/auth";
+import { spiegelePraesentation } from "@/lib/drive/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { registrierePraesentation, type PraesentationsEingang } from "@/lib/speaker/praesentationen";
 import { toRpcFailure } from "@/lib/rpc-error";
@@ -329,9 +331,11 @@ export async function registerPresentationAsAdmin(
   const supabase = await client(`${PATHS.tech}/praesentationen`);
   const { error, data } = await registrierePraesentation(supabase, input);
   if (error) return fail(error, "technik");
+  // SPK-023: nach der Rechteprüfung der RPC in den Technik-Ordner spiegeln.
+  if (data.id) after(() => spiegelePraesentation(data.id));
   revalidatePath(PATHS.tech);
   revalidatePath(`${PATHS.tech}/praesentationen`);
-  return { ok: true, data };
+  return { ok: true, data: { version: data.version, late: data.late } };
 }
 
 /**
