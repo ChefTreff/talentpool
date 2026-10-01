@@ -30,6 +30,8 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
       { section: "applications", href: "/admin/bewerbungen", label: "applications" },
       { section: "nextUp", href: "/admin/next-up", label: "nextUp" },
       { section: "communityEvents", href: "/admin/community-events", label: "communityEvents" },
+      // ADM-055: eigener Abschnitt Hackathon (Challenges, Teams, Jury, Mentoren).
+      { section: "hackathon", href: "/admin/hackathon", label: "hackathon" },
     ],
   },
   // QS-032 (Konrad 22.09.): **Speaker und Programm** sind eine Gruppe. Das

@@ -62,6 +62,7 @@ export type AdminSectionKey =
   | "applications"
   | "nextUp"
   | "communityEvents"
+  | "hackathon"
   | "programme"
   | "edition"
   | "speakers"
@@ -145,6 +146,9 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // Community-Events aus Luma (TAL-008): Sicht, keine Pflege — gepflegt wird in
   // Luma. Dieselbe Rollenliste prüft `can_view_community_events()` in SQL.
   { key: "communityEvents", path: "/admin/community-events", roles: ["area_lead_talent", "talent_team", "marketing_team"] },
+  // Hackathon (ADM-055): Bewerbungen, Challenges, Teams. Dieselbe Liste steht in
+  // `admin_section_role`; `is_hack_team()` fragt seither den Abschnitt.
+  { key: "hackathon", path: "/admin/hackathon", roles: ["area_lead_hackathon", "hackathon_team"] },
   { key: "programme", path: "/admin/programm", roles: ["programme_team", "area_lead_speaker", "area_lead_production"] },
   { key: "edition", path: "/admin/edition", roles: ["programme_team", "area_lead_production"] },
 
