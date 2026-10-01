@@ -4471,6 +4471,13 @@
   "productionFiles": {
     "addBody": "PDF oder Bild, höchstens 25 MB. Die Datei erscheint sofort in den Portalen — der Hallenplan zum Beispiel auf der Messestand-Seite der Partner.",
     "addTitle": "Datei hinzufügen",
+    "audience": "Wer sieht die Datei?",
+    "audienceEdit": "Zielgruppe ändern",
+    "audienceFailed": "Die Zielgruppe ließ sich nicht speichern.",
+    "audienceHint": "Die Portale zeigen die Datei nur diesen Zielgruppen — z. B. einen eigenen Hallenplan nur für Speaker.",
+    "audienceRequired": "Bitte mindestens eine Zielgruppe wählen.",
+    "audienceSave": "Zielgruppe speichern",
+    "audienceSaved": "Zielgruppe gespeichert.",
     "deleteBody": "„{name}“ verschwindet aus allen Portalen und wird aus dem Speicher gelöscht.",
     "deleteFailed": "Das Entfernen hat nicht geklappt",
     "deleteTitle": "Datei entfernen?",
