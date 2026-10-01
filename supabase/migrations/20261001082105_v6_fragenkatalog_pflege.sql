@@ -1,4 +1,5 @@
--- 00NN · Fragenkatalog im Admin pflegen (ADM-061, Konrad 25.09.2026: „brauchen wir")
+-- 0224 · Fragenkatalog pflegen: Abschnitt questionCatalog, upsert/reorder mit Audit, kein Löschen (ADM-061)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001082105.
 --
 -- Zweck: `question_catalog` liess sich nirgends pflegen. Lesen dürfen alle
 -- Angemeldeten (RLS `qc_read`), schreiben niemand — `insert/update/delete`
