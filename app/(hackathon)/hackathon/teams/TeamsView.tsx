@@ -1,14 +1,15 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { assignChallenges, publishChallenge } from "../actions";
-import type { HackTeamRow } from "../types";
+import type { HackOpenChallenge, HackTeamRow } from "../types";
 
 type Strings = Record<string, string>;
 
@@ -22,13 +23,16 @@ type Strings = Record<string, string>;
 export function TeamsView({
   rows,
   openChallenges,
+  trackLabels,
   locale,
   t,
   rpcMessages,
 }: {
   rows: HackTeamRow[];
   /** Eingereichte, aber noch nicht freigegebene Challenge-Formulare der Partner. */
-  openChallenges: { deliverable_id: string; org_name: string; title: string | null }[];
+  openChallenges: HackOpenChallenge[];
+  /** vocab hack_track: Schlüssel → Bezeichnung (HACK-008). */
+  trackLabels: Record<string, string>;
   locale: string;
   t: Strings;
   rpcMessages: Record<string, string>;
@@ -36,6 +40,11 @@ export function TeamsView({
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
+  // Track je offenem Formular: vorbelegt aus der Antwort des Partners (HACK-008).
+  const [tracks, setTracks] = useState<Record<string, string>>(() =>
+    Object.fromEntries(openChallenges.map((c) => [c.deliverable_id, c.track ?? ""])),
+  );
+  const trackOptions = Object.entries(trackLabels).map(([value, label]) => ({ value, label }));
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const date = new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "short" });
 
@@ -61,13 +70,23 @@ export function TeamsView({
               <li key={c.deliverable_id} className="flex flex-wrap items-center gap-3">
                 <span className="ct-label">{c.title ?? "—"}</span>
                 <span className="ct-help">{c.org_name}</span>
+                <Select
+                  aria-label={t.track}
+                  className="w-auto"
+                  value={tracks[c.deliverable_id] ?? ""}
+                  placeholder={t.trackChoose}
+                  options={trackOptions}
+                  onChange={(e) => setTracks((prev) => ({ ...prev, [c.deliverable_id]: e.target.value }))}
+                />
                 <Button
                   size="sm"
                   variant="secondary"
-                  disabled={pending}
-                  onClick={() => run(publishChallenge(c.deliverable_id), t.challengesTitle)}
+                  disabled={pending || !tracks[c.deliverable_id]}
+                  onClick={() =>
+                    run(publishChallenge(c.deliverable_id, tracks[c.deliverable_id]), t.challengePublished)
+                  }
                 >
-                  {t.assign}
+                  {t.publishChallenge}
                 </Button>
               </li>
             ))}

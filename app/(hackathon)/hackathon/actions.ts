@@ -114,9 +114,16 @@ export async function assignChallenges(): Promise<ActionResult<{ teams: number }
   return { ok: true, data: { teams: (data as number) ?? 0 } };
 }
 
-export async function publishChallenge(deliverableId: string): Promise<ActionResult> {
+/**
+ * Challenge freigeben (HACK-008: mit Track). Ohne Angabe nimmt die Datenbank
+ * den Track aus dem Formular; fehlt er dort, kommt `track_missing`.
+ */
+export async function publishChallenge(deliverableId: string, track?: string): Promise<ActionResult> {
   const supabase = await client();
-  const { error } = await supabase.rpc("publish_hack_challenge", { p_deliverable_id: deliverableId });
+  const { error } = await supabase.rpc("publish_hack_challenge", {
+    p_deliverable_id: deliverableId,
+    p_track: track || null,
+  });
   if (error) return fail(error);
   revalidateAll();
   return { ok: true, data: undefined };
