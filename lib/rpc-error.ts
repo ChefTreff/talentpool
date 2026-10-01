@@ -197,6 +197,14 @@ const BUSINESS_KEYS = new Set([
   "request_not_found",
   "invalid_reason",
   "invalid_state",
+  // ADM-036: Dubletten zusammenführen (`person_not_found` steht schon oben).
+  "same_person",
+  "person_deleted",
+  "merge_conflict",
+  "merge_not_found",
+  "merge_already_undone",
+  "merge_undo_unavailable",
+  "merge_undo_blocked",
   // ADM-038: Kiosk-Gerätekonto.
   "label_required",
   "team_address_required",
