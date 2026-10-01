@@ -13,6 +13,34 @@ export type OverviewRow = {
   released: boolean;
   /** Zähler je Status, z. B. `{"applied": 3, "accepted": 1}`. */
   counts: Record<string, number> | null;
+  /** Format der Session (seit `v6_bewerbungen_uebersicht`, ADM-003). */
+  format: string | null;
+};
+
+/**
+ * Zeile aus `applications_admin_list()` (ADM-003): eine Bewerbung mit ihrer
+ * Session, für das Team ungekürzt (auch ohne Einwilligung). `answers` trägt
+ * den Fragetext, `total_count` die Treffer insgesamt fürs Blättern.
+ */
+export type ListRow = {
+  id: string;
+  session_id: string;
+  session_title_de: string | null;
+  session_title_en: string | null;
+  format: string | null;
+  start_at: string | null;
+  released: boolean;
+  person_id: string | null;
+  display_name: string | null;
+  email: string | null;
+  status: string;
+  rank: number | null;
+  consent_share: boolean;
+  decided_at: string | null;
+  created_at: string;
+  profile: Record<string, string> | null;
+  answers: { key: string; label_de: string; label_en: string; value: unknown }[] | null;
+  total_count: number;
 };
 
 /**

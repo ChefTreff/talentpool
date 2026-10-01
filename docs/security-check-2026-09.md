@@ -201,7 +201,7 @@ Inventur gegen die Live-Datenbank (`storage.buckets`, `pg_policies` auf `storage
 | `partner-logos` | ja | 20 MB, png/svg | alle (Website, Logo-Wand) | nur Server | in Ordnung |
 | `product-images` | ja | 10 MB, Bildformate | alle (Shop) | nur Server | in Ordnung |
 | `edition-files` | nein | 25 MB, pdf/zip/Bilder | **vorher:** jede angemeldete Person, alle Objekte — **jetzt (0232):** `edition_file_path_allowed(name)`: Team alles, sonst nur Dateien (und Vorschau) mit passender `audience` | nur Server (signierte Upload-Adressen, service_role) | **L-S1 behoben mit 0232** |
-| `partner-assets` | nein | 50 MB, Grafikformate | `partner_asset_path_allowed(name,false)`: Mitglied der Organisation, Marketing/Partner-Team, Staff | `…(name,true)`: `partner_can_edit`, Partnergrafik nur Marketing/Partner-Team | in Ordnung (Pfad = Edition/Organisation/Art/Datei, Zeile in `org_edition` Pflicht) |
+| `partner-assets` | nein | 100 MB (seit 0239, vorher 50 MB), Grafikformate | `partner_asset_path_allowed(name,false)`: Mitglied der Organisation, Marketing/Partner-Team, Staff | `…(name,true)`: `partner_can_edit`, Partnergrafik nur Marketing/Partner-Team | in Ordnung (Pfad = Edition/Organisation/Art/Datei, Zeile in `org_edition` Pflicht) |
 | `person-cv` | nein | 10 MB, pdf | eigene Datei; Staff; Partner der gastgebenden Organisation **nur bei `consent_share`** | nur eigene Datei | in Ordnung (Test v6_profilfelder 08/09) |
 | `person-photos` | nein | 5 MB, Bildformate | eigene Datei; Staff | nur eigene Datei | in Ordnung |
 | `session-assets` | nein | 25 MB, Bildformate | Marketing, Bearbeiter der Session (`can_edit_session`), Sprecher der Session | nur Marketing (Insert); kein Update/Delete per Client | in Ordnung |
