@@ -1,12 +1,13 @@
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadVocabMap } from "@/lib/vocab";
+import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { TeamsView } from "@/app/(hackathon)/hackathon/teams/TeamsView";
-import type { HackTeamRow } from "@/app/(hackathon)/hackathon/types";
+import type { HackChallenge, HackOpenChallenge, HackTeamRow } from "@/app/(hackathon)/hackathon/types";
 import { ApplicationsTable, type AdminApplication } from "./ApplicationsTable";
+import { ChallengeTracks } from "./ChallengeTracks";
 
 export const dynamic = "force-dynamic";
 
@@ -25,12 +26,14 @@ export default async function AdminHackathonPage() {
   const tt = t.adminHackathon as unknown as Record<string, string>;
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: apps }, { data: teams }, { data: open }, vocab] = await Promise.all([
+  const [{ data: apps }, { data: teams }, { data: open }, { data: challenges }, vocab] = await Promise.all([
     supabase.rpc("hack_applications_admin"),
     supabase.rpc("hack_admin_overview", { p_language: locale }),
     supabase.rpc("hack_open_challenges"),
+    supabase.rpc("hack_challenges", { p_language: locale }),
     loadVocabMap(supabase, locale),
   ]);
+  const trackLabels = vgroup(vocab, "hack_track");
 
   const skillLabels: Record<string, string> = {};
   for (const [k, v] of vocab) if (k.startsWith("hack_skill:")) skillLabels[k.slice("hack_skill:".length)] = v;
@@ -49,14 +52,20 @@ export default async function AdminHackathonPage() {
           />
         </Card>
         <Card>
+          <CardHeader title={tt.tracksTitle} description={tt.tracksLead} />
+          <ChallengeTracks
+            rows={(challenges ?? []) as HackChallenge[]}
+            trackLabels={trackLabels}
+            t={tt}
+            rpcMessages={t.rpc}
+          />
+        </Card>
+        <Card>
           <CardHeader title={tt.teamsTitle} description={tt.teamsLead} />
           <TeamsView
             rows={(teams ?? []) as HackTeamRow[]}
-            openChallenges={((open ?? []) as { deliverable_id: string; org_name: string; title: string | null }[]).map((c) => ({
-              deliverable_id: c.deliverable_id,
-              org_name: c.org_name,
-              title: c.title,
-            }))}
+            openChallenges={(open ?? []) as HackOpenChallenge[]}
+            trackLabels={trackLabels}
             locale={locale}
             t={t.hackathon}
             rpcMessages={t.rpc}

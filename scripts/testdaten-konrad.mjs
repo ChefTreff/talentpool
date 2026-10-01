@@ -67,6 +67,9 @@
  *   … --apply --nur=sperrliste     (ADM-035: Sperrlisten-Eintrag für +zztest-sperre, nur der Hash)
  *   … --apply --nur=loeschung      (ADM-031: TEST-Person ohne Konto für den Löschantrag
  *                                   durch das Team; der Antrag selbst bleibt Konrads Klick)
+ *   … --apply --nur=hackathon      (HACK-008: zwei freigegebene TEST-Challenges der
+ *                                   Test-Organisation in zwei Tracks — Filter auf
+ *                                   /hackathon/challenges, Track-Liste in /admin/hackathon)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -2294,6 +2297,42 @@ async function mediaSchritt(me, ed) {
   }
 }
 
+/**
+ * HACK-008: zwei freigegebene TEST-Challenges in verschiedenen Tracks, ohne
+ * Formular dahinter (deliverable_id leer) — Konrads eigenes Challenge-Formular
+ * bleibt offen, damit er den Partner-Weg selbst gehen kann.
+ */
+const TEST_CHALLENGES = [
+  { title_en: `${PREFIX}Predict the queue`, track: "data_science", description_en: "Predict waiting times at the summit entrance from last year's check-in data." },
+  { title_en: `${PREFIX}Pitch the canteen of 2030`, track: "concept", description_en: "Design a concept for a zero-waste canteen and pitch it in five minutes." },
+];
+
+async function hackathonChallenges() {
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) return fail("Hackathon-Challenges", "Test-Organisation fehlt — erst --nur=partner");
+  const { data: hackEd, error: he } = await admin.rpc("hack_edition", { p_edition_id: null });
+  if (he || !hackEd) return fail("Hackathon-Edition", he ?? "keine");
+  for (const [i, c] of TEST_CHALLENGES.entries()) {
+    const { data: da } = await admin.from("hack_challenge").select("id, track")
+      .eq("edition_id", hackEd).eq("title_en", c.title_en).maybeSingle();
+    if (da) {
+      if (da.track !== c.track) {
+        await write(`${c.title_en}: Track ${c.track}`, () =>
+          admin.from("hack_challenge").update({ track: c.track }).eq("id", da.id));
+      } else note(c.title_en, "steht schon");
+      continue;
+    }
+    await write(`${c.title_en} (${c.track})`, () =>
+      admin.from("hack_challenge").insert({
+        edition_id: hackEd, org_id: org.id, title_en: c.title_en, description_en: c.description_en,
+        track: c.track, status: "published", sort_order: 900 + i, mentors: [],
+        criteria: [{ key: "c1", label: "Impact", weight: 100 }],
+      }),
+    );
+  }
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -2409,6 +2448,7 @@ async function shuttleFahrten(me, ed) {
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
+  hackathon: hackathonChallenges,
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
@@ -2451,6 +2491,9 @@ async function remove(me) {
     if (error) return { data: null, error };
     return admin.from("suppression").delete().eq("email_hash", hash).eq("reason", "manual");
   });
+  await write("TEST-Challenges entfernt", () =>
+    admin.from("hack_challenge").delete().like("title_en", `${PREFIX}%`),
+  );
   await write("Rollen entfernt", () =>
     admin.from("role_assignment").delete().eq("person_id", me.id).eq("note", MARK),
   );
