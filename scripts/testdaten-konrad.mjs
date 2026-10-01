@@ -83,7 +83,8 @@
  *                                   Profil für den Track-Filter in /admin/hackathon;
  *                                   HACK-012: TEST-Datensatz (CSV) an „Predict the queue“;
  *                                   HACK-011: Abgabefrist 17.04.2027 12:00 an „Predict the
- *                                   queue“ und eine TEST-Abgabedatei von „Queue Crushers“)
+ *                                   queue“ und eine TEST-Abgabedatei von „Queue Crushers“;
+ *                                   HACK-015: Wunschprofil an „Predict the queue“)
  *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
  *                                   nur wenn er sich unter /hackathon schon beworben hat;
  *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
@@ -2496,6 +2497,14 @@ async function hackathonChallenges() {
       else await write("TEST-Datensatz queue.csv eintragen", () =>
         admin.from("hack_dataset").insert({ challenge_id: metrik.id, storage_path: pfad, filename: "queue.csv", mime: "text/csv", size_bytes: csv.length }));
     }
+  }
+
+  // HACK-015: Wunschprofil an „Predict the queue“ (passt zur TEST-Bewerbung Datenbewerbung).
+  if (metrik) {
+    await write("Wunschprofil „Predict the queue“ (Skill data_analysis)", () =>
+      admin.from("hack_challenge").update({
+        target_skills: ["data_analysis"], target_profile: "TEST — people who enjoy messy real-world data",
+      }).eq("id", metrik.id));
   }
 
   // HACK-011: Frist und eine TEST-Abgabedatei des TEST-Teams.
