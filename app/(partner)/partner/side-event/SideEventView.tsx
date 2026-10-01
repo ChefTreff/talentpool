@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -168,7 +169,8 @@ export function SideEventView({
         const ort = (x.format_details?.location_text as string | undefined) ?? null;
         const offen = bearbeitet === x.id;
         return (
-          <div key={x.id} className="rounded-ct-md border border-border bg-surface p-5">
+          // `Card` statt eines nachgebauten Kastens (Skill-Regel 3; `p-5` lag neben dem 8-pt-Raster).
+          <Card key={x.id}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="ct-h3 text-ink">{x.title_de ?? t.untitled}</h2>
               <SessionStatusBadge
@@ -252,13 +254,17 @@ export function SideEventView({
                 </div>
               </div>
             )}
-          </div>
+          </Card>
         );
       })}
 
       {canEdit && frei > 0 && !neuOffen && (
         <div>
-          <Button onClick={() => setNeuOffen(true)}>{t.addSideEvent}</Button>
+          {/* Während ein Side-Event bearbeitet wird, ist dort „Speichern“ die
+              primäre Aktion — hinzufügen tritt zurück (Skill-Regel 1). */}
+          <Button variant={bearbeitet ? "secondary" : "primary"} onClick={() => setNeuOffen(true)}>
+            {t.addSideEvent}
+          </Button>
           <p className="ct-help mt-2">{t.remaining.replace("{n}", String(frei))}</p>
         </div>
       )}

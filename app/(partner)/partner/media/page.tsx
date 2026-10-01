@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ButtonLink } from "@/components/ui/Button";
+import { ButtonDownload } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -75,7 +75,8 @@ export default async function PartnerMediaPage() {
                 />
               )}
               <div className="flex flex-wrap items-center gap-3">
-                <ButtonLink href={grafikDownload}>{s.graphicDownload}</ButtonLink>
+                {/* Datei-Downloads über `ButtonDownload` (Skill-Regel 3), nicht als Seitenwechsel. */}
+                <ButtonDownload href={grafikDownload} variant="primary">{s.graphicDownload}</ButtonDownload>
                 <span className="ct-help">
                   {[grafik.filename, dateiGroesse(grafik.size_bytes, t.meta.dateLocale)].filter(Boolean).join(" · ")}
                 </span>
@@ -103,9 +104,9 @@ export default async function PartnerMediaPage() {
                     </span>
                   </span>
                   {link && (
-                    <ButtonLink href={link} variant="secondary" size="sm">
+                    <ButtonDownload href={link} variant="secondary" size="sm">
                       {s.kitDownload}
-                    </ButtonLink>
+                    </ButtonDownload>
                   )}
                 </li>
                 );

@@ -305,7 +305,14 @@ export function TischeView({
               {vorschau.length === MAX_SLOTS ? ` ${t.previewCapped}` : ""}
             </p>
             <div className="mt-3">
-              <Button onClick={anlegen} disabled={saving || vorschau.length === 0}>
+              {/* Eine primäre Aktion je Seite (Skill-Regel 1): solange es keine
+                  Slots gibt, ist Anlegen der nächste Schritt, danach die
+                  Ausschreibung. */}
+              <Button
+                variant={sessions.length === 0 ? "primary" : "secondary"}
+                onClick={anlegen}
+                disabled={saving || vorschau.length === 0}
+              >
                 {saving ? t.saving : t.createSlots}
               </Button>
             </div>
@@ -370,7 +377,11 @@ export function TischeView({
 
           {canEdit && (
             <div>
-              <Button onClick={ausschreibungSpeichern} disabled={saving || sessions.length === 0}>
+              <Button
+                variant={sessions.length === 0 ? "secondary" : "primary"}
+                onClick={ausschreibungSpeichern}
+                disabled={saving || sessions.length === 0}
+              >
                 {saving ? t.saving : t.savePosting}
               </Button>
               <p className="ct-help mt-2">
