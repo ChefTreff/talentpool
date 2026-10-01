@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonDownload } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -33,6 +33,7 @@ const STATUS_TONE: Record<string, BadgeTone> = {
 export function HackView({
   data,
   metric,
+  dataset,
   skills,
   tracks,
   discordUrl,
@@ -43,6 +44,8 @@ export function HackView({
   data: MyHack;
   /** HACK-009: nur bei einer Metrik-Challenge des eigenen Teams. */
   metric: { label: string; value: number | null; confirmed: boolean } | null;
+  /** HACK-012: Datensatz der eigenen Challenge, signiert für 10 Minuten. */
+  dataset: { filename: string; size_bytes: number | null; url: string | null } | null;
   skills: Record<string, string>;
   /** vocab hack_track (HACK-008/010): Schlüssel → Bezeichnung. */
   tracks: Record<string, string>;
@@ -170,6 +173,15 @@ export function HackView({
                 <p>
                   <span className="ct-label">{t.prizes}: </span>
                   <span className="text-muted">{data.challenge.prizes}</span>
+                </p>
+              )}
+              {dataset?.url && (
+                <p className="flex flex-wrap items-center gap-3">
+                  <span className="ct-label">{t.dataset}: </span>
+                  <span className="text-muted">{dataset.filename}</span>
+                  <ButtonDownload href={dataset.url} size="sm" variant="secondary">
+                    {t.datasetDownload}
+                  </ButtonDownload>
                 </p>
               )}
               {data.challenge.resources && (

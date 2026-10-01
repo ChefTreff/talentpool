@@ -1,3 +1,5 @@
+-- 0240 · Initiativen-Funnel mit Verlauf, Stand-Tage, Initiativen-Award mit öffentlicher Abstimmung ohne Personendaten (ADM-022, ADM-024)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001125937.
 -- Initiativen: Funnel-Verlauf mit Notiz, Stand-Tage am Produkt; Initiativen-Award mit öffentlicher Bewerbung und Abstimmung (ADM-022, ADM-024)
 --
 -- **ADM-022 — was schon da ist und bleibt:** Funnel als `org_edition.pipeline_stage`

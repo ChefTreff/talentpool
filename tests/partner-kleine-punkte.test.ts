@@ -91,7 +91,7 @@ describe("PART-039 + PART-075: Anleitungen", () => {
     assert.match(p, /const WIKI_EVENT_APP = "\/partner\/wiki#event-app";/);
   });
 
-  it("jeder Video-Schlüssel einer Seite steht in der Liste für /admin/videos", () => {
+  it("jeder Video-Schlüssel einer Seite steht in der Liste der Medienverwaltung (ADM-063)", () => {
     const bekannt = new Set<string>(VIDEO_SCHLUESSEL.map((v) => v.key));
     const gefunden = new Set<string>();
     for (const datei of dateien("app")) {
@@ -100,7 +100,7 @@ describe("PART-039 + PART-075: Anleitungen", () => {
     // Ohne Fundstelle prüfte der Test nichts.
     assert.ok(gefunden.size >= 3, `zu wenige Fundstellen: ${[...gefunden].join(", ")}`);
     for (const key of gefunden) assert.ok(bekannt.has(key), `${key} fehlt in components/video/schluessel.ts`);
-    const admin = src("app/(admin)/admin/videos/page.tsx");
+    const admin = src("app/(admin)/admin/medien/page.tsx");
     assert.match(admin, /VIDEO_SCHLUESSEL\.map/);
   });
 

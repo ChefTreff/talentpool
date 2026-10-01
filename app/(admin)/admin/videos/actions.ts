@@ -18,7 +18,7 @@ async function ruf(name: string, args: Record<string, unknown>): Promise<Ergebni
     const f = toRpcFailure(error);
     return { ok: false, key: f.key, detail: f.detail };
   }
-  revalidatePath("/admin/videos");
+  revalidatePath("/admin/medien");
   return { ok: true };
 }
 
