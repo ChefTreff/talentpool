@@ -16,6 +16,7 @@ import {
   type MerchField,
 } from "@/lib/partner/merch";
 import { saveProduct, saveProductComponent } from "../actions";
+import { ProduktExtras, type Abgleich } from "./ProduktExtras";
 import { money } from "../format";
 import type { AdminProduct, ProductComponent } from "../types";
 
@@ -55,6 +56,7 @@ const BLANK: AdminProduct = {
   internal_comment: null,
   merch_config: null,
   images: null,
+  stand_days: null,
   source_hubspot: false,
   source_shop: true,
   pass_type: null,
@@ -75,6 +77,9 @@ export function ProductEditor({
   t,
   common,
   rpcMessages,
+  speichern = saveProduct,
+  bestandteil = saveProductComponent,
+  abgleich = null,
 }: {
   products: AdminProduct[];
   components: ProductComponent[];
@@ -92,6 +97,14 @@ export function ProductEditor({
   t: Strings;
   common: { cancel: string; none: string; save: string };
   rpcMessages: Record<string, string>;
+  /**
+   * PROD-006: Schreibwege. Unter /admin/partner die Actions dieses Bereichs;
+   * unter /admin/produktion/produkte eigene mit dem Abschnitt `productCatalog`.
+   */
+  speichern?: typeof saveProduct;
+  bestandteil?: typeof saveProductComponent;
+  /** Fremdschlüssel je SKU für den Abgleich; `null` = kein Abgleich hier (nur das Partner-Team darf ihn starten). */
+  abgleich?: Record<string, Abgleich> | null;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -175,9 +188,11 @@ export function ProductEditor({
     payload.merch_config = merch && merch.length > 0 ? merch : null;
     payload.pass_type = draft.pass_type || null;
     payload.grants_role = draft.grants_role || null;
+    // ADM-022/PROD-006: leerer Text heißt „kein Stand".
+    payload.stand_days = draft.stand_days == null ? "" : String(draft.stand_days);
 
     startTransition(async () => {
-      const res = await saveProduct(payload);
+      const res = await speichern(payload);
       if (!res.ok) {
         toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
         return;
@@ -197,7 +212,7 @@ export function ProductEditor({
       return;
     }
     startTransition(async () => {
-      const res = await saveProductComponent(draft.sku, component.sku, qty);
+      const res = await bestandteil(draft.sku, component.sku, qty);
       if (!res.ok) {
         toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
         return;
@@ -410,6 +425,15 @@ export function ProductEditor({
                 onChange={(e) => patch({ grants_role: e.target.value || null })}
               />
             </Field>
+            <Field label={t.fieldStandDays} htmlFor="p-days" hint={t.standDaysHint}>
+              <Select
+                id="p-days"
+                value={draft.stand_days == null ? "" : String(draft.stand_days)}
+                placeholder={common.none}
+                options={[{ value: "1", label: t.standDaysOne }, { value: "2", label: t.standDaysTwo }]}
+                onChange={(e) => patch({ stand_days: e.target.value === "" ? null : Number(e.target.value) })}
+              />
+            </Field>
             <Field label={t.fieldShopSort} htmlFor="p-sort">
               <Input
                 id="p-sort"
@@ -610,6 +634,18 @@ export function ProductEditor({
               })}
             </ul>
           </div>
+
+          {!isNew && (
+            <ProduktExtras
+              key={draft.sku}
+              sku={draft.sku}
+              bilder={draft.images ?? []}
+              abgleich={abgleich?.[draft.sku] ?? null}
+              syncErlaubt={abgleich !== null}
+              t={t}
+              common={{ cancel: common.cancel }}
+            />
+          )}
 
           {!isNew && (
             <div className="mt-6">

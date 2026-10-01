@@ -87,6 +87,7 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
       { section: "productionBooths", href: "/admin/produktion/staende", label: "productionBooths" },
       { section: "productionOrders", href: "/admin/produktion/bestellungen", label: "productionOrders" },
       { section: "productionFiles", href: "/admin/produktion/dateien", label: "productionFiles" },
+      { section: "productCatalog", href: "/admin/produktion/produkte", label: "productCatalog" },
     ],
   },
   // Catering betrifft Speaker **und** Volunteers; die Zahlen sind bewusst ohne
