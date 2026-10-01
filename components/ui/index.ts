@@ -49,3 +49,4 @@ export { PortraitShape } from "./PortraitShape";
 export { SuchFeld } from "./SuchFeld";
 export { MehrfachAuswahl, type AuswahlOption } from "./MehrfachAuswahl";
 export { Fortschritt } from "./Fortschritt";
+export { useUngesichert, type UngesichertTexte } from "./useUngesichert";

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useUngesichert, type UngesichertTexte } from "@/components/ui/useUngesichert";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -29,12 +30,15 @@ export function MasterclassInhalt({
   canEdit,
   t,
   rpcMessages,
+  unsaved,
 }: {
   session: PartnerFormatSession;
   sprachen: { value: string; label: string }[];
   canEdit: boolean;
   t: Strings;
   rpcMessages: Record<string, string>;
+  /** Rückfrage vor dem Verlassen mit ungesicherten Änderungen (QS-051), Texte aus `common.unsaved` der Seite. */
+  unsaved: UngesichertTexte;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -53,6 +57,8 @@ export function MasterclassInhalt({
   const set = (k: keyof Inhalt, v: string) => setEntwurf((e) => ({ ...e, [k]: v }));
 
   const geaendert = (Object.keys(entwurf) as (keyof Inhalt)[]).filter((k) => entwurf[k].trim() !== basis[k].trim());
+  // Wer tippt und wegklickt, wird gefragt (QS-051).
+  const warnung = useUngesichert(canEdit && geaendert.length > 0, unsaved);
 
   function speichern() {
     if (geaendert.length === 0) return;
@@ -118,6 +124,7 @@ export function MasterclassInhalt({
       ) : (
         <p className="ct-help">{t.noRights}</p>
       )}
+      {warnung}
     </form>
   );
 }

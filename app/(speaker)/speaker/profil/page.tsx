@@ -108,6 +108,7 @@ export default async function SpeakerProfilPage() {
           required: t.common.required,
           save: t.common.save,
           saving: t.common.saving,
+          unsaved: t.common.unsaved,
         }}
         rpcMessages={t.rpc}
         ernaehrung={

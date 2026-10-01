@@ -104,11 +104,14 @@ export function ConfirmDialog({
       <h2 className="ct-h3">{title}</h2>
       <p className="ct-help mt-2">{body}</p>
       {detail && <div className="mt-3">{detail}</div>}
+      {/* `type="button"`: steht die Rückfrage in einem `<form>` (QS-051 rendert sie
+          im Formular), wären die Knöpfe sonst Absenden-Knöpfe — „Weiter
+          bearbeiten“ hätte das Formular gespeichert. */}
       <div className="mt-6 flex gap-2">
-        <Button onClick={onConfirm} disabled={pending}>
+        <Button type="button" onClick={onConfirm} disabled={pending}>
           {confirmLabel}
         </Button>
-        <Button variant="ghost" onClick={onCancel}>
+        <Button type="button" variant="ghost" onClick={onCancel}>
           {cancelLabel}
         </Button>
       </div>

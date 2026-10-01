@@ -2008,6 +2008,12 @@
     "saving": "Speichere …",
     "shown": "angezeigt",
     "supportMailbox": "Fragen? Schreibt uns:",
+    "unsaved": {
+      "body": "Du hast Änderungen, die noch nicht gespeichert sind. Wenn du die Seite verlässt, gehen sie verloren.",
+      "leave": "Seite verlassen",
+      "stay": "Weiter bearbeiten",
+      "title": "Änderungen verwerfen?"
+    },
     "until": "bis",
     "upload": "Hochladen",
     "venueAddress": "Congressplatz 1, 20355 Hamburg",
