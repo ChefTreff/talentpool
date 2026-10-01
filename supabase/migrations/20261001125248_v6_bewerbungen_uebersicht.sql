@@ -1,3 +1,5 @@
+-- 0238 · Bewerbungsliste im Admin über alle Sessions, skalierbar, Sammelentscheidung (ADM-003)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001125248.
 -- Bewerbungen im Admin: Liste über alle Sessions mit Filtern, seitenweise, Sammelentscheidungen (ADM-003)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.

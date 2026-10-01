@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 12:42 UTC · 105 Tabellen · 6 Views · 611 Funktionen
+> Stand: 2026-10-01 12:52 UTC · 105 Tabellen · 6 Views · 613 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2056,6 +2056,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `admin_section_overrides` | args: ? |
 | `ai_take_slot` | p_kind: text, p_limit: integer |
 | `anonymize_person` | p_person_id: uuid |
+| `applications_admin_list` | p_consent: boolean, p_event_id: uuid, p_format: text, p_limit: integer, p_offset: integer, p_query: text, p_session_id: uuid, p_status: text |
 | `applications_for_session` | p_session_id: uuid |
 | `applications_overview` | p_event_id: uuid |
 | `apply_hackathon` | p_data: jsonb |
@@ -2138,6 +2139,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `current_person_id` | args: ? |
 | `day_of_edition` | p_day_id: uuid, p_edition_id: uuid |
 | `decide_application` | p_application_id: uuid, p_rank: integer, p_status: text |
+| `decide_applications` | p_application_ids: uuid[], p_status: text |
 | `decisions_released` | p_session_id: uuid |
 | `decline_companion_ticket` | p_note: text, p_ticket_id: uuid |
 | `decline_hospitality` | p_booking_id: uuid, p_note: text |
