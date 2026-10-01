@@ -158,6 +158,7 @@
 | Welle 6 · 0231 | **Einwilligungstyp: Seed-Altwerte privacy_policy → privacy, Vokabular-Wächter auf consent_record** (`20261001121437`, `v6_consent_type_waechter`; Details im Migrationskopf) | — |
 | Welle 6 · 0232 | **Editionsdateien: Lesen im Bucket edition-files nur für die Zielgruppe der Datei (Security-Check Teil 3, L-S1)** (`20261001121907`, `v6_editionsdateien_lesepolicy`; Details im Migrationskopf) | — |
 | Welle 6 · 0233 | **Hackathon-Tracks je Challenge (HACK-008): Vokabular hack_track, Pflicht bei der Freigabe, Freigabe-Fehler 42P10 behoben** (`20261001122557`, `v6_hack_tracks`; Details im Migrationskopf) | — |
+| Welle 6 · 0234 | **Dubletten zusammenführen mit Vorschau, Protokoll und Rückweg, nur admin (ADM-036)** (`20261001123059`, `v6_dubletten_zusammenfuehren`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

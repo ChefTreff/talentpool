@@ -50,7 +50,7 @@ Auftrag (Konrad, 22.09.2026): „Wir überprüfen einmal, welche Felder wir habe
 | `event` | `parent_event_id` | Nebenevents hängen über `edition_id`; Spalte ohne Nutzung → streichen oder Masterplan-Rest? Entscheidung Architektur |
 | `hack_team` | `note_internal` | Hackathon ruht; bleibt bis zur Feature-Übersicht |
 | `person` | `is_ambassador`, `referred_by_person_id` | Empfehlungs-/Botschafter-Logik nie gebaut → Talent-Chat, Leitbild Community-Portal (TAL-005ff.) oder streichen |
-| `person_merge_log` | `actor`, `merged_at`, `merged_person_id`, `surviving_person_id` | Tabelle ohne Funktion → ADM-036 (Dubletten zusammenführen) |
+| `person_merge_log` | `actor`, `merged_at`, `merged_person_id`, `surviving_person_id` | Tabelle ohne Funktion → ADM-036 (Dubletten zusammenführen): geschrieben von `merge_persons`, gelesen von `person_merges_admin`, zurückgenommen von `unmerge_persons` (#278) |
 | `registration` | `external_source` | ohne Nutzung → mit EA4 (vivenu-Personalisierung) klären |
 | `session` | `swapcard_id` | wird mit EA3 (Slot → Swapcard) belegt |
 | `slot` | `responsible_person_id` | ADM-018 (Verantwortliche je Session) offen |
