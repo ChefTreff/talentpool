@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/Toast";
 import { applyHackathon, createTeam, joinTeam, leaveTeam, submitProject } from "./actions";
 import type { MyHack } from "./types";
 import { MetricForm } from "./MetricForm";
+import { AbgabeDateien, type AbgabeDatei } from "@/components/hackathon/AbgabeDateien";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
@@ -34,6 +35,7 @@ export function HackView({
   data,
   metric,
   dataset,
+  abgabe,
   skills,
   tracks,
   discordUrl,
@@ -46,6 +48,8 @@ export function HackView({
   metric: { label: string; value: number | null; confirmed: boolean } | null;
   /** HACK-012: Datensatz der eigenen Challenge, signiert für 10 Minuten. */
   dataset: { filename: string; size_bytes: number | null; url: string | null } | null;
+  /** HACK-011: Dateien der eigenen Abgabe. */
+  abgabe: AbgabeDatei[];
   skills: Record<string, string>;
   /** vocab hack_track (HACK-008/010): Schlüssel → Bezeichnung. */
   tracks: Record<string, string>;
@@ -226,6 +230,9 @@ export function HackView({
 
       {accepted && data.team && data.challenge && (
         <SubmitCard
+          teamId={data.team.id}
+          deadline={data.challenge.submission_deadline ?? null}
+          abgabe={abgabe}
           submission={data.submission}
           canSubmit={data.team.members.length >= 3}
           pending={pending}
@@ -404,6 +411,9 @@ function TeamForms({
 }
 
 function SubmitCard({
+  teamId,
+  deadline,
+  abgabe,
   submission,
   canSubmit,
   pending,
@@ -411,6 +421,9 @@ function SubmitCard({
   t,
   run,
 }: {
+  teamId: string;
+  deadline: string | null;
+  abgabe: AbgabeDatei[];
   submission: MyHack["submission"];
   canSubmit: boolean;
   pending: boolean;
@@ -427,9 +440,18 @@ function SubmitCard({
     <Card>
       <CardHeader title={t.submitTitle} description={t.submitLead} />
       <div className="flex flex-col gap-4">
+        {/* Frist je Challenge (HACK-011): danach geht es weiter, aber „verspätet“. */}
+        {deadline && (
+          <p className="ct-small">
+            <span className="ct-label">{t.deadline}: </span>
+            {dateTime.format(new Date(deadline))}
+            {new Date(deadline) < new Date() && <span className="ct-help"> · {t.deadlinePassedHint}</span>}
+          </p>
+        )}
         {submission?.submitted_at && (
-          <p className="ct-help">
+          <p className="ct-help flex flex-wrap items-center gap-2">
             {t.submittedAt.replace("{time}", dateTime.format(new Date(submission.submitted_at)))} · {t.resubmitHint}
+            {submission.late && <Badge tone="warning">{t.late}</Badge>}
           </p>
         )}
         <Field label={t.projectUrl} htmlFor="url">
@@ -441,6 +463,10 @@ function SubmitCard({
         <Field label={t.submissionNotes} htmlFor="notes">
           <Textarea id="notes" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </Field>
+        <fieldset className="flex flex-col gap-2">
+          <legend className="ct-label mb-1">{t.files}</legend>
+          <AbgabeDateien teamId={teamId} dateien={abgabe} editierbar dateLocale={dateTime.resolvedOptions().locale} t={t} />
+        </fieldset>
         {!canSubmit && <p className="ct-help text-warning-ink">{t.tooSmall}</p>}
         <div>
           <Button
