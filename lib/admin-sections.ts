@@ -211,7 +211,8 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { key: "contacts", path: "/admin/ansprechpartner", roles: INTERNE_ROLLEN },
   { key: "deadlines", path: "/admin/fristen", roles: INTERNE_ROLLEN },
   { key: "wiki", path: "/admin/wiki", roles: INTERNE_ROLLEN },
-  { key: "videos", path: "/admin/videos", roles: ["marketing_team", "area_lead_speaker", "programme_team"] },
+  // ADM-063: Videos und Links stehen in der zentralen Medienverwaltung.
+  { key: "videos", path: "/admin/medien", roles: ["marketing_team", "area_lead_speaker", "programme_team"] },
   // Der Bausteinkatalog zeigt nur Beispiele, keine Daten.
   { key: "ui", path: "/admin/ui", roles: TEAM_ROLES },
   { key: "vocab", path: "/admin/vokabular", roles: [] },

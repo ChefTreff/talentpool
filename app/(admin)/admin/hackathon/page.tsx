@@ -8,6 +8,8 @@ import { TeamsView } from "@/app/(hackathon)/hackathon/teams/TeamsView";
 import type { HackChallenge, HackOpenChallenge, HackTeamRow, LeaderboardRow } from "@/app/(hackathon)/hackathon/types";
 import { ApplicationsTable, type AdminApplication } from "./ApplicationsTable";
 import { ChallengeTracks } from "./ChallengeTracks";
+import { DatasetUpload } from "@/components/hackathon/DatasetUpload";
+import { datasetUrl, type DatasetTarget } from "@/lib/hackathon/datensatz-server";
 import { MetricResults } from "./MetricResults";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +37,14 @@ export default async function AdminHackathonPage() {
     loadVocabMap(supabase, locale),
   ]);
   const trackLabels = vgroup(vocab, "hack_track");
+  // HACK-012: Datensatz je freigegebener Challenge (Hack-Team pflegt alle).
+  const { data: targetRows } = await supabase.rpc("hack_dataset_targets", { p_language: locale });
+  const datensaetze = await Promise.all(
+    ((targetRows ?? []) as DatasetTarget[]).map(async (d) => ({
+      ...d,
+      url: d.storage_path && d.filename ? await datasetUrl(supabase, d.storage_path, d.filename) : null,
+    })),
+  );
   // HACK-009: Werte je Metrik-Challenge zum Bestätigen.
   const metrikChallenges = ((challenges ?? []) as HackChallenge[]).filter((c) => c.judging_mode === "metric");
   const boards = await Promise.all(
@@ -87,6 +97,27 @@ export default async function AdminHackathonPage() {
                   th={t.hackathon}
                   rpcMessages={t.rpc}
                 />
+              ))}
+            </div>
+          </Card>
+        )}
+        {datensaetze.length > 0 && (
+          <Card>
+            <CardHeader title={tt.datasetsTitle} description={tt.datasetsLead} />
+            <div className="flex flex-col gap-6">
+              {datensaetze.map((d) => (
+                <section key={d.challenge_id} className="flex flex-col gap-2">
+                  <h3 className="ct-h3">
+                    {d.title}
+                    {d.org_name && <span className="ct-help"> · {d.org_name}</span>}
+                  </h3>
+                  <DatasetUpload
+                    challengeId={d.challenge_id}
+                    current={d.filename && d.uploaded_at ? { filename: d.filename, size_bytes: d.size_bytes, uploaded_at: d.uploaded_at, url: d.url } : null}
+                    dateLocale={locale}
+                    t={t.hackDataset}
+                  />
+                </section>
               ))}
             </div>
           </Card>

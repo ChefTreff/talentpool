@@ -11,6 +11,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { FristMarke } from "@/components/ui/FristMarke";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
+import { DatasetUpload } from "@/components/hackathon/DatasetUpload";
+import { datasetUrl, type DatasetTarget } from "@/lib/hackathon/datensatz-server";
 import { getPartnerScope } from "../org";
 import { PflichtUpload } from "../PflichtUpload";
 import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
@@ -47,6 +49,19 @@ export default async function PartnerHackathonPage() {
 
   const overview = (overviewJson ?? null) as PartnerOverview | null;
   const deliverables = (deliverableRows ?? []) as Deliverable[];
+
+  // Datensatz je freigegebener Challenge der eigenen Organisation (HACK-012);
+  // die Liste enthält nur, was die Person pflegen darf.
+  const { data: targetRows } = await supabase.rpc("hack_dataset_targets", {
+    p_edition_id: current.edition_id,
+    p_language: locale,
+  });
+  const datensaetze = await Promise.all(
+    ((targetRows ?? []) as DatasetTarget[]).map(async (d) => ({
+      ...d,
+      url: d.storage_path && d.filename ? await datasetUrl(supabase, d.storage_path, d.filename) : null,
+    })),
+  );
   const s = t.partnerHackathon;
   // Europe/Berlin ausdrücklich: der Server rendert in UTC.
   const dateTime = new Intl.DateTimeFormat(t.meta.dateLocale, {
@@ -161,6 +176,31 @@ export default async function PartnerHackathonPage() {
                   labelFirst={s.backdropUpload}
                   labelNew={s.backdropUploadNew}
                 />
+              </div>
+            </Card>
+          )}
+
+          {/* Datensatz (HACK-012): erst nach der Freigabe, weil er an der Challenge hängt. */}
+          {challenge && (
+            <Card>
+              <h2 className="ct-h3 text-ink">{s.datasetTitle}</h2>
+              <p className="ct-small mt-2 leading-6">{s.datasetLead}</p>
+              <div className="mt-4 flex flex-col gap-6">
+                {datensaetze.length === 0 ? (
+                  <p className="ct-help">{s.datasetAfterPublish}</p>
+                ) : (
+                  datensaetze.map((d) => (
+                    <div key={d.challenge_id} className="flex flex-col gap-2">
+                      {datensaetze.length > 1 && <p className="ct-label">{d.title}</p>}
+                      <DatasetUpload
+                        challengeId={d.challenge_id}
+                        current={d.filename && d.uploaded_at ? { filename: d.filename, size_bytes: d.size_bytes, uploaded_at: d.uploaded_at, url: d.url } : null}
+                        dateLocale={t.meta.dateLocale}
+                        t={t.hackDataset}
+                      />
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
           )}
