@@ -1,4 +1,4 @@
--- Test „Datensatz je Challenge“ (HACK-012, vorschlag/v6_hack_datensatz.sql). Belegt:
+-- Test „Datensatz je Challenge“ (HACK-012, 20261001130250_v6_hack_datensatz.sql). Belegt:
 --   01 Bucket hack-datasets privat, 50 MB; Tabelle ohne Grants; keine Schreib-Policy im Bucket;
 --   02 register_hack_dataset: fremde Person 42501; Partner mit Bearbeitungsrecht darf;
 --      falscher Pfad 22023 path_mismatch; Objekt fehlt P0002; zweite Datei wird aktuell, Audit;
