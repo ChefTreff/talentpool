@@ -1,6 +1,7 @@
 import { requireAdminSection } from "@/lib/auth";
 import { csvCell } from "@/lib/csv";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { loadVocabMap, vlabel } from "@/lib/vocab";
 import type { LogoZeile } from "../page";
 
 export const dynamic = "force-dynamic";
@@ -18,16 +19,20 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   await requireAdminSection("logoWall", "/admin/partner/logos");
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("partner_logo_production");
+  const [{ data, error }, vocab] = await Promise.all([
+    supabase.rpc("partner_logo_production"),
+    loadVocabMap(supabase, "de"),
+  ]);
   if (error) return new Response(error.message, { status: 400 });
   const rows = (data ?? []) as LogoZeile[];
 
-  const head = ["Partner", "Level", "Vektordatei", "Status der Datei", "Pixeldatei", "Einwilligung zum Weissen", "Druckfertig", "Was fehlt"];
+  const head = ["Partner", "Logokategorie", "Level", "Vektordatei", "Status der Datei", "Pixeldatei", "Einwilligung zum Weissen", "Druckfertig", "Was fehlt"];
   const lines = [
     head.map(csvCell).join(";"),
     ...rows.map((r) =>
       [
         r.org_name,
+        vlabel(vocab, "logo_category", r.logo_category),
         r.sponsoring_level ?? "",
         r.vektor_datei ?? "",
         r.vektor_status ?? "",

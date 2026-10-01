@@ -11,6 +11,7 @@ const row: ExhibitorRow = {
   level_key: "premium", level_rank: 40, level_source: "product", categories: ["standflaeche", "hackathon"], industry: "tech-and-it", sponsor_category: "premium_partner",
   partner_category: null, org_type: "corporate", booth_number: "A12", onboarding_status: "filled",
   logo_svg_path: null, logo_png_path: null, logo_png_asset_id: null, swapcard_exhibitor_id: null, members: [],
+  logo_category: "premium", logo_category_rank: 20, logo_category_source: "level",
 };
 
 describe("Event-App-Abbildung", () => {

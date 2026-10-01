@@ -41,7 +41,9 @@ export type PartnerLogoRow = Pick<
   | "logo_svg_path"
   | "logo_png_path"
   | "logo_png_asset_id"
->;
+> &
+  // ADM-046: optional, damit ältere Aufrufer (Trockenlauf-Skript) ohne die Felder weiterlaufen.
+  Partial<Pick<ExhibitorRow, "logo_category" | "logo_category_rank">>;
 
 export type PartnerLogoDocument = {
   _id: string;
@@ -55,6 +57,10 @@ export type PartnerLogoDocument = {
   /** Sortierung der Logo-Wand: Rang aus dem Vokabular (`sort_order`), `UNRANKED` ohne Zuordnung. */
   sponsoringRank: number;
   partnerCategory?: string;
+  /** Logokategorie (ADM-046): `presenting` · `premium` · `official` · `small` · `startup` — Grösse und Platz auf der Website. */
+  logoCategory?: string;
+  /** Sortierung nach Logokategorie (`sort_order` im Vokabular `logo_category`), `UNRANKED` ohne. */
+  logoCategoryRank?: number;
   logoSvg?: { _type: "image"; asset: { _type: "reference"; _ref: string } };
   /** Pfad der freigegebenen SVG-Fassung im Portal — Kennung der Fassung, auch ohne hochgeladenes Asset (Trockenlauf). */
   logoSvgPath: string;
@@ -71,6 +77,7 @@ export type PartnerLogoRefMeta = {
   name?: string;
   sponsoring_key?: string | null;
   sponsoring_rank?: number;
+  logo_category?: string | null;
   logo_transparent?: boolean;
   sanity_asset_id?: string;
   published_at?: string;
@@ -107,12 +114,16 @@ export function partnerLogoDocument(row: PartnerLogoRow, opts: PartnerLogoOption
   if (key) doc.sponsoringLevel = key;
   const category = row.partner_category?.trim();
   if (category) doc.partnerCategory = category;
+  if (row.logo_category) {
+    doc.logoCategory = row.logo_category;
+    doc.logoCategoryRank = row.logo_category_rank ?? UNRANKED;
+  }
   if (opts.svgAssetId) doc.logoSvg = { _type: "image", asset: { _type: "reference", _ref: opts.svgAssetId } };
   if (opts.pngUrl) doc.logoPngUrl = opts.pngUrl;
   return doc;
 }
 
-/** Muss neu veröffentlicht werden? Nur wenn Logo-Fassung, Name, Level oder Rang von der letzten Veröffentlichung abweichen. */
+/** Muss neu veröffentlicht werden? Nur wenn Logo-Fassung, Name, Level, Rang oder Logokategorie von der letzten Veröffentlichung abweichen. */
 export function partnerLogoChanged(meta: PartnerLogoRefMeta | null | undefined, row: PartnerLogoRow): boolean {
   if (!meta) return true;
   return (
@@ -120,7 +131,8 @@ export function partnerLogoChanged(meta: PartnerLogoRefMeta | null | undefined, 
     (meta.png_asset_id ?? null) !== (row.logo_png_asset_id ?? null) ||
     (meta.name ?? "") !== row.name.trim() ||
     (meta.sponsoring_key ?? null) !== levelKey(row) ||
-    (meta.sponsoring_rank ?? UNRANKED) !== (row.sponsoring_rank ?? UNRANKED)
+    (meta.sponsoring_rank ?? UNRANKED) !== (row.sponsoring_rank ?? UNRANKED) ||
+    (row.logo_category !== undefined && (meta.logo_category ?? null) !== (row.logo_category ?? null))
   );
 }
 
@@ -131,6 +143,7 @@ export function partnerLogoRefMeta(row: PartnerLogoRow, sanityAssetId: string | 
     name: row.name.trim(),
     sponsoring_key: levelKey(row),
     sponsoring_rank: row.sponsoring_rank ?? UNRANKED,
+    logo_category: row.logo_category ?? null,
     logo_transparent: transparent,
     sanity_asset_id: sanityAssetId ?? undefined,
     published_at: now.toISOString(),

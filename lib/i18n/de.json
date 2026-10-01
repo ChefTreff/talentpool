@@ -2971,6 +2971,11 @@
     "titleLead": "Willkommen"
   },
   "logoWall": {
+    "categoryAuto": "Automatisch (aus der Stufe)",
+    "categoryDerived": "Automatisch: {kategorie}",
+    "categoryFallback": "ohne Stufe — Auffangsatz Official",
+    "categoryFromLevel": "aus der Sponsoring-Stufe",
+    "colCategory": "Logokategorie",
     "colConsent": "Einwilligung",
     "colLevel": "Level",
     "colMissing": "Was fehlt",
@@ -2982,7 +2987,7 @@
     "csv": "Liste als CSV",
     "empty": "Noch kein Partner in dieser Edition",
     "emptyBody": "Sobald der erste Deal übernommen ist, steht er hier — auch ohne Logo.",
-    "hintCategory": "Die Logokategorie kommt mit ihrem eigenen Feld (ADM-046) dazu — sie hier aus dem Level abzuleiten würde der Druckerei eine Angabe liefern, die später nicht stimmt.",
+    "hintCategory": "Die Logokategorie gilt gleich für Website, Swapcard und die Foto-Wand. „Automatisch“ heißt: aus der Sponsoring-Stufe, und wer keine hat, ist Official — niemand fällt heraus.",
     "lead": "Alle Partner der Edition — auch die ohne Datei. Gedruckt wird nur, was eine Vektordatei **und** die Einwilligung zum Weissen hat.",
     "notPrintable": "nein",
     "printable": "druckfertig",
