@@ -4,7 +4,20 @@
 
 > Konrads Entscheidung vom 17.09.: fünf Build-Chats nach Datenverbund plus ein Design-Chat, dazu die Architektur-/Security-Session (`talentpool-a9`, arbeitet nur für `main`). Höchstens **zwei bis drei Chats gleichzeitig aktiv** — das Wochenkontingent gilt für alle Sessions gemeinsam, und Konrads Review-Zeit ist der Engpass. Ein ruhender Chat verliert nichts: sein Gedächtnis ist das Backlog in `docs/feedback/`.
 
-> **Aktuell gilt die Tabelle „Runde 01.10.“ direkt darunter**; „Runde 26.09.“, „Pause 25.09. Mittag“, „Neustart 25.09.“, die Tabelle „Pause 24.09. spät“ und die Texte vom Abend sind überholt. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+> **Aktuell gilt die Tabelle „Pause 01.10. abends“ direkt darunter**; „Runde 01.10.“, „Runde 26.09.“, „Pause 25.09. Mittag“, „Neustart 25.09.“, die Tabelle „Pause 24.09. spät“ und die Texte vom Abend sind überholt. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+
+## Pause 01.10. abends (Sitzungslimit) — Stand und Fortsetzung je Chat
+
+Alle Chats wurden angewiesen, Begonnenes abzuschließen und in Pause zu gehen. Bei der Rückkehr reicht je Chat **eine Zeile**: „Weiter nach der Pause vom 01.10., siehe docs/chat-startpakete.md (Tabelle „Pause 01.10. abends“) und docs/entscheidungen.md ab 01.10.“ — Worktree vorher auf origin/main. Konrads Antworten (K-03, K-13, K-34, K-43–K-49) kommen vorher; was daran hängt, wartet.
+
+| Chat | Stand bei der Pause | Weiter nach der Pause |
+|---|---|---|
+| Admin & Schnittstellen | Runde 01.10. bis Punkt 4 erledigt: ADM-008 #257, ADM-031 #260, ADM-061 #262, ADM-047 #264, ADM-038 #266, ADM-042 #268 (Vorschau für den vorhandenen Hallenplan live), QS-032 #271, ADM-033/035 #273; kein Zwischenstand | ADM-036 Dubletten zusammenführen (Vorschau, Protokoll, Rückweg; vor der Altdaten-Migration) → ADM-046 Logokategorie → ADM-022 + ADM-024 → ADM-063 Medienverwaltung → PROD-004 + PROD-005, PROD-009, PROD-006 → ADM-045 prüfen. Worktree .claude/worktrees/admin, Branch je Punkt von origin/main, gezielt stagen. Offen bei Konrad: K-47, K-49, Browser-Klicks ADM-031 und erstes Kiosk-Gerät |
+| Speaker-Domäne | QS-023 #259, ADM-044/PART-058 #269 gemergt; kein Zwischenstand | SPK-023 nach K-03 (Dienstkonto Drive), SPK-046 nach den Website-Kontakten (Patrick, Juliane), Blick auf den Board-Kern-Diff von #238 nach dem Merge (Design hat gebaut, Speaker prüft nach) |
+| Design | Runde 01.10. komplett (#258, #261, #263, #265, #267); #238 LEAD-017 von Konrad freigegeben, Tabelle/Schubfach/Partner-Tabelle nachgezogen, wartet auf Gate und Merge | Rest von PART-058 (Kategorisierung der Wiki-Liste, Wiki-Gestaltung) als Vorschlag; QS-054-Rest beim nächsten Anfassen der Seiten; sonst Konrads Design-Runde |
+| Talent, Hackathon & Volunteers | HACK-005 #256 (0223), HACK-006 #255, HACK-007 #270 (0228), ADM-055 #272; Testdaten partner mit Challenge gefahren; sechs Wiki-Entwürfe geprüft (Veröffentlichung = K-48, Konrads Klick) — Startpaket des Chats folgt | TAL-009/010/011 nach K-43, VOL-002 nach K-44; HACK-001 Pflege (Discord-Link, Konrad) |
+| Partner | Alle PRs der Runde 26.09. live; ADM-003 (skalierbare Bewerbungs-Übersicht) in Arbeit — Startpaket des Chats folgt | ADM-003 fertigstellen oder aus dem WIP weiter; PART-010 Oktober-Preise, PART-077 Laura |
+| Architektur-Session | Migrationen bis 0228 live (0229/0230 mit #272/#273), Snapshot 622, Rollen-Probe 6/6, Next 16.3.8; 46/77 Punkte des Durchgangs erledigt (60 %) vor den letzten Merges | Merges und Migrationen ab 0231; Doku-Tabellen-Konflikte vorab vereinigen; Security-Check Teil 3 Rest (Storage-Policies je Rolle); CSP nach Bauende (K-13) |
 
 ## Runde 01.10. — ohne Konrad finalisieren (Konrad ab spätem Nachmittag wieder da)
 
