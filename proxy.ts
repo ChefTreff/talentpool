@@ -15,10 +15,13 @@ import { supabaseAnonKey, supabaseUrl } from "@/lib/supabase/env";
  */
 
 /** Öffentlich erreichbar, auch ohne Login (Arbeitsauftrag B6). `/api/csp-report` nimmt Browser-Meldungen zur CSP an. */
-const PUBLIC_PATHS = ["/", "/login", "/tickets/bestaetigung", "/api/csp-report"];
+// `/award` und `/award/bewerben`: öffentliche Award-Seiten ohne Login (ADM-024, Konrad 25.09.: „Abstimmung muss öffentlich sein").
+const PUBLIC_PATHS = ["/", "/login", "/tickets/bestaetigung", "/api/csp-report", "/award", "/award/bewerben"];
 // `/api/cron/` prüft das Vercel-Cron-Secret selbst, `/api/webhooks/` die Signatur des Absenders;
 // ohne Ausnahme würde der Proxy beide zum Login umleiten.
-const PUBLIC_PREFIXES = ["/auth/", "/api/cron/", "/api/webhooks/"];
+// `/api/award/`: Bewerbung und Stimme — die Routen rufen nur Server-Funktionen, die Frist, Status und
+// Ratenbegrenzung selbst prüfen (ADM-024).
+const PUBLIC_PREFIXES = ["/auth/", "/api/cron/", "/api/webhooks/", "/api/award/"];
 
 function isPublic(pathname: string): boolean {
   return (

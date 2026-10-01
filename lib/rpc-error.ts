@@ -199,6 +199,8 @@ const BUSINESS_KEYS = new Set([
   "request_not_found",
   "invalid_reason",
   "invalid_state",
+  // ADM-022: Stand-Tage am Produkt.
+  "invalid_stand_days",
   // ADM-036: Dubletten zusammenführen (`person_not_found` steht schon oben).
   "same_person",
   "person_deleted",
