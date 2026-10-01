@@ -1,5 +1,5 @@
 create or replace function hack_challenges(p_edition_id uuid DEFAULT NULL::uuid, p_language text DEFAULT 'en'::text)
- RETURNS TABLE(id uuid, title text, description text, prizes text, resources text, mentors jsonb, criteria jsonb, org_name text, teams integer)
+ RETURNS TABLE(id uuid, title text, description text, prizes text, resources text, mentors jsonb, criteria jsonb, org_name text, teams integer, track text, judging_mode text, metric_label text, metric_higher_better boolean)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -11,7 +11,8 @@ begin
            hack_text(c.description_de, c.description_en, p_language),
            c.prizes, c.resources, c.mentors, c.criteria,
            coalesce(o.communication_name, o.legal_name),
-           (select count(*)::integer from hack_team t where t.challenge_id = c.id and t.status <> 'withdrawn')
+           (select count(*)::integer from hack_team t where t.challenge_id = c.id and t.status <> 'withdrawn'),
+           c.track, c.judging_mode, c.metric_label, c.metric_higher_better
       from hack_challenge c
       left join organization o on o.id = c.org_id
      where c.edition_id = hack_edition(p_edition_id) and c.status = 'published'

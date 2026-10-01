@@ -141,4 +141,10 @@ begin
   --     ihre Löschung nicht überleben. Status, Hürden und Zeitpunkt bleiben —
   --     das ist der Nachweis, und der trägt keinen Personenbezug.
   update profile_deletion_request set reason = null where person_id = p_person_id;
+
+  -- 10 · ADM-036: Zusammenführungen, in denen diese Person die bleibende war,
+  --      tragen im Protokoll die Daten der zweiten Person (für den Rückweg).
+  --      Mit der Löschung gibt es keinen Rückweg mehr; die Zeile bleibt als
+  --      Nachweis, dass zusammengeführt wurde.
+  update person_merge_log set payload = null where surviving_person_id = p_person_id;
 end $$;

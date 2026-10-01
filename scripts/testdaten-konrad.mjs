@@ -31,6 +31,9 @@
  *                                   Konrad zugesagt, TEST-Person ohne Einwilligung;
  *                                   PART-092: Konrads Bewerbung als Wunsch des Stopps;
  *                                   braucht den Schritt tour)
+ *   … --apply --nur=bewerbungen    (ADM-003: drei TEST-Masterclasses mit je 20 TEST-
+ *                                   Bewerbungen ohne Mail, jede dritte ohne Einwilligung —
+ *                                   Liste, Filter, Blättern und Sammelaktion im Admin)
  *   … --apply --nur=formate        (PART-082: Side-Event und Interview Table der Test-
  *                                   Organisation mit Fläche, Session und Konrads
  *                                   Bewerbung ohne Mail; braucht partner)
@@ -70,6 +73,21 @@
  *   … --apply --nur=folien         (SPK-023: TEST-Präsentation am TEST-Assistenz-Talk
  *                                   für die Karte „Folien in Drive“ in /admin/technik;
  *                                   braucht buehne und assistenz)
+ *   … --apply --nur=dubletten      (ADM-036: zwei TEST-Personen als Dublettenpaar, für
+ *                                   Vorschau, Zusammenführen und Rückweg; ohne Konto)
+ *   … --apply --nur=award          (ADM-024: TEST-Bewerbung zum Initiativen-Award, Status
+ *                                   „Neu" — nicht öffentlich, bis Konrad sie annimmt)
+ *   … --apply --nur=hackathon      (HACK-008: zwei freigegebene TEST-Challenges der
+ *                                   Test-Organisation in zwei Tracks — Filter auf
+ *                                   /hackathon/challenges, Track-Liste in /admin/hackathon;
+ *                                   HACK-009: „Predict the queue“ als Metrik-Challenge mit
+ *                                   TEST-Team und unbestätigtem Wert zum Bestätigen;
+ *                                   HACK-010: zwei TEST-Bewerbungen mit Track-Wunsch und
+ *                                   Profil für den Track-Filter in /admin/hackathon;
+ *                                   HACK-012: TEST-Datensatz (CSV) an „Predict the queue“)
+ *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
+ *                                   nur wenn er sich unter /hackathon schon beworben hat;
+ *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -1783,6 +1801,109 @@ async function tourBewerbung(me, ed) {
 }
 
 /**
+ * Schritt `bewerbungen` (ADM-003): drei TEST-Masterclasses mit je zwanzig
+ * TEST-Bewerbungen, damit `/admin/bewerbungen` über mehrere Sessions filtert,
+ * blättert (60 Bewerbungen, 50 je Seite) und gesammelt entscheidet. Zwanzig
+ * TEST-Personen (Vorname TEST, Plus-Adressen von Konrads Postfach über
+ * `testdaten_person`) bewerben sich auf alle drei; jede dritte ohne
+ * Einwilligung, die Stände gemischt, je Session eine TEST-Frage mit Antwort,
+ * an jeder Person eine TEST-Angabe im Profil (Arbeitgeber oder Hochschule).
+ *
+ * **Ohne Mail:** `applied` löste über `trg_application_mail` die Mail
+ * `application_received` aus — deshalb nur `shortlisted`, `accepted`,
+ * `waitlisted` und `declined`. Solange die Entscheidungen einer Session nicht
+ * freigegeben sind, geht dabei nichts raus; sind sie es, lässt der Schritt die
+ * Session aus. Die Sessions bleiben Entwurf ohne Slot und ohne Partner — im
+ * Programm erscheinen sie nirgends. Ein zweiter Lauf setzt die Stände zurück.
+ */
+const BEWERBUNG_SESSIONS = 3;
+const BEWERBUNG_PERSONEN = 20;
+const BEWERBUNG_STAENDE = ["shortlisted", "accepted", "shortlisted", "waitlisted", "shortlisted", "declined"];
+const zweistellig = (i) => String(i).padStart(2, "0");
+const bewerbungAdresse = (i) => email.replace("@", `+zztest-bew-${zweistellig(i)}@`);
+
+async function bewerbungenSchritt(me, ed) {
+  const eventId = (await summit(ed))?.id ?? ed.id;
+  const anzahl = BEWERBUNG_SESSIONS * BEWERBUNG_PERSONEN;
+  if (mode === "dry-run") {
+    note(`Bewerbungsliste: ${BEWERBUNG_SESSIONS} TEST-Masterclasses, ${BEWERBUNG_PERSONEN} TEST-Personen, ` +
+      `${anzahl} Bewerbungen ohne Mail (jede dritte ohne Einwilligung)`);
+    return;
+  }
+
+  const personen = [];
+  for (let i = 1; i <= BEWERBUNG_PERSONEN; i++) {
+    const { data: personId, error } = await admin.rpc("testdaten_person", {
+      p_first_name: "TEST", p_last_name: `Bewerbung ${zweistellig(i)}`, p_email: bewerbungAdresse(i),
+    });
+    if (error || !personId) {
+      fail(`TEST-Person Bewerbung ${zweistellig(i)}`, error ?? "keine Person");
+      return;
+    }
+    personen.push(personId);
+  }
+  note(`${personen.length} TEST-Personen (${bewerbungAdresse(1)} … ${bewerbungAdresse(BEWERBUNG_PERSONEN)})`);
+  // Profilangaben für die aufgeklappte Zeile — nur an TEST-Personen ohne Konto.
+  await write("TEST-Angaben im Profil (Arbeitgeber bzw. Hochschule)", async () => {
+    for (const [i, personId] of personen.entries()) {
+      const angabe = i % 2 === 0
+        ? { employer_name: `${PREFIX}Arbeitgeber ${zweistellig(i + 1)}`, university: null }
+        : { university: `${PREFIX}Hochschule ${zweistellig(i + 1)}`, employer_name: null };
+      const { error } = await admin.from("person").update(angabe)
+        .eq("id", personId).eq("first_name", "TEST").is("auth_user_id", null);
+      if (error) return { data: null, error };
+    }
+    return { data: null, error: null };
+  });
+
+  const jetzt = new Date().toISOString();
+  for (let j = 1; j <= BEWERBUNG_SESSIONS; j++) {
+    const titel = `${PREFIX}Masterclass Liste ${j}`;
+    let { data: se } = await admin.from("session").select("id")
+      .eq("event_id", eventId).eq("title_de", titel).maybeSingle();
+    if (!se) {
+      se = await write(`Session ${titel} (Entwurf, Bewerbung)`, () =>
+        admin.from("session").insert({
+          event_id: eventId, format: "masterclass",
+          title_de: titel, title_en: `${PREFIX}Masterclass list ${j}`,
+          description_de: "Testformat für die Bewerbungsliste im Admin (ADM-003).",
+          description_en: "Test format for the application list in the admin area (ADM-003).",
+          language: "de", access_mode: "application", publish_status: "draft", capacity: 12,
+          application_deadline: new Date(Date.now() + 30 * 86400000).toISOString(),
+        }).select("id").single(),
+      );
+    }
+    if (!se) return;
+    const { data: freigegeben, error: fe } = await admin.rpc("decisions_released", { p_session_id: se.id });
+    if (fe || freigegeben) {
+      fail(titel, fe ?? "Entscheidungen sind freigegeben — die Stände würden Mails auslösen");
+      continue;
+    }
+    const frageText = `${PREFIX}Was möchtest du in der Masterclass lernen?`;
+    let { data: frage } = await admin.from("session_question").select("id")
+      .eq("session_id", se.id).eq("label_de", frageText).maybeSingle();
+    if (!frage) {
+      frage = await write(`TEST-Frage der ${titel}`, () =>
+        admin.from("session_question").insert({
+          session_id: se.id, label_de: frageText, label_en: "TEST — What do you want to learn in the masterclass?",
+          type: "textarea", required: false, sort_order: 1, purpose: "Testdaten", approved_at: jetzt,
+        }).select("id").single(),
+      );
+    }
+    if (!frage) return;
+    const zeilen = personen.map((personId, i) => ({
+      session_id: se.id, person_id: personId,
+      status: BEWERBUNG_STAENDE[(i + j) % BEWERBUNG_STAENDE.length], rank: null,
+      decided_at: jetzt, confirm_by: null, consent_share: i % 3 !== 2,
+      answers: { [frage.id]: `TEST-Antwort ${zweistellig(i + 1)} zur ${titel}.` },
+    }));
+    await write(`${titel}: ${zeilen.length} TEST-Bewerbungen (ohne Mail)`, () =>
+      admin.from("application").upsert(zeilen, { onConflict: "session_id,person_id" }),
+    );
+  }
+}
+
+/**
  * Schritt `formate` (PART-082): Side-Event und Interview Table der Test-
  * Organisation, damit `/partner/side-event` und `/partner/interview-tables` mit
  * ihren Reitern (Bewerbungen, Teilnehmende, Fragen) etwas zeigen. Je Format eine
@@ -2363,6 +2484,130 @@ async function mediaSchritt(me, ed) {
   }
 }
 
+/**
+ * HACK-008: zwei freigegebene TEST-Challenges in verschiedenen Tracks, ohne
+ * Formular dahinter (deliverable_id leer) — Konrads eigenes Challenge-Formular
+ * bleibt offen, damit er den Partner-Weg selbst gehen kann.
+ */
+const TEST_CHALLENGES = [
+  { title_en: `${PREFIX}Predict the queue`, track: "data_science", description_en: "Predict waiting times at the summit entrance from last year's check-in data.",
+    judging: { judging_mode: "metric", metric_label: "MAE (minutes)", metric_higher_better: false } },
+  { title_en: `${PREFIX}Pitch the canteen of 2030`, track: "concept", description_en: "Design a concept for a zero-waste canteen and pitch it in five minutes." },
+];
+
+/** HACK-010: Bewerbungen ohne Konto (+zztest-hack-N), Track-Wunsch und Profil. */
+const hackAdresse = (i) => email.replace("@", `+zztest-hack-${i}@`);
+const TEST_BEWERBUNGEN = [
+  { nachname: "Datenbewerbung", tracks: ["data_science", "physical_ai"], skills: ["data_analysis"],
+    studium: "Wirtschaftsinformatik", jahr: 2027, motivation: "TEST — loves messy datasets." },
+  { nachname: "Konzeptbewerbung", tracks: ["concept"], skills: ["strategy"],
+    studium: "Management (M.Sc.)", jahr: 2026, motivation: "TEST — wants to pitch." },
+];
+
+async function hackathonChallenges() {
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) return fail("Hackathon-Challenges", "Test-Organisation fehlt — erst --nur=partner");
+  const { data: hackEd, error: he } = await admin.rpc("hack_edition", { p_edition_id: null });
+  if (he || !hackEd) return fail("Hackathon-Edition", he ?? "keine");
+  for (const [i, c] of TEST_CHALLENGES.entries()) {
+    const { data: da } = await admin.from("hack_challenge").select("id, track, judging_mode")
+      .eq("edition_id", hackEd).eq("title_en", c.title_en).maybeSingle();
+    if (da) {
+      const soll = c.judging?.judging_mode ?? "jury";
+      if (da.track !== c.track || da.judging_mode !== soll) {
+        await write(`${c.title_en}: Track ${c.track}, Auswertung ${soll}`, () =>
+          admin.from("hack_challenge").update({ track: c.track, ...(c.judging ?? {}) }).eq("id", da.id));
+      } else note(c.title_en, "steht schon");
+      continue;
+    }
+    await write(`${c.title_en} (${c.track})`, () =>
+      admin.from("hack_challenge").insert({
+        edition_id: hackEd, org_id: org.id, title_en: c.title_en, description_en: c.description_en,
+        track: c.track, status: "published", sort_order: 900 + i, mentors: [],
+        criteria: [{ key: "c1", label: "Impact", weight: 100 }], ...(c.judging ?? {}),
+      }),
+    );
+  }
+
+  // HACK-009: TEST-Team an der Metrik-Challenge mit unbestätigtem Wert — Konrad
+  // bestätigt ihn in /admin/hackathon, danach steht das Team im Leaderboard.
+  const { data: metrik } = await admin.from("hack_challenge").select("id")
+    .eq("edition_id", hackEd).eq("title_en", TEST_CHALLENGES[0].title_en).maybeSingle();
+  if (!metrik) {
+    note("TEST-Team an der Metrik-Challenge", "nach dem Anlegen der Challenge");
+  } else {
+    await write("TEST-Team „Queue Crushers“ mit Wert 4.2 (unbestätigt)", async () => {
+      const team = await admin.from("hack_team").upsert({
+        edition_id: hackEd, name: `${PREFIX}Queue Crushers`, join_code: `${PREFIX_CODE}Q`, challenge_id: metrik.id,
+      }, { onConflict: "edition_id,join_code" }).select("id").single();
+      if (team.error) return team;
+      const { data: da } = await admin.from("hack_metric_result").select("team_id").eq("team_id", team.data.id).maybeSingle();
+      if (da) return { data: null, error: null };
+      return admin.from("hack_metric_result").insert({ team_id: team.data.id, value: 4.2, note: "TEST" });
+    });
+  }
+
+  // HACK-012: TEST-Datensatz an der Metrik-Challenge (Bucket hack-datasets, privat).
+  if (metrik) {
+    const { data: ds } = await admin.from("hack_dataset").select("id").eq("challenge_id", metrik.id).eq("is_current", true).maybeSingle();
+    if (ds) {
+      note("TEST-Datensatz", "steht schon");
+    } else if (mode === "dry-run") {
+      note("TEST-Datensatz queue.csv (hack-datasets, Zeile in hack_dataset)");
+    } else {
+      const csv = Buffer.from("timestamp,gate,waiting_minutes\n2026-04-16T08:00,A,4\n2026-04-16T08:15,A,7\n2026-04-16T08:00,B,2\n", "utf8");
+      const pfad = `${metrik.id}/zztest-queue.csv`;
+      const hoch = await admin.storage.from("hack-datasets").upload(pfad, csv, { contentType: "text/csv", upsert: true });
+      if (hoch.error) fail("TEST-Datensatz hochladen", hoch.error);
+      else await write("TEST-Datensatz queue.csv eintragen", () =>
+        admin.from("hack_dataset").insert({ challenge_id: metrik.id, storage_path: pfad, filename: "queue.csv", mime: "text/csv", size_bytes: csv.length }));
+    }
+  }
+
+  for (const [i, b] of TEST_BEWERBUNGEN.entries()) {
+    await write(`TEST-Bewerbung ${b.nachname} (${b.tracks.join(", ")})`, async () => {
+      const { data: personId, error } = await admin.rpc("testdaten_person", {
+        p_first_name: "TEST", p_last_name: b.nachname, p_email: hackAdresse(i + 1),
+      });
+      if (error) return { data: null, error };
+      const pr = await admin.from("person").update({ study_program_label: b.studium, graduation_year: b.jahr })
+        .eq("id", personId).eq("first_name", "TEST");
+      if (pr.error) return pr;
+      const sk = await admin.from("person_interest").upsert(
+        b.skills.map((k) => ({ person_id: personId, vocabulary: "skill", term_key: k })),
+        { onConflict: "person_id,vocabulary,term_key" });
+      if (sk.error) return sk;
+      return admin.from("hack_application").upsert({
+        person_id: personId, edition_id: hackEd, skills: [], motivation: b.motivation, track_prefs: b.tracks,
+      }, { onConflict: "person_id,edition_id" });
+    });
+  }
+}
+
+/**
+ * HACK-009/012: Konrad ins TEST-Team an der Metrik-Challenge — damit er
+ * Datensatz-Download und Metrik-Eingabe als Teilnehmer sieht. Nur nach seiner
+ * eigenen Bewerbung (der Walkthrough der Bewerbung bleibt sein Klick); seine
+ * Zusage gibt er sich in /admin/hackathon selbst. Ein vorhandenes eigenes Team
+ * wird nicht angefasst (eine Person, ein Team je Edition).
+ */
+async function hackathonTeam(me) {
+  const { data: hackEd } = await admin.rpc("hack_edition", { p_edition_id: null });
+  if (!hackEd) return fail("Hackathon-Team", "keine Hackathon-Edition");
+  const { data: bew } = await admin.from("hack_application").select("id, status")
+    .eq("person_id", me.id).eq("edition_id", hackEd).maybeSingle();
+  if (!bew) return fail("Hackathon-Team", "Konrad hat sich noch nicht beworben — erst unter /hackathon bewerben");
+  const { data: team } = await admin.from("hack_team").select("id")
+    .eq("edition_id", hackEd).eq("name", `${PREFIX}Queue Crushers`).maybeSingle();
+  if (!team) return fail("Hackathon-Team", "TEST-Team fehlt — erst --nur=hackathon");
+  const { data: schon } = await admin.from("hack_team_member").select("team_id")
+    .eq("person_id", me.id).eq("edition_id", hackEd).maybeSingle();
+  if (schon) return note("Hackathon-Team", schon.team_id === team.id ? "Konrad ist schon drin" : "Konrad hat ein eigenes Team — unverändert");
+  await write("Konrad im TEST-Team „Queue Crushers“", () =>
+    admin.from("hack_team_member").insert({ team_id: team.id, person_id: me.id, edition_id: hackEd }));
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -2434,6 +2679,71 @@ async function sperrlisteEintrag() {
 }
 
 /**
+ * ADM-036: zwei TEST-Personen ohne Konto als Dublettenpaar — gleiche
+ * LinkedIn-Angabe, die zweite mit Telefon und einem Interesse mehr. Konrad
+ * öffnet unter `/admin/dubletten` die Vorschau, führt zusammen und nimmt es
+ * unter „Zusammengeführt" wieder zurück. Adressen aus seinem eigenen Postfach
+ * (`+zztest-dublette-a/-b`); es entsteht kein Login und keine Mail. Nach einem
+ * Zusammenführen gehört die zweite Adresse der ersten Person — dann sagt der
+ * Lauf das und legt nichts Neues an (erst den Rückweg nehmen).
+ */
+async function dublettenPaar() {
+  const ids = [];
+  for (const [teil, nachname] of [["a", "Dublette"], ["b", "Dublette"]]) {
+    ids.push(await write(`TEST-Person ${teil} fuer das Dublettenpaar`, () =>
+      admin.rpc("testdaten_person", {
+        p_first_name: "TEST", p_last_name: nachname, p_email: email.replace("@", `+zztest-dublette-${teil}@`),
+      }),
+    ));
+  }
+  const [a, b] = ids;
+  if (!a || !b) return;
+  if (a === b) return note("Dublettenpaar", "schon zusammengeführt — unter /admin/dubletten → Zusammengeführt zurücknehmen, dann erneut laufen lassen");
+  const linkedin = "zztest-dublette-konrad";
+  await write("LinkedIn-Angabe beider TEST-Personen", () =>
+    admin.from("person").update({ linkedin_normalized: linkedin }).in("id", [a, b]));
+  await write("Telefon der zweiten TEST-Person", () =>
+    admin.from("person").update({ phone: "+49 40 000000" }).eq("id", b).is("phone", null));
+  await write("Interessen des Paars", () =>
+    admin.from("person_interest").upsert([
+      { person_id: a, vocabulary: "interests", term_key: "engineering-tech" },
+      { person_id: b, vocabulary: "interests", term_key: "engineering-tech" },
+      { person_id: b, vocabulary: "interests", term_key: "finance-banking" },
+    ], { onConflict: "person_id,vocabulary,term_key", ignoreDuplicates: true }));
+  const [x, y] = a < b ? [a, b] : [b, a];
+  await write("Dublettenpaar in der Liste", () =>
+    admin.from("potential_duplicate").upsert(
+      { person_id_a: x, person_id_b: y, score: 0.9, signals: { linkedin: true } },
+      { onConflict: "person_id_a,person_id_b", ignoreDuplicates: true }));
+  note("Dubletten ausprobieren", "/admin/dubletten → „Zusammenführen prüfen“ beim Paar TEST Dublette");
+}
+
+/**
+ * ADM-024: eine TEST-Bewerbung zum Initiativen-Award mit Status „Neu" — sie
+ * steht unter /admin/initiativen/award, aber **nicht** auf der öffentlichen
+ * Seite /award, bis Konrad sie annimmt (dann ist sie dort für alle sichtbar;
+ * zurück auf „Neu" oder Löschen nimmt sie wieder weg). Direkt geschrieben, nicht
+ * über die öffentliche Route: so zählt sie nicht zur Ratenbegrenzung. Ansprechperson
+ * ist Konrads eigenes Postfach mit `+zztest-award`.
+ */
+async function awardBewerbung(me, ed) {
+  const name = `${PREFIX}Initiative für den Award`;
+  await write("TEST-Bewerbung zum Initiativen-Award", async () => {
+    const { data: da } = await admin.from("award_application").select("id").eq("edition_id", ed.id).eq("name", name).maybeSingle();
+    if (da) return { data: da, error: null };
+    return admin.from("award_application").insert({
+      edition_id: ed.id, name, topics: ["tech_ai", "sustainability"], location: "Hamburg",
+      description: "TEST — Beschreibung der Organisation für den Klickweg im Admin.",
+      mission: "TEST — Mission und Vision.", project: "TEST — ein Projekt, auf das wir stolz sind.",
+      contact_first_name: me.first_name ?? "Konrad", contact_last_name: me.last_name ?? "TEST",
+      contact_email: email.replace("@", "+zztest-award@"), founded_year: 2020, active_members: 25,
+      privacy_consent_at: new Date().toISOString(), source: "admin", status: "submitted",
+    });
+  });
+  note("Award ausprobieren", "/admin/initiativen/award → TEST-Bewerbung; Status „In der Abstimmung“ macht sie unter /award sichtbar");
+}
+
+/**
  * SPK-069: zwei TEST-Shuttle-Fahrten an Konrads eigenem Speaker-Profil — eine
  * angefragt (Anreise am ersten Summit-Tag), eine bestätigt (Abreise am letzten).
  * Erst damit zeigen `/admin/anreise` und `/speaker-leads/anreise` die Abzeichen
@@ -2478,9 +2788,12 @@ async function shuttleFahrten(me, ed) {
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
+  hackathon: hackathonChallenges,
+  "hackathon-team": hackathonTeam,
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
+  bewerbungen: bewerbungenSchritt,
   masterclass: masterclassSchritt,
   formate: formateSchritt,
   ticket: speakerTicket,
@@ -2503,6 +2816,8 @@ const SCHRITTE = {
   loeschung: loeschungTestperson,
   sperrliste: sperrlisteEintrag,
   folien: folienSchritt,
+  dubletten: dublettenPaar,
+  award: awardBewerbung,
 };
 
 async function teilschritte(me, ed, namen) {
@@ -2520,6 +2835,25 @@ async function remove(me) {
     const { data: hash, error } = await admin.rpc("email_hash", { p_email: sperrAdresse() });
     if (error) return { data: null, error };
     return admin.from("suppression").delete().eq("email_hash", hash).eq("reason", "manual");
+  });
+  await write("TEST-Datensätze Hackathon entfernt", async () => {
+    const { data: zeilen } = await admin.from("hack_dataset").select("storage_path").like("storage_path", "%/zztest-%");
+    const pfade = (zeilen ?? []).map((z) => z.storage_path);
+    if (pfade.length > 0) await admin.storage.from("hack-datasets").remove(pfade);
+    return admin.from("hack_dataset").delete().like("storage_path", "%/zztest-%");
+  });
+  await write("TEST-Team Hackathon entfernt (Metrik-Wert und Mitgliedschaft gehen mit)", () =>
+    admin.from("hack_team").delete().like("name", `${PREFIX}%`),
+  );
+  await write("TEST-Challenges entfernt", () =>
+    admin.from("hack_challenge").delete().like("title_en", `${PREFIX}%`),
+  );
+  await write("TEST-Bewerbungen Hackathon entfernt (Bewerbung und Interessen gehen mit)", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", TEST_BEWERBUNGEN.map((_, i) => hackAdresse(i + 1)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
   await write("Rollen entfernt", () =>
     admin.from("role_assignment").delete().eq("person_id", me.id).eq("note", MARK),
@@ -2648,6 +2982,15 @@ async function remove(me) {
       .eq("email", tourBewerbungAdresse()).maybeSingle();
     if (!adresse) return { data: null, error: null };
     return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  // ADM-003: die TEST-Personen der Bewerbungsliste; ihre Bewerbungen hängen mit ON DELETE CASCADE
+  // an ihnen, die Sessions gehen oben mit dem Präfix.
+  await write("TEST-Personen der Bewerbungsliste entfernt", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", Array.from({ length: BEWERBUNG_PERSONEN }, (_, i) => bewerbungAdresse(i + 1)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
   await write("Talk-Speaker entfernt (Profil, Kontakt, Zuordnung)", async () => {
     const { data: adressen } = await admin.from("person_email").select("person_id")

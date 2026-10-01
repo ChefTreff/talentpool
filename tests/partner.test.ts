@@ -338,6 +338,8 @@ describe("Fehlerschlüssel des Partner-Kontrakts", () => {
     // PART-072: Links je Schlüssel (Store-Links der Event-App)
     { code: "22023", message: "portal_link_url", key: "portal_link_url" },
     { code: "22023", message: "portal_link_key", key: "portal_link_key" },
+    // ADM-003: Sammelentscheidung höchstens 200 je Aufruf
+    { code: "22023", message: "too_many_applications", key: "too_many_applications" },
   ];
 
   for (const c of CASES) {

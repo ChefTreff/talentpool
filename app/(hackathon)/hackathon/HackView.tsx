@@ -3,13 +3,14 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonDownload } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { applyHackathon, createTeam, joinTeam, leaveTeam, submitProject } from "./actions";
 import type { MyHack } from "./types";
+import { MetricForm } from "./MetricForm";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 type Strings = Record<string, string>;
@@ -31,14 +32,23 @@ const STATUS_TONE: Record<string, BadgeTone> = {
  */
 export function HackView({
   data,
+  metric,
+  dataset,
   skills,
+  tracks,
   discordUrl,
   t,
   common,
   rpcMessages,
 }: {
   data: MyHack;
+  /** HACK-009: nur bei einer Metrik-Challenge des eigenen Teams. */
+  metric: { label: string; value: number | null; confirmed: boolean } | null;
+  /** HACK-012: Datensatz der eigenen Challenge, signiert für 10 Minuten. */
+  dataset: { filename: string; size_bytes: number | null; url: string | null } | null;
   skills: Record<string, string>;
+  /** vocab hack_track (HACK-008/010): Schlüssel → Bezeichnung. */
+  tracks: Record<string, string>;
   discordUrl: string | null;
   t: Strings;
   common: { save: string; cancel: string };
@@ -62,7 +72,7 @@ export function HackView({
   }
 
   if (!data.application) {
-    return <ApplyCard skills={skills} pending={pending} t={t} run={run} />;
+    return <ApplyCard skills={skills} tracks={tracks} pending={pending} t={t} run={run} />;
   }
 
   const accepted = data.application.status === "accepted";
@@ -80,6 +90,15 @@ export function HackView({
             {(data.application.skills ?? []).map((s) => skills[s] ?? s).join(" · ")}
           </span>
         </div>
+        {/* Track-Wunsch (HACK-010). */}
+        {(data.application.track_prefs ?? []).length > 0 && (
+          <p className="ct-small mt-2">
+            <span className="ct-label">{t.trackPrefs}: </span>
+            <span className="text-muted">
+              {(data.application.track_prefs ?? []).map((k) => tracks[k] ?? k).join(" · ")}
+            </span>
+          </p>
+        )}
         <p className="ct-help mt-2">
           {t[`status${data.application.status[0].toUpperCase()}${data.application.status.slice(1)}Body`] ?? ""}
         </p>
@@ -145,12 +164,24 @@ export function HackView({
           <CardHeader title={t.challengeTitle} description={t.challengeLead} />
           {data.challenge ? (
             <div className="flex flex-col gap-3">
-              <h3 className="ct-h3">{data.challenge.title}</h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="ct-h3">{data.challenge.title}</h3>
+                {data.challenge.track && <Badge tone="accent">{tracks[data.challenge.track] ?? data.challenge.track}</Badge>}
+              </div>
               {data.challenge.description && <p className="leading-6">{data.challenge.description}</p>}
               {data.challenge.prizes && (
                 <p>
                   <span className="ct-label">{t.prizes}: </span>
                   <span className="text-muted">{data.challenge.prizes}</span>
+                </p>
+              )}
+              {dataset?.url && (
+                <p className="flex flex-wrap items-center gap-3">
+                  <span className="ct-label">{t.dataset}: </span>
+                  <span className="text-muted">{dataset.filename}</span>
+                  <ButtonDownload href={dataset.url} size="sm" variant="secondary">
+                    {t.datasetDownload}
+                  </ButtonDownload>
                 </p>
               )}
               {data.challenge.resources && (
@@ -159,7 +190,22 @@ export function HackView({
                   <span className="text-muted">{data.challenge.resources}</span>
                 </p>
               )}
-              {(data.challenge.criteria ?? []).length > 0 && (
+              {/* Metrik-Challenge (HACK-009): kein Pitch nach Kriterien, sondern ein Wert. */}
+              {metric && data.team && accepted && (
+                <div className="flex flex-col gap-2">
+                  <p className="ct-label">{t.judgingMetric.replace("{metric}", metric.label)}</p>
+                  <p className="ct-help">{t.metricTeamHint}</p>
+                  <MetricForm
+                    teamId={data.team.id}
+                    metricLabel={metric.label}
+                    value={metric.value}
+                    confirmed={metric.confirmed}
+                    t={t}
+                    rpcMessages={rpcMessages}
+                  />
+                </div>
+              )}
+              {!metric && (data.challenge.criteria ?? []).length > 0 && (
                 <div>
                   <p className="ct-label">{t.judgedBy}</p>
                   <ul className="ml-5 list-disc">
@@ -204,16 +250,19 @@ export function HackView({
 
 function ApplyCard({
   skills,
+  tracks,
   pending,
   t,
   run,
 }: {
   skills: Record<string, string>;
+  tracks: Record<string, string>;
   pending: boolean;
   t: Strings;
   run: (a: Promise<{ ok: boolean; key?: string; detail?: string }>, okText: string) => void;
 }) {
   const [chosen, setChosen] = useState<string[]>([]);
+  const [trackPrefs, setTrackPrefs] = useState<string[]>([]);
   const [motivation, setMotivation] = useState("");
   const [teamPref, setTeamPref] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
@@ -242,6 +291,30 @@ function ApplyCard({
             ))}
           </div>
         </fieldset>
+
+        {/* Track-Wunsch (HACK-010): Pflicht, sobald es Tracks gibt; die Auswahl je
+            Track geschieht im Admin. */}
+        {Object.keys(tracks).length > 0 && (
+          <fieldset>
+            <legend className="ct-label mb-1">{t.trackPrefs}</legend>
+            <p className="ct-help mb-2">{t.trackPrefsHint}</p>
+            <div className="flex flex-wrap gap-3">
+              {Object.entries(tracks).map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5"
+                    checked={trackPrefs.includes(key)}
+                    onChange={() =>
+                      setTrackPrefs((c) => (c.includes(key) ? c.filter((x) => x !== key) : [...c, key]))
+                    }
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         <Field label={t.motivation} htmlFor="motivation">
           <Textarea id="motivation" rows={4} value={motivation} onChange={(e) => setMotivation(e.target.value)} />
@@ -272,7 +345,7 @@ function ApplyCard({
         <div>
           <Button
             disabled={pending}
-            onClick={() => run(applyHackathon({ skills: chosen, motivation, teamPref, githubUrl, websiteUrl, behanceUrl }), t.applied)}
+            onClick={() => run(applyHackathon({ skills: chosen, trackPrefs, motivation, teamPref, githubUrl, websiteUrl, behanceUrl }), t.applied)}
           >
             {t.apply}
           </Button>

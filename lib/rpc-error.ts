@@ -99,6 +99,14 @@ const BUSINESS_KEYS = new Set([
   "invalid_type",
   // Profilfelder mit Vokabular (TAL-013, Trigger person_vocab_guard)
   "invalid_vocab_value",
+  // Track-Wunsch in der Hackathon-Bewerbung (HACK-010)
+  "track_pref_missing",
+  // Hackathon-Tracks (HACK-008): Freigabe ohne Track
+  "track_missing",
+  // Auswertungsart je Challenge (HACK-009)
+  "not_metric_challenge",
+  "metric_label_missing",
+  "invalid_metric",
   // „Next Up" (TAL-006)
   "invalid_link_url",
   "next_up_not_found",
@@ -195,6 +203,16 @@ const BUSINESS_KEYS = new Set([
   "request_not_found",
   "invalid_reason",
   "invalid_state",
+  // ADM-022: Stand-Tage am Produkt.
+  "invalid_stand_days",
+  // ADM-036: Dubletten zusammenführen (`person_not_found` steht schon oben).
+  "same_person",
+  "person_deleted",
+  "merge_conflict",
+  "merge_not_found",
+  "merge_already_undone",
+  "merge_undo_unavailable",
+  "merge_undo_blocked",
   // ADM-038: Kiosk-Gerätekonto.
   "label_required",
   "team_address_required",
@@ -321,6 +339,8 @@ const BUSINESS_KEYS = new Set([
   // Folien in den Technik-Ordner (Vorschlag v6_folien_drive, SPK-023);
   // `edition_not_found` steht schon oben.
   "invalid_folder_id",
+  // Sammelentscheidung (Vorschlag v6_bewerbungen_uebersicht, ADM-003)
+  "too_many_applications",
 ]);
 
 const BY_CODE: Record<string, string> = {

@@ -16,6 +16,8 @@ export type MyHack = {
     github_url?: string | null;
     website_url?: string | null;
     behance_url?: string | null;
+    /** Gewünschte Tracks (vocab hack_track, HACK-010). */
+    track_prefs?: string[];
   } | null;
   team: {
     id: string;
@@ -32,6 +34,7 @@ export type MyHack = {
     prizes: string | null;
     resources: string | null;
     criteria: HackCriterion[];
+    track?: string | null;
   } | null;
   submission: {
     url: string | null;
@@ -52,6 +55,31 @@ export type HackChallenge = {
   criteria: HackCriterion[];
   org_name: string | null;
   teams: number;
+  /** vocab hack_track (HACK-008); ältere Challenges können ohne sein. */
+  track: string | null;
+  /** Auswertungsart (HACK-009): Jury (Pitch) oder Metrik (Leaderboard). */
+  judging_mode: "jury" | "metric";
+  metric_label: string | null;
+  metric_higher_better: boolean;
+};
+
+/** Eine Zeile aus `hack_leaderboard` (HACK-009). Rang nur bei bestätigten Werten. */
+export type LeaderboardRow = {
+  rank: number | null;
+  team_id: string;
+  team_name: string;
+  value: number;
+  confirmed: boolean;
+  is_mine: boolean;
+};
+
+/** Eingereichtes, noch nicht freigegebenes Challenge-Formular (`hack_open_challenges`). */
+export type HackOpenChallenge = {
+  deliverable_id: string;
+  org_name: string;
+  title: string | null;
+  /** Track aus der Formularantwort, falls erkennbar. */
+  track: string | null;
 };
 
 export type HackTeamRow = {
@@ -79,4 +107,8 @@ export type JudgingRow = {
   my_criteria: Record<string, number> | null;
   my_total: number | null;
   my_note: string | null;
+  judging_mode: "jury" | "metric";
+  metric_label: string | null;
+  metric_value: number | null;
+  metric_confirmed: boolean;
 };

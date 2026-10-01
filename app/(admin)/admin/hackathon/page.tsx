@@ -1,12 +1,16 @@
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadVocabMap } from "@/lib/vocab";
+import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { TeamsView } from "@/app/(hackathon)/hackathon/teams/TeamsView";
-import type { HackTeamRow } from "@/app/(hackathon)/hackathon/types";
+import type { HackChallenge, HackOpenChallenge, HackTeamRow, LeaderboardRow } from "@/app/(hackathon)/hackathon/types";
 import { ApplicationsTable, type AdminApplication } from "./ApplicationsTable";
+import { ChallengeTracks } from "./ChallengeTracks";
+import { DatasetUpload } from "@/components/hackathon/DatasetUpload";
+import { datasetUrl, type DatasetTarget } from "@/lib/hackathon/datensatz-server";
+import { MetricResults } from "./MetricResults";
 
 export const dynamic = "force-dynamic";
 
@@ -25,15 +29,31 @@ export default async function AdminHackathonPage() {
   const tt = t.adminHackathon as unknown as Record<string, string>;
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: apps }, { data: teams }, { data: open }, vocab] = await Promise.all([
+  const [{ data: apps }, { data: teams }, { data: open }, { data: challenges }, vocab] = await Promise.all([
     supabase.rpc("hack_applications_admin"),
     supabase.rpc("hack_admin_overview", { p_language: locale }),
     supabase.rpc("hack_open_challenges"),
+    supabase.rpc("hack_challenges", { p_language: locale }),
     loadVocabMap(supabase, locale),
   ]);
+  const trackLabels = vgroup(vocab, "hack_track");
+  // HACK-012: Datensatz je freigegebener Challenge (Hack-Team pflegt alle).
+  const { data: targetRows } = await supabase.rpc("hack_dataset_targets", { p_language: locale });
+  const datensaetze = await Promise.all(
+    ((targetRows ?? []) as DatasetTarget[]).map(async (d) => ({
+      ...d,
+      url: d.storage_path && d.filename ? await datasetUrl(supabase, d.storage_path, d.filename) : null,
+    })),
+  );
+  // HACK-009: Werte je Metrik-Challenge zum Bestätigen.
+  const metrikChallenges = ((challenges ?? []) as HackChallenge[]).filter((c) => c.judging_mode === "metric");
+  const boards = await Promise.all(
+    metrikChallenges.map(async (c) => {
+      const { data: lb } = await supabase.rpc("hack_leaderboard", { p_challenge_id: c.id });
+      return { challenge: c, rows: (lb ?? []) as LeaderboardRow[] };
+    }),
+  );
 
-  const skillLabels: Record<string, string> = {};
-  for (const [k, v] of vocab) if (k.startsWith("hack_skill:")) skillLabels[k.slice("hack_skill:".length)] = v;
 
   return (
     <>
@@ -43,20 +63,71 @@ export default async function AdminHackathonPage() {
           <CardHeader title={tt.appsTitle} description={tt.appsLead} />
           <ApplicationsTable
             rows={(apps ?? []) as AdminApplication[]}
-            skillLabels={skillLabels}
+            labels={{
+              skills: vgroup(vocab, "hack_skill"),
+              tracks: trackLabels,
+              studyFields: vgroup(vocab, "study_field"),
+              profileSkills: vgroup(vocab, "skill"),
+            }}
             t={tt}
             rpcMessages={t.rpc}
           />
         </Card>
         <Card>
+          <CardHeader title={tt.tracksTitle} description={tt.tracksLead} />
+          <ChallengeTracks
+            rows={(challenges ?? []) as HackChallenge[]}
+            trackLabels={trackLabels}
+            t={tt}
+            rpcMessages={t.rpc}
+          />
+        </Card>
+        {boards.length > 0 && (
+          <Card>
+            <CardHeader title={tt.metricTitle} description={tt.metricLead} />
+            <div className="flex flex-col gap-6">
+              {boards.map((b) => (
+                <MetricResults
+                  key={b.challenge.id}
+                  title={b.challenge.title}
+                  metricLabel={b.challenge.metric_label ?? t.hackathon.metric}
+                  rows={b.rows}
+                  locale={locale}
+                  t={tt}
+                  th={t.hackathon}
+                  rpcMessages={t.rpc}
+                />
+              ))}
+            </div>
+          </Card>
+        )}
+        {datensaetze.length > 0 && (
+          <Card>
+            <CardHeader title={tt.datasetsTitle} description={tt.datasetsLead} />
+            <div className="flex flex-col gap-6">
+              {datensaetze.map((d) => (
+                <section key={d.challenge_id} className="flex flex-col gap-2">
+                  <h3 className="ct-h3">
+                    {d.title}
+                    {d.org_name && <span className="ct-help"> · {d.org_name}</span>}
+                  </h3>
+                  <DatasetUpload
+                    challengeId={d.challenge_id}
+                    current={d.filename && d.uploaded_at ? { filename: d.filename, size_bytes: d.size_bytes, uploaded_at: d.uploaded_at, url: d.url } : null}
+                    dateLocale={locale}
+                    t={t.hackDataset}
+                  />
+                </section>
+              ))}
+            </div>
+          </Card>
+        )}
+        <Card>
           <CardHeader title={tt.teamsTitle} description={tt.teamsLead} />
           <TeamsView
             rows={(teams ?? []) as HackTeamRow[]}
-            openChallenges={((open ?? []) as { deliverable_id: string; org_name: string; title: string | null }[]).map((c) => ({
-              deliverable_id: c.deliverable_id,
-              org_name: c.org_name,
-              title: c.title,
-            }))}
+            openChallenges={(open ?? []) as HackOpenChallenge[]}
+            trackLabels={trackLabels}
             locale={locale}
             t={t.hackathon}
             rpcMessages={t.rpc}

@@ -156,6 +156,16 @@
 | Welle 6 · 0229 | **Admin-Abschnitt Hackathon für area_lead_hackathon und hackathon_team, is_hack_team ohne Admin-Sonderweg (ADM-055)** (`20261001085426`, `v6_admin_hackathon`; Details im Migrationskopf) | — |
 | Welle 6 · 0230 | **Einwilligungs-Ansicht und Sperrliste in der Verwaltung, nur admin, Audit ohne Klartextadresse (ADM-033, ADM-035)** (`20261001085459`, `v6_einwilligung_sperrliste`; Details im Migrationskopf) | — |
 | Welle 6 · 0231 | **Einwilligungstyp: Seed-Altwerte privacy_policy → privacy, Vokabular-Wächter auf consent_record** (`20261001121437`, `v6_consent_type_waechter`; Details im Migrationskopf) | — |
+| Welle 6 · 0232 | **Editionsdateien: Lesen im Bucket edition-files nur für die Zielgruppe der Datei (Security-Check Teil 3, L-S1)** (`20261001121907`, `v6_editionsdateien_lesepolicy`; Details im Migrationskopf) | — |
+| Welle 6 · 0233 | **Hackathon-Tracks je Challenge (HACK-008): Vokabular hack_track, Pflicht bei der Freigabe, Freigabe-Fehler 42P10 behoben** (`20261001122557`, `v6_hack_tracks`; Details im Migrationskopf) | — |
+| Welle 6 · 0234 | **Dubletten zusammenführen mit Vorschau, Protokoll und Rückweg, nur admin (ADM-036)** (`20261001123059`, `v6_dubletten_zusammenfuehren`; Details im Migrationskopf) | — |
+| Welle 6 · 0235 | **Track-Wunsch in der Hackathon-Bewerbung und Profilmerkmale in der Auswahl (HACK-010)** (`20261001123445`, `v6_hack_track_praeferenz`; Details im Migrationskopf) | — |
+| Welle 6 · 0236 | **Logokategorie je Edition und Company (Presenting, Premium, Official, Small, Startup), Auffangsatz bleibt (ADM-046)** (`20261001123808`, `v6_logokategorie`; Details im Migrationskopf) | — |
+| Welle 6 · 0237 | **Auswertungsart je Challenge (Jury oder Metrik), Metrik-Werte mit Bestätigung, Leaderboard (HACK-009)** (`20261001124252`, `v6_hack_auswertung`; Details im Migrationskopf) | — |
+| Welle 6 · 0238 | **Bewerbungsliste im Admin über alle Sessions, skalierbar, Sammelentscheidung (ADM-003)** (`20261001125248`, `v6_bewerbungen_uebersicht`; Details im Migrationskopf) | — |
+| Welle 6 · 0239 | **Bucket partner-assets: Dateigrenze 100 MB für Druckdaten (HACK-018)** (`20261001125729`, `v6_partner_assets_grenze`; Details im Migrationskopf) | — |
+| Welle 6 · 0240 | **Initiativen-Funnel mit Verlauf, Stand-Tage, Initiativen-Award mit öffentlicher Abstimmung ohne Personendaten (ADM-022, ADM-024)** (`20261001125937`, `v6_initiativen_award`; Details im Migrationskopf) | — |
+| Welle 6 · 0241 | **Datensatz je Challenge: privater Bucket hack-datasets mit Pfadregel, Upload nur über den Server (HACK-012)** (`20261001130250`, `v6_hack_datensatz`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

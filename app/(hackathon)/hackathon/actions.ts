@@ -35,6 +35,8 @@ export async function applyHackathon(input: {
   githubUrl?: string;
   websiteUrl?: string;
   behanceUrl?: string;
+  /** Gewünschte Tracks (HACK-010), Schlüssel aus vocab hack_track. */
+  trackPrefs?: string[];
 }): Promise<ActionResult> {
   const supabase = await client();
   const { error } = await supabase.rpc("apply_hackathon", {
@@ -45,6 +47,7 @@ export async function applyHackathon(input: {
       github_url: input.githubUrl ?? null,
       website_url: input.websiteUrl ?? null,
       behance_url: input.behanceUrl ?? null,
+      track_prefs: input.trackPrefs ?? [],
     },
   });
   if (error) return fail(error);
@@ -114,9 +117,33 @@ export async function assignChallenges(): Promise<ActionResult<{ teams: number }
   return { ok: true, data: { teams: (data as number) ?? 0 } };
 }
 
-export async function publishChallenge(deliverableId: string): Promise<ActionResult> {
+/**
+ * Challenge freigeben (HACK-008: mit Track). Ohne Angabe nimmt die Datenbank
+ * den Track aus dem Formular; fehlt er dort, kommt `track_missing`.
+ */
+export async function publishChallenge(deliverableId: string, track?: string): Promise<ActionResult> {
   const supabase = await client();
-  const { error } = await supabase.rpc("publish_hack_challenge", { p_deliverable_id: deliverableId });
+  const { error } = await supabase.rpc("publish_hack_challenge", {
+    p_deliverable_id: deliverableId,
+    p_track: track || null,
+  });
+  if (error) return fail(error);
+  revalidateAll();
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Metrik-Wert eines Teams eintragen (HACK-009). Dürfen Mitglieder des Teams und
+ * die Jury der Challenge — das prüft `set_hack_metric`; ein neuer Wert muss vom
+ * Hack-Team neu bestätigt werden.
+ */
+export async function saveMetric(input: { teamId: string; value: number; note?: string }): Promise<ActionResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_hack_metric", {
+    p_team_id: input.teamId,
+    p_value: input.value,
+    p_note: input.note ?? null,
+  });
   if (error) return fail(error);
   revalidateAll();
   return { ok: true, data: undefined };
