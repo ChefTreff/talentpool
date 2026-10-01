@@ -21,9 +21,23 @@ async function ruf(name: string, args: Record<string, unknown>): Promise<Ergebni
   return { ok: true, n: typeof data === "number" ? data : undefined };
 }
 
-/** Funnel-Stufe setzen. `abgelehnt` ist eine Stufe, kein Löschen. */
-export async function setStage(orgEditionId: string, stage: string): Promise<Ergebnis> {
-  return ruf("set_initiative_stage", { p_org_edition_id: orgEditionId, p_stage: stage || null });
+/**
+ * Funnel-Stufe setzen. `abgelehnt` ist eine Stufe, kein Löschen. Mit Notiz
+ * entsteht eine Zeile im Verlauf (ADM-022), auch ohne Stufenwechsel.
+ */
+export async function setStage(orgEditionId: string, stage: string, note?: string): Promise<Ergebnis> {
+  return ruf("set_initiative_stage", { p_org_edition_id: orgEditionId, p_stage: stage || null, p_note: note?.trim() || null });
+}
+
+export type VerlaufZeile = { stage: string | null; note: string | null; changed_at: string; changed_by_name: string | null };
+
+/** Verlauf einer Initiative (ADM-022): Stufenwechsel und Notizen, neueste zuerst. */
+export async function ladeVerlauf(orgEditionId: string): Promise<{ ok: true; zeilen: VerlaufZeile[] } | { ok: false; key: string }> {
+  await requireAdminSection("initiatives", PFAD);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("initiative_stage_history", { p_org_edition_id: orgEditionId });
+  if (error) return { ok: false, key: toRpcFailure(error).key };
+  return { ok: true, zeilen: (data ?? []) as VerlaufZeile[] };
 }
 
 /**
