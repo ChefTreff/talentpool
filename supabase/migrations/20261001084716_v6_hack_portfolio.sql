@@ -1,4 +1,5 @@
--- 0000 · Portfolio-Links in der Hackathon-Bewerbung (HACK-007).
+-- 0228 · Portfolio-Links nur in der Hackathon-Bewerbung, anonymisiert bei Löschung (HACK-007)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001084716.
 --
 -- Anlass: HACK-007 (Konrad 24.09., Feldvorschlag TAL-013 Punkt C3: „nur beim Hackathon“) —
 -- GitHub, Website, Behance werden **nur** in der Hackathon-Bewerbung erhoben, nicht im

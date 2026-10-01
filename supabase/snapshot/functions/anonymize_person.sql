@@ -78,7 +78,9 @@ begin
   -- 6 · Freitexte und Fremdschlüssel in allen übrigen Tabellen mit `person_id`.
   --     Was bleibt, ist jeweils der zählbare Teil: Status, Typ, Zeitpunkt.
   update application      set answers = '{}'::jsonb where person_id = p_person_id;
-  update hack_application set motivation = null, team_pref = null, note = null where person_id = p_person_id;
+  update hack_application set motivation = null, team_pref = null, note = null,
+                              github_url = null, website_url = null, behance_url = null
+   where person_id = p_person_id;
   -- Der Einwilligungsnachweis bleibt — er ist der Beleg, dass wir durften, was
   -- wir getan haben. Das Gerät, von dem sie kam, ist dafür ohne Bedeutung.
   update consent_record   set user_agent = null where person_id = p_person_id;

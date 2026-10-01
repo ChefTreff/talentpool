@@ -152,6 +152,7 @@
 | Welle 6 · 0225 | **Hackathon Stand I-10729 aus dem Vertriebskatalog, bleibt aktiv (ADM-047)** (`20261001082329`, `v6_hackathon_stand_kein_vertrieb`; Details im Migrationskopf) | — |
 | Welle 6 · 0226 | **Kiosk-Gerätekonto im Admin anlegen: nur Team-Adressen, Rolle checkin_operator je Edition (ADM-038)** (`20261001082940`, `v6_kiosk_konto`; Details im Migrationskopf) | — |
 | Welle 6 · 0227 | **Verkleinerte Vorschau für Editionsbilder (Hallenplan), nur Server setzt sie (ADM-042)** (`20261001083829`, `v6_editionsdatei_vorschau`; Details im Migrationskopf) | — |
+| Welle 6 · 0228 | **Portfolio-Links nur in der Hackathon-Bewerbung, anonymisiert bei Löschung (HACK-007)** (`20261001084716`, `v6_hack_portfolio`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
