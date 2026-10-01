@@ -157,7 +157,7 @@ export default async function SpeakerTravelPage() {
           angeboten={reisemittel}
           dateLocale={t.meta.dateLocale}
           t={t.speaker}
-          common={{ save: t.common.save, choose: t.common.choose }}
+          common={{ save: t.common.save, choose: t.common.choose, unsaved: t.common.unsaved }}
           rpcMessages={t.rpc}
         />
         </Sektion>

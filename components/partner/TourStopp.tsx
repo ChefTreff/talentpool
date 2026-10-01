@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useUngesichert, type UngesichertTexte } from "@/components/ui/useUngesichert";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
@@ -37,6 +38,7 @@ export function TourStopp({
   dateLocale,
   t,
   rpcMessages,
+  unsaved,
 }: {
   stopp: TourStoppZeile;
   felder: Record<ProfilFeld, ProfilOption[]>;
@@ -45,6 +47,8 @@ export function TourStopp({
   dateLocale: string;
   t: Strings;
   rpcMessages: Record<string, string>;
+  /** Rückfrage vor dem Verlassen mit ungesicherten Änderungen (QS-051), Texte aus `common.unsaved` der Seite. */
+  unsaved: UngesichertTexte;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -63,6 +67,8 @@ export function TourStopp({
   const ausWahl = (v: string) => (v === "" ? null : v === "ja");
   const geaendert = Object.keys(tourAenderungen(basis, entwurf)).length > 0;
   const zuLang = entwurf.notes_public.length > HINWEISE_MAX;
+  // Wer tippt und wegklickt, wird gefragt (QS-051) — nur, wo bearbeitet werden darf.
+  const warnung = useUngesichert(canEdit && geaendert, unsaved);
 
   function speichern() {
     const felder = tourAenderungen(basis, entwurf);
@@ -168,6 +174,7 @@ export function TourStopp({
         )}
         <span className="ct-help">{canEdit ? zuletzt : t.noRights}</span>
       </div>
+      {warnung}
     </form>
   );
 }

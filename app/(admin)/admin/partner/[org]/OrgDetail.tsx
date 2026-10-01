@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { UngesichertTexte } from "@/components/ui/useUngesichert";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Button } from "@/components/ui/Button";
@@ -142,7 +143,7 @@ export function OrgDetail({
   dataTexts: Strings;
   /** Vokabular `industry` für das Feld Branche. */
   industries: Record<string, string>;
-  common: { cancel: string; none: string; save: string; close: string; required: string };
+  common: { cancel: string; none: string; save: string; close: string; required: string; unsaved: UngesichertTexte };
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
@@ -585,6 +586,7 @@ export function OrgDetail({
             dateLocale={dateLocale}
             t={tourTexts}
             rpcMessages={rpcMessages}
+            unsaved={common.unsaved}
           />
           <Link href="/admin/company-tours" className="ct-link mt-4 inline-block">
             {t.tourToAdmin}

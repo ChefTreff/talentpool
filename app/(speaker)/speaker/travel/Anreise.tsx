@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useUngesichert, type UngesichertTexte } from "@/components/ui/useUngesichert";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -56,7 +57,8 @@ export function Anreise({
   angeboten: Set<string>;
   dateLocale: string;
   t: Strings;
-  common: { save: string; choose: string };
+  /** `unsaved`: Rückfrage vor dem Verlassen mit ungesicherten Änderungen (QS-051). */
+  common: { save: string; choose: string; unsaved: UngesichertTexte };
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
@@ -76,6 +78,10 @@ export function Anreise({
     note: travel?.note ?? "",
   });
 
+  // Zuletzt gespeicherter Stand (QS-051): wer tippt und wegklickt, wird gefragt.
+  const [basis, setBasis] = useState(() => JSON.stringify(form));
+  const warnung = useUngesichert(JSON.stringify(form) !== basis, common.unsaved);
+
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const set = (k: keyof typeof form, v: string | boolean) =>
     setForm((f) => ({ ...f, [k]: v }));
@@ -89,12 +95,14 @@ export function Anreise({
     .map(([value, label]) => ({ value, label }));
 
   function onSave() {
+    const gespeichert = JSON.stringify(form);
     startTransition(async () => {
       const res = await saveTravel(form);
       if (!res.ok) {
         toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
         return;
       }
+      setBasis(gespeichert);
       toast("success", t.travelSaved);
       router.refresh();
     });
@@ -108,6 +116,7 @@ export function Anreise({
 
   return (
     <Card>
+      {warnung}
       <h2 className="ct-h2 text-ink">{t.travelTitle2}</h2>
       <p className="ct-small mt-1 leading-6">{t.travelBody2}</p>
       {isAssistant && <p className="ct-help mt-1">{t.travelAssistantHint}</p>}

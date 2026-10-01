@@ -54,6 +54,7 @@ Verlaufs-Hero über die ganze Seite · lila Farbverlauf als Fläche · Emoji als
 ## Muster
 
 Seitenaufbau, Formular, Tabelle, Wizard, Leerzustand, Login/Welcome, Sidebar: `referenzen/muster.md`.
+Lange Formulare mit Entwurf warnen vor dem Verlassen: `useUngesichert` aus `components/ui` (seit 01.10.2026), Regeln in `referenzen/muster.md` → Formular.
 Marke, Formensprache, Divisionsfarben, Logo-Varianten: `referenzen/marke.md`.
 Tokens mit geprüften Kontrastwerten: `referenzen/tokens.md`.
 Konrads acht Entscheidungen vom 17.09.2026 (Hero-Band überall, eine Porträt-Form, Pink-Chip, Navy-Leiste, Rechtecke, Zeilenhöhen): `docs/design-briefing.md` §v0.7.

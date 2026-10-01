@@ -85,6 +85,7 @@ export default async function PartnerCompanyTourPage() {
                 dateLocale={t.meta.dateLocale}
                 t={s as unknown as Record<string, string>}
                 rpcMessages={t.rpc}
+                unsaved={t.common.unsaved}
               />
             </Card>
           </section>

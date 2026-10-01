@@ -82,7 +82,7 @@ export default async function PartnerMasterclassPage() {
 
               <Card>
                 <CardHeader title={s.contentTitle} description={s.contentLead} />
-                <MasterclassInhalt session={x} sprachen={sprachen} canEdit={canEdit} t={s} rpcMessages={t.rpc} />
+                <MasterclassInhalt session={x} sprachen={sprachen} canEdit={canEdit} t={s} rpcMessages={t.rpc} unsaved={t.common.unsaved} />
               </Card>
 
               <Card>
