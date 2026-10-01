@@ -1,4 +1,5 @@
--- 00NN · Kiosk-Gerätekonto im Admin anlegen (ADM-038, Konrad 25.09.2026: „ja, im Admin")
+-- 0226 · Kiosk-Gerätekonto im Admin anlegen: nur Team-Adressen, Rolle checkin_operator je Edition (ADM-038)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001082940.
 --
 -- Zweck: Die Rolle `checkin_operator` liess sich vergeben, das Konto dazu
 -- entstand aber von Hand in Supabase. Jetzt legt der Admin unter Zugänge ein
