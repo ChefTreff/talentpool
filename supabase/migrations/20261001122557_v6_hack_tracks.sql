@@ -1,4 +1,5 @@
--- 0000 · Hackathon-Tracks je Challenge (HACK-008): Vokabular hack_track, hack_challenge.track,
+-- 0233 · Hackathon-Tracks je Challenge (HACK-008): Vokabular hack_track, Pflicht bei der Freigabe, Freigabe-Fehler 42P10 behoben
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001122557.
 -- Pflichtfeld im Challenge-Formular, Track bei der Freigabe und im Admin.
 --
 -- Anlass: Emilio (Call mit Konrad 24.09., HACK-006): Alle Challenges enden in einem Pitch, viele

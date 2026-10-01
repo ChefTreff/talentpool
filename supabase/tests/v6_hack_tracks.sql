@@ -1,4 +1,4 @@
--- Test „Hackathon-Tracks“ (HACK-008, vorschlag/v6_hack_tracks.sql). Belegt:
+-- Test „Hackathon-Tracks“ (HACK-008, 20261001122557_v6_hack_tracks.sql). Belegt:
 --   01 Vokabular hack_track hat drei aktive Begriffe, vocab_binding steht;
 --   02 Formular hackathon_challenge hat genau ein Pflichtfeld track (select) direkt hinter
 --      description_en, Optionen = englische Bezeichnungen;
