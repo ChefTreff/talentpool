@@ -1,3 +1,5 @@
+-- 0246 · Folien in den Technik-Ordner (Google Drive): Zielordner je Edition, Spiegelstand, Server-Funktionen (SPK-023)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001131959.
 -- v6_folien_drive · Folien der Speaker in den Technik-Ordner (Google Drive) spiegeln (SPK-023, D13)
 --
 -- Zweck: Konrad 21.09./24.09.: „die Slides entsprechend der Bühne und des Tages
