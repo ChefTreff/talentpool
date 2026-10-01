@@ -6,7 +6,10 @@ create or replace function upsert_product(p_data jsonb)
 AS $$
 declare v_sku text := p_data->>'sku'; v_exists boolean;
 begin
-  if not is_partner_team() then raise exception 'not allowed' using errcode = '42501'; end if;
+  -- PROD-006: auch der Abschnitt `productCatalog` (Produktion) pflegt den Stamm.
+  if not (is_partner_team() or (current_person_id() is not null and has_admin_section('productCatalog'))) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
   -- Zweites Muster fuer Initiativen-Leistungen (siehe `product_sku_check` oben).
   -- Ohne diese Zeile waeren die vier INI-Produkte nur im Studio pflegbar — und
   -- „mal eben im Dashboard“ ist genau das, was die Konventionen verbieten

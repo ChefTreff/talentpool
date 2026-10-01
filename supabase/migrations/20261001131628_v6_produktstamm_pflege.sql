@@ -1,3 +1,5 @@
+-- 0245 · Produktstamm pflegen im Admin: Abschnitt productCatalog, Rechte für Produktion und Partner-Team (PROD-006)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001131628.
 -- Produktstamm pflegen auch aus der Produktion (PROD-006)
 --
 -- Zweck: Der Produktstamm (Messeshop-Artikel, Mietmöbel, Pakete) entsteht im

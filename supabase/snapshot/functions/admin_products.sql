@@ -5,7 +5,10 @@ create or replace function admin_products(p_only_active boolean DEFAULT false)
  SET search_path TO 'public', 'extensions'
 AS $$
 begin
-  if not is_partner_team() then raise exception 'not allowed' using errcode = '42501'; end if;
+  -- PROD-006: auch der Abschnitt `productCatalog` (Produktion) pflegt den Stamm.
+  if not (is_partner_team() or (current_person_id() is not null and has_admin_section('productCatalog'))) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
   return query
     select p.* from product p
     where (not p_only_active or p.active)

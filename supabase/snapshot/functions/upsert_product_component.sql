@@ -5,7 +5,10 @@ create or replace function upsert_product_component(p_bundle_sku text, p_compone
  SET search_path TO 'public', 'extensions'
 AS $$
 begin
-  if not is_partner_team() then raise exception 'not allowed' using errcode = '42501'; end if;
+  -- PROD-006: auch der Abschnitt `productCatalog` (Produktion) pflegt den Stamm.
+  if not (is_partner_team() or (current_person_id() is not null and has_admin_section('productCatalog'))) then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
   if p_qty is null or p_qty <= 0 then
     delete from product_component where bundle_sku = p_bundle_sku and component_sku = p_component_sku;
   else
