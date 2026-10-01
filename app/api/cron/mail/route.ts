@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { processMailQueue } from "@/lib/mail/queue";
 import { processStoragePurgeQueue } from "@/lib/storage-purge";
+import { driveAufraeumen } from "@/lib/drive/server";
 import { syncPartnerDocuments } from "@/lib/partner/documents-sync";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,9 @@ function authorized(request: Request): boolean {
  * 5. Belege aus SevDesk holen (Welle 6, Migration 0122): Angebote und Rechnungen als
  *    PDF in `partner-assets`, damit Partner sie im Portal finden statt per Mail
  *    nachzufragen. Nur Lesen bei SevDesk.
+ * 6. Drive-Kopien entfernen, deren Folie gelöscht oder deren Session abgesetzt ist
+ *    (SPK-023, `slide_mirror_orphans`) — auch nach einer Profillöschung. Ohne
+ *    Dienstkonto übersprungen.
  * Kein Nutzerkontext: service_role nach Prüfung des Secrets, die Route ist im Proxy
  * als öffentlich eingetragen und schützt sich selbst.
  */
@@ -65,6 +69,15 @@ export async function GET(request: Request) {
     console.error("[cron/mail] Belegabruf fehlgeschlagen:", fehler instanceof Error ? fehler.message : fehler);
   }
 
+  // SPK-023: was `anonymize_person` oder das Entfernen einer Folie zurücklässt,
+  // verschwindet auch aus dem Technik-Ordner.
+  let drive: Awaited<ReturnType<typeof driveAufraeumen>> = null;
+  try {
+    drive = await driveAufraeumen();
+  } catch (fehler) {
+    console.error("[cron/mail] Drive-Aufräumen fehlgeschlagen:", fehler instanceof Error ? fehler.message : fehler);
+  }
+
   return NextResponse.json({
     ok: !error,
     housekeeping: housekeeping ?? null,
@@ -73,5 +86,6 @@ export async function GET(request: Request) {
     checkinsPurged: purged ?? null,
     storage,
     documents,
+    drive,
   });
 }

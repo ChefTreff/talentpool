@@ -14,6 +14,9 @@ import type { MySession, PresentationWindow, SpeakerAsset } from "./types";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 export const dynamic = "force-dynamic";
+// SPK-023: nach dem Upload spiegelt `after()` die Präsentation nach Drive —
+// Server-Aktionen übernehmen die Laufzeitgrenze der Seite.
+export const maxDuration = 300;
 
 /** Eine Zeile aus `edition_files` — hier interessiert nur der Hallenplan. */
 type EditionFile = {

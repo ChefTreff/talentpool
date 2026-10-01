@@ -9,6 +9,8 @@ import { ladePraesentationen } from "@/lib/speaker/praesentationen";
 import { registerPresentationAsAdmin } from "../../actions";
 
 export const dynamic = "force-dynamic";
+// SPK-023: nach dem Upload spiegelt `after()` die Präsentation nach Drive.
+export const maxDuration = 300;
 
 const PATH = "/admin/technik/praesentationen";
 

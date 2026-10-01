@@ -318,6 +318,9 @@ const BUSINESS_KEYS = new Set([
   // Links je Schlüssel (Vorschlag v6_portal_links, PART-072)
   "portal_link_url",
   "portal_link_key",
+  // Folien in den Technik-Ordner (Vorschlag v6_folien_drive, SPK-023);
+  // `edition_not_found` steht schon oben.
+  "invalid_folder_id",
 ]);
 
 const BY_CODE: Record<string, string> = {
