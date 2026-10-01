@@ -160,7 +160,9 @@ export function antwortOk(text: unknown): text is string {
 
 /**
  * Den Verlauf aus dem Browser prüfen und kürzen — **die eine Stelle** für den
- * Titel- und den Post-Assistenten.
+ * Titel-, den Post- und seit ADM-044 den Wiki-Assistenten. Der Wiki-Assistent
+ * nimmt kürzere Fragen an und gibt deshalb seine eigene Grenze mit
+ * (`maxEingabe`); alles andere gilt für alle drei gleich.
  *
  * Vorher prüften beide Routen je für sich, und zwar nur die Züge des Menschen.
  * Die Begründung stand im Code: was das Modell gesagt habe, „kommt aus derselben
@@ -177,14 +179,17 @@ export function antwortOk(text: unknown): text is string {
  *
  * `null` heisst: so nicht, 400.
  */
-export function verlaufAusBrowser(messages: unknown): Nachricht[] | null {
+export function verlaufAusBrowser(
+  messages: unknown,
+  maxEingabe = MAX_EINGABE_ZEICHEN,
+): Nachricht[] | null {
   if (!Array.isArray(messages) || messages.length === 0) return null;
   const verlauf: Nachricht[] = [];
   for (const m of messages) {
     const rolle = (m as Nachricht | null)?.role;
     const text = (m as Nachricht | null)?.content;
     if (rolle === "user") {
-      if (!eingabeOk(text)) return null;
+      if (!eingabeOk(text, maxEingabe)) return null;
     } else if (rolle === "assistant") {
       if (!antwortOk(text)) return null;
     } else {
@@ -198,12 +203,8 @@ export function verlaufAusBrowser(messages: unknown): Nachricht[] | null {
 }
 
 /** Leere oder absurd lange Eingaben fängt schon die Oberfläche ab. */
-export function eingabeOk(text: unknown): text is string {
-  return (
-    typeof text === "string" &&
-    text.trim().length > 0 &&
-    text.length <= MAX_EINGABE_ZEICHEN
-  );
+export function eingabeOk(text: unknown, max = MAX_EINGABE_ZEICHEN): text is string {
+  return typeof text === "string" && text.trim().length > 0 && text.length <= max;
 }
 
 /**

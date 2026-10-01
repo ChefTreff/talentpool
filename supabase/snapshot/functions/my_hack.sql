@@ -21,7 +21,8 @@ begin
     'edition_id', v_ed,
     'application', case when v_app.id is null then null else jsonb_build_object(
       'id', v_app.id, 'status', v_app.status, 'skills', to_jsonb(v_app.skills),
-      'motivation', v_app.motivation, 'team_pref', v_app.team_pref, 'applied_at', v_app.applied_at) end,
+      'motivation', v_app.motivation, 'team_pref', v_app.team_pref, 'applied_at', v_app.applied_at,
+      'github_url', v_app.github_url, 'website_url', v_app.website_url, 'behance_url', v_app.behance_url) end,
     'team', case when v_team.id is null then null else jsonb_build_object(
       'id', v_team.id, 'name', v_team.name, 'status', v_team.status,
       -- Den Beitrittscode sieht nur, wer schon drin ist.

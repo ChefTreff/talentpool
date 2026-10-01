@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/components/ui/cn";
 import { Markdown } from "./Markdown";
@@ -15,8 +14,12 @@ type Strings = Record<string, string>;
  * Das Wiki im Bereich: links die Artikel, rechts der gelesene.
  *
  * Gesucht wird über Titel **und** Text — wer „Parkplatz" tippt, sucht nicht
- * die Überschrift, sondern die Antwort. Die Phase filtert daneben, weil am
- * Aufbautag anderes zählt als zwei Wochen vorher.
+ * die Überschrift, sondern die Antwort.
+ *
+ * Ein Filter nach Phase stand bis ADM-044/PART-058 daneben. Konrad (21.09.,
+ * 24.09.): „Alle Phasen" ist kein Filter, der Filter bringt keinen Mehrwert —
+ * er ist raus. Die Phase steht weiter als Marke am geöffneten Artikel; eine
+ * bessere Ordnung der Liste ist ein Vorschlag des Design-Chats (PART-058).
  */
 export function WikiView({
   articles,
@@ -32,7 +35,6 @@ export function WikiView({
   t: Strings;
 }) {
   const [query, setQuery] = useState("");
-  const [phase, setPhase] = useState("");
   const [openId, setOpenId] = useState<string | null>(articles[0]?.id ?? null);
 
   /**
@@ -68,19 +70,16 @@ export function WikiView({
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return articles.filter((a) => {
-      if (phase && a.phase !== phase) return false;
       if (!needle) return true;
       return `${a.title} ${a.body_md}`.toLowerCase().includes(needle);
     });
-  }, [articles, query, phase]);
+  }, [articles, query]);
 
   const open = visible.find((a) => a.id === openId) ?? visible[0] ?? null;
 
   if (articles.length === 0) {
     return <EmptyState title={t.empty} description={t.emptyBody} />;
   }
-
-  const usedPhases = [...new Set(articles.map((a) => a.phase))];
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
@@ -91,17 +90,6 @@ export function WikiView({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        {usedPhases.length > 1 && (
-          <Select
-            aria-label={t.phase}
-            value={phase}
-            options={[
-              { value: "", label: t.allPhases },
-              ...usedPhases.map((p) => ({ value: p, label: phases[p] ?? p })),
-            ]}
-            onChange={(e) => setPhase(e.target.value)}
-          />
-        )}
         <ul className="flex flex-col gap-0.5">
           {visible.map((a) => (
             <li key={a.id}>

@@ -11,9 +11,11 @@ type Strings = Record<string, string>;
  * eine Frage hatte, musste erst wissen, dass es ihn gibt, und dorthin
  * wechseln. Im Alt-Portal war er das Erste, was man sah.
  *
- * **Nur der Rahmen gehört hierher.** Was der Assistent antwortet, ist
- * `ADM-044` beim Admin-Chat; diese Komponente bettet ihn unverändert ein.
- * Ändert sich sein Verhalten, ändert sich hier nichts.
+ * **Nur der Rahmen gehört hierher.** Was der Assistent antwortet und wie das
+ * Gespräch läuft, steht in `Assistent` (ADM-044); diese Komponente bettet ihn
+ * ein. Seit dem Umbau zum Chat ist das Panel eine Spalte: oben der Kopf, in
+ * der Mitte der Verlauf, der allein scrollt, unten das Eingabefeld, das immer
+ * zu sehen bleibt.
  *
  * Das Panel ist ein `popover="auto"`: es liegt im Top-Layer, also über
  * Dialogen und über dem Toast-Streifen, schliesst bei Klick daneben und mit
@@ -30,6 +32,9 @@ export function AssistentBubble({
   openLabel,
   closeLabel,
   title,
+  vorschlaege,
+  wikiHref,
+  besitzer,
 }: {
   audience: string;
   locale: string;
@@ -39,6 +44,12 @@ export function AssistentBubble({
   openLabel: string;
   closeLabel: string;
   title: string;
+  /** Fragevorschläge des Bereichs. */
+  vorschlaege: string[];
+  /** Die Wiki-Seite des Bereichs, für die Links unter den Antworten. */
+  wikiHref: string;
+  /** Kennung des Kontos, siehe `Assistent`. */
+  besitzer: string;
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const [offen, setOffen] = useState(false);
@@ -88,9 +99,9 @@ export function AssistentBubble({
         ref={panel}
         popover="auto"
         aria-label={title}
-        className="fixed inset-x-2 bottom-24 top-auto m-0 max-h-[70dvh] w-auto overflow-y-auto rounded-ct-lg border bg-surface p-5 sm:inset-x-auto sm:right-4 sm:w-95"
+        className="fixed inset-x-2 bottom-24 top-auto m-0 max-h-[70dvh] w-auto flex-col rounded-ct-lg border bg-surface p-5 open:flex sm:inset-x-auto sm:right-4 sm:w-95"
       >
-        <div className="mb-3 flex items-center justify-between gap-4">
+        <div className="mb-3 flex shrink-0 items-center justify-between gap-4">
           <h2 className="ct-h3 text-ink">{title}</h2>
           <button
             type="button"
@@ -104,7 +115,17 @@ export function AssistentBubble({
             jeder Seite eine Abfrage mehr zu fahren, nur für den Fall, dass
             jemand das Panel öffnet. Wer ihn braucht, findet ihn im Wiki und
             auf der Kontaktseite. */}
-        <Assistent audience={audience} locale={locale} kontakt={null} t={t} />
+        <Assistent
+          audience={audience}
+          locale={locale}
+          kontakt={null}
+          t={t}
+          vorschlaege={vorschlaege}
+          wikiHref={wikiHref}
+          besitzer={besitzer}
+          rahmen="panel"
+          sichtbar={offen}
+        />
       </div>
     </>
   );

@@ -1,3 +1,122 @@
+-- 0228 · Portfolio-Links nur in der Hackathon-Bewerbung, anonymisiert bei Löschung (HACK-007)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001084716.
+--
+-- Anlass: HACK-007 (Konrad 24.09., Feldvorschlag TAL-013 Punkt C3: „nur beim Hackathon“) —
+-- GitHub, Website, Behance werden **nur** in der Hackathon-Bewerbung erhoben, nicht im
+-- allgemeinen Teilnehmer-Profil.
+--
+--   * `hack_application.github_url`, `website_url`, `behance_url` (text, optional, CHECK https).
+--   * `apply_hackathon` (Basis: Snapshot): liest die drei Felder, prüft je Feld den Dienst
+--     (github.com, behance.net; Website beliebig, https, max. 300 Zeichen); Fehler 22023
+--     `invalid_url` (detail = Feld, Schlüssel besteht).
+--   * `my_hack` (Basis: Snapshot): gibt die drei Felder in `application` zurück.
+--   * `anonymize_person` (Basis: Snapshot): leert die drei Felder beim Profil-Löschen.
+-- Die Sicht für das Team (Bewerbungen auswählen) kommt mit ADM-055 in den Admin.
+-- Test: supabase/tests/v6_hack_portfolio.sql
+set search_path = public, extensions;
+
+alter table hack_application
+  add column if not exists github_url  text,
+  add column if not exists website_url text,
+  add column if not exists behance_url text;
+alter table hack_application drop constraint if exists hack_application_portfolio_https_chk;
+alter table hack_application add constraint hack_application_portfolio_https_chk check (
+  (github_url is null or github_url ~* '^https://') and
+  (website_url is null or website_url ~* '^https://') and
+  (behance_url is null or behance_url ~* '^https://'));
+comment on column hack_application.github_url is 'GitHub-Profil (HACK-007), nur in der Hackathon-Bewerbung.';
+
+create or replace function apply_hackathon(p_data jsonb)
+ RETURNS uuid
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $$
+declare v_me uuid := current_person_id(); v_ed uuid; v_id uuid; v_skill text;
+        v_github text; v_website text; v_behance text;
+begin
+  if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
+  v_ed := hack_edition(nullif(p_data->>'edition_id', '')::uuid);
+  if v_ed is null then raise exception 'edition_not_found' using errcode = 'P0002'; end if;
+
+  foreach v_skill in array coalesce(
+    (select array_agg(value::text) from jsonb_array_elements_text(p_data->'skills') as t(value)), '{}') loop
+    if not is_vocab_key('hack_skill', v_skill) then
+      raise exception 'invalid_skill' using errcode = '22023', detail = v_skill;
+    end if;
+  end loop;
+
+  -- Portfolio-Links (HACK-007): nur https, je Feld der erwartete Dienst; leer = nicht gesetzt.
+  v_github := nullif(btrim(p_data->>'github_url'), '');
+  v_website := nullif(btrim(p_data->>'website_url'), '');
+  v_behance := nullif(btrim(p_data->>'behance_url'), '');
+  if v_github is not null and v_github !~* '^https://(www\.)?github\.com/[^\s]+$' then
+    raise exception 'invalid_url' using errcode = '22023', detail = 'github_url';
+  end if;
+  if v_website is not null and (v_website !~* '^https://[^\s/]+\.[^\s]+$' or length(v_website) > 300) then
+    raise exception 'invalid_url' using errcode = '22023', detail = 'website_url';
+  end if;
+  if v_behance is not null and v_behance !~* '^https://(www\.)?behance\.net/[^\s]+$' then
+    raise exception 'invalid_url' using errcode = '22023', detail = 'behance_url';
+  end if;
+
+  insert into hack_application (person_id, edition_id, skills, motivation, team_pref, github_url, website_url, behance_url)
+  values (v_me, v_ed,
+          coalesce((select array_agg(value::text) from jsonb_array_elements_text(p_data->'skills') as t(value)), '{}'),
+          nullif(btrim(p_data->>'motivation'), ''), nullif(btrim(p_data->>'team_pref'), ''),
+          v_github, v_website, v_behance)
+  on conflict (person_id, edition_id) do update set
+    skills = excluded.skills, motivation = excluded.motivation, team_pref = excluded.team_pref,
+    github_url = excluded.github_url, website_url = excluded.website_url, behance_url = excluded.behance_url,
+    status = case when hack_application.status = 'withdrawn' then 'applied' else hack_application.status end
+  returning id into v_id;
+
+  perform log_audit('hack.applied', 'hack_application', v_id::text, null, null);
+  return v_id;
+end $$;
+
+create or replace function my_hack(p_edition_id uuid DEFAULT NULL::uuid, p_language text DEFAULT 'en'::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'extensions'
+AS $$
+declare v_me uuid := current_person_id(); v_ed uuid; v_app hack_application; v_team hack_team;
+        v_sub hack_submission; v_ch hack_challenge;
+begin
+  if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
+  v_ed := hack_edition(p_edition_id);
+  select * into v_app from hack_application where person_id = v_me and edition_id = v_ed;
+  select t.* into v_team from hack_team t join hack_team_member m on m.team_id = t.id
+   where m.person_id = v_me and t.edition_id = v_ed;
+  if v_team.id is not null then
+    select * into v_sub from hack_submission where team_id = v_team.id;
+    select * into v_ch from hack_challenge where id = v_team.challenge_id;
+  end if;
+
+  return jsonb_build_object(
+    'edition_id', v_ed,
+    'application', case when v_app.id is null then null else jsonb_build_object(
+      'id', v_app.id, 'status', v_app.status, 'skills', to_jsonb(v_app.skills),
+      'motivation', v_app.motivation, 'team_pref', v_app.team_pref, 'applied_at', v_app.applied_at,
+      'github_url', v_app.github_url, 'website_url', v_app.website_url, 'behance_url', v_app.behance_url) end,
+    'team', case when v_team.id is null then null else jsonb_build_object(
+      'id', v_team.id, 'name', v_team.name, 'status', v_team.status,
+      -- Den Beitrittscode sieht nur, wer schon drin ist.
+      'join_code', v_team.join_code, 'discord_url', v_team.discord_url,
+      'members', (select coalesce(jsonb_agg(jsonb_build_object(
+                    'person_id', p.id, 'name', nullif(btrim(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,'')), ''),
+                    'is_captain', m.is_captain) order by m.joined_at), '[]'::jsonb)
+                  from hack_team_member m join person p on p.id = m.person_id where m.team_id = v_team.id)) end,
+    'challenge', case when v_ch.id is null then null else jsonb_build_object(
+      'id', v_ch.id, 'title', hack_text(v_ch.title_de, v_ch.title_en, p_language),
+      'description', hack_text(v_ch.description_de, v_ch.description_en, p_language),
+      'prizes', v_ch.prizes, 'resources', v_ch.resources, 'criteria', v_ch.criteria) end,
+    'submission', case when v_sub.id is null then null else jsonb_build_object(
+      'url', v_sub.url, 'repo_url', v_sub.repo_url, 'notes', v_sub.notes,
+      'submitted_at', v_sub.submitted_at) end);
+end $$;
+
 create or replace function anonymize_person(p_person_id uuid)
  RETURNS void
  LANGUAGE plpgsql
@@ -142,3 +261,5 @@ begin
   --     das ist der Nachweis, und der trägt keinen Personenbezug.
   update profile_deletion_request set reason = null where person_id = p_person_id;
 end $$;
+
+select harden_definer_functions();

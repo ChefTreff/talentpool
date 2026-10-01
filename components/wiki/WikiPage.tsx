@@ -1,4 +1,6 @@
+import { getSessionContext } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
+import { vorschlaegeFuer } from "@/lib/wiki/assistent";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -34,15 +36,21 @@ export async function WikiPage({
   const kontakte = await loadMyContacts(editionId);
   const erster = kontakte[0] ?? null;
   const phases = Object.fromEntries(KB_PHASES.map((p) => [p, vlabel(vocab, "kb_phase", p)]));
+  const { user } = await getSessionContext();
 
   return (
     <>
       <PageHeader word={t.wiki.word} title={t.wiki.title} description={t.wiki.lead} />
+      {/* Dasselbe Gespräch wie in der Bubble (`useGespraech`): wer hier
+          fragt, macht auf jeder anderen Seite des Bereichs weiter. */}
       <Assistent
         audience={audience}
         locale={locale}
         kontakt={erster ? { name: erster.display_name, email: erster.email } : null}
         t={t.wikiAssistent}
+        vorschlaege={vorschlaegeFuer(t.wikiAssistent, audience)}
+        wikiHref={null}
+        besitzer={user?.id ?? ""}
       />
       <WikiView articles={articles} phases={phases} locale={locale} t={t.wiki} />
     </>

@@ -8,6 +8,7 @@ import { PortalFooter, mailboxFor } from "./PortalFooter";
 import { AssistentBubble } from "@/components/wiki/AssistentBubble";
 import { FehlerKontextGeber } from "@/components/fehler/Fehlergrenze";
 import { fehlerTexte } from "@/components/fehler/fehler";
+import { vorschlaegeFuer } from "@/lib/wiki/assistent";
 import { getMyAreas, getSessionContext } from "@/lib/auth";
 import { getI18n, type Locale } from "@/lib/i18n";
 import type { AreaKey } from "@/lib/areas";
@@ -231,6 +232,10 @@ export async function SidebarShell({
           openLabel={t.wikiAssistent.openBubble}
           closeLabel={t.common.close}
           title={t.wikiAssistent.title}
+          vorschlaege={vorschlaegeFuer(t.wikiAssistent, zielgruppe)}
+          // Jeder Bereich mit Bubble hat sein Wiki unter `<Start>/wiki`.
+          wikiHref={`${rootHref}/wiki`}
+          besitzer={ctx.user?.id ?? ""}
         />
       )}
     </div>
