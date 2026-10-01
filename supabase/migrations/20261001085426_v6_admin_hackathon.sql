@@ -1,4 +1,5 @@
--- 0000 · Admin-Abschnitt Hackathon (ADM-055).
+-- 0229 · Admin-Abschnitt Hackathon für area_lead_hackathon und hackathon_team, is_hack_team ohne Admin-Sonderweg (ADM-055)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001085426.
 --
 -- Anlass: ADM-055 (Befund beim Rollenmodell ADM-053, Konrad 25.09.: „passt, so bauen“;
 -- Runde 01.10. an den Talent-Chat). Der Hackathon hatte keinen Admin-Abschnitt — Challenges
