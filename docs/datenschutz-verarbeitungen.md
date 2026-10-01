@@ -9,7 +9,7 @@ Verantwortlicher: ChefTreff (Hamburg). Speicherort: Supabase-Projekt `jqmqvgaiyj
 Dateien in Supabase Storage (Buckets `contact-photos`, `edition-files`, `partner-assets`, `partner-logos`,
 `product-images`, `session-assets`, `speaker-assets`). Anwendung auf Vercel (`portal.chef-treff.de`).
 
-Einwilligungstypen im System (`consent_record`/`consent_current`, versioniert): `privacy`/`privacy_policy`, `terms`,
+Einwilligungstypen im System (`consent_record`/`consent_current`, versioniert): `privacy` (Altwert `privacy_policy` am 01.10.2026 mit 0231 umgeschrieben; Wächter lässt nur Vokabular-Schlüssel zu), `terms`,
 `newsletter`, `photo_video`, `hospitality_data`; **neu geplant:** `event_app` (Weitergabe an die Event-App, Konrad 21.09.).
 
 ## 1 · Verarbeitungen
