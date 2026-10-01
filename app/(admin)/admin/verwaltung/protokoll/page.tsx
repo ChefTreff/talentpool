@@ -132,8 +132,9 @@ export default async function ProtokollPage({
                     )}
                     {/* Ohne Person heisst: der Server hat es getan. Das ist eine
                         Information, keine Lücke — deshalb ein Wort statt eines
-                        Strichs. */}
-                    <Badge tone={z.actor_name ? "neutral" : "success"}>
+                        Strichs. Akzent statt Grün: Grün heisst „erledigt“, hier
+                        geht es um den Urheber (Tokens, Regel 3). */}
+                    <Badge tone={z.actor_name ? "neutral" : "accent"}>
                       {z.actor_name ?? t.auditLog.system}
                     </Badge>
                   </div>

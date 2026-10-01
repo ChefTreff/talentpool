@@ -6,8 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SuchFeld } from "@/components/ui/SuchFeld";
-import { Button } from "@/components/ui/Button";
-import Link from "next/link";
+import { Button, ButtonDownload } from "@/components/ui/Button";
 import { toRpcFailure } from "@/lib/rpc-error";
 
 export const dynamic = "force-dynamic";
@@ -71,9 +70,11 @@ export default async function CheckinAdminPage({
         </label>
         <Button type="submit" size="sm">{t.checkinAdmin.search}</Button>
         {suche && (
-          <Link className="ct-link ct-small" href={`/admin/checkin/csv?q=${encodeURIComponent(suche)}`}>
+          // Echter Download statt `Link`: `next/link` lädt Ziele im Sichtbereich
+          // vor, und die CSV-Route liefe dabei schon ohne Klick (Skill-Regel 3).
+          <ButtonDownload href={`/admin/checkin/csv?q=${encodeURIComponent(suche)}`} variant="ghost" size="sm">
             {t.checkinAdmin.csv}
-          </Link>
+          </ButtonDownload>
         )}
       </form>
 
@@ -85,7 +86,7 @@ export default async function CheckinAdminPage({
 
       {suche && !suchFehler && (
         <section className="mb-8 flex flex-col gap-2">
-          <h2 className="ct-h3 text-ink">{t.checkinAdmin.resultsTitle.replace("{n}", String(zeilen.length))}</h2>
+          <h2 className="ct-h2 text-ink">{t.checkinAdmin.resultsTitle.replace("{n}", String(zeilen.length))}</h2>
           {zeilen.length === 0 ? (
             <EmptyState title={t.checkinAdmin.noHit} description={t.checkinAdmin.noHitBody} />
           ) : (
@@ -115,7 +116,7 @@ export default async function CheckinAdminPage({
       )}
 
       <section className="flex flex-col gap-2">
-        <h2 className="ct-h3 text-ink">{t.checkinAdmin.daysTitle}</h2>
+        <h2 className="ct-h2 text-ink">{t.checkinAdmin.daysTitle}</h2>
         <p className="ct-help">{t.checkinAdmin.daysHint}</p>
         <Card>
           <ul className="flex flex-col divide-y">
