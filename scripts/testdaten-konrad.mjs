@@ -300,7 +300,10 @@ const PARTNER_PRODUKTE = {
   company_tour: "I-85973", // Company Tour Spot
   side_event: "I-81745",
   interview_table: "I-66084",
-  hackathon: "I-10729", // Hackathon Stand
+  // Die Challenge, nicht der Stand: nur I-37220 trägt das Challenge-Formular und
+  // (HACK-005) die Rolle hackathon_partner — mit dem Stand stünde auf
+  // /partner/hackathon nur die Rückwand.
+  hackathon: "I-37220", // Hackathon Challenge
   branding: "I-21634", // Partner Branding
   talk: "I-87007", // Main Stage Speaking
 };
