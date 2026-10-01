@@ -1,4 +1,4 @@
--- Test „Abgabe über das Portal“ (HACK-011, vorschlag/v6_hack_abgabe.sql). Belegt:
+-- Test „Abgabe über das Portal“ (HACK-011, 20261001131342_v6_hack_abgabe.sql). Belegt:
 --   01 Bucket hack-submissions privat, 50 MB; Tabelle ohne Grants; keine Schreib-Policy;
 --   02 set_hack_challenge_deadline: ohne Rolle 42501, Hack-Team setzt, Audit;
 --   03 register_hack_submission_file: fremde Person 42501, Mitglied darf, falscher Pfad 22023,

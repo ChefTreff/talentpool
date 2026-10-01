@@ -1,5 +1,5 @@
 create or replace function hack_admin_overview(p_edition_id uuid DEFAULT NULL::uuid, p_language text DEFAULT 'en'::text)
- RETURNS TABLE(team_id uuid, team_name text, status text, members integer, captain text, challenge_id uuid, challenge_title text, submitted_at timestamp with time zone, scores integer, avg_total numeric)
+ RETURNS TABLE(team_id uuid, team_name text, status text, members integer, captain text, challenge_id uuid, challenge_title text, submitted_at timestamp with time zone, scores integer, avg_total numeric, late boolean)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -15,7 +15,8 @@ begin
            t.challenge_id, hack_text(c.title_de, c.title_en, p_language),
            s.submitted_at,
            (select count(*)::integer from hack_judging_score j where j.team_id = t.id),
-           (select round(avg(j.total), 2) from hack_judging_score j where j.team_id = t.id)
+           (select round(avg(j.total), 2) from hack_judging_score j where j.team_id = t.id),
+           coalesce(s.late, false)
       from hack_team t
       left join hack_challenge c on c.id = t.challenge_id
       left join hack_submission s on s.team_id = t.id

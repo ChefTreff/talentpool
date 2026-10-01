@@ -1,4 +1,5 @@
--- 0000 · Abgabe über das Portal (HACK-011): Dateien direkt aus dem Browser in den privaten
+-- 0244 · Abgabe über das Portal: privater Bucket hack-submissions mit Pfadregel, Frist je Challenge, verspätet statt gesperrt (HACK-011)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001131342.
 -- Bucket hack-submissions, Frist je Challenge, danach „verspätet“.
 --
 -- Anlass: Emilio (Call 24.09., HACK-006): Abgaben laufen außerhalb der Plattform; Lastspitze
