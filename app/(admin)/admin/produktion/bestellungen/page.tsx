@@ -2,7 +2,7 @@ import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ButtonLink } from "@/components/ui/Button";
+import { ButtonDownload } from "@/components/ui/Button";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { loadAxes, loadSuppliers } from "../load";
 
@@ -33,12 +33,14 @@ export default async function SupplierOrdersPage({
       ) : (
         <>
           <div className="mb-4">
-            <ButtonLink
+            {/* Echter Download statt Seitenwechsel: ein Link lädt das Ziel vor und holte die CSV schon ohne
+                Klick; die alte Adresse /produktion/… ging nur noch über die Weiterleitung. */}
+            <ButtonDownload
               variant="secondary"
-              href={`/produktion/bestellungen/csv${dienstleister ? `?dienstleister=${encodeURIComponent(dienstleister)}` : ""}`}
+              href={`/admin/produktion/bestellungen/csv${dienstleister ? `?dienstleister=${encodeURIComponent(dienstleister)}` : ""}`}
             >
               {t.production.csv}
-            </ButtonLink>
+            </ButtonDownload>
           </div>
           <Table>
             <Thead>
