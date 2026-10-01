@@ -1,4 +1,5 @@
--- 0000 · Track-Präferenz in der Hackathon-Bewerbung, Auswahl je Track mit Profilmerkmalen (HACK-010).
+-- 0235 · Track-Wunsch in der Hackathon-Bewerbung und Profilmerkmale in der Auswahl (HACK-010)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001123445.
 --
 -- Anlass: Emilio (Call 24.09., HACK-006): Teilnehmende passen nicht immer zum Challenge-Typ
 -- (Beispiel WHU eher Konzept als Technik). Backlog-Empfehlung: Track-Präferenz in der

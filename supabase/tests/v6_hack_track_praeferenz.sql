@@ -1,4 +1,4 @@
--- Test „Track-Präferenz“ (HACK-010, vorschlag/v6_hack_track_praeferenz.sql; setzt
+-- Test „Track-Präferenz“ (HACK-010, 20261001123445_v6_hack_track_praeferenz.sql; setzt
 -- v6_hack_tracks voraus). Belegt:
 --   01 Bewerbung ohne Track-Wunsch ⇒ 22023 track_pref_missing;
 --   02 unbekannter Track ⇒ 22023 invalid_vocab_value (detail track_prefs); mehr als drei ⇒ dito;
