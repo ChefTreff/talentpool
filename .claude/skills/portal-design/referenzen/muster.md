@@ -65,6 +65,7 @@ Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
 | Fehler im Formular | `Field error` |
 | Ergebnis einer Aktion | `useToast()` — kurz, sachlich, kein Ausrufezeichen |
 | gefährlich | `<ConfirmDialog>` mit Klartext, was passiert; Button `variant="destructive"` |
+| Seite fällt aus | `error.tsx` je Bereich → `<Fehlergrenze>` (`components/fehler/`), Baustein `<ErrorState>`: was passiert ist, Fehler-ID, „Neu laden“ als einzige primäre Aktion, Weg zur Startseite. Nie die Meldung des Fehlers zeigen, nur `fehlerId(error)` (QS-023). Neue Bereiche bekommen ihre `error.tsx` mit — `tests/fehlergrenzen.test.ts` prüft es |
 
 ## Wizard
 

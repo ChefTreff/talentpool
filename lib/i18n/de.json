@@ -672,6 +672,11 @@
       "colors": "Farben",
       "drawerTitle": "Beispiel-Panel",
       "empty": "Leerer Zustand",
+      "errorProbe": "Fehlerseite ausprobieren",
+      "errorProbeBrowser": "Fehler im Browser auslösen",
+      "errorProbeLead": "Löst absichtlich einen Fehler aus, damit du die Fehlerseite im echten Portal siehst. Beide Fehler tragen ein erfundenes Serverdetail im Text. Auf der Fehlerseite darf es nicht stehen, nur die Fehler-ID.",
+      "errorProbeServer": "Fehler auf dem Server auslösen",
+      "errorProbeTitle": "Fehlerprobe",
       "forms": "Formulare",
       "lead": "Alle Bausteine des Portals an einem Ort — Referenz für Reviews und neue Bereiche.",
       "openDrawer": "Drawer öffnen",
@@ -2199,6 +2204,11 @@
     "title": "Ernährung"
   },
   "errors": {
+    "boundaryBody": "Die Seite konnte nicht angezeigt werden. Lade sie neu, meist reicht das. Bleibt der Fehler, schreib an {mailbox} und nenn die Fehler-ID.",
+    "boundaryHome": "Zur Startseite",
+    "boundaryId": "Fehler-ID",
+    "boundaryRetry": "Neu laden",
+    "boundaryTitle": "Hier ist etwas schiefgelaufen",
     "forbiddenBody": "Für diesen Bereich fehlt dir die Rolle. Wenn das falsch ist, melde dich beim ChefTreff-Team.",
     "forbiddenTitle": "Kein Zugriff"
   },
@@ -2397,6 +2407,7 @@
     "sButtons": "Knöpfe und Chips",
     "sDates": "Termine und Fristen",
     "sEmpty": "Leerzustand",
+    "sError": "Fehler",
     "sFaq": "Fragen",
     "sPersons": "Personen",
     "sPhotos": "Einstiege",

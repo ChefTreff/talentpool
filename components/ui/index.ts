@@ -13,6 +13,7 @@ export { Modal, ConfirmDialog } from "./Modal";
 export { ToastProvider, useToast, ToastItem } from "./Toast";
 export type { ToastTone } from "./Toast";
 export { EmptyState } from "./EmptyState";
+export { ErrorState } from "./ErrorState";
 export { PageHeader } from "./PageHeader";
 export { Stepper } from "./Stepper";
 export type { Step } from "./Stepper";
