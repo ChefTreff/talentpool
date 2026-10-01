@@ -156,6 +156,7 @@
 | Welle 6 · 0229 | **Admin-Abschnitt Hackathon für area_lead_hackathon und hackathon_team, is_hack_team ohne Admin-Sonderweg (ADM-055)** (`20261001085426`, `v6_admin_hackathon`; Details im Migrationskopf) | — |
 | Welle 6 · 0230 | **Einwilligungs-Ansicht und Sperrliste in der Verwaltung, nur admin, Audit ohne Klartextadresse (ADM-033, ADM-035)** (`20261001085459`, `v6_einwilligung_sperrliste`; Details im Migrationskopf) | — |
 | Welle 6 · 0231 | **Einwilligungstyp: Seed-Altwerte privacy_policy → privacy, Vokabular-Wächter auf consent_record** (`20261001121437`, `v6_consent_type_waechter`; Details im Migrationskopf) | — |
+| Welle 6 · 0232 | **Editionsdateien: Lesen im Bucket edition-files nur für die Zielgruppe der Datei (Security-Check Teil 3, L-S1)** (`20261001121907`, `v6_editionsdateien_lesepolicy`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
