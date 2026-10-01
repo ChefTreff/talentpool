@@ -1,3 +1,5 @@
+-- 0242 · Medienverwaltung: zweites Loom der Event-App am Schlüssel partner_event_app (ADM-009, ADM-063)
+-- Angewendet von der Architektur-Session am 01.10.2026 als 20261001130657.
 -- Event-App-Loom am Schlüssel partner_event_app (ADM-009, Teil von ADM-063)
 --
 -- Zweck: Das zweite Loom der Event-App (`67013b2c5a1a42cfbd2ee1a045a9bc5c`)
