@@ -5505,6 +5505,7 @@
     "allPhases": "Alle Phasen",
     "archive": "Archivieren",
     "archived": "Archiviert",
+    "audienceRequired": "Pflicht: Die Kategorie steuert, wer den Artikel sieht und was der Assistent beantwortet. Ohne sie erreicht er niemanden.",
     "cancel": "Abbrechen",
     "colAudience": "Zielgruppe",
     "colEdition": "Edition",

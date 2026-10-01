@@ -5505,6 +5505,7 @@
     "allPhases": "All phases",
     "archive": "Archive",
     "archived": "Archived",
+    "audienceRequired": "Required: the category decides who sees the article and what the assistant answers. Without it, it reaches no one.",
     "cancel": "Cancel",
     "colAudience": "Audience",
     "colEdition": "Edition",
