@@ -3,7 +3,8 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { HeroBand } from "@/components/ui/HeroBand";
-import { datasetUrl } from "@/lib/hackathon/datensatz-server";
+import { abgabeUrls, datasetUrl, type AbgabeZeile } from "@/lib/hackathon/datensatz-server";
+import type { AbgabeDatei } from "@/components/hackathon/AbgabeDateien";
 import { HackView } from "./HackView";
 import type { HackChallenge, LeaderboardRow, MyHack } from "./types";
 
@@ -45,6 +46,15 @@ export default async function HackathonPage() {
     if (row) dataset = { filename: row.filename, size_bytes: row.size_bytes, url: await datasetUrl(supabase, row.storage_path, row.filename) };
   }
 
+  // Dateien der eigenen Abgabe (HACK-011), signiert mit der eigenen Sitzung.
+  let abgabe: AbgabeDatei[] = [];
+  if (data.team) {
+    const { data: rows } = await supabase.rpc("hack_submission_files", { p_team_id: data.team.id });
+    const zeilen = (rows ?? []) as AbgabeZeile[];
+    const urls = await abgabeUrls(supabase, zeilen);
+    abgabe = zeilen.map((z) => ({ file_id: z.file_id, filename: z.filename, size_bytes: z.size_bytes, late: z.late, url: urls.get(z.storage_path) ?? null }));
+  }
+
   return (
     <>
       <HeroBand
@@ -56,6 +66,7 @@ export default async function HackathonPage() {
         data={data}
         metric={metric}
         dataset={dataset}
+        abgabe={abgabe}
         skills={vgroup(vocab, "hack_skill")}
         tracks={vgroup(vocab, "hack_track")}
         discordUrl={process.env.HACKATHON_DISCORD_URL?.trim() || null}

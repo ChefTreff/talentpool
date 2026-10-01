@@ -76,7 +76,9 @@
  *                                   TEST-Team und unbestätigtem Wert zum Bestätigen;
  *                                   HACK-010: zwei TEST-Bewerbungen mit Track-Wunsch und
  *                                   Profil für den Track-Filter in /admin/hackathon;
- *                                   HACK-012: TEST-Datensatz (CSV) an „Predict the queue“)
+ *                                   HACK-012: TEST-Datensatz (CSV) an „Predict the queue“;
+ *                                   HACK-011: Abgabefrist 17.04.2027 12:00 an „Predict the
+ *                                   queue“ und eine TEST-Abgabedatei von „Queue Crushers“)
  *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
  *                                   nur wenn er sich unter /hackathon schon beworben hat;
  *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
@@ -2388,6 +2390,29 @@ async function hackathonChallenges() {
     }
   }
 
+  // HACK-011: Frist und eine TEST-Abgabedatei des TEST-Teams.
+  if (metrik) {
+    await write("Abgabefrist „Predict the queue“ 17.04.2027 12:00", () =>
+      admin.from("hack_challenge").update({ submission_deadline: "2027-04-17T10:00:00Z" }).eq("id", metrik.id));
+    const { data: team } = await admin.from("hack_team").select("id")
+      .eq("edition_id", hackEd).eq("name", `${PREFIX}Queue Crushers`).maybeSingle();
+    if (team) {
+      const pfad = `${team.id}/zztest-pitch.pdf`;
+      const { data: da } = await admin.from("hack_submission_file").select("id").eq("storage_path", pfad).maybeSingle();
+      if (da) {
+        note("TEST-Abgabedatei", "steht schon");
+      } else if (mode === "dry-run") {
+        note("TEST-Abgabedatei pitch.pdf (hack-submissions, Zeile in hack_submission_file)");
+      } else {
+        const pdf = Buffer.from("%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[]/Count 0>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n", "utf8");
+        const hoch = await admin.storage.from("hack-submissions").upload(pfad, pdf, { contentType: "application/pdf", upsert: true });
+        if (hoch.error) fail("TEST-Abgabedatei hochladen", hoch.error);
+        else await write("TEST-Abgabedatei pitch.pdf eintragen", () =>
+          admin.from("hack_submission_file").insert({ team_id: team.id, storage_path: pfad, filename: "pitch.pdf", mime: "application/pdf", size_bytes: pdf.length }));
+      }
+    }
+  }
+
   for (const [i, b] of TEST_BEWERBUNGEN.entries()) {
     await write(`TEST-Bewerbung ${b.nachname} (${b.tracks.join(", ")})`, async () => {
       const { data: personId, error } = await admin.rpc("testdaten_person", {
@@ -2636,6 +2661,12 @@ async function remove(me) {
     const pfade = (zeilen ?? []).map((z) => z.storage_path);
     if (pfade.length > 0) await admin.storage.from("hack-datasets").remove(pfade);
     return admin.from("hack_dataset").delete().like("storage_path", "%/zztest-%");
+  });
+  await write("TEST-Abgabedateien Hackathon entfernt", async () => {
+    const { data: zeilen } = await admin.from("hack_submission_file").select("storage_path").like("storage_path", "%/zztest-%");
+    const pfade = (zeilen ?? []).map((z) => z.storage_path);
+    if (pfade.length > 0) await admin.storage.from("hack-submissions").remove(pfade);
+    return admin.from("hack_submission_file").delete().like("storage_path", "%/zztest-%");
   });
   await write("TEST-Team Hackathon entfernt (Metrik-Wert und Mitgliedschaft gehen mit)", () =>
     admin.from("hack_team").delete().like("name", `${PREFIX}%`),

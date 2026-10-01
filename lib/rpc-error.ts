@@ -107,6 +107,8 @@ const BUSINESS_KEYS = new Set([
   "not_metric_challenge",
   "metric_label_missing",
   "invalid_metric",
+  // Abgabe-Dateien (HACK-011)
+  "too_many_files",
   // „Next Up" (TAL-006)
   "invalid_link_url",
   "next_up_not_found",
