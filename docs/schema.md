@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 12:59 UTC · 109 Tabellen · 6 Views · 625 Funktionen
+> Stand: 2026-10-01 13:02 UTC · 110 Tabellen · 6 Views · 631 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -527,6 +527,21 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `judging_mode` | text | ja | `jury` |  | Auswertungsart (HACK-009): jury = Pitch mit Kriterien, metric = Leaderboard nach metric_label. |
 | `metric_label` | text |  |  |  | Bezeichnung der Metrik, z. B. „Prediction accuracy“ (nur bei judging_mode = metric). |
 | `metric_higher_better` | boolean | ja | `true` |  | Rangfolge: true = höherer Wert gewinnt. |
+
+### `hack_dataset`
+Datensatz je Hackathon-Challenge (HACK-012) im privaten Bucket hack-datasets (<challenge_id>/<datei>). Zugriff nur über can_manage_hack_dataset, can_read_hack_dataset, register_hack_dataset, hack_challenge_dataset.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `challenge_id` | uuid | ja |  | `hack_challenge.id` |  |
+| `storage_path` | text | ja |  |  |  |
+| `filename` | text | ja |  |  |  |
+| `mime` | text |  |  |  |  |
+| `size_bytes` | bigint |  |  |  |  |
+| `is_current` | boolean | ja | `true` |  |  |
+| `uploaded_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `hack_judging_score`
 
@@ -2169,10 +2184,12 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_edit_slot` | p_slot_id: uuid |
 | `can_edit_stage` | p_stage_id: uuid |
 | `can_judge_hack_team` | p_team_id: uuid |
+| `can_manage_hack_dataset` | p_challenge_id: uuid |
 | `can_manage_speaker` | p_profile_id: uuid |
 | `can_manage_speaker_leads` | args: ? |
 | `can_plan_regie` | p_stage_id: uuid |
 | `can_read_checkin_stats` | p_edition_id: uuid |
+| `can_read_hack_dataset` | p_challenge_id: uuid |
 | `can_request_shuttle` | p_profile_id: uuid |
 | `can_search_board` | p_event_id: uuid |
 | `can_view_community_events` | args: ? |
@@ -2270,7 +2287,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `format_detail_keys` | p_format: text |
 | `hack_admin_overview` | p_edition_id: uuid, p_language: text |
 | `hack_applications_admin` | p_edition_id: uuid |
+| `hack_challenge_dataset` | p_challenge_id: uuid |
 | `hack_challenges` | p_edition_id: uuid, p_language: text |
+| `hack_dataset_path_allowed` | p_name: text |
+| `hack_dataset_targets` | p_edition_id: uuid, p_language: text |
 | `hack_edition` | p_edition_id: uuid |
 | `hack_join_code` | args: ? |
 | `hack_judging` | p_edition_id: uuid, p_language: text |
@@ -2492,6 +2512,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `regie_open_slots` | p_event_day_id: uuid, p_stage_id: uuid |
 | `regie_view` | p_event_day_id: uuid, p_stage_id: uuid |
 | `register_for_session` | p_session_id: uuid |
+| `register_hack_dataset` | p_challenge_id: uuid, p_filename: text, p_mime: text, p_size_bytes: bigint, p_storage_path: text |
 | `register_partner_asset` | p_deliverable_id: uuid, p_edition_id: uuid, p_filename: text, p_kind: text, p_mime: text, p_org_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `register_session_asset` | p_data: jsonb |
 | `register_sevdesk_document` | p_filename: text, p_kind: text, p_org_edition_id: uuid, p_size_bytes: bigint, p_storage_path: text |

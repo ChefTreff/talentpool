@@ -80,7 +80,11 @@
  *                                   HACK-009: „Predict the queue“ als Metrik-Challenge mit
  *                                   TEST-Team und unbestätigtem Wert zum Bestätigen;
  *                                   HACK-010: zwei TEST-Bewerbungen mit Track-Wunsch und
- *                                   Profil für den Track-Filter in /admin/hackathon)
+ *                                   Profil für den Track-Filter in /admin/hackathon;
+ *                                   HACK-012: TEST-Datensatz (CSV) an „Predict the queue“)
+ *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
+ *                                   nur wenn er sich unter /hackathon schon beworben hat;
+ *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -2475,6 +2479,23 @@ async function hackathonChallenges() {
     });
   }
 
+  // HACK-012: TEST-Datensatz an der Metrik-Challenge (Bucket hack-datasets, privat).
+  if (metrik) {
+    const { data: ds } = await admin.from("hack_dataset").select("id").eq("challenge_id", metrik.id).eq("is_current", true).maybeSingle();
+    if (ds) {
+      note("TEST-Datensatz", "steht schon");
+    } else if (mode === "dry-run") {
+      note("TEST-Datensatz queue.csv (hack-datasets, Zeile in hack_dataset)");
+    } else {
+      const csv = Buffer.from("timestamp,gate,waiting_minutes\n2026-04-16T08:00,A,4\n2026-04-16T08:15,A,7\n2026-04-16T08:00,B,2\n", "utf8");
+      const pfad = `${metrik.id}/zztest-queue.csv`;
+      const hoch = await admin.storage.from("hack-datasets").upload(pfad, csv, { contentType: "text/csv", upsert: true });
+      if (hoch.error) fail("TEST-Datensatz hochladen", hoch.error);
+      else await write("TEST-Datensatz queue.csv eintragen", () =>
+        admin.from("hack_dataset").insert({ challenge_id: metrik.id, storage_path: pfad, filename: "queue.csv", mime: "text/csv", size_bytes: csv.length }));
+    }
+  }
+
   for (const [i, b] of TEST_BEWERBUNGEN.entries()) {
     await write(`TEST-Bewerbung ${b.nachname} (${b.tracks.join(", ")})`, async () => {
       const { data: personId, error } = await admin.rpc("testdaten_person", {
@@ -2493,6 +2514,29 @@ async function hackathonChallenges() {
       }, { onConflict: "person_id,edition_id" });
     });
   }
+}
+
+/**
+ * HACK-009/012: Konrad ins TEST-Team an der Metrik-Challenge — damit er
+ * Datensatz-Download und Metrik-Eingabe als Teilnehmer sieht. Nur nach seiner
+ * eigenen Bewerbung (der Walkthrough der Bewerbung bleibt sein Klick); seine
+ * Zusage gibt er sich in /admin/hackathon selbst. Ein vorhandenes eigenes Team
+ * wird nicht angefasst (eine Person, ein Team je Edition).
+ */
+async function hackathonTeam(me) {
+  const { data: hackEd } = await admin.rpc("hack_edition", { p_edition_id: null });
+  if (!hackEd) return fail("Hackathon-Team", "keine Hackathon-Edition");
+  const { data: bew } = await admin.from("hack_application").select("id, status")
+    .eq("person_id", me.id).eq("edition_id", hackEd).maybeSingle();
+  if (!bew) return fail("Hackathon-Team", "Konrad hat sich noch nicht beworben — erst unter /hackathon bewerben");
+  const { data: team } = await admin.from("hack_team").select("id")
+    .eq("edition_id", hackEd).eq("name", `${PREFIX}Queue Crushers`).maybeSingle();
+  if (!team) return fail("Hackathon-Team", "TEST-Team fehlt — erst --nur=hackathon");
+  const { data: schon } = await admin.from("hack_team_member").select("team_id")
+    .eq("person_id", me.id).eq("edition_id", hackEd).maybeSingle();
+  if (schon) return note("Hackathon-Team", schon.team_id === team.id ? "Konrad ist schon drin" : "Konrad hat ein eigenes Team — unverändert");
+  await write("Konrad im TEST-Team „Queue Crushers“", () =>
+    admin.from("hack_team_member").insert({ team_id: team.id, person_id: me.id, edition_id: hackEd }));
 }
 
 async function logoEinwilligung(me, ed) {
@@ -2676,6 +2720,7 @@ async function shuttleFahrten(me, ed) {
 const SCHRITTE = {
   partner: partnerSchritt,
   hackathon: hackathonChallenges,
+  "hackathon-team": hackathonTeam,
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
@@ -2721,7 +2766,13 @@ async function remove(me) {
     if (error) return { data: null, error };
     return admin.from("suppression").delete().eq("email_hash", hash).eq("reason", "manual");
   });
-  await write("TEST-Team Hackathon entfernt (Metrik-Wert geht mit)", () =>
+  await write("TEST-Datensätze Hackathon entfernt", async () => {
+    const { data: zeilen } = await admin.from("hack_dataset").select("storage_path").like("storage_path", "%/zztest-%");
+    const pfade = (zeilen ?? []).map((z) => z.storage_path);
+    if (pfade.length > 0) await admin.storage.from("hack-datasets").remove(pfade);
+    return admin.from("hack_dataset").delete().like("storage_path", "%/zztest-%");
+  });
+  await write("TEST-Team Hackathon entfernt (Metrik-Wert und Mitgliedschaft gehen mit)", () =>
     admin.from("hack_team").delete().like("name", `${PREFIX}%`),
   );
   await write("TEST-Challenges entfernt", () =>
