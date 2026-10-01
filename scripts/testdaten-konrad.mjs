@@ -70,6 +70,9 @@
  *   … --apply --nur=sperrliste     (ADM-035: Sperrlisten-Eintrag für +zztest-sperre, nur der Hash)
  *   … --apply --nur=loeschung      (ADM-031: TEST-Person ohne Konto für den Löschantrag
  *                                   durch das Team; der Antrag selbst bleibt Konrads Klick)
+ *   … --apply --nur=folien         (SPK-023: TEST-Präsentation am TEST-Assistenz-Talk
+ *                                   für die Karte „Folien in Drive“ in /admin/technik;
+ *                                   braucht buehne und assistenz)
  *   … --apply --nur=dubletten      (ADM-036: zwei TEST-Personen als Dublettenpaar, für
  *                                   Vorschau, Zusammenführen und Rückweg; ohne Konto)
  *   … --apply --nur=award          (ADM-024: TEST-Bewerbung zum Initiativen-Award, Status
@@ -1476,6 +1479,72 @@ async function assistenzProfil(me, ed) {
 }
 
 /**
+ * SPK-023: eine TEST-Präsentation des TEST-Assistenz-Speakers am
+ * `TEST — Assistenz-Talk` (Slot Freitag 17:00 auf der Stage-Lead-Testbühne).
+ * Damit zeigt `/admin/technik` in der Karte „Folien in Drive“ eine Zeile: ohne
+ * Dienstkonto „Noch nicht gespiegelt“, mit Schlüssel landet sie beim ersten
+ * „Spiegelung nachholen“ im Technik-Ordner unter der Testbühne — der erste
+ * echte Lauf. `--remove` nimmt Datei und Eintrag weg; die Kopie in Drive
+ * entfernt danach der Cron (`slide_mirror_orphans`).
+ *
+ * Direkt geschrieben wie das TEST-Porträt, nicht über `register_speaker_asset`
+ * (die RPC will eine angemeldete Person) — deshalb spiegelt der Schritt selbst
+ * nichts.
+ */
+const FOLIEN_NAME = `${PREFIX}Folien.pdf`;
+
+/** Ein einseitiges PDF ohne Inhalt ausser dem Hinweis — keine echte Präsentation. */
+function testPdf() {
+  const text = "BT /F1 32 Tf 60 270 Td (TEST - keine echte Praesentation, SPK-023) Tj ET";
+  const objekte = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 960 540] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+    `<< /Length ${text.length} >>\nstream\n${text}\nendstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+  ];
+  let pdf = "%PDF-1.4\n";
+  const stellen = [];
+  objekte.forEach((o, i) => {
+    stellen.push(pdf.length);
+    pdf += `${i + 1} 0 obj\n${o}\nendobj\n`;
+  });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objekte.length + 1}\n0000000000 65535 f \n`;
+  pdf += stellen.map((n) => `${String(n).padStart(10, "0")} 00000 n \n`).join("");
+  pdf += `trailer\n<< /Size ${objekte.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return Buffer.from(pdf, "latin1");
+}
+
+async function folienSchritt(me, ed) {
+  const ziel = await summit(ed);
+  if (!ziel) return fail("TEST-Folien", "kein Summit");
+  const { data: adresse } = await admin.from("person_email").select("person_id")
+    .eq("email", assistenzAdresse()).maybeSingle();
+  if (!adresse) return fail("TEST-Folien", "TEST-Assistenz fehlt — zuerst --nur=buehne,assistenz");
+  const { data: sp } = await admin.from("speaker_profile").select("id")
+    .eq("person_id", adresse.person_id).eq("edition_id", ed.id).maybeSingle();
+  const { data: se } = await admin.from("session").select("id, slot_id")
+    .eq("event_id", ziel.id).eq("title_de", `${PREFIX}Assistenz-Talk`).maybeSingle();
+  if (!sp || !se?.slot_id) return fail("TEST-Folien", "Profil oder Slot des Assistenz-Talks fehlt — zuerst --nur=assistenz");
+  const { data: da, error } = await admin.from("speaker_asset").select("filename")
+    .eq("profile_id", sp.id).eq("session_id", se.id).eq("kind", "presentation").eq("is_current", true).maybeSingle();
+  if (error) return fail("TEST-Folien", error);
+  if (da) return note("TEST-Folien", da.filename === FOLIEN_NAME ? "schon da" : "eigene Präsentation vorhanden — unverändert");
+  await write("TEST-Folien am TEST-Assistenz-Talk (Freitag 17:00)", async () => {
+    const pdf = testPdf();
+    // Pfad wie beim Hochladen im Portal: `<edition>/<profil>/presentation/<uuid>-<datei>`.
+    const path = `${ed.id}/${sp.id}/presentation/${crypto.randomUUID()}-zztest-folien.pdf`;
+    const { error: up } = await admin.storage.from("speaker-assets").upload(path, pdf, { contentType: "application/pdf" });
+    if (up) return { data: null, error: up };
+    return admin.from("speaker_asset").insert({
+      profile_id: sp.id, session_id: se.id, kind: "presentation", storage_path: path, filename: FOLIEN_NAME,
+      mime: "application/pdf", size_bytes: pdf.length, version: 1, is_current: true, uploaded_by: me.id,
+    });
+  });
+}
+
+/**
  * PART-081: ein Gast der Standbühne — eine TEST-Person mit `+zztest`-Adresse
  * (Konrads eigenes Postfach, über `testdaten_person` aus 0183), als Gast der
  * Test-Organisation mit Einwilligung, am ersten TEST-Programmpunkt der
@@ -2780,6 +2849,7 @@ const SCHRITTE = {
   moderation: moderationStageLead,
   loeschung: loeschungTestperson,
   sperrliste: sperrlisteEintrag,
+  folien: folienSchritt,
   dubletten: dublettenPaar,
   award: awardBewerbung,
 };
@@ -2984,6 +3054,16 @@ async function remove(me) {
       .eq("email", verwaltetAdresse()).maybeSingle();
     if (!adresse) return { data: null, error: null };
     return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  // SPK-023: die TEST-Folien vor dem Profil — die Zeile ginge per Kaskade mit,
+  // die Datei bliebe im Bucket. Die Kopie in Drive räumt danach der Cron ab.
+  await write("TEST-Folien entfernt (Datei und Eintrag)", async () => {
+    const { data: folien } = await admin.from("speaker_asset").select("id, storage_path")
+      .eq("kind", "presentation").eq("filename", FOLIEN_NAME).eq("uploaded_by", me.id);
+    if (!folien?.length) return { data: null, error: null };
+    const { error } = await admin.storage.from("speaker-assets").remove(folien.map((f) => f.storage_path));
+    if (error) return { data: null, error };
+    return admin.from("speaker_asset").delete().in("id", folien.map((f) => f.id));
   });
   await write("Assistenz-Testprofil entfernt (Profil und Kontakt gehen mit)", async () => {
     const { data: adresse } = await admin.from("person_email").select("person_id")

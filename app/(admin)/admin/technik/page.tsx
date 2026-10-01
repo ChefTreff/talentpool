@@ -4,14 +4,43 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ButtonLink } from "@/components/ui/Button";
+import { driveUebersicht } from "@/lib/drive/server";
+import { formatTime } from "@/lib/tz";
 import { TechCheckQueue, type CheckAsset, type SpeakerHint } from "./TechCheckQueue";
+import { DriveSpiegel } from "./DriveSpiegel";
 
 export const dynamic = "force-dynamic";
+// SPK-023: „Spiegelung nachholen“ überträgt bis zu 25 Präsentationen je Klick.
+export const maxDuration = 300;
 
 export default async function AdminTechPage() {
   await requireAdminSection("tech", "/admin/technik");
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
+
+  // SPK-023: Folien im Technik-Ordner. Die laufende Edition wie im Wiki
+  // (jüngste `is_edition`); die Daten liest der Server erst nach der
+  // Abschnittsprüfung oben.
+  const { data: editionen } = await supabase
+    .from("event")
+    .select("id")
+    .eq("is_edition", true)
+    .order("start_date", { ascending: false })
+    .limit(1);
+  const editionId = (editionen?.[0]?.id as string | undefined) ?? null;
+  const drive = await driveUebersicht(editionId);
+  const slotTexte = Object.fromEntries(
+    drive.zeilen.map((z) => {
+      if (!z.beginn) return [z.schluessel, z.buehne ?? "—"];
+      const tag = new Intl.DateTimeFormat(t.meta.dateLocale, {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+        timeZone: z.timezone,
+      }).format(new Date(z.beginn));
+      return [z.schluessel, `${z.buehne ?? "—"} · ${tag} ${formatTime(z.beginn, z.timezone)}`];
+    }),
+  );
 
   // `my_speaker_assets(null)` liefert dem Team alle Dateien; für den
   // Technik-Check zählen die aktuellen Präsentationen. Wessen Datei das ist,
@@ -57,6 +86,15 @@ export default async function AdminTechPage() {
           {t.presentationsList.bySlots}
         </ButtonLink>
       </div>
+      {editionId && (
+        <DriveSpiegel
+          uebersicht={drive}
+          editionId={editionId}
+          slotTexte={slotTexte}
+          t={t.admin.techDrive}
+          rpc={t.rpc}
+        />
+      )}
       {assets.length === 0 ? (
         <EmptyState title={t.admin.tech.emptyTitle} description={t.admin.tech.emptyBody} />
       ) : (
