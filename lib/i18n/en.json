@@ -974,6 +974,7 @@
     "appsLead": "Open ones first. Portfolio links come from the application; contact via the person view.",
     "appsTitle": "Applications",
     "challengeColumn": "Challenge",
+    "colMatches": "Fits",
     "colMotivation": "Motivation",
     "colName": "Name",
     "colPortfolio": "Portfolio",
@@ -1018,7 +1019,9 @@
     "trackSaved": "Track saved",
     "tracksEmpty": "No challenge published yet.",
     "tracksLead": "Every published challenge belongs to a track. Participants filter by it.",
-    "tracksTitle": "Challenges and tracks"
+    "tracksTitle": "Challenges and tracks",
+    "wishAdminLead": "Whom partners are looking for, per challenge. The “Fits” column in the applications compares field of study and skills with it.",
+    "wishAdminTitle": "Wanted profiles"
   },
   "adminInitiatives": {
     "counts": "{produkte} services · {pflichten} open obligations · {kontingente} allocations",
@@ -2672,6 +2675,20 @@
     "datasetUploaded": "Dataset uploaded",
     "datasetWrongType": "This format is not supported. Allowed: CSV, TSV, JSON, Parquet, ZIP, GZ, XLSX, TXT, PDF."
   },
+  "hackWish": {
+    "wishFields": "Fields of study",
+    "wishMax": "Up to 8.",
+    "wishNoHits": "No match",
+    "wishPartnerLead": "Describe who fits your challenge well. Participants see the profile with the challenges; we use it when selecting.",
+    "wishPartnerTitle": "Who are you looking for?",
+    "wishRemove": "Remove",
+    "wishSave": "Save profile",
+    "wishSaved": "Profile saved",
+    "wishSearch": "Search …",
+    "wishSkills": "Skills",
+    "wishText": "In one sentence",
+    "wishTextHint": "Up to 500 characters, e.g. “people who enjoy working with real sensor data”."
+  },
   "hackathon": {
     "applied": "Application sent",
     "apply": "Apply",
@@ -2789,6 +2806,7 @@
     "trackPrefs": "Preferred tracks",
     "trackPrefsHint": "Choose one or more. We put teams together per track.",
     "websiteUrl": "Website",
+    "wishTitle": "Looking for",
     "yourCode": "Your join code"
   },
   "home": {

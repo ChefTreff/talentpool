@@ -8,6 +8,8 @@ import { TeamsView } from "@/app/(hackathon)/hackathon/teams/TeamsView";
 import type { HackChallenge, HackOpenChallenge, HackTeamRow, LeaderboardRow } from "@/app/(hackathon)/hackathon/types";
 import { ApplicationsTable, type AdminApplication } from "./ApplicationsTable";
 import { ChallengeTracks } from "./ChallengeTracks";
+import { WunschprofilForm } from "@/components/hackathon/WunschprofilForm";
+import type { Wunschprofil } from "@/lib/hackathon/wunschprofil";
 import { DatasetUpload } from "@/components/hackathon/DatasetUpload";
 import { datasetUrl, type DatasetTarget } from "@/lib/hackathon/datensatz-server";
 import { MetricResults } from "./MetricResults";
@@ -37,6 +39,9 @@ export default async function AdminHackathonPage() {
     loadVocabMap(supabase, locale),
   ]);
   const trackLabels = vgroup(vocab, "hack_track");
+  // HACK-015: Wunschprofile je Challenge — Pflege hier und Passung in der Auswahl.
+  const { data: profilRows } = await supabase.rpc("hack_challenge_profiles", { p_language: locale });
+  const wunschprofile = (profilRows ?? []) as Wunschprofil[];
   // HACK-012: Datensatz je freigegebener Challenge (Hack-Team pflegt alle).
   const { data: targetRows } = await supabase.rpc("hack_dataset_targets", { p_language: locale });
   const datensaetze = await Promise.all(
@@ -69,10 +74,33 @@ export default async function AdminHackathonPage() {
               studyFields: vgroup(vocab, "study_field"),
               profileSkills: vgroup(vocab, "skill"),
             }}
+            wunschprofile={wunschprofile}
             t={tt}
             rpcMessages={t.rpc}
           />
         </Card>
+        {wunschprofile.length > 0 && (
+          <Card>
+            <CardHeader title={tt.wishAdminTitle} description={tt.wishAdminLead} />
+            <div className="flex flex-col gap-8">
+              {wunschprofile.map((w) => (
+                <section key={w.challenge_id} className="flex flex-col gap-3">
+                  <h3 className="ct-h3">
+                    {w.title}
+                    {w.org_name && <span className="ct-help"> · {w.org_name}</span>}
+                  </h3>
+                  <WunschprofilForm
+                    profil={w}
+                    studyFields={vgroup(vocab, "study_field")}
+                    skills={vgroup(vocab, "skill")}
+                    t={t.hackWish}
+                    rpcMessages={t.rpc}
+                  />
+                </section>
+              ))}
+            </div>
+          </Card>
+        )}
         <Card>
           <CardHeader title={tt.tracksTitle} description={tt.tracksLead} />
           <ChallengeTracks

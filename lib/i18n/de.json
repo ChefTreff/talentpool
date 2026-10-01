@@ -974,6 +974,7 @@
     "appsLead": "Offene zuerst. Portfolio-Links kommen aus der Bewerbung; Kontakt über die Personenansicht.",
     "appsTitle": "Bewerbungen",
     "challengeColumn": "Challenge",
+    "colMatches": "Passt zu",
     "colMotivation": "Motivation",
     "colName": "Name",
     "colPortfolio": "Portfolio",
@@ -1018,7 +1019,9 @@
     "trackSaved": "Track gespeichert",
     "tracksEmpty": "Noch keine Challenge freigegeben.",
     "tracksLead": "Jede freigegebene Challenge gehört zu einem Track. Teilnehmende filtern danach.",
-    "tracksTitle": "Challenges und Tracks"
+    "tracksTitle": "Challenges und Tracks",
+    "wishAdminLead": "Wen die Partner je Challenge suchen. Die Spalte „Passt zu“ bei den Bewerbungen vergleicht Studienfeld und Skills damit.",
+    "wishAdminTitle": "Wunschprofile"
   },
   "adminInitiatives": {
     "counts": "{produkte} Leistungen · {pflichten} offene Pflichten · {kontingente} Kontingente",
@@ -2672,6 +2675,20 @@
     "datasetUploaded": "Datensatz hochgeladen",
     "datasetWrongType": "Dieses Format geht nicht. Erlaubt: CSV, TSV, JSON, Parquet, ZIP, GZ, XLSX, TXT, PDF."
   },
+  "hackWish": {
+    "wishFields": "Studienfelder",
+    "wishMax": "Bis zu 8.",
+    "wishNoHits": "Kein Treffer",
+    "wishPartnerLead": "Beschreibt, wer gut zu eurer Challenge passt. Teilnehmende sehen das Profil bei den Challenges, wir nutzen es bei der Auswahl.",
+    "wishPartnerTitle": "Wen sucht ihr?",
+    "wishRemove": "Entfernen",
+    "wishSave": "Wunschprofil speichern",
+    "wishSaved": "Wunschprofil gespeichert",
+    "wishSearch": "Suchen …",
+    "wishSkills": "Skills",
+    "wishText": "In einem Satz",
+    "wishTextHint": "Bis 500 Zeichen, z. B. „Leute, die gern mit echten Sensordaten arbeiten“."
+  },
   "hackathon": {
     "applied": "Application sent",
     "apply": "Apply",
@@ -2789,6 +2806,7 @@
     "trackPrefs": "Gewünschte Tracks",
     "trackPrefsHint": "Wähle einen oder mehrere. Wir stellen die Teams je Track zusammen.",
     "websiteUrl": "Website",
+    "wishTitle": "Gesucht",
     "yourCode": "Your join code"
   },
   "home": {

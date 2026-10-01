@@ -10,6 +10,7 @@ import { Table, Tbody, Td, Th, Thead, Tr } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 import { decideApplication } from "./actions";
+import { passendeChallenges, type Wunschprofil } from "@/lib/hackathon/wunschprofil";
 
 export type AdminApplication = {
   application_id: string;
@@ -58,11 +59,14 @@ const TONE: Record<string, BadgeTone> = { applied: "warning", accepted: "success
 export function ApplicationsTable({
   rows,
   labels,
+  wunschprofile = [],
   t,
   rpcMessages,
 }: {
   rows: AdminApplication[];
   labels: ApplicationLabels;
+  /** HACK-015: Wunschprofile je Challenge für die Spalte „Passt zu“. */
+  wunschprofile?: Wunschprofil[];
   t: Strings;
   rpcMessages: Strings;
 }) {
@@ -125,6 +129,7 @@ export function ApplicationsTable({
                 <Th>{t.colStatus}</Th>
                 <Th>{t.colTracks}</Th>
                 <Th>{t.colProfile}</Th>
+                <Th>{t.colMatches}</Th>
                 <Th>{t.colSkills}</Th>
                 <Th>{t.colMotivation}</Th>
                 <Th>{t.colPortfolio}</Th>
@@ -147,6 +152,11 @@ export function ApplicationsTable({
                         {(a.profile_skills ?? []).map((s) => labels.profileSkills[s] ?? s).join(", ")}
                       </span>
                     )}
+                  </Td>
+                  <Td>
+                    <span className="ct-small block max-w-xs">
+                      {passendeChallenges(wunschprofile, a).map((w) => w.title).join(", ") || "—"}
+                    </span>
                   </Td>
                   <Td>{(a.skills ?? []).map((s) => skillLabels[s] ?? s).join(", ") || "—"}</Td>
                   <Td>
