@@ -1164,3 +1164,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 ## 2026-10-02 — #328 gemergt (Testleitfaden: Abschnitt Speaker und Stage Leads)
 
 - **#328** (Speaker, nur Doku): `docs/team-testleitfaden.md` Abschnitt 5a „Speaker und Stage Leads“ — Zugang, ZZTEST-Speaker anlegen (über das Lead-Portal, ADM-004), „Nicht drücken“ (Website-Übertragen, Drive-Knöpfe, Tickets „Ausstellen“, Reisekosten „Freigeben“ — SevDesk-Beleg und Qonto-Mail), „Danach zurücknehmen“ (Hotel belegt Kontingent, Shuttle im Fahrdienst-Export, Folien → Drive-Kopie, nur Beispiel-IBAN), drei Tabellen mit Normalfall, Fehlerfall und Prüfpunkt für Speaker-Portal (inkl. stellvertretend bestätigen), Stage-Lead-Portal und Admin (Speaker-Detail, Website-Vorschau). Spiegel-Lauf: Zielordner gesetzt, zwei TEST-Folien warten, noch keine Spiegel-Zeile — Konrads Klick „Spiegelung nachholen“ steht aus.
+
+## 2026-10-02 — #329 gemergt (Fristmarke kompakt am Handy, PART-094)
+
+- **#329** (Design, PART-094, ohne Migration): unter 640 px steht die Fristmarke in einer Zeile („Deadline 19.03.2027“, bei bald/vorbei/erledigt der Stand statt des Worts), Restzeit offener Fristen entfällt am Handy; ab 640 px unverändert. Kurzform-Variante gewählt, weil „nur bei Abweichung zeigen“ Information wegnähme. PART-094 → gebaut #329. Design weiter mit ADM-066 (Zuschnitt-Dialog, P1).
