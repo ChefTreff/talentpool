@@ -77,6 +77,8 @@
  *                                   Vorschau, Zusammenführen und Rückweg; ohne Konto)
  *   … --apply --nur=award          (ADM-024: TEST-Bewerbung zum Initiativen-Award, Status
  *                                   „Neu" — nicht öffentlich, bis Konrad sie annimmt)
+ *   … --apply --nur=tourzuordnung  (ADM-045: zweiter, freier Stopp an der TEST-Company-Tour —
+ *                                   zum Ausprobieren von Zuordnen und Tauschen)
  *   … --apply --nur=hackathon      (HACK-008: zwei freigegebene TEST-Challenges der
  *                                   Test-Organisation in zwei Tracks — Filter auf
  *                                   /hackathon/challenges, Track-Liste in /admin/hackathon;
@@ -2778,6 +2780,27 @@ async function awardBewerbung(me, ed) {
 }
 
 /**
+ * ADM-045: die TEST-Company-Tour (Schritt `tour`) bekommt einen zweiten, freien
+ * Stopp. Damit zeigt /admin/company-tours/zuordnung an Konrads Testtour einen
+ * besetzten Stopp (TEST-Partner) und einen freien — Zuordnen und Tauschen lassen
+ * sich ausprobieren, ohne eine echte Tour anzufassen. Die echten Touren (aus 0134)
+ * bleiben unberührt.
+ */
+async function tourZuordnung(me, ed) {
+  const { data: tour } = await admin.from("company_tour").select("id")
+    .eq("edition_id", ed.id).eq("name", `${PREFIX}Company Tour`).maybeSingle();
+  if (!tour) return fail("Tour-Zuordnung", "keine TEST-Company-Tour — zuerst --nur=tour");
+  const { data: stopps } = await admin.from("company_tour_stop").select("sort_order").eq("tour_id", tour.id);
+  if ((stopps ?? []).some((x) => x.sort_order === 2)) {
+    note("Zweiter Stopp der TEST-Tour", "steht schon");
+  } else {
+    await write("Zweiter, freier Stopp an der TEST-Tour", () =>
+      admin.from("company_tour_stop").insert({ tour_id: tour.id, sort_order: 2 }));
+  }
+  note("Tour-Zuordnung ausprobieren", "/admin/company-tours/zuordnung → TEST — Company Tour: Stopp 2 zuordnen oder mit Stopp 1 tauschen");
+}
+
+/**
  * SPK-069: zwei TEST-Shuttle-Fahrten an Konrads eigenem Speaker-Profil — eine
  * angefragt (Anreise am ersten Summit-Tag), eine bestätigt (Abreise am letzten).
  * Erst damit zeigen `/admin/anreise` und `/speaker-leads/anreise` die Abzeichen
@@ -2852,6 +2875,7 @@ const SCHRITTE = {
   folien: folienSchritt,
   dubletten: dublettenPaar,
   award: awardBewerbung,
+  tourzuordnung: tourZuordnung,
 };
 
 async function teilschritte(me, ed, namen) {

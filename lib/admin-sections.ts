@@ -80,6 +80,7 @@ export type AdminSectionKey =
   | "initiatives"
   | "logoWall"
   | "companyTours"
+  | "tourAssignment"
   | "volunteers"
   | "checkin"
   | "catering"
@@ -180,6 +181,8 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // gedruckt wird die Wand von Produktion und Marketing.
   { key: "logoWall", path: "/admin/partner/logos", roles: ["area_lead_partner", "partner_team", "area_lead_production", "production_team", "marketing_team"] },
   { key: "companyTours", path: "/admin/company-tours", roles: ["area_lead_partner", "partner_team", "programme_team", "area_lead_production", "production_team"] },
+  // ADM-045: welcher Partner auf welcher Tour — dieselben Rollen; gespiegelt in `admin_section_role` (v6_tour_zuordnung).
+  { key: "tourAssignment", path: "/admin/company-tours/zuordnung", roles: ["area_lead_partner", "partner_team", "programme_team", "area_lead_production", "production_team"] },
 
   // Volunteers
   { key: "volunteers", path: "/admin/volunteers", roles: ["area_lead_volunteers", "volunteers_team"] },
