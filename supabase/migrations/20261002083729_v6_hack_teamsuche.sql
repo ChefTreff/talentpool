@@ -1,4 +1,5 @@
--- 0000 · Teamsuche im Hackathon (HACK-016): offene Teams und Einzelpersonen finden,
+-- 0249 · Hackathon-Teamsuche: offene Teams und suchende Personen, Beitrittsanfragen mit Zusage, keine Kontaktdaten (HACK-016)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002083729.
 -- Beitritt über Anfrage mit Zusage — nie über Kontaktdaten.
 --
 -- Anlass: Konrad im Call 24.09. (HACK-014-Abgleich): Teams finden sich heute nur über den

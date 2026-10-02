@@ -1,4 +1,4 @@
--- Test „Teamsuche“ (HACK-016, vorschlag/v6_hack_teamsuche.sql). Belegt:
+-- Test „Teamsuche“ (HACK-016, 20261002083729_v6_hack_teamsuche.sql). Belegt:
 --   01 Tabelle ohne Grants; Spalten mit Prüfsatz;
 --   02 Nicht-Teilnehmende (keine angenommene Bewerbung, kein Team): Teamliste 42501,
 --      set_hack_seeking 42501, request_hack_join 42501;
