@@ -1,5 +1,5 @@
 create or replace function hack_applications_admin(p_edition_id uuid DEFAULT NULL::uuid)
- RETURNS TABLE(application_id uuid, person_id uuid, first_name text, last_name text, status text, skills text[], motivation text, team_pref text, github_url text, website_url text, behance_url text, team_name text, applied_at timestamp with time zone, decided_at timestamp with time zone, track_prefs text[], occupation_status text, study_field text, study_program_label text, university text, graduation_year smallint, function_area text, profile_skills text[])
+ RETURNS TABLE(application_id uuid, person_id uuid, first_name text, last_name text, status text, skills text[], motivation text, team_pref text, github_url text, website_url text, behance_url text, team_name text, applied_at timestamp with time zone, decided_at timestamp with time zone, track_prefs text[], occupation_status text, study_field text, study_program_label text, university text, graduation_year smallint, function_area text, profile_skills text[], challenge_prefs uuid[])
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -13,7 +13,8 @@ begin
            a.track_prefs, p.occupation_status, p.study_field, p.study_program_label,
            p.university, p.graduation_year, p.function_area,
            coalesce((select array_agg(i.term_key order by i.term_key) from person_interest i
-                      where i.person_id = p.id and i.vocabulary = 'skill'), '{}')
+                      where i.person_id = p.id and i.vocabulary = 'skill'), '{}'),
+           a.challenge_prefs
       from hack_application a
       join person p on p.id = a.person_id
       -- Mitgliedschaft nur dieser Edition (vorher ohne Edition: Doppelzeilen).

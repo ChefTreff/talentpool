@@ -85,6 +85,7 @@ export default async function AdminHackathonPage() {
               profileSkills: vgroup(vocab, "skill"),
             }}
             wunschprofile={wunschprofile}
+            challengeTitles={Object.fromEntries(((challenges ?? []) as HackChallenge[]).map((c) => [c.id, c.title]))}
             t={tt}
             rpcMessages={t.rpc}
           />

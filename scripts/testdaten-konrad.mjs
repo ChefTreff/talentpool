@@ -91,7 +91,8 @@
  *                                   queue“ und eine TEST-Abgabedatei von „Queue Crushers“;
  *                                   HACK-015: Wunschprofil an „Predict the queue“;
  *                                   HACK-016: „Queue Crushers“ sucht noch, „Datenbewerbung“
- *                                   angenommen mit „suche Team“)
+ *                                   angenommen mit „suche Team“; HACK-017: Wunsch-
+ *                                   Challenges der beiden TEST-Bewerbungen)
  *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
  *                                   nur wenn er sich unter /hackathon schon beworben hat;
  *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
@@ -2629,6 +2630,16 @@ async function hackathonChallenges() {
       return admin.from("hack_team").update({
         looking: true, looking_skills: (skills ?? []).map((k) => k.key), looking_note: "TEST — looking for someone who likes data",
       }).eq("edition_id", hackEd).eq("name", `${PREFIX}Queue Crushers`);
+    });
+  }
+  // HACK-017: Wunsch-Challenges der TEST-Bewerbungen (Daten → Predict the queue, Konzept → Canteen).
+  for (const [i, titel] of [TEST_CHALLENGES[0].title_en, TEST_CHALLENGES[1].title_en].entries()) {
+    await write(`Wunsch-Challenge TEST-Bewerbung ${i + 1}: ${titel}`, async () => {
+      const { data: ch } = await admin.from("hack_challenge").select("id").eq("edition_id", hackEd).eq("title_en", titel).maybeSingle();
+      const { data: adresse } = await admin.from("person_email").select("person_id").eq("email", hackAdresse(i + 1)).maybeSingle();
+      if (!ch || !adresse) return { data: null, error: null };
+      return admin.from("hack_application").update({ challenge_prefs: [ch.id] })
+        .eq("person_id", adresse.person_id).eq("edition_id", hackEd);
     });
   }
   await write("Teamsuche: TEST-Bewerbung „Datenbewerbung“ angenommen und sucht ein Team", async () => {
