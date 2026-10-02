@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { requireArea } from "@/lib/auth";
+import { spiegelePraesentation } from "@/lib/drive/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { registrierePraesentation, type PraesentationsEingang } from "@/lib/speaker/praesentationen";
 import { fotoFuerProfil, registriereFoto, type FotoEingang } from "@/lib/speaker/foto";
@@ -152,8 +154,11 @@ export async function registerPresentationAsLead(
   const supabase = await client();
   const { error, data } = await registrierePraesentation(supabase, input);
   if (error) return fail(error);
+  // SPK-023: die Technik bekommt die Fassung im Drive-Ordner — erst nach der
+  // Rechteprüfung der RPC und ohne dass der Upload darauf wartet.
+  if (data.id) after(() => spiegelePraesentation(data.id));
   revalidatePath(`${PATH}/praesentationen`);
-  return { ok: true, data };
+  return { ok: true, data: { version: data.version, late: data.late } };
 }
 
 /**

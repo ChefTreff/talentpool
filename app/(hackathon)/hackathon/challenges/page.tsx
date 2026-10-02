@@ -10,6 +10,8 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import type { HackChallenge, LeaderboardRow } from "../types";
 import { Leaderboard } from "../Leaderboard";
+import { WunschprofilAnzeige } from "@/components/hackathon/WunschprofilAnzeige";
+import type { Wunschprofil } from "@/lib/hackathon/wunschprofil";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +32,15 @@ export default async function ChallengesPage({
   const { locale, t } = await getI18n("en");
   const { track } = await searchParams;
   const supabase = await createSupabaseServerClient();
-  const [{ data }, vocab] = await Promise.all([
+  const [{ data }, vocab, { data: profilRows }] = await Promise.all([
     supabase.rpc("hack_challenges", { p_language: locale }),
     loadVocabMap(supabase, locale),
+    supabase.rpc("hack_challenge_profiles", { p_language: locale }),
   ]);
+  // Wunschprofil je Challenge (HACK-015).
+  const profile = new Map(((profilRows ?? []) as Wunschprofil[]).map((p) => [p.challenge_id, p]));
+  const studyFields = vgroup(vocab, "study_field");
+  const skillLabels = vgroup(vocab, "skill");
   const alle = (data ?? []) as HackChallenge[];
   // Leaderboard je Metrik-Challenge (HACK-009); es sind wenige Challenges.
   const boards = new Map<string, LeaderboardRow[]>(
@@ -120,6 +127,14 @@ export default async function ChallengesPage({
                     </Badge>
                   ))}
                 </div>
+                {profile.get(c.id) && (
+                  <WunschprofilAnzeige
+                    profil={profile.get(c.id)!}
+                    studyFields={studyFields}
+                    skills={skillLabels}
+                    title={t.hackathon.wishTitle}
+                  />
+                )}
                 {c.judging_mode === "metric" && (
                   <section aria-label={t.hackathon.leaderboardTitle} className="mt-2 flex flex-col gap-2">
                     <h3 className="ct-label">{t.hackathon.leaderboardTitle}</h3>

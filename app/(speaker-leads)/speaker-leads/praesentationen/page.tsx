@@ -10,6 +10,8 @@ import { registerPresentationAsLead } from "../actions";
 import type { ManagerScope } from "../types";
 
 export const dynamic = "force-dynamic";
+// SPK-023: nach dem Upload spiegelt `after()` die Präsentation nach Drive.
+export const maxDuration = 300;
 
 const PATH = "/speaker-leads/praesentationen";
 

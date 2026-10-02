@@ -62,6 +62,10 @@ const PAARE = [
   // Warnzeichen der Fehlergrenze (`ErrorState`, QS-023): Strich und
   // Ausrufezeichen auf der Karte — Grafik, also 3:1 (WCAG 1.4.11).
   ["Warnzeichen (error-ink) auf Karte", "#C22B2B", "#FFFFFF", 3.0],
+  // Text-Zeilen ohne Chip auf der Karte, z. B. „Folien in Drive“ (SPK-023):
+  // Fehler eines Laufs in error-ink, Hinweis auf fehlende Rechte in warning-ink.
+  ["Fehlertext (error-ink) auf Karte", "#C22B2B", "#FFFFFF", 4.5],
+  ["Hinweistext (warning-ink) auf Karte", "#8A6100", "#FFFFFF", 4.5],
   ["Destructive-Fläche mit Weiß", "#FFFFFF", "#C22B2B", 4.5],
   ["Text auf Navy (Sidebar)", "#F5F4F2", "#081A35", 4.5],
   ["Hilfstext auf Navy", "#A0AAB9", "#081A35", 4.5],

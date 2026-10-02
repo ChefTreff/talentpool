@@ -116,6 +116,7 @@ export default async function MedienPage({ searchParams }: { searchParams: Promi
           editionId={axes.editionId}
           files={(rows ?? []) as EditionFileRow[]}
           kinds={vgroup(vocab, "edition_file_kind")}
+          audiences={vgroup(vocab, "kb_audience")}
           dateLocale={t.meta.dateLocale}
           t={t.productionFiles}
           common={{ cancel: t.common.cancel, delete: t.common.delete, upload: t.common.upload, chooseOtherFile: t.common.chooseOtherFile }}
