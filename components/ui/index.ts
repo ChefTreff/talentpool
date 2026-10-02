@@ -15,6 +15,7 @@ export { ToastProvider, useToast, ToastItem } from "./Toast";
 export type { ToastTone } from "./Toast";
 export { EmptyState } from "./EmptyState";
 export { ErrorState } from "./ErrorState";
+export { TestbetriebHinweis } from "./TestbetriebHinweis";
 export { PageHeader } from "./PageHeader";
 export { Stepper } from "./Stepper";
 export type { Step } from "./Stepper";

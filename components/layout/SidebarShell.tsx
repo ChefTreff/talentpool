@@ -8,9 +8,11 @@ import { PortalFooter, mailboxFor } from "./PortalFooter";
 import { AssistentBubble } from "@/components/wiki/AssistentBubble";
 import { FehlerKontextGeber } from "@/components/fehler/Fehlergrenze";
 import { fehlerTexte } from "@/components/fehler/fehler";
+import { TestbetriebHinweis } from "@/components/ui/TestbetriebHinweis";
 import { vorschlaegeFuer } from "@/lib/wiki/assistent";
 import { getMyAreas, getSessionContext } from "@/lib/auth";
 import { getI18n, type Locale } from "@/lib/i18n";
+import { testbetriebAktiv } from "@/lib/testbetrieb";
 import type { AreaKey } from "@/lib/areas";
 
 export type { SidebarGroup, SidebarItem } from "./SidebarNav";
@@ -52,6 +54,14 @@ export type { SidebarGroup, SidebarItem } from "./SidebarNav";
  * Wissens-Zielgruppe gibt — Partner, Speaker, Volunteers. In den übrigen
  * Bereichen gibt es keine Artikel für ihn; eine Bubble, die auf ein leeres
  * Wiki zeigt, wäre schlimmer als keine.
+ *
+ * **Der Testbetrieb-Hinweis sitzt hier, einmal** (QS-056 c): ein schmaler
+ * Streifen unter der Kopfzeile, solange das Team gegen die Live-Datenbank
+ * testet — Daten mit `ZZTEST` sind Testdaten, alles andere ist echt. Er steht
+ * in der Shell, nicht in den Seiten, damit er in allen Bereichen gleich
+ * aussieht und sich an einer Stelle abschalten lässt
+ * (`NEXT_PUBLIC_TESTBETRIEB_HINWEIS=false`, `lib/testbetrieb.ts`). Der Einlass
+ * hat bewusst keine Shell (siehe `app/(checkin)/layout.tsx`) und zeigt ihn nicht.
  *
  * `width` steuert die Textbreite des Inhalts: `content` (1200) ist der
  * Normalfall, `table` (1400) für dichte Admin-Listen. Beide kommen aus den
@@ -202,6 +212,15 @@ export async function SidebarShell({
             logoutLabel={t.nav.logout}
           />
         </header>
+
+        {testbetriebAktiv() && (
+          <TestbetriebHinweis
+            label={t.testbetrieb.label}
+            kurz={t.testbetrieb.kurz}
+            mehr={t.testbetrieb.mehr}
+            breite={width}
+          />
+        )}
 
         <main
           id="content"

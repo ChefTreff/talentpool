@@ -3136,6 +3136,7 @@
     "sSection": "Abschnitte, Fristen, Termine",
     "sStats": "Kennzahlen",
     "sStep": "Fortschritt",
+    "sTestbetrieb": "Testbetrieb-Hinweis",
     "sTicket": "Kontingent und Formular",
     "searchLabel": "Speaker suchen",
     "searchPlaceholder": "Name, Firma oder Session",
@@ -3158,6 +3159,7 @@
     "step4": "Rechnungsdaten",
     "step4Hint": "Empfänger und Bestellnummer",
     "stepSr": "Fortschritt im Beispiel",
+    "testbetriebHint": "Eine Zeile unter der Kopfzeile jeder Seite (SidebarShell), solange das Team testet. Ab 768 px mit dem zweiten Satz. Aus mit NEXT_PUBLIC_TESTBETRIEB_HINWEIS=false.",
     "ticketAction": "Codes ansehen",
     "ticketCount": "Codes eingelöst",
     "ticketI1": "Zugang an beiden Tagen",
@@ -6213,6 +6215,11 @@
     "walletAdd": "Zur Wallet hinzufügen",
     "walletHint": "Öffnet dein Ticket bei vivenu — dort liegen die Knöpfe für Apple und Google Wallet.",
     "word": "Zugang"
+  },
+  "testbetrieb": {
+    "kurz": "Daten mit ZZTEST sind Testdaten.",
+    "label": "Testbetrieb",
+    "mehr": "Nur diese ändern oder löschen — alles andere ist echt."
   },
   "titleAssistant": {
     "assistant": "Vorschlag",
