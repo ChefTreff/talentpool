@@ -38,6 +38,9 @@ Swapcard (Event-App) · HubSpot (CRM) · SevDesk (Buchhaltung) · make.com (Auto
 Google Workspace (Drive-Lesekopie der Doku, Technik-Ordner der Speaker-Folien über ein Dienstkonto (SPK-023), Mail) · Anthropic (KI-Assistenten) · Sanity (Website-CMS: Partner-Logos, freigegebene Speaker-Profile nach Einwilligung, SPK-046). **Kein** Fremddienst mehr für die
 Grafik-Maske (Porträt bleibt im Browser, #85).
 
+
+**Fremde Einbettungen (Zwei-Klick, `EmbedGate`, Stand 02.10.2026):** Loom (Video-Anleitungen, `portal_video`) und Matterport (3D-Rundgang des Summits, `portal_link` `partner_3d_tour`, PART-093). Vor dem Klick der Nutzerin gibt es keinen Rahmen und keine Übertragung an den Anbieter; nach dem Klick erhält der Anbieter IP-Adresse und Browserdaten der Person. CSP `frame-src` erlaubt genau `www.loom.com` und `my.matterport.com`. In der Datenschutzerklärung als Drittanbieter nennen (Loom Inc., Matterport Inc., beide USA — Übermittlung nach Klick); kein AVV nötig, weil wir keine Daten in deren Auftrag verarbeiten lassen, sondern die Person die Verbindung selbst auslöst.
+
 ## 3 · Rechte der Betroffenen im System
 
 - **Auskunft/Export:** Profil-Export für Talente (JSON), Partner-Export nur freigegebene Bewerberfelder mit DSGVO-Hinweis (D3).
