@@ -102,8 +102,8 @@ export function PortalFooter({
               {...neuesFenster}
               className={
                 onNavy
-                  ? "ct-help text-on-navy-muted hover:text-on-navy"
-                  : "ct-help hover:text-ink"
+                  ? "inline-flex items-center ct-help text-on-navy-muted hover:text-on-navy pointer-coarse:min-h-11"
+                  : "inline-flex items-center ct-help hover:text-ink pointer-coarse:min-h-11"
               }
             >
               {l.label}

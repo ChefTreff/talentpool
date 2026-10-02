@@ -137,7 +137,7 @@ export async function SidebarShell({
         className="bg-shell text-on-navy lg:sticky lg:top-0 lg:h-dvh lg:w-sidebar lg:shrink-0 lg:overflow-y-auto"
       >
         <div className="flex h-full flex-col gap-5 px-4 py-5">
-          <Link href={rootHref} className="block rounded-ct-sm px-2 py-1 text-on-navy">
+          <Link href={rootHref} className="flex items-center rounded-ct-sm px-2 py-1 text-on-navy pointer-coarse:min-h-11">
             <Logo />
           </Link>
 
