@@ -70,7 +70,7 @@ export function SidebarNav({
                       href={item.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "block rounded-ct-sm py-1.5 pr-2.5 ct-label transition-colors",
+                        "flex items-center rounded-ct-sm py-1.5 pr-2.5 ct-label transition-colors pointer-coarse:min-h-11",
                         group.label !== "" ? "pl-4" : "pl-2.5",
                         active ? "bg-on-navy text-shell-ink" : "text-on-navy hover:bg-on-navy/10",
                       )}
@@ -83,7 +83,7 @@ export function SidebarNav({
                           <li key={a.id}>
                             <a
                               href={`#${a.id}`}
-                              className="block rounded-ct-sm px-2.5 py-1 ct-help text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy"
+                              className="flex items-center rounded-ct-sm px-2.5 py-1 ct-help text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy pointer-coarse:min-h-11"
                             >
                               {a.label}
                             </a>

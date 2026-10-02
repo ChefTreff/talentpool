@@ -188,7 +188,7 @@ export function ExpenseQueue({
               </p>
 
               <details className="mt-2">
-                <summary className="ct-help cursor-pointer font-semibold">
+                <summary className="ct-help cursor-pointer font-semibold pointer-coarse:-my-3 pointer-coarse:py-3">
                   {t.positions} ({(c.positions ?? []).length})
                 </summary>
                 <ul className="ct-help mt-2 flex flex-col gap-1">

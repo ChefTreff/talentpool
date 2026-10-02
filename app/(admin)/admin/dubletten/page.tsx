@@ -3,6 +3,7 @@ import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SectionTabs } from "@/components/layout/SectionTabs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -82,19 +83,14 @@ export default async function DublettenPage({
         actions={<SuchKnopf t={d} rpcMessages={t.rpc} />}
       />
 
-      <nav aria-label={d.filterLabel} className="mb-4 flex flex-wrap gap-2">
-        {STATUS.map((s) => (
-          <ButtonLink
-            key={s}
-            href={s === "open" ? "/admin/dubletten" : `/admin/dubletten?status=${s}`}
-            size="sm"
-            variant={s === status ? "secondary" : "ghost"}
-            aria-current={s === status ? "page" : undefined}
-          >
-            {d[`status_${s}`]}
-          </ButtonLink>
-        ))}
-      </nav>
+      <SectionTabs
+        label={d.filterLabel}
+        items={STATUS.map((s) => ({
+          href: s === "open" ? "/admin/dubletten" : `/admin/dubletten?status=${s}`,
+          label: d[`status_${s}`],
+          aktiv: s === status,
+        }))}
+      />
 
       {kand.error ? (
         <EmptyState title={d.errorTitle} description={d.errorBody} />

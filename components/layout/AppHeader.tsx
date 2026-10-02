@@ -28,7 +28,7 @@ export async function AppHeader({ current }: { current?: AreaKey }) {
           auf breiten Schirmen saß die Wortmarke sichtbar weiter außen als
           alles darunter. */}
       <div className="mx-auto flex max-w-content flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
-        <Link href={area?.path ?? "/"} className="flex items-center gap-2 text-on-navy">
+        <Link href={area?.path ?? "/"} className="flex items-center gap-2 text-on-navy pointer-coarse:min-h-11">
           <Logo />
           <span className="ct-wordmark text-on-navy-muted">{wordmark}</span>
         </Link>
@@ -39,7 +39,7 @@ export async function AppHeader({ current }: { current?: AreaKey }) {
             <form action={signOut}>
               <button
                 type="submit"
-                className="rounded-ct-sm px-2.5 py-1.5 ct-label text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy"
+                className="inline-flex items-center rounded-ct-sm px-2.5 py-1.5 ct-label text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy pointer-coarse:min-h-11"
               >
                 {t.nav.logout}
               </button>
@@ -47,7 +47,7 @@ export async function AppHeader({ current }: { current?: AreaKey }) {
           ) : (
             <Link
               href="/login"
-              className="rounded-ct-sm px-2.5 py-1.5 ct-label text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy"
+              className="inline-flex items-center rounded-ct-sm px-2.5 py-1.5 ct-label text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy pointer-coarse:min-h-11"
             >
               {t.nav.login}
             </Link>
