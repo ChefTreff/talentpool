@@ -264,7 +264,7 @@ export function StandTabelle({
                         {(eigene.length === 1 ? t.slotOne : t.slotMany).replace("{n}", String(eigene.length))}
                       </span>
                     </div>
-                    <Table>
+                    <Table stapeln>
                       <Thead>
                         <Th>{t.colTime}</Th>
                         <Th>{t.colTitleDe}</Th>
@@ -465,7 +465,7 @@ function Zeile({
   return (
     <Fragment>
       <Tr controls>
-        <Td className="whitespace-nowrap">
+        <Td label={t.colTime} className="whitespace-nowrap">
           {zeitBearbeitbar ? (
             <div className="flex items-center gap-1">
               <Input
@@ -494,7 +494,7 @@ function Zeile({
             <span className="tabular-nums text-muted">{zeitText}</span>
           )}
         </Td>
-        <Td>
+        <Td label={t.colTitleDe}>
           {bearbeitbar ? (
             <Input
               aria-label={`${t.colTitleDe} ${zeitText}`}
@@ -509,7 +509,7 @@ function Zeile({
             <span className={z.title_de ? "ct-label text-ink" : "text-muted"}>{z.title_de || t.noTitle}</span>
           )}
         </Td>
-        <Td>
+        <Td label={t.colTitleEn}>
           {bearbeitbar ? (
             <Input
               aria-label={`${t.colTitleEn} ${zeitText}`}
@@ -523,7 +523,7 @@ function Zeile({
             <span className={z.title_en ? "text-ink" : "text-muted"}>{z.title_en || "—"}</span>
           )}
         </Td>
-        <Td>
+        <Td label={t.colStatus}>
           {/* Musterfeld wie im Board (LEAD-017): „Veröffentlicht“ ist die volle
               Akzentfläche, nicht mehr ein grüner Chip. */}
           <StatusMarke rahmen={false} stil={PARTNER_KARTE[status]} text={statusText[status]} />

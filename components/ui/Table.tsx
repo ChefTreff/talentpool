@@ -15,13 +15,25 @@ import { cn } from "./cn";
 export function Table({
   children,
   className,
+  stapeln = false,
 }: {
   children: ReactNode;
   className?: string;
+  /**
+   * Unter 640 px werden die Zeilen zu Blöcken (QS-058): Jede Zelle trägt ihre
+   * Beschriftung (`<Td label="E-Mail">`), die Kopfzeile bleibt nur für
+   * Vorlesegeräte, die Aktionen stehen unter dem Namen. **Für Tabellen mit
+   * Aktionen in der letzten Spalte:** Auf 375 px lag „Bearbeiten“ bei den
+   * Kontakten 730 px rechts, bei der Gästeliste 979 px — außerhalb des Bildes,
+   * und eine festgehaltene erste Spalte hätte daran nichts geändert. Die
+   * Regeln stehen in `globals.css` (`.ct-stapeln`). Ab 640 px bleibt es die
+   * Tabelle.
+   */
+  stapeln?: boolean;
 }) {
   return (
     <div className="overflow-x-auto rounded-ct-lg border bg-surface">
-      <table className={cn("w-full border-collapse text-left", className)}>
+      <table className={cn("w-full border-collapse text-left", stapeln && "ct-stapeln", className)}>
         {children}
       </table>
     </div>
@@ -104,16 +116,24 @@ export function Td({
   numeric,
   /** Über mehrere Spalten, z. B. für eine Eingabezeile am Tabellenende. */
   colSpan,
+  /**
+   * Beschriftung der Zelle, sobald die Tabelle gestapelt ist (`<Table stapeln>`,
+   * unter 640 px). Ohne Angabe steht die Zelle ohne Beschriftung da — richtig für
+   * den Namen, der die Zeile ausmacht, und für die Aktionen.
+   */
+  label,
   className,
 }: {
   children?: ReactNode;
   numeric?: boolean;
   colSpan?: number;
+  label?: string;
   className?: string;
 }) {
   return (
     <td
       colSpan={colSpan}
+      data-label={label}
       className={cn(
         "h-11 px-4 align-middle text-ink",
         numeric && "text-right tabular-nums",

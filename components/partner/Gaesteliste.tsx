@@ -247,7 +247,7 @@ export function Gaesteliste({
       {gaeste.length === 0 ? (
         <EmptyState title={t.emptyTitle} description={t.emptyBody} />
       ) : (
-        <Table>
+        <Table stapeln>
           <Thead>
             <Th>{t.colPhoto}</Th>
             <Th>{t.colName}</Th>
@@ -278,10 +278,10 @@ export function Gaesteliste({
                     <span className="ct-label text-ink">{name}</span>
                     {g.email && <span className="block ct-help">{g.email}</span>}
                   </Td>
-                  <Td className="text-ink">
+                  <Td label={t.colRole} className="text-ink">
                     {[g.job_title, g.organization_name].filter(Boolean).join(" · ")}
                   </Td>
-                  <Td>
+                  <Td label={t.colSessions}>
                     {g.sessions.length > 0 ? (
                       <ul className="flex flex-col gap-0.5">
                         {g.sessions.map((s) => (
