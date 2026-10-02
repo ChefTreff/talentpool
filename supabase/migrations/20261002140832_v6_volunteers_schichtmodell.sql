@@ -1,4 +1,5 @@
--- 0000 · Schichtmodell Volunteers: Bereiche, Vorlagen, Wunschschichten, Sicherheitsunterweisung (VOL-002)
+-- 0260 · Schichtmodell 2027: Bereiche, Vorlagen je Wochentag, Sicherheitsunterweisung versioniert, Wunschschichten (VOL-002, K-44)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002140832.
 -- Anlass: docs/volunteers-schichtmodell-vorschlag.md, Konrads Antworten K-44 (02.10.2026):
 -- Blöcke 4–6 h mit Warnung ab 8 h (nur Oberfläche, keine Sperre); Bereichsliste S1 vorerst
 -- unverändert; Vorlagen S3 mitbauen; Sicherheitsunterweisung für alle Pflicht; Zuteilung durch das
