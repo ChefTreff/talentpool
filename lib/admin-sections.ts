@@ -87,6 +87,7 @@ export type AdminSectionKey =
   | "productionBooths"
   | "productionOrders"
   | "productionFiles"
+  | "productCatalog"
   | "contacts"
   | "deadlines"
   | "wiki"
@@ -202,6 +203,8 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { key: "productionBooths", path: "/admin/produktion/staende", roles: ["production_team", "area_lead_production"] },
   { key: "productionOrders", path: "/admin/produktion/bestellungen", roles: ["production_team", "area_lead_production"] },
   { key: "productionFiles", path: "/admin/produktion/dateien", roles: ["production_team", "area_lead_production"] },
+  // PROD-006: Produktstamm pflegen — die Produktion und das Partner-Team (Abgleich nach HubSpot/SevDesk bleibt beim Partner-Team).
+  { key: "productCatalog", path: "/admin/produktion/produkte", roles: ["production_team", "area_lead_production", "area_lead_partner", "partner_team"] },
 
   // Werkzeuge, die jeder Bereich braucht — Leitung **und** Team. Ein Wiki, das
   // nur Bereichsleitungen pflegen dürfen, schreibt niemand.

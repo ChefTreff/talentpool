@@ -169,6 +169,9 @@
 | Welle 6 · 0242 | **Medienverwaltung: zweites Loom der Event-App am Schlüssel partner_event_app (ADM-009, ADM-063)** (`20261001130657`, `v6_medien_event_app_loom`; Details im Migrationskopf) | — |
 | Welle 6 · 0243 | **Hallenplan nach Zielgruppe: Bestandsplan nicht mehr für Speaker, Zielgruppe im Dateien-Formular (PROD-009, SPK-030)** (`20261001130946`, `v6_hallenplan_zielgruppe`; Details im Migrationskopf) | — |
 | Welle 6 · 0244 | **Abgabe über das Portal: privater Bucket hack-submissions mit Pfadregel, Frist je Challenge, verspätet statt gesperrt (HACK-011)** (`20261001131342`, `v6_hack_abgabe`; Details im Migrationskopf) | — |
+| Welle 6 · 0245 | **Produktstamm pflegen im Admin: Abschnitt productCatalog, Rechte für Produktion und Partner-Team (PROD-006)** (`20261001131628`, `v6_produktstamm_pflege`; Details im Migrationskopf) | — |
+| Welle 6 · 0246 | **Folien in den Technik-Ordner (Google Drive): Zielordner je Edition, Spiegelstand, Server-Funktionen (SPK-023)** (`20261001131959`, `v6_folien_drive`; Details im Migrationskopf) | — |
+| Welle 6 · 0247 | **Wunschprofil je Challenge: Studienfelder und Skills aus dem Vokabular, Partner und Hack-Team pflegen, Passung in der Auswahl (HACK-015)** (`20261001132202`, `v6_hack_wunschprofil`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

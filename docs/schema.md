@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 13:13 UTC · 111 Tabellen · 6 Views · 639 Funktionen
+> Stand: 2026-10-01 13:22 UTC · 113 Tabellen · 6 Views · 644 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -528,6 +528,9 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `metric_label` | text |  |  |  | Bezeichnung der Metrik, z. B. „Prediction accuracy“ (nur bei judging_mode = metric). |
 | `metric_higher_better` | boolean | ja | `true` |  | Rangfolge: true = höherer Wert gewinnt. |
 | `submission_deadline` | timestamp with time zone |  |  |  | Abgabefrist der Challenge (HACK-011); danach gelten Abgaben als verspätet. Gesetzt über set_hack_challenge_deadline. |
+| `target_study_fields` | text[] | ja |  |  | Wunschprofil (HACK-015): gesuchte Studienfelder, vocab study_field. |
+| `target_skills` | text[] | ja |  |  | Wunschprofil (HACK-015): gesuchte Skills, vocab skill (wie im Profil, TAL-013). |
+| `target_profile` | text |  |  |  | Wunschprofil (HACK-015): „Wen sucht ihr?“, Freitext bis 500 Zeichen. |
 
 ### `hack_dataset`
 Datensatz je Hackathon-Challenge (HACK-012) im privaten Bucket hack-datasets (<challenge_id>/<datei>). Zugriff nur über can_manage_hack_dataset, can_read_hack_dataset, register_hack_dataset, hack_challenge_dataset.
@@ -1550,6 +1553,35 @@ Shuttle-Fahrten je Speaker-Profil (A7.1). Mehrere Fahrten je Speaker, auch Zwisc
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `slide_drive_mirror`
+Spiegelstand je Präsentationslinie (Speaker-Profil × Session) im Technik-Ordner (SPK-023). Ohne Fremdschlüssel: überlebt das Löschen, bis die Drive-Kopie entfernt ist. Nur service_role schreibt.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `profile_id` | uuid | ja |  |  |  |
+| `session_id` | uuid | ja |  |  |  |
+| `asset_id` | uuid |  |  |  |  |
+| `asset_version` | integer |  |  |  |  |
+| `drive_file_id` | text |  |  |  |  |
+| `target_hash` | text |  |  |  |  |
+| `status` | text | ja |  |  |  |
+| `error_key` | text |  |  |  |  |
+| `error_detail` | text |  |  |  |  |
+| `attempts` | integer | ja | `0` |  |  |
+| `mirrored_at` | timestamp with time zone |  |  |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `slide_drive_setting`
+Technik-Ordner in Google Drive je Edition (SPK-023). Nur der Server liest ihn; setzen über set_edition_slides_folder (Abschnitt tech). Nicht an event, weil event für alle angemeldeten Konten lesbar ist.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `edition_id` | uuid | PK |  | `event.id` |  |
+| `folder_id` | text | ja |  |  |  |
+| `updated_by` | uuid |  |  | `person.id` |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `slot`
 Zeitfenster auf einer Bühne. Genau eine Session kann darauf liegen. Farbe im Board = status.
 
@@ -2307,6 +2339,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_admin_overview` | p_edition_id: uuid, p_language: text |
 | `hack_applications_admin` | p_edition_id: uuid |
 | `hack_challenge_dataset` | p_challenge_id: uuid |
+| `hack_challenge_profiles` | p_edition_id: uuid, p_language: text |
 | `hack_challenges` | p_edition_id: uuid, p_language: text |
 | `hack_dataset_path_allowed` | p_name: text |
 | `hack_dataset_targets` | p_edition_id: uuid, p_language: text |
@@ -2593,6 +2626,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_edition_file` | p_data: jsonb |
 | `set_edition_file_preview` | p_height: integer, p_id: uuid, p_path: text, p_width: integer |
 | `set_edition_hubspot` | p_done_stage_id: text, p_edition_id: uuid, p_pipeline_id: text, p_stage_id: text |
+| `set_edition_slides_folder` | p_edition_id: uuid, p_folder_id: text |
 | `set_edition_swapcard` | p_edition_id: uuid, p_swapcard_event_id: text |
 | `set_edition_vivenu` | p_edition_id: uuid, p_vivenu_event_id: text |
 | `set_edition_volunteer_undershop` | p_edition_id: uuid, p_undershop_id: text |
@@ -2605,6 +2639,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_hack_application_status` | p_id: uuid, p_note: text, p_status: text |
 | `set_hack_challenge_deadline` | p_challenge_id: uuid, p_deadline: timestamp with time zone |
 | `set_hack_challenge_judging` | p_challenge_id: uuid, p_higher_better: boolean, p_metric_label: text, p_mode: text |
+| `set_hack_challenge_profile` | p_challenge_id: uuid, p_skills: text[], p_study_fields: text[], p_text: text |
 | `set_hack_challenge_track` | p_challenge_id: uuid, p_track: text |
 | `set_hack_metric` | p_note: text, p_team_id: uuid, p_value: numeric |
 | `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
@@ -2680,6 +2715,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_sync_fulfilled_deliverables` | p_org_edition_id: uuid |
 | `shop_upsert_line` | p_edition_id: uuid, p_merch_config: jsonb, p_org_id: uuid, p_qty: numeric, p_sku: text |
 | `shuttle_bookings_admin` | p_edition_id: uuid |
+| `slide_mirror_candidates` | p_asset_id: uuid, p_edition_id: uuid |
+| `slide_mirror_orphans` | p_limit: integer |
 | `slot_has_published_session` | p_slot_id: uuid |
 | `slot_stage_leads` | p_slot_id: uuid |
 | `speaker_access_revoke` | p_edition_id: uuid, p_person_id: uuid |

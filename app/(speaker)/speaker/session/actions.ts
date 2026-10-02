@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { requireArea } from "@/lib/auth";
+import { spiegelNachLoeschen, spiegelePraesentation } from "@/lib/drive/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
@@ -75,6 +77,10 @@ export async function registerAsset(input: {
   if (error) return fail(error);
   refresh();
   const result = (data ?? {}) as { id?: string; version?: number; late?: boolean };
+  // SPK-023: die Präsentation geht in den Technik-Ordner — erst nach der
+  // Rechteprüfung der RPC und ohne dass der Speaker auf Drive wartet.
+  const neu = result.id;
+  if (neu && input.kind === "presentation" && input.sessionId) after(() => spiegelePraesentation(neu));
   return {
     ok: true,
     data: { id: result.id ?? "", version: result.version ?? 1, late: result.late === true },
@@ -114,6 +120,9 @@ export async function deleteAsset(assetId: string): Promise<SessionResult> {
     const { error: wegFehler } = await supabase.storage.from("speaker-assets").remove([data]);
     if (wegFehler) console.error("[speaker-assets] remove:", wegFehler.message);
   }
+  // SPK-023: rückt die vorige Fassung nach, ersetzt sie die Kopie in Drive;
+  // sonst verschwindet die Kopie dort.
+  after(() => spiegelNachLoeschen(assetId));
   refresh();
   return { ok: true, data: undefined };
 }

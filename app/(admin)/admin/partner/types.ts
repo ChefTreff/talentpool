@@ -239,6 +239,8 @@ export type AdminProduct = {
   /** Schema der Konfigurationsfelder (S4); `null` = kein Merch-Artikel. */
   merch_config: unknown;
   images: { url: string; name: string; path: string }[] | null;
+  /** ADM-022: Stand für einen (1) oder beide Tage (2); null = kein Stand. */
+  stand_days?: number | null;
   source_hubspot: boolean;
   source_shop: boolean;
   pass_type: string | null;
