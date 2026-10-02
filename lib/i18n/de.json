@@ -2300,6 +2300,7 @@
   },
   "awardAdmin": {
     "contact": "Ansprechperson",
+    "contactPurged": "nach der Löschfrist geleert (14 Monate nach dem Summit)",
     "deadlines": "Fristen",
     "decided": "entschieden am {datum} von {name}",
     "delete": "Löschen",

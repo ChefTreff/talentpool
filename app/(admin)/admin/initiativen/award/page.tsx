@@ -16,7 +16,8 @@ export const dynamic = "force-dynamic";
 
 export type AwardBewerbung = {
   id: string; name: string; topics: string[]; location: string; description: string; mission: string; project: string;
-  contact_first_name: string; contact_last_name: string; contact_email: string; founded_year: number | null;
+  // K-51: nach der Löschfrist (14 Monate nach dem Summit) leer.
+  contact_first_name: string | null; contact_last_name: string | null; contact_email: string | null; founded_year: number | null;
   active_members: number | null; website: string | null; university: string | null; notes: string | null;
   images: string[]; status: string; source: string; organization_id: string | null; organization_name: string | null;
   votes: number; created_at: string; decided_at: string | null; decided_by_name: string | null;
@@ -101,8 +102,15 @@ export default async function AwardAdminPage() {
                   {z.topics.map((k) => <Badge key={k}>{vlabel(vocab, "award_topic", k)}</Badge>)}
                 </div>
                 <p className="ct-small mt-3">
-                  {a.contact}: {z.contact_first_name} {z.contact_last_name} ·{" "}
-                  <a href={`mailto:${z.contact_email}`} className="ct-link">{z.contact_email}</a>
+                  {a.contact}:{" "}
+                  {z.contact_email ? (
+                    <>
+                      {z.contact_first_name} {z.contact_last_name} ·{" "}
+                      <a href={`mailto:${z.contact_email}`} className="ct-link">{z.contact_email}</a>
+                    </>
+                  ) : (
+                    <span className="text-muted">{a.contactPurged}</span>
+                  )}
                   {z.website && (
                     <>
                       {" · "}
