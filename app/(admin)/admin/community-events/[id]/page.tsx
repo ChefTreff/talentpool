@@ -4,7 +4,6 @@ import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@/components/ui/Table";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
@@ -37,11 +36,13 @@ export default async function CommunityEventDetailPage({ params }: { params: Pro
       <div className="mt-2">
         <PageHeader word={t.admin.words.communityEvents} title={ev.name} description={ev.location ?? undefined} />
       </div>
-      <Card className="overflow-x-auto p-0">
-        <h2 className="ct-h3 px-6 pt-6 text-ink">{tt.guests}</h2>
-        <p className="ct-help px-6 pb-4">{tt.guestsHint}</p>
+      {/* Ein Abschnitt statt einer Karte um die Tabelle: `Table` trägt Rahmen und
+          Scrollen selbst, und die Überschrift ist die h2 der Seite (QS-055/QS-054). */}
+      <section aria-labelledby="gaeste">
+        <h2 id="gaeste" className="ct-h2 text-ink">{tt.guests}</h2>
+        <p className="ct-help mb-4 mt-1">{tt.guestsHint}</p>
         {liste.length === 0 ? (
-          <p className="ct-small px-6 pb-6 text-muted">{tt.guestsEmpty}</p>
+          <p className="ct-small text-muted">{tt.guestsEmpty}</p>
         ) : (
           <Table>
             <Thead>
@@ -66,7 +67,7 @@ export default async function CommunityEventDetailPage({ params }: { params: Pro
             </Tbody>
           </Table>
         )}
-      </Card>
+      </section>
     </>
   );
 }

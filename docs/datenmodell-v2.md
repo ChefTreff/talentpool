@@ -172,6 +172,11 @@
 | Welle 6 · 0245 | **Produktstamm pflegen im Admin: Abschnitt productCatalog, Rechte für Produktion und Partner-Team (PROD-006)** (`20261001131628`, `v6_produktstamm_pflege`; Details im Migrationskopf) | — |
 | Welle 6 · 0246 | **Folien in den Technik-Ordner (Google Drive): Zielordner je Edition, Spiegelstand, Server-Funktionen (SPK-023)** (`20261001131959`, `v6_folien_drive`; Details im Migrationskopf) | — |
 | Welle 6 · 0247 | **Wunschprofil je Challenge: Studienfelder und Skills aus dem Vokabular, Partner und Hack-Team pflegen, Passung in der Auswahl (HACK-015)** (`20261001132202`, `v6_hack_wunschprofil`; Details im Migrationskopf) | — |
+| Welle 6 · 0248 | **Company-Tour-Zuordnung im Admin: Tour-Typen, Partner je Tour zuordnen und tauschen, Abschnitt tourAssignment (ADM-045)** (`20261002083323`, `v6_tour_zuordnung`; Details im Migrationskopf) | — |
+| Welle 6 · 0249 | **Hackathon-Teamsuche: offene Teams und suchende Personen, Beitrittsanfragen mit Zusage, keine Kontaktdaten (HACK-016)** (`20261002083729`, `v6_hack_teamsuche`; Details im Migrationskopf) | — |
+| Welle 6 · 0250 | **Teammitglied anlegen und einladen unter Verwaltung → Zugänge, nur Team-Rollen ohne admin (QS-056 a)** (`20261002084227`, `v6_team_einladung`; Details im Migrationskopf) | — |
+| Welle 6 · 0251 | **Wunsch-Challenges in der Hackathon-Bewerbung (bis zu drei, nur freigegebene der Edition), Auswahl nach Präferenz (HACK-017)** (`20261002084731`, `v6_hack_challenge_praeferenz`; Details im Migrationskopf) | — |
+| Welle 6 · 0252 | **Award: Kontaktdaten der Ansprechperson 14 Monate nach dem Summit leeren, Cron täglich, Audit ohne Adresse (K-51)** (`20261002085034`, `v6_award_kontakt_frist`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

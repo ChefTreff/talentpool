@@ -155,9 +155,10 @@ export function PhotoUpload({
 
         <div className="flex flex-col gap-1">
           {!photoUrl && <p className="ct-help">{t.photoNone}</p>}
+          {/* Ein Schritt (TAL-017): die Auswahl im Dateifenster lädt hoch. */}
           <FileButton
-            uploadLabel={t.commonUpload}
-            changeLabel={t.commonChangeFile}
+            sofort
+            laedt={busy}
             label={busy ? t.photoUploading : photoUrl ? t.photoReplace : t.photoUpload}
             accept={PHOTO_MIME.join(",")}
             disabled={busy}

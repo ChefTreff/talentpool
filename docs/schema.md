@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 13:22 UTC · 113 Tabellen · 6 Views · 644 Funktionen
+> Stand: 2026-10-02 08:50 UTC · 114 Tabellen · 6 Views · 662 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -89,9 +89,9 @@ ADM-024: Bewerbung zum Initiativen-Award (Felder nach dem Airtable-Formular). An
 | `description` | text | ja |  |  |  |
 | `mission` | text | ja |  |  |  |
 | `project` | text | ja |  |  |  |
-| `contact_first_name` | text | ja |  |  |  |
-| `contact_last_name` | text | ja |  |  |  |
-| `contact_email` | extensions.citext | ja |  |  |  |
+| `contact_first_name` | text |  |  |  |  |
+| `contact_last_name` | text |  |  |  |  |
+| `contact_email` | extensions.citext |  |  |  |  |
 | `founded_year` | smallint |  |  |  |  |
 | `active_members` | integer |  |  |  |  |
 | `website` | text |  |  |  |  |
@@ -106,6 +106,7 @@ ADM-024: Bewerbung zum Initiativen-Award (Felder nach dem Airtable-Formular). An
 | `decided_at` | timestamp with time zone |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `contact_purged_at` | timestamp with time zone |  |  |  | K-51: Vor-, Nachname und E-Mail der Ansprechperson geleert (14 Monate nach dem Summit, award_purge_contacts). |
 
 ### `award_secret`
 ADM-024: Salz für award_vote.voter_hash je Edition. Nur für die Award-Funktionen; nie auslesen.
@@ -205,6 +206,7 @@ Eine Company Tour: Rundfahrt vom Sammelpunkt zu mehreren Partnern (Konrad, 18.09
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `session_id` | uuid |  |  | `session.id` | Die Session, auf die sich Teilnehmende für diese Tour bewerben (TAL-003). Optional; ohne sie gibt es für die Tour keinen Bewerbungsweg im Portal. |
+| `tour_type` | text |  |  |  | ADM-045: welche Tour (Vokabular company_tour_type). Verkauft wird ein allgemeiner Slot; die Zuordnung macht das Team. |
 
 ### `company_tour_stop`
 Eine Station einer Company Tour. Der Partner bucht den Stopp und beantwortet dazu die Fragen aus 2026 (Ansprechperson, Adresse, Zeitfenster, Snacks, Hinweise, gesuchte Profile, Fotografieren).
@@ -502,6 +504,8 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `website_url` | text |  |  |  |  |
 | `behance_url` | text |  |  |  |  |
 | `track_prefs` | text[] | ja |  |  | Gewünschte Tracks (vocab hack_track, HACK-010), 1–3, geprüft in apply_hackathon. |
+| `seeking_team` | boolean | ja | `false` |  | Person sucht ein Team (HACK-016), gesetzt über set_hack_seeking. |
+| `challenge_prefs` | uuid[] | ja |  |  | Wunsch-Challenges (HACK-017), Reihenfolge = Rang, höchstens 3; geprüft in apply_hackathon (freigegeben, gleiche Edition). |
 
 ### `hack_challenge`
 
@@ -546,6 +550,23 @@ Datensatz je Hackathon-Challenge (HACK-012) im privaten Bucket hack-datasets (<c
 | `is_current` | boolean | ja | `true` |  |  |
 | `uploaded_by` | uuid |  |  | `person.id` |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `hack_join_request`
+Beitrittsanfragen im Hackathon (HACK-016): to_team = Person fragt beim Team an, to_person = Team lädt ein. Zugriff nur über Funktionen; nie Kontaktdaten.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `team_id` | uuid | ja |  | `hack_team.id` |  |
+| `person_id` | uuid | ja |  | `person.id` |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `direction` | text | ja |  |  |  |
+| `status` | text | ja | `pending` |  |  |
+| `message` | text |  |  |  |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `decided_by` | uuid |  |  | `person.id` |  |
+| `decided_at` | timestamp with time zone |  |  |  |  |
 
 ### `hack_judging_score`
 
@@ -618,6 +639,9 @@ Dateien einer Hackathon-Abgabe (HACK-011) im privaten Bucket hack-submissions (<
 | `created_by` | uuid |  |  | `person.id` |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `looking` | boolean | ja | `false` |  | Team sucht noch Mitglieder (HACK-016), gesetzt vom Kapitän über set_hack_team_looking. |
+| `looking_skills` | text[] | ja |  |  | Gesuchte Skills (vocab hack_skill, HACK-016). |
+| `looking_note` | text |  |  |  | Eine Zeile, wen das Team sucht (HACK-016), ≤ 200 Zeichen. Keine Kontaktdaten. |
 
 ### `hack_team_member`
 
@@ -2185,6 +2209,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `admin_section_overrides` | args: ? |
 | `ai_take_slot` | p_kind: text, p_limit: integer |
 | `anonymize_person` | p_person_id: uuid |
+| `answer_hack_request` | p_accept: boolean, p_request_id: uuid |
 | `applications_admin_list` | p_consent: boolean, p_event_id: uuid, p_format: text, p_limit: integer, p_offset: integer, p_query: text, p_session_id: uuid, p_status: text |
 | `applications_for_session` | p_session_id: uuid |
 | `applications_overview` | p_event_id: uuid |
@@ -2199,6 +2224,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `assign_org_products` | p_items: jsonb, p_org_edition_id: uuid |
 | `assign_role` | p_edition_id: uuid, p_note: text, p_person_id: uuid, p_portal: text, p_role: text, p_scope_id: uuid, p_scope_type: text, p_valid_from: timestamp with time zone, p_valid_to: timestamp with time zone |
 | `assign_shift` | p_person_id: uuid, p_shift_id: uuid, p_status: text |
+| `assign_tour_stop` | p_org_id: uuid, p_stop_id: uuid |
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
 | `audit_log_admin` | p_action: text, p_actor: uuid, p_from: timestamp with time zone, p_limit: integer, p_object_id: text, p_object_type: text, p_offset: integer, p_to: timestamp with time zone |
 | `audit_log_filters` | args: ? |
@@ -2207,6 +2233,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `award_current_edition` | args: ? |
 | `award_hash` | p_edition_id: uuid, p_ip_hash: text |
 | `award_public_entries` | p_ip_hash: text |
+| `award_purge_contacts` | args: ? |
 | `award_set_images` | p_application_id: uuid, p_ip_hash: text, p_paths: text[] |
 | `award_vote_cast` | p_application_id: uuid, p_ip_hash: text |
 | `award_windows` | p_edition_id: uuid |
@@ -2276,6 +2303,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `create_hack_team` | p_edition_id: uuid, p_name: text |
 | `create_kiosk_account` | p_edition_id: uuid, p_email: text, p_label: text |
 | `create_slot` | p_end: timestamp with time zone, p_session_id: uuid, p_slot_type: text, p_source_ref: text, p_stage_id: uuid, p_start: timestamp with time zone |
+| `create_team_member` | p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_roles: text[] |
 | `current_org_edition` | p_edition_id: uuid, p_org_id: uuid |
 | `current_person_id` | args: ? |
 | `day_of_edition` | p_day_id: uuid, p_edition_id: uuid |
@@ -2320,6 +2348,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `edition_valid_to` | p_edition_id: uuid |
 | `effective_pass_type` | p_org_edition_id: uuid, p_product_pass_type: text |
 | `email_hash` | p_email: text |
+| `ensure_company_tours` | p_edition_id: uuid |
 | `ensure_speaker_ticket` | p_profile_id: uuid |
 | `event_app_exhibitors` | p_edition_id: uuid |
 | `event_app_speakers` | p_edition_id: uuid |
@@ -2344,13 +2373,17 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_dataset_path_allowed` | p_name: text |
 | `hack_dataset_targets` | p_edition_id: uuid, p_language: text |
 | `hack_edition` | p_edition_id: uuid |
+| `hack_is_captain` | p_team_id: uuid |
+| `hack_is_participant` | p_edition_id: uuid |
 | `hack_join_code` | args: ? |
 | `hack_judging` | p_edition_id: uuid, p_language: text |
 | `hack_leaderboard` | p_challenge_id: uuid |
 | `hack_open_challenges` | p_edition_id: uuid |
+| `hack_people_search` | p_edition_id: uuid |
 | `hack_submission_files` | p_edition_id: uuid, p_team_id: uuid |
 | `hack_submission_is_late` | p_team_id: uuid |
 | `hack_submission_path_allowed` | p_name: text |
+| `hack_team_search` | p_edition_id: uuid, p_language: text |
 | `hack_text` | p_de: text, p_en: text, p_language: text |
 | `hack_track_key` | p_value: text |
 | `handover_speaker` | p_profile_id: uuid, p_to_person_id: uuid |
@@ -2371,6 +2404,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `initiative_stage_history` | p_org_edition_id: uuid |
 | `initiatives_admin` | p_edition_id: uuid |
 | `invite_assistant` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
+| `invite_hack_person` | p_message: text, p_person_id: uuid |
 | `invite_speaker` | p_profile_id: uuid |
 | `is_admin` | args: ? |
 | `is_application_team` | p_session_id: uuid |
@@ -2444,6 +2478,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_diet` | args: ? |
 | `my_expense_claims` | args: ? |
 | `my_hack` | p_edition_id: uuid, p_language: text |
+| `my_hack_requests` | p_edition_id: uuid |
 | `my_hack_team_id` | p_edition_id: uuid |
 | `my_hospitality` | p_edition_id: uuid |
 | `my_kb_audiences` | args: ? |
@@ -2585,6 +2620,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `remove_speaker_contact` | p_contact_id: uuid |
 | `reorder_question_catalog` | p_ids: uuid[] |
 | `request_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
+| `request_hack_join` | p_message: text, p_team_id: uuid |
 | `request_profile_deletion` | p_reason: text |
 | `request_shuttle` | p_data: jsonb, p_profile_id: uuid |
 | `request_ticket_increase` | p_additional: integer, p_edition_id: uuid, p_org_id: uuid, p_pass_type: text, p_text: text |
@@ -2621,6 +2657,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_award_status` | p_application_id: uuid, p_status: text |
 | `set_booth_assignment` | p_booth_id: uuid, p_event_day_id: uuid, p_note: text, p_org_edition_id: uuid |
 | `set_booth_service_check` | p_checked: boolean, p_note: text, p_org_edition_id: uuid, p_product_sku: text |
+| `set_company_tour_type` | p_tour_id: uuid, p_type: text |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
 | `set_diet` | p_diet: text, p_note: text |
 | `set_edition_file` | p_data: jsonb |
@@ -2643,6 +2680,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_hack_challenge_track` | p_challenge_id: uuid, p_track: text |
 | `set_hack_metric` | p_note: text, p_team_id: uuid, p_value: numeric |
 | `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
+| `set_hack_seeking` | p_seeking: boolean |
+| `set_hack_team_looking` | p_looking: boolean, p_note: text, p_skills: text[] |
 | `set_initiative_stage` | p_note: text, p_org_edition_id: uuid, p_stage: text |
 | `set_logo_category` | p_category: text, p_org_edition_id: uuid |
 | `set_logo_whitening_consent` | p_edition_id: uuid, p_granted: boolean, p_org_id: uuid |
@@ -2751,6 +2790,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `supplier_order_list` | p_edition_id: uuid, p_supplier: text |
 | `suppression_check` | p_email: text |
 | `suppression_overview` | args: ? |
+| `swap_tour_stops` | p_stop_a: uuid, p_stop_b: uuid |
 | `sync_deliverables` | p_org_edition_id: uuid |
 | `sync_granted_roles` | p_org_id: uuid |
 | `sync_ticket_allocations` | p_org_edition_id: uuid |
@@ -2763,6 +2803,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `ticket_allocations_pending` | args: ? |
 | `ticket_final_mail` | p_t: public.ticket |
 | `ticket_requests_admin` | p_edition_id: uuid |
+| `tour_assignment_admin` | p_edition_id: uuid |
 | `tour_wishes_for_session` | p_session_id: uuid |
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
 | `unassign_shift` | p_assignment_id: uuid |
@@ -2821,3 +2862,4 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `volunteer_edition` | p_edition_id: uuid |
 | `volunteer_tickets_admin` | p_edition_id: uuid |
 | `withdraw_application` | p_application_id: uuid |
+| `withdraw_hack_request` | p_request_id: uuid |

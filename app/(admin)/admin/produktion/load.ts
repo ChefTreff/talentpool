@@ -1,6 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { BoothItem, OpenSlot, RegieCue, SupplierRow } from "./types";
+import type { BoothItem, BoothSummary, OpenSlot, RegieCue, SupplierRow } from "./types";
 
 /**
  * Bühnen und Tage der laufenden Edition — die beiden Achsen der Regie.
@@ -54,11 +54,24 @@ export async function loadRegie(stageId: string, dayId: string): Promise<{ cues:
   return { cues: (cues ?? []) as RegieCue[], open: (open ?? []) as OpenSlot[] };
 }
 
+/**
+ * Produktionsliste je Stand: Paketausstattung + Angebot + Messeshop (PROD-004).
+ * Ein Fehler ist **keine leere Liste** — „Keine gebuchten Leistungen“ wäre falsch;
+ * die Fehlergrenze des Admin-Bereichs zeigt in Produktion nur die Fehler-ID.
+ */
 export async function loadBooths(editionId: string): Promise<BoothItem[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("booth_checklist", { p_edition_id: editionId, p_org_id: null });
-  if (error) console.error("[produktion] booth_checklist:", error.message);
+  if (error) throw new Error(`booth_checklist: ${error.message}`);
   return (data ?? []) as BoothItem[];
+}
+
+/** Je Stand Maße, gebuchte Fläche, Tage und die Prüfpunkte (PROD-005). */
+export async function loadBoothSummary(editionId: string): Promise<BoothSummary[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("booth_production_summary", { p_edition_id: editionId });
+  if (error) throw new Error(`booth_production_summary: ${error.message}`);
+  return (data ?? []) as BoothSummary[];
 }
 
 export async function loadSuppliers(editionId: string, supplier?: string): Promise<SupplierRow[]> {
@@ -67,6 +80,6 @@ export async function loadSuppliers(editionId: string, supplier?: string): Promi
     p_edition_id: editionId,
     p_supplier: supplier ?? null,
   });
-  if (error) console.error("[produktion] supplier_order_list:", error.message);
+  if (error) throw new Error(`supplier_order_list: ${error.message}`);
   return (data ?? []) as SupplierRow[];
 }
