@@ -34,6 +34,8 @@ export type AdminApplication = {
   graduation_year: number | null;
   function_area: string | null;
   profile_skills: string[] | null;
+  /** HACK-017: Wunsch-Challenges in Reihenfolge. */
+  challenge_prefs: string[] | null;
 };
 
 /** Bezeichnungen aus `vocab_term`, je Vokabular Schlüssel → Text. */
@@ -60,6 +62,7 @@ export function ApplicationsTable({
   rows,
   labels,
   wunschprofile = [],
+  challengeTitles = {},
   t,
   rpcMessages,
 }: {
@@ -67,6 +70,8 @@ export function ApplicationsTable({
   labels: ApplicationLabels;
   /** HACK-015: Wunschprofile je Challenge für die Spalte „Passt zu“. */
   wunschprofile?: Wunschprofil[];
+  /** HACK-017: Challenge-ID → Titel für Wünsche und Filter. */
+  challengeTitles?: Record<string, string>;
   t: Strings;
   rpcMessages: Strings;
 }) {
@@ -74,6 +79,7 @@ export function ApplicationsTable({
   const toast = useToast();
   const [pending, start] = useTransition();
   const [track, setTrack] = useState("");
+  const [wunsch, setWunsch] = useState("");
 
   if (rows.length === 0) return <EmptyState title={t.appsEmpty} description={t.appsEmptyBody} />;
 
@@ -83,7 +89,17 @@ export function ApplicationsTable({
     value,
     label: `${label} (${anzahl(value)})`,
   }));
-  const gezeigt = track ? rows.filter((a) => (a.track_prefs ?? []).includes(track)) : rows;
+  // Auswahl nach Präferenz (HACK-017): mit Filter nur, wer die Challenge wünscht —
+  // Erstwunsch zuerst, dann Zweit-, dann Drittwunsch; sonst die Reihenfolge der RPC.
+  const rang = (a: AdminApplication) => (a.challenge_prefs ?? []).indexOf(wunsch);
+  const gezeigt = rows
+    .filter((a) => !track || (a.track_prefs ?? []).includes(track))
+    .filter((a) => !wunsch || rang(a) >= 0)
+    .sort((x, y) => (wunsch ? rang(x) - rang(y) : 0));
+  const wunschOptions = Object.entries(challengeTitles).map(([value, label]) => ({
+    value,
+    label: `${label} (${rows.filter((a) => (a.challenge_prefs ?? []).includes(value)).length})`,
+  }));
   const profil = (a: AdminApplication) =>
     [
       a.study_field ? (labels.studyFields[a.study_field] ?? a.study_field) : null,
@@ -118,6 +134,19 @@ export function ApplicationsTable({
           />
         </div>
       )}
+      {wunschOptions.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <label htmlFor="hack-wunsch-filter" className="ct-label">{t.prefFilter}</label>
+          <Select
+            id="hack-wunsch-filter"
+            className="w-auto"
+            value={wunsch}
+            placeholder={`${t.prefFilterAll} (${rows.length})`}
+            options={wunschOptions}
+            onChange={(e) => setWunsch(e.target.value)}
+          />
+        </div>
+      )}
       {gezeigt.length === 0 ? (
         <p className="ct-help">{t.filterEmpty}</p>
       ) : (
@@ -130,6 +159,7 @@ export function ApplicationsTable({
                 <Th>{t.colTracks}</Th>
                 <Th>{t.colProfile}</Th>
                 <Th>{t.colMatches}</Th>
+                <Th>{t.colPrefs}</Th>
                 <Th>{t.colSkills}</Th>
                 <Th>{t.colMotivation}</Th>
                 <Th>{t.colPortfolio}</Th>
@@ -157,6 +187,14 @@ export function ApplicationsTable({
                     <span className="ct-small block max-w-xs">
                       {passendeChallenges(wunschprofile, a).map((w) => w.title).join(", ") || "—"}
                     </span>
+                  </Td>
+                  <Td>
+                    <ol className="ct-small max-w-xs list-decimal pl-4">
+                      {(a.challenge_prefs ?? []).map((id) => (
+                        <li key={id} className={id === wunsch ? "ct-label" : undefined}>{challengeTitles[id] ?? "—"}</li>
+                      ))}
+                    </ol>
+                    {(a.challenge_prefs ?? []).length === 0 && "—"}
                   </Td>
                   <Td>{(a.skills ?? []).map((s) => skillLabels[s] ?? s).join(", ") || "—"}</Td>
                   <Td>

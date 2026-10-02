@@ -2,7 +2,6 @@ import Link from "next/link";
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@/components/ui/Table";
@@ -44,45 +43,45 @@ export default async function CommunityEventsAdminPage() {
       {zeilen.length === 0 ? (
         <EmptyState title={tt.empty} description={tt.emptyBody} />
       ) : (
-        <Card className="overflow-x-auto p-0">
-          <Table>
-            <Thead>
-              <Tr>
-                <Th>{tt.colEvent}</Th>
-                <Th>{tt.colDate}</Th>
-                <Th numeric>{tt.colRegistered}</Th>
-                <Th numeric>{tt.colPending}</Th>
-                <Th numeric>{tt.colWaitlist}</Th>
-                <Th numeric>{tt.colAttended}</Th>
-                <Th>{""}</Th>
+        // `Table` trägt Rahmen und Scrollen selbst — eine Karte darum gab einen
+        // doppelten Rand, sobald `p-0` wirklich wirkt (QS-055).
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>{tt.colEvent}</Th>
+              <Th>{tt.colDate}</Th>
+              <Th numeric>{tt.colRegistered}</Th>
+              <Th numeric>{tt.colPending}</Th>
+              <Th numeric>{tt.colWaitlist}</Th>
+              <Th numeric>{tt.colAttended}</Th>
+              <Th>{""}</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {zeilen.map((z) => (
+              <Tr key={z.event_id}>
+                <Td>
+                  <Link href={`/admin/community-events/${z.event_id}`} className="ct-link">
+                    {z.name}
+                  </Link>
+                  {z.location && <span className="ct-help block">{z.location}</span>}
+                </Td>
+                <Td>{z.start_date ? datum.format(new Date(z.start_date)) : "—"}</Td>
+                <Td numeric>{z.registered}</Td>
+                <Td numeric>{z.pending}</Td>
+                <Td numeric>{z.waitlisted}</Td>
+                <Td numeric>{z.attended}</Td>
+                <Td>
+                  {z.url && (
+                    <a href={z.url} {...neuesFenster} className="ct-link ct-small">
+                      {tt.openLuma}
+                    </a>
+                  )}
+                </Td>
               </Tr>
-            </Thead>
-            <Tbody>
-              {zeilen.map((z) => (
-                <Tr key={z.event_id}>
-                  <Td>
-                    <Link href={`/admin/community-events/${z.event_id}`} className="ct-link">
-                      {z.name}
-                    </Link>
-                    {z.location && <span className="ct-help block">{z.location}</span>}
-                  </Td>
-                  <Td>{z.start_date ? datum.format(new Date(z.start_date)) : "—"}</Td>
-                  <Td numeric>{z.registered}</Td>
-                  <Td numeric>{z.pending}</Td>
-                  <Td numeric>{z.waitlisted}</Td>
-                  <Td numeric>{z.attended}</Td>
-                  <Td>
-                    {z.url && (
-                      <a href={z.url} {...neuesFenster} className="ct-link ct-small">
-                        {tt.openLuma}
-                      </a>
-                    )}
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </Card>
+            ))}
+          </Tbody>
+        </Table>
       )}
     </>
   );

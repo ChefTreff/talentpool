@@ -116,6 +116,8 @@ const BUSINESS_KEYS = new Set([
   "person_not_seeking",
   "request_pending",
   "request_closed",
+  // Wunsch-Challenges (HACK-017)
+  "invalid_challenge",
   // „Next Up" (TAL-006)
   "invalid_link_url",
   "next_up_not_found",
