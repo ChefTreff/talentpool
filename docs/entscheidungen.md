@@ -1156,3 +1156,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 ## 2026-10-02 — #316 gemergt, 0264 live (sechster Tour-Typ Marketing, K-52)
 
 - **#316** (Admin, K-52, Daten-Migration; README-Konflikt von der Architektur-Session gelöst, weil der Admin-Chat nicht erreichbar war — Ausnahme von der Regel) → **0264 live = 20261002144630** (`v6_tour_typ_marketing`): Vokabular `company_tour_type` um `marketing` (Sortierung vor Sales), die Bestandstour „Marketing“ je Edition bekommt den Typ. Probelauf 6/6, keine Funktionen, Rollen-Probe 6/6. Nächste freie Nummer **0265**. K-52 erledigt.
+
+## 2026-10-02 — #327 gemergt (Table stapeln unter 640 px, QS-058)
+
+- **#327** (Design, QS-058, ohne Migration): Kit `<Table stapeln>` + `<Td label>` — unter 640 px werden Zeilen zu beschrifteten Blöcken (Aktionen zuletzt, Kopfzeile nur für Vorlesegeräte); Regeln `.ct-stapeln` bewusst ohne `@layer`; eingeschaltet an Kontakte (auch Admin), Gästeliste, Dateien, Standtabelle; 375 px ohne Überlauf, 1440 px unverändert; Wächtertest. Übrige Aktionstabellen folgen mit QS-064 und der Tr-Erkennung. Hinweis des Chats: ein abgebrochener Rebase wurde durch Merge ersetzt, keine umgeschriebene Historie auf dem Remote. QS-058 → gebaut #327.
