@@ -1,4 +1,4 @@
--- Test „Rückwand nur an der Challenge“ (K-50, vorschlag/v6_rueckwand_nur_challenge.sql). Belegt:
+-- Test „Rückwand nur an der Challenge“ (K-50, 20261002085359_v6_rueckwand_nur_challenge.sql). Belegt:
 --   01 Vorlage hackathon_backdrop hängt an I-37220;
 --   02 Organisation nur mit einem anderen Hackathon-Produkt: offene Rückwand-Pflicht wird
 --      not_required (nach sync_deliverables), eingereichte bleibt;
