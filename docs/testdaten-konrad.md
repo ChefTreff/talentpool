@@ -68,6 +68,18 @@ Aus den gebuchten Leistungen entstehen von selbst: **Checklisten-Pflichten**, **
 
 **Folien in Drive (SPK-023):** `--apply --nur=folien` legt am `TEST — Assistenz-Talk` (Stage-Lead-Testbühne, Freitag 17:00) eine TEST-Präsentation des TEST-Assistenz-Speakers an: einseitiges PDF „TEST - keine echte Praesentation“, Dateiname `TEST — Folien.pdf`, im Bucket unter dem Profil. Braucht die Schritte `buehne` und `assistenz`. `/admin/technik` zeigt sie in der Karte „Folien in Drive“: ohne Dienstkonto als „Noch nicht gespiegelt“; nach dem Schlüssel (K-03) legt der erste Klick auf „Spiegelung nachholen“ im Technik-Ordner `TEST — Bühne Stage Lead / <Datum> · <Tag> / 1700_TEST Assistenz.pdf` an — das ist der erste echte Lauf. `--remove` entfernt Datei und Eintrag vor dem Profil; die Kopie in Drive räumt danach der Cron ab (`slide_mirror_orphans`). Gegen live gefahren am 01.10.2026.
 
+## Team-Testrunde: Teammitglied einladen (QS-056)
+
+Ohne Testdaten-Schritt — der Weg ist selbst der Test. **Nur mit einer eigenen Testadresse** (z. B. `konrad+zztest-team@chef-treff.de`, landet in Konrads Postfach), nie mit einer echten Adresse eines Teammitglieds, bevor die Runde startet.
+
+1. Admin → Verwaltung → **Zugänge** → Karte „Teammitglied einladen“.
+2. Vorname, Nachname (z. B. `ZZTEST`), Testadresse, Rollen ankreuzen (z. B. Partner-Team), „Anlegen und einladen“ → Rückfrage → bestätigen.
+3. Die Mail mit dem Anmelde-Link kommt an die Testadresse; die Person steht in der Liste darunter mit Rollen, Audit `access.team_member` und `access.invited` unter Verwaltung → Protokoll.
+4. Link in einem privaten Fenster öffnen → Login landet im Admin mit genau den Abschnitten der Rollen (Vorschau je Rolle unter Verwaltung → Rollen).
+5. Aufräumen: in der Liste „Zugang sperren“; Rollen unter Verwaltung → Team entziehen.
+
+Admin wird niemand über diese Karte — das bleibt Verwaltung → Team.
+
 ## Kennzeichnung
 
 - Rollen tragen `role_assignment.note = 'testdaten:konrad'` und laufen mit der Edition ab.

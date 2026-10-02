@@ -4,6 +4,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ZugaengeListe, type Konto } from "./ZugaengeListe";
 import { Geraetekonto } from "./Geraetekonto";
+import { TeamEinladung } from "./TeamEinladung";
+import { loadVocabMap, vgroup } from "@/lib/vocab";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +27,7 @@ export default async function ZugaengePage({
   searchParams: Promise<{ q?: string; seite?: string }>;
 }) {
   const ctx = await requireAdminSection("access", "/admin/verwaltung/zugaenge");
-  const { t } = await getI18n("de");
+  const { t, locale } = await getI18n("de");
   const { q, seite: seiteRoh } = await searchParams;
   const suche = (q ?? "").trim();
   const seite = Math.max(1, Number(seiteRoh ?? "1") || 1);
@@ -45,10 +47,23 @@ export default async function ZugaengePage({
     .eq("is_edition", true)
     .gte("end_date", heute)
     .order("start_date");
+  // QS-056: Team-Rollen für die Einladung — ohne admin (das bleibt eine Entscheidung unter Verwaltung → Team).
+  const [{ data: teamRollen }, vocab] = await Promise.all([supabase.rpc("team_role_keys"), loadVocabMap(supabase, locale)]);
+  const rollenLabel = vgroup(vocab, "role");
+  const rollen = ((teamRollen ?? []) as string[])
+    .filter((r) => r !== "admin")
+    .map((value) => ({ value, label: rollenLabel[value] ?? value }));
 
   return (
     <>
       <PageHeader word={t.admin.words.access} title={t.accessAdmin.title} description={t.accessAdmin.lead} />
+      <TeamEinladung
+        editionen={(editionen ?? []) as { id: string; name: string }[]}
+        rollen={rollen}
+        t={t.accessAdmin as Record<string, string>}
+        common={{ cancel: t.common.cancel, required: t.common.required }}
+        rpcMessages={t.rpc as Record<string, string>}
+      />
       <Geraetekonto
         editionen={(editionen ?? []) as { id: string; name: string }[]}
         t={t.accessAdmin as Record<string, string>}
