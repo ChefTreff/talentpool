@@ -1,4 +1,5 @@
--- 0000 · Event-Fotos für Teilnehmende (TAL-010): Auswahl des Teams im privaten Bucket
+-- 0257 · Event-Fotos je besuchtem Event: privater Bucket event-photos, Lesen nur mit Check-in, Verwaltung im Abschnitt photos, Löschwunsch (TAL-010)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002091014.
 -- event-photos, sichtbar nur für Personen, die eingecheckt waren; Löschwunsch an das Team.
 --
 -- Anlass: Konzept docs/talent-konzepte-009-011.md, Konrads Antworten K-43 (02.10.): (4) das Team

@@ -1,4 +1,4 @@
--- Test „Event-Fotos“ (TAL-010, vorschlag/v6_event_fotos.sql). Belegt:
+-- Test „Event-Fotos“ (TAL-010, 20261002091014_v6_event_fotos.sql). Belegt:
 --   01 Bucket event-photos privat, Tabellen ohne Grants, keine Schreib-Policy, Abschnitt photos;
 --   02 register_event_photo: ohne Abschnitt 42501; mit marketing_team: eintragen, falscher Pfad 22023;
 --   03 Lese-Policy (als authenticated): Eingecheckte sieht das veröffentlichte Foto, nicht das
