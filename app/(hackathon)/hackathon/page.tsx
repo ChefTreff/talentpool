@@ -64,6 +64,7 @@ export default async function HackathonPage() {
       />
       <HackView
         data={data}
+        challenges={((challenges ?? []) as HackChallenge[]).map((c) => ({ id: c.id, title: c.title }))}
         metric={metric}
         dataset={dataset}
         abgabe={abgabe}
