@@ -1160,3 +1160,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 ## 2026-10-02 — #327 gemergt (Table stapeln unter 640 px, QS-058)
 
 - **#327** (Design, QS-058, ohne Migration): Kit `<Table stapeln>` + `<Td label>` — unter 640 px werden Zeilen zu beschrifteten Blöcken (Aktionen zuletzt, Kopfzeile nur für Vorlesegeräte); Regeln `.ct-stapeln` bewusst ohne `@layer`; eingeschaltet an Kontakte (auch Admin), Gästeliste, Dateien, Standtabelle; 375 px ohne Überlauf, 1440 px unverändert; Wächtertest. Übrige Aktionstabellen folgen mit QS-064 und der Tr-Erkennung. Hinweis des Chats: ein abgebrochener Rebase wurde durch Merge ersetzt, keine umgeschriebene Historie auf dem Remote. QS-058 → gebaut #327.
+
+## 2026-10-02 — #328 gemergt (Testleitfaden: Abschnitt Speaker und Stage Leads)
+
+- **#328** (Speaker, nur Doku): `docs/team-testleitfaden.md` Abschnitt 5a „Speaker und Stage Leads“ — Zugang, ZZTEST-Speaker anlegen (über das Lead-Portal, ADM-004), „Nicht drücken“ (Website-Übertragen, Drive-Knöpfe, Tickets „Ausstellen“, Reisekosten „Freigeben“ — SevDesk-Beleg und Qonto-Mail), „Danach zurücknehmen“ (Hotel belegt Kontingent, Shuttle im Fahrdienst-Export, Folien → Drive-Kopie, nur Beispiel-IBAN), drei Tabellen mit Normalfall, Fehlerfall und Prüfpunkt für Speaker-Portal (inkl. stellvertretend bestätigen), Stage-Lead-Portal und Admin (Speaker-Detail, Website-Vorschau). Spiegel-Lauf: Zielordner gesetzt, zwei TEST-Folien warten, noch keine Spiegel-Zeile — Konrads Klick „Spiegelung nachholen“ steht aus.
