@@ -6,7 +6,8 @@
 --   03 Externe ohne Rolle: keine fremden Entwürfe, keine Slots ohne veröffentlichte Session (außer Rahmen);
 --   04 Externe ohne Rolle: ticket_secret, audit_log, organization ohne Grant; expense_claim,
 --      hospitality_booking, role_assignment leer;
---   05 Partner-Kontakt einer Organisation A: keine Zeile fremder Organisationen in Tabellen mit org_id;
+--   05 Partner-Kontakt einer Organisation A: keine Zeile fremder Organisationen in Tabellen mit org_id
+--      (fremd = weder Mitgliedschaft noch Partner-Rolle; seit 02.10. darf die Testperson Kontakt bei mehreren Organisationen sein);
 --   06 Stage Lead mit Bühnen-Scope (nach 0210, Security-Check Teil 3): eigener Entwurf sichtbar, fremder Entwurf
 --      0 Zeilen (Vorbedingung gesetzt), Suche findet nur die eigene Bühne, upsert_speaker auf ein fremdes Profil
 --      (per Adresse und per person_id) → 42501.
@@ -18,7 +19,7 @@ create temp table t_res (step text, result text) on commit drop;
 grant insert on t_res to authenticated;
 do $$
 declare v_pid uuid; v_uid uuid; r record; v_n bigint; v_txt text; v_tabs int; v_m bigint;
-        v_orgA uuid; v_pidA uuid; v_uidA uuid;
+        v_orgA uuid; v_pidA uuid; v_uidA uuid; v_orgs uuid[];
         v_ed uuid; v_sum uuid; v_day uuid; v_sa uuid; v_sb uuid; v_sla uuid; v_slb uuid; v_sea uuid; v_seb uuid;
         v_psa uuid; v_psb uuid; v_a bigint; v_b bigint; v_ha bigint; v_hb bigint; r6a text; r6b text;
 begin
@@ -89,6 +90,10 @@ begin
     insert into t_res values ('05_partner_fremde_orgs', 'übersprungen: kein Partner-Kontakt mit Konto');
   else
     select p.auth_user_id into v_uidA from person p where p.id = v_pidA;
+    -- Eigene Organisationen (Mitgliedschaft oder Org-Rolle) vor dem Rollenwechsel bestimmen: die Testperson darf Kontakt bei mehreren sein (Befund 02.10., kein Leck).
+    select coalesce(array_agg(distinct o), '{}') into v_orgs from (
+      select om.org_id as o from org_membership om where om.person_id = v_pidA
+      union select ra.scope_id from role_assignment ra where ra.person_id = v_pidA and ra.scope_type = 'org') x;
     perform set_config('request.jwt.claims', json_build_object('sub', v_uidA, 'role', 'authenticated')::text, true);
     execute 'set local role authenticated';
     v_txt := ''; v_tabs := 0;
@@ -96,7 +101,7 @@ begin
                join pg_class k on k.relname = c.table_name join pg_namespace n on n.oid = k.relnamespace and n.nspname = 'public'
               where c.table_schema = 'public' and k.relkind = 'r' and c.column_name in ('org_id', 'organization_id') order by 1 loop
       begin
-        execute format('select count(*) from public.%I where %I is not null and %I <> $1', r.table_name, r.column_name, r.column_name) into v_n using v_orgA;
+        execute format('select count(*) from public.%I t where t.%I is not null and not (t.%I = any($1))', r.table_name, r.column_name, r.column_name) into v_n using v_orgs;
         v_tabs := v_tabs + 1;
         if v_n > 0 then v_txt := v_txt || r.table_name || '=' || v_n || ' '; end if;
       exception when insufficient_privilege then null;

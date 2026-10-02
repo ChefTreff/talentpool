@@ -186,6 +186,7 @@
 | Welle 6 · 0259 | **Feedback-Fenster: anonym oder mit Klarnamen, Tageslimit ohne Uhrzeit, Abschnitt feedback (TAL-011)** (`20261002091904`, `v6_feedback`; Details im Migrationskopf) | — |
 | Welle 6 · 0260 | **Schichtmodell 2027: Bereiche, Vorlagen je Wochentag, Sicherheitsunterweisung versioniert, Wunschschichten (VOL-002, K-44)** (`20261002140832`, `v6_volunteers_schichtmodell`; Details im Migrationskopf) | — |
 | Welle 6 · 0261 | **Luma-Gäste ohne Profil als Lead mit Kanal luma, Zählwerte für den Admin (K-34, TAL-007)** (`20261002141557`, `v6_luma_leads`; Details im Migrationskopf) | — |
+| Welle 6 · 0262 | **Stellvertretende Einwilligungen: Ops-Kontakt bestätigt alle vier, stellvertretende Textfassung (K-45, K-46, SPK-074)** (`20261002142337`, `v6_einwilligung_alle_stellvertretend`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

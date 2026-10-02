@@ -1,3 +1,5 @@
+-- 0262 · Stellvertretende Einwilligungen: Ops-Kontakt bestätigt alle vier, stellvertretende Textfassung (K-45, K-46, SPK-074)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002142337.
 -- Vorschlag · Einwilligungen im Verwaltet-Fall: alle vier Arten stellvertretend, mit stellvertretender Textfassung (SPK-074-Nachtrag, K-45, K-46)
 --
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Anwenden, Umbenennen und
