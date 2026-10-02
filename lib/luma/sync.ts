@@ -9,7 +9,8 @@ import { toParticipation } from "@/lib/luma/mapping";
  * Je Event: `luma_sync_event`, dann je Gast `luma_sync_registration`. Beides ist
  * idempotent — ein zweiter Lauf ändert nichts, was schon stimmt. Private Events
  * werden übersprungen (die zeigt das Portal nie), Gäste ohne passende Person
- * zählen als `unmatched` (kein Lead aus Luma, solange das nicht entschieden ist).
+ * zählen nicht als `matched`: wer sich angemeldet hat, wird Lead mit Kanal Luma (`leads`, K-34),
+ * wer nur eingeladen war oder abgesagt hat, bleibt `unmatched` — es entsteht keine Person.
  */
 export type SyncDeps = {
   listEvents: (after: Date) => Promise<LumaEvent[]>;
@@ -23,6 +24,8 @@ export type SyncStats = {
   events: number;
   guests: number;
   matched: number;
+  /** Neu angelegte Leads (Gäste ohne Profil, K-34). */
+  leads: number;
   unmatched: number;
   skippedPrivate: number;
   errors: number;
@@ -32,7 +35,7 @@ export type SyncStats = {
 export const SYNC_LOOKBACK_DAYS = 60;
 
 export async function syncLuma(deps: SyncDeps, now = new Date()): Promise<SyncStats> {
-  const stats: SyncStats = { events: 0, guests: 0, matched: 0, unmatched: 0, skippedPrivate: 0, errors: 0 };
+  const stats: SyncStats = { events: 0, guests: 0, matched: 0, leads: 0, unmatched: 0, skippedPrivate: 0, errors: 0 };
   const after = new Date(now.getTime() - SYNC_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
   const events = await deps.listEvents(after);
 
@@ -76,9 +79,13 @@ export async function syncLuma(deps: SyncDeps, now = new Date()): Promise<SyncSt
         p_status: p.status,
         p_registered_at: p.registeredAt,
         p_checked_in: p.checkedIn,
+        p_first_name: p.firstName,
+        p_last_name: p.lastName,
       });
+      const out = res.data as { matched?: boolean; lead_created?: boolean } | null;
       if (res.error) stats.errors++;
-      else if ((res.data as { matched?: boolean } | null)?.matched) stats.matched++;
+      else if (out?.matched) stats.matched++;
+      else if (out?.lead_created) stats.leads++;
       else stats.unmatched++;
     }
   }

@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { createLumaClient, LumaError } from "@/lib/luma/core";
-import { toAddGuests, toParticipation, toPortalEvent, visibleEvents } from "@/lib/luma/mapping";
+import { guestNames, toAddGuests, toParticipation, toPortalEvent, visibleEvents } from "@/lib/luma/mapping";
 import type { LumaEvent, LumaGuest } from "@/lib/luma/types";
 
 const fixture = (name: string) =>
@@ -116,5 +116,22 @@ describe("Luma-Adapter (TAL-007): Abbildung", () => {
       ["ben@example.com", "waitlist", false],
       ["cem@example.com", "pending", false],
     ]);
+  });
+});
+
+describe("Luma-Gäste: Namen für den Lead (K-34)", () => {
+  const gast = (o: object) => ({ id: "g", user_email: "x@example.com", approval_status: "approved", ...o }) as never;
+
+  it("getrennte Felder gehen vor, sonst wird der Gesamtname am letzten Leerzeichen geteilt", () => {
+    assert.deepEqual(guestNames(gast({ user_first_name: " Anna ", user_last_name: "Beispiel", user_name: "Egal" })), { firstName: "Anna", lastName: "Beispiel" });
+    assert.deepEqual(guestNames(gast({ user_name: "Anna Maria von Beispiel" })), { firstName: "Anna Maria von", lastName: "Beispiel" });
+    assert.deepEqual(guestNames(gast({ user_name: "Cher" })), { firstName: "Cher", lastName: null });
+    assert.deepEqual(guestNames(gast({})), { firstName: null, lastName: null });
+  });
+
+  it("die Teilnahme trägt die Namen, sonst nichts Persönliches außer der Adresse", () => {
+    const p = toParticipation("evt", gast({ user_name: "Anna Beispiel", user_email: " Anna@Example.com " }));
+    assert.deepEqual(Object.keys(p).sort(), ["checkedIn", "email", "firstName", "lastName", "lumaEventId", "lumaGuestId", "registeredAt", "status"]);
+    assert.equal(p.email, "anna@example.com");
   });
 });
