@@ -93,3 +93,33 @@ export function shiftTotals(shifts: readonly ShiftRow[]): {
     { shifts: 0, seats: 0, taken: 0, waitlisted: 0, open: 0 },
   );
 }
+
+/** Schicht-Vorlage (`shift_templates`, VOL-002/S3). Zeiten als `HH:MM:SS` in Ortszeit des Events. */
+export type ShiftTemplate = {
+  id: string;
+  area: string;
+  position: string;
+  /** ISO-Wochentag (1 = Montag); `null` = für jeden Tag. */
+  weekday: number | null;
+  start_time: string;
+  end_time: string;
+  capacity: number;
+  overbook: number;
+  location: string | null;
+  briefing_md: string | null;
+  sort_order: number;
+  active: boolean;
+  used: number;
+};
+
+/** Wunsch einer Person für eine Schicht (`shift_wishes`). */
+export type ShiftWishRow = {
+  shift_id: string;
+  person_id: string;
+  name: string | null;
+  rank: number;
+  area_match: boolean;
+  assignment_status: string | null;
+};
+
+export type PersonRef = { person_id: string; name: string | null };

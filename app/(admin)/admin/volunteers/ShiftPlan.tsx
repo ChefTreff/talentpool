@@ -11,11 +11,14 @@ import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { assignShift, saveShift, unassignShift } from "./actions";
+import { shiftHours, shortBreakShiftIds, WARN_FROM_HOURS } from "@/lib/volunteers/schichten";
 import {
   candidatesFor,
   freeSeats,
   shiftTotals,
+  type PersonRef,
   type ShiftRow,
+  type ShiftWishRow,
   type VolunteerDay,
   type VolunteerRow,
 } from "./types";
@@ -88,6 +91,9 @@ function fromLocalInput(value: string, timeZone: string): string | null {
 export function ShiftPlan({
   shifts,
   volunteers,
+  wishes,
+  withoutWish,
+  withoutSafety,
   days,
   areas,
   timeZone,
@@ -99,6 +105,10 @@ export function ShiftPlan({
 }: {
   shifts: ShiftRow[];
   volunteers: VolunteerRow[];
+  /** Wunschschichten der Volunteers (K-44) — zugeteilt wird weiter von Hand. */
+  wishes: ShiftWishRow[];
+  withoutWish: PersonRef[];
+  withoutSafety: PersonRef[];
   days: VolunteerDay[];
   areas: Record<string, string>;
   timeZone: string;
@@ -132,6 +142,7 @@ export function ShiftPlan({
     [shifts, day, area],
   );
   const totals = useMemo(() => shiftTotals(shown), [shown]);
+  const shortBreaks = useMemo(() => shortBreakShiftIds(shifts), [shifts]);
   const usedAreas = useMemo(() => [...new Set(shifts.map((s) => s.area))].sort(), [shifts]);
 
   function run(action: Promise<{ ok: boolean; key?: string; detail?: string }>, okText: string) {
@@ -260,6 +271,26 @@ export function ShiftPlan({
         </p>
       </Card>
 
+      {(withoutWish.length > 0 || withoutSafety.length > 0) && (
+        <Card>
+          <CardHeader title={t.followUpTitle} description={t.followUpLead} />
+          <div className="flex flex-col gap-3">
+            {withoutWish.length > 0 && (
+              <p className="ct-small">
+                <span className="ct-label">{t.withoutWish.replace("{n}", String(withoutWish.length))}: </span>
+                {withoutWish.map((p) => p.name || common.none).join(", ")}
+              </p>
+            )}
+            {withoutSafety.length > 0 && (
+              <p className="ct-small">
+                <span className="ct-label">{t.withoutSafety.replace("{n}", String(withoutSafety.length))}: </span>
+                {withoutSafety.map((p) => p.name || common.none).join(", ")}
+              </p>
+            )}
+          </div>
+        </Card>
+      )}
+
       {shown.length === 0 ? (
         <Card>
           <p className="ct-help">{t.noShifts}</p>
@@ -268,6 +299,8 @@ export function ShiftPlan({
         shown.map((s) => {
           const free = freeSeats(s);
           const options = candidatesFor(s, volunteers);
+          const wished = wishes.filter((w) => w.shift_id === s.id && !w.assignment_status);
+          const hours = shiftHours(s);
           return (
             <Card key={s.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -284,6 +317,10 @@ export function ShiftPlan({
                         {s.waitlisted} {t.onWaitlist}
                       </Badge>
                     )}
+                    {hours >= WARN_FROM_HOURS && (
+                      <Badge tone="warning">{t.longShift.replace("{h}", hours.toLocaleString(locale, { maximumFractionDigits: 1 }))}</Badge>
+                    )}
+                    {shortBreaks.has(s.id) && <Badge tone="warning">{t.shortBreak}</Badge>}
                   </div>
                   <p className="ct-help mt-1">
                     {dayName(s.event_day_id)} · {time.format(new Date(s.start_at))}–
@@ -321,6 +358,29 @@ export function ShiftPlan({
                 ))}
                 {s.people.length === 0 && <li className="ct-help">{t.nobodyYet}</li>}
               </ul>
+
+              {wished.length > 0 && (
+                <div className="mt-3 flex flex-col gap-1">
+                  <span className="ct-label">{t.wishedBy}</span>
+                  <ul className="flex flex-col gap-1">
+                    {wished.map((w) => (
+                      <li key={w.person_id} className="flex flex-wrap items-center gap-2">
+                        <Badge tone="accent">{t.wishRank.replace("{n}", String(w.rank))}</Badge>
+                        <span className="text-ink">{w.name || common.none}</span>
+                        {w.area_match && <Badge tone="neutral">{t.areaMatch}</Badge>}
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={pending}
+                          onClick={() => run(assignShift(s.id, w.person_id), free > 0 ? t.assigned : t.waitlisted)}
+                        >
+                          {free > 0 ? t.assign : t.putOnWaitlist}
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               <div className="mt-3 flex flex-wrap items-end gap-2">
                 <Field label={t.addPerson} htmlFor={`p-${s.id}`}>
@@ -443,6 +503,14 @@ export function ShiftPlan({
               {t.activeShift}
             </label>
           </div>
+          {(() => {
+            const a = fromLocalInput(draft.start_at, timeZone);
+            const b = fromLocalInput(draft.end_at, timeZone);
+            const h = a && b ? shiftHours({ start_at: a, end_at: b }) : 0;
+            return h >= WARN_FROM_HOURS ? (
+              <p className="ct-help mt-3 text-warning-ink">{t.longShiftHint.replace("{h}", h.toLocaleString(locale, { maximumFractionDigits: 1 }))}</p>
+            ) : null;
+          })()}
           <div className="mt-6 flex gap-2">
             <Button disabled={pending} onClick={onSaveShift}>
               {common.save}

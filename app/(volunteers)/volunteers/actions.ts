@@ -138,3 +138,21 @@ export async function declineShift(
   refresh();
   return { ok: true, data: undefined };
 }
+
+/** Sicherheitsunterweisung bestätigen (VOL-002, K-44: Pflicht für alle) — gespeichert mit der Fassung des Textes. */
+export async function ackSafety(version: string): Promise<VolunteerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("ack_volunteer_safety", { p_version: version });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
+
+/** Wunschschichten setzen: 1–5 Schichten, die Reihenfolge ist die Rangfolge. Zugeteilt wird im Team. */
+export async function setMyShiftWishes(shiftIds: string[]): Promise<VolunteerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_my_shift_wishes", { p_shift_ids: shiftIds });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}

@@ -10,6 +10,10 @@ begin
   select * into v_a from shift_assignment where id = p_assignment_id for update;
   if not found or v_a.person_id <> v_pid then raise exception 'assignment_not_found' using errcode = 'P0002'; end if;
   if v_a.status <> 'assigned' then raise exception 'not_assigned' using errcode = 'P0001', detail = v_a.status; end if;
+  if not exists (select 1 from volunteer_profile v join shift s on s.edition_id = v.edition_id
+                  where v.person_id = v_pid and s.id = v_a.shift_id and v.safety_ack_at is not null) then
+    raise exception 'safety_ack_required' using errcode = 'P0001';
+  end if;
   update shift_assignment set status = 'confirmed', confirmed_at = now() where id = p_assignment_id;
   perform log_audit('volunteer.confirm_shift', 'shift_assignment', p_assignment_id::text, null, null);
 end $$;

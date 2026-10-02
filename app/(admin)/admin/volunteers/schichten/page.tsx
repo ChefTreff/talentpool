@@ -1,7 +1,7 @@
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { volunteerAdminShell } from "../shell";
 import { ShiftPlan } from "../ShiftPlan";
-import type { ShiftRow, VolunteerDay, VolunteerRow } from "../types";
+import type { PersonRef, ShiftRow, ShiftWishRow, VolunteerDay, VolunteerRow } from "../types";
 
 export const dynamic = "force-dynamic";
 
@@ -11,13 +11,16 @@ export default async function AdminShiftPlanPage() {
   if (!shell.ok) return shell.view;
   const { supabase, t, locale, frame } = shell;
 
-  const [{ data: shiftRows }, { data: volunteerRows }, { data: dayRows }, { data: events }, vocab] =
+  const [{ data: shiftRows }, { data: volunteerRows }, { data: dayRows }, { data: events }, vocab, wishRows, noWish, noSafety] =
     await Promise.all([
       supabase.rpc("shift_plan"),
       supabase.rpc("volunteer_admin_overview"),
       supabase.rpc("volunteer_days"),
       supabase.from("event").select("id,timezone"),
       loadVocabMap(supabase, locale),
+      supabase.rpc("shift_wishes"),
+      supabase.rpc("volunteers_without_wish"),
+      supabase.rpc("volunteers_without_safety_ack"),
     ]);
 
   const days = (dayRows ?? []) as VolunteerDay[];
@@ -36,6 +39,9 @@ export default async function AdminShiftPlanPage() {
     <ShiftPlan
       shifts={(shiftRows ?? []) as ShiftRow[]}
       volunteers={(volunteerRows ?? []) as VolunteerRow[]}
+      wishes={(wishRows.data ?? []) as ShiftWishRow[]}
+      withoutWish={(noWish.data ?? []) as PersonRef[]}
+      withoutSafety={(noSafety.data ?? []) as PersonRef[]}
       days={days}
       areas={vgroup(vocab, "volunteer_area")}
       timeZone={zone}
