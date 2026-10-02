@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { sharpSans, sharpSansItalic, laica } from "@/lib/fonts";
 import { getI18n } from "@/lib/i18n";
 import { ToastProvider } from "@/components/ui/Toast";
+import { ZuschnittTexteGeber } from "@/components/ui/BildZuschnitt";
 import { NEUES_FENSTER_ID } from "@/components/ui/neues-fenster";
 import { FehlerKontextGeber } from "@/components/fehler/Fehlergrenze";
 import { fehlerTexte } from "@/components/fehler/fehler";
@@ -45,7 +46,9 @@ export default async function RootLayout({
             Bereichen setzt `SidebarShell` denselben Kontext noch einmal, in
             der Sprache und mit dem Postfach des Bereichs. */}
         <FehlerKontextGeber texte={fehlerTexte(t.errors)} mailbox={DEFAULT_MAILBOX}>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <ZuschnittTexteGeber texte={t.zuschnitt}>{children}</ZuschnittTexteGeber>
+          </ToastProvider>
         </FehlerKontextGeber>
       </body>
     </html>

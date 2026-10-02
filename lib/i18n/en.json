@@ -6811,5 +6811,17 @@
     "title": "Ask Chefi",
     "transcript": "Conversation with Chefi",
     "you": "You"
+  },
+  "zuschnitt": {
+    "apply": "Use this crop",
+    "cancel": "Cancel",
+    "canvasLabel": "Image crop. Move with the arrow keys, zoom with plus and minus.",
+    "exportFailed": "The image could not be cropped. Please try again.",
+    "hintDreieck": "Move the image and zoom until the face sits inside the light triangle. This is how the photo appears in the portal.",
+    "hintQuadrat": "Move the image and zoom until the crop fits.",
+    "loadFailed": "The image could not be loaded. Choose another file.",
+    "reset": "Reset",
+    "title": "Crop photo",
+    "zoom": "Zoom"
   }
 }

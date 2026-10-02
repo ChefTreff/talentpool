@@ -6811,5 +6811,17 @@
     "title": "Frag Chefi",
     "transcript": "Gespräch mit Chefi",
     "you": "Du"
+  },
+  "zuschnitt": {
+    "apply": "Übernehmen",
+    "cancel": "Abbrechen",
+    "canvasLabel": "Bildausschnitt. Mit den Pfeiltasten verschieben, mit Plus und Minus zoomen.",
+    "exportFailed": "Das Bild konnte nicht zugeschnitten werden. Versuche es noch einmal.",
+    "hintDreieck": "Verschiebe das Bild und zoome, bis das Gesicht im hellen Dreieck sitzt. So erscheint das Foto im Portal.",
+    "hintQuadrat": "Verschiebe das Bild und zoome, bis der Ausschnitt passt.",
+    "loadFailed": "Das Bild konnte nicht geladen werden. Wähle eine andere Datei.",
+    "reset": "Zurücksetzen",
+    "title": "Foto zuschneiden",
+    "zoom": "Zoom"
   }
 }

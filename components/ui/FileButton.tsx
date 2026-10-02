@@ -29,7 +29,9 @@ import { cn } from "./cn";
  * die Auswahl `onFile` gleich auf, ohne zweiten Klick. Dort ist die falsche
  * Datei billig — das Bild steht sofort neben dem Knopf, „Ersetzen“ ist ein
  * Klick, und ein Entfernen gibt es auch. Bei Dokumenten (Präsentation, Beleg,
- * Lebenslauf) bleibt es bei der Prüfung vor dem Hochladen.
+ * Lebenslauf) bleibt es bei der Prüfung vor dem Hochladen. Bei Fotos von
+ * Personen öffnet `onFile` den Zuschnitt (`BildZuschnitt`, ADM-066); hochgeladen
+ * wird erst der Ausschnitt.
  *
  * `laedt` ist der Zwischenzustand dazu: der Ring ersetzt das Symbol, der
  * Knopf bleibt in voller Farbe (statt blass wie `disabled`, das wie „geht
