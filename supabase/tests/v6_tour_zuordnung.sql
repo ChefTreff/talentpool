@@ -1,7 +1,7 @@
 -- Test zu `v6_tour_zuordnung` (ADM-045). Belegt:
 --   01 ohne Abschnitt tourAssignment 42501 auf alle fünf Funktionen (Teamrolle ohne Abschnitt);
---   02 Bestand: die Touren gleichen Namens tragen ihren Typ, „Marketing" keinen;
---   03 ensure_company_tours legt je fehlendem Typ eine Tour mit drei Stopps an,
+--   02 Bestand: die Touren gleichen Namens tragen ihren Typ (Marketing seit v6_tour_typ_marketing, K-52);
+--   03 ensure_company_tours legt je aktivem Typ des Vokabulars eine Tour mit drei Stopps an,
 --      ein zweiter Lauf legt nichts mehr an (idempotent);
 --   04 assign_tour_stop setzt und nimmt einen Partner herunter, mit Audit; ein
 --      Partner zweimal auf derselben Tour ⇒ partner_already_on_tour;
@@ -41,9 +41,9 @@ begin
 
   -- 02
   select string_agg(name || '=' || coalesce(tour_type, '-'), ' ' order by name) into v_txt
-    from company_tour where edition_id = v_ed and name in ('Consulting', 'Engineering', 'Finance', 'Logistik', 'Marketing', 'Sales');
+    from company_tour where edition_id = v_ed and name in ('Consulting', 'Engineering', 'Finance', 'Logistik', 'Sales');
   insert into t_res values ('02_bestand', coalesce(v_txt, '-')
-    || ' (erwartet Consulting=consulting Engineering=engineering Finance=finance Logistik=logistik Marketing=- Sales=sales, sofern vorhanden)');
+    || ' (erwartet Consulting=consulting Engineering=engineering Finance=finance Logistik=logistik Sales=sales, sofern vorhanden)');
 
   -- 03 · eigene Edition, damit „fehlt" sicher fehlt
   insert into event (name, format_tag, slug, is_edition, start_date) values ('ZZTEST Edition Touren', 'edition', 'zztest-touren', true, now() - interval '10 years') returning id into v_ed;
@@ -52,7 +52,8 @@ begin
   v_txt := 'erster=' || v_n || ' zweiter=' || ensure_company_tours(v_ed)
         || ' touren=' || (select count(*) from company_tour where edition_id = v_ed)
         || ' stopps=' || (select count(*) from company_tour_stop s join company_tour t on t.id = s.tour_id where t.edition_id = v_ed);
-  insert into t_res values ('03_ensure', v_txt || ' (erwartet erster=5 zweiter=0 touren=5 stopps=15)');
+  select count(*) into v_n from vocab_term where vocabulary = 'company_tour_type' and active;
+  insert into t_res values ('03_ensure', v_txt || ' (erwartet erster=' || v_n || ' zweiter=0 touren=' || v_n || ' stopps=' || (3 * v_n) || ' — je aktivem Typ eine Tour)');
 
   -- 04
   perform set_config('request.jwt.claims', '', true);
