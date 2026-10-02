@@ -337,15 +337,24 @@ export function TravelView({
                     <ArtZeichen kind={o.kind} />
                     <div className="min-w-0 flex-1">
                       <p className="ct-label text-ink">{label(o)}</p>
-                      <div className="ct-help mt-1 flex flex-wrap items-center gap-x-3">
+                      {/* Auf dem Telefon untereinander, ab `sm` in einer Zeile mit
+                          Punkten: vorher brach die Zeile um, und der Punkt stand
+                          am Zeilenanfang (SPK-076, Sichtprüfung 02.10.). */}
+                      <div className="ct-help mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3">
                         <span>{t[`kind_${o.kind}`] ?? o.kind}</span>
                         {/* Die Stufe („Standard (Radisson Blu Dammtor)") steht
                             nicht mehr hier (SPK-062): sie ist ein internes Feld
                             und wiederholt nur den Namen des Hotels. */}
-                        {o.location && <span>· {o.location}</span>}
+                        {o.location && (
+                          <span>
+                            <span aria-hidden className="hidden sm:inline">· </span>
+                            {o.location}
+                          </span>
+                        )}
                         {o.window_from && o.window_to && (
                           <span className="tabular-nums">
-                            · {dateOnly.format(new Date(o.window_from))} –{" "}
+                            <span aria-hidden className="hidden sm:inline">· </span>
+                            {dateOnly.format(new Date(o.window_from))} –{" "}
                             {dateOnly.format(new Date(o.window_to))}
                           </span>
                         )}
@@ -364,6 +373,9 @@ export function TravelView({
                           ob er buchen kann oder auf die Warteliste kommt. */}
                       {full && <p className="ct-help mt-1">{t.optionFull}</p>}
                     </div>
+                    {/* Auf dem Telefon in eigener Zeile unter dem Text — neben
+                        dem Titel drückte der Knopf die Textspalte zusammen. */}
+                    <div className="basis-full sm:basis-auto">
                     {booked ? (
                       <Badge
                         tone={STATUS_TONE[o.my_booking!.status] ?? "neutral"}
@@ -396,6 +408,7 @@ export function TravelView({
                         </Button>
                       )
                     )}
+                    </div>
                   </div>
 
                   {isOpen && !booked && (
