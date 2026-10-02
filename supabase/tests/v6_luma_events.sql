@@ -1,7 +1,7 @@
 -- Test „Community-Events aus Luma" (TAL-007, vorschlag/v6_luma_events.sql). Belegt:
 --   01 angemeldete Person darf die Sync-Funktionen nicht aufrufen (42501); Grants entzogen;
 --   02 Event anlegen und nachziehen: dieselbe Id, eine external_ref, Datum in Berliner Zeit;
---   03 Gast ohne passende Person ⇒ matched false, keine Zeile;
+--   03 Gast ohne passende Person und ohne Anmeldung (nur eingeladen) ⇒ matched false, keine Zeile (Anmeldungen werden seit K-34 Leads: v6_luma_leads.sql);
 --   04 Anmeldung aus dem Portal (ohne Gast-Id) und späterer Abgleich mit Gast-Id ⇒ **eine**
 --      Zeile, Gast-Id nachgetragen; E-Mail ohne Rücksicht auf Groß-/Kleinschreibung;
 --   05 Check-in ⇒ attended; Warteliste ⇒ waitlisted;
@@ -34,7 +34,7 @@ begin
   insert into t_res values ('01_nur_server',
     case when v_s = 'ok'
           and not has_function_privilege('authenticated', 'luma_sync_event(jsonb)', 'execute')
-          and not has_function_privilege('authenticated', 'luma_sync_registration(text,text,text,text,timestamptz,boolean)', 'execute')
+          and not has_function_privilege('authenticated', 'luma_sync_registration(text,text,text,text,timestamptz,boolean,text,text)', 'execute')
           and has_function_privilege('authenticated', 'my_community_registrations()', 'execute')
          then 'ok' else v_s end);
 
@@ -57,7 +57,7 @@ begin
          then 'ok' else 'FEHLER n=' || v_n end);
 
   -- 03 ohne Person
-  v_j := luma_sync_registration('evt-test-okt', 'niemand-' || gen_random_uuid() || '@example.invalid', 'gst-x', 'registered');
+  v_j := luma_sync_registration('evt-test-okt', 'niemand-' || gen_random_uuid() || '@example.invalid', 'gst-x', 'invited');
   insert into t_res values ('03_ohne_person',
     case when v_j->>'matched' = 'false' and not exists (select 1 from registration where external_ref = 'gst-x') then 'ok' else v_j::text end);
 

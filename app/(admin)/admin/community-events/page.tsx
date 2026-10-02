@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@/components/ui/Table";
@@ -35,11 +36,26 @@ export default async function CommunityEventsAdminPage() {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.rpc("community_events_admin");
   const zeilen = (data ?? []) as Zeile[];
+  // K-34: Gäste ohne Profil werden Leads mit Kanal Luma — hier nur die Zählwerte, keine Namen.
+  const { data: leadData } = await supabase.rpc("luma_lead_stats");
+  const leads = ((leadData ?? []) as { total: number; without_login: number; claimed: number }[])[0] ?? null;
   const datum = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "de-DE", { dateStyle: "medium" });
 
   return (
     <>
       <PageHeader word={t.admin.words.communityEvents} title={tt.title} description={tt.lead} />
+      {leads && leads.total > 0 && (
+        <Card className="mb-6">
+          <h2 className="ct-h3">{tt.leadsTitle}</h2>
+          <p className="ct-small mt-1">
+            {tt.leadsBody
+              .replace("{total}", String(leads.total))
+              .replace("{open}", String(leads.without_login))
+              .replace("{claimed}", String(leads.claimed))}
+          </p>
+          <p className="ct-help mt-2">{tt.leadsHint}</p>
+        </Card>
+      )}
       {zeilen.length === 0 ? (
         <EmptyState title={tt.empty} description={tt.emptyBody} />
       ) : (

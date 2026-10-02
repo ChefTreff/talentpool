@@ -26,6 +26,7 @@ Das Skript ist wiederholbar: ein zweiter `--apply` legt nichts doppelt an. `--nu
 | Benachrichtigungen | Schritt `benachrichtigungen`: zwei TEST-Personen ohne Konto (`+zztest-news-N`) mit Themen — „Newsletter“ mit Einwilligung (Summit, Academy; anschreibbar), „OhneEinwilligung“ ohne (Summit; zählt nur als gewählt). Zähler und Export unter `/admin/benachrichtigungen`; Konrads eigene Themen wählt er selbst unter `/benachrichtigungen` (TAL-009) | — |
 | Event-Fotos | Schritt `event-fotos`: vergangenes TEST-Community-Event „TEST — Community-Abend“ (`zztest-community-fotos`), Konrad als Teilnahme „attended“, zwei TEST-Bilder im privaten Bucket `event-photos` — eines veröffentlicht (sichtbar unter `/fotos`), eines nicht (nur unter `/admin/fotos`). `--remove` löscht Event, Fotos und Dateien (TAL-010) | — |
 | Feedback | Schritt `feedback`: zwei TEST-Feedbacks — anonym zum Summit mit allen sechs Bewertungen (Mittelwerte in `/admin/feedback`), mit Klarnamen der TEST-Person „Newsletter“ (Antwort per Mail). Text beginnt mit „TEST —“, `--remove` löscht beide. Konrads eigenes Feedback schreibt er selbst unter `/feedback` (TAL-011) | — |
+| Luma-Leads | Schritt `luma-leads`: TEST-Luma-Event „TEST — Community-Abend (Luma-Leads)“ und zwei Gäste ohne Profil — der angemeldete wird Lead mit Kanal Luma, der nur eingeladene nicht. Die Zählwerte stehen oben in `/admin/community-events` („Leads aus Luma“) (K-34) | — |
 | Produktion | — (Datenmodell kommt mit PR 25) | `production_team` |
 | Admin | unverändert (Konrad ist Bootstrap-Admin) | `admin` |
 

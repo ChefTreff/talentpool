@@ -185,6 +185,7 @@
 | Welle 6 · 0258 | **Matterport-3D-Rundgang als Link-Eintrag partner_3d_tour für Partner (PART-093)** (`20261002091443`, `v6_partner_3d_tour`; Details im Migrationskopf) | — |
 | Welle 6 · 0259 | **Feedback-Fenster: anonym oder mit Klarnamen, Tageslimit ohne Uhrzeit, Abschnitt feedback (TAL-011)** (`20261002091904`, `v6_feedback`; Details im Migrationskopf) | — |
 | Welle 6 · 0260 | **Schichtmodell 2027: Bereiche, Vorlagen je Wochentag, Sicherheitsunterweisung versioniert, Wunschschichten (VOL-002, K-44)** (`20261002140832`, `v6_volunteers_schichtmodell`; Details im Migrationskopf) | — |
+| Welle 6 · 0261 | **Luma-Gäste ohne Profil als Lead mit Kanal luma, Zählwerte für den Admin (K-34, TAL-007)** (`20261002141557`, `v6_luma_leads`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

@@ -2669,6 +2669,9 @@
     "guestsEmpty": "Noch niemand aus dem Talent-Pool.",
     "guestsHint": "Nur Personen mit Profil. Gäste, die sich nur über Luma angemeldet haben, stehen in Luma.",
     "lead": "Unsere Events aus Luma und wer aus dem Talent-Pool dabei ist. Gepflegt werden die Events in Luma; hier steht, was der stündliche Abgleich ins Profil geschrieben hat.",
+    "leadsBody": "{total} Gäste ohne Profil sind als Lead mit Kanal Luma angelegt, davon {open} noch ohne Login; {claimed} haben sich später im Portal angemeldet und ihr Profil übernommen.",
+    "leadsHint": "Gespeichert sind nur Name, E-Mail, Event und Zeitpunkt der Anmeldung — keine Einwilligung in Newsletter. Löschung mit dem Löschkonzept.",
+    "leadsTitle": "Leads aus Luma",
     "openLuma": "In Luma öffnen",
     "title": "Community-Events",
     "word": "Community"
