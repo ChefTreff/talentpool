@@ -65,7 +65,10 @@ describe("Upload in einem Schritt (TAL-017)", () => {
 
   it("FileButton ruft onFile bei „sofort“ gleich auf und hält die Datei sonst", () => {
     const src = lies("components/ui/FileButton.tsx");
-    assert.match(src, /if \(sofort\) onFile\(file\);\s*else setGewaehlt\(file\);/);
+    // `onFile` ist seit TAL-010 optional (Mehrfachauswahl über `onFiles`); das Verhalten bleibt.
+    assert.match(src, /if \(sofort\) onFile\??\.?\(file\);\s*else setGewaehlt\(file\);/);
+    // Mehrfachauswahl startet gleich und nur, wenn `onFiles` gesetzt ist.
+    assert.match(src, /multiple=\{Boolean\(onFiles\)\}/);
     // Der Zwischenzustand: Ring, Status für Vorlesesoftware.
     assert.match(src, /laedt \? <Spinner \/>/);
     assert.match(src, /role="status"/);
