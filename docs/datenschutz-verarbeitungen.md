@@ -56,3 +56,4 @@ Grafik-Maske (Porträt bleibt im Browser, #85).
 4. Anthropic: Datenverarbeitungsvereinbarung und Aufbewahrung der Anfragen prüfen.
 5. Vercel/Supabase-Logs: Speicherdauer und IP-Kürzung dokumentieren.
 6. Informationspflichten gegenüber Dritten, die ein Speaker einträgt (Agentur/Office, 0127): Hinweis an die eingetragene Person klären.
+- **Luma-Gäste ohne Profil (K-34, Konrad 02.10.):** Gäste unserer Community-Events ohne Portal-Profil werden als Leads mit Kanal „Luma“ angelegt; Rechtsgrundlage ist die Datenschutzerklärung (Verarbeitung im Rahmen der Event-Anmeldung) — in der Datenschutzerklärung nennen: Herkunft Luma, Zweck Einladung und Community-Pflege, Löschung mit dem Löschkonzept (K-22).
