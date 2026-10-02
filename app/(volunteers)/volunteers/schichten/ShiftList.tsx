@@ -102,6 +102,7 @@ export function ShiftList({
                 </p>
               )}
               {s.status === "waitlisted" && <p className="ct-help mt-2">{t.waitlistHint}</p>}
+              {s.status === "assigned" && !safetyAcked && <p className="ct-help mt-2">{t.safetyRequired}</p>}
             </div>
 
             <div className="flex flex-wrap gap-2">

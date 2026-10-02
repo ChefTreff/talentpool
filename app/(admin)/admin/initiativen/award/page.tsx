@@ -119,7 +119,7 @@ export default async function AwardAdminPage() {
                   )}
                 </p>
                 <details className="ct-small mt-3">
-                  <summary className="ct-link cursor-pointer">{a.details}</summary>
+                  <summary className="ct-link cursor-pointer pointer-coarse:-my-3 pointer-coarse:py-3">{a.details}</summary>
                   <h3 className="ct-label mt-3">{a.description}</h3>
                   <p className="whitespace-pre-line">{z.description}</p>
                   <h3 className="ct-label mt-3">{a.mission}</h3>

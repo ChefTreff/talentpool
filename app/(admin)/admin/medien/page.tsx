@@ -5,6 +5,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SectionTabs } from "@/components/layout/SectionTabs";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
@@ -162,19 +163,15 @@ export default async function MedienPage({ searchParams }: { searchParams: Promi
   return (
     <>
       <PageHeader word={t.admin.words.videos} title={m.title} description={m.lead} />
-      <nav aria-label={m.areasLabel} className="mb-6 flex flex-wrap gap-2">
-        {BEREICHE.filter((b) => sichtbar[b]).map((b) => (
-          <ButtonLink
-            key={b}
-            href={`/admin/medien?bereich=${b}`}
-            size="sm"
-            variant={b === bereich ? "secondary" : "ghost"}
-            aria-current={b === bereich ? "page" : undefined}
-          >
-            {m[`area_${b}`]}
-          </ButtonLink>
-        ))}
-      </nav>
+      <SectionTabs
+        label={m.areasLabel}
+        items={BEREICHE.filter((b) => sichtbar[b]).map((b) => ({
+          href: `/admin/medien?bereich=${b}`,
+          label: m[`area_${b}`],
+          // Die Abfrage kennt `usePathname()` nicht — die Seite weiß, welcher Bereich offen ist.
+          aktiv: b === bereich,
+        }))}
+      />
       {inhalt}
     </>
   );
