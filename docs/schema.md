@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 14:08 UTC · 121 Tabellen · 6 Views · 698 Funktionen
+> Stand: 2026-10-02 14:15 UTC · 121 Tabellen · 6 Views · 699 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2570,8 +2570,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `log_access_invite` | p_person_id: uuid |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
 | `logo_category_of` | p_org_edition_id: uuid |
+| `luma_lead_stats` | args: ? |
 | `luma_sync_event` | p_data: jsonb |
-| `luma_sync_registration` | p_checked_in: boolean, p_email: text, p_guest_id: text, p_luma_event_id: text, p_registered_at: timestamp with time zone, p_status: text |
+| `luma_sync_registration` | p_checked_in: boolean, p_email: text, p_first_name: text, p_guest_id: text, p_last_name: text, p_luma_event_id: text, p_registered_at: timestamp with time zone, p_status: text |
 | `mail_cc_recipients` | p_person_ids: uuid[] |
 | `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
 | `mail_log_admin` | p_from: timestamp with time zone, p_limit: integer, p_offset: integer, p_person_id: uuid, p_query: text, p_status: text, p_template: text, p_to: timestamp with time zone |

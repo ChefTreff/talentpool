@@ -6,8 +6,9 @@ import { migrationText } from "@/tests/migration-datei";
 /**
  * SPK-074 (K-40): im Verwaltet-Fall bestätigt der Kontakt mit Zugang Foto,
  * Veröffentlichung und Folien stellvertretend — protokolliert, im Admin mit
- * Namen, im Portal als stellvertretend benannt. Hotel und Shuttle bleibt bei
- * der Speakerin selbst.
+ * Namen, im Portal als stellvertretend benannt. Das ist der Stand von 0215;
+ * Hotel und Shuttle sowie die stellvertretende Textfassung kamen mit dem
+ * Nachtrag (K-45, K-46) und stehen in `einwilligung-alle-stellvertretend.test.ts`.
  */
 const sql = () => migrationText("v6_einwilligung_stellvertretend");
 const quelle = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -30,7 +31,7 @@ describe("SPK-074: Datenbank", () => {
     assert.match(sql(), /revoke execute on function speaker_consent_contact\(uuid, uuid\) from public, anon, authenticated;/);
   });
 
-  it("schreibt nur die drei Arten, mit Quelle und Protokoll", () => {
+  it("0215 schreibt nur die drei Arten, mit Quelle und Protokoll (die vierte kam mit dem Nachtrag)", () => {
     const f = funktion("record_speaker_consent_on_behalf");
     assert.match(f, /v_key not in \('photo_video', 'speaker_release', 'slides_publication'\)/);
     assert.match(f, /raise exception 'consent_type_not_allowed'/);
@@ -52,16 +53,14 @@ describe("SPK-074: Datenbank", () => {
 });
 
 describe("SPK-074: Portal und Admin", () => {
-  it("das Portal öffnet den Block stellvertretend und schickt nur die drei Arten", () => {
+  it("das Portal öffnet den Block stellvertretend und schickt über die RPC", () => {
     const seite = quelle("app/(speaker)/speaker/profil/page.tsx");
     assert.match(seite, /rpc\("can_confirm_consent_on_behalf", \{ p_profile_id: profile\.id \}\)/);
     const form = quelle("app/(speaker)/speaker/profil/SpeakerProfileForm.tsx");
     assert.match(form, /const readOnlyConsent = profile\.is_assistant && !consentOnBehalf;/);
-    assert.match(form, /SPEAKER_CONSENTS_ON_BEHALF\.includes\(key\)/);
     assert.match(form, /t\.consentOnBehalf\.replace\("\{name\}"/);
     const aktion = quelle("app/(speaker)/speaker/actions.ts");
     assert.match(aktion, /rpc\("record_speaker_consent_on_behalf"/);
-    assert.match(quelle("app/(speaker)/speaker/types.ts"), /SPEAKER_CONSENTS_ON_BEHALF: readonly string\[\] = \[\s+"photo_video",\s+"speaker_release",\s+"slides_publication",\s+\]/);
   });
 
   it("das Admin-Detail zeigt, wer stellvertretend bestätigt hat", () => {

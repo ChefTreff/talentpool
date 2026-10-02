@@ -9,7 +9,9 @@
 --   02 record_speaker_consent_on_behalf als T: drei Zeilen für S, Quelle
 --      `stellvertretend`, im Protokoll T, Kontakt und Profil               (gegen live: Funktion fehlt)
 --   03 derselbe Stand noch einmal → 0 Zeilen; Folien umentschieden → 1 Zeile
---   04 hospitality_data → 22023 consent_type_not_allowed, nichts geschrieben
+--   04 eine unbekannte Art → 22023 consent_type_not_allowed, auch die gültige Änderung daneben bleibt
+--      ungeschrieben (bis 0215: hospitality_data; seit dem Nachtrag v6_einwilligung_alle_stellvertretend
+--      ist sie zugelassen und dort getestet — dieser Schritt gilt davor und danach)
 --   05 Q (nicht verwaltet) → P0001 consent_not_managed; K auf P → 42501; S2 ohne Zeile
 --   06 direkt in consent_record als T: für S → abgewiesen; für sich selbst mit
 --      Quelle `stellvertretend` → abgewiesen (die Quelle lässt sich nicht fälschen)
@@ -87,6 +89,11 @@ begin
                          else 'FEHLER geschrieben=' || v_n || ' zeilen=' || v_m || ' mit_protokoll=' || v_k end));
 
   -- ---- 03 Nur Änderungen
+  -- In einer Transaktion ist now() überall gleich, und `consent_current` bricht den Gleichstand über
+  -- eine zufällige uuid: ohne das Zurückschieben wäre „zuletzt“ in Schritt 07 Glückssache (scheiterte
+  -- dort etwa jedes zweite Mal). Im Betrieb hat jeder Aufruf seine eigene Transaktion.
+  update consent_record set granted_at = granted_at - interval '1 hour', created_at = created_at - interval '1 hour'
+   where person_id = v_ps;
   v_txt := null;
   execute 'set local role authenticated';
   begin
@@ -100,17 +107,20 @@ begin
   insert into t_res values ('03_nur_aenderungen',
     coalesce(v_txt, case when v_n = 0 and v_z = 1 then 'ok' else 'FEHLER gleich=' || v_n || ' umentschieden=' || v_z end));
 
-  -- ---- 04 Hotel und Shuttle bleibt bei der Speakerin
+  -- ---- 04 Nur die Einwilligungen des Speaker-Portals: eine unbekannte Art lässt nichts halb stehen
+  -- (Foto wird mit abgelehnt: die gültige Änderung daneben darf nicht geschrieben werden)
   execute 'set local role authenticated';
   begin
-    execute $q$select record_speaker_consent_on_behalf($1, '{"photo_video": true, "hospitality_data": true}'::jsonb, '2026-09')$q$ using v_p;
+    execute $q$select record_speaker_consent_on_behalf($1, '{"photo_video": false, "zz_unbekannt": true}'::jsonb, '2026-09')$q$ using v_p;
     v_state := 'kein Fehler';
   exception when others then v_state := sqlstate || ' ' || sqlerrm;
   end;
   execute 'reset role';
-  select count(*) into v_m from consent_record cr where cr.person_id = v_ps and cr.consent_type = 'hospitality_data';
-  insert into t_res values ('04_hotel_nur_selbst',
-    case when v_state = '22023 consent_type_not_allowed' and v_m = 0 then 'ok' else 'FEHLER ' || v_state || ' zeilen=' || v_m end);
+  select count(*) into v_m from consent_record cr where cr.person_id = v_ps and cr.consent_type = 'zz_unbekannt';
+  select cr.granted into v_granted from consent_current cr where cr.person_id = v_ps and cr.consent_type = 'photo_video';
+  insert into t_res values ('04_nur_bekannte_arten',
+    case when v_state = '22023 consent_type_not_allowed' and v_m = 0 and v_granted then 'ok'
+         else 'FEHLER ' || v_state || ' zeilen=' || v_m || ' foto=' || coalesce(v_granted::text, '?') end);
 
   -- ---- 05 Ohne Verwaltet-Fall, ohne Kontakt
   execute 'set local role authenticated';
@@ -143,9 +153,12 @@ begin
     v_state := 'kein Fehler';
   exception when others then v_state := sqlstate;
   end;
+  -- Eine echte Art, keine erfundene: seit 0231 weist der Einwilligungstyp-Wächter unbekannte Arten mit
+  -- 22023 ab, bevor die Zeilen-Policy `cr_self_ins` überhaupt prüft (der Schritt zeigte so seit dem
+  -- 01.10. „selbst=22023“).
   begin
     insert into consent_record (person_id, consent_type, version, granted, source)
-    values (v_pt, 'zz_test_quelle', '2026-09', true, 'stellvertretend');
+    values (v_pt, 'photo_video', '2026-09', true, 'stellvertretend');
     v_state2 := 'kein Fehler';
   exception when others then v_state2 := sqlstate;
   end;

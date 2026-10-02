@@ -17,7 +17,7 @@ import {
   saveSpeakerProfile,
   type SpeakerResult,
 } from "../actions";
-import { SPEAKER_CONSENTS, SPEAKER_CONSENTS_ON_BEHALF, type SpeakerProfile } from "../types";
+import { SPEAKER_CONSENTS, type SpeakerProfile } from "../types";
 import { KontakteCard } from "@/components/speaker/KontakteCard";
 
 type Strings = Record<string, string>;
@@ -48,9 +48,10 @@ export function SpeakerProfileForm({
 }: {
   profile: SpeakerProfile;
   /**
-   * SPK-074 (K-40): wer für ein verwaltetes Profil arbeitet und dessen Kontakt
-   * mit Zugang ist, bestätigt Foto, Veröffentlichung und Folien stellvertretend
-   * (`can_confirm_consent_on_behalf`).
+   * SPK-074 (K-40, K-45): wer für ein verwaltetes Profil arbeitet und dessen
+   * Kontakt mit Zugang ist, bestätigt alle vier Einwilligungen stellvertretend
+   * (`can_confirm_consent_on_behalf`) — mit der stellvertretenden Textfassung
+   * (K-46).
    */
   consentOnBehalf?: boolean;
   /**
@@ -122,11 +123,11 @@ export function SpeakerProfileForm({
 
   // Die Assistenz darf Profil und Inhalte pflegen, aber keine Einwilligung
   // geben und keine Assistenz einladen (Antwort 58, Abschnitt C). Ausnahme
-  // (SPK-074, K-40): der Kontakt mit Zugang im Verwaltet-Fall bestätigt Foto,
-  // Veröffentlichung und Folien stellvertretend — Hotel und Shuttle nicht.
+  // (SPK-074, K-40, K-45): der Kontakt mit Zugang im Verwaltet-Fall bestätigt
+  // alle vier Einwilligungen stellvertretend, mit der Textfassung „Ich
+  // bestätige für <Name>, dass …“ (K-46).
   const stellvertretend = profile.is_assistant && consentOnBehalf;
   const readOnlyConsent = profile.is_assistant && !consentOnBehalf;
-  const nurSelbst = (key: string) => stellvertretend && !SPEAKER_CONSENTS_ON_BEHALF.includes(key);
   const speakerName = [p.first_name, p.last_name].filter(Boolean).join(" ");
   const bioMissing = draft.bio_short_en.trim() === "";
 
@@ -161,10 +162,7 @@ export function SpeakerProfileForm({
     const gespeichert = JSON.stringify(consents);
     startTransition(async () => {
       if (stellvertretend) {
-        const erlaubt = Object.fromEntries(
-          Object.entries(consents).filter(([key]) => SPEAKER_CONSENTS_ON_BEHALF.includes(key)),
-        );
-        if (report(await saveSpeakerConsentsOnBehalf(profile.id, erlaubt), t.consentSaved)) {
+        if (report(await saveSpeakerConsentsOnBehalf(profile.id, consents), t.consentSaved)) {
           setBasis((b) => ({ ...b, consents: gespeichert }));
         }
         return;
@@ -347,14 +345,15 @@ export function SpeakerProfileForm({
                 type="checkbox"
                 className="mt-1 size-4"
                 checked={consents[key] === true}
-                disabled={readOnlyConsent || nurSelbst(key)}
+                disabled={readOnlyConsent}
                 onChange={(e) =>
                   setConsents((c) => ({ ...c, [key]: e.target.checked }))
                 }
               />
               <span>
-                {t[consentLabelKey(key)]}
-                {nurSelbst(key) && <span className="ct-help block">{t.consentReadOnly}</span>}
+                {stellvertretend
+                  ? t[`${consentLabelKey(key)}OnBehalf`].replaceAll("{name}", speakerName || "—")
+                  : t[consentLabelKey(key)]}
               </span>
             </label>
           ))}
