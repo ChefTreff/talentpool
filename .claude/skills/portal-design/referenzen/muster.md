@@ -212,6 +212,16 @@ Er setzt `target="_blank"`, `rel="noopener noreferrer"` und `aria-describedby` a
 
 **Nicht** für Downloads: die eigene `.ics`, signierte Adressen mit `download: true`. Dort bliebe ein leeres Fenster zurück, solche Links tragen `download`. `tests/externe-links.test.ts` lässt neue Verstöße auffallen: `target="_blank"` von Hand, feste `https://`-Adressen ohne Helfer, Adressen aus Daten (`…Url`, `…_url`) ohne Helfer oder `download`, `window.open` ohne `noopener`.
 
+## Wiki: Themen, Liste oder Artikel (PART-058, ab 02.10.2026)
+
+`components/wiki/WikiView.tsx`, ein Baustein für alle Portale und die Vorschau im Admin.
+
+- **Themen statt Phasen.** Die Liste ist nach Aufgaben gruppiert (Summit & Anreise · Stand & Aufbau · Vor Ort · Programm & Formate · Sichtbarkeit & Marketing · Speaking · Hackathon · Weitere Artikel), die Phase bleibt eine Marke am Artikel. In der Oberfläche heißt es **„Thema“**, nie „Kategorie“: Im Admin ist „Kategorie“ die Zielgruppe eines Artikels. Die Zuordnung steht bis zum Datenfeld in `lib/wiki/kategorien.ts` (Slug → Thema, ein gesetztes `category` am Artikel gewinnt); neue Artikel erscheinen sofort unter „Weitere Artikel“.
+- **Am Handy Liste oder Artikel, nie übereinander.** Der Artikel ersetzt die Liste, „Alle Artikel“ führt zurück, und der **Fokus folgt** (auf den Titel, beim Zurück auf den zuletzt gelesenen Eintrag). Ab 1024 px stehen beide nebeneinander, der erste Eintrag ist offen. Ein hervorgehobener erster Eintrag in der Handyliste täuschte eine Auswahl vor und fällt dort weg.
+- **Die Adresse ist die Kennung des Artikels** (`#slug`, so verlinkt der Assistent), ein Abschnitt hängt dahinter (`#slug/abschnitt`). Nie einen Abschnitt als eigenen Anker setzen, sonst öffnet er keinen Artikel.
+- **„Auf diesem Artikel“ ab vier Abschnitten** (`##`-Überschriften, Kennungen aus `abschnitte()` — dieselbe Quelle für Übersicht und Anker). Ab 1024 px die Kit-Übersicht offen, am Handy zugeklappt: neun Fragen untereinander schöben den Text unter den Bildschirmrand.
+- **Überschriftenfolge:** Seitentitel `h1` → verborgenes `h2` „Artikel nach Thema“ → Themen `h3`; im Artikel `h2` Titel → `h3` Abschnitte. Die Trefferzahl der Suche ist eine Statusmeldung (`role="status"`).
+
 ## Sprache
 
 Du/ihr. Buttons benennen das Ergebnis. Fehler nennen den nächsten Schritt („Frist abgelaufen — melde dich bei …" statt „Ungültige Eingabe"). Jeder Begriff, den Nutzer sehen, kommt aus `vocab_term` bzw. `getI18n`, DE und EN gleichwertig.

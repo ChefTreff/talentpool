@@ -143,3 +143,49 @@ export function parseMarkdown(source: string): Block[] {
   flushQuote();
   return blocks;
 }
+
+/** Klartext eines Inline-Stücks — für Beschriftungen und Kennungen. */
+export function inlineText(parts: Inline[]): string {
+  return parts.map((p) => p.text).join("");
+}
+
+/**
+ * Kennung einer Überschrift für Anker: Kleinbuchstaben, Umlaute ausgeschrieben,
+ * alles andere zu Bindestrichen. Eine Überschrift ohne verwertbare Zeichen
+ * heißt `abschnitt`.
+ */
+export function abschnittsKennung(text: string): string {
+  const k = text
+    .toLowerCase()
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss")
+    .replace(/&/g, " und ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return k || "abschnitt";
+}
+
+export type ArtikelAbschnitt = { id: string; label: string };
+
+/**
+ * Die Abschnitte eines Artikels: seine Überschriften der zweiten Ebene (`##`,
+ * im Portal ein `<h3>` unter dem Artikeltitel), in Reihenfolge, mit
+ * eindeutigen Kennungen (`frist`, `frist-2`). **Eine** Quelle für die
+ * Übersicht „Auf diesem Artikel“ und für die Anker an den Überschriften —
+ * sonst zeigte ein Sprungziel irgendwann ins Leere.
+ */
+export function abschnitte(source: string): ArtikelAbschnitt[] {
+  const gesehen = new Map<string, number>();
+  const aus: ArtikelAbschnitt[] = [];
+  for (const b of parseMarkdown(source)) {
+    if (b.kind !== "heading" || b.level !== 2) continue;
+    const label = inlineText(b.content).trim();
+    const basis = abschnittsKennung(label);
+    const n = (gesehen.get(basis) ?? 0) + 1;
+    gesehen.set(basis, n);
+    aus.push({ id: n === 1 ? basis : `${basis}-${n}`, label });
+  }
+  return aus;
+}

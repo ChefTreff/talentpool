@@ -14,7 +14,7 @@
  * eine freie Bild-URL im Artikel wäre ein Weg, fremde Server anzufragen.
  */
 import type { ReactNode } from "react";
-import { parseMarkdown, type Inline } from "./markdown-parse";
+import { abschnitte, parseMarkdown, type Inline } from "./markdown-parse";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 function render(parts: Inline[], keyPrefix: string): ReactNode[] {
@@ -43,8 +43,23 @@ function render(parts: Inline[], keyPrefix: string): ReactNode[] {
   });
 }
 
-export function Markdown({ source }: { source: string }) {
+/**
+ * `idPrefix`: Die Überschriften der zweiten Ebene bekommen eine Kennung
+ * (`<prefix>/<abschnitt>`), damit „Auf diesem Artikel“ sie ansteuern kann. Ohne
+ * Angabe bleibt alles wie bisher (Editor-Vorschau, Antworten des Assistenten).
+ */
+export function Markdown({ source, idPrefix }: { source: string; idPrefix?: string }) {
   const blocks = parseMarkdown(source);
+
+  // Block-Index → Kennung, in derselben Reihenfolge wie `abschnitte()`.
+  const kennungen = new Map<number, string>();
+  if (idPrefix) {
+    const liste = abschnitte(source);
+    let n = 0;
+    blocks.forEach((b, i) => {
+      if (b.kind === "heading" && b.level === 2 && liste[n]) kennungen.set(i, `${idPrefix}/${liste[n++].id}`);
+    });
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -55,7 +70,7 @@ export function Markdown({ source }: { source: string }) {
             return b.level === 1 ? (
               <h2 key={key} className="ct-h2 mt-6">{render(b.content, key)}</h2>
             ) : b.level === 2 ? (
-              <h3 key={key} className="ct-h3 mt-5">{render(b.content, key)}</h3>
+              <h3 key={key} id={kennungen.get(i)} className="ct-h3 mt-5 scroll-mt-20">{render(b.content, key)}</h3>
             ) : (
               <h4 key={key} className="ct-label mt-4">{render(b.content, key)}</h4>
             );

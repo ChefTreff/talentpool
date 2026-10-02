@@ -14,6 +14,7 @@ import { useToast } from "@/components/ui/Toast";
 import { Editor } from "@/components/wiki/Editor";
 import { archiveArticle, publishArticle, saveArticle } from "@/components/wiki/actions";
 import { KB_AUDIENCES, KB_PHASES, type KbAdminArticle } from "@/components/wiki/types";
+import { THEMA_TEXT, wikiKategorie } from "@/lib/wiki/kategorien";
 
 type Strings = Record<string, string>;
 
@@ -94,6 +95,7 @@ export function WikiAdmin({
             <Th>{t.colSlug}</Th>
             <Th>{t.colTitle}</Th>
             <Th>{t.colAudience}</Th>
+            <Th>{t.colTopic}</Th>
             <Th>{t.colEdition}</Th>
             <Th>{t.colLanguage}</Th>
             <Th>{t.colStatus}</Th>
@@ -105,6 +107,7 @@ export function WikiAdmin({
                 <Td className="text-muted">{a.slug}</Td>
                 <Td><span className="ct-label">{a.title}</span></Td>
                 <Td className="text-muted">{a.audience.map((x) => audiences[x] ?? x).join(", ")}</Td>
+                <Td className="text-muted">{t[THEMA_TEXT[wikiKategorie(a)]]}</Td>
                 <Td className="text-muted">{a.edition_slug ?? t.evergreen}</Td>
                 <Td className="text-muted uppercase">{a.language}</Td>
                 <Td>
@@ -139,6 +142,7 @@ export function WikiAdmin({
           </Tbody>
         </Table>
       )}
+      {articles.length > 0 && <p className="ct-help mt-3">{t.topicHint}</p>}
 
       {open && (
         <Drawer
