@@ -1,3 +1,5 @@
+-- 0248 · Company-Tour-Zuordnung im Admin: Tour-Typen, Partner je Tour zuordnen und tauschen, Abschnitt tourAssignment (ADM-045)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002083323.
 -- Company Tours zuordnen: Tour-Typen als Vokabular, Touren je Edition, Partner je Tour, Tauschen, Stand je Tour (ADM-045)
 --
 -- Zweck: Verkauft wird ein Company-Tour-Slot; **welche** Tour (Consulting,

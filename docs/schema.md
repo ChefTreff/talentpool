@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-01 13:22 UTC · 113 Tabellen · 6 Views · 644 Funktionen
+> Stand: 2026-10-02 08:33 UTC · 113 Tabellen · 6 Views · 649 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -205,6 +205,7 @@ Eine Company Tour: Rundfahrt vom Sammelpunkt zu mehreren Partnern (Konrad, 18.09
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `session_id` | uuid |  |  | `session.id` | Die Session, auf die sich Teilnehmende für diese Tour bewerben (TAL-003). Optional; ohne sie gibt es für die Tour keinen Bewerbungsweg im Portal. |
+| `tour_type` | text |  |  |  | ADM-045: welche Tour (Vokabular company_tour_type). Verkauft wird ein allgemeiner Slot; die Zuordnung macht das Team. |
 
 ### `company_tour_stop`
 Eine Station einer Company Tour. Der Partner bucht den Stopp und beantwortet dazu die Fragen aus 2026 (Ansprechperson, Adresse, Zeitfenster, Snacks, Hinweise, gesuchte Profile, Fotografieren).
@@ -2199,6 +2200,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `assign_org_products` | p_items: jsonb, p_org_edition_id: uuid |
 | `assign_role` | p_edition_id: uuid, p_note: text, p_person_id: uuid, p_portal: text, p_role: text, p_scope_id: uuid, p_scope_type: text, p_valid_from: timestamp with time zone, p_valid_to: timestamp with time zone |
 | `assign_shift` | p_person_id: uuid, p_shift_id: uuid, p_status: text |
+| `assign_tour_stop` | p_org_id: uuid, p_stop_id: uuid |
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
 | `audit_log_admin` | p_action: text, p_actor: uuid, p_from: timestamp with time zone, p_limit: integer, p_object_id: text, p_object_type: text, p_offset: integer, p_to: timestamp with time zone |
 | `audit_log_filters` | args: ? |
@@ -2320,6 +2322,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `edition_valid_to` | p_edition_id: uuid |
 | `effective_pass_type` | p_org_edition_id: uuid, p_product_pass_type: text |
 | `email_hash` | p_email: text |
+| `ensure_company_tours` | p_edition_id: uuid |
 | `ensure_speaker_ticket` | p_profile_id: uuid |
 | `event_app_exhibitors` | p_edition_id: uuid |
 | `event_app_speakers` | p_edition_id: uuid |
@@ -2621,6 +2624,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_award_status` | p_application_id: uuid, p_status: text |
 | `set_booth_assignment` | p_booth_id: uuid, p_event_day_id: uuid, p_note: text, p_org_edition_id: uuid |
 | `set_booth_service_check` | p_checked: boolean, p_note: text, p_org_edition_id: uuid, p_product_sku: text |
+| `set_company_tour_type` | p_tour_id: uuid, p_type: text |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
 | `set_diet` | p_diet: text, p_note: text |
 | `set_edition_file` | p_data: jsonb |
@@ -2751,6 +2755,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `supplier_order_list` | p_edition_id: uuid, p_supplier: text |
 | `suppression_check` | p_email: text |
 | `suppression_overview` | args: ? |
+| `swap_tour_stops` | p_stop_a: uuid, p_stop_b: uuid |
 | `sync_deliverables` | p_org_edition_id: uuid |
 | `sync_granted_roles` | p_org_id: uuid |
 | `sync_ticket_allocations` | p_org_edition_id: uuid |
@@ -2763,6 +2768,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `ticket_allocations_pending` | args: ? |
 | `ticket_final_mail` | p_t: public.ticket |
 | `ticket_requests_admin` | p_edition_id: uuid |
+| `tour_assignment_admin` | p_edition_id: uuid |
 | `tour_wishes_for_session` | p_session_id: uuid |
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
 | `unassign_shift` | p_assignment_id: uuid |
