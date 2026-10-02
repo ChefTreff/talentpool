@@ -320,7 +320,7 @@ function Answers({
   if (entries.length === 0) return null;
   return (
     <details className="mt-2">
-      <summary className="ct-help cursor-pointer font-semibold">
+      <summary className="ct-help cursor-pointer font-semibold pointer-coarse:-my-3 pointer-coarse:py-3">
         {t.answers} ({entries.length})
       </summary>
       <dl className="mt-2 flex flex-col gap-2">

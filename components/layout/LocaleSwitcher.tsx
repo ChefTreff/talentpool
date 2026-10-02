@@ -67,7 +67,8 @@ export function LocaleSwitcher({
               aria-pressed={active}
               onClick={() => start(async () => void (await setLocale(l)))}
               className={cn(
-                "rounded-ct-sm px-1.5 py-1 ct-label uppercase transition-colors",
+                // 28 px am Desktop, am Handy 44 × 44 (QS-059): die Sprachwahl steht auf der Login-Seite, der ersten, die alle sehen.
+                "inline-flex items-center justify-center rounded-ct-sm px-1.5 py-1 ct-label uppercase transition-colors pointer-coarse:min-h-11 pointer-coarse:min-w-11",
                 active && "font-extrabold underline underline-offset-4",
                 aufNavy
                   ? active
