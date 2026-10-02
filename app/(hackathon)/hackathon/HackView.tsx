@@ -7,6 +7,7 @@ import { Button, ButtonDownload } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { applyHackathon, createTeam, joinTeam, leaveTeam, submitProject } from "./actions";
 import type { MyHack } from "./types";
@@ -33,6 +34,7 @@ const STATUS_TONE: Record<string, BadgeTone> = {
  */
 export function HackView({
   data,
+  challenges = [],
   metric,
   dataset,
   abgabe,
@@ -45,6 +47,8 @@ export function HackView({
   rpcMessages,
 }: {
   data: MyHack;
+  /** Freigegebene Challenges für die Wunsch-Auswahl in der Bewerbung (HACK-017). */
+  challenges?: { id: string; title: string }[];
   /** HACK-009: nur bei einer Metrik-Challenge des eigenen Teams. */
   metric: { label: string; value: number | null; confirmed: boolean } | null;
   /** HACK-012: Datensatz der eigenen Challenge, signiert für 10 Minuten. */
@@ -79,7 +83,7 @@ export function HackView({
   }
 
   if (!data.application) {
-    return <ApplyCard skills={skills} tracks={tracks} pending={pending} t={t} run={run} />;
+    return <ApplyCard skills={skills} tracks={tracks} challenges={challenges} pending={pending} t={t} run={run} />;
   }
 
   const accepted = data.application.status === "accepted";
@@ -263,18 +267,22 @@ export function HackView({
 function ApplyCard({
   skills,
   tracks,
+  challenges,
   pending,
   t,
   run,
 }: {
   skills: Record<string, string>;
   tracks: Record<string, string>;
+  challenges: { id: string; title: string }[];
   pending: boolean;
   t: Strings;
   run: (a: Promise<{ ok: boolean; key?: string; detail?: string }>, okText: string) => void;
 }) {
   const [chosen, setChosen] = useState<string[]>([]);
   const [trackPrefs, setTrackPrefs] = useState<string[]>([]);
+  // Wunsch-Challenges (HACK-017): drei Plätze in Reihenfolge, jede Challenge nur einmal.
+  const [wuensche, setWuensche] = useState<string[]>(["", "", ""]);
   const [motivation, setMotivation] = useState("");
   const [teamPref, setTeamPref] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
@@ -328,6 +336,26 @@ function ApplyCard({
           </fieldset>
         )}
 
+        {challenges.length > 0 && (
+          <fieldset className="flex flex-col gap-2">
+            <legend className="ct-label mb-1">{t.challengePrefs}</legend>
+            <p className="ct-help">{t.challengePrefsHint}</p>
+            {wuensche.map((wert, i) => (
+              <Field key={i} label={t[`challengePref${i + 1}`]} htmlFor={`wunsch-${i}`}>
+                <Select
+                  id={`wunsch-${i}`}
+                  value={wert}
+                  placeholder={t.challengePrefNone}
+                  options={challenges
+                    .filter((c) => c.id === wert || !wuensche.includes(c.id))
+                    .map((c) => ({ value: c.id, label: c.title }))}
+                  onChange={(e) => setWuensche((w) => w.map((x, j) => (j === i ? e.target.value : x)))}
+                />
+              </Field>
+            ))}
+          </fieldset>
+        )}
+
         <Field label={t.motivation} htmlFor="motivation">
           <Textarea id="motivation" rows={4} value={motivation} onChange={(e) => setMotivation(e.target.value)} />
         </Field>
@@ -357,7 +385,7 @@ function ApplyCard({
         <div>
           <Button
             disabled={pending}
-            onClick={() => run(applyHackathon({ skills: chosen, trackPrefs, motivation, teamPref, githubUrl, websiteUrl, behanceUrl }), t.applied)}
+            onClick={() => run(applyHackathon({ skills: chosen, trackPrefs, challengePrefs: wuensche.filter(Boolean), motivation, teamPref, githubUrl, websiteUrl, behanceUrl }), t.applied)}
           >
             {t.apply}
           </Button>
