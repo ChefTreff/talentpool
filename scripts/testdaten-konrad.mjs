@@ -99,6 +99,9 @@
  *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
  *                                   nur wenn er sich unter /hackathon schon beworben hat;
  *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
+ *   … --apply --nur=benachrichtigungen (TAL-009: zwei TEST-Personen ohne Konto mit Themen,
+ *                                   eine mit Newsletter-Einwilligung (anschreibbar), eine
+ *                                   ohne — Zähler und Export in /admin/benachrichtigungen)
  *   … --apply --nur=event-fotos    (TAL-010: vergangenes TEST-Community-Event, Konrad als
  *                                   „attended“, zwei TEST-Bilder in event-photos — eines
  *                                   veröffentlicht; /fotos und /admin/fotos)
@@ -2767,6 +2770,40 @@ async function hackathonTeam(me) {
 }
 
 /**
+ * TAL-009: zwei TEST-Personen ohne Konto (+zztest-news-N) mit Themen — eine mit
+ * Newsletter-Einwilligung (anschreibbar), eine ohne. Konrads eigene Einwilligung
+ * bleibt unberührt; seine Themen wählt er selbst unter /benachrichtigungen.
+ */
+const newsAdresse = (i) => email.replace("@", `+zztest-news-${i}@`);
+const TEST_NEWS = [
+  { nachname: "Newsletter", newsletter: true, themen: ["summit", "academy"] },
+  { nachname: "OhneEinwilligung", newsletter: false, themen: ["summit"] },
+];
+
+async function benachrichtigungenSchritt() {
+  for (const [i, n] of TEST_NEWS.entries()) {
+    await write(`TEST-Person ${n.nachname}: Themen ${n.themen.join(", ")}${n.newsletter ? " + Newsletter" : ""}`, async () => {
+      const { data: personId, error } = await admin.rpc("testdaten_person", {
+        p_first_name: "TEST", p_last_name: n.nachname, p_email: newsAdresse(i + 1),
+      });
+      if (error) return { data: null, error };
+      const th = await admin.from("person_interest").upsert(
+        n.themen.map((t) => ({ person_id: personId, vocabulary: "notification_topic", term_key: t })),
+        { onConflict: "person_id,vocabulary,term_key" });
+      if (th.error) return th;
+      if (!n.newsletter) return { data: null, error: null };
+      const { data: da } = await admin.from("consent_current").select("granted")
+        .eq("person_id", personId).eq("consent_type", "newsletter").maybeSingle();
+      if (da?.granted) return { data: null, error: null };
+      return admin.from("consent_record").insert({
+        person_id: personId, consent_type: "newsletter", version: "2026-09", granted: true, source: "portal",
+        meta: { testdaten: MARK },
+      });
+    });
+  }
+}
+
+/**
  * TAL-010: ein vergangenes TEST-Community-Event, bei dem Konrad „attended“ ist,
  * mit zwei TEST-Bildern im privaten Bucket event-photos — eines veröffentlicht
  * (sichtbar unter /fotos), eines nicht (nur im Admin).
@@ -3012,6 +3049,7 @@ const SCHRITTE = {
   partner: partnerSchritt,
   hackathon: hackathonChallenges,
   "hackathon-team": hackathonTeam,
+  benachrichtigungen: benachrichtigungenSchritt,
   "event-fotos": fotosSchritt,
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
@@ -3060,6 +3098,13 @@ async function remove(me) {
     const { data: hash, error } = await admin.rpc("email_hash", { p_email: sperrAdresse() });
     if (error) return { data: null, error };
     return admin.from("suppression").delete().eq("email_hash", hash).eq("reason", "manual");
+  });
+  await write("TEST-Personen Benachrichtigungen entfernt (Themen und Einwilligungen gehen mit)", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", TEST_NEWS.map((_, i) => newsAdresse(i + 1)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
   await write("TEST-Community-Event mit Fotos entfernt (Fotos, Anmeldungen gehen mit)", async () => {
     const { data: ev } = await admin.from("event").select("id").eq("slug", FOTO_EVENT_SLUG).maybeSingle();

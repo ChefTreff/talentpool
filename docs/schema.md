@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 08:50 UTC · 114 Tabellen · 6 Views · 662 Funktionen
+> Stand: 2026-10-02 08:59 UTC · 115 Tabellen · 6 Views · 669 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -157,6 +157,20 @@ Wer wann an einem Stand steht (0124). event_day_id null = beide Tage. Ersetzt bo
 | `note` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `booth_review`
+PROD-005: interne Prüfung je Stand und Prüfpunkt (Vokabular booth_review_item). Fehlt die Zeile, ist der Punkt offen. basis_hash = Fingerabdruck der Positionen zum Prüfzeitpunkt; weicht er ab, gilt die Prüfung als veraltet.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_edition_id` | uuid | ja |  | `org_edition.id` |  |
+| `item_key` | text | ja |  |  |  |
+| `status` | text | ja |  |  |  |
+| `note` | text |  |  |  |  |
+| `basis_hash` | text | ja |  |  |  |
+| `checked_by` | uuid |  |  | `person.id` |  |
+| `checked_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `booth_service_check`
 Abgehakte Position der Stand-Checkliste. Eine Zeile je Stand und Artikel; fehlt sie, ist die Position offen.
@@ -2244,9 +2258,12 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `board_session_refs` | p_session_id: uuid |
 | `board_session_return` | p_session_id: uuid |
 | `book_hospitality` | p_details: jsonb, p_guests: integer, p_quota_id: uuid |
+| `booth_basis_hash` | p_edition_id: uuid, p_org_id: uuid |
 | `booth_checklist` | p_edition_id: uuid, p_org_id: uuid |
 | `booth_day_plan` | p_edition_id: uuid |
 | `booth_packages` | args: ? |
+| `booth_production_lines` | p_edition_id: uuid, p_org_id: uuid |
+| `booth_production_summary` | p_edition_id: uuid |
 | `booths_free` | p_edition_id: uuid |
 | `can_confirm_consent_on_behalf` | p_profile_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
@@ -2512,6 +2529,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_volunteer_profile` | p_edition_id: uuid |
 | `next_up_items` | args: ? |
 | `next_up_items_admin` | args: ? |
+| `notification_reachable` | p_person_id: uuid |
+| `notification_topic_export` | p_topic: text |
+| `notification_topic_stats` | args: ? |
 | `notify_partner_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `open_deletion_request` | p_note: text, p_person_id: uuid |
@@ -2656,6 +2676,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_award_organization` | p_application_id: uuid, p_org_id: uuid |
 | `set_award_status` | p_application_id: uuid, p_status: text |
 | `set_booth_assignment` | p_booth_id: uuid, p_event_day_id: uuid, p_note: text, p_org_edition_id: uuid |
+| `set_booth_review` | p_item_key: text, p_note: text, p_org_edition_id: uuid, p_status: text |
 | `set_booth_service_check` | p_checked: boolean, p_note: text, p_org_edition_id: uuid, p_product_sku: text |
 | `set_company_tour_type` | p_tour_id: uuid, p_type: text |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
