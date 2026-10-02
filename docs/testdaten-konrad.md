@@ -72,6 +72,8 @@ Aus den gebuchten Leistungen entstehen von selbst: **Checklisten-Pflichten**, **
 
 **Folien in Drive (SPK-023):** `--apply --nur=folien` legt am `TEST — Assistenz-Talk` (Stage-Lead-Testbühne, Freitag 17:00) eine TEST-Präsentation des TEST-Assistenz-Speakers an: einseitiges PDF „TEST - keine echte Praesentation“, Dateiname `TEST — Folien.pdf`, im Bucket unter dem Profil. Braucht die Schritte `buehne` und `assistenz`. `/admin/technik` zeigt sie in der Karte „Folien in Drive“: ohne Dienstkonto als „Noch nicht gespiegelt“; nach dem Schlüssel (K-03) legt der erste Klick auf „Spiegelung nachholen“ im Technik-Ordner `TEST — Bühne Stage Lead / <Datum> · <Tag> / 1700_TEST Assistenz.pdf` an — das ist der erste echte Lauf. `--remove` entfernt Datei und Eintrag vor dem Profil; die Kopie in Drive räumt danach der Cron ab (`slide_mirror_orphans`). Gegen live gefahren am 01.10.2026.
 
+**Speaker auf der Website (SPK-046):** ohne eigenen Schritt, mit Absicht. `/admin/speaker` → „Website (Sanity)“ → „Vorschau“ zeigt alle bestätigten Speaker. Konrads Testprofile (`testdaten:` in der internen Notiz) stehen dort als **„zurückgehalten · Testprofil“**: Testdaten gehen nie auf die öffentliche Website, auch nicht nach der Freigabe. Ein echter Speaker erscheint unter „Anlegen“, sobald er veröffentlicht ist und beide Einwilligungen gegeben hat.
+
 ## Team-Testrunde: Teammitglied einladen (QS-056)
 
 Ohne Testdaten-Schritt — der Weg ist selbst der Test. **Nur mit einer eigenen Testadresse** (z. B. `konrad+zztest-team@chef-treff.de`, landet in Konrads Postfach), nie mit einer echten Adresse eines Teammitglieds, bevor die Runde startet.
