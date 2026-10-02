@@ -1,4 +1,5 @@
--- 0000 · Wunsch-Challenges in der Hackathon-Bewerbung (HACK-017): bis zu drei in Reihenfolge,
+-- 0251 · Wunsch-Challenges in der Hackathon-Bewerbung (bis zu drei, nur freigegebene der Edition), Auswahl nach Präferenz (HACK-017)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002084731.
 -- Auswahl im Admin nach Präferenz.
 --
 -- Anlass: Konrad im Call 24.09. (HACK-014-Abgleich); Fassung der Architektur-Session (01.10.):

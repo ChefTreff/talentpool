@@ -1,4 +1,4 @@
--- Test „Wunsch-Challenges in der Bewerbung“ (HACK-017, vorschlag/v6_hack_challenge_praeferenz.sql). Belegt:
+-- Test „Wunsch-Challenges in der Bewerbung“ (HACK-017, 20261002084731_v6_hack_challenge_praeferenz.sql). Belegt:
 --   01 drei Wünsche in Reihenfolge gespeichert, Doppelte fallen weg;
 --   02 mehr als drei, Entwurf (nicht freigegeben), fremde Edition, keine UUID ⇒ 22023 invalid_challenge;
 --   03 ohne Wünsche geht die Bewerbung weiter (freiwillig), erneutes Bewerben ersetzt;

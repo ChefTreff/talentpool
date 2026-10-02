@@ -1,7 +1,13 @@
 import type { ReactNode } from "react";
-import { cn } from "./cn";
+import { cn, kartenPadding, kartenRand } from "./cn";
 
-/** Weiße Karte auf Off-White, Innenabstand 24 (Design-Briefing §4). */
+/**
+ * Weiße Karte auf Off-White, Innenabstand 24 (Design-Briefing §4).
+ *
+ * `className="p-0"` (Liste oder Tabelle bis zum Rand) und `p-4` (kompakt) wirken
+ * wirklich (QS-055, `kartenPadding`); vorher blieb es bei 24 px. Eine randlose Karte
+ * beschneidet ihren Inhalt an der Rundung (`kartenRand`).
+ */
 export function Card({
   children,
   className,
@@ -17,7 +23,16 @@ export function Card({
   return (
     // `scroll-mt`, sobald die Karte ein Anker ist: ohne das landet ihr
     // Titel nach dem Sprung unter dem Seitenkopf.
-    <As id={id} className={cn("rounded-ct-lg border bg-surface p-6", id && "scroll-mt-20", className)}>
+    <As
+      id={id}
+      className={cn(
+        "rounded-ct-lg border bg-surface",
+        kartenPadding(className),
+        kartenRand(className),
+        id && "scroll-mt-20",
+        className,
+      )}
+    >
       {children}
     </As>
   );

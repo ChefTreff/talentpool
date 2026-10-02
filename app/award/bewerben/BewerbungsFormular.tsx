@@ -129,7 +129,12 @@ export function BewerbungsFormular({
       <Card className="flex flex-col gap-5">
         {text("name", t.name, { pflicht: true })}
         <fieldset>
-          <legend className="ct-label">{t.topics} <span className="text-muted">({t.requiredLabel})</span></legend>
+          {/* Pflichtkennzeichnung wie in `Field`: Stern plus Wort, nicht nur das Wort. */}
+          <legend className="ct-label text-ink">
+            {t.topics}
+            <span aria-hidden className="ml-0.5 text-error-ink">*</span>
+            <span className="ml-1 ct-help font-semibold">({t.requiredLabel})</span>
+          </legend>
           <p className="ct-help">{t.topicsHint}</p>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             {themen.map((th) => (

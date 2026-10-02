@@ -2317,6 +2317,7 @@
   },
   "awardAdmin": {
     "contact": "Contact",
+    "contactPurged": "cleared after the retention period (14 months after the summit)",
     "deadlines": "Deadlines",
     "decided": "decided on {datum} by {name}",
     "delete": "Delete",
