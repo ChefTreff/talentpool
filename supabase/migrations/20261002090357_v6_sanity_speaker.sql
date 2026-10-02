@@ -1,3 +1,5 @@
+-- 0256 · Speaker auf die Website (Sanity): Server-Liste mit strengem Tor, Weg hinaus nach Widerruf, Übertragen nur per Knopf und Schalter (SPK-046)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002090357.
 -- v6_sanity_speaker · Speaker für die Website (Sanity): Lesezugang mit Tor und Weg hinaus (SPK-046)
 --
 -- Zweck: Konrad 23.09.: „extrem wichtige Funktion … Wir müssen auch die Speaker dort automatisch hochladen.“

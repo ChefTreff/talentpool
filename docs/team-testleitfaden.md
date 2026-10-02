@@ -10,6 +10,7 @@ Für alle Teammitglieder, die ab Montag Zugriff auf `portal.chef-treff.de` bekom
 
 ## 2 · Spielregeln im Testbetrieb
 
+- **Jede Seite zeigt unter der Kopfzeile einen gelben Streifen „Testbetrieb“** mit derselben Regel (seit #306); er verschwindet zum Go-live.
 - **Es ist die Live-Datenbank.** Alles, was du anlegst, ist echt. Testdaten tragen deshalb immer die Kennung **ZZTEST** im Namen (Person, Organisation, Challenge, Artikel …); nur solche Daten dürfen geändert oder gelöscht werden. Daten ohne ZZTEST nicht anfassen.
 - **Keine echten Personendaten Dritter** eintippen (keine Adressen oder Telefonnummern von Freunden, keine Fotos fremder Personen). Für Personen-Tests die ZZTEST-Personen nutzen oder deine eigene Arbeitsadresse.
 - **Knöpfe, die nach außen schreiben, nicht drücken:** Abgleich nach HubSpot oder SevDesk, Übertragung nach Sanity (Website) oder Swapcard (Event-App), Drive-Spiegelung, Mailversand an echte Adressen. Diese Wege testet Konrad. Trockenlauf-Knöpfe („Vorschau“, „Trockenlauf“) sind erlaubt.
