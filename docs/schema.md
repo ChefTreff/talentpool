@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 08:42 UTC · 114 Tabellen · 6 Views · 661 Funktionen
+> Stand: 2026-10-02 08:47 UTC · 114 Tabellen · 6 Views · 661 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -504,6 +504,7 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `behance_url` | text |  |  |  |  |
 | `track_prefs` | text[] | ja |  |  | Gewünschte Tracks (vocab hack_track, HACK-010), 1–3, geprüft in apply_hackathon. |
 | `seeking_team` | boolean | ja | `false` |  | Person sucht ein Team (HACK-016), gesetzt über set_hack_seeking. |
+| `challenge_prefs` | uuid[] | ja |  |  | Wunsch-Challenges (HACK-017), Reihenfolge = Rang, höchstens 3; geprüft in apply_hackathon (freigegeben, gleiche Edition). |
 
 ### `hack_challenge`
 
