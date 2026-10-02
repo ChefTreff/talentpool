@@ -59,6 +59,8 @@ export default async function TalentLayout({ children }: { children: ReactNode }
       // Folien nach dem Summit (TAL-001): die Liste ist leer, solange keine
       // Session vorbei ist — der Punkt steht trotzdem, die Seite erklärt es.
       { href: "/folien", label: t.talentSlides.navLabel },
+      // Event-Fotos (TAL-010): nur von Events, bei denen ich eingecheckt war.
+      { href: "/fotos", label: t.talentPhotos.navLabel },
     ],
   };
 
