@@ -19,7 +19,7 @@ export function Select({
       {...rest}
       aria-invalid={invalid || undefined}
       className={cn(
-        "h-10 rounded-ct-md border border-border-strong bg-surface px-3 leading-6 text-ink",
+        "h-10 pointer-coarse:min-h-11 rounded-ct-md border border-border-strong bg-surface px-3 leading-6 text-ink",
         feldBreite(className),
         "focus:border-accent disabled:bg-surface-hover disabled:text-muted",
         invalid && "border-error",

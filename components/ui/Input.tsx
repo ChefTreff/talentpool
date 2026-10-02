@@ -27,7 +27,7 @@ export function Input({
       {...(rest.type === "email" ? EMAIL_VORGABE : {})}
       {...rest}
       aria-invalid={invalid || undefined}
-      className={cn(control, feldBreite(className), "h-10", invalid && "border-error", className)}
+      className={cn(control, feldBreite(className), "h-10 pointer-coarse:min-h-11", invalid && "border-error", className)}
     />
   );
 }
