@@ -33,7 +33,7 @@ export default async function DesignSystemPage() {
         <div className="mx-auto w-full max-w-content px-4 pt-8 sm:px-6">
           <PageHeader title={t.kit.title} description={t.kit.lead} />
         </div>
-        <KitSchau t={t.kit} fehler={fehlerTexte(t.errors)} />
+        <KitSchau t={t.kit} fehler={fehlerTexte(t.errors)} testbetrieb={t.testbetrieb} />
       </main>
     </>
   );

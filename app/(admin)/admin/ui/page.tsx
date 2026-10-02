@@ -36,7 +36,7 @@ export default async function UiKitPage() {
           </ButtonLink>
         }
       />
-      <KitSchau t={t.kit} fehler={fehlerTexte(t.errors)} />
+      <KitSchau t={t.kit} fehler={fehlerTexte(t.errors)} testbetrieb={t.testbetrieb} />
     </>
   );
 }
