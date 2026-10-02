@@ -126,7 +126,7 @@ export default async function DublettenPage({
                     <DuplicateActions
                       id={k.id}
                       status={k.status}
-                      labels={{ isDupe: d.status_confirmed_dupe, notDupe: d.status_not_dupe, open: d.status_open }}
+                      labels={{ isDupe: d.status_confirmed_dupe, notDupe: d.status_not_dupe, open: d.status_open, state: d.stateLabel }}
                     />
                   </div>
                 </div>
