@@ -1,4 +1,5 @@
--- 0000 · Feedback-Fenster (TAL-011): Feedback zu Formaten, wahlweise **wirklich anonym**,
+-- 0259 · Feedback-Fenster: anonym oder mit Klarnamen, Tageslimit ohne Uhrzeit, Abschnitt feedback (TAL-011)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002091904.
 -- Summit-Fragen nach der Umfrage des Vorjahres, Admin-Abschnitt zum Sichten.
 --
 -- Anlass: Konzept docs/talent-konzepte-009-011.md, Konrads Antworten K-43 (02.10.): (6) „wirklich

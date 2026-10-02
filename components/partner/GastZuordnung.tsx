@@ -73,7 +73,7 @@ export function GastZuordnung({
             <div className="flex flex-wrap items-center gap-2">
               <Select
                 aria-label={t.choose}
-                className="w-64"
+                className="w-full sm:w-64"
                 value={wahl}
                 placeholder={t.choose}
                 options={frei.map((g) => ({ value: g.profile_id, label: g.name }))}

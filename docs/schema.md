@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 09:10 UTC · 117 Tabellen · 6 Views · 683 Funktionen
+> Stand: 2026-10-02 09:19 UTC · 119 Tabellen · 6 Views · 687 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -526,6 +526,34 @@ Fremd-IDs je Portal-Objekt (ein System ↔ ein Objekt ↔ eine ID).
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `object_key` | text |  |  |  | Fremdschluessel fuer textgeschluesselte Objekte, etwa product.sku (0120). Genau eines von object_id und object_key ist gesetzt. |
+
+### `feedback_entry`
+Feedback (TAL-011). person_id null = anonym; dann gibt es weder Person noch Uhrzeit (nur created_on) noch einen Audit-Eintrag. Zugriff nur über Funktionen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `person_id` | uuid |  |  | `person.id` |  |
+| `format` | text | ja |  |  |  |
+| `kind` | text |  |  |  |  |
+| `ratings` | jsonb | ja |  |  |  |
+| `return_intent` | text |  |  |  |  |
+| `main_reason` | text |  |  |  |  |
+| `memorable` | text |  |  |  |  |
+| `body` | text |  |  |  |  |
+| `created_on` | date | ja | `CURRENT_DATE` |  |  |
+| `status` | text | ja | `open` |  |  |
+| `tags` | text[] | ja |  |  |  |
+| `handled_by` | uuid |  |  | `person.id` |  |
+
+### `feedback_quota`
+Tageszähler für Feedback (TAL-011) — getrennt vom Text, ohne Uhrzeit, damit anonyme Einsendungen nicht zuzuordnen sind.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `person_id` | uuid | PK |  | `person.id` |  |
+| `day` | date | PK |  |  |  |
+| `n` | integer | ja | `0` |  |  |
 
 ### `hack_application`
 
@@ -2414,6 +2442,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `export_privacy_notice` | p_language: text |
 | `export_session_applications` | p_session_id: uuid |
 | `export_tour_applications` | p_stop_id: uuid |
+| `feedback_admin` | args: ? |
+| `feedback_summit_summary` | args: ? |
 | `finish_sync_job` | p_error: text, p_id: bigint, p_stats: jsonb, p_status: text |
 | `finish_webhook_event` | p_error: text, p_id: bigint, p_related_id: uuid, p_related_type: text, p_status: text |
 | `fmt_cents` | p_cents: integer, p_locale: text |
@@ -2737,6 +2767,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_expense_integration` | p_claim_id: uuid, p_invoice_asset_id: uuid, p_qonto_sent: boolean, p_sevdesk_ref: text |
 | `set_expense_mode` | p_amount_cents: integer, p_mode: text, p_profile_id: uuid |
 | `set_external_ref` | p_external_id: text, p_meta: jsonb, p_object_id: uuid, p_object_type: text, p_system: text |
+| `set_feedback` | p_id: uuid, p_status: text, p_tags: text[] |
 | `set_hack_application_status` | p_id: uuid, p_note: text, p_status: text |
 | `set_hack_challenge_deadline` | p_challenge_id: uuid, p_deadline: timestamp with time zone |
 | `set_hack_challenge_judging` | p_challenge_id: uuid, p_higher_better: boolean, p_metric_label: text, p_mode: text |
@@ -2848,6 +2879,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `start_sync_job` | p_direction: text, p_job_type: text, p_system: text, p_triggered_by: text |
 | `submit_deliverable` | p_answers: jsonb, p_asset_ids: uuid[], p_deliverable_id: uuid |
 | `submit_expense` | p_claim_id: uuid |
+| `submit_feedback` | p_anonymous: boolean, p_data: jsonb |
 | `submit_hack` | p_data: jsonb |
 | `submit_session_content` | p_data: jsonb, p_session_id: uuid |
 | `suggest_salutation` | p_locale: text, p_person_id: uuid |

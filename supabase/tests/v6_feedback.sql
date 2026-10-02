@@ -1,4 +1,4 @@
--- Test „Feedback-Fenster“ (TAL-011, vorschlag/v6_feedback.sql). Belegt:
+-- Test „Feedback-Fenster“ (TAL-011, 20261002091904_v6_feedback.sql). Belegt:
 --   01 Tabellen ohne Grants, Abschnitt feedback; feedback_entry hat **keine** Zeitstempel-Spalte;
 --   02 anonym: Zeile ohne person_id, nur Datum, **kein Audit-Eintrag** mit der Person;
 --   03 mit Klarnamen: person_id gesetzt; Admin sieht Name und E-Mail nur hier;
