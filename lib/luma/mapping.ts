@@ -77,10 +77,24 @@ export type Participation = {
   lumaEventId: string;
   lumaGuestId: string;
   email: string;
+  /** Nur für Gäste ohne Profil: daraus entsteht der Lead (K-34, Kanal Luma). */
+  firstName: string | null;
+  lastName: string | null;
   status: "registered" | "pending" | "waitlist" | "declined" | "invited";
   registeredAt: string | null;
   checkedIn: boolean;
 };
+
+/** Vor- und Nachname eines Gastes: die getrennten Felder, sonst der Gesamtname am letzten Leerzeichen geteilt. */
+export function guestNames(g: LumaGuest): { firstName: string | null; lastName: string | null } {
+  const first = g.user_first_name?.trim() || null;
+  const last = g.user_last_name?.trim() || null;
+  if (first || last) return { firstName: first, lastName: last };
+  const full = g.user_name?.trim() || "";
+  if (!full) return { firstName: null, lastName: null };
+  const i = full.lastIndexOf(" ");
+  return i < 0 ? { firstName: full, lastName: null } : { firstName: full.slice(0, i).trim(), lastName: full.slice(i + 1).trim() };
+}
 
 export function toParticipation(eventId: string, g: LumaGuest): Participation {
   const status: Participation["status"] =
@@ -97,6 +111,7 @@ export function toParticipation(eventId: string, g: LumaGuest): Participation {
     lumaEventId: eventId,
     lumaGuestId: g.id,
     email: g.user_email.trim().toLowerCase(),
+    ...guestNames(g),
     status,
     registeredAt: g.registered_at ?? null,
     checkedIn: (g.event_tickets ?? []).some((t) => Boolean(t.checked_in_at)),

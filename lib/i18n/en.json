@@ -2629,6 +2629,9 @@
     "guestsEmpty": "No one from the talent pool yet.",
     "guestsHint": "Only people with a profile. Guests who registered only on Luma are listed there.",
     "lead": "Our events from Luma and who from the talent pool is taking part. Events are managed in Luma; this shows what the hourly sync has written to profiles.",
+    "leadsBody": "{total} guests without a profile were added as leads with the channel Luma, {open} of them still without a login; {claimed} later signed in to the portal and took over their profile.",
+    "leadsHint": "Only name, email, event and time of registration are stored — no newsletter consent. Deletion follows the deletion concept.",
+    "leadsTitle": "Leads from Luma",
     "openLuma": "Open in Luma",
     "title": "Community events",
     "word": "Community"

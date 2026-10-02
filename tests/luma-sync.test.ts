@@ -27,8 +27,11 @@ describe("Luma-Rücklauf (TAL-007/008 Stufe 3)", () => {
         },
         rpc: async (fn: string, args: Record<string, unknown>) => {
           calls.push({ fn, args });
-          // Person gibt es nur für Anna.
-          if (fn === "luma_sync_registration") return { data: { matched: args.p_email === "anna@example.com" }, error: null };
+          // Person gibt es nur für Anna; Ben (Warteliste) wird Lead, Cem (noch offen) auch.
+          if (fn === "luma_sync_registration") {
+            const matched = args.p_email === "anna@example.com";
+            return { data: { matched, lead_created: !matched }, error: null };
+          }
           return { data: "uuid", error: null };
         },
         calendarId: opts.calendarId ?? null,
@@ -40,14 +43,26 @@ describe("Luma-Rücklauf (TAL-007/008 Stufe 3)", () => {
     const x = deps();
     const now = new Date("2026-09-24T12:00:00Z");
     const stats = await syncLuma(x.d, now);
-    assert.deepEqual(stats, { events: 3, guests: 3, matched: 1, unmatched: 2, skippedPrivate: 1, errors: 0 });
+    assert.deepEqual(stats, { events: 3, guests: 3, matched: 1, leads: 2, unmatched: 0, skippedPrivate: 1, errors: 0 });
     assert.equal(SYNC_LOOKBACK_DAYS, 60);
     assert.equal(x.after?.toISOString(), "2026-07-26T12:00:00.000Z");
     const reg = x.calls.filter((c) => c.fn === "luma_sync_registration");
     assert.deepEqual(reg[0].args, {
       p_luma_event_id: "evt-oktober", p_email: "anna@example.com", p_guest_id: "gst-1",
       p_status: "registered", p_registered_at: "2026-10-01T10:00:00.000Z", p_checked_in: true,
+      p_first_name: "Anna", p_last_name: "Beispiel",
     });
+    // Ohne Namen im Gast bleiben beide leer — der Lead entsteht trotzdem (nur E-Mail).
+    assert.equal(reg[1].args.p_first_name, null);
+    assert.equal(reg[1].args.p_last_name, null);
+  });
+
+  it("Gäste ohne Anmeldung (nur eingeladen oder abgesagt) bleiben unmatched, ohne Lead", async () => {
+    const x = deps();
+    x.d.rpc = async (fn: string) => ({ data: fn === "luma_sync_registration" ? { matched: false, lead_created: false } : "uuid", error: null });
+    const stats = await syncLuma(x.d, new Date("2026-09-24T12:00:00Z"));
+    assert.equal(stats.leads, 0);
+    assert.equal(stats.unmatched, 3);
   });
 
   it("nimmt nur Events des eigenen Kalenders", async () => {
