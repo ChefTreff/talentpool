@@ -30,6 +30,8 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
       { section: "applications", href: "/admin/bewerbungen", label: "applications" },
       { section: "nextUp", href: "/admin/next-up", label: "nextUp" },
       { section: "communityEvents", href: "/admin/community-events", label: "communityEvents" },
+      // TAL-011: Feedback der Teilnehmenden.
+      { section: "feedback", href: "/admin/feedback", label: "feedback" },
       // TAL-009: worüber Teilnehmende informiert werden wollen.
       { section: "notifications", href: "/admin/benachrichtigungen", label: "notifications" },
       // TAL-010: Event-Fotos für Teilnehmende.
