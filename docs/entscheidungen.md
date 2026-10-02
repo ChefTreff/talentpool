@@ -1095,3 +1095,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 ## 2026-10-02 — #309 gemergt, 0258 live (Matterport-3D-Rundgang, PART-093)
 
 - **#309** (Partner, PART-093, Seed-Migration; README-Konflikt vom Chat gelöst, zweites Gate) → **0258 live = 20261002091443** (`v6_partner_3d_tour`): Link-Eintrag `partner_3d_tour` in `portal_link` (Zielgruppe partner, `on conflict do nothing`, Pflege unter Admin → Medien). Einbettung nur für genau `https://my.matterport.com/show/?m=<Kennung>` (fester Zeichensatz, nach dem Dekodieren geprüft, getestet mit Angriffsformen; alles andere bleibt Link), Zwei-Klick über `EmbedGate` (sechs optionale Eigenschaften, Loom-Vorgaben unverändert), Sandbox ohne top-navigation und modals, CSP `frame-src` nur um `https://my.matterport.com` erweitert (Report-Only bleibt), Abschnitt auf `/partner/messestand` und Kasten auf der Startseite. Probelauf 6/6. Konrad: **K-53** (Rundgang ist passwortgeschützt — nicht gelistet ohne Passwort oder Passwort verteilen). Nächste freie Nummer **0259**. PART-093 → gebaut #309.
+
+## 2026-10-02 — #311 gemergt (SPK-077 Kontakte in Handybreite); Speaker in Pause
+
+- **#311** (Speaker, SPK-077, ohne Migration): „Deine Kontakte“ unter /speaker/profil in Handybreite — Angaben untereinander, Abzeichen und Knöpfe darunter, Überschriftsebene wie die Nachbarn. Speaker-Sichtprüfung bis zur Mittagspause: session, travel, profil geprüft; offen tickets, reisekosten, media, grafik, Stage-Lead-Portal. Speaker in Pause.
