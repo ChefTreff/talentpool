@@ -1,25 +1,60 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Badge } from "@/components/ui/Badge";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { SuchFeld } from "@/components/ui/SuchFeld";
 import { cn } from "@/components/ui/cn";
+import { THEMA_TEXT, gruppiereNachKategorie, wikiKategorie } from "@/lib/wiki/kategorien";
+import { leseAnker } from "./anker";
 import { Markdown } from "./Markdown";
+import { abschnitte } from "./markdown-parse";
 import type { KbArticle } from "./types";
 
 type Strings = Record<string, string>;
 
+/** Ab so vielen Abschnitten lohnt „Auf diesem Artikel“ — darunter ist der Text kürzer als die Übersicht. */
+const MIN_ABSCHNITTE = 4;
+
+/** Wie viele Artikel „Mehr zu …“ höchstens nennt. */
+const MAX_VERWANDT = 5;
+
+/** Unter 1024 px steht entweder die Liste oder der Artikel (wie `lg:` im Markup). */
+const DESKTOP = "(min-width: 1024px)";
+const istDesktop = () => window.matchMedia(DESKTOP).matches;
+function abonniereBreite(melde: () => void) {
+  const m = window.matchMedia(DESKTOP);
+  m.addEventListener("change", melde);
+  return () => m.removeEventListener("change", melde);
+}
+
 /**
- * Das Wiki im Bereich: links die Artikel, rechts der gelesene.
+ * Das Wiki im Bereich: links die Artikel nach Thema, rechts der gelesene.
+ *
+ * **Themen statt Phasen** (PART-058, Konrad 21./24.09.: „bessere
+ * Kategorisierung statt Phasen“). Die Liste ist nach Aufgaben gruppiert
+ * (`lib/wiki/kategorien.ts`); die Phase steht weiter als Marke am geöffneten
+ * Artikel, ist aber kein Weg mehr, ihn zu finden. Der Name ist bewusst
+ * „Thema“, nicht „Kategorie“: Im Admin heißt die Zielgruppe eines Artikels
+ * schon so („Die Kategorie steuert, wer den Artikel sieht“).
  *
  * Gesucht wird über Titel **und** Text — wer „Parkplatz" tippt, sucht nicht
- * die Überschrift, sondern die Antwort.
+ * die Überschrift, sondern die Antwort. Die Trefferzahl steht als Statusmeldung
+ * da, damit sie auch Vorlesesoftware erreicht.
  *
- * Ein Filter nach Phase stand bis ADM-044/PART-058 daneben. Konrad (21.09.,
- * 24.09.): „Alle Phasen" ist kein Filter, der Filter bringt keinen Mehrwert —
- * er ist raus. Die Phase steht weiter als Marke am geöffneten Artikel; eine
- * bessere Ordnung der Liste ist ein Vorschlag des Design-Chats (PART-058).
+ * **Am Handy Liste oder Artikel, nie beides übereinander.** Vorher stand der
+ * Artikel unter einer 26 Einträge langen Liste: ein Tipp auf einen Titel
+ * änderte scheinbar nichts, weil die Antwort weit unten stand. Jetzt ersetzt
+ * der Artikel die Liste, „Alle Artikel“ führt zurück, und der Fokus folgt
+ * (Titel des Artikels bzw. der zuletzt gelesene Eintrag der Liste). Ab 1024 px
+ * stehen beide nebeneinander, und der erste Artikel ist offen.
+ *
+ * **Die Adresse ist die Kennung des Artikels** (`#slug`, so verlinken die
+ * Quellen des Assistenten) — `#slug/abschnitt` springt in einen Abschnitt.
+ * „Auf diesem Artikel“ nutzt dafür die Übersicht des Kits, ihre Anker tragen
+ * den Artikel mit.
  */
 export function WikiView({
   articles,
@@ -35,7 +70,22 @@ export function WikiView({
   t: Strings;
 }) {
   const [query, setQuery] = useState("");
-  const [openId, setOpenId] = useState<string | null>(articles[0]?.id ?? null);
+  // Server und erster Aufbau: Handy. Danach die echte Breite — und sie folgt dem Drehen des Geräts.
+  const desktop = useSyncExternalStore(abonniereBreite, istDesktop, () => false);
+  // `null`: nichts gewählt. Am Handy zeigt das die Liste, ab 1024 px den ersten Artikel.
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const titelRef = useRef<HTMLHeadingElement>(null);
+  /** Wohin der Fokus nach dem Wechsel soll (nur am Handy gesetzt). */
+  const fokusZiel = useRef<"titel" | "liste" | null>(null);
+  /** Zuletzt gelesener Eintrag — dorthin springt der Fokus bei „Alle Artikel“. */
+  const zuletzt = useRef<string | null>(null);
+  /** Abschnitt, der nach dem Öffnen eines anderen Artikels angesteuert wird (Adresse mit `/abschnitt`). */
+  const abschnittZiel = useRef<string | null>(null);
+  const offenRef = useRef<string | null>(null);
+  useEffect(() => {
+    offenRef.current = openId;
+  });
 
   /**
    * Der Anker in der Adresse öffnet den Artikel.
@@ -47,25 +97,38 @@ export function WikiView({
    */
   useEffect(() => {
     const ausAdresse = () => {
-      const roh = window.location.hash.replace(/^#/, "");
-      if (!roh) return;
-      // Ein von Hand verstümmelter Anker (`#%zz`) lässt `decodeURIComponent`
-      // werfen — im Effekt wäre das ein Fehler der ganzen Seite wegen einer
-      // kaputten Adresszeile.
-      let slug: string;
-      try {
-        slug = decodeURIComponent(roh);
-      } catch {
-        slug = roh;
+      const anker = leseAnker(window.location.hash);
+      if (!anker) return;
+      const treffer = articles.find((a) => a.slug === anker.slug);
+      if (!treffer) return;
+      if (treffer.id !== offenRef.current) {
+        // Springt die Adresse in den Artikel, der schon offen ist, hat der Browser
+        // den Abschnitt selbst angesteuert. Nur wo erst geöffnet werden muss, wird
+        // das Ziel gemerkt und nach dem Zeichnen angesprungen.
+        if (anker.abschnitt) abschnittZiel.current = `${treffer.slug}/${anker.abschnitt}`;
+        if (!istDesktop()) fokusZiel.current = "titel";
       }
-      if (!slug) return;
-      const treffer = articles.find((a) => a.slug === slug);
-      if (treffer) setOpenId(treffer.id);
+      setOpenId(treffer.id);
     };
     ausAdresse();
     window.addEventListener("hashchange", ausAdresse);
     return () => window.removeEventListener("hashchange", ausAdresse);
   }, [articles]);
+
+  // Nach dem Wechsel: Fokus setzen bzw. den Abschnitt der Adresse ansteuern.
+  useEffect(() => {
+    const ziel = fokusZiel.current;
+    fokusZiel.current = null;
+    if (ziel === "titel") {
+      window.scrollTo({ top: 0 });
+      titelRef.current?.focus();
+    } else if (ziel === "liste" && zuletzt.current) {
+      document.getElementById(`wiki-artikel-${zuletzt.current}`)?.focus();
+    }
+    const abschnitt = abschnittZiel.current;
+    abschnittZiel.current = null;
+    if (abschnitt) document.getElementById(abschnitt)?.scrollIntoView();
+  }, [openId]);
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -75,51 +138,156 @@ export function WikiView({
     });
   }, [articles, query]);
 
-  const open = visible.find((a) => a.id === openId) ?? visible[0] ?? null;
+  const gruppen = useMemo(() => gruppiereNachKategorie(visible, locale), [visible, locale]);
+  const themen = useMemo(() => gruppiereNachKategorie(articles, locale), [articles, locale]);
+
+  // Ohne Auswahl ist der erste Eintrag **der angezeigten Liste** offen (ab 1024 px), nicht der
+  // erste der Rohliste: sonst stünde oben links ein anderer Titel als rechts im Artikel.
+  const erster = gruppen[0]?.artikel[0] ?? null;
+  const open = visible.find((a) => a.id === openId) ?? erster;
+  /** Am Handy ersetzt der Artikel die Liste, sobald einer gewählt wurde. */
+  const imArtikel = openId !== null && visible.some((a) => a.id === openId);
+
+  /**
+   * Der Eintrag, dessen Artikel gerade zu sehen ist. Am Handy ist das nur nach einer
+   * Wahl so; ohne sie steht dort die Liste, und ein hervorgehobener erster Eintrag
+   * täuschte eine Auswahl vor.
+   */
+  const markiert = (id: string) => open?.id === id && (desktop || imArtikel);
+
+  const thema = open ? wikiKategorie(open) : null;
+  const themaName = thema ? t[THEMA_TEXT[thema]] : "";
+  const verwandt = useMemo(() => {
+    if (!open || !thema) return [];
+    const gruppe = themen.find((g) => g.kategorie === thema);
+    return (gruppe?.artikel ?? []).filter((a) => a.id !== open.id).slice(0, MAX_VERWANDT);
+  }, [open, thema, themen]);
+  const abschnittsListe = useMemo(
+    () => (open ? abschnitte(open.body_md).map((a) => ({ id: `${open.slug}/${a.id}`, label: a.label })) : []),
+    [open],
+  );
+
+  const stand = useMemo(() => {
+    if (!open) return "";
+    const d = new Date(open.updated_at);
+    if (Number.isNaN(d.getTime())) return "";
+    return new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", {
+      dateStyle: "medium",
+      timeZone: "Europe/Berlin",
+    }).format(d);
+  }, [open, locale]);
+
+  function waehle(id: string, slug: string) {
+    if (!istDesktop()) fokusZiel.current = "titel";
+    zuletzt.current = id;
+    setOpenId(id);
+    // Die Adresse zeigt, was offen ist — ohne die Historie mit jedem Klick in
+    // der Liste zu füllen.
+    window.history.replaceState(null, "", `#${encodeURIComponent(slug)}`);
+  }
+
+  function zurueck() {
+    if (!istDesktop()) fokusZiel.current = "liste";
+    zuletzt.current = openId ?? zuletzt.current;
+    setOpenId(null);
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
 
   if (articles.length === 0) {
     return <EmptyState title={t.empty} description={t.emptyBody} />;
   }
 
+  const treffer = query.trim()
+    ? visible.length === 1
+      ? t.foundOne
+      : t.foundMany.replace("{n}", String(visible.length))
+    : "";
+
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-      <aside className="flex shrink-0 flex-col gap-3 lg:w-[280px]">
-        <Input
+      <aside className={cn("shrink-0 flex-col gap-4 lg:flex lg:w-72", imArtikel ? "hidden" : "flex")}>
+        <SuchFeld
           aria-label={t.search}
           placeholder={t.search}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <ul className="flex flex-col gap-0.5">
-          {visible.map((a) => (
-            <li key={a.id}>
-              <button
-                type="button"
-                aria-current={open?.id === a.id ? "true" : undefined}
-                className={cn(
-                  "ct-label w-full rounded-ct-sm px-2.5 py-1.5 text-left transition-colors",
-                  open?.id === a.id ? "bg-surface-hover text-ink" : "text-muted hover:bg-surface-hover hover:text-ink",
-                )}
-                onClick={() => {
-                  setOpenId(a.id);
-                  // Die Adresse zeigt, was offen ist — ohne die Historie mit
-                  // jedem Klick in der Liste zu füllen.
-                  window.history.replaceState(null, "", `#${encodeURIComponent(a.slug)}`);
-                }}
-              >
-                {a.title}
-              </button>
-            </li>
-          ))}
-        </ul>
+        {/* Statusmeldung: Vorlesesoftware kündigt die Trefferzahl beim Tippen an. */}
+        <p role="status" className="ct-help min-h-5">
+          {treffer}
+        </p>
+
+        <nav aria-labelledby="wiki-liste">
+          {/* Eine Ebene zwischen Seitentitel und Themen, nur für die Gliederung. */}
+          <h2 id="wiki-liste" className="sr-only">
+            {t.listLabel}
+          </h2>
+          <div className="flex flex-col gap-4">
+            {gruppen.map((g) => (
+              <section key={g.kategorie} aria-labelledby={`wiki-thema-${g.kategorie}`}>
+                <h3 id={`wiki-thema-${g.kategorie}`} className="ct-eyebrow mb-1 px-2.5 text-muted">
+                  {t[THEMA_TEXT[g.kategorie]]}
+                </h3>
+                <ul className="flex flex-col gap-0.5">
+                  {g.artikel.map((a) => (
+                    <li key={a.id}>
+                      <button
+                        id={`wiki-artikel-${a.id}`}
+                        type="button"
+                        aria-current={markiert(a.id) ? "true" : undefined}
+                        className={cn(
+                          "ct-label min-h-11 w-full rounded-ct-sm px-2.5 py-1.5 text-left transition-colors",
+                          markiert(a.id)
+                            ? "bg-surface-hover text-ink"
+                            : "text-muted hover:bg-surface-hover hover:text-ink",
+                        )}
+                        onClick={() => waehle(a.id, a.slug)}
+                      >
+                        {a.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </nav>
         {visible.length === 0 && <p className="ct-help">{t.noMatch}</p>}
       </aside>
 
-      <article className="min-w-0 flex-1 rounded-ct-lg border bg-surface p-6">
+      <article
+        aria-labelledby="wiki-titel"
+        lang={open && open.language !== locale ? open.language : undefined}
+        className={cn(
+          "min-w-0 flex-1 rounded-ct-lg border bg-surface p-6 lg:block",
+          imArtikel ? "block" : "hidden",
+        )}
+      >
         {open ? (
           <>
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              <h2 className="ct-h2">{open.title}</h2>
+            {/* Nur am Handy: dort ersetzt der Artikel die Liste. */}
+            <Button variant="ghost" size="sm" className="-ml-3 mb-2 lg:hidden" onClick={zurueck}>
+              <svg
+                viewBox="0 0 16 16"
+                className="h-4 w-4 shrink-0"
+                aria-hidden
+                focusable="false"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M13 8H3m0 0 4-4M3 8l4 4" />
+              </svg>
+              {t.allArticles}
+            </Button>
+
+            <p className="ct-eyebrow mb-1 text-muted">{themaName}</p>
+            <div className="mb-1 flex flex-wrap items-center gap-2">
+              <h2 id="wiki-titel" ref={titelRef} tabIndex={-1} className="ct-h2">
+                {open.title}
+              </h2>
               {open.phase !== "evergreen" && <Badge>{phases[open.phase] ?? open.phase}</Badge>}
               {/* „Für diese Edition" sagt: das hier ist die diesjährige Fassung. */}
               {open.is_overlay && <Badge tone="accent">{t.thisEdition}</Badge>}
@@ -128,7 +296,70 @@ export function WikiView({
                   trotzdem (0088) — dann sagen wir es, statt ihn wegzulassen. */}
               {open.language !== locale && <Badge>{t.otherLanguage}</Badge>}
             </div>
-            <Markdown source={open.body_md} />
+            {stand && <p className="ct-help mb-4">{t.updated.replace("{date}", stand)}</p>}
+
+            {abschnittsListe.length >= MIN_ABSCHNITTE && (
+              <>
+                {/* Ab 1024 px die Übersicht des Kits, offen. */}
+                <AbschnittsNavigation items={abschnittsListe} label={t.onThisArticle} className="hidden lg:block" />
+                {/* Am Handy zugeklappt: Bei neun Fragen stünden neun Kacheln untereinander,
+                    bevor der Text beginnt (gemessen rund 600 px). Beide Fassungen stehen im
+                    Markup, eine davon ist ausgeblendet — so gibt es beim Laden kein Umspringen. */}
+                <details className="group mb-8 rounded-ct-lg bg-accent-soft lg:hidden">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 ct-label text-accent-deep [&::-webkit-details-marker]:hidden">
+                    {t.onThisArticle} ({abschnittsListe.length})
+                    <svg
+                      viewBox="0 0 16 16"
+                      className="h-4 w-4 shrink-0 group-open:rotate-180"
+                      aria-hidden
+                      focusable="false"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m4 6 4 4 4-4" />
+                    </svg>
+                  </summary>
+                  <ul className="flex flex-col px-4 pb-3">
+                    {abschnittsListe.map((a) => (
+                      <li key={a.id}>
+                        <a
+                          href={`#${a.id}`}
+                          className="inline-flex min-h-11 w-full items-center ct-label text-accent-deep underline-offset-2 hover:underline"
+                        >
+                          {a.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </>
+            )}
+
+            <Markdown source={open.body_md} idPrefix={open.slug} />
+
+            {verwandt.length > 0 && (
+              <nav aria-labelledby="wiki-verwandt" className="mt-8 border-t pt-4">
+                <h3 id="wiki-verwandt" className="ct-h3 mb-2">
+                  {t.moreOn.replace("{topic}", themaName)}
+                </h3>
+                <ul className="flex flex-col">
+                  {verwandt.map((a) => (
+                    <li key={a.id}>
+                      <button
+                        type="button"
+                        className="ct-link inline-flex min-h-11 items-center text-left"
+                        onClick={() => waehle(a.id, a.slug)}
+                      >
+                        {a.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
           </>
         ) : (
           <p className="ct-help">{t.noMatch}</p>
