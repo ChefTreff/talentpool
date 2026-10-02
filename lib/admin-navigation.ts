@@ -34,6 +34,8 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
       { section: "feedback", href: "/admin/feedback", label: "feedback" },
       // TAL-009: worüber Teilnehmende informiert werden wollen.
       { section: "notifications", href: "/admin/benachrichtigungen", label: "notifications" },
+      // TAL-010: Event-Fotos für Teilnehmende.
+      { section: "photos", href: "/admin/fotos", label: "photos" },
       // ADM-055: eigener Abschnitt Hackathon (Challenges, Teams, Jury, Mentoren).
       { section: "hackathon", href: "/admin/hackathon", label: "hackathon" },
     ],

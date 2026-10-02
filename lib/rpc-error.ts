@@ -118,6 +118,8 @@ const BUSINESS_KEYS = new Set([
   "request_closed",
   // Wunsch-Challenges (HACK-017)
   "invalid_challenge",
+  // Event-Fotos (TAL-010)
+  "not_attended",
   // Feedback-Fenster (TAL-011)
   "feedback_limit",
   "invalid_rating",

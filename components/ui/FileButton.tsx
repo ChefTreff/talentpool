@@ -50,6 +50,7 @@ export function FileButton({
   accept,
   disabled,
   onFile,
+  onFiles,
   hint,
   icon,
   className,
@@ -65,7 +66,13 @@ export function FileButton({
   changeLabel?: string;
   accept?: string;
   disabled?: boolean;
-  onFile: (file: File) => void;
+  onFile?: (file: File) => void;
+  /**
+   * Mehrere Dateien auf einmal (TAL-010, Fotoauswahl des Teams): das Feld
+   * erlaubt Mehrfachauswahl, und die Auswahl startet den Upload gleich — wie
+   * `sofort`. Wer `onFiles` setzt, braucht `onFile` nicht.
+   */
+  onFiles?: (files: File[]) => void;
   hint?: string;
   icon?: ReactNode;
   className?: string;
@@ -96,7 +103,7 @@ export function FileButton({
             size="sm"
             disabled={disabled}
             onClick={() => {
-              onFile(gewaehlt);
+              onFile?.(gewaehlt);
               // Die Auswahl ist verbraucht: der Aufrufer meldet Erfolg oder
               // Fehler selbst, und eine stehengebliebene Datei liesse offen,
               // ob sie schon oben ist.
@@ -148,13 +155,19 @@ export function FileButton({
         id={id}
         type="file"
         accept={accept}
+        multiple={Boolean(onFiles)}
         disabled={disabled || laedt}
         className="sr-only"
         onChange={(e) => {
-          const file = e.target.files?.[0];
+          const files = Array.from(e.target.files ?? []);
           e.target.value = "";
+          if (onFiles) {
+            if (files.length) onFiles(files);
+            return;
+          }
+          const file = files[0];
           if (!file) return;
-          if (sofort) onFile(file);
+          if (sofort) onFile?.(file);
           else setGewaehlt(file);
         }}
       />

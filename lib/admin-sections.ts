@@ -64,6 +64,7 @@ export type AdminSectionKey =
   | "communityEvents"
   | "feedback"
   | "notifications"
+  | "photos"
   | "hackathon"
   | "programme"
   | "edition"
@@ -156,6 +157,8 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { key: "feedback", path: "/admin/feedback", roles: ["area_lead_talent", "talent_team", "marketing_team"] },
   // TAL-009: Themen-Zähler und Export für Newsletter-Listen (Marketing und Talent).
   { key: "notifications", path: "/admin/benachrichtigungen", roles: ["area_lead_talent", "talent_team", "marketing_team"] },
+  // TAL-010: Fotoauswahl je Event für Teilnehmende (Marketing und Talent).
+  { key: "photos", path: "/admin/fotos", roles: ["area_lead_talent", "talent_team", "marketing_team"] },
   // Hackathon (ADM-055): Bewerbungen, Challenges, Teams. Dieselbe Liste steht in
   // `admin_section_role`; `is_hack_team()` fragt seither den Abschnitt.
   { key: "hackathon", path: "/admin/hackathon", roles: ["area_lead_hackathon", "hackathon_team"] },

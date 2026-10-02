@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 09:04 UTC · 115 Tabellen · 6 Views · 671 Funktionen
+> Stand: 2026-10-02 09:10 UTC · 117 Tabellen · 6 Views · 683 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -452,6 +452,35 @@ Veranstaltungstag eines Events (Einlass, Programmbeginn/-ende).
 | `sort_order` | integer | ja | `0` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `event_photo`
+Fotoauswahl je Event (TAL-010) im privaten Bucket event-photos (<event_id>/<datei>). Sichtbar nur veröffentlicht und nur für Eingecheckte.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `event_id` | uuid | ja |  | `event.id` |  |
+| `storage_path` | text | ja |  |  |  |
+| `filename` | text | ja |  |  |  |
+| `credit` | text |  |  |  |  |
+| `sort_order` | integer | ja | `0` |  |  |
+| `published` | boolean | ja | `false` |  |  |
+| `uploaded_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `event_photo_removal_request`
+Löschwunsch einer Person zu einem Event-Foto (TAL-010); das Team entscheidet.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `photo_id` | uuid | ja |  | `event_photo.id` |  |
+| `person_id` | uuid | ja |  | `person.id` |  |
+| `note` | text |  |  |  |  |
+| `status` | text | ja | `open` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `handled_by` | uuid |  |  | `person.id` |  |
+| `handled_at` | timestamp with time zone |  |  |  |  |
 
 ### `expense_claim`
 Reisekostenanträge der Speaker. Bankdaten nur im Vault (bank_secret_id), hier nur Maske und Kontoinhaber.
@@ -2240,6 +2269,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `assign_shift` | p_person_id: uuid, p_shift_id: uuid, p_status: text |
 | `assign_tour_stop` | p_org_id: uuid, p_stop_id: uuid |
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
+| `attended_event` | p_event_id: uuid |
 | `audit_log_admin` | p_action: text, p_actor: uuid, p_from: timestamp with time zone, p_limit: integer, p_object_id: text, p_object_type: text, p_offset: integer, p_to: timestamp with time zone |
 | `audit_log_filters` | args: ? |
 | `award_applications_admin` | p_edition_id: uuid |
@@ -2277,6 +2307,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_edit_slot` | p_slot_id: uuid |
 | `can_edit_stage` | p_stage_id: uuid |
 | `can_judge_hack_team` | p_team_id: uuid |
+| `can_manage_event_photos` | args: ? |
 | `can_manage_hack_dataset` | p_challenge_id: uuid |
 | `can_manage_speaker` | p_profile_id: uuid |
 | `can_manage_speaker_leads` | args: ? |
@@ -2336,6 +2367,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_edition_file` | p_id: uuid |
 | `delete_edition_info` | p_id: uuid |
 | `delete_event_day` | p_id: uuid |
+| `delete_event_photo` | p_photo_id: uuid |
 | `delete_external_ref` | p_object_id: uuid, p_object_type: text, p_system: text |
 | `delete_kb_article` | p_id: uuid |
 | `delete_my_profile` | args: ? |
@@ -2370,6 +2402,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `ensure_speaker_ticket` | p_profile_id: uuid |
 | `event_app_exhibitors` | p_edition_id: uuid |
 | `event_app_speakers` | p_edition_id: uuid |
+| `event_photo_path_allowed` | p_name: text |
+| `event_photos` | p_event_id: uuid |
+| `event_photos_admin` | p_event_id: uuid |
 | `event_stage_leads` | p_event_id: uuid |
 | `exhibitor_list` | p_edition_id: uuid |
 | `expense_bank_details` | p_claim_id: uuid |
@@ -2404,6 +2439,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_team_search` | p_edition_id: uuid, p_language: text |
 | `hack_text` | p_de: text, p_en: text, p_language: text |
 | `hack_track_key` | p_value: text |
+| `handle_photo_removal` | p_request_id: uuid, p_status: text |
 | `handover_speaker` | p_profile_id: uuid, p_to_person_id: uuid |
 | `harden_definer_functions` | args: ? |
 | `has_admin_section` | p_key: text |
@@ -2507,6 +2543,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_partner_documents` | p_edition_id: uuid, p_org_id: uuid |
 | `my_partner_orgs` | args: ? |
 | `my_partner_stages` | args: ? |
+| `my_photo_events` | args: ? |
 | `my_receptions` | p_edition_id: uuid |
 | `my_regie_stages` | p_edition_id: uuid |
 | `my_roles` | args: ? |
@@ -2592,6 +2629,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `person_merges_admin` | p_limit: integer |
 | `person_photo_path_allowed` | p_name: text, p_write: boolean |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
+| `photo_removal_requests_admin` | args: ? |
 | `portal_links_admin` | args: ? |
 | `portal_links_for` | p_audience: text, p_edition_id: uuid, p_keys: text[] |
 | `portal_video_for` | p_audience: text, p_edition_id: uuid, p_key: text |
@@ -2622,6 +2660,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `refresh_deliverable_due` | args: ? |
 | `regie_open_slots` | p_event_day_id: uuid, p_stage_id: uuid |
 | `regie_view` | p_event_day_id: uuid, p_stage_id: uuid |
+| `register_event_photo` | p_credit: text, p_event_id: uuid, p_filename: text, p_storage_path: text |
 | `register_for_session` | p_session_id: uuid |
 | `register_hack_dataset` | p_challenge_id: uuid, p_filename: text, p_mime: text, p_size_bytes: bigint, p_storage_path: text |
 | `register_hack_submission_file` | p_filename: text, p_mime: text, p_size_bytes: bigint, p_storage_path: text, p_team_id: uuid |
@@ -2642,6 +2681,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `reorder_question_catalog` | p_ids: uuid[] |
 | `request_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
 | `request_hack_join` | p_message: text, p_team_id: uuid |
+| `request_photo_removal` | p_note: text, p_photo_id: uuid |
 | `request_profile_deletion` | p_reason: text |
 | `request_shuttle` | p_data: jsonb, p_profile_id: uuid |
 | `request_ticket_increase` | p_additional: integer, p_edition_id: uuid, p_org_id: uuid, p_pass_type: text, p_text: text |
@@ -2692,6 +2732,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_edition_volunteer_undershop` | p_edition_id: uuid, p_undershop_id: text |
 | `set_event_app_person_ref` | p_external_id: text, p_meta: jsonb, p_person_id: uuid, p_system: text |
 | `set_event_app_ref` | p_external_id: text, p_meta: jsonb, p_object_type: text, p_org_edition_id: uuid, p_system: text |
+| `set_event_photo` | p_credit: text, p_photo_id: uuid, p_published: boolean |
 | `set_expense_bank_details` | p_bic: text, p_claim_id: uuid, p_holder: text, p_iban: text |
 | `set_expense_integration` | p_claim_id: uuid, p_invoice_asset_id: uuid, p_qonto_sent: boolean, p_sevdesk_ref: text |
 | `set_expense_mode` | p_amount_cents: integer, p_mode: text, p_profile_id: uuid |
