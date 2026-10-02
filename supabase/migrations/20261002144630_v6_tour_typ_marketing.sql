@@ -1,3 +1,5 @@
+-- 0264 · Sechster Tour-Typ Marketing, Bestandstour zugeordnet (K-52)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002144630.
 -- 00NN · Sechster Tour-Typ „Marketing": Vokabular company_tour_type ergänzen und die Marketing-Tour typisieren (K-52, Nachtrag zu 0248 / ADM-045)
 --
 -- Anlass: Konrad (02.10.2026, K-52): **sechs** Tour-Typen, Marketing aktiv. 0248 legte

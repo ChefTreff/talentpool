@@ -374,7 +374,8 @@ body {
     font-size: 16px;
     line-height: 24px;
   }
-  .ct-eyebrow {
+  .ct-eyebrow,
+  .ct-stapeln td[data-label]::before {
     font-weight: 600;
     font-size: 12px;
     line-height: 16px;
@@ -476,6 +477,49 @@ body {
   }
   .ct-link:hover {
     color: var(--ct-accent-deep);
+  }
+}
+
+/* Tabellen, die unter 640 px zu Blöcken werden (QS-058, `<Table stapeln>`).
+ *
+ * **Ohne Ebene, mit Absicht:** Die Zeilenhöhe (`h-11`, `[&>td]:h-14`), die Polster
+ * und `whitespace-nowrap` der Zellen sind Utilities und gälten sonst vor diesen
+ * Regeln; dazu sollen sie auch rohe `<tr>`/`<td>` erfassen (aufklappbare Detailzeile).
+ * Gescopt über `.ct-stapeln`, also nur dort, wo eine Tabelle es verlangt.
+ * Die Beschriftung kommt aus `data-label` und trägt die Rolle `.ct-eyebrow`
+ * (Gruppenüberschrift, 12/16 Versalien) — Hilfstext-Grau gemessen 5,2:1. */
+@media (max-width: 639.98px) {
+  .ct-stapeln,
+  .ct-stapeln tbody,
+  .ct-stapeln tr {
+    display: block;
+  }
+  /* Kopfzeile nur noch für Vorlesegeräte (wie `sr-only`). */
+  .ct-stapeln thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .ct-stapeln tbody tr {
+    padding-block: 0.5rem;
+  }
+  .ct-stapeln td {
+    display: block;
+    height: auto;
+    padding-block: 0.25rem;
+    white-space: normal;
+    text-align: left;
+  }
+  .ct-stapeln td:empty {
+    display: none;
+  }
+  .ct-stapeln td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--ct-muted);
   }
 }
 
