@@ -1,4 +1,4 @@
--- Test „Benachrichtigungen“ (TAL-009, vorschlag/v6_benachrichtigungen.sql). Belegt:
+-- Test „Benachrichtigungen“ (TAL-009, 20261002085957_v6_benachrichtigungen.sql). Belegt:
 --   01 Vokabular notification_topic mit 7 Begriffen (Academy und Bootcamp getrennt), Abschnitt
 --      notifications für admin, area_lead_talent, talent_team, marketing_team;
 --   02 Person schreibt eigene Themen unter RLS, fremde nicht;

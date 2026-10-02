@@ -1,4 +1,5 @@
--- 0000 · „Worüber möchtest du informiert werden?“ (TAL-009): Themen als Einschränkung der
+-- 0255 · Benachrichtigungsthemen im Teilnehmer-Portal, Abschnitt notifications, Zähler und Listen-Export ohne Adressen im Audit (TAL-009)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002085957.
 -- Newsletter-Einwilligung, Admin-Abschnitt mit Zählern und Export.
 --
 -- Anlass: Konzept docs/talent-konzepte-009-011.md, Konrads Antworten K-43 (02.10.):
