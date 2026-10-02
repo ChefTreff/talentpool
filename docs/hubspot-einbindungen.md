@@ -49,7 +49,7 @@ Nicht im Code, aber im Betrieb (Konrad ergänzt): Sales-Pipeline und Angebote, M
 - **Code:** `lib/hubspot/products.ts`, `lib/products/sync.ts`, `app/api/admin/products/sync/route.ts`, Admin-Karte `ProductSyncCard`. Derselbe Lauf schreibt parallel nach SevDesk (`lib/sevdesk/parts.ts`).
 
 ### E5 · Altbestand archivieren (Portal → HubSpot)
-- HubSpot-Produkte **ohne** `hs_sku` (38 Stück laut Konrad 21.09.) über `batch/archive` in den Papierkorb (90 Tage rückholbar); nur ausgewählte IDs, Trockenlauf Standard, Audit mit voller Liste. `app/api/admin/hubspot/archive-products/route.ts`, Karte `HubspotArchiveCard`.
+- HubSpot-Produkte **ohne** `hs_sku` (38 Stück laut Konrad 21.09.) über `batch/archive` in den Papierkorb (90 Tage rückholbar); nur ausgewählte IDs, Trockenlauf Standard, Audit mit voller Liste. `app/api/admin/hubspot/archive-products/route.ts`, Karte `HubspotArchiveCard`. **Einzelnes Produkt mit Nummer (K-47, 02.10.2026):** Feld „Artikelnummer“ in der Karte sucht lesend in der ohnehin gelesenen Liste (Nummer, ohne Rücksicht auf Schreibweise und Trennzeichen; danach Namen); Treffer sind nicht vorgewählt, im scharfen Lauf findet der Server sie mit derselben Anfrage noch einmal (`lib/hubspot/produkt-suche.ts`), Audit mit Id, Name, Nummer und Suchanfrage, ohne Adresse des Handelnden (der steht als `actor_person_id`). Konrad klickt den scharfen Lauf selbst.
 
 ### E6 · Admin-Anzeigen (lesend)
 - Organisationsseite `/admin/partner/[org]`: Deals (`partner_deals`) mit Name, ID, Positionen und Link ins HubSpot (`dealUrl`, Portal-ID aus `/account-info/v3/details`).
