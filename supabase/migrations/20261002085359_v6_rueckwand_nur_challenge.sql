@@ -1,4 +1,5 @@
--- 0000 · Rückwand der Challenge Area nur an der Hackathon-Challenge (K-50).
+-- 0253 · Rückwand-Pflicht nur an der Hackathon-Challenge I-37220 (K-50, HACK-019)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002085359.
 --
 -- Anlass: Konrad 02.10. (K-50): Die Pflicht `hackathon_backdrop` hing an der ganzen Kategorie
 -- `hackathon` (0117) — damit öffneten auch „Logo auf der Hauptseite“ oder die

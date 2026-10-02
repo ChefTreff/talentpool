@@ -1,3 +1,5 @@
+-- 0254 · Produktionsliste je Stand aus Paket, Angebot und Messeshop, Lieferantenliste, interne Prüfung je Stand (PROD-004, PROD-005)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002085454.
 -- Produktionsliste je Stand mit Paketausstattung und Shop-Bestellungen (PROD-004), interne Prüfung je Stand (PROD-005)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
