@@ -105,6 +105,9 @@
  *   … --apply --nur=event-fotos    (TAL-010: vergangenes TEST-Community-Event, Konrad als
  *                                   „attended“, zwei TEST-Bilder in event-photos — eines
  *                                   veröffentlicht; /fotos und /admin/fotos)
+ *   … --apply --nur=feedback       (TAL-011: zwei TEST-Feedbacks — eines anonym zum Summit
+ *                                   mit Bewertungen, eines mit Klarnamen einer TEST-Person;
+ *                                   /admin/feedback)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -2846,6 +2849,30 @@ async function fotosSchritt(me) {
   }
 }
 
+/**
+ * TAL-011: zwei TEST-Feedbacks — ein anonymes zum Summit mit den Bewertungen
+ * der Umfrage (zeigt die Mittelwerte) und eines mit Klarnamen der TEST-Person
+ * „Newsletter“ (zeigt den Antwort-Weg). Konrads eigenes Feedback schreibt er
+ * selbst unter /feedback. Kennzeichen: Text beginnt mit „TEST —“.
+ */
+async function feedbackSchritt() {
+  const { data: da } = await admin.from("feedback_entry").select("id").like("body", `${PREFIX}%`);
+  if ((da ?? []).length > 0) return note("TEST-Feedbacks", "stehen schon");
+  await write("TEST-Feedback anonym (Summit, Bewertungen)", () =>
+    admin.from("feedback_entry").insert({
+      format: "summit", ratings: { overall: 5, programme: 4, expo: 3, masterclasses: 5, app: 2, side_events: 4 },
+      return_intent: "yes", main_reason: "networking", memorable: `${PREFIX}Keynote am Morgen`,
+      body: `${PREFIX}Mehr Sitzplätze in den Masterclasses, bitte.`,
+    }));
+  await write("TEST-Feedback mit Klarnamen (Portal, Idee)", async () => {
+    const { data: adresse } = await admin.from("person_email").select("person_id").eq("email", newsAdresse(1)).maybeSingle();
+    return admin.from("feedback_entry").insert({
+      person_id: adresse?.person_id ?? null, format: "portal", kind: "idea",
+      body: `${PREFIX}Eine Merkliste für Masterclasses wäre toll.`,
+    });
+  });
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -3051,6 +3078,7 @@ const SCHRITTE = {
   "hackathon-team": hackathonTeam,
   benachrichtigungen: benachrichtigungenSchritt,
   "event-fotos": fotosSchritt,
+  feedback: feedbackSchritt,
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
@@ -3106,6 +3134,9 @@ async function remove(me) {
     if (ids.length === 0) return { data: null, error: null };
     return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
+  await write("TEST-Feedbacks entfernt", () =>
+    admin.from("feedback_entry").delete().like("body", `${PREFIX}%`),
+  );
   await write("TEST-Community-Event mit Fotos entfernt (Fotos, Anmeldungen gehen mit)", async () => {
     const { data: ev } = await admin.from("event").select("id").eq("slug", FOTO_EVENT_SLUG).maybeSingle();
     if (!ev) return { data: null, error: null };
