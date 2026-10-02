@@ -122,3 +122,41 @@ export async function legeGeraetAn(label: string, email: string, editionId: stri
   if (!einladung.ok) return { ok: false, key: "kiosk_invite_failed", detail: einladung.detail };
   return { ok: true, eingeladen: true, email: r.email };
 }
+
+export type TeamErgebnis =
+  | { ok: true; neu: boolean; eingeladen: boolean; email: string }
+  | { ok: false; key: string; detail?: string };
+
+/**
+ * Teammitglied anlegen und einladen (QS-056, Team-Testrunde ab 06.10.).
+ *
+ * 1. `create_team_member` über die Sitzung: prüft den Abschnitt `access`, nur
+ *    Team-Rollen ohne `admin`, legt Person und Rollen für die Edition an, Audit.
+ * 2. Hat die Person noch kein Login, geht die Einladung an **die Adresse aus
+ *    der Datenbank** — wie bei `ladeEin`, nie an die eingetippte.
+ */
+export async function ladeTeamEin(
+  vorname: string,
+  nachname: string,
+  email: string,
+  rollen: string[],
+  editionId: string,
+): Promise<TeamErgebnis> {
+  await requireAdminSection("access", PFAD);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("create_team_member", {
+    p_first_name: vorname, p_last_name: nachname, p_email: email, p_roles: rollen, p_edition_id: editionId,
+  });
+  if (error) {
+    const f = toRpcFailure(error);
+    if (f.key === "unknown") console.error("[zugaenge] create_team_member:", f.raw);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  const r = data as { person_id: string; email: string; created: boolean; has_login: boolean };
+  revalidatePath(PFAD);
+  if (r.has_login) return { ok: true, neu: r.created, eingeladen: false, email: r.email };
+  const einladung = await ladeEin(r.person_id);
+  if (!einladung.ok) return { ok: false, key: einladung.key, detail: einladung.detail };
+  return { ok: true, neu: r.created, eingeladen: true, email: r.email };
+}
+
