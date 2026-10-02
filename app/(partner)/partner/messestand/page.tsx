@@ -11,6 +11,9 @@ import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../ty
 import { Ausstattung } from "./Ausstattung";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { FristMarke } from "@/components/ui/FristMarke";
+import { Rundgang } from "@/components/partner/Rundgang";
+import { RUNDGANG_SCHLUESSEL, rundgangAus } from "@/components/partner/rundgang-adresse";
+import { loadPortalLink } from "@/lib/portal-link/load";
 import { Hallenplan } from "./Hallenplan";
 import { Rueckwand } from "./Rueckwand";
 import type { BoothPackage, EditionFile, Exhibitor } from "./types";
@@ -46,6 +49,7 @@ export default async function MessestandPage() {
     { data: exhibitorRows },
     { data: fileRows },
     { data: deadlineRow },
+    tourLink,
   ] = await Promise.all([
     supabase.rpc("booth_packages"),
     supabase.rpc("partner_overview", {
@@ -64,6 +68,8 @@ export default async function MessestandPage() {
       .eq("edition_id", current.edition_id)
       .eq("key", "booth_changes_until")
       .maybeSingle(),
+    // PART-093: der 3D-Rundgang aus Admin → Medien → Links; ohne Eintrag fehlt der Abschnitt.
+    loadPortalLink(RUNDGANG_SCHLUESSEL, "partner", current.edition_id),
   ]);
 
   const overview = (overviewJson ?? null) as PartnerOverview | null;
@@ -98,6 +104,9 @@ export default async function MessestandPage() {
     : planUrl;
 
   const b = t.partnerBooth;
+  const rundgang = rundgangAus(tourLink?.url);
+  const rundgangTitel =
+    (locale === "en" ? tourLink?.title_en : tourLink?.title_de) ?? tourLink?.title_de ?? tourLink?.title_en ?? b.tourFrameTitle;
 
   return (
     <>
@@ -110,6 +119,7 @@ export default async function MessestandPage() {
           { id: "rueckwand", label: b.backTitle },
           { id: "ausstattung", label: b.equipTitle },
           { id: "hallenplan", label: b.planTitle },
+          ...(rundgang ? [{ id: "rundgang", label: b.tourTitle }] : []),
         ]}
       />
 
@@ -201,6 +211,23 @@ export default async function MessestandPage() {
             t={b}
           />
         </section>
+
+        {/* PART-093: der Rundgang durch den Summit neben dem Hallenplan — beide beantworten „wo stehe ich“. */}
+        {rundgang && (
+          <section aria-labelledby="rundgang">
+            <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
+              <h2 id="rundgang" className="ct-h2 scroll-mt-20 text-ink">
+                {b.tourTitle}
+              </h2>
+            </div>
+            <p className="ct-small mb-3 leading-6">{b.tourLead}</p>
+            <Rundgang
+              url={rundgang.oeffnen}
+              title={rundgangTitel}
+              t={{ ...b, embedNotice: t.common.embedNotice, loading: t.common.loading }}
+            />
+          </section>
+        )}
       </div>
     </>
   );
