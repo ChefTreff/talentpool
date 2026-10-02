@@ -8,7 +8,7 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 ### A · Heute: Klicks und Einstellungen
 
-**1 · K-03 Dienstkonto für die Folien-Spiegelung (ca. 15 Minuten)** — danach spiegelt das Portal jede hochgeladene Präsentation in den Technik-Ordner.
+**1 · ~~K-03 Dienstkonto~~ — erledigt 02.10. nachmittags (Schlüssel gesetzt, Ordner freigegeben, Verbindung steht). Offen nur noch: „Spiegelung nachholen“ einmal klicken, Speaker prüft die Zeilen.** — danach spiegelt das Portal jede hochgeladene Präsentation in den Technik-Ordner.
 1. `console.cloud.google.com` mit dem Workspace-Konto öffnen → Projekt `FLS27 Portal` wählen oder neu anlegen (Organisation chef-treff.de).
 2. „APIs & Dienste“ → „Bibliothek“ → **Google Drive API** → Aktivieren.
 3. „IAM & Verwaltung“ → „Dienstkonten“ → „Dienstkonto erstellen“: Name `fls27-portal-drive`, **keine Rolle** vergeben → Fertigstellen.
@@ -22,19 +22,19 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 7. Prüfen unter `/admin/technik`, Karte „Folien in Drive“: Abzeichen „Dienstkonto bereit“ → „Verbindung prüfen“ (Ordnername, „geteilte Ablage“, Anlegen/Verschieben/Löschen je „ja“) → „Spiegelung nachholen“: die TEST-Folie erscheint als `TEST — Bühne Stage Lead / <Datum> · <Tag> / 1700_TEST Assistenz.pdf`. Fehlerschlüssel und Abhilfe stehen in `docs/runbooks/drive-service-konto.md`.
 8. Namensfrage: Dateiname = Slotbeginn (z. B. `0930_Anna Beispiel.pptx`), weil es keine lesbare Slot-Nummer gibt — so lassen? (Nur Einspruch nötig.)
 
-**2 · K-53 Matterport (2 Minuten):** `my.matterport.com` → Spaces → Rundgang `Aj4uVT45GpQ` → Teilen/Sichtbarkeit → **„Nicht gelistet“**, **Passwort entfernen**. Prüfen: `/partner/messestand` → Rundgang → nach dem Klick lädt der Rahmen ohne Passwortfeld.
+**2 · K-53 Matterport — läuft über euren Freelancer (Konrad 02.10.):** `my.matterport.com` → Spaces → Rundgang `Aj4uVT45GpQ` → Teilen/Sichtbarkeit → **„Nicht gelistet“**, **Passwort entfernen**. Prüfen: `/partner/messestand` → Rundgang → nach dem Klick lädt der Rahmen ohne Passwortfeld.
 
-**3 · K-48 Wiki (6 Klicks):** `/admin/wiki` → Filter „Entwurf“ → die sechs Hackathon-Artikel (challenge-definieren, mentoren-jury, pitch-vorstellung, preise, rueckwand, teilnehmende) → je „Veröffentlichen“.
+**3 · ~~K-48 Wiki~~ — erledigt 02.10. (veröffentlicht):** `/admin/wiki` → Filter „Entwurf“ → die sechs Hackathon-Artikel (challenge-definieren, mentoren-jury, pitch-vorstellung, preise, rueckwand, teilnehmende) → je „Veröffentlichen“.
 
-**4 · K-47 HubSpot (2 Minuten):** HubSpot → Settings → Objects → Products → `I-10729` suchen → Archivieren. (Alternative: einmaliger Lauf des Admin-Chats über die Archiv-Route — dann sag mir Bescheid.)
+**4 · K-47 HubSpot — Produkt nicht gefunden (Konrad 02.10.) → Admin-Chat macht den einmaligen Lauf über die Archiv-Route, sobald du hier zustimmst:** HubSpot → Settings → Objects → Products → `I-10729` suchen → Archivieren. (Alternative: einmaliger Lauf des Admin-Chats über die Archiv-Route — dann sag mir Bescheid.)
 
-**5 · K-51 Award-Fristen (3 Minuten):** `/admin/fristen` → `award_apply_until`, `award_vote_from`, `award_vote_until` → Datum setzen (stehen als Platzhalter „Konrad legt fest“).
+**5 · ~~K-51 Award-Fristen~~ — erledigt 02.10.; Rückfrage Konrad: warum zwei Felder DE/EN je Frist? (Antwort: die Fristen tragen eine zweisprachige Bezeichnung für Partner und öffentliche Seite — das Datum ist eines; zeigt die Seite zwei Datumsfelder, ist es ein Fehler → melden):** `/admin/fristen` → `award_apply_until`, `award_vote_from`, `award_vote_until` → Datum setzen (stehen als Platzhalter „Konrad legt fest“).
 
-**6 · ADM-010 Fotos der Ansprechpersonen:** Admin → Medien → Ansprechpersonen → Person → Foto wählen (lädt sofort, ein Klick je Person).
+**6 · ADM-010 Fotos — Upload geht (Konrad 02.10.), aber Bilder sitzen schief → neu ADM-066 Zuschnitt-Dialog (Design/Admin):** Admin → Medien → Ansprechpersonen → Person → Foto wählen (lädt sofort, ein Klick je Person).
 
-**7 · #274 auf GitHub schließen** (ersetzt durch #282, nichts mergen).
+**7 · ~~#274 schließen~~ — erledigt (Architektur-Session hat ihn mit Kommentar geschlossen; auf GitHub geht das unten im PR mit „Close pull request“).**
 
-**8 · K-24 Deal-Ingest scharf schalten (wenn das Sales-Team Bescheid weiß):** Admin → Partner → Integrationen → HubSpot → IDs eintragen: Pipeline „Future Leader Summit“ `379213775`, Startphase „Onboarding Start (Automation)“ `3019026648`, Erfolgsphase „Onboarding Operations (Automation Complete)“ `3569180889` → speichern. **Ab dann** verarbeitet der Abgleich alle 15 Minuten jeden Deal in der Startphase, legt Organisationen und Kontakte an und **verschickt Einladungen an echte Adressen** — deshalb erst, wenn das Sales-Team weiß, dass Deals in diese Phase geschoben werden. Zu den Labels: Das Portal liest die **Zuordnungs-Labels zwischen Deal und Kontakt** (HubSpot: Settings → Objects → Associations → Deal ↔ Contact), nicht eine Kontakt-Eigenschaft. Ist „CT Summit Contact Type“ eine Kontakt-Eigenschaft, sag mir das — dann stellt der Admin-Chat die Zuordnung darauf um (kleiner PR).
+**8 · K-24 Deal-Ingest — Konrad 02.10.: warten; „CT Summit Contact Type“ ist eine Kontakt-Eigenschaft → vor dem Scharfschalten stellt der Admin-Chat die Zuordnung von Zuordnungs-Labels auf diese Eigenschaft um (kleiner PR, erst wenn ihr soweit seid):** Admin → Partner → Integrationen → HubSpot → IDs eintragen: Pipeline „Future Leader Summit“ `379213775`, Startphase „Onboarding Start (Automation)“ `3019026648`, Erfolgsphase „Onboarding Operations (Automation Complete)“ `3569180889` → speichern. **Ab dann** verarbeitet der Abgleich alle 15 Minuten jeden Deal in der Startphase, legt Organisationen und Kontakte an und **verschickt Einladungen an echte Adressen** — deshalb erst, wenn das Sales-Team weiß, dass Deals in diese Phase geschoben werden. Zu den Labels: Das Portal liest die **Zuordnungs-Labels zwischen Deal und Kontakt** (HubSpot: Settings → Objects → Associations → Deal ↔ Contact), nicht eine Kontakt-Eigenschaft. Ist „CT Summit Contact Type“ eine Kontakt-Eigenschaft, sag mir das — dann stellt der Admin-Chat die Zuordnung darauf um (kleiner PR).
 
 **10 · VOL-002 Testdaten und Vorlagen-Import (2 Minuten, Terminal im Haupt-Checkout; der Talent-Chat darf schreibende Läufe aus einer Chat-Nachricht nicht selbst starten):**
 ```bash
