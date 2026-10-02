@@ -49,8 +49,8 @@ describe("Die Zeile erkennt Bedienelemente selbst (QS-065)", () => {
 
   it("ButtonLink und ButtonDownload tragen den Marker, der Textlink nicht", () => {
     const knoepfe = lies("components/ui/Button.tsx");
-    assert.match(knoepfe, /<Link data-knopf="" \{\.\.\.rest\}/);
-    assert.match(knoepfe, /<a data-knopf="" \{\.\.\.rest\} download/);
+    assert.match(knoepfe, /<Link \{\.\.\.rest\} data-knopf=""/);
+    assert.match(knoepfe, /<a \{\.\.\.rest\} download data-knopf=""/);
     // Ein Name als Link ist Text, kein Bedienelement: die Zeile bliebe sonst bei jedem Detail-Link 56 hoch.
     assert.doesNotMatch(ERKENNUNG, /(^|[,\[])a[,\]]/);
   });

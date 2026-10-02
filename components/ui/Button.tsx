@@ -89,7 +89,7 @@ export function ButtonLink({
   ...rest
 }: OwnProps & ComponentProps<typeof Link>) {
   return (
-    <Link data-knopf="" {...rest} className={cn(base, variants[variant], sizes[size], className)}>
+    <Link {...rest} data-knopf="" className={cn(base, variants[variant], sizes[size], className)}>
       {children}
     </Link>
   );
@@ -108,7 +108,7 @@ export function ButtonDownload({
   ...rest
 }: Omit<OwnProps, "loading"> & Omit<ComponentProps<"a">, "download"> & { href: string }) {
   return (
-    <a data-knopf="" {...rest} download className={cn(base, variants[variant], sizes[size], className)}>
+    <a {...rest} download data-knopf="" className={cn(base, variants[variant], sizes[size], className)}>
       {children}
     </a>
   );
