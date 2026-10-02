@@ -16,6 +16,8 @@ import { Fortschritt } from "@/components/ui/Fortschritt";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadEditionInfos, loadMyContacts } from "@/components/kontakt/load";
 import { Anfahrt } from "@/components/kontakt/Anfahrt";
+import { RUNDGANG_SCHLUESSEL, rundgangAus } from "@/components/partner/rundgang-adresse";
+import { loadPortalLink } from "@/lib/portal-link/load";
 import { OnboardingNudge } from "./OnboardingNudge";
 import { visibleNavKeys } from "./nav";
 import { getPartnerScope } from "./org";
@@ -90,7 +92,7 @@ export default async function PartnerDashboard() {
   }
 
   const supabase = await createSupabaseServerClient();
-  const [{ data: overviewJson }, { data: deliverableRows }, vocab, kontakte, infos] = await Promise.all([
+  const [{ data: overviewJson }, { data: deliverableRows }, vocab, kontakte, infos, tourLink] = await Promise.all([
     supabase.rpc("partner_overview", {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
@@ -103,6 +105,8 @@ export default async function PartnerDashboard() {
     loadVocabMap(supabase, locale),
     loadMyContacts(current.edition_id),
     loadEditionInfos("partner", current.edition_id),
+    // PART-093: der 3D-Rundgang aus Admin → Medien → Links; ohne Eintrag fehlt der Kasten.
+    loadPortalLink(RUNDGANG_SCHLUESSEL, "partner", current.edition_id),
   ]);
   const o = (overviewJson ?? null) as PartnerOverview | null;
 
@@ -458,6 +462,21 @@ export default async function PartnerDashboard() {
               </p>
             </Card>
           </section>
+        )}
+
+        {/* PART-093: der Rundgang durch den Summit, nur wo es den Messestand gibt — dieselbe Regel wie das
+            Menü (`sichtbar`): ein Knopf zu einer Seite, die der Partner nicht sieht, wäre ein Versprechen
+            ins Leere. Der Rundgang selbst steht auf dem Messestand, hier ist nur der Weg dorthin. */}
+        {sichtbar.has("booth") && rundgangAus(tourLink?.url) && (
+          <Card>
+            <h2 className="ct-h2 text-ink">{t.partner.tourBoxTitle}</h2>
+            <p className="ct-small mt-1 max-w-text leading-6">{t.partner.tourBoxBody}</p>
+            <div className="mt-3">
+              <ButtonLink href="/partner/messestand#rundgang" variant="secondary" size="sm">
+                {t.partner.tourBoxAction}
+              </ButtonLink>
+            </div>
+          </Card>
         )}
 
         <Anfahrt
