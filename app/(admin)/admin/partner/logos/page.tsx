@@ -2,10 +2,10 @@ import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonDownload } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Table, Tbody, Td, Th, Thead, Tr } from "@/components/ui/Table";
 import { loadActiveKeys, loadVocabMap, vgroup } from "@/lib/vocab";
 import { KategorieWahl } from "./KategorieWahl";
 
@@ -34,6 +34,9 @@ export type LogoZeile = {
  * „Official" — dieselbe Ableitung wie für Website und Swapcard
  * (`logo_category_of`), damit die drei nie auseinanderlaufen. Die Liste ist
  * nach Kategorie sortiert, so wie gedruckt wird.
+ *
+ * Als Tabelle, nicht als Zeilenliste (QS-065): Kategorie, Datei, Einwilligung und
+ * Stand fluchten untereinander; unter 640 px stapelt `<Table stapeln>` die Zeilen.
  */
 export default async function LogoWandPage() {
   await requireAdminSection("logoWall", "/admin/partner/logos");
@@ -68,43 +71,56 @@ export default async function LogoWandPage() {
               {t.logoWall.csv}
             </ButtonDownload>
           </div>
-          <Card>
-            <ul className="flex flex-col divide-y">
+          <Table stapeln>
+            <Thead>
+              <Th>{t.logoWall.colPartner}</Th>
+              <Th>{t.logoWall.colLevel}</Th>
+              <Th>{t.logoWall.colCategory}</Th>
+              <Th>{t.logoWall.colVector}</Th>
+              <Th>{t.logoWall.colConsent}</Th>
+              <Th>{t.logoWall.colState}</Th>
+              <Th>{t.logoWall.colMissing}</Th>
+            </Thead>
+            <Tbody>
               {zeilen.map((z) => (
-                <li key={z.org_edition_id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3">
-                  <span className="ct-label text-ink">{z.org_name}</span>
-                  {z.sponsoring_level && <span className="ct-help">{z.sponsoring_level}</span>}
-                  <KategorieWahl
-                    orgEditionId={z.org_edition_id}
-                    wert={z.logo_category}
-                    quelle={z.logo_category_source}
-                    optionen={optionen}
-                    t={{
-                      label: t.logoWall.colCategory,
-                      derived: t.logoWall.categoryDerived.replace("{kategorie}", kategorien[z.logo_category] ?? z.logo_category),
-                      auto: t.logoWall.categoryAuto,
-                      sourceLevel: t.logoWall.categoryFromLevel,
-                      sourceFallback: t.logoWall.categoryFallback,
-                      saved: t.common.saved,
-                    }}
-                    rpcMessages={t.rpc as Record<string, string>}
-                  />
+                <Tr key={z.org_edition_id} controls>
+                  <Td className="ct-label">{z.org_name}</Td>
+                  <Td label={t.logoWall.colLevel} className="ct-help">{z.sponsoring_level ?? "—"}</Td>
+                  <Td label={t.logoWall.colCategory}>
+                    <KategorieWahl
+                      orgEditionId={z.org_edition_id}
+                      wert={z.logo_category}
+                      quelle={z.logo_category_source}
+                      optionen={optionen}
+                      t={{
+                        label: t.logoWall.colCategory,
+                        derived: t.logoWall.categoryDerived.replace("{kategorie}", kategorien[z.logo_category] ?? z.logo_category),
+                        auto: t.logoWall.categoryAuto,
+                        sourceLevel: t.logoWall.categoryFromLevel,
+                        sourceFallback: t.logoWall.categoryFallback,
+                        saved: t.common.saved,
+                      }}
+                      rpcMessages={t.rpc as Record<string, string>}
+                    />
+                  </Td>
                   {/* Leere Zelle statt Auslassung: dass hier nichts steht, ist
                       die Information. */}
-                  <span className="ct-help">{z.vektor_datei ?? "—"}</span>
-                  <span className="ml-auto flex flex-wrap items-center gap-2">
+                  <Td label={t.logoWall.colVector} className="ct-help break-all">{z.vektor_datei ?? "—"}</Td>
+                  <Td label={t.logoWall.colConsent}>
                     <Badge tone={z.einwilligung ? "success" : "warning"}>
                       {z.einwilligung ? t.logoWall.consentYes : t.logoWall.consentNo}
                     </Badge>
+                  </Td>
+                  <Td label={t.logoWall.colState}>
                     <Badge tone={z.druckbar ? "success" : "warning"}>
                       {z.druckbar ? t.logoWall.printable : t.logoWall.notPrintable}
                     </Badge>
-                    {z.fehlt && <span className="ct-help">{z.fehlt}</span>}
-                  </span>
-                </li>
+                  </Td>
+                  <Td label={t.logoWall.colMissing} className="ct-help">{z.fehlt ?? "—"}</Td>
+                </Tr>
               ))}
-            </ul>
-          </Card>
+            </Tbody>
+          </Table>
           <p className="ct-help mt-4">{t.logoWall.hintCategory}</p>
         </>
       )}
