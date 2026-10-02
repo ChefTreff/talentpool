@@ -10,6 +10,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
+import { useEditorImBild } from "@/components/ui/useEditorImBild";
 import {
   MERCH_FIELD_TYPES,
   parseMerchSchema,
@@ -111,6 +112,8 @@ export function ProductEditor({
   const [pending, startTransition] = useTransition();
   const [filter, setFilter] = useState("");
   const [draft, setDraft] = useState<AdminProduct | null>(null);
+  // Der Editor steht hinter der Tabelle: beim Öffnen ins Bild holen (QS-064).
+  const aufmachen = useEditorImBild(draft, "produkt-editor");
   const [component, setComponent] = useState({ sku: "", qty: "1" });
   /** `null` = kein Merch-Artikel; die leere Liste schaltet die Felder frei. */
   const [merch, setMerch] = useState<MerchField[] | null>(null);
@@ -233,6 +236,7 @@ export function ProductEditor({
             <Button
               disabled={pending}
               onClick={() => {
+                aufmachen();
                 setDraft({ ...BLANK });
                 setMerch(null);
               }}
@@ -282,6 +286,7 @@ export function ProductEditor({
                       variant="secondary"
                       disabled={pending}
                       onClick={() => {
+                        aufmachen();
                         setDraft({ ...p });
                         setMerch(parseMerchSchema(p.merch_config));
                       }}
@@ -297,7 +302,7 @@ export function ProductEditor({
       </Card>
 
       {draft && (
-        <Card>
+        <Card id="produkt-editor">
           <CardHeader
             title={isNew ? t.productNew : (draft.name_de ?? draft.sku)}
             description={isNew ? t.productNewLead : draft.sku}

@@ -9,6 +9,7 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { useEditorImBild } from "@/components/ui/useEditorImBild";
 import { saveTemplate } from "../actions";
 import {
   ANSWER_FIELD_TYPES,
@@ -58,6 +59,8 @@ export function TemplateEditor({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [draft, setDraft] = useState<AdminTemplate | null>(null);
+  // Der Editor steht hinter der Liste: beim Öffnen ins Bild holen (QS-064).
+  const aufmachen = useEditorImBild(draft, "vorlagen-editor");
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const isNew = draft !== null && draft.id === "";
@@ -129,7 +132,7 @@ export function TemplateEditor({
           title={t.templatesTitle}
           description={t.templatesLead}
           action={
-            <Button disabled={pending} onClick={() => setDraft({ ...BLANK })}>
+            <Button disabled={pending} onClick={() => { aufmachen(); setDraft({ ...BLANK }); }}>
               {t.templateNew}
             </Button>
           }
@@ -156,7 +159,7 @@ export function TemplateEditor({
                   size="sm"
                   variant="secondary"
                   disabled={pending}
-                  onClick={() => setDraft({ ...tpl, answers_schema: tpl.answers_schema ?? null })}
+                  onClick={() => { aufmachen(); setDraft({ ...tpl, answers_schema: tpl.answers_schema ?? null }); }}
                 >
                   {t.edit}
                 </Button>
@@ -167,7 +170,7 @@ export function TemplateEditor({
       </Card>
 
       {draft && (
-        <Card>
+        <Card id="vorlagen-editor">
           <CardHeader
             title={isNew ? t.templateNew : draft.label_de}
             description={isNew ? t.templateNewLead : t.templateEditLead}
