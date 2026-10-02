@@ -121,9 +121,10 @@ export function PortraitUpload({
 
         <div className="flex flex-col gap-2">
           {!photoUrl && <p className="ct-help">{t.none}</p>}
+          {/* Ein Schritt (TAL-017): die Auswahl im Dateifenster lädt hoch. */}
           <FileButton
-            uploadLabel={t.upload}
-            changeLabel={t.change}
+            sofort
+            laedt={busy}
             label={busy ? t.uploading : photoUrl ? t.replace : t.upload}
             accept={PORTRAIT_MIME.join(",")}
             disabled={busy}

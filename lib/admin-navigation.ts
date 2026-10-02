@@ -69,6 +69,7 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
       { section: "initiatives", href: "/admin/initiativen/award", label: "award" },
       { section: "logoWall", href: "/admin/partner/logos", label: "logoWall" },
       { section: "companyTours", href: "/admin/company-tours", label: "companyTours" },
+      { section: "tourAssignment", href: "/admin/company-tours/zuordnung", label: "tourAssignment" },
     ],
   },
   {

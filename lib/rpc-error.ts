@@ -205,6 +205,8 @@ const BUSINESS_KEYS = new Set([
   "request_not_found",
   "invalid_reason",
   "invalid_state",
+  // ADM-045: ein Partner zweimal auf derselben Tour.
+  "partner_already_on_tour",
   // ADM-022: Stand-Tage am Produkt.
   "invalid_stand_days",
   // ADM-036: Dubletten zusammenführen (`person_not_found` steht schon oben).
