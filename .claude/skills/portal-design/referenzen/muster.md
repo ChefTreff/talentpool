@@ -43,6 +43,8 @@ Reihenfolge im Bereich: Shell (`SidebarShell` mit `area` und `width`) → `PageH
 </form>
 ```
 
+**Kontrollkästchen und Optionsfelder bekommen die Markenfarbe von `globals.css`** (QS-060: eine Regel in `@layer base`, `accent-color: accent-strong`). Kein `accent-…` von Hand an einem Kästchen; sonst malt der Browser Systemblau neben dem Violett der Knöpfe. **Wörterbuchtexte sind reiner Text** (QS-061): kein `**fett**`, keine Backticks — sie stünden wörtlich in der Oberfläche; der Test `markenfarbe-woerterbuch` prüft es.
+
 **Ungesicherte Änderungen** (QS-051): Lange Formulare mit Entwurf (Profil, Reise, Daten, Inhalte) warnen vor dem Verlassen — `const warnung = useUngesichert(geaendert, t.common.unsaved)` und `{warnung}` im Formular rendern. „Geändert“ heisst: anders als der **zuletzt gespeicherte** Stand (`basis` neben `entwurf`), nicht anders als die Server-Daten — der Server normalisiert, und eine eben gespeicherte Eingabe sähe sonst geändert aus. Neuladen und Tab schliessen fragt der Browser, Links im Portal der Kit-`ConfirmDialog`; der Zurück-Knopf bleibt ungefragt (der App Router bietet keine Sperre). Knöpfe in Dialogen tragen `type="button"`, sonst schicken sie ein umgebendes Formular ab.
 
 Label über dem Feld, Hilfetext darunter, Fehler am Feld (nicht im Toast), Pflicht mit „*" **und** Wort im Label. Feldhöhe 40, Radius 8, Fokusring 2 px Akzent. Keine Platzhalter als Ersatz für Labels.

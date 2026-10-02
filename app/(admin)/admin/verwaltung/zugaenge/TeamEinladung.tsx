@@ -82,7 +82,7 @@ export function TeamEinladung({
             <label key={r.value} className="flex min-h-11 items-center gap-2 ct-small">
               <input
                 type="checkbox"
-                className="h-4 w-4 accent-accent"
+                className="h-4 w-4"
                 checked={gewaehlt.includes(r.value)}
                 onChange={(e) => setGewaehlt((g) => (e.target.checked ? [...g, r.value] : g.filter((x) => x !== r.value)))}
               />

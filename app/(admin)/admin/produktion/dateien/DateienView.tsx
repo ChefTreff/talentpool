@@ -171,7 +171,7 @@ export function DateienView({
           <input
             id={`${idPrefix}-${key}`}
             type="checkbox"
-            className="h-4 w-4 accent-accent"
+            className="h-4 w-4"
             checked={wert.includes(key)}
             onChange={(e) => setze(e.target.checked ? [...wert, key] : wert.filter((x) => x !== key))}
           />

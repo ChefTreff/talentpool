@@ -141,7 +141,7 @@ export function BewerbungsFormular({
               <label key={th.value} className="flex min-h-11 items-center gap-2 ct-small">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 accent-accent"
+                  className="h-4 w-4"
                   checked={gewaehlt.includes(th.value)}
                   onChange={(e) =>
                     setGewaehlt((g) => (e.target.checked ? [...g, th.value] : g.filter((x) => x !== th.value)))
@@ -186,7 +186,7 @@ export function BewerbungsFormular({
         </Field>
         {text("notes", t.notes, { lang: true, zeilen: 4 })}
         <label className="flex items-start gap-2 ct-small">
-          <input type="checkbox" className="mt-1 h-4 w-4 accent-accent" checked={einwilligung} onChange={(e) => setEinwilligung(e.target.checked)} />
+          <input type="checkbox" className="mt-1 h-4 w-4" checked={einwilligung} onChange={(e) => setEinwilligung(e.target.checked)} />
           <span>
             {t.consent}{" "}
             <a href={PRIVACY_URL} className="ct-link" {...neuesFenster}>{privacyLabel}</a>

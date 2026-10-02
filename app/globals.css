@@ -263,6 +263,16 @@
     touch-action: manipulation;
   }
 
+  /* Kontrollkästchen und Optionsfelder in der Markenfarbe (QS-060). Der Browser malt
+     sonst seine Systemfarbe — in Chrome Blau neben dem Violett der Knöpfe. Es sind
+     66 Kästchen im Portal, und nur eines setzte `accent-accent` von Hand. Das weiße
+     Häkchen steht auf `accent-strong` mit 4,85:1 (WCAG 1.4.11 verlangt 3:1). Eine
+     Utility wie `accent-error` gewinnt weiterhin: sie liegt in `@layer utilities`. */
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--ct-accent-strong);
+  }
+
   /* Der Admin im Kontrastton Lila statt Navy (QS-046, Konrad 24.09.: „man
      erkennt nicht sofort, dass man im Admin ist"). Umgestellt werden nur
      Variablen im Bereich der Leiste — jede Klasse darin (`text-on-navy-muted`,
