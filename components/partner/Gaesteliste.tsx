@@ -345,7 +345,10 @@ export function Gaesteliste({
               {bearbeitet && (
                 <PortraitShape name={gastName(bearbeitet) || "?"} photoUrl={bearbeitet.photo_url} size="sm" />
               )}
+              {/* Die Datei wird gewählt und mit dem Formular hochgeladen; ein
+                  Zwischenschritt „Upload“ war hier nur ein Klick ohne Wirkung. */}
               <FileButton
+                sofort
                 label={foto ? foto.name : bearbeitet?.photo_url ? t.photoReplace : t.photoUpload}
                 accept={GAST_FOTO_MIME.join(",")}
                 disabled={pending}
