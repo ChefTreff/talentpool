@@ -506,7 +506,11 @@ function SessionCard({
               {labels.publishStatus[session.publish_status] ?? session.publish_status}
             </Badge>
           )}
-          {session.speaker_role && <Badge>{session.speaker_role}</Badge>}
+          {/* Die eigene Rolle nur, wenn sie nicht „Speaker“ ist (Moderation, Gastgeber, Panel) — und
+              übersetzt: vorher stand dort der Schlüssel `speaker` (Sichtprüfung 02.10.). */}
+          {session.speaker_role && session.speaker_role !== "speaker" && (
+            <Badge>{t[`role_${session.speaker_role}`] ?? session.speaker_role}</Badge>
+          )}
         </div>
         {session.co_speakers && session.co_speakers.length > 0 && (
           <p className="ct-help mt-2">
