@@ -99,6 +99,9 @@
  *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
  *                                   nur wenn er sich unter /hackathon schon beworben hat;
  *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
+ *   … --apply --nur=event-fotos    (TAL-010: vergangenes TEST-Community-Event, Konrad als
+ *                                   „attended“, zwei TEST-Bilder in event-photos — eines
+ *                                   veröffentlicht; /fotos und /admin/fotos)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -2763,6 +2766,49 @@ async function hackathonTeam(me) {
     admin.from("hack_team_member").insert({ team_id: team.id, person_id: me.id, edition_id: hackEd }));
 }
 
+/**
+ * TAL-010: ein vergangenes TEST-Community-Event, bei dem Konrad „attended“ ist,
+ * mit zwei TEST-Bildern im privaten Bucket event-photos — eines veröffentlicht
+ * (sichtbar unter /fotos), eines nicht (nur im Admin).
+ */
+const FOTO_EVENT_SLUG = "zztest-community-fotos";
+
+async function fotosSchritt(me) {
+  const gestern = new Date(Date.now() - 86400000 * 7).toISOString().slice(0, 10);
+  let { data: ev } = await admin.from("event").select("id").eq("slug", FOTO_EVENT_SLUG).maybeSingle();
+  if (!ev) {
+    if (mode === "dry-run") return note("TEST-Community-Event mit Fotos (Event, Teilnahme, zwei Bilder)");
+    const neu = await admin.from("event").insert({
+      name: `${PREFIX}Community-Abend`, slug: FOTO_EVENT_SLUG, format_tag: "community",
+      start_date: gestern, end_date: gestern, is_edition: false,
+    }).select("id").single();
+    if (neu.error) return fail("TEST-Community-Event", neu.error);
+    ev = neu.data;
+    note("TEST-Community-Event", gestern);
+  } else note("TEST-Community-Event", "steht schon");
+
+  await write("Konrad als „attended“ beim TEST-Community-Event", async () => {
+    const { data: da } = await admin.from("registration").select("id").eq("event_id", ev.id).eq("person_id", me.id).maybeSingle();
+    if (da) return admin.from("registration").update({ status: "attended" }).eq("id", da.id);
+    return admin.from("registration").insert({ event_id: ev.id, person_id: me.id, status: "attended", source: "testdaten" });
+  });
+
+  for (const [i, farbe] of [[91, 91, 217], [234, 72, 120]].entries()) {
+    const pfad = `${ev.id}/zztest-foto-${i + 1}.png`;
+    const { data: da } = await admin.from("event_photo").select("id").eq("storage_path", pfad).maybeSingle();
+    if (da) { note(`TEST-Foto ${i + 1}`, "steht schon"); continue; }
+    if (mode === "dry-run") { note(`TEST-Foto ${i + 1}${i === 0 ? " (veröffentlicht)" : ""}`); continue; }
+    const png = await testPng(1200, 900, farbe);
+    const hoch = await admin.storage.from("event-photos").upload(pfad, png, { contentType: "image/png", upsert: true });
+    if (hoch.error) { fail(`TEST-Foto ${i + 1} hochladen`, hoch.error); continue; }
+    await write(`TEST-Foto ${i + 1}${i === 0 ? " (veröffentlicht)" : ""}`, () =>
+      admin.from("event_photo").insert({
+        event_id: ev.id, storage_path: pfad, filename: `test-${i + 1}.png`, credit: i === 0 ? "Foto: TEST" : null,
+        sort_order: i, published: i === 0, uploaded_by: me.id,
+      }));
+  }
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -2966,6 +3012,7 @@ const SCHRITTE = {
   partner: partnerSchritt,
   hackathon: hackathonChallenges,
   "hackathon-team": hackathonTeam,
+  "event-fotos": fotosSchritt,
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
@@ -3013,6 +3060,14 @@ async function remove(me) {
     const { data: hash, error } = await admin.rpc("email_hash", { p_email: sperrAdresse() });
     if (error) return { data: null, error };
     return admin.from("suppression").delete().eq("email_hash", hash).eq("reason", "manual");
+  });
+  await write("TEST-Community-Event mit Fotos entfernt (Fotos, Anmeldungen gehen mit)", async () => {
+    const { data: ev } = await admin.from("event").select("id").eq("slug", FOTO_EVENT_SLUG).maybeSingle();
+    if (!ev) return { data: null, error: null };
+    const { data: fotos } = await admin.from("event_photo").select("storage_path").eq("event_id", ev.id);
+    const pfade = (fotos ?? []).map((f) => f.storage_path);
+    if (pfade.length) await admin.storage.from("event-photos").remove(pfade);
+    return admin.from("event").delete().eq("id", ev.id);
   });
   await write("TEST-Datensätze Hackathon entfernt", async () => {
     const { data: zeilen } = await admin.from("hack_dataset").select("storage_path").like("storage_path", "%/zztest-%");
