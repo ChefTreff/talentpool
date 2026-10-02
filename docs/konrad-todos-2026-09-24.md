@@ -8,7 +8,7 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 ### A · Heute: Klicks und Einstellungen
 
-**1 · ~~K-03 Dienstkonto~~ — erledigt 02.10. nachmittags (Schlüssel gesetzt, Ordner freigegeben, Verbindung steht; bestätigt ~18:00). Offen nur noch: „Spiegelung nachholen“ einmal klicken, Speaker prüft die Zeilen.** — danach spiegelt das Portal jede hochgeladene Präsentation in den Technik-Ordner.
+**1 · ~~K-03 Dienstkonto~~ — erledigt 02.10. nachmittags (Schlüssel gesetzt, Ordner freigegeben, Verbindung steht; bestätigt ~18:00). „Spiegelung nachholen“ geklickt ~18:10 — Befund (Plan, live gelesen): 2 von 2 aktuellen Präsentationen gespiegelt, Drive-Dateien angelegt, 0 Fehler. Komplett erledigt.** — ab jetzt spiegelt das Portal jede hochgeladene Präsentation in den Technik-Ordner.
 1. `console.cloud.google.com` mit dem Workspace-Konto öffnen → Projekt `FLS27 Portal` wählen oder neu anlegen (Organisation chef-treff.de).
 2. „APIs & Dienste“ → „Bibliothek“ → **Google Drive API** → Aktivieren.
 3. „IAM & Verwaltung“ → „Dienstkonten“ → „Dienstkonto erstellen“: Name `fls27-portal-drive`, **keine Rolle** vergeben → Fertigstellen.
