@@ -32,9 +32,19 @@ const variants: Record<ButtonVariant, string> = {
     "bg-navy text-on-navy hover:bg-navy/85 disabled:opacity-40",
 };
 
+/**
+ * Höhen: `md` 40, `sm` 32 — das Raster für Maus und Tastatur. **Auf Geräten mit
+ * grobem Zeiger (Finger) mindestens 44 px** (`pointer-coarse:min-h-11`, QS-057):
+ * Design-Briefing und Skill Regel 7 verlangen Touch-Ziele ≥ 44 px, und die Kit-
+ * Knöpfe haben sie am Handy unterschritten (Speaker-Sichtprüfung 02.10.: „Fahrt
+ * anfordern“, „Buchen“, „Stornieren“). Eine Stelle für alle Portale; der Desktop
+ * bleibt, wie er war. `min-h` statt `h`, damit ein Aufrufer mit eigener Höhe die
+ * Untergrenze nicht versehentlich aushebelt. Tabellenzeilen springen nicht: `Td`
+ * ist 44 hoch (`Tr controls` 56), ein 44-px-Knopf passt hinein.
+ */
 const sizes: Record<ButtonSize, string> = {
-  md: "h-10 px-5",
-  sm: "h-8 px-3",
+  md: "h-10 px-5 pointer-coarse:min-h-11",
+  sm: "h-8 px-3 pointer-coarse:min-h-11",
 };
 
 type OwnProps = {

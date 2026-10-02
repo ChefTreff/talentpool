@@ -51,6 +51,8 @@ Label über dem Feld, Hilfetext darunter, Fehler am Feld (nicht im Toast), Pflic
 
 Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
 
+**Knöpfe in Zeilen und Touch-Ziele** (QS-057): Auf groben Zeigern sind Kit-Knöpfe und -Felder 44 px hoch. Eine Zeile mit Bedienelementen ist `<Tr controls>` (56) und springt dadurch nicht; in einer gewöhnlichen 44-px-Zeile wächst sie mit einem 44-px-Knopf nur um den 1 px breiten Zeilenrand (gemessen 44 → 45 px, nur am Handy). Wer Knöpfe in Zeilen setzt, setzt `controls`.
+
 - Kein Zebra. Dünne `border-border`-Linien, sticky Header, Hover `bg-surface-hover`.
 - Zahlen rechts: `<Th numeric>` / `<Td numeric>` (`tabular-nums` liegt global auf `body`).
 - Zeilenhöhe 44, Bedienelemente in Zeilen `size="sm"`.
