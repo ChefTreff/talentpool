@@ -1,3 +1,5 @@
+-- 0250 · Teammitglied anlegen und einladen unter Verwaltung → Zugänge, nur Team-Rollen ohne admin (QS-056 a)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002084227.
 -- Teammitglied anlegen und einladen in einem Schritt (QS-056, Team-Testrunde ab 06.10.)
 --
 -- Zweck: Unter Verwaltung → Zugänge konnte Konrad nur Personen einladen, die
