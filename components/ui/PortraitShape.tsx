@@ -51,20 +51,36 @@ export function PortraitShape({
         style={{
           background: "var(--ct-gradient-shape-light)",
           clipPath: "var(--ct-shape-triangle)",
+          WebkitClipPath: "var(--ct-shape-triangle)",
           transform: "rotate(var(--ct-tilt-mask))",
         }}
       />
       {photoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- Bilder liegen in Supabase Storage, ohne feste Größe.
-        <img
-          src={photoUrl}
-          alt=""
+        /* Das Bild füllt einen **Rahmen**, nicht sich selbst (TAL-016, Konrad
+           01.10.: „das Bild liegt unbeschnitten über der Karte und ragt unten
+           heraus“). Vorher stand `absolute inset-x-2 top-3 bottom-0` am `<img>`
+           selbst — bei einem ersetzten Element strecken die Abstände nichts,
+           es nimmt seine eigene Höhe (`height: auto` aus Preflight): ein
+           Hochformat (600×900) ragte um 96 px heraus, ein Querformat und ein
+           kleines Bild füllten die Form nicht. Jetzt misst der Rahmen die
+           Form (Abstände strecken ein Block-Element), das Bild füllt ihn mit
+           `object-cover` und dem Kopf nach oben (`object-top`), und beschnitten
+           wird der Rahmen — für jedes Seitenverhältnis gleich.
+
+           `bg-accent-soft` hinter dem Bild: ein freigestelltes PNG sitzt auf
+           der Soft-Fläche statt auf dem Seitengrund, der durch die Lücken
+           neben dem Verlaufs-Dreieck schiene. `-webkit-clip-path` für ältere
+           Safari-Versionen. */
+        <span
           className={cn(
-            "absolute object-cover",
+            "absolute bg-accent-soft",
             gross ? "inset-x-2 bottom-0 top-3" : "inset-x-1 bottom-0 top-1",
           )}
-          style={{ clipPath: "var(--ct-shape-triangle)" }}
-        />
+          style={{ clipPath: "var(--ct-shape-triangle)", WebkitClipPath: "var(--ct-shape-triangle)" }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- Bilder liegen in Supabase Storage, ohne feste Größe. */}
+          <img src={photoUrl} alt="" className="size-full object-cover object-top" />
+        </span>
       ) : (
         /* Ohne Foto **nicht** die volle Akzentfläche (QS-021): drei gefüllte
            Dreiecke nebeneinander lasen sich als Signal, nicht als Personen,
@@ -80,7 +96,7 @@ export function PortraitShape({
               ? "inset-x-2 bottom-0 top-3 pb-5 ct-band-title"
               : "inset-x-1 bottom-0 top-1 pb-1 ct-label",
           )}
-          style={{ clipPath: "var(--ct-shape-triangle)" }}
+          style={{ clipPath: "var(--ct-shape-triangle)", WebkitClipPath: "var(--ct-shape-triangle)" }}
         >
           {initiale}
         </span>
