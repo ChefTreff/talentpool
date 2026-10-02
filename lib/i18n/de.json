@@ -2966,6 +2966,7 @@
     "signal_name_birthdate": "Name und Geburtstag gleich",
     "signal_phone": "Telefon gleich",
     "since": "seit {datum}",
+    "stateLabel": "Stand des Paars",
     "status_confirmed_dupe": "Dublette bestätigt",
     "status_not_dupe": "Keine Dublette",
     "status_open": "Offen",

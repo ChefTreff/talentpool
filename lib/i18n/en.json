@@ -2966,6 +2966,7 @@
     "signal_name_birthdate": "Same name and birthday",
     "signal_phone": "Same phone",
     "since": "since {datum}",
+    "stateLabel": "State of the pair",
     "status_confirmed_dupe": "Confirmed duplicate",
     "status_not_dupe": "Not a duplicate",
     "status_open": "Open",
