@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { describe, it } from "node:test";
 
 /**
- * QS-064: Im Produktstamm und bei den Vorlagen öffnete „Bearbeiten“ den Editor als
+ * QS-066: Im Produktstamm und bei den Vorlagen öffnete „Bearbeiten“ den Editor als
  * Karte **hinter** der Tabelle. In einer Liste mit sechzig Zeilen sah man nichts: der
  * Editor stand zweitausend Pixel tiefer, der Fokus blieb am Knopf.
  */

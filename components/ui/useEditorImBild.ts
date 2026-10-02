@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 /**
  * Ein Editor, der **unter** einer Liste aufklappt, muss beim Öffnen ins Bild
- * kommen (QS-064).
+ * kommen (QS-066).
  *
  * Im Produktstamm und bei den Vorlagen erschien er als Karte hinter der
  * Tabelle. Wer in einer Liste mit sechzig Zeilen „Bearbeiten“ drückt, sah

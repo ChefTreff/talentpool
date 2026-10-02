@@ -112,7 +112,7 @@ export function ProductEditor({
   const [pending, startTransition] = useTransition();
   const [filter, setFilter] = useState("");
   const [draft, setDraft] = useState<AdminProduct | null>(null);
-  // Der Editor steht hinter der Tabelle: beim Öffnen ins Bild holen (QS-064).
+  // Der Editor steht hinter der Tabelle: beim Öffnen ins Bild holen (QS-066).
   const aufmachen = useEditorImBild(draft, "produkt-editor");
   const [component, setComponent] = useState({ sku: "", qty: "1" });
   /** `null` = kein Merch-Artikel; die leere Liste schaltet die Felder frei. */

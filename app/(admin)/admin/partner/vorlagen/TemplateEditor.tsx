@@ -59,7 +59,7 @@ export function TemplateEditor({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [draft, setDraft] = useState<AdminTemplate | null>(null);
-  // Der Editor steht hinter der Liste: beim Öffnen ins Bild holen (QS-064).
+  // Der Editor steht hinter der Liste: beim Öffnen ins Bild holen (QS-066).
   const aufmachen = useEditorImBild(draft, "vorlagen-editor");
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
