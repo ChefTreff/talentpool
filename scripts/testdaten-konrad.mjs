@@ -53,6 +53,8 @@
  *                                   den Schritt partner)
  *   … --apply --nur=verwaltet      (PART-091: TEST-Speaker, den der Partner verwaltet —
  *                                   Konrad ist der Kontakt, an den die Mails gehen;
+ *                                   mit Hotel-Anspruch für die stellvertretende
+ *                                   Einwilligung — SPK-074-Nachtrag;
  *                                   braucht v6_talk_speaker_zugang und
  *                                   v6_speaker_mail_weiche sowie den Schritt buehne)
  *   … --apply --nur=assistenz      (SPK-071: Konrad als Assistenz eines TEST-Speakers
@@ -108,6 +110,13 @@
  *   … --apply --nur=feedback       (TAL-011: zwei TEST-Feedbacks — eines anonym zum Summit
  *                                   mit Bewertungen, eines mit Klarnamen einer TEST-Person;
  *                                   /admin/feedback)
+ *   … --apply --nur=schichtmodell  (VOL-002: TEST-Vorlage „Einlass“ und Konrads Wunschschicht
+ *                                   auf seiner Testschicht; die Sicherheitsunterweisung bleibt
+ *                                   offen, damit er sie unter /volunteers/schichten selbst
+ *                                   bestätigen kann; /admin/volunteers/vorlagen)
+ *   … --apply --nur=luma-leads     (K-34: ein TEST-Luma-Event und zwei Gäste ohne Profil —
+ *                                   „angemeldet“ wird Lead mit Kanal Luma, „eingeladen“ nicht;
+ *                                   Zählwerte unter /admin/community-events)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -646,6 +655,7 @@ async function apply(me, ed) {
           .upsert({ shift_id: shift.id, person_id: me.id, status: "assigned" }, { onConflict: "shift_id,person_id" }),
       );
     }
+    await schichtmodellSchritt(me, ed);
   } else {
     note("Testschicht und Zuteilung");
   }
@@ -1367,9 +1377,13 @@ async function verwalteterSpeaker(me, ed) {
       p_first_name: "TEST", p_last_name: "Verwaltet", p_email: verwaltetAdresse(),
     });
     if (error) return { data: null, error };
+    // Hotel-Anspruch `eligible` (SPK-074-Nachtrag, K-45): ohne ihn zeigt die Reise-Seite
+    // kein Hotel, und Konrad könnte die stellvertretende Einwilligung für Hotel und
+    // Shuttle nicht im Weg zur Buchung ausprobieren.
     const profil = await admin.from("speaker_profile").upsert({
       person_id: personId, edition_id: ed.id, speaker_type: "panelist", pipeline_status: "confirmed",
       confirmed_at: new Date().toISOString(), owner_person_id: me.id, internal_notes: MARK,
+      hospitality_status: "eligible",
     }, { onConflict: "person_id,edition_id" }).select("id").single();
     if (profil.error) return profil;
     const profileId = profil.data.id;
@@ -2807,6 +2821,36 @@ async function benachrichtigungenSchritt() {
 }
 
 /**
+ * K-34: Luma-Gäste ohne Profil werden Leads (Kanal Luma). Ein TEST-Event, ein angemeldeter Gast
+ * (→ Lead) und ein nur eingeladener (→ kein Lead). Läuft über denselben Weg wie der Cron
+ * (`luma_sync_*`, nur Server), nicht über direkte Inserts.
+ */
+const LUMA_TEST_EVENT = "zztest-luma-leads";
+const lumaAdresse = (i) => email.replace("@", `+zztest-luma-${i}@`);
+
+async function lumaLeadsSchritt() {
+  await write("TEST-Luma-Event", () =>
+    admin.rpc("luma_sync_event", {
+      p_data: {
+        luma_id: LUMA_TEST_EVENT, name: `${PREFIX}Community-Abend (Luma-Leads)`,
+        start_at: "2026-09-10T17:00:00Z", end_at: "2026-09-10T20:00:00Z", timezone: "Europe/Berlin",
+        city: "Hamburg", url: "https://luma.com/zztest-luma-leads",
+      },
+    }));
+  const gaeste = [
+    { i: 1, status: "registered", vor: "TEST", nach: "Luma-Lead", id: "zztest-luma-g1", text: "angemeldet → Lead mit Kanal Luma" },
+    { i: 2, status: "invited", vor: "TEST", nach: "Luma-Eingeladen", id: "zztest-luma-g2", text: "nur eingeladen → kein Lead" },
+  ];
+  for (const g of gaeste) {
+    await write(`TEST-Luma-Gast ${g.nach}: ${g.text}`, () =>
+      admin.rpc("luma_sync_registration", {
+        p_luma_event_id: LUMA_TEST_EVENT, p_email: lumaAdresse(g.i), p_guest_id: g.id, p_status: g.status,
+        p_registered_at: "2026-09-01T10:00:00Z", p_checked_in: false, p_first_name: g.vor, p_last_name: g.nach,
+      }));
+  }
+}
+
+/**
  * TAL-010: ein vergangenes TEST-Community-Event, bei dem Konrad „attended“ ist,
  * mit zwei TEST-Bildern im privaten Bucket event-photos — eines veröffentlicht
  * (sichtbar unter /fotos), eines nicht (nur im Admin).
@@ -2871,6 +2915,29 @@ async function feedbackSchritt() {
       body: `${PREFIX}Eine Merkliste für Masterclasses wäre toll.`,
     });
   });
+}
+
+/**
+ * VOL-002: Vorlage im Admin (`/admin/volunteers/vorlagen`) und eine Wunschschicht an Konrads
+ * Testschicht. Setzt voraus, dass Testbereich, Bewerbung und Testschicht stehen (voller Lauf).
+ */
+async function schichtmodellSchritt(me, ed) {
+  const { data: vorhanden } = await admin.from("shift_template").select("id")
+    .eq("edition_id", ed.id).like("position", `${PREFIX}%`);
+  if ((vorhanden ?? []).length === 0) {
+    await write("TEST-Schichtvorlage (Einlass, 09–13 Uhr)", () =>
+      admin.from("shift_template").insert({
+        edition_id: ed.id, area: AREA_KEY, position: `${PREFIX}Vorlage Einlass`,
+        start_time: "09:00", end_time: "13:00", capacity: 2, location: "Halle A · Eingang Nord",
+        briefing_md: "Testvorlage für die Feedback-Runden.",
+      }));
+  } else note("TEST-Schichtvorlage", "steht schon");
+  const { data: shift } = await admin.from("shift").select("id").eq("area", AREA_KEY).eq("edition_id", ed.id).maybeSingle();
+  if (!shift) return fail("Wunschschicht", "Testschicht fehlt — erst der volle Lauf (Volunteers)");
+  const { data: wunsch } = await admin.from("shift_wish").select("shift_id").eq("person_id", me.id);
+  if ((wunsch ?? []).length > 0) return note("Wunschschicht", "steht schon");
+  await write("Wunschschicht an der Testschicht", () =>
+    admin.from("shift_wish").insert({ person_id: me.id, shift_id: shift.id, rank: 1 }));
 }
 
 async function logoEinwilligung(me, ed) {
@@ -3079,6 +3146,8 @@ const SCHRITTE = {
   benachrichtigungen: benachrichtigungenSchritt,
   "event-fotos": fotosSchritt,
   feedback: feedbackSchritt,
+  "luma-leads": lumaLeadsSchritt,
+  schichtmodell: schichtmodellSchritt,
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
@@ -3133,6 +3202,20 @@ async function remove(me) {
     const ids = (adressen ?? []).map((a) => a.person_id);
     if (ids.length === 0) return { data: null, error: null };
     return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  await write("TEST-Luma-Leads und -Event entfernt", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", [lumaAdresse(1), lumaAdresse(2)]);
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length) {
+      const r = await admin.from("person").delete().in("id", ids).eq("first_name", "TEST").eq("source_first", "luma").is("auth_user_id", null);
+      if (r.error) return r;
+    }
+    const { data: ref } = await admin.from("external_ref").select("object_id")
+      .eq("system", "luma").eq("object_type", "event").eq("external_id", LUMA_TEST_EVENT).maybeSingle();
+    if (!ref) return { data: null, error: null };
+    await admin.from("external_ref").delete().eq("system", "luma").eq("object_type", "event").eq("external_id", LUMA_TEST_EVENT);
+    return admin.from("event").delete().eq("id", ref.object_id);
   });
   await write("TEST-Feedbacks entfernt", () =>
     admin.from("feedback_entry").delete().like("body", `${PREFIX}%`),
@@ -3236,6 +3319,8 @@ async function remove(me) {
   await write("Schicht-Zuteilungen entfernt", () =>
     admin.from("shift_assignment").delete().eq("person_id", me.id),
   );
+  await write("Wunschschichten entfernt", () => admin.from("shift_wish").delete().eq("person_id", me.id));
+  await write("Schichtvorlagen entfernt", () => admin.from("shift_template").delete().like("position", `${PREFIX}%`));
   await write("Testschichten entfernt", () => admin.from("shift").delete().eq("area", AREA_KEY));
   await write("Volunteer-Bewerbung entfernt", () =>
     admin.from("volunteer_profile").delete().eq("person_id", me.id).eq("notes_internal", MARK),

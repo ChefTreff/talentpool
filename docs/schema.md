@@ -2,11 +2,21 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 09:19 UTC · 119 Tabellen · 6 Views · 687 Funktionen
+> Stand: 2026-10-02 14:30 UTC · 122 Tabellen · 6 Views · 707 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
 ## Tabellen
+
+### `ac_contact`
+Was in ActiveCampaign für diese Person gesetzt ist (Kontakt-Id, Themen-Tags). Nur Server (ActiveCampaign-Sync, TAL-009).
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `person_id` | uuid | PK |  | `person.id` |  |
+| `ac_contact_id` | text | ja |  |  |  |
+| `topics` | text[] | ja |  |  |  |
+| `synced_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `admin_section_override`
 ADM-053: Ausnahmen zur Abschnitts-Vorgabe aus lib/admin-sections.ts. Je Zeile entweder eine Rolle oder eine Person; `allowed` schaltet an oder aus. Person schlägt Rolle, Rolle schlägt Vorgabe; `admin` sieht immer alles und ist nicht abschaltbar.
@@ -1546,6 +1556,7 @@ Vom Speaker eingereichte Session-Inhalte; final steht in session (Freigabe kopie
 | `active` | boolean | ja | `true` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `template_id` | uuid |  |  | `shift_template.id` |  |
 
 ### `shift_assignment`
 
@@ -1562,6 +1573,37 @@ Vom Speaker eingereichte Session-Inhalte; final steht in session (Freigabe kopie
 | `assigned_by` | uuid |  |  | `person.id` |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `shift_template`
+Schicht-Vorlage (VOL-002/S3): Bereich, Position, Uhrzeiten in der Ortszeit des Events, Plätze. apply_shift_templates legt daraus Schichten für Tage an (shift.template_id). Nur über Funktionen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `area` | text | ja |  |  |  |
+| `position` | text | ja |  |  |  |
+| `start_time` | time without time zone | ja |  |  |  |
+| `end_time` | time without time zone | ja |  |  |  |
+| `weekday` | integer |  |  |  |  |
+| `capacity` | integer | ja | `1` |  |  |
+| `overbook` | integer | ja | `0` |  |  |
+| `location` | text |  |  |  |  |
+| `briefing_md` | text |  |  |  |  |
+| `sort_order` | integer | ja | `0` |  |  |
+| `active` | boolean | ja | `true` |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `shift_wish`
+Wunschschichten (VOL-002, K-44): angenommene Volunteers wählen 1–5 Schichten in Reihenfolge; zugeteilt wird vom Team. Nur über Funktionen.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `person_id` | uuid | PK |  | `person.id` |  |
+| `shift_id` | uuid | PK |  | `shift.id` |  |
+| `rank` | integer | ja |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `shop_order`
 Messeshop-Bestellung je Partner × Edition × Phase; MS-JJJJ-NNNN; eine aktive je Org und Phase.
@@ -2162,6 +2204,8 @@ Widerrufene Volunteer-Coupons, die bei vivenu noch zu deaktivieren sind (`deacti
 | `ticket_id` | uuid |  |  | `ticket.id` |  |
 | `coupon_error` | text |  |  |  |  |
 | `reminded_at` | timestamp with time zone |  |  |  |  |
+| `safety_ack_at` | timestamp with time zone |  |  |  | Sicherheitsunterweisung gelesen (VOL-002, K-44: Pflicht für alle), einmal je Edition; safety_ack_version = Fassung des Textes. |
+| `safety_ack_version` | text |  |  |  |  |
 
 ## Views
 
@@ -2272,7 +2316,16 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 
 | Funktion | Parameter |
 |---|---|
+| `ac_apply_unsubscribe` | p_email: text |
+| `ac_mark_removed` | p_person_id: uuid |
+| `ac_mark_synced` | p_contact_id: text, p_person_id: uuid, p_topics: text[] |
+| `ac_outbound_rows` | args: ? |
+| `ac_sync_outbound` | p_limit: integer |
+| `ac_sync_status` | args: ? |
+| `ac_sync_withdrawn` | p_limit: integer |
+| `ac_withdrawn_rows` | args: ? |
 | `access_accounts` | p_limit: integer, p_offset: integer, p_query: text |
+| `ack_volunteer_safety` | p_edition_id: uuid, p_version: text |
 | `active_roles` | args: ? |
 | `add_speaker_activity` | p_data: jsonb, p_profile_id: uuid |
 | `add_suppression` | p_email: text, p_reason: text |
@@ -2285,6 +2338,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `applications_for_session` | p_session_id: uuid |
 | `applications_overview` | p_event_id: uuid |
 | `apply_hackathon` | p_data: jsonb |
+| `apply_shift_templates` | p_day_ids: uuid[], p_edition_id: uuid, p_template_ids: uuid[] |
 | `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
 | `apply_volunteer` | p_data: jsonb |
 | `approve_expense` | p_claim_id: uuid, p_note: text |
@@ -2405,6 +2459,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_reception` | p_id: uuid |
 | `delete_regie_cue` | p_id: uuid |
 | `delete_session_asset` | p_id: uuid |
+| `delete_shift_template` | p_id: uuid |
 | `delete_speaker_activity` | p_id: uuid |
 | `delete_speaker_asset` | p_id: uuid |
 | `delete_speaker_task` | p_task_id: uuid |
@@ -2533,8 +2588,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `log_access_invite` | p_person_id: uuid |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
 | `logo_category_of` | p_org_edition_id: uuid |
+| `luma_lead_stats` | args: ? |
 | `luma_sync_event` | p_data: jsonb |
-| `luma_sync_registration` | p_checked_in: boolean, p_email: text, p_guest_id: text, p_luma_event_id: text, p_registered_at: timestamp with time zone, p_status: text |
+| `luma_sync_registration` | p_checked_in: boolean, p_email: text, p_first_name: text, p_guest_id: text, p_last_name: text, p_luma_event_id: text, p_registered_at: timestamp with time zone, p_status: text |
 | `mail_cc_recipients` | p_person_ids: uuid[] |
 | `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
 | `mail_log_admin` | p_from: timestamp with time zone, p_limit: integer, p_offset: integer, p_person_id: uuid, p_query: text, p_status: text, p_template: text, p_to: timestamp with time zone |
@@ -2595,6 +2651,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_ticket_wallet_link` | p_ticket_id: uuid |
 | `my_tickets` | args: ? |
 | `my_volunteer_profile` | p_edition_id: uuid |
+| `my_volunteer_safety` | p_edition_id: uuid |
 | `next_up_items` | args: ? |
 | `next_up_items_admin` | args: ? |
 | `notification_reachable` | p_person_id: uuid |
@@ -2782,6 +2839,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_logo_whitening_consent` | p_edition_id: uuid, p_granted: boolean, p_org_id: uuid |
 | `set_my_cv` | p_path: text |
 | `set_my_photo` | p_path: text |
+| `set_my_shift_wishes` | p_edition_id: uuid, p_shift_ids: uuid[] |
 | `set_my_speaker_profile` | p_profile_id: uuid |
 | `set_my_speaker_travel` | p_data: jsonb, p_edition_id: uuid |
 | `set_org_contacts` | p_buddy: uuid, p_lead: uuid, p_org_edition_id: uuid |
@@ -2821,6 +2879,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `sevdesk_document_targets` | p_edition_id: uuid |
 | `shift_plan` | p_day: uuid, p_edition_id: uuid |
 | `shift_taken` | p_shift_id: uuid |
+| `shift_templates` | p_edition_id: uuid |
+| `shift_wishes` | p_edition_id: uuid |
 | `shop_admin_set_line` | p_merch_config: jsonb, p_order_id: uuid, p_qty: numeric, p_sku: text |
 | `shop_admin_set_status` | p_note: text, p_order_id: uuid, p_status: text |
 | `shop_cancel` | p_order_id: uuid |
@@ -2937,6 +2997,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_regie_cue` | p_data: jsonb |
 | `upsert_session` | p_data: jsonb |
 | `upsert_shift` | p_data: jsonb |
+| `upsert_shift_template` | p_data: jsonb |
 | `upsert_speaker` | p_data: jsonb |
 | `upsert_speaker_contact` | p_data: jsonb |
 | `upsert_speaker_task` | p_data: jsonb |
@@ -2957,5 +3018,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `volunteer_days` | p_edition_id: uuid |
 | `volunteer_edition` | p_edition_id: uuid |
 | `volunteer_tickets_admin` | p_edition_id: uuid |
+| `volunteers_without_safety_ack` | p_edition_id: uuid |
+| `volunteers_without_wish` | p_edition_id: uuid |
+| `wishable_shifts` | p_edition_id: uuid |
 | `withdraw_application` | p_application_id: uuid |
 | `withdraw_hack_request` | p_request_id: uuid |

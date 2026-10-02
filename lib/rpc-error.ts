@@ -124,6 +124,10 @@ const BUSINESS_KEYS = new Set([
   "feedback_limit",
   "invalid_rating",
   "missing_field",
+  // Schichtmodell Volunteers (VOL-002)
+  "safety_ack_required",
+  "wish_required",
+  "too_many_wishes",
   // „Next Up" (TAL-006)
   "invalid_link_url",
   "next_up_not_found",

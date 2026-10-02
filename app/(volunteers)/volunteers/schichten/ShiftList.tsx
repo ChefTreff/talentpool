@@ -27,6 +27,7 @@ export function ShiftList({
   locale,
   dateLocale,
   timeZone,
+  safetyAcked,
   t,
   common,
   rpcMessages,
@@ -38,6 +39,8 @@ export function ShiftList({
   dateLocale: string;
   /** Zeitzone der Edition — Schichten stehen in Ortszeit, nicht in Browserzeit. */
   timeZone: string;
+  /** Ohne bestätigte Sicherheitsunterweisung lässt die Datenbank keine Bestätigung zu. */
+  safetyAcked: boolean;
   t: Strings;
   common: { cancel: string };
   rpcMessages: Record<string, string>;
@@ -99,13 +102,15 @@ export function ShiftList({
                 </p>
               )}
               {s.status === "waitlisted" && <p className="ct-help mt-2">{t.waitlistHint}</p>}
+              {s.status === "assigned" && !safetyAcked && <p className="ct-help mt-2">{t.safetyRequired}</p>}
             </div>
 
             <div className="flex flex-wrap gap-2">
               {s.status === "assigned" && (
                 <Button
                   size="sm"
-                  disabled={pending}
+                  disabled={pending || !safetyAcked}
+                  title={safetyAcked ? undefined : t.safetyRequired}
                   onClick={() => run(confirmShift(s.assignment_id), t.confirmed)}
                 >
                   {t.confirm}

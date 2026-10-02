@@ -246,7 +246,10 @@ export function GrafikMaske({
               value={lage.zoom}
               disabled={!hatBild}
               onChange={(e) => setLage((l) => ({ ...l, zoom: Number(e.target.value) }))}
-              className="mt-2 w-full accent-accent"
+              // 44 px Höhe für grobe Zeiger (SPK-079): der Regler selbst ist nur 16 px
+              // hoch — am Handy war die Größe kaum zu greifen. Die Fläche wächst,
+              // die Spur bleibt dünn und mittig; am Rechner ändert sich nichts.
+              className="mt-2 w-full accent-accent pointer-coarse:h-11"
             />
           </label>
 

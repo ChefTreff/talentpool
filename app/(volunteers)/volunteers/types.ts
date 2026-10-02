@@ -66,3 +66,20 @@ export type ApplyDraft = {
 export function canSeeShifts(profile: VolunteerProfile | null): boolean {
   return profile?.status === "accepted";
 }
+
+/** Zeile aus `wishable_shifts()` — nur Bereich, Position, Zeit und Ort; keine Belegung, keine Namen. */
+export type WishableShift = {
+  id: string;
+  event_day_id: string | null;
+  day_label_de: string | null;
+  day_label_en: string | null;
+  area: string;
+  position: string;
+  start_at: string;
+  end_at: string;
+  location: string | null;
+  wish_rank: number | null;
+};
+
+/** Rückgabe von `my_volunteer_safety()` — leer, solange nichts bestätigt ist. */
+export type VolunteerSafety = { acknowledged_at: string | null; version: string | null };

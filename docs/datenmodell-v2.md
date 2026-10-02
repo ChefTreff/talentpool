@@ -184,6 +184,10 @@
 | Welle 6 · 0257 | **Event-Fotos je besuchtem Event: privater Bucket event-photos, Lesen nur mit Check-in, Verwaltung im Abschnitt photos, Löschwunsch (TAL-010)** (`20261002091014`, `v6_event_fotos`; Details im Migrationskopf) | — |
 | Welle 6 · 0258 | **Matterport-3D-Rundgang als Link-Eintrag partner_3d_tour für Partner (PART-093)** (`20261002091443`, `v6_partner_3d_tour`; Details im Migrationskopf) | — |
 | Welle 6 · 0259 | **Feedback-Fenster: anonym oder mit Klarnamen, Tageslimit ohne Uhrzeit, Abschnitt feedback (TAL-011)** (`20261002091904`, `v6_feedback`; Details im Migrationskopf) | — |
+| Welle 6 · 0260 | **Schichtmodell 2027: Bereiche, Vorlagen je Wochentag, Sicherheitsunterweisung versioniert, Wunschschichten (VOL-002, K-44)** (`20261002140832`, `v6_volunteers_schichtmodell`; Details im Migrationskopf) | — |
+| Welle 6 · 0261 | **Luma-Gäste ohne Profil als Lead mit Kanal luma, Zählwerte für den Admin (K-34, TAL-007)** (`20261002141557`, `v6_luma_leads`; Details im Migrationskopf) | — |
+| Welle 6 · 0262 | **Stellvertretende Einwilligungen: Ops-Kontakt bestätigt alle vier, stellvertretende Textfassung (K-45, K-46, SPK-074)** (`20261002142337`, `v6_einwilligung_alle_stellvertretend`; Details im Migrationskopf) | — |
+| Welle 6 · 0263 | **ActiveCampaign-Sync: Stand je Kontakt, Server-Funktionen für Abgleich und Widerruf, Zahlen für den Admin (TAL-009)** (`20261002143012`, `v6_activecampaign_sync`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

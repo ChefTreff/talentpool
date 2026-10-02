@@ -71,6 +71,13 @@ export default async function SpeakerPage() {
     );
   }
 
+  // SPK-074 (K-45): im Verwaltet-Fall bestätigt der Kontakt mit Zugang alle
+  // Einwilligungen stellvertretend — der Hinweis für die Assistenz oben sagt
+  // dann nicht mehr, nur die Speakerin selbst könne sie geben.
+  const { data: stellvertretend } = profile.is_assistant
+    ? await supabase.rpc("can_confirm_consent_on_behalf", { p_profile_id: profile.id })
+    : { data: false };
+
   // Die Veranstaltungstage stehen an der Edition. Der Helfer liegt in
   // `lib/event-days.ts`, weil die Kalenderroute dieselbe Liste braucht.
   const summit = await loadSummit(supabase, profile.edition_id);
@@ -329,7 +336,9 @@ export default async function SpeakerPage() {
       {profile.is_assistant && (
         <p className="mb-6 rounded-ct-md border border-accent-soft bg-accent-soft px-4 py-3 ct-small text-accent-deep">
           {t.speaker.assistantBanner.replace("{name}", speakerName)}{" "}
-          {t.speaker.assistantConsentNote}
+          {stellvertretend === true
+            ? t.speaker.assistantConsentNoteOnBehalf
+            : t.speaker.assistantConsentNote}
         </p>
       )}
 

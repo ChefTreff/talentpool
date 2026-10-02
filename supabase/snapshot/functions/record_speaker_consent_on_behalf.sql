@@ -24,8 +24,8 @@ begin
   end if;
   -- Erst alles prüfen, dann schreiben: ein unzulässiger Schlüssel lässt nichts halb stehen.
   for v_key, v_val in select e.key, e.value from jsonb_each(p_consents) e loop
-    if v_key not in ('photo_video', 'speaker_release', 'slides_publication') then
-      -- `hospitality_data` (Hotel und Shuttle) nennt K-40 nicht — sie bleibt bei der Speakerin selbst.
+    if v_key not in ('photo_video', 'speaker_release', 'slides_publication', 'hospitality_data') then
+      -- Die vier Einwilligungen des Speaker-Portals (K-40, K-45); alles andere ist keine, die ein Kontakt geben kann.
       raise exception 'consent_type_not_allowed' using errcode = '22023', detail = v_key;
     end if;
     if jsonb_typeof(v_val) <> 'boolean' then
@@ -40,9 +40,10 @@ begin
     -- Nur, was neu, umentschieden oder auf eine neuere Textfassung bezogen ist.
     if not found or v_vorher.granted is distinct from v_granted or v_vorher.version is distinct from btrim(p_version) then
       -- Ein Widerruf ist wie im Portal eine Zeile mit `granted = false`.
+      -- `wording = 'proxy'`: bestätigt mit der stellvertretenden Textfassung (K-46).
       insert into consent_record (person_id, consent_type, version, granted, source, meta)
       values (v_sp.person_id, v_key, btrim(p_version), v_granted, 'stellvertretend',
-              jsonb_build_object('by_person_id', v_me, 'contact_id', v_contact, 'profile_id', v_sp.id));
+              jsonb_build_object('by_person_id', v_me, 'contact_id', v_contact, 'profile_id', v_sp.id, 'wording', 'proxy'));
       v_n := v_n + 1;
     end if;
   end loop;

@@ -11,7 +11,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { addDays, dayInZone, formatDay } from "@/lib/tz";
-import { saveSpeakerConsents } from "../actions";
+import { saveSpeakerConsents, saveSpeakerConsentsOnBehalf } from "../actions";
 import { bookHospitality, cancelHospitality } from "./actions";
 import {
   DETAIL_FIELDS,
@@ -87,6 +87,9 @@ function ArtZeichen({ kind }: { kind: string }) {
 
 export function TravelView({
   isAssistant,
+  consentOnBehalf,
+  profileId,
+  speakerName,
   options,
   bookings,
   locale,
@@ -96,6 +99,15 @@ export function TravelView({
   rpcMessages,
 }: {
   isAssistant: boolean;
+  /**
+   * SPK-074 (K-45): der Kontakt mit Zugang im Verwaltet-Fall gibt die
+   * Einwilligung für Hotel und Shuttle stellvertretend
+   * (`can_confirm_consent_on_behalf`) — im Weg zur Buchung, wie die Speakerin
+   * selbst, nur mit der stellvertretenden Textfassung.
+   */
+  consentOnBehalf: boolean;
+  profileId: string;
+  speakerName: string;
   options: HospitalityOption[];
   bookings: HospitalityBooking[];
   locale: Locale;
@@ -215,7 +227,9 @@ export function TravelView({
   function onGiveConsent(option: HospitalityOption | null) {
     setConsentError(null);
     startTransition(async () => {
-      const res = await saveSpeakerConsents({ hospitality_data: true });
+      const res = consentOnBehalf
+        ? await saveSpeakerConsentsOnBehalf(profileId, { hospitality_data: true })
+        : await saveSpeakerConsents({ hospitality_data: true });
       if (!res.ok) {
         setConsentError(message(res.key));
         return;
@@ -251,8 +265,10 @@ export function TravelView({
       {/* Die Assistenz darf die Einwilligung nicht geben (Antwort 58). Für sie
           bleibt der Hinweis oben stehen — bei ihr führt kein Klick weiter, also
           wäre ein Pop-up nach dem Klick eine Sackgasse statt einer Erklärung.
-          Für den Speaker selbst steht der Hinweis jetzt am Knopf (SPK-017). */}
-      {blockReason === "consent" && isAssistant && (
+          Für den Speaker selbst steht der Hinweis jetzt am Knopf (SPK-017),
+          ebenso für den Kontakt, der im Verwaltet-Fall stellvertretend
+          bestätigt (SPK-074, K-45). */}
+      {blockReason === "consent" && isAssistant && !consentOnBehalf && (
         <Card className="p-6">
           <h2 className="ct-h3 mb-2 text-ink">{t.consentNeededTitle}</h2>
           <p className="ct-help">{t.consentHospitality}</p>
@@ -330,7 +346,9 @@ export function TravelView({
               // ab (SPK-017). Alle anderen Gründe — Status, Absage — sind
               // nichts, was ein Klick ändern könnte; dort gibt es keinen Knopf.
               const needsConsent =
-                !o.eligible && o.block_reason === "consent" && !isAssistant;
+                !o.eligible &&
+                o.block_reason === "consent" &&
+                (!isAssistant || consentOnBehalf);
               return (
                 <Card as="li" key={o.quota_id} className="p-4">
                   <div className="flex flex-wrap items-start justify-between gap-4">
@@ -537,7 +555,11 @@ export function TravelView({
       {askConsent && (
         <ConfirmDialog
           title={t.consentNeededTitle}
-          body={t.consentHospitality}
+          body={
+            consentOnBehalf
+              ? t.consentHospitalityOnBehalf.replaceAll("{name}", speakerName || "—")
+              : t.consentHospitality
+          }
           detail={
             <>
               <p className="ct-label">{label(askConsent)}</p>
@@ -551,7 +573,7 @@ export function TravelView({
               )}
             </>
           }
-          confirmLabel={t.consentAskConfirm}
+          confirmLabel={consentOnBehalf ? t.consentOnBehalfSave : t.consentAskConfirm}
           cancelLabel={common.cancel}
           pending={pending}
           onCancel={() => {

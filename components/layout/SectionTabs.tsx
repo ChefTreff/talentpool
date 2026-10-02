@@ -19,6 +19,13 @@ export type SectionTab = {
    * Detailseite den Reiter ihrer Liste markiert.
    */
   detailPattern?: string;
+  /**
+   * Der Reiter ist aktiv, ob der Pfad es hergibt oder nicht. Für Reiter, die
+   * über die **Adresszeile** wechseln (`?bereich=dateien`): `usePathname()` kennt
+   * die Abfrage nicht, die Seite weiß es aber (QS-059). Setzt die Seite `aktiv`,
+   * gilt es statt der Pfadprüfung.
+   */
+  aktiv?: boolean;
 };
 
 /** Reiter innerhalb eines Admin-Bereichs. Client nur wegen `usePathname()`. */
@@ -27,7 +34,7 @@ export function SectionTabs({ items, label }: { items: SectionTab[]; label: stri
   return (
     <nav aria-label={label} className="mb-6 flex flex-wrap gap-1 border-b pb-3">
       {items.map((item) => {
-        const active = item.exact
+        const active = item.aktiv !== undefined ? item.aktiv : item.exact
           ? pathname === item.href ||
             (item.detailPattern ? new RegExp(item.detailPattern).test(pathname) : false)
           : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -37,7 +44,8 @@ export function SectionTabs({ items, label }: { items: SectionTab[]; label: stri
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors",
+              // 32 px am Desktop, am Handy 44 (QS-059, Touch-Ziele wie QS-057).
+              "inline-flex items-center rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors pointer-coarse:min-h-11",
               active
                 ? "bg-accent-soft text-accent-deep"
                 : "text-muted hover:bg-surface-hover hover:text-ink",

@@ -43,6 +43,8 @@ Reihenfolge im Bereich: Shell (`SidebarShell` mit `area` und `width`) → `PageH
 </form>
 ```
 
+**Kontrollkästchen und Optionsfelder bekommen die Markenfarbe von `globals.css`** (QS-060: eine Regel in `@layer base`, `accent-color: accent-strong`). Kein `accent-…` von Hand an einem Kästchen; sonst malt der Browser Systemblau neben dem Violett der Knöpfe. **Wörterbuchtexte sind reiner Text** (QS-061): kein `**fett**`, keine Backticks — sie stünden wörtlich in der Oberfläche; der Test `markenfarbe-woerterbuch` prüft es.
+
 **Ungesicherte Änderungen** (QS-051): Lange Formulare mit Entwurf (Profil, Reise, Daten, Inhalte) warnen vor dem Verlassen — `const warnung = useUngesichert(geaendert, t.common.unsaved)` und `{warnung}` im Formular rendern. „Geändert“ heisst: anders als der **zuletzt gespeicherte** Stand (`basis` neben `entwurf`), nicht anders als die Server-Daten — der Server normalisiert, und eine eben gespeicherte Eingabe sähe sonst geändert aus. Neuladen und Tab schliessen fragt der Browser, Links im Portal der Kit-`ConfirmDialog`; der Zurück-Knopf bleibt ungefragt (der App Router bietet keine Sperre). Knöpfe in Dialogen tragen `type="button"`, sonst schicken sie ein umgebendes Formular ab.
 
 Label über dem Feld, Hilfetext darunter, Fehler am Feld (nicht im Toast), Pflicht mit „*" **und** Wort im Label. Feldhöhe 40, Radius 8, Fokusring 2 px Akzent. Keine Platzhalter als Ersatz für Labels.
@@ -50,6 +52,8 @@ Label über dem Feld, Hilfetext darunter, Fehler am Feld (nicht im Toast), Pflic
 ## Tabelle
 
 Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
+
+**Ein Editor, der unter einer Liste aufklappt, kommt beim Öffnen ins Bild** (QS-066): `useEditorImBild(entwurf, id)` aus dem Kit — `aufmachen()` vor dem Setzen des Entwurfs, `<Card id="…">` am Editor; die Seite springt (ohne Animation) und der Fokus geht ins erste Feld. Im Produktstamm und bei den Vorlagen stand der Editor hinter der Tabelle: wer in sechzig Zeilen „Bearbeiten“ drückte, sah nichts. Wo der Editor nicht die ganze Breite braucht, ist ein `Drawer` der bessere Weg (Wiki, Initiativen) — dann entfällt das Problem.
 
 **Knöpfe in Zeilen und Touch-Ziele** (QS-057): Auf groben Zeigern sind Kit-Knöpfe und -Felder 44 px hoch. Eine Zeile mit Bedienelementen ist `<Tr controls>` (56) und springt dadurch nicht; in einer gewöhnlichen 44-px-Zeile wächst sie mit einem 44-px-Knopf nur um den 1 px breiten Zeilenrand (gemessen 44 → 45 px, nur am Handy). Wer Knöpfe in Zeilen setzt, setzt `controls`.
 
@@ -86,6 +90,8 @@ Die Marker sind Sechsecke auf einer durchgehenden Linie — waagerecht ab 640 px
 `SidebarShell`: Navy-Seitenleiste, oben links Bereichsname („CHEFTREFF SPEAKER PORTAL"), Gruppen *Übersicht · Profil/Unternehmen · Summit · Formate · Support*. Wer nur einen Bereich hat, sieht keine Spur der anderen — kein Umschalter, keine Links, nichts im HTML (Feedback-Runde 1, Punkt 2).
 
 **Den Fuss zieht die Shell, nicht die Seite.** `SidebarShell` rendert `PortalFooter` selbst: Rollen-Postfach des Bereichs (`mailboxFor`), Impressum und Datenschutz auf die Hauptwebsite. Keine Seite setzt ihn noch einmal — vorher taten es zwei von 94, und die Pflichtangaben fehlten auf dem Rest. Ein eigenes Postfach gibt die Seite über `mailbox` mit.
+
+**Wechselt ein Bereich über die Adresszeile (`?bereich=dateien`), sind es Reiter, keine Knopfreihe** (QS-059): `SectionTabs` mit `aktiv` an jedem Eintrag — `usePathname()` kennt die Abfrage nicht, die Seite weiß es. Eine Reihe aus `ButtonLink` (`secondary` für den aktuellen, `ghost` für die übrigen) sah in Medien und Dubletten anders aus als alle anderen Verwaltungsseiten und machte den aktuellen Bereich zum Knopf.
 
 **Der Testbetrieb-Hinweis sitzt in der Shell, einmal** (QS-056 c, ab 02.10.2026): `TestbetriebHinweis`, ein schmaler Streifen unter der Kopfzeile in `warning-soft`/`warning-ink` (5,1:1), `role="note"`. Er sagt, womit man spielen darf — Daten mit `ZZTEST` sind Testdaten, alles andere ist echt. **Eine Zeile, kein Overlay, nichts zum Wegklicken:** am Handy steht nur der Kernsatz (`kurz`), der zweite Satz (`mehr`) erst ab `md`. Eine Seite baut ihn nie selbst ein — sonst stünden zwei Streifen untereinander, und die zentrale Abschaltung (`NEXT_PUBLIC_TESTBETRIEB_HINWEIS=false` zum Go-live, `lib/testbetrieb.ts`) liefe an ihr vorbei. Der Einlass hat bewusst keine Shell und zeigt ihn nicht. Dasselbe Muster taugt für jeden anderen Umgebungshinweis: ein Streifen in der Shell, ein Schalter, kein zweites Banner in einer Seite.
 

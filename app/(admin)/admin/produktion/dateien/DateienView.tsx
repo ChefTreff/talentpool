@@ -171,7 +171,7 @@ export function DateienView({
           <input
             id={`${idPrefix}-${key}`}
             type="checkbox"
-            className="h-4 w-4 accent-accent"
+            className="h-4 w-4"
             checked={wert.includes(key)}
             onChange={(e) => setze(e.target.checked ? [...wert, key] : wert.filter((x) => x !== key))}
           />
@@ -244,10 +244,16 @@ export function DateienView({
                 className="flex flex-wrap items-center gap-3 border-b px-4 py-2.5 last:border-b-0"
               >
                 <Badge tone="neutral">{kinds[f.kind] ?? f.kind}</Badge>
-                <span className="ct-small min-w-0 flex-1 text-ink">
+                {/* `basis-48` statt `flex-1` (Basis 0): sonst schrumpfte die Textspalte neben den Marken
+                    am Handy auf wenige Pixel, ein Wort je Zeile, und der lange Dateiname lief über die
+                    Nachbarn. Mit Mindestbasis wandert der Rest in die nächste Zeile; `break-words`
+                    bricht Namen ohne Leerzeichen. */}
+                <span className="ct-small min-w-0 grow basis-48 break-words text-ink">
                   {f.label_de ?? f.filename}
                   <span className="ct-help block">
-                    {f.filename} · {dateTime.format(new Date(f.created_at))}
+                    {/* Ohne Beschriftung ist der Dateiname schon der Titel — nicht noch einmal darunter. */}
+                    {f.label_de ? `${f.filename} · ` : ""}
+                    {dateTime.format(new Date(f.created_at))}
                   </span>
                 </span>
                 <span className="flex flex-wrap gap-1">
