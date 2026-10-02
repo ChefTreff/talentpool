@@ -2,11 +2,21 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 14:23 UTC · 121 Tabellen · 6 Views · 699 Funktionen
+> Stand: 2026-10-02 14:30 UTC · 122 Tabellen · 6 Views · 707 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
 ## Tabellen
+
+### `ac_contact`
+Was in ActiveCampaign für diese Person gesetzt ist (Kontakt-Id, Themen-Tags). Nur Server (ActiveCampaign-Sync, TAL-009).
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `person_id` | uuid | PK |  | `person.id` |  |
+| `ac_contact_id` | text | ja |  |  |  |
+| `topics` | text[] | ja |  |  |  |
+| `synced_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `admin_section_override`
 ADM-053: Ausnahmen zur Abschnitts-Vorgabe aus lib/admin-sections.ts. Je Zeile entweder eine Rolle oder eine Person; `allowed` schaltet an oder aus. Person schlägt Rolle, Rolle schlägt Vorgabe; `admin` sieht immer alles und ist nicht abschaltbar.
@@ -2306,6 +2316,14 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 
 | Funktion | Parameter |
 |---|---|
+| `ac_apply_unsubscribe` | p_email: text |
+| `ac_mark_removed` | p_person_id: uuid |
+| `ac_mark_synced` | p_contact_id: text, p_person_id: uuid, p_topics: text[] |
+| `ac_outbound_rows` | args: ? |
+| `ac_sync_outbound` | p_limit: integer |
+| `ac_sync_status` | args: ? |
+| `ac_sync_withdrawn` | p_limit: integer |
+| `ac_withdrawn_rows` | args: ? |
 | `access_accounts` | p_limit: integer, p_offset: integer, p_query: text |
 | `ack_volunteer_safety` | p_edition_id: uuid, p_version: text |
 | `active_roles` | args: ? |

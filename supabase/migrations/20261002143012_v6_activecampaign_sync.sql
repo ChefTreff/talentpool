@@ -1,4 +1,5 @@
--- 0000 · ActiveCampaign-Sync: Themen als Tags, Abmeldungen zurück (TAL-009, K-43)
+-- 0263 · ActiveCampaign-Sync: Stand je Kontakt, Server-Funktionen für Abgleich und Widerruf, Zahlen für den Admin (TAL-009)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002143012.
 -- Anlass: Konzept docs/talent-konzepte-009-011.md, Konrads Antworten K-43 (02.10.2026): der
 -- ActiveCampaign-Schlüssel legt Konrad an, der Sync kommt als eigener Baustein vor dem 01.11.
 -- Masterplan: aus = Segmente/Tags, ein = Opt-in/Abmeldung, täglich, Log und Diff-Report.
