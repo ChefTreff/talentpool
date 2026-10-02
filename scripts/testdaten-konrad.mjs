@@ -34,6 +34,9 @@
  *   … --apply --nur=bewerbungen    (ADM-003: drei TEST-Masterclasses mit je 20 TEST-
  *                                   Bewerbungen ohne Mail, jede dritte ohne Einwilligung —
  *                                   Liste, Filter, Blättern und Sammelaktion im Admin)
+ *   … --apply --nur=produktion     (PROD-004/005: eine TEST-Shop-Bestellung der Test-Organisation
+ *                                   (Phase 2, pending: Kicker, Barhocker) ohne Mail und Lagerbuchung —
+ *                                   Produktionsliste je Stand mit Paket, Angebot und Shop; braucht partner)
  *   … --apply --nur=formate        (PART-082: Side-Event und Interview Table der Test-
  *                                   Organisation mit Fläche, Session und Konrads
  *                                   Bewerbung ohne Mail; braucht partner)
@@ -1912,6 +1915,93 @@ async function bewerbungenSchritt(me, ed) {
 }
 
 /**
+ * Schritt `produktion` (PROD-004/005): eine TEST-Shop-Bestellung der Test-Organisation,
+ * damit die Produktionsliste je Stand (`/admin/produktion/staende`) und die Bestellliste
+ * (`/admin/produktion/bestellungen`) alle drei Quellen zeigen: die Paketausstattung kommt aus
+ * dem gebuchten Standpaket (`I-50131`, Schritt `partner`), das Angebot aus den gebuchten
+ * Leistungen, der Shop aus dieser Bestellung — Tischkicker ×1 und Tolix Barhocker ×4 (der
+ * Barhocker steckt auch im Paket: Paket 2 + Shop 4 = 6).
+ *
+ * **Phase 2, Status `pending`:** In Phase 1 liegt schon die Bestellung aus Konrads Walkthrough
+ * (`editing`, Lunch-Paket); je Organisation und Phase ist nur eine aktive erlaubt. `pending` zählt
+ * in der Liste als bestätigt, aber noch änderbar („davon 4 offen“) und läuft nicht in den
+ * Rechnungslauf — `completed` würde `shop_invoice_candidates` aufnehmen. Direkt geschrieben, ohne
+ * die Shop-RPCs: keine Mail, keine Lagerbuchung. Die Bestellung geht mit der Test-Organisation
+ * (`--remove`). Ein zweiter Lauf setzt die Mengen zurück. Braucht den Schritt `partner`.
+ *
+ * **Standpakete auf Menge 1:** Der volle `apply` bucht die ersten vier Rollen-Produkte mit Menge 5 —
+ * dabei das Standbühnen-Paket (18 qm). Die Standgröße in der Produktionsliste rechnet Fläche × Menge,
+ * und „5 × 18 qm“ wäre ein Stand von 99 qm. Der Schritt setzt Standpakete mit Fläche deshalb auf 1;
+ * er verringert nur Mengen über 1 und lässt alles andere stehen.
+ */
+const PRODUKTION_BESTELLNR = "ZZTEST-MS-0001";
+const PRODUKTION_ZEILEN = [
+  { sku: "I-27094", qty: 1 }, // Tischkicker
+  { sku: "I-53563", qty: 4 }, // Tolix Barhocker (steckt auch im Standpaket)
+];
+
+async function produktionSchritt(me, ed) {
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  const { data: oe } = org
+    ? await admin.from("org_edition").select("id").eq("org_id", org.id).eq("edition_id", ed.id).maybeSingle()
+    : { data: null };
+  if (!oe) return fail("Produktionsliste", "Test-Organisation fehlt — zuerst --nur=partner");
+
+  const { data: vorhanden } = await admin.from("shop_order").select("id, status")
+    .eq("org_edition_id", oe.id).eq("order_no", PRODUKTION_BESTELLNR).maybeSingle();
+  if (!vorhanden) {
+    const { data: belegt } = await admin.from("shop_order").select("order_no")
+      .eq("org_edition_id", oe.id).eq("phase", 2).in("status", ["draft", "pending", "editing"]).maybeSingle();
+    if (belegt) {
+      return fail("Produktionsliste", `Phase 2 der Test-Organisation hat schon eine aktive Bestellung (${belegt.order_no}) — nichts angelegt`);
+    }
+  }
+  if (mode === "dry-run") {
+    note("Standpakete der Test-Organisation auf Menge 1 (nur Mengen über 1)");
+    note("TEST-Shop-Bestellung (Phase 2, pending): Tischkicker ×1, Tolix Barhocker ×4, ohne Mail und Lagerbuchung");
+    return;
+  }
+
+  await write("Standpakete der Test-Organisation auf Menge 1 (Fläche stimmt dann mit der Buchung überein)", async () => {
+    const { data: pakete, error } = await admin.from("product").select("sku")
+      .eq("type", "package").eq("category", "standflaeche").not("area_sqm", "is", null);
+    if (error) return { data: null, error };
+    return admin.from("org_product").update({ qty: 1 })
+      .eq("org_edition_id", oe.id).in("product_sku", (pakete ?? []).map((x) => x.sku)).gt("qty", 1);
+  });
+
+  const bestellung = vorhanden ?? await write("TEST-Shop-Bestellung (Phase 2, pending)", () =>
+    admin.from("shop_order").insert({
+      org_edition_id: oe.id, order_no: PRODUKTION_BESTELLNR, phase: 2, status: "pending",
+      internal_note: `${MARK} — TEST, nicht abrechnen`,
+      created_by: me.id, confirmed_by: me.id, confirmed_at: new Date().toISOString(),
+    }).select("id, status").single());
+  if (!bestellung) return;
+  if (bestellung.status !== "pending") {
+    // Wer die TEST-Bestellung im Portal bearbeitet oder storniert hat, soll sie hier nicht still verlieren.
+    log.push(`  ..  TEST-Shop-Bestellung steht auf „${bestellung.status}“ — Status bleibt, Mengen werden zurückgesetzt`);
+  }
+
+  const { data: produkte, error: pe } = await admin.from("product")
+    .select("sku, name_de, name_en, category, unit, vat_rate, net_price_cents")
+    .in("sku", PRODUKTION_ZEILEN.map((z) => z.sku));
+  if (pe || (produkte ?? []).length !== PRODUKTION_ZEILEN.length) {
+    return fail("Produktionsliste", pe ?? "Tischkicker oder Barhocker fehlen im Produktstamm");
+  }
+  const zeilen = PRODUKTION_ZEILEN.map((z) => {
+    const p = produkte.find((x) => x.sku === z.sku);
+    return {
+      order_id: bestellung.id, product_sku: z.sku, qty: z.qty,
+      name_de: p.name_de, name_en: p.name_en, category: p.category, unit: p.unit,
+      vat_rate: p.vat_rate ?? 7, price_net_cents: p.net_price_cents ?? 0,
+    };
+  });
+  await write("Zeilen der TEST-Shop-Bestellung (Tischkicker ×1, Barhocker ×4)", () =>
+    admin.from("shop_order_line").upsert(zeilen, { onConflict: "order_id,product_sku" }));
+}
+
+/**
  * Schritt `formate` (PART-082): Side-Event und Interview Table der Test-
  * Organisation, damit `/partner/side-event` und `/partner/interview-tables` mit
  * ihren Reitern (Bewerbungen, Teilnehmende, Fragen) etwas zeigen. Je Format eine
@@ -2880,6 +2970,7 @@ const SCHRITTE = {
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
   bewerbungen: bewerbungenSchritt,
+  produktion: produktionSchritt,
   masterclass: masterclassSchritt,
   formate: formateSchritt,
   ticket: speakerTicket,
