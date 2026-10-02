@@ -187,7 +187,7 @@ export function ContactList({
     <div className="flex flex-col gap-6">
       <p className="ct-help">{t.ownLoginHint}</p>
 
-      <Table>
+      <Table stapeln>
         <Thead>
           <Th>{t.colName}</Th>
           <Th>{t.colEmail}</Th>
@@ -205,8 +205,8 @@ export function ContactList({
                   <span className="ct-label text-ink">{name(c)}</span>
                   {c.contact_position && <div className="ct-help">{c.contact_position}</div>}
                 </Td>
-                <Td className="text-muted">{c.email ?? common.none}</Td>
-                <Td>
+                <Td label={t.colEmail} className="text-muted">{c.email ?? common.none}</Td>
+                <Td label={t.colRoles}>
                   <div className="flex flex-wrap gap-1">
                     {CONTACT_ROLES.filter((r) => c.roles.includes(r)).map((r) => (
                       <Badge key={r} tone={r === "primary_ops" ? "accent" : "neutral"}>
@@ -215,7 +215,7 @@ export function ContactList({
                     ))}
                   </div>
                 </Td>
-                <Td className="text-muted">
+                <Td label={t.colLogin} className="text-muted">
                   {c.has_login ? t.loginYes : t.loginNo}
                   {!c.has_login && c.invited_at && (
                     <div className="ct-help">
@@ -223,7 +223,7 @@ export function ContactList({
                     </div>
                   )}
                 </Td>
-                {extraColumn && <Td>{extraColumn.cell(c)}</Td>}
+                {extraColumn && <Td label={extraColumn.header}>{extraColumn.cell(c)}</Td>}
                 {canManage && (
                   <Td>
                     <div className="flex flex-wrap gap-2">

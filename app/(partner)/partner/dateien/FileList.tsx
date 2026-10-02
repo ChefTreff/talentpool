@@ -60,7 +60,7 @@ export function FileList({
   }
 
   return (
-    <Table>
+    <Table stapeln>
       <Thead>
         <Th>{t.colFile}</Th>
         <Th>{t.colFor}</Th>
@@ -85,14 +85,14 @@ export function FileList({
                 {row.size_bytes != null && ` · ${formatBytes(row.size_bytes)}`}
               </div>
             </Td>
-            <Td className="text-muted">{row.deliverableLabel}</Td>
-            <Td>
+            <Td label={t.colFor} className="text-muted">{row.deliverableLabel}</Td>
+            <Td label={t.colStatus}>
               <Badge tone={TONE[row.status] ?? "neutral"}>
                 {t[`asset_${row.status}`] ?? row.status}
               </Badge>
               {row.review_note && <div className="ct-help">{row.review_note}</div>}
             </Td>
-            <Td className="text-muted tabular-nums">
+            <Td label={t.colUploaded} className="text-muted tabular-nums">
               {dateTime.format(new Date(row.created_at))}
             </Td>
           </Tr>
