@@ -179,6 +179,8 @@
 | Welle 6 · 0252 | **Award: Kontaktdaten der Ansprechperson 14 Monate nach dem Summit leeren, Cron täglich, Audit ohne Adresse (K-51)** (`20261002085034`, `v6_award_kontakt_frist`; Details im Migrationskopf) | — |
 | Welle 6 · 0253 | **Rückwand-Pflicht nur an der Hackathon-Challenge I-37220 (K-50, HACK-019)** (`20261002085359`, `v6_rueckwand_nur_challenge`; Details im Migrationskopf) | — |
 | Welle 6 · 0254 | **Produktionsliste je Stand aus Paket, Angebot und Messeshop, Lieferantenliste, interne Prüfung je Stand (PROD-004, PROD-005)** (`20261002085454`, `v6_produktionsliste_stand`; Details im Migrationskopf) | — |
+| Welle 6 · 0255 | **Benachrichtigungsthemen im Teilnehmer-Portal, Abschnitt notifications, Zähler und Listen-Export ohne Adressen im Audit (TAL-009)** (`20261002085957`, `v6_benachrichtigungen`; Details im Migrationskopf) | — |
+| Welle 6 · 0256 | **Speaker auf die Website (Sanity): Server-Liste mit strengem Tor, Weg hinaus nach Widerruf, Übertragen nur per Knopf und Schalter (SPK-046)** (`20261002090357`, `v6_sanity_speaker`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

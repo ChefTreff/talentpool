@@ -147,4 +147,5 @@ Alles, was vor dem ersten echten Nutzer noch einmal geprüft oder umgestellt wir
 - [ ] **Supabase-Auth-Rate-Limits erhöhen** (Screenshot 24.09.: E-Mails 30/h, Anmeldungen und Verifikationen 30 je 5 Minuten **je IP**): E-Mails auf mindestens 200/h (Login-Spitzen vor dem Summit), Anmeldungen und Verifikationen auf mindestens 100 je 5 Minuten — am Veranstaltungsort teilen sich hunderte Geräte im WLAN eine IP.
 - [ ] **`ip_hash`** in `audit_log` und `consent_record` gestrichen (Konrad 24.09.: „streichen, sofern kein Sicherheitsrisiko“ — keins; Migration durch die Architektur-Session).
 - [ ] **Testdaten entfernen** (Testkonten, Test-Tickets, Test-Fotos aus SPK-063/064), Sperrliste prüfen.
+- [ ] **Testbetrieb-Hinweis auf `false` stellen** (QS-056 c): `sh scripts/env-set.sh NEXT_PUBLIC_TESTBETRIEB_HINWEIS --config` mit dem Wert `false` (Production), danach Redeploy — die Variable wird beim Build eingebettet. Sonst sehen die ersten echten Nutzer den Streifen „Testbetrieb — Daten mit ZZTEST sind Testdaten“ unter der Kopfzeile jeder Seite.
 - [ ] **Weiterleitung `/produktion`** kann bleiben (schadet nicht, Konrad 24.09.).

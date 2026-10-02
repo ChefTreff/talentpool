@@ -57,7 +57,13 @@ export async function sanityQuery<T>(groq: string, params: Record<string, unknow
   return data.result;
 }
 
-export type SanityMutation = { createOrReplace: Record<string, unknown> } | { patch: Record<string, unknown> } | { delete: { id: string } };
+export type SanityMutation =
+  | { createOrReplace: Record<string, unknown> }
+  // SPK-046: legt nur an, wenn es das Dokument noch nicht gibt — danach schreibt `patch` unsere Felder, und was das
+  // Web-Team im Studio setzt (z. B. `visible`), bleibt stehen.
+  | { createIfNotExists: Record<string, unknown> }
+  | { patch: Record<string, unknown> }
+  | { delete: { id: string } };
 export type SanityMutateResult = { transactionId: string; results: { id?: string; documentId?: string; operation: string }[] };
 
 /** Mutationen; `dryRun` lässt Sanity prüfen, ohne zu schreiben (Trockenlauf). */
