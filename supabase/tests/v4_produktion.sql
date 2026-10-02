@@ -9,7 +9,8 @@
 --   08 Shop-Artikel ohne Dienstleister ⇒ P0001 supplier_required, unbekannter ⇒ supplier_unknown;
 --   09 Tabellen ohne Grants für authenticated;
 --   10 Bestellliste je Dienstleister summiert über alle Stände;
---   11 Programm-Team ist nicht Produktion (Review 14.09.): Regie auch lesend dicht;
+--   11 Programm-Team liest die Regie (seit 0146 Technik neu geschnitten und K-35 Regieanweisungen, 23.09.) —
+--      Erwartung am 02.10.2026 umgekehrt: erlaubt ist richtig, abgewiesen wäre der Befund;
 --   12 ein Slot einer anderen Bühne oder eines anderen Tags ⇒ 22023 invalid_cue.
 -- Lauf am 13.09. gegen Frankfurt: alle zehn grün; 14.09. mit 11–12 nach dem Review.
 begin;
@@ -139,15 +140,15 @@ begin
   select count(*) into v_n from supplier_order_list(v_ed, null);
   insert into t_res values ('10_bestellliste', v_n || ' Positionen');
 
-  -- 11 Programm-Team ist nicht Produktion (Review 14.09.): auch lesend dicht
+  -- 11 Programm-Team liest die Regie (0146, K-35) — Erwartung seit 02.10.2026: erlaubt
   delete from role_assignment where person_id = v_pid;
   insert into role_assignment (person_id, role, scope_type, scope_id, edition_id, valid_from)
   values (v_pid, 'programme_team', 'edition', null, v_ed, now() - interval '1 day');
   begin
     perform regie_view(v_stage, v_day);
-    insert into t_res values ('11_programme_team', 'ALLOWED (BUG)');
+    insert into t_res values ('11_programme_team', 'erlaubt (richtig seit 0146)');
   exception when others then
-    insert into t_res values ('11_programme_team', 'abgewiesen ' || sqlstate);
+    insert into t_res values ('11_programme_team', 'abgewiesen ' || sqlstate || ' (BUG: Programm-Team muss die Regie lesen)');
   end;
   delete from role_assignment where person_id = v_pid;
   insert into role_assignment (person_id, role, scope_type, scope_id, edition_id, valid_from)

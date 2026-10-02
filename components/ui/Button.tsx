@@ -100,7 +100,8 @@ export function ButtonDownload({
   );
 }
 
-function Spinner() {
+/** Der Ladering — im Button und im Zwischenzustand von `FileButton`. */
+export function Spinner() {
   return (
     <span
       aria-hidden
