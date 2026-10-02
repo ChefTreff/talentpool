@@ -182,6 +182,7 @@
 | Welle 6 · 0255 | **Benachrichtigungsthemen im Teilnehmer-Portal, Abschnitt notifications, Zähler und Listen-Export ohne Adressen im Audit (TAL-009)** (`20261002085957`, `v6_benachrichtigungen`; Details im Migrationskopf) | — |
 | Welle 6 · 0256 | **Speaker auf die Website (Sanity): Server-Liste mit strengem Tor, Weg hinaus nach Widerruf, Übertragen nur per Knopf und Schalter (SPK-046)** (`20261002090357`, `v6_sanity_speaker`; Details im Migrationskopf) | — |
 | Welle 6 · 0257 | **Event-Fotos je besuchtem Event: privater Bucket event-photos, Lesen nur mit Check-in, Verwaltung im Abschnitt photos, Löschwunsch (TAL-010)** (`20261002091014`, `v6_event_fotos`; Details im Migrationskopf) | — |
+| Welle 6 · 0258 | **Matterport-3D-Rundgang als Link-Eintrag partner_3d_tour für Partner (PART-093)** (`20261002091443`, `v6_partner_3d_tour`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

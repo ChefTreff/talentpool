@@ -1,3 +1,5 @@
+-- 0258 · Matterport-3D-Rundgang als Link-Eintrag partner_3d_tour für Partner (PART-093)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002091443.
 -- Matterport-3D-Rundgang des Summits als Link-Eintrag (PART-093)
 --
 -- **Ohne Nummer** (Regel vom 24.09.): die Architektur-Session vergibt sie beim Anwenden.
