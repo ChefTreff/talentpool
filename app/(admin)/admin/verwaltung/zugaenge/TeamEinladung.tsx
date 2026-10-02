@@ -72,7 +72,11 @@ export function TeamEinladung({
         </Field>
       </div>
       <fieldset className="mt-4">
-        <legend className="ct-label">{t.teamRoles}</legend>
+        <legend className="ct-label text-ink">
+          {t.teamRoles}
+          <span aria-hidden className="ml-0.5 text-error-ink">*</span>
+          <span className="ml-1 ct-help font-semibold">({common.required})</span>
+        </legend>
         <div className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
           {rollen.map((r) => (
             <label key={r.value} className="flex min-h-11 items-center gap-2 ct-small">
