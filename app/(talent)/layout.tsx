@@ -43,6 +43,8 @@ export default async function TalentLayout({ children }: { children: ReactNode }
       // Community-Events aus Luma (TAL-007, D12) — formatübergreifend, deshalb
       // oben und nicht in der Summit-Gruppe.
       { href: "/events", label: t.talentEvents.navLabel },
+      // Worüber informiert werden (TAL-009).
+      { href: "/benachrichtigungen", label: t.talentNotifications.navLabel },
       { href: "/profil", label: t.profile.title },
     ],
   };

@@ -321,6 +321,7 @@
       "mail": "Mail",
       "media": "Medien",
       "nextUp": "Next Up",
+      "notifications": "Benachrichtigungen",
       "overview": "Übersicht",
       "partnerCare": "Betreuung & Messeshop",
       "partners": "Partner",
@@ -873,6 +874,7 @@
       "logoWall": "Sichtbarkeit",
       "mail": "Post",
       "nextUp": "Next Up",
+      "notifications": "Themen",
       "partner": "Partnerschaft",
       "persons": "Community",
       "productCatalog": "Sortiment",
@@ -1224,6 +1226,21 @@
     "title": "Mail",
     "version": "Version",
     "waiting": "wartend"
+  },
+  "adminNotifications": {
+    "acConnected": "Schlüssel hinterlegt. Der Sync kommt als eigener Baustein.",
+    "acMissing": "Verbindung fehlt — der Sync kommt als eigener Baustein, sobald der Schlüssel hinterlegt ist. Bis dahin: Export je Thema.",
+    "acStatusOff": "Verbindung fehlt",
+    "acStatusOn": "Schlüssel hinterlegt",
+    "acTitle": "ActiveCampaign",
+    "colChosen": "Gewählt",
+    "colReachable": "Anschreibbar",
+    "colTopic": "Thema",
+    "export": "CSV-Export",
+    "lead": "Worüber Teilnehmende informiert werden wollen. Anschreibbar heißt: Newsletter-Einwilligung erteilt und Adresse nicht gesperrt.",
+    "title": "Benachrichtigungen",
+    "topicsLead": "Die Themen pflegt ihr in der Vokabularpflege (notification_topic).",
+    "topicsTitle": "Themen"
   },
   "adminPartner": {
     "accept": "Annehmen",
@@ -6126,6 +6143,23 @@
     "nextUpTitle": "Next Up",
     "nextUpWord": "Demnächst",
     "volunteerTitle": "Du willst dabei sein?"
+  },
+  "talentNotifications": {
+    "hintChannel": "Nur per E-Mail. Du kannst das jederzeit hier oder im Profil ändern.",
+    "hintConsent": "Mit dem Speichern stimmst du dem Newsletter zu den gewählten Themen zu. Widerruf jederzeit hier.",
+    "hintNone": "Ohne Thema widerrufst du den Newsletter.",
+    "lead": "Wähle die Themen, zu denen wir dir schreiben dürfen. Wir schicken nur E-Mails, und nur zu dem, was du hier anhakst.",
+    "navLabel": "Benachrichtigungen",
+    "save": "Speichern",
+    "saveAndConsent": "Newsletter zu diesen Themen erhalten",
+    "saveFailed": "Speichern hat nicht geklappt. Bitte versuch es noch einmal.",
+    "saveNone": "Newsletter abbestellen",
+    "saved": "Gespeichert",
+    "savedNone": "Newsletter abbestellt",
+    "statusOff": "Du bekommst gerade keinen Newsletter von uns.",
+    "statusOn": "Du bekommst unseren Newsletter zu den gewählten Themen.",
+    "title": "Worüber möchtest du informiert werden?",
+    "topics": "Themen"
   },
   "talentSlides": {
     "download": "Herunterladen",
