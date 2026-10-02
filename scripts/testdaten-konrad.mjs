@@ -99,6 +99,9 @@
  *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
  *                                   nur wenn er sich unter /hackathon schon beworben hat;
  *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
+ *   … --apply --nur=benachrichtigungen (TAL-009: zwei TEST-Personen ohne Konto mit Themen,
+ *                                   eine mit Newsletter-Einwilligung (anschreibbar), eine
+ *                                   ohne — Zähler und Export in /admin/benachrichtigungen)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -2763,6 +2766,40 @@ async function hackathonTeam(me) {
     admin.from("hack_team_member").insert({ team_id: team.id, person_id: me.id, edition_id: hackEd }));
 }
 
+/**
+ * TAL-009: zwei TEST-Personen ohne Konto (+zztest-news-N) mit Themen — eine mit
+ * Newsletter-Einwilligung (anschreibbar), eine ohne. Konrads eigene Einwilligung
+ * bleibt unberührt; seine Themen wählt er selbst unter /benachrichtigungen.
+ */
+const newsAdresse = (i) => email.replace("@", `+zztest-news-${i}@`);
+const TEST_NEWS = [
+  { nachname: "Newsletter", newsletter: true, themen: ["summit", "academy"] },
+  { nachname: "OhneEinwilligung", newsletter: false, themen: ["summit"] },
+];
+
+async function benachrichtigungenSchritt() {
+  for (const [i, n] of TEST_NEWS.entries()) {
+    await write(`TEST-Person ${n.nachname}: Themen ${n.themen.join(", ")}${n.newsletter ? " + Newsletter" : ""}`, async () => {
+      const { data: personId, error } = await admin.rpc("testdaten_person", {
+        p_first_name: "TEST", p_last_name: n.nachname, p_email: newsAdresse(i + 1),
+      });
+      if (error) return { data: null, error };
+      const th = await admin.from("person_interest").upsert(
+        n.themen.map((t) => ({ person_id: personId, vocabulary: "notification_topic", term_key: t })),
+        { onConflict: "person_id,vocabulary,term_key" });
+      if (th.error) return th;
+      if (!n.newsletter) return { data: null, error: null };
+      const { data: da } = await admin.from("consent_current").select("granted")
+        .eq("person_id", personId).eq("consent_type", "newsletter").maybeSingle();
+      if (da?.granted) return { data: null, error: null };
+      return admin.from("consent_record").insert({
+        person_id: personId, consent_type: "newsletter", version: "2026-09", granted: true, source: "portal",
+        meta: { testdaten: MARK },
+      });
+    });
+  }
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -2966,6 +3003,7 @@ const SCHRITTE = {
   partner: partnerSchritt,
   hackathon: hackathonChallenges,
   "hackathon-team": hackathonTeam,
+  benachrichtigungen: benachrichtigungenSchritt,
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
@@ -3013,6 +3051,13 @@ async function remove(me) {
     const { data: hash, error } = await admin.rpc("email_hash", { p_email: sperrAdresse() });
     if (error) return { data: null, error };
     return admin.from("suppression").delete().eq("email_hash", hash).eq("reason", "manual");
+  });
+  await write("TEST-Personen Benachrichtigungen entfernt (Themen und Einwilligungen gehen mit)", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", TEST_NEWS.map((_, i) => newsAdresse(i + 1)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
   await write("TEST-Datensätze Hackathon entfernt", async () => {
     const { data: zeilen } = await admin.from("hack_dataset").select("storage_path").like("storage_path", "%/zztest-%");

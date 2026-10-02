@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 08:54 UTC · 115 Tabellen · 6 Views · 666 Funktionen
+> Stand: 2026-10-02 08:59 UTC · 115 Tabellen · 6 Views · 669 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2529,6 +2529,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_volunteer_profile` | p_edition_id: uuid |
 | `next_up_items` | args: ? |
 | `next_up_items_admin` | args: ? |
+| `notification_reachable` | p_person_id: uuid |
+| `notification_topic_export` | p_topic: text |
+| `notification_topic_stats` | args: ? |
 | `notify_partner_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `notify_speaker_leads` | p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `open_deletion_request` | p_note: text, p_person_id: uuid |
