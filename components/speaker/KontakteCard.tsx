@@ -61,6 +61,7 @@ export function KontakteCard({
   t,
   common,
   message,
+  ebene = "h3",
 }: {
   id?: string;
   kontakte: SpeakerContact[];
@@ -71,6 +72,11 @@ export function KontakteCard({
   t: Record<string, string>;
   common: { cancel: string; none: string; save: string };
   message: (key: string) => string;
+  /**
+   * Überschrift wie die Nachbarn auf der Seite (wie `CardHeader`): im Admin-Detail sind die Karten
+   * `h3`, im Speaker-Profil stehen die Abschnitte als `h2` (Sichtprüfung 02.10.).
+   */
+  ebene?: "h2" | "h3";
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -125,9 +131,10 @@ export function KontakteCard({
     });
   }
 
+  const Kopf = ebene;
   return (
     <Card id={id} className="p-6">
-      <h2 className="ct-h3 mb-1 text-ink">{t.sectionContacts}</h2>
+      <Kopf className={`${ebene === "h2" ? "ct-h2" : "ct-h3"} mb-1 text-ink`}>{t.sectionContacts}</Kopf>
       <p className="ct-help mb-4">{t.contactsLead}</p>
 
       {kontakte.length === 0 ? (
@@ -139,16 +146,29 @@ export function KontakteCard({
               key={k.id}
               className="flex flex-wrap items-center gap-3 border-b px-4 py-3 last:border-b-0"
             >
-              <div className="min-w-0 flex-1">
+              {/* Auf dem Telefon nimmt der Text die ganze Zeile, Marke und Knöpfe rücken darunter;
+                  Art, Mail und Telefon stehen untereinander statt als umbrechende Zeile mit Punkten
+                  (SPK-077, Sichtprüfung 02.10.). Ab `sm` wie bisher. */}
+              <div className="min-w-0 basis-full sm:basis-auto sm:flex-1">
                 <p className="ct-label text-ink">
                   {[k.first_name, k.last_name].filter(Boolean).join(" ") ||
                     k.email ||
                     common.none}
                 </p>
-                <p className="ct-help">
-                  {t[`kind_${k.kind}`] ?? k.kind}
-                  {k.email ? ` · ${k.email}` : ""}
-                  {k.phone ? ` · ${k.phone}` : ""}
+                <p className="ct-help flex flex-col sm:block">
+                  <span>{t[`kind_${k.kind}`] ?? k.kind}</span>
+                  {k.email && (
+                    <span className="break-all sm:break-normal">
+                      <span aria-hidden className="hidden sm:inline"> · </span>
+                      {k.email}
+                    </span>
+                  )}
+                  {k.phone && (
+                    <span>
+                      <span aria-hidden className="hidden sm:inline"> · </span>
+                      {k.phone}
+                    </span>
+                  )}
                 </p>
               </div>
               {k.has_access && (

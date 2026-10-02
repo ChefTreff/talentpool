@@ -379,6 +379,7 @@ export function SpeakerProfileForm({
         t={t}
         common={common}
         message={message}
+        ebene="h2"
       />
 
     </div>
