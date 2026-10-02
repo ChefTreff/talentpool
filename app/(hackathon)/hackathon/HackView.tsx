@@ -38,6 +38,7 @@ export function HackView({
   metric,
   dataset,
   abgabe,
+  teamsuche,
   skills,
   tracks,
   discordUrl,
@@ -54,6 +55,8 @@ export function HackView({
   dataset: { filename: string; size_bytes: number | null; url: string | null } | null;
   /** HACK-011: Dateien der eigenen Abgabe. */
   abgabe: AbgabeDatei[];
+  /** HACK-016: Teamsuche, auf dem Server zusammengestellt. */
+  teamsuche: React.ReactNode;
   skills: Record<string, string>;
   /** vocab hack_track (HACK-008/010): Schlüssel → Bezeichnung. */
   tracks: Record<string, string>;
@@ -166,6 +169,8 @@ export function HackView({
           )}
         </Card>
       )}
+
+      {accepted && teamsuche}
 
       {accepted && data.team && (
         <Card>

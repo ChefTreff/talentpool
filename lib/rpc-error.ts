@@ -109,6 +109,13 @@ const BUSINESS_KEYS = new Set([
   "invalid_metric",
   // Abgabe-Dateien (HACK-011)
   "too_many_files",
+  // Teamsuche (HACK-016)
+  "not_participant",
+  "not_captain",
+  "team_not_looking",
+  "person_not_seeking",
+  "request_pending",
+  "request_closed",
   // Wunsch-Challenges (HACK-017)
   "invalid_challenge",
   // „Next Up" (TAL-006)

@@ -18,6 +18,8 @@ export type MyHack = {
     behance_url?: string | null;
     /** Gewünschte Tracks (vocab hack_track, HACK-010). */
     track_prefs?: string[];
+    /** „Ich suche ein Team“ (HACK-016). */
+    seeking_team?: boolean;
   } | null;
   team: {
     id: string;
@@ -119,4 +121,39 @@ export type JudgingRow = {
   metric_value: number | null;
   metric_confirmed: boolean;
   late?: boolean;
+};
+
+/** Teamsuche (HACK-016) — Formen der Leserollen. Nie Kontaktdaten. */
+export type OffenesTeam = {
+  team_id: string;
+  team_name: string;
+  challenge_title: string | null;
+  track: string | null;
+  members: number;
+  free_slots: number;
+  looking_skills: string[];
+  looking_note: string | null;
+  /** Offene Anfrage zwischen mir und dem Team (`to_team`/`to_person`) oder null. */
+  my_request: "to_team" | "to_person" | null;
+};
+
+export type SuchendePerson = {
+  person_id: string;
+  first_name: string | null;
+  study_field: string | null;
+  skills: string[];
+  track_prefs: string[];
+  invited: boolean;
+};
+
+export type Beitrittsanfrage = {
+  request_id: string;
+  direction: "to_team" | "to_person";
+  status: "pending" | "accepted" | "declined" | "withdrawn";
+  team_id: string;
+  team_name: string;
+  person_first_name: string | null;
+  message: string | null;
+  created_at: string;
+  mine_to_answer: boolean;
 };
