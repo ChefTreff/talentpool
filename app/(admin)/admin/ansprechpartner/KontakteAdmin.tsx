@@ -305,9 +305,9 @@ export function KontakteAdmin({
                 „Datei auswählen", mal „Durchsuchen". */}
             <Field label={t.fieldPhoto} hint={t.fieldPhotoHint}>
               <FileButton
-                label={t.photoChoose}
-                uploadLabel={common.upload}
-                changeLabel={common.chooseOtherFile}
+                sofort
+                laedt={bildLaeuft}
+                label={bildLaeuft ? t.photoUploading : t.photoChoose}
                 accept="image/png,image/jpeg,image/webp"
                 disabled={bildLaeuft}
                 onFile={async (datei) => {
