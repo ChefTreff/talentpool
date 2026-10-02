@@ -46,6 +46,8 @@ export default async function TalentLayout({ children }: { children: ReactNode }
       // Worüber informiert werden (TAL-009).
       { href: "/benachrichtigungen", label: t.talentNotifications.navLabel },
       { href: "/profil", label: t.profile.title },
+      // Feedback-Fenster (TAL-011).
+      { href: "/feedback", label: t.talentFeedback.navLabel },
     ],
   };
   const summit: SidebarGroup = {
