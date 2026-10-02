@@ -53,7 +53,9 @@ const BALD_MS = 7 * 24 * 3_600_000;
  *
  * **`kompakt`** (PART-064): dieselben Stände, Farben und Wörter in Zeilenhöhe —
  * für Listen wie die Checkliste, in denen jede Zeile ihre eigene Frist trägt.
- * Ein Datum in `.ct-h2` wäre dort grösser als die Aufgabe selbst.
+ * Ein Datum in `.ct-h2` wäre dort grösser als die Aufgabe selbst. Unter 640 px steht sie
+ * in **einer** Zeile: Wort (oder Stand) und Datum, ohne die Restzeit einer offenen Frist
+ * (PART-094).
  */
 export function FristMarke({
   dueAt,
@@ -103,14 +105,23 @@ export function FristMarke({
     return (
       <span
         className={cn(
-          "inline-flex shrink-0 flex-wrap items-baseline gap-x-1.5 rounded-ct-sm px-2 py-0.5",
+          // Am Handy eine Zeile, ab 640 px darf sie umbrechen (PART-094).
+          "inline-flex shrink-0 items-baseline gap-x-1.5 rounded-ct-sm px-2 py-0.5 sm:flex-wrap",
           TON[stand],
           className,
         )}
       >
         <span className="ct-eyebrow">
-          {t.label}
-          {zusatz && <> · {zusatz}</>}
+          {/* Wort und Restzeit ab 640 px; darunter eine Kurzform (PART-094): „Frist 19.03.2027“, bei
+              bald, vorbei oder erledigt der Stand statt des Wortes. Auf 375 px brach „Deadline · noch
+              168 Tage“ samt Datum auf drei Zeilen um, acht Zeilen der Checkliste trugen acht gleiche
+              Marken von je 40 px. Farbe und Wort bleiben (Regel 4): „noch 168 Tage“ trägt bei einer
+              offenen Frist nichts, „vorbei“ und „erledigt“ schon. */}
+          <span className="max-sm:hidden">
+            {t.label}
+            {zusatz && <> · {zusatz}</>}
+          </span>
+          <span className="sm:hidden">{stand === "offen" ? t.label : (zusatz ?? t.label)}</span>
         </span>
         <span className="ct-label tabular-nums">{dateText}</span>
       </span>

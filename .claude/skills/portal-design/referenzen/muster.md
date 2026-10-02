@@ -219,6 +219,8 @@ Eine Frist, die zu einem Abschnitt gehört, steht **rechts in dessen Kopfzeile**
 - Ist die Aufgabe angenommen, fällt die Marke weg: dann sagt das Badge alles.
 - Die große, laufende Zahl (`DeadlineCard prominent`) bleibt der Ticketseite vorbehalten. Dort ist die Frist das Thema der Seite (PART-066).
 
+**Die kompakte Marke ist am Handy eine Zeile** (PART-094): unter 640 px „Deadline 19.03.2027“, bei bald, vorbei und erledigt statt des Worts der Stand („noch 3 Tage“, „vorbei“, „erledigt“) — die Restzeit einer offenen Frist („noch 168 Tage“) trägt dort nichts. Davor brach sie auf 375 px auf drei Zeilen um, acht Zeilen der Checkliste trugen acht gleiche Marken von rund 40 px (jetzt 24 px). Ab 640 px bleibt die volle Fassung. Farbe und Wort bleiben (Regel 4).
+
 ## Links in ein neues Fenster (QS-034, ab 24.09.2026)
 
 Jeder Link, der das Portal verlässt, öffnet ein neues Fenster (Konrad, 23.09.: *„generell sollen global immer alle Tabs die nach extern leiten im neuen Tab geöffnet werden"*). Nie von Hand, immer über den Helfer:
