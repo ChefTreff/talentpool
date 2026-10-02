@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { processMailQueue } from "@/lib/mail/queue";
 import { processStoragePurgeQueue } from "@/lib/storage-purge";
 import { driveAufraeumen } from "@/lib/drive/server";
+import { speakerRuecknahme } from "@/lib/sanity/speakers";
 import { syncPartnerDocuments } from "@/lib/partner/documents-sync";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,9 @@ function authorized(request: Request): boolean {
  * 6. Drive-Kopien entfernen, deren Folie gelöscht oder deren Session abgesetzt ist
  *    (SPK-023, `slide_mirror_orphans`) — auch nach einer Profillöschung. Ohne
  *    Dienstkonto übersprungen.
+ * 7. Speaker-Dokumente der Website entfernen, deren Tor zu ist (SPK-046: Widerruf,
+ *    Absage, Entzug der Freigabe, gelöschte Person). Nur Löschen, nie Anlegen; ohne
+ *    veröffentlichte Dokumente kein Aufruf bei Sanity.
  * Kein Nutzerkontext: service_role nach Prüfung des Secrets, die Route ist im Proxy
  * als öffentlich eingetragen und schützt sich selbst.
  */
@@ -78,6 +82,14 @@ export async function GET(request: Request) {
     console.error("[cron/mail] Drive-Aufräumen fehlgeschlagen:", fehler instanceof Error ? fehler.message : fehler);
   }
 
+  // SPK-046: der Weg hinaus läuft ohne Knopf — wer widerruft oder absagt, verschwindet von der Website.
+  let website: Awaited<ReturnType<typeof speakerRuecknahme>> = null;
+  try {
+    website = await speakerRuecknahme(admin);
+  } catch (fehler) {
+    console.error("[cron/mail] Website-Rücknahme fehlgeschlagen:", fehler instanceof Error ? fehler.message : fehler);
+  }
+
   return NextResponse.json({
     ok: !error,
     housekeeping: housekeeping ?? null,
@@ -87,5 +99,6 @@ export async function GET(request: Request) {
     storage,
     documents,
     drive,
+    website,
   });
 }

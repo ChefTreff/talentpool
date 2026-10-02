@@ -33,10 +33,16 @@ export default async function AdminSpeakerPage() {
         title={t.adminSpeaker.title}
         description={`${t.adminSpeaker.lead} · ${speakers.length} ${t.common.shown}`}
         actions={
-          // LEAD-025: alle Notizen, Kontakte und Aufgaben der Edition an einem Ort.
-          <ButtonLink href="/admin/speaker/verlauf" variant="secondary" size="sm">
-            {t.speakerVerlauf.overviewLink}
-          </ButtonLink>
+          <div className="flex flex-wrap gap-2">
+            {/* LEAD-025: alle Notizen, Kontakte und Aufgaben der Edition an einem Ort. */}
+            <ButtonLink href="/admin/speaker/verlauf" variant="secondary" size="sm">
+              {t.speakerVerlauf.overviewLink}
+            </ButtonLink>
+            {/* SPK-046: freigegebene Speaker auf die Website (Sanity). */}
+            <ButtonLink href="/admin/speaker/website" variant="ghost" size="sm">
+              {t.adminSpeakerWebsite.link}
+            </ButtonLink>
+          </div>
         }
       />
       <SpeakerListe
