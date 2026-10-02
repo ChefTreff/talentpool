@@ -321,6 +321,7 @@
       "mail": "Mail",
       "media": "Media",
       "nextUp": "Next Up",
+      "notifications": "Notifications",
       "overview": "Overview",
       "partnerCare": "Support & trade-show shop",
       "partners": "Partners",
@@ -873,6 +874,7 @@
       "logoWall": "Visibility",
       "mail": "Messages",
       "nextUp": "Next up",
+      "notifications": "Topics",
       "partner": "Partnership",
       "persons": "Community",
       "productCatalog": "Catalogue",
@@ -1221,6 +1223,21 @@
     "title": "Mail",
     "version": "Version",
     "waiting": "waiting"
+  },
+  "adminNotifications": {
+    "acConnected": "Key is set. The sync comes as a separate building block.",
+    "acMissing": "Not connected — the sync comes as a separate building block once the key is set. Until then: export per topic.",
+    "acStatusOff": "Not connected",
+    "acStatusOn": "Key set",
+    "acTitle": "ActiveCampaign",
+    "colChosen": "Chosen",
+    "colReachable": "Reachable",
+    "colTopic": "Topic",
+    "export": "CSV export",
+    "lead": "What participants want to hear about. Reachable means: newsletter consent given and address not suppressed.",
+    "title": "Notifications",
+    "topicsLead": "Topics are maintained in the vocabulary editor (notification_topic).",
+    "topicsTitle": "Topics"
   },
   "adminPartner": {
     "accept": "Accept",
@@ -6090,6 +6107,23 @@
     "nextUpTitle": "Next up",
     "nextUpWord": "Coming up",
     "volunteerTitle": "Want to be part of it?"
+  },
+  "talentNotifications": {
+    "hintChannel": "Email only. You can change this here or in your profile at any time.",
+    "hintConsent": "By saving you agree to receive the newsletter on the chosen topics. You can withdraw here at any time.",
+    "hintNone": "Without a topic you unsubscribe from the newsletter.",
+    "lead": "Choose the topics we may write to you about. We only send emails, and only about what you tick here.",
+    "navLabel": "Notifications",
+    "save": "Save",
+    "saveAndConsent": "Get the newsletter on these topics",
+    "saveFailed": "Saving did not work. Please try again.",
+    "saveNone": "Unsubscribe from the newsletter",
+    "saved": "Saved",
+    "savedNone": "Unsubscribed",
+    "statusOff": "You are not receiving our newsletter right now.",
+    "statusOn": "You receive our newsletter on the topics you chose.",
+    "title": "What would you like to hear about?",
+    "topics": "Topics"
   },
   "talentSlides": {
     "download": "Download",
