@@ -108,6 +108,10 @@
  *   … --apply --nur=feedback       (TAL-011: zwei TEST-Feedbacks — eines anonym zum Summit
  *                                   mit Bewertungen, eines mit Klarnamen einer TEST-Person;
  *                                   /admin/feedback)
+ *   … --apply --nur=schichtmodell  (VOL-002: TEST-Vorlage „Einlass“ und Konrads Wunschschicht
+ *                                   auf seiner Testschicht; die Sicherheitsunterweisung bleibt
+ *                                   offen, damit er sie unter /volunteers/schichten selbst
+ *                                   bestätigen kann; /admin/volunteers/vorlagen)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -646,6 +650,7 @@ async function apply(me, ed) {
           .upsert({ shift_id: shift.id, person_id: me.id, status: "assigned" }, { onConflict: "shift_id,person_id" }),
       );
     }
+    await schichtmodellSchritt(me, ed);
   } else {
     note("Testschicht und Zuteilung");
   }
@@ -2873,6 +2878,29 @@ async function feedbackSchritt() {
   });
 }
 
+/**
+ * VOL-002: Vorlage im Admin (`/admin/volunteers/vorlagen`) und eine Wunschschicht an Konrads
+ * Testschicht. Setzt voraus, dass Testbereich, Bewerbung und Testschicht stehen (voller Lauf).
+ */
+async function schichtmodellSchritt(me, ed) {
+  const { data: vorhanden } = await admin.from("shift_template").select("id")
+    .eq("edition_id", ed.id).like("position", `${PREFIX}%`);
+  if ((vorhanden ?? []).length === 0) {
+    await write("TEST-Schichtvorlage (Einlass, 09–13 Uhr)", () =>
+      admin.from("shift_template").insert({
+        edition_id: ed.id, area: AREA_KEY, position: `${PREFIX}Vorlage Einlass`,
+        start_time: "09:00", end_time: "13:00", capacity: 2, location: "Halle A · Eingang Nord",
+        briefing_md: "Testvorlage für die Feedback-Runden.",
+      }));
+  } else note("TEST-Schichtvorlage", "steht schon");
+  const { data: shift } = await admin.from("shift").select("id").eq("area", AREA_KEY).eq("edition_id", ed.id).maybeSingle();
+  if (!shift) return fail("Wunschschicht", "Testschicht fehlt — erst der volle Lauf (Volunteers)");
+  const { data: wunsch } = await admin.from("shift_wish").select("shift_id").eq("person_id", me.id);
+  if ((wunsch ?? []).length > 0) return note("Wunschschicht", "steht schon");
+  await write("Wunschschicht an der Testschicht", () =>
+    admin.from("shift_wish").insert({ person_id: me.id, shift_id: shift.id, rank: 1 }));
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -3079,6 +3107,7 @@ const SCHRITTE = {
   benachrichtigungen: benachrichtigungenSchritt,
   "event-fotos": fotosSchritt,
   feedback: feedbackSchritt,
+  schichtmodell: schichtmodellSchritt,
   gaeste: standbuehnenGast,
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
@@ -3236,6 +3265,8 @@ async function remove(me) {
   await write("Schicht-Zuteilungen entfernt", () =>
     admin.from("shift_assignment").delete().eq("person_id", me.id),
   );
+  await write("Wunschschichten entfernt", () => admin.from("shift_wish").delete().eq("person_id", me.id));
+  await write("Schichtvorlagen entfernt", () => admin.from("shift_template").delete().like("position", `${PREFIX}%`));
   await write("Testschichten entfernt", () => admin.from("shift").delete().eq("area", AREA_KEY));
   await write("Volunteer-Bewerbung entfernt", () =>
     admin.from("volunteer_profile").delete().eq("person_id", me.id).eq("notes_internal", MARK),

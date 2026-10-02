@@ -86,3 +86,37 @@ export async function unassignShift(assignmentId: string): Promise<AdminResult> 
   refresh();
   return { ok: true, data: undefined };
 }
+
+/** Schicht-Vorlagen (VOL-002/S3): anlegen, ändern, löschen und auf Tage anwenden. */
+export async function saveShiftTemplate(
+  data: Record<string, unknown>,
+): Promise<AdminResult<{ id: string }>> {
+  const supabase = await client();
+  const { data: id, error } = await supabase.rpc("upsert_shift_template", { p_data: data });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: { id: id as string } };
+}
+
+export async function deleteShiftTemplate(id: string): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("delete_shift_template", { p_id: id });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
+
+/** Legt aus den Vorlagen Schichten für die Tage an; schon vorhandene bleiben unberührt. */
+export async function applyShiftTemplates(
+  templateIds: string[],
+  dayIds: string[],
+): Promise<AdminResult<{ created: number }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("apply_shift_templates", {
+    p_template_ids: templateIds,
+    p_day_ids: dayIds,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: { created: Number(data) || 0 } };
+}
