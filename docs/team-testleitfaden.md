@@ -4,7 +4,7 @@ Für alle Teammitglieder, die ab Montag Zugriff auf `portal.chef-treff.de` bekom
 
 ## 1 · Anmelden
 
-1. Du bekommst eine Einladung per E-Mail (Konrad legt dich unter Admin → Verwaltung → Zugänge an und vergibt deine Rollen).
+1. Du bekommst eine Einladung per E-Mail (Konrad legt dich unter Admin → Verwaltung → Zugänge → „Teammitglied anlegen“ an und vergibt deine Rollen — seit 0250 auch für Personen, die noch kein Profil haben; die Mail geht an die hinterlegte Arbeitsadresse).
 2. Anmelden auf `portal.chef-treff.de` mit deiner Arbeitsadresse: Magic Link, kein Passwort. Der Link gilt kurz und nur einmal; neu anfordern, wenn er abgelaufen ist.
 3. Nach dem Login landest du auf dem Einstieg deiner Rolle. Teammitglieder arbeiten im **Admin** (`/admin`), dort entscheiden Rollen und Abschnitte, was du siehst. Externe Portale (Talent, Speaker, Partner, Volunteers, Hackathon, Stage Leads) siehst du nur, wenn Konrad dir zusätzlich eine solche Rolle gibt — zum Testen aus Sicht eines Partners oder Speakers bitte bei ihm melden.
 

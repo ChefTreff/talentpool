@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 08:37 UTC · 114 Tabellen · 6 Views · 660 Funktionen
+> Stand: 2026-10-02 08:42 UTC · 114 Tabellen · 6 Views · 661 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2300,6 +2300,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `create_hack_team` | p_edition_id: uuid, p_name: text |
 | `create_kiosk_account` | p_edition_id: uuid, p_email: text, p_label: text |
 | `create_slot` | p_end: timestamp with time zone, p_session_id: uuid, p_slot_type: text, p_source_ref: text, p_stage_id: uuid, p_start: timestamp with time zone |
+| `create_team_member` | p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_roles: text[] |
 | `current_org_edition` | p_edition_id: uuid, p_org_id: uuid |
 | `current_person_id` | args: ? |
 | `day_of_edition` | p_day_id: uuid, p_edition_id: uuid |
