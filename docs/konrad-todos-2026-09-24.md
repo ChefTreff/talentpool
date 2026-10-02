@@ -36,6 +36,15 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 **8 · K-24 Deal-Ingest scharf schalten (wenn das Sales-Team Bescheid weiß):** Admin → Partner → Integrationen → HubSpot → IDs eintragen: Pipeline „Future Leader Summit“ `379213775`, Startphase „Onboarding Start (Automation)“ `3019026648`, Erfolgsphase „Onboarding Operations (Automation Complete)“ `3569180889` → speichern. **Ab dann** verarbeitet der Abgleich alle 15 Minuten jeden Deal in der Startphase, legt Organisationen und Kontakte an und **verschickt Einladungen an echte Adressen** — deshalb erst, wenn das Sales-Team weiß, dass Deals in diese Phase geschoben werden. Zu den Labels: Das Portal liest die **Zuordnungs-Labels zwischen Deal und Kontakt** (HubSpot: Settings → Objects → Associations → Deal ↔ Contact), nicht eine Kontakt-Eigenschaft. Ist „CT Summit Contact Type“ eine Kontakt-Eigenschaft, sag mir das — dann stellt der Admin-Chat die Zuordnung darauf um (kleiner PR).
 
+**10 · VOL-002 Testdaten und Vorlagen-Import (2 Minuten, Terminal im Haupt-Checkout; der Talent-Chat darf schreibende Läufe aus einer Chat-Nachricht nicht selbst starten):**
+```bash
+node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=schichtmodell
+```
+```bash
+node --env-file=.env.local scripts/volunteer-vorlagen-import.mjs --apply
+```
+Der Trockenlauf stand: 570 Vorlagen aus den Planstellen 2026 (Akkreditierung 106, Bühnen 101, Marketing 69, Speakers Care 63, Nachhaltigkeit 43, Garderobe 36, Zutritt 28, Hackathon 23, Produktion 18, Aufbau 17, Event Operations 16 inkl. „VC Breakfast“, Info Point 16, Speaker Lounge 15, Masterclasses 10, Afterparty 9). Danach Klickweg: /admin/volunteers/vorlagen, /admin/volunteers/schichten, /volunteers/schichten.
+
 **9 · K-16 Schlüsselrotation (ca. 20 Minuten, vor dem Go-live; Reihenfolge aus `docs/runbooks/key-rotation.md`):**
 1. Neuen Schlüssel erzeugen, **alten noch nicht löschen**: Supabase Dashboard → Projekt `jqmqvgaiyjudkvtncijw` → Settings → API Keys → Secret keys → „Create new secret key“; HubSpot → Settings → Integrationen → Service-Schlüssel → neuen Schlüssel (dieselben Scopes).
 2. Terminal im Haupt-Checkout: `sh scripts/env-set.sh SUPABASE_SECRET_KEY` bzw. `sh scripts/env-set.sh HUBSPOT_ACCESS_TOKEN` — der Wert wird unsichtbar abgefragt und nach Vercel (Production, Preview, Development), `.env.local` und alle Worktrees geschrieben.
