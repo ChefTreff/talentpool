@@ -80,6 +80,8 @@
  *                                   Vorschau, Zusammenführen und Rückweg; ohne Konto)
  *   … --apply --nur=award          (ADM-024: TEST-Bewerbung zum Initiativen-Award, Status
  *                                   „Neu" — nicht öffentlich, bis Konrad sie annimmt)
+ *   … --apply --nur=tourzuordnung  (ADM-045: zweiter, freier Stopp an der TEST-Company-Tour —
+ *                                   zum Ausprobieren von Zuordnen und Tauschen)
  *   … --apply --nur=hackathon      (HACK-008: zwei freigegebene TEST-Challenges der
  *                                   Test-Organisation in zwei Tracks — Filter auf
  *                                   /hackathon/challenges, Track-Liste in /admin/hackathon;
@@ -90,7 +92,9 @@
  *                                   HACK-012: TEST-Datensatz (CSV) an „Predict the queue“;
  *                                   HACK-011: Abgabefrist 17.04.2027 12:00 an „Predict the
  *                                   queue“ und eine TEST-Abgabedatei von „Queue Crushers“;
- *                                   HACK-015: Wunschprofil an „Predict the queue“)
+ *                                   HACK-015: Wunschprofil an „Predict the queue“;
+ *                                   HACK-016: „Queue Crushers“ sucht noch, „Datenbewerbung“
+ *                                   angenommen mit „suche Team“)
  *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
  *                                   nur wenn er sich unter /hackathon schon beworben hat;
  *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
@@ -2707,6 +2711,22 @@ async function hackathonChallenges() {
       }, { onConflict: "person_id,edition_id" });
     });
   }
+
+  // HACK-016: Teamsuche — „Queue Crushers“ sucht, „Datenbewerbung“ ist angenommen und sucht ein Team.
+  if (metrik) {
+    await write("Teamsuche: „Queue Crushers“ sucht noch (Skills aus hack_skill)", async () => {
+      const { data: skills } = await admin.from("vocab_term").select("key").eq("vocabulary", "hack_skill").eq("active", true).order("sort_order").limit(2);
+      return admin.from("hack_team").update({
+        looking: true, looking_skills: (skills ?? []).map((k) => k.key), looking_note: "TEST — looking for someone who likes data",
+      }).eq("edition_id", hackEd).eq("name", `${PREFIX}Queue Crushers`);
+    });
+  }
+  await write("Teamsuche: TEST-Bewerbung „Datenbewerbung“ angenommen und sucht ein Team", async () => {
+    const { data: adresse } = await admin.from("person_email").select("person_id").eq("email", hackAdresse(1)).maybeSingle();
+    if (!adresse) return { data: null, error: null };
+    return admin.from("hack_application").update({ status: "accepted", seeking_team: true })
+      .eq("person_id", adresse.person_id).eq("edition_id", hackEd);
+  });
 }
 
 /**
@@ -2868,6 +2888,27 @@ async function awardBewerbung(me, ed) {
 }
 
 /**
+ * ADM-045: die TEST-Company-Tour (Schritt `tour`) bekommt einen zweiten, freien
+ * Stopp. Damit zeigt /admin/company-tours/zuordnung an Konrads Testtour einen
+ * besetzten Stopp (TEST-Partner) und einen freien — Zuordnen und Tauschen lassen
+ * sich ausprobieren, ohne eine echte Tour anzufassen. Die echten Touren (aus 0134)
+ * bleiben unberührt.
+ */
+async function tourZuordnung(me, ed) {
+  const { data: tour } = await admin.from("company_tour").select("id")
+    .eq("edition_id", ed.id).eq("name", `${PREFIX}Company Tour`).maybeSingle();
+  if (!tour) return fail("Tour-Zuordnung", "keine TEST-Company-Tour — zuerst --nur=tour");
+  const { data: stopps } = await admin.from("company_tour_stop").select("sort_order").eq("tour_id", tour.id);
+  if ((stopps ?? []).some((x) => x.sort_order === 2)) {
+    note("Zweiter Stopp der TEST-Tour", "steht schon");
+  } else {
+    await write("Zweiter, freier Stopp an der TEST-Tour", () =>
+      admin.from("company_tour_stop").insert({ tour_id: tour.id, sort_order: 2 }));
+  }
+  note("Tour-Zuordnung ausprobieren", "/admin/company-tours/zuordnung → TEST — Company Tour: Stopp 2 zuordnen oder mit Stopp 1 tauschen");
+}
+
+/**
  * SPK-069: zwei TEST-Shuttle-Fahrten an Konrads eigenem Speaker-Profil — eine
  * angefragt (Anreise am ersten Summit-Tag), eine bestätigt (Abreise am letzten).
  * Erst damit zeigen `/admin/anreise` und `/speaker-leads/anreise` die Abzeichen
@@ -2943,6 +2984,7 @@ const SCHRITTE = {
   folien: folienSchritt,
   dubletten: dublettenPaar,
   award: awardBewerbung,
+  tourzuordnung: tourZuordnung,
 };
 
 async function teilschritte(me, ed, namen) {

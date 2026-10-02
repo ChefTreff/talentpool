@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ReactNode } from "react";
-import { Button } from "./Button";
+import { Button, Spinner } from "./Button";
 import { cn } from "./cn";
 
 /**
@@ -23,6 +23,19 @@ import { cn } from "./cn";
  * Datei gerufen, nur eben erst beim Klick auf „Upload“. Die Komponente hält
  * die Auswahl so lange selbst.
  *
+ * **Ausnahme `sofort`** (TAL-017, Konrad 01.10.: „Hochladen braucht zwei
+ * Schritte … das Bild soll direkt nach der Auswahl im Dateifenster
+ * hochgeladen werden“): Für ein Porträt und vergleichbare Einzelbilder ruft
+ * die Auswahl `onFile` gleich auf, ohne zweiten Klick. Dort ist die falsche
+ * Datei billig — das Bild steht sofort neben dem Knopf, „Ersetzen“ ist ein
+ * Klick, und ein Entfernen gibt es auch. Bei Dokumenten (Präsentation, Beleg,
+ * Lebenslauf) bleibt es bei der Prüfung vor dem Hochladen.
+ *
+ * `laedt` ist der Zwischenzustand dazu: der Ring ersetzt das Symbol, der
+ * Knopf bleibt in voller Farbe (statt blass wie `disabled`, das wie „geht
+ * nicht“ aussieht), und Vorlesesoftware bekommt die Beschriftung als Status.
+ * Fehler meldet der Aufrufer — als Toast, wo es kein Formular gibt.
+ *
  * Kein `display:none` für das Feld, sondern `sr-only` — ausgeblendete
  * Formularfelder sind für manche Hilfsmittel nicht mehr erreichbar.
  *
@@ -41,6 +54,8 @@ export function FileButton({
   icon,
   className,
   variant = "primary",
+  sofort = false,
+  laedt = false,
 }: {
   /** Beschriftung des Auswahl-Knopfes, z. B. „Datei auswählen". */
   label: string;
@@ -60,6 +75,14 @@ export function FileButton({
    * `<Button variant="secondary">`.
    */
   variant?: "primary" | "secondary";
+  /**
+   * Die Auswahl startet den Upload gleich: `onFile` läuft direkt aus dem
+   * Dateifenster, es gibt keinen zweiten Klick. Für Porträts und andere
+   * Einzelbilder (TAL-017); `uploadLabel` und `changeLabel` entfallen.
+   */
+  sofort?: boolean;
+  /** Der Upload läuft: Ring statt Symbol, volle Farbe, `label` als Status. Setzt der Aufrufer, der den Upload kennt. */
+  laedt?: boolean;
 }) {
   const id = useId();
   const [gewaehlt, setGewaehlt] = useState<File | null>(null);
@@ -87,7 +110,7 @@ export function FileButton({
           </label>
         </div>
       ) : (
-        <label htmlFor={id} className="w-fit">
+        <label htmlFor={id} className="w-fit" aria-busy={laedt || undefined}>
           {/* Der sichtbare Knopf ist ein `<span>` im Button-Gewand: ein echtes
               `<button>` im `<label>` fängt den Klick ab, statt ihn an das Feld
               weiterzureichen. Tastatur und Vorlesesoftware bedienen weiter das
@@ -99,10 +122,12 @@ export function FileButton({
                 ? "border-2 border-accent bg-transparent text-accent-strong hover:bg-accent/10"
                 : "bg-accent-strong text-on-navy hover:bg-accent-deep",
               "focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent",
-              disabled && "pointer-events-none opacity-40",
+              // Beim Laden bleibt die Farbe stehen — nur sperren, nicht ausblenden.
+              (disabled || laedt) && "pointer-events-none",
+              disabled && !laedt && "opacity-40",
             )}
           >
-            {icon ?? (
+            {laedt ? <Spinner /> : icon ?? (
               <svg
                 viewBox="0 0 16 16"
                 className="h-4 w-4 shrink-0"
@@ -123,14 +148,20 @@ export function FileButton({
         id={id}
         type="file"
         accept={accept}
-        disabled={disabled}
+        disabled={disabled || laedt}
         className="sr-only"
         onChange={(e) => {
           const file = e.target.files?.[0];
           e.target.value = "";
-          if (file) setGewaehlt(file);
+          if (!file) return;
+          if (sofort) onFile(file);
+          else setGewaehlt(file);
         }}
       />
+      {/* Vorlesesoftware: der Wortlaut des Zwischenzustands als Status. */}
+      <span role="status" className="sr-only">
+        {laedt ? label : ""}
+      </span>
 
       {hint && <p className="ct-help">{hint}</p>}
     </div>
