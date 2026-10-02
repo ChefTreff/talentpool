@@ -1,3 +1,5 @@
+-- 0252 · Award: Kontaktdaten der Ansprechperson 14 Monate nach dem Summit leeren, Cron täglich, Audit ohne Adresse (K-51)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002085034.
 -- Löschfrist der Award-Ansprechperson: 14 Monate nach dem Summit (K-51, ADM-024)
 --
 -- Konrad (02.10.): „14 Monate nach dem Summit" — die Daten sind beim nächsten

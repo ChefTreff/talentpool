@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 08:47 UTC · 114 Tabellen · 6 Views · 661 Funktionen
+> Stand: 2026-10-02 08:50 UTC · 114 Tabellen · 6 Views · 662 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -89,9 +89,9 @@ ADM-024: Bewerbung zum Initiativen-Award (Felder nach dem Airtable-Formular). An
 | `description` | text | ja |  |  |  |
 | `mission` | text | ja |  |  |  |
 | `project` | text | ja |  |  |  |
-| `contact_first_name` | text | ja |  |  |  |
-| `contact_last_name` | text | ja |  |  |  |
-| `contact_email` | extensions.citext | ja |  |  |  |
+| `contact_first_name` | text |  |  |  |  |
+| `contact_last_name` | text |  |  |  |  |
+| `contact_email` | extensions.citext |  |  |  |  |
 | `founded_year` | smallint |  |  |  |  |
 | `active_members` | integer |  |  |  |  |
 | `website` | text |  |  |  |  |
@@ -106,6 +106,7 @@ ADM-024: Bewerbung zum Initiativen-Award (Felder nach dem Airtable-Formular). An
 | `decided_at` | timestamp with time zone |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `contact_purged_at` | timestamp with time zone |  |  |  | K-51: Vor-, Nachname und E-Mail der Ansprechperson geleert (14 Monate nach dem Summit, award_purge_contacts). |
 
 ### `award_secret`
 ADM-024: Salz für award_vote.voter_hash je Edition. Nur für die Award-Funktionen; nie auslesen.
@@ -2232,6 +2233,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `award_current_edition` | args: ? |
 | `award_hash` | p_edition_id: uuid, p_ip_hash: text |
 | `award_public_entries` | p_ip_hash: text |
+| `award_purge_contacts` | args: ? |
 | `award_set_images` | p_application_id: uuid, p_ip_hash: text, p_paths: text[] |
 | `award_vote_cast` | p_application_id: uuid, p_ip_hash: text |
 | `award_windows` | p_edition_id: uuid |

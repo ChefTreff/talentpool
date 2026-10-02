@@ -176,6 +176,7 @@
 | Welle 6 · 0249 | **Hackathon-Teamsuche: offene Teams und suchende Personen, Beitrittsanfragen mit Zusage, keine Kontaktdaten (HACK-016)** (`20261002083729`, `v6_hack_teamsuche`; Details im Migrationskopf) | — |
 | Welle 6 · 0250 | **Teammitglied anlegen und einladen unter Verwaltung → Zugänge, nur Team-Rollen ohne admin (QS-056 a)** (`20261002084227`, `v6_team_einladung`; Details im Migrationskopf) | — |
 | Welle 6 · 0251 | **Wunsch-Challenges in der Hackathon-Bewerbung (bis zu drei, nur freigegebene der Edition), Auswahl nach Präferenz (HACK-017)** (`20261002084731`, `v6_hack_challenge_praeferenz`; Details im Migrationskopf) | — |
+| Welle 6 · 0252 | **Award: Kontaktdaten der Ansprechperson 14 Monate nach dem Summit leeren, Cron täglich, Audit ohne Adresse (K-51)** (`20261002085034`, `v6_award_kontakt_frist`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
