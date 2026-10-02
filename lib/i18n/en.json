@@ -1269,11 +1269,15 @@
     "waiting": "waiting"
   },
   "adminNotifications": {
-    "acConnected": "Key is set. The sync comes as a separate building block.",
-    "acMissing": "Not connected — the sync comes as a separate building block once the key is set. Until then: export per topic.",
+    "acConnected": "Key set. The sync runs every 15 minutes; until writing is enabled it only counts.",
+    "acLast": "Last run: {status}, {date}.",
+    "acMissing": "Connection missing — once the key is set, the sync transfers the topics as tags. Until then: export per topic.",
+    "acNumbers": "{contacts} contacts in ActiveCampaign. Open: {out} to transfer, {withdrawn} to clean up (unsubscribe, deletion).",
     "acStatusOff": "Not connected",
     "acStatusOn": "Key set",
     "acTitle": "ActiveCampaign",
+    "acWriteOff": "Dry run (writes nothing)",
+    "acWriteOn": "Writing enabled",
     "colChosen": "Chosen",
     "colReachable": "Reachable",
     "colTopic": "Topic",

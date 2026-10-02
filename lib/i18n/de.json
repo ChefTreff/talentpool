@@ -1269,11 +1269,15 @@
     "waiting": "wartend"
   },
   "adminNotifications": {
-    "acConnected": "Schlüssel hinterlegt. Der Sync kommt als eigener Baustein.",
-    "acMissing": "Verbindung fehlt — der Sync kommt als eigener Baustein, sobald der Schlüssel hinterlegt ist. Bis dahin: Export je Thema.",
+    "acConnected": "Schlüssel hinterlegt. Der Sync läuft alle 15 Minuten; solange das Schreiben nicht freigeschaltet ist, wird nur gezählt.",
+    "acLast": "Letzter Lauf: {status}, {date}.",
+    "acMissing": "Verbindung fehlt — sobald der Schlüssel hinterlegt ist, überträgt der Sync die Themen als Tags. Bis dahin: Export je Thema.",
+    "acNumbers": "{contacts} Kontakte in ActiveCampaign. Offen: {out} zu übertragen, {withdrawn} zu bereinigen (Abmeldung, Löschung).",
     "acStatusOff": "Verbindung fehlt",
     "acStatusOn": "Schlüssel hinterlegt",
     "acTitle": "ActiveCampaign",
+    "acWriteOff": "Trockenlauf (schreibt nichts)",
+    "acWriteOn": "Schreiben aktiv",
     "colChosen": "Gewählt",
     "colReachable": "Anschreibbar",
     "colTopic": "Thema",
