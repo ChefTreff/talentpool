@@ -188,15 +188,16 @@ export function ShiftTemplates({
               const hours = templateHours(x.start_time, x.end_time);
               return (
                 <li key={x.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t py-3 first:border-t-0">
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5"
-                    aria-label={`${areas[x.area] ?? x.area} ${x.position}`}
-                    checked={selected.includes(x.id)}
-                    disabled={!x.active}
-                    onChange={() => setSelected((s) => toggle(s, x.id))}
-                  />
-                  <span className="ct-label">{areas[x.area] ?? x.area}</span>
+                  <label className="flex items-center gap-3 py-1">
+                    <input
+                      type="checkbox"
+                      className="h-5 w-5"
+                      checked={selected.includes(x.id)}
+                      disabled={!x.active}
+                      onChange={() => setSelected((s) => toggle(s, x.id))}
+                    />
+                    <span className="ct-label">{areas[x.area] ?? x.area}</span>
+                  </label>
                   <span>{x.position}</span>
                   {x.weekday && <Badge tone="neutral">{weekdayName(x.weekday)}</Badge>}
                   <span className="ct-help tabular-nums">
