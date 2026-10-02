@@ -85,24 +85,18 @@ export type SpeakerProfile = {
   next_steps: NextSteps;
 };
 
-/** Die vier Einwilligungen, die das Speaker-Portal führt. */
+/**
+ * Die vier Einwilligungen, die das Speaker-Portal führt. Im Verwaltet-Fall
+ * bestätigt der Kontakt mit Zugang **alle vier** stellvertretend (SPK-074,
+ * K-40; Hotel und Shuttle seit K-45) — mit der stellvertretenden Textfassung
+ * `speaker.consent…OnBehalf` (K-46). Die Datenbank lässt genau diese vier zu.
+ */
 export const SPEAKER_CONSENTS = [
   "photo_video",
   "speaker_release",
   "slides_publication",
   "hospitality_data",
 ] as const;
-
-/**
- * Was der Kontakt mit Zugang im Verwaltet-Fall stellvertretend bestätigt
- * (SPK-074, K-40): Foto, Veröffentlichung, Folien. Hotel und Shuttle bleibt
- * bei der Speakerin selbst — die Datenbank weist es sonst ab.
- */
-export const SPEAKER_CONSENTS_ON_BEHALF: readonly string[] = [
-  "photo_video",
-  "speaker_release",
-  "slides_publication",
-];
 
 /**
  * Schritte aus `next_steps.open` und ihr Ziel. `null` hiesse: die Seite gibt es

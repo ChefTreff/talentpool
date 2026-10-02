@@ -53,6 +53,8 @@
  *                                   den Schritt partner)
  *   … --apply --nur=verwaltet      (PART-091: TEST-Speaker, den der Partner verwaltet —
  *                                   Konrad ist der Kontakt, an den die Mails gehen;
+ *                                   mit Hotel-Anspruch für die stellvertretende
+ *                                   Einwilligung — SPK-074-Nachtrag;
  *                                   braucht v6_talk_speaker_zugang und
  *                                   v6_speaker_mail_weiche sowie den Schritt buehne)
  *   … --apply --nur=assistenz      (SPK-071: Konrad als Assistenz eines TEST-Speakers
@@ -1375,9 +1377,13 @@ async function verwalteterSpeaker(me, ed) {
       p_first_name: "TEST", p_last_name: "Verwaltet", p_email: verwaltetAdresse(),
     });
     if (error) return { data: null, error };
+    // Hotel-Anspruch `eligible` (SPK-074-Nachtrag, K-45): ohne ihn zeigt die Reise-Seite
+    // kein Hotel, und Konrad könnte die stellvertretende Einwilligung für Hotel und
+    // Shuttle nicht im Weg zur Buchung ausprobieren.
     const profil = await admin.from("speaker_profile").upsert({
       person_id: personId, edition_id: ed.id, speaker_type: "panelist", pipeline_status: "confirmed",
       confirmed_at: new Date().toISOString(), owner_person_id: me.id, internal_notes: MARK,
+      hospitality_status: "eligible",
     }, { onConflict: "person_id,edition_id" }).select("id").single();
     if (profil.error) return profil;
     const profileId = profil.data.id;

@@ -63,6 +63,13 @@ export default async function SpeakerTravelPage() {
     );
   }
 
+  // SPK-074 (K-45): im Verwaltet-Fall gibt der Kontakt mit Zugang die
+  // Einwilligung für Hotel und Shuttle stellvertretend. Gefragt wird nur für
+  // die Assistenz — die Speakerin selbst gibt sie wie bisher am Knopf.
+  const { data: stellvertretend } = profile.is_assistant
+    ? await supabase.rpc("can_confirm_consent_on_behalf", { p_profile_id: profile.id })
+    : { data: false };
+
   // --- Shuttle: Zeitfenster und Vorbelegung (SPK-032, SPK-034, SPK-061) -----
   // Konrad am 24.09.: Fahrten vom Anreisetag bis zum letzten Summit-Tag, am
   // Anreisetag ab 12 Uhr, sonst ab 9 Uhr, jeweils bis 21 Uhr. Der Anreisetag
@@ -185,6 +192,9 @@ export default async function SpeakerTravelPage() {
         <Sektion id="hotel">
         <TravelView
           isAssistant={profile.is_assistant}
+          consentOnBehalf={stellvertretend === true}
+          profileId={profile.id}
+          speakerName={name}
           options={(optionRows ?? []) as HospitalityOption[]}
           bookings={(bookingRows ?? []) as HospitalityBooking[]}
           locale={locale}
