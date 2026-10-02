@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-02 08:59 UTC · 115 Tabellen · 6 Views · 669 Funktionen
+> Stand: 2026-10-02 09:04 UTC · 115 Tabellen · 6 Views · 671 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2336,6 +2336,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_edition_file` | p_id: uuid |
 | `delete_edition_info` | p_id: uuid |
 | `delete_event_day` | p_id: uuid |
+| `delete_external_ref` | p_object_id: uuid, p_object_type: text, p_system: text |
 | `delete_kb_article` | p_id: uuid |
 | `delete_my_profile` | args: ? |
 | `delete_next_up_item` | p_id: uuid |
@@ -2656,6 +2657,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `run_partner_housekeeping` | args: ? |
 | `run_shop_finalization` | args: ? |
 | `run_volunteer_housekeeping` | args: ? |
+| `sanity_speakers` | p_edition_id: uuid |
 | `scope_stage_id` | p_scope_id: uuid, p_scope_type: text |
 | `search_organizations` | p_limit: integer, p_query: text |
 | `search_people` | p_limit: integer, p_query: text |
