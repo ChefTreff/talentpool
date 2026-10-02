@@ -43,6 +43,10 @@ node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=schichtmod
 ```bash
 node --env-file=.env.local scripts/volunteer-vorlagen-import.mjs --apply
 ```
+Dazu der dritte Lauf (K-34, 0261):
+```bash
+node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=luma-leads
+```
 Der Trockenlauf stand: 570 Vorlagen aus den Planstellen 2026 (Akkreditierung 106, Bühnen 101, Marketing 69, Speakers Care 63, Nachhaltigkeit 43, Garderobe 36, Zutritt 28, Hackathon 23, Produktion 18, Aufbau 17, Event Operations 16 inkl. „VC Breakfast“, Info Point 16, Speaker Lounge 15, Masterclasses 10, Afterparty 9). Danach Klickweg: /admin/volunteers/vorlagen, /admin/volunteers/schichten, /volunteers/schichten.
 
 **9 · K-16 Schlüsselrotation (ca. 20 Minuten, vor dem Go-live; Reihenfolge aus `docs/runbooks/key-rotation.md`):**

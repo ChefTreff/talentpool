@@ -1,4 +1,5 @@
--- 0000 · Luma-Gäste ohne Profil als Lead mit Kanal Luma (K-34, TAL-007)
+-- 0261 · Luma-Gäste ohne Profil als Lead mit Kanal luma, Zählwerte für den Admin (K-34, TAL-007)
+-- Angewendet von der Architektur-Session am 02.10.2026 als 20261002141557.
 -- Anlass: Konrad 02.10.2026 (K-34): Gäste unserer Community-Events, die im Portal kein Profil haben,
 -- werden als Lead mit Kanal „Luma“ angelegt; Rechtsgrundlage ist die Datenschutzerklärung
 -- (Verarbeitung im Rahmen der Event-Anmeldung), Löschung mit dem Löschkonzept (K-22).

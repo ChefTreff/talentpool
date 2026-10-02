@@ -1,12 +1,13 @@
-create or replace function luma_sync_registration(p_luma_event_id text, p_email text, p_guest_id text, p_status text, p_registered_at timestamp with time zone DEFAULT NULL::timestamp with time zone, p_checked_in boolean DEFAULT false)
+create or replace function luma_sync_registration(p_luma_event_id text, p_email text, p_guest_id text, p_status text, p_registered_at timestamp with time zone DEFAULT NULL::timestamp with time zone, p_checked_in boolean DEFAULT false, p_first_name text DEFAULT NULL::text, p_last_name text DEFAULT NULL::text)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
 AS $$
 declare
-  v_event uuid; v_person uuid; v_reg uuid; v_status text;
+  v_event uuid; v_person uuid; v_reg uuid; v_status text; v_lead boolean := false;
   v_guest text := nullif(btrim(coalesce(p_guest_id, '')), '');
+  v_email text := lower(btrim(coalesce(p_email, '')));
 begin
   if auth.uid() is not null then raise exception 'not allowed' using errcode = '42501'; end if;
   v_status := case p_status
@@ -24,9 +25,23 @@ begin
   if v_event is null then raise exception 'event_not_found' using errcode = 'P0002', detail = coalesce(p_luma_event_id, 'null'); end if;
 
   select pe.person_id into v_person from person_email pe join person p on p.id = pe.person_id
-   where lower(pe.email::text) = lower(btrim(coalesce(p_email, ''))) and p.deleted_at is null
+   where lower(pe.email::text) = v_email and p.deleted_at is null
    order by pe.is_primary desc limit 1;
-  if v_person is null then return jsonb_build_object('matched', false); end if;
+
+  if v_person is null then
+    -- K-34: wer sich angemeldet hat, aber kein Profil besitzt, wird Lead (Kanal Luma). Wer abgesagt hat
+    -- oder nur eingeladen wurde, nicht; gesperrte und ungültige Adressen auch nicht.
+    if v_status in ('confirmed', 'applied', 'waitlisted', 'attended')
+       and v_email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' and not is_suppressed(v_email) then
+      insert into person (first_name, last_name, source_first, tier)
+      values (left(nullif(btrim(coalesce(p_first_name, '')), ''), 100), left(nullif(btrim(coalesce(p_last_name, '')), ''), 100), 'luma', 'lead')
+      returning id into v_person;
+      insert into person_email (person_id, email, is_primary, verified) values (v_person, v_email, true, false);
+      v_lead := true;
+    else
+      return jsonb_build_object('matched', false, 'lead_created', false);
+    end if;
+  end if;
 
   -- Erst über die Gast-Id, dann über Person × Event (Anmeldung aus dem Portal, Id noch leer).
   if v_guest is not null then
@@ -50,5 +65,5 @@ begin
       registered_at = coalesce(p_registered_at, registered_at)
      where id = v_reg;
   end if;
-  return jsonb_build_object('matched', true, 'registration_id', v_reg, 'status', v_status);
+  return jsonb_build_object('matched', not v_lead, 'lead_created', v_lead, 'registration_id', v_reg, 'status', v_status);
 end $$;
