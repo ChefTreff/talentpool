@@ -6,7 +6,8 @@ import { HeroBand } from "@/components/ui/HeroBand";
 import { abgabeUrls, datasetUrl, type AbgabeZeile } from "@/lib/hackathon/datensatz-server";
 import type { AbgabeDatei } from "@/components/hackathon/AbgabeDateien";
 import { HackView } from "./HackView";
-import type { HackChallenge, LeaderboardRow, MyHack } from "./types";
+import type { Beitrittsanfrage, HackChallenge, LeaderboardRow, MyHack, OffenesTeam, SuchendePerson } from "./types";
+import { Teamsuche } from "@/components/hackathon/Teamsuche";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
  * werden muss (E3).
  */
 export default async function HackathonPage() {
-  await requireArea("hackathon", "/hackathon");
+  const { personId: me } = await requireArea("hackathon", "/hackathon");
   const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
 
@@ -55,6 +56,31 @@ export default async function HackathonPage() {
     abgabe = zeilen.map((z) => ({ file_id: z.file_id, filename: z.filename, size_bytes: z.size_bytes, late: z.late, url: urls.get(z.storage_path) ?? null }));
   }
 
+  // Teamsuche (HACK-016): nur für angenommene Bewerbungen. Ohne Team die offenen
+  // Teams, im Team die Personen mit „suche Team“; dazu die eigenen Anfragen.
+  let suche: React.ComponentProps<typeof Teamsuche> | null = null;
+  if (data.application?.status === "accepted") {
+    const ichKapitaen = data.team?.members.some((m) => m.is_captain && m.person_id === me) ?? false;
+    const [{ data: teamRows }, { data: peopleRows }, { data: requestRows }] = await Promise.all([
+      supabase.rpc("hack_team_search", { p_language: locale }),
+      data.team ? supabase.rpc("hack_people_search") : Promise.resolve({ data: [] }),
+      supabase.rpc("my_hack_requests"),
+    ]);
+    const teams = (teamRows ?? []) as OffenesTeam[];
+    const eigenes = data.team ? teams.find((x) => x.team_id === data.team!.id) ?? null : null;
+    suche = {
+      modus: data.team ? (ichKapitaen ? "kapitaen" : "mitglied") : "solo",
+      seeking: data.application.seeking_team ?? false,
+      teams: data.team ? [] : teams,
+      people: (peopleRows ?? []) as SuchendePerson[],
+      requests: (requestRows ?? []) as Beitrittsanfrage[],
+      myTeam: data.team ? { looking: Boolean(eigenes), skills: eigenes?.looking_skills ?? [], note: eigenes?.looking_note ?? "" } : null,
+      labels: { skills: vgroup(vocab, "hack_skill"), studyFields: vgroup(vocab, "study_field"), tracks: vgroup(vocab, "hack_track") },
+      t: t.hackSearch,
+      rpcMessages: t.rpc,
+    };
+  }
+
   return (
     <>
       <HeroBand
@@ -67,6 +93,7 @@ export default async function HackathonPage() {
         metric={metric}
         dataset={dataset}
         abgabe={abgabe}
+        teamsuche={suche ? <Teamsuche {...suche} /> : null}
         skills={vgroup(vocab, "hack_skill")}
         tracks={vgroup(vocab, "hack_track")}
         discordUrl={process.env.HACKATHON_DISCORD_URL?.trim() || null}

@@ -148,3 +148,40 @@ export async function saveMetric(input: { teamId: string; value: number; note?: 
   revalidateAll();
   return { ok: true, data: undefined };
 }
+
+// ---------------------------------------------------------------- Teamsuche (HACK-016)
+// Rechte und Regeln prüfen die Definer-Funktionen; hier nur Weitergabe.
+
+async function teamsuche(rpc: string, args: Record<string, unknown>): Promise<ActionResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc(rpc, args);
+  if (error) return fail(error);
+  revalidateAll();
+  return { ok: true, data: undefined };
+}
+
+/** „Ich suche ein Team“ an der eigenen Bewerbung. */
+export async function setSeeking(seeking: boolean): Promise<ActionResult> {
+  return teamsuche("set_hack_seeking", { p_seeking: seeking });
+}
+
+/** „Wir suchen noch“ am eigenen Team (nur Kapitän). */
+export async function setTeamLooking(input: { looking: boolean; skills: string[]; note: string }): Promise<ActionResult> {
+  return teamsuche("set_hack_team_looking", { p_looking: input.looking, p_skills: input.skills, p_note: input.note });
+}
+
+export async function requestJoin(teamId: string, message: string): Promise<ActionResult> {
+  return teamsuche("request_hack_join", { p_team_id: teamId, p_message: message });
+}
+
+export async function invitePerson(personId: string, message: string): Promise<ActionResult> {
+  return teamsuche("invite_hack_person", { p_person_id: personId, p_message: message });
+}
+
+export async function answerRequest(requestId: string, accept: boolean): Promise<ActionResult> {
+  return teamsuche("answer_hack_request", { p_request_id: requestId, p_accept: accept });
+}
+
+export async function withdrawRequest(requestId: string): Promise<ActionResult> {
+  return teamsuche("withdraw_hack_request", { p_request_id: requestId });
+}
