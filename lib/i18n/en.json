@@ -3196,6 +3196,7 @@
     "sSection": "Sections, deadlines, dates",
     "sStats": "Key figures",
     "sStep": "Progress",
+    "sTestbetrieb": "Test-mode notice",
     "sTicket": "Allocation and form",
     "searchLabel": "Search speakers",
     "searchPlaceholder": "Name, company or session",
@@ -3218,6 +3219,7 @@
     "step4": "Billing",
     "step4Hint": "Recipient and purchase order",
     "stepSr": "Progress in the example",
+    "testbetriebHint": "One line below the header of every page (SidebarShell) while the team is testing. From 768 px with the second sentence. Off with NEXT_PUBLIC_TESTBETRIEB_HINWEIS=false.",
     "ticketAction": "View codes",
     "ticketCount": "codes redeemed",
     "ticketI1": "Access on both days",
@@ -6276,6 +6278,11 @@
     "walletAdd": "Add to wallet",
     "walletHint": "Opens your ticket at vivenu — that's where the Apple and Google Wallet buttons are.",
     "word": "Access"
+  },
+  "testbetrieb": {
+    "kurz": "Data marked ZZTEST is test data.",
+    "label": "Test mode",
+    "mehr": "Only change or delete test data — everything else is real."
   },
   "titleAssistant": {
     "assistant": "Suggestion",

@@ -22,6 +22,7 @@ import { FristMarke } from "./FristMarke";
 import { Fortschritt } from "./Fortschritt";
 import { KalenderKnoepfe } from "./KalenderKnoepfe";
 import { SuchFeld } from "./SuchFeld";
+import { TestbetriebHinweis } from "./TestbetriebHinweis";
 import { MehrfachAuswahl } from "./MehrfachAuswahl";
 import { PortalFooter } from "@/components/layout/PortalFooter";
 import type { FehlerTexte } from "@/components/fehler/fehler";
@@ -40,7 +41,16 @@ export type KitTexte = Record<string, string>;
  * zeigt Form, nicht Inhalt. Die Beschriftungen kommen als Props herein,
  * damit auch diese Seite DE und EN kann.
  */
-export function KitSchau({ t, fehler }: { t: KitTexte; fehler: FehlerTexte }) {
+export function KitSchau({
+  t,
+  fehler,
+  testbetrieb,
+}: {
+  t: KitTexte;
+  fehler: FehlerTexte;
+  /** Texte des Testbetrieb-Hinweises (`t.testbetrieb`) — dieselben wie in der Shell. */
+  testbetrieb: { label: string; kurz: string; mehr: string };
+}) {
   const [schritt, setSchritt] = useState(1);
   const [themen, setThemen] = useState<string[]>([]);
 
@@ -274,6 +284,15 @@ export function KitSchau({ t, fehler }: { t: KitTexte; fehler: FehlerTexte }) {
             </>
           }
         />
+      </Abschnitt>
+
+      {/* Der Streifen unter der Kopfzeile jeder Seite (QS-056 c). Hier im Rahmen,
+          damit man ihn als Streifen sieht und nicht als Hinweis in einer Karte. */}
+      <Abschnitt titel={t.sTestbetrieb}>
+        <div className="overflow-hidden rounded-ct-md border">
+          <TestbetriebHinweis label={testbetrieb.label} kurz={testbetrieb.kurz} mehr={testbetrieb.mehr} />
+        </div>
+        <p className="ct-help mt-3">{t.testbetriebHint}</p>
       </Abschnitt>
 
       <Abschnitt titel={t.sButtons}>

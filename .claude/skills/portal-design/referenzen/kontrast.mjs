@@ -58,6 +58,9 @@ const PAARE = [
   ["Chat-Antwort: Link (accent-deep) auf Akzent-Soft", "#4A4AC5", "#E8E8FC", 4.5],
   ["Success-Chip", "#0B7A5A", "#E7FAF3", 4.5],
   ["Warning-Chip", "#8A6100", "#FEF6DE", 4.5],
+  // Testbetrieb-Hinweis (QS-056 c): Streifen unter der Kopfzeile in warning-soft, Text und Eyebrow in
+  // warning-ink — dasselbe Paar wie der Chip, hier als Fließtext (13 px) und deshalb mit 4,5 geprüft.
+  ["Testbetrieb-Hinweis: warning-ink auf warning-soft", "#8A6100", "#FEF6DE", 4.5],
   ["Error-Chip", "#C22B2B", "#FDECEC", 4.5],
   // Warnzeichen der Fehlergrenze (`ErrorState`, QS-023): Strich und
   // Ausrufezeichen auf der Karte — Grafik, also 3:1 (WCAG 1.4.11).
