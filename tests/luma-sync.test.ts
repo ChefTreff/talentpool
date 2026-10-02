@@ -25,7 +25,7 @@ describe("Luma-Rücklauf (TAL-007/008 Stufe 3)", () => {
           if (id === opts.failGuestsFor) throw new Error("boom");
           return id === "evt-oktober" ? guests : [];
         },
-        rpc: async (fn: string, args: Record<string, unknown>) => {
+        rpc: async (fn: string, args: Record<string, unknown>): Promise<{ data: unknown; error: null }> => {
           calls.push({ fn, args });
           // Person gibt es nur für Anna; Ben (Warteliste) wird Lead, Cem (noch offen) auch.
           if (fn === "luma_sync_registration") {
@@ -59,7 +59,10 @@ describe("Luma-Rücklauf (TAL-007/008 Stufe 3)", () => {
 
   it("Gäste ohne Anmeldung (nur eingeladen oder abgesagt) bleiben unmatched, ohne Lead", async () => {
     const x = deps();
-    x.d.rpc = async (fn: string) => ({ data: fn === "luma_sync_registration" ? { matched: false, lead_created: false } : "uuid", error: null });
+    x.d.rpc = async (fn: string): Promise<{ data: unknown; error: null }> => ({
+      data: fn === "luma_sync_registration" ? { matched: false, lead_created: false } : "uuid",
+      error: null,
+    });
     const stats = await syncLuma(x.d, new Date("2026-09-24T12:00:00Z"));
     assert.equal(stats.leads, 0);
     assert.equal(stats.unmatched, 3);
