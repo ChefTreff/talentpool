@@ -1079,3 +1079,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 ## 2026-10-02 — #306 gemergt (Testbetrieb-Hinweis, QS-056 c)
 
 - **#306** (Design, QS-056 c, ohne Migration, dritter PR auf Sonnet 5.5): Kit-Baustein `TestbetriebHinweis` einmal in der `SidebarShell` aller sieben Portale und des Admins (Kontrast 5,13:1, `role=note`, DE/EN; Handy eine Zeile, zweiter Satz ab 768 px), Schalter `NEXT_PUBLIC_TESTBETRIEB_HINWEIS` (Vorgabe an, aus nur bei „false“, Leerraum getrimmt; `.env.local.example`, `docs/zugangs-liste.md`, Zeile in der Finalen Checkliste „auf false stellen“ + Redeploy, weil beim Build eingebettet). Bewusst ohne Streifen: Einlass-Kiosk (keine Shell), öffentliche Seiten (/award, Login, Startseite). Vor dem Push rebased, 1005/1005. QS-056 (c) → gebaut #306; damit sind (a) und (c) gebaut, offen bei Konrad die Einladungen und K-14.
+
+## 2026-10-02 — #307 gemergt (SPK-075, Sichtprüfung Handybreite Speaker)
+
+- **#307** (Speaker, SPK-075, ohne Migration): an jeder Session-Karte unter /speaker/session stand die eigene Rolle als roher Schlüssel „speaker“; jetzt nur bei Moderation, Gastgeber und Panel, übersetzt DE/EN. Erster Befund der Sichtprüfung in Handybreite (375 px sonst sauber). SPK-075 → gebaut #307.
