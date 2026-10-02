@@ -4,7 +4,7 @@
 
 > Konrads Entscheidung vom 17.09.: fünf Build-Chats nach Datenverbund plus ein Design-Chat, dazu die Architektur-/Security-Session (`talentpool-a9`, arbeitet nur für `main`). Höchstens **zwei bis drei Chats gleichzeitig aktiv** — das Wochenkontingent gilt für alle Sessions gemeinsam, und Konrads Review-Zeit ist der Engpass. Ein ruhender Chat verliert nichts: sein Gedächtnis ist das Backlog in `docs/feedback/`.
 
-> **Aktuell gilt die Tabelle „Pause 01.10. spät“ direkt darunter** („Fortsetzung 01.10. abends“ und „Pause 01.10. abends“ sind die Stände davor); „Runde 01.10.“, „Runde 26.09.“, „Pause 25.09. Mittag“, „Neustart 25.09.“, die Tabelle „Pause 24.09. spät“ und die Texte vom Abend sind überholt. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
+> **Runde 02.10. (Freitag):** die Tabelle „Pause 01.10. spät“ ist das Startpaket; Ziel laut Konrad: bis Samstag alles abschließen, was in den Backlogs liegt, Sonntag gesammelte Feedbackrunde, Montag Einarbeitung und Team-Zugriff für Feedback und Testing. Design- und Partner-Chat laufen seit 02.10. auf Sonnet 5.5 (Vergleich nach einer Runde). **Aktuell gilt die Tabelle „Pause 01.10. spät“ direkt darunter** („Fortsetzung 01.10. abends“ und „Pause 01.10. abends“ sind die Stände davor); „Runde 01.10.“, „Runde 26.09.“, „Pause 25.09. Mittag“, „Neustart 25.09.“, die Tabelle „Pause 24.09. spät“ und die Texte vom Abend sind überholt. „Runde 24.09.“ sind die Starttexte für neue Chats vom Nachmittag; die Blöcke unter „Archiv“ stammen vom 17.09. und sind nur noch zum Nachlesen.
 
 ## Pause 01.10. spät (Sitzungslimit) — Stand und Fortsetzung je Chat
 
