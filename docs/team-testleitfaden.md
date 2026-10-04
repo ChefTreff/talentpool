@@ -1,4 +1,4 @@
-# Team-Testleitfaden FLS27-Portale — Testrunde ab Montag, 06.10.2026 (Entwurf, Stand 02.10.)
+# Team-Testleitfaden FLS27-Portale — Testrunde ab Montag, 05.10.2026 (Stand 04.10.)
 
 Für alle Teammitglieder, die ab Montag Zugriff auf `portal.chef-treff.de` bekommen. Ziel der Runde: Fehler, Stolperstellen und fehlende Funktionen finden, bevor Partner, Speaker und Talents am 14.10. hineinkommen. Konrad gibt die Zugänge frei und sammelt das Feedback; die Architektur-Session verteilt es in die Backlogs (`docs/feedback/*.md`) — nichts geht verloren, jeder Punkt bekommt eine Nummer.
 
