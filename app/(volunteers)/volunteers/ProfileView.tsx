@@ -121,7 +121,7 @@ export function ProfileView({
       )}
 
       <Card>
-        <CardHeader title={t.prefsTitle} description={t.prefsLead} />
+        <CardHeader ebene="h2" title={t.prefsTitle} description={t.prefsLead} />
         <div className="flex flex-col gap-4">
           {Object.keys(areas).length > 0 ? (
             <fieldset>

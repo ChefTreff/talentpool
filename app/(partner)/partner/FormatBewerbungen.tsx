@@ -81,7 +81,7 @@ export async function FormatBewerbungen({
           // 42501: die Rolle reicht nicht (etwa nur Event-App). Kein Fehlerdialog, sondern die Auskunft.
           return (
             <Card key={x.id}>
-              <CardHeader title={titel(x)} />
+              <CardHeader ebene="h2" title={titel(x)} />
               <EmptyState title={t.applicants.noRightsTitle} description={t.applicants.noRightsBody} />
             </Card>
           );
@@ -92,6 +92,7 @@ export async function FormatBewerbungen({
         return (
           <Card key={x.id}>
             <CardHeader
+              ebene="h2"
               title={titel(x)}
               description={`${nurTeilnehmende ? s.tabParticipants : s.tabApplications} · ${zeilen.length}`}
             />

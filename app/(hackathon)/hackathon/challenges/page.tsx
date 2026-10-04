@@ -85,7 +85,7 @@ export default async function ChallengesPage({
         <div className="flex flex-col gap-4">
           {rows.map((c) => (
             <Card key={c.id}>
-              <CardHeader title={c.title} description={c.org_name ?? undefined} />
+              <CardHeader ebene="h3" title={c.title} description={c.org_name ?? undefined} />
               <div className="flex flex-col gap-2">
                 {c.description && <p className="leading-6">{c.description}</p>}
                 {c.prizes && (

@@ -76,7 +76,7 @@ export async function TourBewerbungen({
           // 42501: die Rolle reicht nicht (etwa nur Event-App). Kein Fehlerdialog, sondern die Auskunft.
           return (
             <Card key={x.stop_id}>
-              <CardHeader title={titel} />
+              <CardHeader ebene="h2" title={titel} />
               <EmptyState title={t.applicants.noRightsTitle} description={t.applicants.noRightsBody} />
             </Card>
           );
@@ -93,7 +93,7 @@ export async function TourBewerbungen({
           }));
         return (
           <Card key={x.stop_id}>
-            <CardHeader title={titel} description={`${nurTeilnehmende ? s.tabParticipants : s.tabApplications} · ${zeilen.length}`} />
+            <CardHeader ebene="h2" title={titel} description={`${nurTeilnehmende ? s.tabParticipants : s.tabApplications} · ${zeilen.length}`} />
             {!nurTeilnehmende && (
               <p className="ct-help mb-4">
                 <span className="font-semibold text-ink">

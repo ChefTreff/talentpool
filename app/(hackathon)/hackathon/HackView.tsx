@@ -131,7 +131,7 @@ export function HackView({
 
       {accepted && (
         <Card>
-          <CardHeader title={t.teamTitle} description={t.teamLead} />
+          <CardHeader ebene="h2" title={t.teamTitle} description={t.teamLead} />
           {data.team ? (
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-baseline gap-3">
@@ -174,7 +174,7 @@ export function HackView({
 
       {accepted && data.team && (
         <Card>
-          <CardHeader title={t.challengeTitle} description={t.challengeLead} />
+          <CardHeader ebene="h2" title={t.challengeTitle} description={t.challengeLead} />
           {data.challenge ? (
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -254,7 +254,7 @@ export function HackView({
 
       {discordUrl && (
         <Card>
-          <CardHeader title={t.discord} description={t.discordHint} />
+          <CardHeader ebene="h2" title={t.discord} description={t.discordHint} />
           <a className="ct-link" href={discordUrl} {...neuesFenster}>
             {discordUrl}
           </a>
@@ -291,7 +291,7 @@ function ApplyCard({
 
   return (
     <Card>
-      <CardHeader title={t.applyTitle} description={t.applyLead} />
+      <CardHeader ebene="h2" title={t.applyTitle} description={t.applyLead} />
       <div className="flex flex-col gap-4">
         <fieldset>
           <legend className="ct-label mb-2">{t.skills}</legend>
@@ -471,7 +471,7 @@ function SubmitCard({
 
   return (
     <Card>
-      <CardHeader title={t.submitTitle} description={t.submitLead} />
+      <CardHeader ebene="h2" title={t.submitTitle} description={t.submitLead} />
       <div className="flex flex-col gap-4">
         {/* Frist je Challenge (HACK-011): danach geht es weiter, aber „verspätet“. */}
         {deadline && (

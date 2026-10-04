@@ -56,7 +56,7 @@ export async function FormatFragen({
         const text = (f: (typeof fragen)[number]) => (locale === "en" ? f.label_en : f.label_de);
         return (
           <Card key={x.id}>
-            <CardHeader title={titel(x)} description={s.questionsLead} />
+            <CardHeader ebene="h2" title={titel(x)} description={s.questionsLead} />
             <div className="flex flex-col gap-6">
               {team.length > 0 && (
                 <section aria-label={s.teamQuestionsTitle}>

@@ -77,7 +77,7 @@ export default async function PartnerCompanyTourPage() {
             )}
 
             <Card>
-              <CardHeader title={s.formTitle} description={s.formLead} />
+              <CardHeader ebene="h3" title={s.formTitle} description={s.formLead} />
               <TourStopp
                 stopp={x}
                 felder={felder}

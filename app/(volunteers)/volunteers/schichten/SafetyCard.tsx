@@ -46,7 +46,7 @@ export function SafetyCard({
 
   return (
     <Card>
-      <CardHeader title={t.safetyTitle} description={t.safetyLead} />
+      <CardHeader ebene="h2" title={t.safetyTitle} description={t.safetyLead} />
       <ul className="ct-small flex list-disc flex-col gap-1 pl-5">
         {[t.safetyPoint1, t.safetyPoint2, t.safetyPoint3, t.safetyPoint4].map((p) => (
           <li key={p}>{p}</li>

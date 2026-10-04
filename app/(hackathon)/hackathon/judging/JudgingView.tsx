@@ -75,7 +75,7 @@ function TeamCard({
 
   return (
     <Card>
-      <CardHeader title={row.team_name} description={row.challenge_title ?? undefined} />
+      <CardHeader ebene="h3" title={row.team_name} description={row.challenge_title ?? undefined} />
       <div className="flex flex-col gap-4">
         {row.submitted_at ? (
           <div className="flex flex-col gap-1">
