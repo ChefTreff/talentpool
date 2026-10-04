@@ -92,7 +92,7 @@ Community, Augenhöhe, nahbar, „nicht distanziert". Für die Portale heißt da
 
 | Datei | Inhalt | Verwendung |
 |---|---|---|
-| `public/brand/fls-wortmarke.svg` | Wortmarke „Future Leader Summit“ (aus dem Design-Ordner, `fill="currentColor"`) | Login/Welcome auf Navy in `text-on-navy`; Topbar-Logoplatz, sobald das ChefTreff-Logo als SVG vorliegt |
+| `public/brand/fls-wortmarke.svg` | Wortmarke **„Future Leader Club“** in drei Zeilen (FUTURE / LEADER / CLUB; berichtigt 04.10.2026 — hier stand „Summit“, die Datei zeigt CLUB; aus dem Design-Ordner, `fill="currentColor"`). Eine Summit-Fassung (FUTURE / LEADER / SUMMIT) liegt nicht als Datei vor; die Event-Grafiken setzen sie als Schrift (`lib/grafik/meet-us-at-zeichnen.ts`). Offen: welche Wortmarke die Event-Grafik 2027 trägt (K-58, QS-067) | Login/Welcome auf Navy in `text-on-navy`; Topbar-Logoplatz, sobald das ChefTreff-Logo als SVG vorliegt |
 | `public/brand/events/dreieck.svg` | Dreieck (Umriss) | Leerzustände, Login/Welcome |
 | `public/brand/events/zickzack.svg`, `linienzug.svg`, `schleife.svg`, `welle.svg` | Events-Linienzüge (Umriss, `stroke="currentColor"`) | Hintergrundkomposition auf Navy, nie hinter Text |
 
