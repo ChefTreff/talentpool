@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
@@ -164,10 +165,8 @@ export function MerchDialog({
                 required={f.required}
                 requiredLabel={t.requiredLabel}
               >
-                <input
+                <Checkbox
                   id={id}
-                  type="checkbox"
-                  className="h-5 w-5"
                   checked={value === true || value === "true"}
                   onChange={(e) => set(f.key, e.target.checked)}
                 />

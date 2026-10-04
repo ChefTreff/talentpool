@@ -282,7 +282,7 @@ export function PipelineView({
             />
           </Field>
           {gaesteImBereich > 0 && (
-            <label className="flex min-h-10 items-center gap-2 self-end ct-label text-ink">
+            <label className="flex min-h-10 items-center gap-2 self-end ct-label text-ink pointer-coarse:min-h-11">
               <input
                 type="checkbox"
                 className="size-4"
