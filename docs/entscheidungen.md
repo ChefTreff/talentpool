@@ -1222,3 +1222,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **K-59** (Hackathon-Startseite als Event-Seite, Vorschlag #342): Konrad 04.10.: „passt, nutz das gern als Grundlage“ → der Talent & Hackathon-Chat baut die Startseite nach `docs/design-vorschlaege-2026-10-04.md` um und legt den Datenbedarf HACK-020 als Migrationsvorschlag vor; zu den Fragen (2) Zahlen zeigen und (3) Struktur für andere Formate gilt die Empfehlung des Vorschlags, bis Konrad etwas anderes sagt.
 - **K-60** (Versalien-Köpfe in Abschnittskarten, QS-054): Konrad 04.10.: „Versalien passen, bitte alle umstellen“ → Design stellt die übrigen rund 98 `CardHeader`-Aufrufe seitenweise auf `ebene="h2"` um (Listeneinträge bleiben h3), PRs je Bereich; das Talent-Muster („auch in Karten“) gilt damit bestätigt.
 
+## 2026-10-04 — #344 gemergt (QS-054 Gesamtumstellung, Bereich 1: Admin → Partner)
+
+- **#344** (Design, nur Oberfläche): 31 `CardHeader` unter Admin → Partner auf `ebene="h2"`, ein h3 mit Grund (Stopp einer Tour unter „Touren der Organisation“). Regel für alle Bereiche (im Wächtertest): h2 für Abschnitte der Seite, auch wiederholte je Tag/Session/Stopp; h3 nur für Unterabschnitte derselben Einheit und gleichförmige Listeneinträge; jeder h3 steht im Test mit Datei, Anzahl und Grund. Umgestellt per Skript über den TypeScript-Syntaxbaum. Weitere PRs: Admin → Speaker/Speaker-Leads/Edition/Volunteers, Admin übrige, Partner-/Volunteers-/Hackathon-Portal; danach wird `ebene` im Kit Pflicht (tsc) und der Wächter prüft das ganze Repo.
+
