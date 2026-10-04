@@ -4,7 +4,7 @@ Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Secu
 
 ## Finale Liste — was Konrad macht (Stand 04.10.2026, Sonntag vormittags)
 
-Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Seit Freitagabend gemergt: #330 (K-47 Archiv-Karte), #331 (ADM-066 Zuschnitt-Dialog), #332 (QS-065 Admin-Teil); dazu #333 (Tabellenzeilen 56 px, K-57) und #334 PART-096 „Meet us at“-Grafik. Admin-Chat ist fertig und geschlossen, Design und Partner laufen.
+Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Seit Freitagabend gemergt: #330 (K-47 Archiv-Karte), #331 (ADM-066 Zuschnitt-Dialog), #332 (QS-065 Admin-Teil); dazu #333 (Tabellenzeilen 56 px, K-57), #334 PART-096 „Meet us at“-Grafik und #335 (Kontrollkästchen 44 px am Handy). Admin-Chat ist fertig und geschlossen, Design und Partner laufen.
 
 ### A · Heute: Klicks und Einstellungen
 
