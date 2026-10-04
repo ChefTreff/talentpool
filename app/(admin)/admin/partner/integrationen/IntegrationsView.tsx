@@ -104,7 +104,7 @@ export function IntegrationsView({
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader title={t.editionsTitle} description={t.editionsLead} />
+        <CardHeader ebene="h2" title={t.editionsTitle} description={t.editionsLead} />
         <div className="flex flex-col gap-4">
           {editions.map((e) => (
             <div key={e.id} className="rounded-ct-md border p-4">
@@ -203,7 +203,7 @@ export function IntegrationsView({
       </Card>
 
       <Card>
-        <CardHeader title={t.exhibitorsTitle} description={t.exhibitorsLead} />
+        <CardHeader ebene="h2" title={t.exhibitorsTitle} description={t.exhibitorsLead} />
         <div className="flex flex-wrap items-end gap-2">
           <Field label={t.editionLabel} htmlFor="sw-edition">
             <Select
@@ -264,7 +264,7 @@ export function IntegrationsView({
       </Card>
 
       <Card>
-        <CardHeader title={t.dealTitle} description={t.dealLead} />
+        <CardHeader ebene="h2" title={t.dealTitle} description={t.dealLead} />
         <div className="flex flex-wrap items-end gap-2">
           <Field label={t.dealId} htmlFor="deal">
             <Input
@@ -285,7 +285,7 @@ export function IntegrationsView({
       </Card>
 
       <Card>
-        <CardHeader title={t.logTitle} description={`${t.logLead} · ${log.length}`} />
+        <CardHeader ebene="h2" title={t.logTitle} description={`${t.logLead} · ${log.length}`} />
         {log.length === 0 ? (
           <p className="ct-help">{t.logEmpty}</p>
         ) : (

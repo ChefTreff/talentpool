@@ -246,6 +246,7 @@ export function OrgDetail({
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader
+          ebene="h2"
           title={t.statusTitle}
           description={
             overview.edition
@@ -380,7 +381,7 @@ export function OrgDetail({
           korrigiert es das Team, über dieselbe RPC. Dazu die Kundennummer, die nur
           das Team setzt (der Partner sieht sie). */}
       <Card id="daten">
-        <CardHeader title={t.dataTitle} description={t.dataLead} />
+        <CardHeader ebene="h2" title={t.dataTitle} description={t.dataLead} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.customerNumberAdmin} htmlFor="d-kundennummer" hint={t.customerNumberAdminHint}>
             <Input
@@ -427,7 +428,7 @@ export function OrgDetail({
       </Card>
 
       <Card id="stand">
-        <CardHeader title={t.boothTitle} description={t.boothLead} />
+        <CardHeader ebene="h2" title={t.boothTitle} description={t.boothLead} />
         <div className="grid gap-4 md:grid-cols-4">
           {(
             [
@@ -468,7 +469,7 @@ export function OrgDetail({
           Dieselbe Komponente wie im Partner-Portal, dieselbe RPC — gebraucht wird der Weg,
           wenn ein Partner die Erlaubnis am Telefon gibt. */}
       <Card>
-        <CardHeader title={t.logoWallTitle} description={t.logoWallLead} />
+        <CardHeader ebene="h2" title={t.logoWallTitle} description={t.logoWallLead} />
         <LogoWandEinwilligung
           grantedAt={overview.edition?.logo_whitening_consent_at ?? null}
           canEdit={Boolean(overview.edition)}
@@ -487,7 +488,7 @@ export function OrgDetail({
       </Card>
 
       <Card id="kontakte">
-        <CardHeader title={t.contactsTitle} description={`${t.contactsLead} · ${contacts.length}`} />
+        <CardHeader ebene="h2" title={t.contactsTitle} description={`${t.contactsLead} · ${contacts.length}`} />
         {/* Dieselbe Liste wie im Partnerportal (Regel vom 22.09.): einladen,
             bearbeiten, löschen, Hauptkontakt übertragen — über dieselben RPCs.
             Nur die Spalte „Bühnen-Editor" gibt es hier zusätzlich. */}
@@ -519,7 +520,7 @@ export function OrgDetail({
 
       {overview.has_stage && (
         <Card id="gaeste">
-          <CardHeader title={t.guestsTitle} description={`${t.guestsLead} · ${gaeste.length}`} />
+          <CardHeader ebene="h2" title={t.guestsTitle} description={`${t.guestsLead} · ${gaeste.length}`} />
           {/* Dieselbe Liste wie unter /partner/buehne/gaeste (Regel vom 22.09.), über dieselben RPCs. */}
           <Gaesteliste
             orgId={orgId}
@@ -541,7 +542,7 @@ export function OrgDetail({
 
       {masterclasses.length > 0 && (
         <Card id="goodies">
-          <CardHeader title={t.goodiesTitle} description={t.goodiesLead} />
+          <CardHeader ebene="h2" title={t.goodiesTitle} description={t.goodiesLead} />
           {/* PART-054: der Haken steht beim Team — dieselbe Maske wie unter /partner/masterclass,
               über dieselbe RPC (`partner_update_session`, Partner-Team über `partner_can_edit`). */}
           <ul className="flex flex-col divide-y divide-border">
@@ -565,7 +566,7 @@ export function OrgDetail({
 
       {offeneFragen.length > 0 && (
         <Card id="fragen">
-          <CardHeader title={t.questionsTitle} description={t.questionsLead} />
+          <CardHeader ebene="h2" title={t.questionsTitle} description={t.questionsLead} />
           <FragenFreigabe offen={offeneFragen} typLabels={frageTypen} t={t} rpcMessages={rpcMessages} />
         </Card>
       )}
@@ -573,6 +574,7 @@ export function OrgDetail({
       {tourStopps.map((x) => (
         <Card key={x.stop_id} id={`tour-${x.stop_id}`}>
           <CardHeader
+            ebene="h3"
             title={tourTexts.stopTitle.replace("{n}", String(x.sort_order)).replace("{tour}", x.tour_name)}
             description={t.tourStopLead}
           />
@@ -596,7 +598,7 @@ export function OrgDetail({
 
       {talkSpeakers.length > 0 && (
         <Card id="speaker">
-          <CardHeader title={t.talkSpeakersTitle} description={`${t.talkSpeakersLead} · ${talkSpeakers.length}`} />
+          <CardHeader ebene="h2" title={t.talkSpeakersTitle} description={`${t.talkSpeakersLead} · ${talkSpeakers.length}`} />
           {/* PART-091: welcher Speaker einen eigenen Zugang hat und bei welchem die Kommunikation
               über den Operations-Kontakt läuft. Gepflegt wird im Speaker-Admin — dort hebt das
               Entfernen des Kontakts die Umleitung auf. */}
@@ -628,6 +630,7 @@ export function OrgDetail({
 
       <Card>
         <CardHeader
+          ebene="h2"
           title={t.checklistTitle}
           description={`${t.checklistLead} · ${deliverables.length}`}
         />
@@ -668,7 +671,7 @@ export function OrgDetail({
       </Card>
 
       <Card id="deals">
-        <CardHeader title={t.dealsTitle} description={t.dealsLead} />
+        <CardHeader ebene="h2" title={t.dealsTitle} description={t.dealsLead} />
         {deals.length === 0 ? (
           <p className="ct-help">{t.dealsEmpty}</p>
         ) : (
@@ -697,7 +700,7 @@ export function OrgDetail({
       </Card>
 
       <Card id="gebucht">
-        <CardHeader title={t.bookedTitle} description={t.bookedLead} />
+        <CardHeader ebene="h2" title={t.bookedTitle} description={t.bookedLead} />
         {overview.products.length === 0 ? (
           <p className="ct-help">{t.bookedEmpty}</p>
         ) : (

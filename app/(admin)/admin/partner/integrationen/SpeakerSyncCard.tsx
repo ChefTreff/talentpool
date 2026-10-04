@@ -59,7 +59,7 @@ export function SpeakerSyncCard({ t }: { t: Record<string, string> }) {
 
   return (
     <Card className="mb-4">
-      <CardHeader title={t.speakerSyncTitle} description={t.speakerSyncLead} />
+      <CardHeader ebene="h2" title={t.speakerSyncTitle} description={t.speakerSyncLead} />
       <div className="mt-3 flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => void ruf(true)} loading={laeuft} disabled={laeuft}>
           {t.productSyncDryRun}

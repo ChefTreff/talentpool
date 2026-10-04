@@ -47,7 +47,7 @@ export function BelegSyncCard({ t }: { t: Record<string, string> }) {
 
   return (
     <Card>
-      <CardHeader title={t.documentsTitle} description={t.documentsLead} />
+      <CardHeader ebene="h2" title={t.documentsTitle} description={t.documentsLead} />
       <div className="flex flex-col gap-4">
         <div>
           <Button size="sm" loading={laeuft} onClick={ruf}>{t.documentsRun}</Button>

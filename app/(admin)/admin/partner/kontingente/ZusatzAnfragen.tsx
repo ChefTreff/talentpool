@@ -65,6 +65,7 @@ export function ZusatzAnfragen({
   return (
     <Card>
       <CardHeader
+        ebene="h2"
         title={t.extraAdminTitle}
         description={`${t.extraAdminLead} · ${offen} ${t.extraAdminOpen}`}
       />
