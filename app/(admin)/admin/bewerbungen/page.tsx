@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { listeFilter, SEITE_GROESSE, seitenAdresse, seitenZahl, filterAktiv } from "@/lib/bewerbungen/liste";
 import { SectionTabs } from "@/components/layout/SectionTabs";
+import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { BewerbungsFilter } from "./BewerbungsFilter";
@@ -159,9 +160,9 @@ export default async function BewerbungenPage({
               {seiten > 1 && (
                 <nav aria-label={a.pagination} className="flex flex-wrap items-center justify-between gap-3">
                   {filter.seite > 1 ? (
-                    <Link prefetch={false} className="ct-link" href={seitenAdresse(PFAD, suche.toString(), filter.seite - 1)}>
+                    <ButtonLink prefetch={false} variant="secondary" size="sm" href={seitenAdresse(PFAD, suche.toString(), filter.seite - 1)}>
                       ← {a.pagePrev}
-                    </Link>
+                    </ButtonLink>
                   ) : (
                     <span />
                   )}
@@ -169,9 +170,9 @@ export default async function BewerbungenPage({
                     {a.pageOf.replace("{n}", String(filter.seite)).replace("{total}", String(seiten))}
                   </span>
                   {filter.seite < seiten ? (
-                    <Link prefetch={false} className="ct-link" href={seitenAdresse(PFAD, suche.toString(), filter.seite + 1)}>
+                    <ButtonLink prefetch={false} variant="secondary" size="sm" href={seitenAdresse(PFAD, suche.toString(), filter.seite + 1)}>
                       {a.pageNext} →
-                    </Link>
+                    </ButtonLink>
                   ) : (
                     <span />
                   )}

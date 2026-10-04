@@ -249,7 +249,7 @@ export function QueueView({
                       <Button
                         key={d}
                         size="sm"
-                        variant={d === "accepted" ? "primary" : "secondary"}
+                        variant="secondary"
                         disabled={pending || !DECIDABLE.includes(row.status) || row.status === d}
                         onClick={() => onDecide(row, d)}
                       >

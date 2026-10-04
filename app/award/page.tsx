@@ -69,7 +69,7 @@ export default async function AwardPage() {
           lead={a.lead}
           action={fenster?.apply_open ? <ButtonLink href="/award/bewerben">{a.applyCta}</ButtonLink> : undefined}
         />
-        <div className="mx-auto w-full max-w-content px-6 py-10">
+        <div className="mx-auto w-full max-w-content px-4 py-10 sm:px-6">
           <p className="ct-label text-ink" role="status">{lage}</p>
           {fenster?.apply_open && fenster.apply_until && (
             <p className="ct-help mt-1">{a.applyUntil.replace("{datum}", datum.format(new Date(fenster.apply_until)))}</p>

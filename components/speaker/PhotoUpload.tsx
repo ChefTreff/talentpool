@@ -3,6 +3,7 @@
 import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { BildZuschnitt } from "@/components/ui/BildZuschnitt";
 import { Card } from "@/components/ui/Card";
 import { FileButton } from "@/components/ui/FileButton";
 import { useToast } from "@/components/ui/Toast";
@@ -64,12 +65,15 @@ export function PhotoUpload({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
+  // Das gewählte Foto, solange der Zuschnitt-Dialog offen ist (ADM-066).
+  const [zuschnitt, setZuschnitt] = useState<File | null>(null);
   // Fehler stehen am Knopf, nicht als Toast (Verbotsliste des Skills, ADM-062).
   const [fehler, setFehler] = useState<string | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
 
-  async function onFile(file: File) {
+  /** Typ und Größe prüfen, dann zuschneiden lassen (ADM-066) — hochgeladen wird erst der Ausschnitt. */
+  function onFile(file: File) {
     setFehler(null);
     if (file.size > MAX_PHOTO_BYTES) {
       setFehler(t.photoTooBig);
@@ -82,7 +86,11 @@ export function PhotoUpload({
       setFehler(t.photoWrongType);
       return;
     }
+    setZuschnitt(file);
+  }
 
+  async function hochladen(file: File) {
+    setFehler(null);
     setUploading(true);
     try {
       const supabase = createSupabaseBrowserClient();
@@ -172,6 +180,17 @@ export function PhotoUpload({
           )}
         </div>
       </div>
+
+      {zuschnitt && (
+        <BildZuschnitt
+          datei={zuschnitt}
+          onAbbruch={() => setZuschnitt(null)}
+          onFertig={(fertig) => {
+            setZuschnitt(null);
+            void hochladen(fertig);
+          }}
+        />
+      )}
     </Rahmen>
   );
 }

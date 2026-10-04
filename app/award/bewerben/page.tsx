@@ -34,7 +34,7 @@ export default async function AwardBewerbenPage() {
     <>
       <AppHeader />
       <main id="content" className="flex flex-1 flex-col bg-canvas">
-        <div className="mx-auto w-full max-w-form px-6 py-10">
+        <div className="mx-auto w-full max-w-form px-4 py-10 sm:px-6">
           <PageHeader word={a.eyebrow} title={a.formTitle} description={a.formLead} />
           {offen ? (
             <BewerbungsFormular themen={themen} t={a.form} privacyLabel={t.common.privacy} />

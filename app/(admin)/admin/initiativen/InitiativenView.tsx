@@ -10,6 +10,7 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { useUrlFilter } from "@/components/ui/useUrlFilter";
 import { ladeVerlauf, setProducts, setStage, type VerlaufZeile } from "./actions";
 import { STAGES, type IniProdukt, type Initiative } from "./types";
 
@@ -29,6 +30,10 @@ const TONES: Record<string, BadgeTone> = {
  * ändert sich oft, und ein Funnel, bei dem jeder Schritt drei Klicks kostet,
  * wird nicht gepflegt. Die Leistungen stehen dagegen im Schubfach — sie
  * ersetzen den vorherigen Stand, und das gehört nicht neben ein Auswahlfeld.
+ *
+ * **Überblick je Stufe (QS-065):** oben steht je Stufe die Zahl, ein Klick filtert
+ * die Liste (Adresszeile `?stufe=`, auch als Link teilbar). Vorher gab es weder
+ * Zählung noch Filter, und vier Karten füllten den Bildschirm.
  */
 export function InitiativenView({
   initiativen,
@@ -55,6 +60,7 @@ export function InitiativenView({
   // ADM-022: Verlauf und Notiz je Initiative.
   const [verlauf, setVerlauf] = useState<{ i: Initiative; zeilen: VerlaufZeile[] } | null>(null);
   const [notiz, setNotiz] = useState("");
+  const [f, setF] = useUrlFilter({ stufe: "" }, { stufe: "stufe" });
 
   const zeit = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
@@ -107,10 +113,36 @@ export function InitiativenView({
     });
   }
 
+  const OHNE = "ohne";
+  const zaehle = (stufeKey: string) =>
+    initiativen.filter((i) => (stufeKey === OHNE ? !i.pipeline_stage : i.pipeline_stage === stufeKey)).length;
+  const stufenFilter = [
+    { wert: "", label: t.stageAll, n: initiativen.length },
+    ...STAGES.map((s) => ({ wert: s as string, label: stageLabels[s] ?? s, n: zaehle(s) })),
+    ...(zaehle(OHNE) > 0 ? [{ wert: OHNE, label: t.noStage, n: zaehle(OHNE) }] : []),
+  ];
+  const sichtbar = f.stufe
+    ? initiativen.filter((i) => (f.stufe === OHNE ? !i.pipeline_stage : i.pipeline_stage === f.stufe))
+    : initiativen;
+
   return (
     <>
-      <div className="flex flex-col gap-4">
-        {initiativen.map((i) => (
+      <div role="group" aria-label={t.stageOverview} className="mb-4 flex flex-wrap gap-2">
+        {stufenFilter.map((x) => (
+          <Button
+            key={x.wert || "alle"}
+            size="sm"
+            variant={f.stufe === x.wert ? "secondary" : "ghost"}
+            aria-pressed={f.stufe === x.wert}
+            onClick={() => setF({ stufe: x.wert })}
+          >
+            {x.label} <span className="tabular-nums">· {x.n}</span>
+          </Button>
+        ))}
+      </div>
+      {sichtbar.length === 0 && <p className="ct-small text-muted">{t.stageEmpty}</p>}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {sichtbar.map((i) => (
           <Card key={i.org_edition_id}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>

@@ -16,3 +16,23 @@ export const MAX_WOERTER = { description: 250, mission: 400, project: 400 } as c
 export function woerter(text: string): number {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
+
+/** Stati, in denen die Bewerbung auf der öffentlichen Seite /award steht (siehe `award_public_entries`). */
+export const OEFFENTLICH = ["accepted", "finalist", "winner"] as const;
+
+/**
+ * Braucht ein Statuswechsel eine Rückfrage? (QS-065 Punkt 1)
+ *
+ * „Angenommen" macht die Bewerbung öffentlich und abstimmbar; ein Fehlgriff am
+ * Handy wirkt sofort. Gefragt wird deshalb bei jedem Wechsel, den die Öffentlichkeit
+ * sieht: hinein (`publish`), heraus (`unpublish`) oder zwischen den öffentlichen
+ * Stufen (`change`). Zwischen „Neu" und „Abgelehnt" bleibt es bei einem Klick.
+ */
+export function statusFrage(alt: string, neu: string): "publish" | "unpublish" | "change" | null {
+  if (alt === neu) return null;
+  const war = (OEFFENTLICH as readonly string[]).includes(alt);
+  const wird = (OEFFENTLICH as readonly string[]).includes(neu);
+  if (!war && wird) return "publish";
+  if (war && !wird) return "unpublish";
+  return war && wird ? "change" : null;
+}

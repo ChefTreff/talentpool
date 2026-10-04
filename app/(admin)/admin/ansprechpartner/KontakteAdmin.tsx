@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { ContactCard } from "@/components/ui/ContactCard";
 import { Drawer } from "@/components/ui/Drawer";
 import { Field } from "@/components/ui/Field";
+import { BildZuschnitt } from "@/components/ui/BildZuschnitt";
 import { FileButton } from "@/components/ui/FileButton";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -57,8 +58,28 @@ export function KontakteAdmin({
   // während in Wahrheit ein Foto hochgeht — es sieht aus, als würde das Formular
   // beim Bildauswählen gespeichert (Konrad, 18.09.).
   const [bildLaeuft, setBildLaeuft] = useState(false);
+  // Das gewählte Foto, solange der Zuschnitt-Dialog offen ist (ADM-066).
+  const [zuschnitt, setZuschnitt] = useState<File | null>(null);
 
   const melden = (key: string) => setFehler(rpcMessages[key] ?? rpcMessages.unknown ?? key);
+
+  /** Der Ausschnitt geht direkt an Supabase: eine Server Action nähme nur 1 MB entgegen, die Bytes laufen nicht durch unseren Server. */
+  async function bildHochladen(datei: File) {
+    if (!offen) return;
+    setBildLaeuft(true);
+    try {
+      const platz = await createPhotoUploadUrl(offen.id, datei.type);
+      if (!platz.ok) { melden(platz.key); return; }
+      const browser = createSupabaseBrowserClient();
+      const { error } = await browser.storage
+        .from("contact-photos")
+        .uploadToSignedUrl(platz.path, platz.token, datei, { contentType: datei.type });
+      if (error) { melden("upload_failed"); return; }
+      setOffen((o) => (o ? { ...o, photo_path: platz.path } : o));
+    } finally {
+      setBildLaeuft(false);
+    }
+  }
 
   /**
    * Fehlermeldung.
@@ -310,26 +331,12 @@ export function KontakteAdmin({
                 label={bildLaeuft ? t.photoUploading : t.photoChoose}
                 accept="image/png,image/jpeg,image/webp"
                 disabled={bildLaeuft}
-                onFile={async (datei) => {
+                onFile={(datei) => {
                   setFehler(null);
                   // Zuerst hier prüfen: der Bucket weist grössere Dateien ohnehin
-                  // ab, aber dann hätte der Upload schon begonnen.
+                  // ab, aber dann hätte der Zuschnitt schon begonnen.
                   if (datei.size > 5 * 1024 * 1024) { melden("file_too_large"); return; }
-                  setBildLaeuft(true);
-                  try {
-                    const platz = await createPhotoUploadUrl(offen.id, datei.type);
-                    if (!platz.ok) { melden(platz.key); return; }
-                    // Die Bytes gehen direkt an Supabase, nicht durch unseren
-                    // Server — eine Server Action nimmt nur 1 MB entgegen.
-                    const browser = createSupabaseBrowserClient();
-                    const { error } = await browser.storage
-                      .from("contact-photos")
-                      .uploadToSignedUrl(platz.path, platz.token, datei, { contentType: datei.type });
-                    if (error) { melden("upload_failed"); return; }
-                    setOffen((o) => (o ? { ...o, photo_path: platz.path } : o));
-                  } finally {
-                    setBildLaeuft(false);
-                  }
+                  setZuschnitt(datei);
                 }}
               />
               {bildLaeuft && <p className="ct-help mt-1">{t.photoUploading}</p>}
@@ -402,6 +409,18 @@ export function KontakteAdmin({
             </div>
           </form>
         </Drawer>
+      )}
+
+      {/* Über dem Schubfach: ein zweiter modaler Dialog liegt im Top-Layer darüber (ADM-066). */}
+      {zuschnitt && (
+        <BildZuschnitt
+          datei={zuschnitt}
+          onAbbruch={() => setZuschnitt(null)}
+          onFertig={(fertig) => {
+            setZuschnitt(null);
+            void bildHochladen(fertig);
+          }}
+        />
       )}
     </div>
   );

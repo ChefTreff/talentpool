@@ -6,11 +6,18 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
+import { statusFrage } from "@/lib/award/regeln";
 import { loescheBewerbung, setzeStatus, verknuepfeOrganisation } from "./actions";
 
 const STATUS = ["submitted", "accepted", "finalist", "winner", "rejected"] as const;
 
-/** Status, Organisation und Löschen einer Award-Bewerbung (ADM-024). */
+/**
+ * Status, Organisation und Löschen einer Award-Bewerbung (ADM-024).
+ *
+ * Jeder Wechsel, den die Öffentlichkeit sieht (in die Abstimmung, heraus, zwischen
+ * Abstimmung/Finale/Gewinner), fragt vorher nach (QS-065): ein Fehlgriff am Handy
+ * wirkte sonst sofort auf /award.
+ */
 export function AwardSteuerung({
   id,
   name,
@@ -34,6 +41,8 @@ export function AwardSteuerung({
   const toast = useToast();
   const [pending, start] = useTransition();
   const [frage, setFrage] = useState(false);
+  const [neuerStatus, setNeuerStatus] = useState<string | null>(null);
+  const statusArt = neuerStatus ? statusFrage(status, neuerStatus) : null;
 
   const fuehreAus = (aufruf: () => Promise<{ ok: true } | { ok: false; key: string }>, erfolg: string) =>
     start(async () => {
@@ -52,7 +61,11 @@ export function AwardSteuerung({
           disabled={pending}
           value={status}
           options={STATUS.map((s) => ({ value: s, label: t[`status_${s}`] ?? s }))}
-          onChange={(e) => fuehreAus(() => setzeStatus(id, e.target.value), common.saved)}
+          onChange={(e) => {
+            const wert = e.target.value;
+            if (statusFrage(status, wert)) setNeuerStatus(wert);
+            else fuehreAus(() => setzeStatus(id, wert), common.saved);
+          }}
         />
       </label>
       <label className="flex flex-col gap-1">
@@ -68,6 +81,21 @@ export function AwardSteuerung({
       <Button variant="ghost" size="sm" className="ml-auto" disabled={pending} onClick={() => setFrage(true)}>
         {t.delete}
       </Button>
+      {neuerStatus && statusArt && (
+        <ConfirmDialog
+          title={t.statusConfirmTitle}
+          body={t[`statusConfirm_${statusArt}`].replace("{name}", name).replace("{status}", t[`status_${neuerStatus}`] ?? neuerStatus)}
+          confirmLabel={t.statusConfirm}
+          cancelLabel={common.cancel}
+          pending={pending}
+          onCancel={() => setNeuerStatus(null)}
+          onConfirm={() => {
+            const wert = neuerStatus;
+            setNeuerStatus(null);
+            fuehreAus(() => setzeStatus(id, wert), common.saved);
+          }}
+        />
+      )}
       {frage && (
         <ConfirmDialog
           title={t.deleteTitle}

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { BildZuschnitt } from "@/components/ui/BildZuschnitt";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FileButton } from "@/components/ui/FileButton";
@@ -57,10 +58,13 @@ export function PortraitUpload({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
+  // Das gewählte Foto, solange der Zuschnitt-Dialog offen ist (ADM-066).
+  const [zuschnitt, setZuschnitt] = useState<File | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
 
-  async function onFile(file: File) {
+  /** Typ und Größe prüfen, dann zuschneiden lassen (ADM-066) — hochgeladen wird erst der Ausschnitt. */
+  function onFile(file: File) {
     if (file.size > MAX_PORTRAIT_BYTES) {
       toast("error", t.tooBig);
       return;
@@ -70,7 +74,10 @@ export function PortraitUpload({
       toast("error", t.wrongType);
       return;
     }
+    setZuschnitt(file);
+  }
 
+  async function hochladen(file: File) {
     setUploading(true);
     try {
       const supabase = createSupabaseBrowserClient();
@@ -138,6 +145,16 @@ export function PortraitUpload({
           )}
         </div>
       </div>
+      {zuschnitt && (
+        <BildZuschnitt
+          datei={zuschnitt}
+          onAbbruch={() => setZuschnitt(null)}
+          onFertig={(fertig) => {
+            setZuschnitt(null);
+            void hochladen(fertig);
+          }}
+        />
+      )}
     </Card>
   );
 }
