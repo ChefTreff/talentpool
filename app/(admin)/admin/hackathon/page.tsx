@@ -75,7 +75,7 @@ export default async function AdminHackathonPage() {
       <PageHeader word={t.admin.words.hackathon} title={tt.title} description={tt.lead} />
       <div className="flex flex-col gap-6">
         <Card>
-          <CardHeader title={tt.appsTitle} description={tt.appsLead} />
+          <CardHeader ebene="h2" title={tt.appsTitle} description={tt.appsLead} />
           <ApplicationsTable
             rows={(apps ?? []) as AdminApplication[]}
             labels={{
@@ -92,7 +92,7 @@ export default async function AdminHackathonPage() {
         </Card>
         {wunschprofile.length > 0 && (
           <Card>
-            <CardHeader title={tt.wishAdminTitle} description={tt.wishAdminLead} />
+            <CardHeader ebene="h2" title={tt.wishAdminTitle} description={tt.wishAdminLead} />
             <div className="flex flex-col gap-8">
               {wunschprofile.map((w) => (
                 <section key={w.challenge_id} className="flex flex-col gap-3">
@@ -113,7 +113,7 @@ export default async function AdminHackathonPage() {
           </Card>
         )}
         <Card>
-          <CardHeader title={tt.tracksTitle} description={tt.tracksLead} />
+          <CardHeader ebene="h2" title={tt.tracksTitle} description={tt.tracksLead} />
           <ChallengeTracks
             rows={(challenges ?? []) as HackChallenge[]}
             trackLabels={trackLabels}
@@ -123,7 +123,7 @@ export default async function AdminHackathonPage() {
         </Card>
         {boards.length > 0 && (
           <Card>
-            <CardHeader title={tt.metricTitle} description={tt.metricLead} />
+            <CardHeader ebene="h2" title={tt.metricTitle} description={tt.metricLead} />
             <div className="flex flex-col gap-6">
               {boards.map((b) => (
                 <MetricResults
@@ -142,7 +142,7 @@ export default async function AdminHackathonPage() {
         )}
         {datensaetze.length > 0 && (
           <Card>
-            <CardHeader title={tt.datasetsTitle} description={tt.datasetsLead} />
+            <CardHeader ebene="h2" title={tt.datasetsTitle} description={tt.datasetsLead} />
             <div className="flex flex-col gap-6">
               {datensaetze.map((d) => (
                 <section key={d.challenge_id} className="flex flex-col gap-2">
@@ -163,7 +163,7 @@ export default async function AdminHackathonPage() {
         )}
         {abgaben.size > 0 && (
           <Card>
-            <CardHeader title={tt.submissionsTitle} description={tt.submissionsLead} />
+            <CardHeader ebene="h2" title={tt.submissionsTitle} description={tt.submissionsLead} />
             <div className="flex flex-col gap-6">
               {[...abgaben.entries()].map(([teamId, dateien]) => (
                 <section key={teamId} className="flex flex-col gap-2">
@@ -175,7 +175,7 @@ export default async function AdminHackathonPage() {
           </Card>
         )}
         <Card>
-          <CardHeader title={tt.teamsTitle} description={tt.teamsLead} />
+          <CardHeader ebene="h2" title={tt.teamsTitle} description={tt.teamsLead} />
           <TeamsView
             rows={(teams ?? []) as HackTeamRow[]}
             openChallenges={(open ?? []) as HackOpenChallenge[]}

@@ -145,6 +145,7 @@ export function DriveSpiegel({
   return (
     <Card id="drive" className="mb-6">
       <CardHeader
+        ebene="h2"
         title={t.title}
         description={t.lead}
         action={

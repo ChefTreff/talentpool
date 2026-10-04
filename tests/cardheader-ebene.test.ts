@@ -37,11 +37,18 @@ const zaehle = (pfad: string) => {
 
 /** Bereiche, in denen jeder `CardHeader` seine Ebene ausdrücklich trägt. */
 const UMGESTELLT = [
+  "app/(admin)/admin/benachrichtigungen/",
   "app/(admin)/admin/edition/",
+  "app/(admin)/admin/feedback/",
   "app/(admin)/admin/fotos/",
+  "app/(admin)/admin/grafiken/",
+  "app/(admin)/admin/hackathon/",
+  "app/(admin)/admin/mail/",
   "app/(admin)/admin/partner/",
   "app/(admin)/admin/speaker/",
   "app/(admin)/admin/speaker-leads/",
+  "app/(admin)/admin/team/",
+  "app/(admin)/admin/technik/",
   "app/(admin)/admin/volunteers/",
 ];
 

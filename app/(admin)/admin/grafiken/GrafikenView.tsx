@@ -250,6 +250,7 @@ export function GrafikenView({
       {offen && (
         <Card>
           <CardHeader
+            ebene="h2"
             title={sessions.find((s) => s.session_id === offen)?.title ?? common.none}
             description={t.imagesHint}
             action={
