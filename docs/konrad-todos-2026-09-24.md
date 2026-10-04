@@ -4,7 +4,7 @@ Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Secu
 
 ## Finale Liste — was Konrad macht (Stand 04.10.2026, Sonntag vormittags)
 
-Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Seit Freitagabend gemergt: #330 (K-47 Archiv-Karte), #331 (ADM-066 Zuschnitt-Dialog), #332 (QS-065 Admin-Teil); dazu #333 (Tabellenzeilen 56 px, K-57), #334 PART-096 „Meet us at“-Grafik und #335 (Kontrollkästchen 44 px am Handy). Admin-Chat ist fertig und geschlossen, Design und Partner laufen.
+Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Seit Freitagabend gemergt: #330 (K-47 Archiv-Karte), #331 (ADM-066 Zuschnitt-Dialog), #332 (QS-065 Admin-Teil); dazu #333 (Tabellenzeilen 56 px, K-57), #334 PART-096 „Meet us at“-Grafik, #335 (Kontrollkästchen 44 px am Handy) und #336 PART-097 (Admin-Weg zur Grafik). Admin-Chat ist fertig und geschlossen, Design und Partner laufen.
 
 ### A · Heute: Klicks und Einstellungen
 
@@ -68,7 +68,7 @@ Der Trockenlauf stand: 570 Vorlagen aus den Planstellen 2026 (Akkreditierung 106
 | Initiativen und Award | `/admin/initiativen` (Stufen-Zähler oben filtern die Liste, Funnel-Stufe mit Notiz), `/admin/initiativen/award` (Statuswechsel in Richtung öffentlich fragt nach, #332); öffentlich ohne Login `/award` und `/award/bewerben` (Bilder über Kit-Knopf, ZZTEST-Initiative) | Abstimmung ohne Kontaktdaten, Fristen greifen, Rückfrage erscheint |
 | Medien | `/admin/medien` → Video, Link (Matterport), Datei mit Zielgruppe, Ansprechpersonen-Foto **mit Zuschnitt-Dialog (#331)** | Zielgruppe wirkt, Porträt sitzt nach dem Zuschnitt in der Dreiecksform |
 | Produktion | `/admin/produktion/produkte` (Artikel anlegen, Bild), `/admin/produktion/staende` (Liste je Stand, Prüfpunkt Standgröße), `/admin/produktion/bestellungen` (CSV), `/admin/produktion/dateien` (Zielgruppe) | Rechte, CSV öffnet sauber |
-| Partner-Verwaltung | Logo-Wand als Tabelle mit Kategorie (#332, Test-Org „Automatisch: Premium“), `/admin/company-tours/zuordnung` (Partner zuordnen, tauschen), `/admin/partner/integrationen` → Archiv-Karte: `I-10729` suchen und archivieren (K-47, #330) | Auffangsatz, Audit, Tabelle stapelt am Handy |
+| Partner-Verwaltung | Logo-Wand als Tabelle mit Kategorie (#332, Test-Org „Automatisch: Premium“), `/admin/company-tours/zuordnung` (Partner zuordnen, tauschen), `/admin/partner/integrationen` → Archiv-Karte: `I-10729` suchen und archivieren (K-47, #330); `/admin/grafiken` → je Partner „Mit Generator erzeugen“ → Logo/Foto vom Rechner → „Als Partnergrafik ablegen“ (PART-097, #336; der Partner sieht sie dann unter Media Kit) | Auffangsatz, Audit, Tabelle stapelt am Handy, Grafik landet als neue Version |
 | Bewerbungen | `/admin/bewerbungen` (60 TEST-Bewerbungen: Filter, Suche, Sammelentscheidung) | Einwilligung sichtbar |
 | Hackathon | `/hackathon` (Bewerbung mit Track-Wunsch, Wunsch-Challenges, Portfolio; Teamsuche; Abgabe mit Frist; Leaderboard), `/admin/hackathon` (Tracks, Wunschprofile, Auswertung, Datensatz) | Fremde Teams sehen nur Bestätigtes |
 | Talent | `/profil` (Porträt: wählen → zuschneiden → lädt sofort, #331), `/benachrichtigungen`, `/fotos` (TEST-Community-Abend), `/feedback` (anonym und mit Klarnamen), `/events` (Anmeldelink kopieren) | Streifen „Testbetrieb“ sichtbar, Porträt passt ins Dreieck |
