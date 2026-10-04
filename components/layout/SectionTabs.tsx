@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/components/ui/cn";
+import { ChipLink } from "@/components/ui/Chip";
 
 export type SectionTab = {
   href: string;
@@ -39,20 +38,10 @@ export function SectionTabs({ items, label }: { items: SectionTab[]; label: stri
             (item.detailPattern ? new RegExp(item.detailPattern).test(pathname) : false)
           : pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              // 32 px am Desktop, am Handy 44 (QS-059, Touch-Ziele wie QS-057).
-              "inline-flex items-center rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors pointer-coarse:min-h-11",
-              active
-                ? "bg-accent-soft text-accent-deep"
-                : "text-muted hover:bg-surface-hover hover:text-ink",
-            )}
-          >
+          // 32 px am Desktop, am Handy 44 (QS-059, Touch-Ziele wie QS-057) — beides hält `ChipLink`.
+          <ChipLink key={item.href} href={item.href} aktiv={active}>
             {item.label}
-          </Link>
+          </ChipLink>
         );
       })}
     </nav>

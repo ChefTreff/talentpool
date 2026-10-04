@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { cn } from "@/components/ui/cn";
+import { ChipLink } from "@/components/ui/Chip";
 import { PHOTO_BUCKET } from "@/lib/fotos/regeln";
 import { FotoVerwaltung, type AdminFoto } from "./FotoVerwaltung";
 import { Loeschwuensche, type Loeschwunsch } from "./Loeschwuensche";
@@ -55,17 +54,9 @@ export default async function AdminFotosPage({ searchParams }: { searchParams: P
           ) : (
             <nav className="mb-4 flex flex-wrap gap-1" aria-label={s.eventsTitle}>
               {liste.map((e) => (
-                <Link
-                  key={e.id}
-                  href={`/admin/fotos?event=${e.id}`}
-                  aria-current={e.id === aktiv?.id ? "page" : undefined}
-                  className={cn(
-                    "rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors",
-                    e.id === aktiv?.id ? "bg-accent-soft text-accent-deep" : "text-muted hover:bg-surface-hover hover:text-ink",
-                  )}
-                >
+                <ChipLink key={e.id} href={`/admin/fotos?event=${e.id}`} aktiv={e.id === aktiv?.id}>
                   {e.name}
-                </Link>
+                </ChipLink>
               ))}
             </nav>
           )}

@@ -10,7 +10,7 @@ import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
-import { cn } from "@/components/ui/cn";
+import { Chip } from "@/components/ui/Chip";
 import { NewSpeakerDrawer } from "./NewSpeakerDrawer";
 import type { EinordnungOptionen } from "@/components/speaker/Einordnung";
 import { fristStand, heute } from "@/lib/speaker/verlauf";
@@ -234,34 +234,13 @@ export function PipelineView({
 
       {/* Zähler je Pipeline-Stand */}
       <div className="flex flex-wrap gap-1" role="group" aria-label={t.filterStatus}>
-        <button
-          type="button"
-          aria-pressed={status === ""}
-          onClick={() => setStatus("")}
-          className={cn(
-            "rounded-ct-sm px-2.5 py-1.5 ct-label",
-            status === ""
-              ? "bg-accent-soft text-accent-deep"
-              : "text-muted hover:bg-surface-hover hover:text-ink",
-          )}
-        >
+        <Chip aktiv={status === ""} onClick={() => setStatus("")}>
           {t.allStatuses} ({imBereich.length})
-        </button>
+        </Chip>
         {PIPELINE_ORDER.filter((s) => bereich.includes(s) && counts.has(s)).map((s) => (
-          <button
-            key={s}
-            type="button"
-            aria-pressed={status === s}
-            onClick={() => setStatus(s)}
-            className={cn(
-              "rounded-ct-sm px-2.5 py-1.5 ct-label",
-              status === s
-                ? "bg-accent-soft text-accent-deep"
-                : "text-muted hover:bg-surface-hover hover:text-ink",
-            )}
-          >
+          <Chip key={s} aktiv={status === s} onClick={() => setStatus(s)}>
             {labels.pipeline[s] ?? s} ({counts.get(s)})
-          </button>
+          </Chip>
         ))}
       </div>
 

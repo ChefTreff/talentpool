@@ -17,7 +17,6 @@ const COARSE = /pointer-coarse:min-h-11/g;
 
 describe("Touch-Ziele in der Shell (QS-059)", () => {
   const ERWARTET: [string, number][] = [
-    ["components/layout/SectionTabs.tsx", 1],
     ["components/layout/SidebarNav.tsx", 2], // Punkt und Abschnittslink
     ["components/layout/SidebarShell.tsx", 1], // Logo
     ["components/layout/AppHeader.tsx", 3], // Logo, Abmelden, Anmelden
@@ -34,8 +33,14 @@ describe("Touch-Ziele in der Shell (QS-059)", () => {
     assert.match(lies("components/layout/LocaleSwitcher.tsx"), /pointer-coarse:min-w-11/);
   });
 
+  it("die Reiter bauen auf `ChipLink` auf, der die 44 px selbst hält (QS-064)", () => {
+    const reiter = lies("components/layout/SectionTabs.tsx");
+    assert.match(reiter, /<ChipLink key=\{item\.href\} href=\{item\.href\} aktiv=\{active\}>/);
+    assert.match(lies("components/ui/Chip.tsx"), /const grundform = "[^"]*pointer-coarse:min-h-11"/);
+  });
+
   it("Desktop bleibt: die bisherigen Abstände stehen unverändert da", () => {
-    assert.match(lies("components/layout/SectionTabs.tsx"), /px-2\.5 py-1\.5 ct-label/);
+    assert.match(lies("components/ui/Chip.tsx"), /px-2\.5 py-1\.5 ct-label/);
     assert.match(lies("components/layout/SidebarNav.tsx"), /py-1\.5 pr-2\.5 ct-label/);
   });
 

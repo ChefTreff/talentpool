@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getI18n } from "@/lib/i18n";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { cn } from "@/components/ui/cn";
+import { ChipLink } from "@/components/ui/Chip";
 import { AddToCart } from "./AddToCart";
 import { Produktkarte } from "./Produktkarte";
 import { loadShop } from "./load";
@@ -97,19 +97,9 @@ export default async function ShopCataloguePage({
       {!begriff && tabs.length > 1 && (
         <div className="mb-4 flex flex-wrap gap-1" aria-label={s.categories}>
           {tabs.map((key) => (
-            <Link
-              key={key}
-              href={linkTo(key)}
-              aria-current={key === aktiv ? "page" : undefined}
-              className={cn(
-                "rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors",
-                key === aktiv
-                  ? "bg-accent-soft text-accent-deep"
-                  : "text-muted hover:bg-surface-hover hover:text-ink",
-              )}
-            >
+            <ChipLink key={key} href={linkTo(key)} aktiv={key === aktiv}>
               {categories[key] ?? key}
-            </Link>
+            </ChipLink>
           ))}
         </div>
       )}

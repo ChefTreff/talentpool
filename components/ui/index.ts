@@ -7,6 +7,7 @@ export { Field } from "./Field";
 export { Card, CardHeader, StatCard } from "./Card";
 export { Badge } from "./Badge";
 export type { BadgeTone } from "./Badge";
+export { Chip, ChipLink } from "./Chip";
 export { Table, Thead, Tbody, Tr, Th, Td } from "./Table";
 export { Drawer } from "./Drawer";
 export { Modal, ConfirmDialog } from "./Modal";
