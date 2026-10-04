@@ -134,8 +134,11 @@ export function GrafikMaske({
         <div>
           <h2 className="ct-h3 text-ink">{t.stepUpload}</h2>
           <p className="ct-help mt-1">{t.stepUploadBody}</p>
+          {/* `sofort` (SPK-081): nichts wird hochgeladen, das Bild bleibt im Browser. Ohne die
+              Eigenschaft stünde nach der Auswahl ein Knopf „Upload“ da — falscher Begriff, überflüssiger Klick. */}
           <FileButton
             className="mt-3"
+            sofort
             label={hatBild ? t.replacePhoto : t.choosePhoto}
             accept={MIME.join(",")}
             hint={t.rules}
