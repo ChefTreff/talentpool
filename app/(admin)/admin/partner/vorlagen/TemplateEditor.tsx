@@ -130,6 +130,7 @@ export function TemplateEditor({
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader
+          ebene="h2"
           title={t.templatesTitle}
           description={t.templatesLead}
           action={
@@ -173,6 +174,7 @@ export function TemplateEditor({
       {draft && (
         <Card id="vorlagen-editor">
           <CardHeader
+            ebene="h2"
             title={isNew ? t.templateNew : draft.label_de}
             description={isNew ? t.templateNewLead : t.templateEditLead}
           />

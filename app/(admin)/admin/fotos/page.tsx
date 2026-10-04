@@ -48,7 +48,7 @@ export default async function AdminFotosPage({ searchParams }: { searchParams: P
       <PageHeader word={t.admin.words.photos} title={s.title} description={s.lead} />
       <div className="flex flex-col gap-6">
         <Card>
-          <CardHeader title={s.eventsTitle} description={s.eventsLead} />
+          <CardHeader ebene="h2" title={s.eventsTitle} description={s.eventsLead} />
           {liste.length === 0 ? (
             <p className="ct-help">{s.noEvents}</p>
           ) : (
@@ -63,7 +63,7 @@ export default async function AdminFotosPage({ searchParams }: { searchParams: P
           {aktiv && <FotoVerwaltung eventId={aktiv.id} fotos={fotos} t={s} />}
         </Card>
         <Card>
-          <CardHeader title={s.removalTitle} description={s.removalLead} />
+          <CardHeader ebene="h2" title={s.removalTitle} description={s.removalLead} />
           <Loeschwuensche rows={(requests ?? []) as Loeschwunsch[]} t={s} />
         </Card>
       </div>
