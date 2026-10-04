@@ -26,6 +26,7 @@ export { ContactCard } from "./ContactCard";
 export { InfoList } from "./InfoList";
 export type { InfoEintrag } from "./InfoList";
 export { FileButton } from "./FileButton";
+export { BildZuschnitt, ZuschnittTexteGeber, type ZuschnittTexte } from "./BildZuschnitt";
 export { CopyButton } from "./CopyButton";
 export { EmbedGate } from "./EmbedGate";
 export { CheckMark } from "./CheckMark";
