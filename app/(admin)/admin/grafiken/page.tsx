@@ -145,6 +145,7 @@ export default async function AdminGrafikenPage() {
                 preview: g.partnerGraphicsPreview,
                 choose: g.partnerGraphicsChoose,
                 replace: g.partnerGraphicsReplace,
+                generate: g.partnerGraphicsGenerate,
                 uploading: g.uploadingShort,
                 uploaded: g.partnerGraphicsUploaded,
                 uploadTooLarge: g.uploadTooLargeShort,

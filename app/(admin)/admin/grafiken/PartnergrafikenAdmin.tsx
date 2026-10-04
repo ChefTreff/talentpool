@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -9,9 +10,7 @@ import { FileButton } from "@/components/ui/FileButton";
 import { SuchFeld } from "@/components/ui/SuchFeld";
 import { useToast } from "@/components/ui/Toast";
 import { neuesFenster } from "@/components/ui/neues-fenster";
-import { postJson } from "@/lib/fetch-json";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { GRAFIK_ERLAUBT, GRAFIK_MAX_BYTES } from "@/components/partner/media-kit";
+import { partnergrafikAblegen } from "@/components/partner/partnergrafik-upload";
 
 /** Eine Zeile aus `partner_graphics_admin`, um eine signierte Vorschau ergänzt. */
 export type PartnergrafikZeile = {
@@ -69,37 +68,11 @@ export function PartnergrafikenAdmin({
 
   async function hochladen(orgId: string, file: File) {
     setLaeuft(orgId);
-    try {
-      if (!GRAFIK_ERLAUBT.includes(file.type)) return melden("wrong_type");
-      if (file.size > GRAFIK_MAX_BYTES) return melden("too_large");
-      const platz = await postJson<{ path: string; token: string }>("/api/admin/partnergrafik?step=url", {
-        org_id: orgId,
-        edition_id: editionId,
-        content_type: file.type,
-        size_bytes: file.size,
-        filename: file.name,
-      });
-      if (!platz.ok) return melden(platz.key);
-      const { error } = await createSupabaseBrowserClient()
-        .storage.from("partner-assets")
-        .uploadToSignedUrl(platz.data.path, platz.data.token, file, { contentType: file.type });
-      if (error) return melden("upload_failed");
-      const zeile = await postJson<{ ok: boolean }>("/api/admin/partnergrafik", {
-        path: platz.data.path,
-        org_id: orgId,
-        edition_id: editionId,
-        filename: file.name,
-        mime: file.type,
-        size_bytes: file.size,
-      });
-      if (!zeile.ok) return melden(zeile.key);
-      toast("success", t.uploaded);
-      router.refresh();
-    } catch {
-      melden("unknown");
-    } finally {
-      setLaeuft(null);
-    }
+    const r = await partnergrafikAblegen(orgId, editionId, file);
+    setLaeuft(null);
+    if (!r.ok) return melden(r.key);
+    toast("success", t.uploaded);
+    router.refresh();
   }
 
   if (zeilen.length === 0) return <EmptyState title={t.emptyTitle} description={t.emptyBody} />;
@@ -140,6 +113,10 @@ export function PartnergrafikenAdmin({
                   {t.preview}
                 </a>
               )}
+              {/* Der Generator (PART-097): dieselbe Grafik wie im Partner-Portal, Logo und Foto wählt das Marketing selbst. */}
+              <Link className="ct-link ct-small" href={`/admin/grafiken/meet-us-at?org=${z.org_id}`}>
+                {t.generate}
+              </Link>
               <FileButton
                 label={z.asset_id ? t.replace : t.choose}
                 uploadLabel={common.upload}

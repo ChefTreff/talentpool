@@ -6,6 +6,7 @@ import {
   layoutFuer,
   mitDeckkraft,
   schriftgroesseFuer,
+  zeilenFuer,
   type FormatKey,
   type Layout,
   type Messer,
@@ -201,16 +202,21 @@ function logoMotiv(ctx: Ctx, L: Layout, e: Eingabe, bilder: Bilder, f: Farben, s
     ctx.drawImage(bilder.logo.quelle, r.x, r.y, r.w, r.h);
     return;
   }
-  // Ohne Logo steht der Firmenname als Platzhalter da, damit die Vorschau etwas zeigt.
+  // Ohne Logo steht der Firmenname als Platzhalter da, damit die Vorschau etwas zeigt:
+  // auf höchstens zwei Zeilen umbrochen, erst danach kleiner und zuletzt gekürzt.
   const text = e.firma.trim();
   if (!text) return;
   const messe: Messer = (t, g) => messen(ctx, `800 ${g}px ${s.fett}`, t);
-  const start = Math.round(L.logoFeld.h * 0.28);
-  const g = schriftgroesseFuer(messe, text, L.logoFeld.w, start, Math.round(start * 0.5));
-  ctx.font = `800 ${g}px ${s.fett}`;
+  const start = Math.round(L.logoFeld.h * 0.26);
+  const { groesse, zeilen } = zeilenFuer(messe, text, L.logoFeld.w, start, Math.round(start * 0.45), 2);
+  ctx.font = `800 ${groesse}px ${s.fett}`;
   ctx.fillStyle = e.plakette === "dunkel" ? f.text : f.navy;
   ctx.textAlign = "center";
-  ctx.fillText(kuerzen(messe, text, L.logoFeld.w, g), L.logoFeld.x + L.logoFeld.w / 2, L.logoFeld.y + L.logoFeld.h / 2 + g * 0.35);
+  const takt = Math.round(groesse * 1.15);
+  const mitte = L.logoFeld.y + L.logoFeld.h / 2;
+  zeilen.forEach((z, i) => {
+    ctx.fillText(z, L.logoFeld.x + L.logoFeld.w / 2, mitte - ((zeilen.length - 1) * takt) / 2 + i * takt + groesse * 0.35);
+  });
   ctx.textAlign = "left";
 }
 
