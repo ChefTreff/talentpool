@@ -147,6 +147,7 @@ export function VorlagenView({
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <Card>
             <CardHeader
+              ebene="h2"
               title={`${aktuell.key} · ${aktuell.locale.toUpperCase()}`}
               description={aktuell.description ?? undefined}
             />
@@ -254,7 +255,7 @@ export function VorlagenView({
 
           {vorschau && (
             <Card>
-              <CardHeader title={t.previewTitle} description={t.previewHint} />
+              <CardHeader ebene="h2" title={t.previewTitle} description={t.previewHint} />
               <p className="ct-label mb-2 text-ink">{vorschau.subject}</p>
               {/* Die Vorschau zeigt genau das HTML, das der Versand erzeugt —
                   deshalb wird es hier eingesetzt und nicht nachgebaut. */}
@@ -267,7 +268,7 @@ export function VorlagenView({
 
           {historie && (
             <Card>
-              <CardHeader title={t.historyTitle} description={t.historyHint} />
+              <CardHeader ebene="h2" title={t.historyTitle} description={t.historyHint} />
               {historie.length === 0 ? (
                 <p className="ct-small text-muted">{t.historyEmpty}</p>
               ) : (

@@ -216,7 +216,7 @@ export function TeamView({
       )}
 
       <Card>
-        <CardHeader title={t.addTitle} description={t.addHint} />
+        <CardHeader ebene="h2" title={t.addTitle} description={t.addHint} />
         <div className="flex flex-wrap items-end gap-3">
           <Field label={t.searchPerson} htmlFor="q" className="min-w-64 grow">
             <SuchFeld

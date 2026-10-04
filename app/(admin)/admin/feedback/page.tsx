@@ -27,7 +27,7 @@ export default async function AdminFeedbackPage() {
       <div className="flex flex-col gap-6">
         {mittel.some((m) => m.answers > 0) && (
           <Card>
-            <CardHeader title={s.summaryTitle} description={s.summaryLead} />
+            <CardHeader ebene="h2" title={s.summaryTitle} description={s.summaryLead} />
             <div className="grid gap-3 sm:grid-cols-3">
               {mittel.map((m) => (
                 <StatCard key={m.question} label={s[`q_${m.question}`] ?? m.question}
@@ -38,7 +38,7 @@ export default async function AdminFeedbackPage() {
           </Card>
         )}
         <Card>
-          <CardHeader title={s.listTitle} description={s.listLead} />
+          <CardHeader ebene="h2" title={s.listTitle} description={s.listLead} />
           <FeedbackListe rows={(data ?? []) as FeedbackZeile[]}
             labels={{ formats: vgroup(vocab, "feedback_format"), kinds: vgroup(vocab, "feedback_kind"), reasons: vgroup(vocab, "feedback_reason") }}
             t={s} />

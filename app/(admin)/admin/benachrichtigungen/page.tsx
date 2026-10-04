@@ -45,7 +45,7 @@ export default async function AdminBenachrichtigungenPage() {
       <PageHeader word={t.admin.words.notifications} title={s.title} description={s.lead} />
       <div className="flex flex-col gap-6">
         <Card>
-          <CardHeader title={s.acTitle} description={acVerbunden ? s.acConnected : s.acMissing} />
+          <CardHeader ebene="h2" title={s.acTitle} description={acVerbunden ? s.acConnected : s.acMissing} />
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={acVerbunden ? "success" : "warning"}>{acVerbunden ? s.acStatusOn : s.acStatusOff}</Badge>
             {acVerbunden && <Badge tone={acSchreibt ? "success" : "neutral"}>{acSchreibt ? s.acWriteOn : s.acWriteOff}</Badge>}
@@ -64,7 +64,7 @@ export default async function AdminBenachrichtigungenPage() {
           )}
         </Card>
         <Card>
-          <CardHeader title={s.topicsTitle} description={s.topicsLead} />
+          <CardHeader ebene="h2" title={s.topicsTitle} description={s.topicsLead} />
           <div className="overflow-x-auto">
             <Table>
               <Thead>
