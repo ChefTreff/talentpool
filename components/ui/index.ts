@@ -26,6 +26,7 @@ export { Menu, MenuItem, MenuSeparator } from "./Menu";
 export { ContactCard } from "./ContactCard";
 export { InfoList } from "./InfoList";
 export type { InfoEintrag } from "./InfoList";
+export { Eckdaten, type Eckdatum } from "./Eckdaten";
 export { FileButton } from "./FileButton";
 export { BildZuschnitt, ZuschnittTexteGeber, type ZuschnittTexte } from "./BildZuschnitt";
 export { CopyButton } from "./CopyButton";
