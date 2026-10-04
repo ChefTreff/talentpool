@@ -1215,3 +1215,8 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **#343** (Design, nur Oberfläche): Admin → Fotos (Events, Löschwünsche) und Admin → Partner → Vorlagen (Liste, Editor) tragen `CardHeader ebene="h2"` (Display-Schrift in Versalien 18/24 statt 16/24), Wächtertest `tests/cardheader-ebene.test.ts`. Prüfpunkt bei Konrad (**K-60**): gefällt es, stellt Design die übrigen rund 98 Abschnittskarten seitenweise um (Listeneinträge bleiben h3); sonst bleibt h3 und das Talent-Muster wird für Karten angepasst. QS-054 → Teil gebaut #343. Design-Startpaket damit komplett, Pause bis Konrads Feedback.
 - Doku-Spiegelung: `docs/design-vorschlaege-2026-09-24.md` und `-2026-10-04.md` jetzt in `scripts/mirror-docs.sh` (07_Mockups & Design).
 
+## 2026-10-04 — Konrad: K-57 und K-58 entschieden
+
+- **K-57** (Zeilenhöhe 56 px, #333): „56 passt“ — GeruestView bleibt bei der Erkennung, keine dritte `dicht`-Ausnahme; `dicht` nur Programm-Board und Regie.
+- **K-58** (Wortmarke auf Event-Grafiken): **FUTURE LEADER SUMMIT wie 2026**. „Hear me speak“ und „Meet us at“ bleiben wie gebaut (Wortmarke als Schrift), `public/brand/fls-wortmarke.svg` (Club-Wortmarke) bleibt unverändert; eine Summit-SVG wird nicht gebraucht. QS-067 → erledigt (`marke.md` war in #337 berichtigt).
+
