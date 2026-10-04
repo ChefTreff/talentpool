@@ -1083,6 +1083,7 @@
     "partnerGraphicsCount": "{n} of {total} with a graphic",
     "partnerGraphicsEmptyBody": "Partners appear here as soon as they are created.",
     "partnerGraphicsEmptyTitle": "No partners in this edition yet",
+    "partnerGraphicsGenerate": "Create with generator",
     "partnerGraphicsLead": "One “We’re in” graphic per partner with their logo. Upload or replace it — the partner always sees the latest under “Media kit”, older ones stay in the history.",
     "partnerGraphicsMissing": "Missing",
     "partnerGraphicsPreview": "View",
@@ -1270,6 +1271,19 @@
     "title": "Mail",
     "version": "Version",
     "waiting": "waiting"
+  },
+  "adminMeetUs": {
+    "back": "Back to graphics & media kit",
+    "lead": "For {org}: choose motif, format and language, add the logo or portrait. The finished graphic can be downloaded or stored as the partner graphic — the partner finds it under “Media Kit”.",
+    "logoMissing": "There is no logo from the partner here. Choose the logo file yourself; until then the company name stands in as a placeholder.",
+    "privacyNote": "Logo and portrait are not stored, the graphic is created in the browser. Only the finished graphic is stored, and only if you store it as the partner graphic.",
+    "store": "Store as partner graphic",
+    "storeFailed": "The graphic could not be stored. Try again, or download it and store it under “Partner graphics”.",
+    "storeHint": "The partner downloads it under “Media Kit”. The most recently stored graphic always applies, an earlier one stays as a version. The square fits every channel.",
+    "storeNotAllowed": "You lack the role for this.",
+    "stored": "Stored as the partner graphic — the partner sees it now.",
+    "storing": "Storing …",
+    "title": "Create “Meet us at” graphic"
   },
   "adminNotifications": {
     "acConnected": "Key set. The sync runs every 15 minutes; until writing is enabled it only counts.",
