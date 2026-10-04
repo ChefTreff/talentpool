@@ -218,7 +218,7 @@ function CueRow({
   );
 
   return (
-    <Tr>
+    <Tr dicht>
       <Td className="tabular-nums text-muted">{hhmm.format(new Date(cue.cue_start))}</Td>
       <Td className="tabular-nums text-muted">{hhmm.format(new Date(cue.cue_end))}</Td>
       <Td>{field("action", t.colAction, true)}</Td>
