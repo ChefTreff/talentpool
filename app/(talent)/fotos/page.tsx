@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { cn } from "@/components/ui/cn";
+import { ChipLink } from "@/components/ui/Chip";
 import { PHOTO_BUCKET } from "@/lib/fotos/regeln";
 import { FotoGalerie, type GalerieFoto } from "./FotoGalerie";
 
@@ -55,17 +54,9 @@ export default async function FotosPage({ searchParams }: { searchParams: Promis
           {events.length > 1 && (
             <nav className="mb-4 flex flex-wrap gap-1" aria-label={s.title}>
               {events.map((e) => (
-                <Link
-                  key={e.event_id}
-                  href={`/fotos?event=${e.event_id}`}
-                  aria-current={e.event_id === aktiv?.event_id ? "page" : undefined}
-                  className={cn(
-                    "rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors",
-                    e.event_id === aktiv?.event_id ? "bg-accent-soft text-accent-deep" : "text-muted hover:bg-surface-hover hover:text-ink",
-                  )}
-                >
+                <ChipLink key={e.event_id} href={`/fotos?event=${e.event_id}`} aktiv={e.event_id === aktiv?.event_id}>
                   {e.event_name} · {e.photos}
-                </Link>
+                </ChipLink>
               ))}
             </nav>
           )}
