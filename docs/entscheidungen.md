@@ -1234,3 +1234,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 
 - **#346** (Design, nur Oberfläche): 17 `CardHeader` auf `ebene="h2"` (Hackathon, Mail-Vorlagen, Benachrichtigungen, Feedback, Grafiken, Team, Technik), kein h3 — damit trägt im ganzen Admin jeder Kartenkopf seine Ebene. Es folgt der letzte Bereich: Partner-, Volunteers- und Hackathon-Portal (16 h2, 6 h3 mit Grund), `ebene` als Pflichtangabe im Kit und Wächter über das ganze Repo.
 
+## 2026-10-04 — #347 gemergt (QS-054 vollständig: Portale, `ebene` als Pflicht im Kit)
+
+- **#347** (Design, nur Oberfläche): Partner-, Volunteers- und Hackathon-Portal plus Kit-Showroom — 17 `CardHeader` auf `ebene="h2"`, 6 ausdrücklich h3 mit Grund (Masterclass: Inhalt, Goodies, Sprecher unter dem Titel der Einheit; Formular unter der Tour-Karte; Challenge-Katalog; Karte je Team in der Bewertung). `ebene` ist im Kit jetzt **Pflichtangabe ohne Standardwert** (tsc verlangt sie), der Wächtertest prüft alle 118 Köpfe im Repo samt h3-Liste mit Grund. **QS-054 damit vollständig** (K-60, #344–#347). Für den Umbau der Hackathon-Startseite (K-59) gilt: ein Kopf ohne Ebene kompiliert nicht mehr. Design-Startpaket komplett, Pause bis Konrads Feedback.
+
