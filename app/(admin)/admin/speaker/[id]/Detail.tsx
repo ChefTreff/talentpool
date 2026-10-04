@@ -318,7 +318,7 @@ export function SpeakerDetailView({
           <p className="ct-help mb-3">{t.sectionActionsHint}</p>
           <div className="flex flex-col gap-4">
         <Card id="status">
-          <CardHeader title={t.pipelineTitle} description={t.pipelineHint} />
+          <CardHeader ebene="h2" title={t.pipelineTitle} description={t.pipelineHint} />
           <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
             <Field label={t.pipelineTitle} htmlFor="status">
               <Select
@@ -374,7 +374,7 @@ export function SpeakerDetailView({
         </Card>
 
         <Card id="betreuung">
-          <CardHeader title={t.careTitle} description={t.careHint} />
+          <CardHeader ebene="h2" title={t.careTitle} description={t.careHint} />
           <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
             <Field label={t.owner} htmlFor="owner" className="sm:col-span-2">
               <Select
@@ -522,7 +522,7 @@ export function SpeakerDetailView({
             <p className="ct-help">{t.sectionDraftHint}</p>
           </div>
         <Card id="stammdaten">
-          <CardHeader title={t.basicsTitle} />
+          <CardHeader ebene="h2" title={t.basicsTitle} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.speakerType} htmlFor="typ">
               <Select
@@ -563,7 +563,7 @@ export function SpeakerDetailView({
         {/* Einordnung aus der Arbeitstabelle (LEAD-039) — dieselben Felder wie im
             Fenster der Speaker-Leads, im gemeinsamen Speichern-Balken. */}
         <Card id="einordnung">
-          <CardHeader title={te.title} description={te.hint} />
+          <CardHeader ebene="h2" title={te.title} description={te.hint} />
           <EinordnungFelder
             idPrefix="einordnung"
             value={einordnung}
@@ -578,7 +578,7 @@ export function SpeakerDetailView({
         {/* Verlauf (LEAD-039 Schnitt 2): speichert je Eintrag sofort und steht
             deshalb nicht im gemeinsamen Speichern-Balken. */}
         <Card id="verlauf">
-          <CardHeader title={tv.title} description={tv.hint} />
+          <CardHeader ebene="h2" title={tv.title} description={tv.hint} />
           <Verlauf
             profileId={speaker.id}
             meId={meId}
@@ -591,7 +591,7 @@ export function SpeakerDetailView({
         </Card>
 
         <Card id="bio">
-          <CardHeader title={t.bioTitle} description={t.bioHint} />
+          <CardHeader ebene="h2" title={t.bioTitle} description={t.bioHint} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.bioShortDe} htmlFor="bsd">
               <Textarea id="bsd" rows={3} value={draft.bio_short_de} onChange={(e) => set("bio_short_de", e.target.value)} />
@@ -609,7 +609,7 @@ export function SpeakerDetailView({
         </Card>
 
         <Card id="links">
-          <CardHeader title={t.linksTitle} />
+          <CardHeader ebene="h2" title={t.linksTitle} />
           <div className="grid gap-4 sm:grid-cols-3">
             {SOCIAL_KEYS.map((k) => (
               <Field key={k} label={t[`social_${k}`] ?? k} htmlFor={`s-${k}`}>
@@ -641,7 +641,7 @@ export function SpeakerDetailView({
         </Card>
 
         <Card id="hospitality">
-          <CardHeader title={t.hospitalityTitle} description={t.hospitalityHint} />
+          <CardHeader ebene="h2" title={t.hospitalityTitle} description={t.hospitalityHint} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.passType} htmlFor="pass">
               <Select id="pass" value={draft.pass_type} onChange={(e) => set("pass_type", e.target.value)} options={opt(labels.passType)} />
@@ -708,7 +708,7 @@ export function SpeakerDetailView({
 
         {speaker.internal_notes_visible ? (
           <Card>
-            <CardHeader title={t.notesTitle} description={t.notesHint} />
+            <CardHeader ebene="h2" title={t.notesTitle} description={t.notesHint} />
             <Textarea
               rows={4}
               value={draft.internal_notes}
@@ -717,7 +717,7 @@ export function SpeakerDetailView({
           </Card>
         ) : (
           <Card>
-            <CardHeader title={t.notesTitle} />
+            <CardHeader ebene="h2" title={t.notesTitle} />
             <p className="ct-small text-muted">{t.notesHidden}</p>
           </Card>
         )}
@@ -755,7 +755,7 @@ export function SpeakerDetailView({
             <p className="ct-help">{t.sectionReadonlyHint}</p>
           </div>
         <Card id="reise">
-          <CardHeader title={t.travelTitle} description={t.travelHint} />
+          <CardHeader ebene="h2" title={t.travelTitle} description={t.travelHint} />
           <div className="flex flex-col gap-3">
             {!speaker.travel && <p className="ct-small text-muted">{t.noTravel}</p>}
             <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
@@ -775,7 +775,7 @@ export function SpeakerDetailView({
         <Einwilligungen rows={consents} datum={datum} t={t} />
 
         <Card id="sessions">
-          <CardHeader title={t.sessionsTitle} />
+          <CardHeader ebene="h2" title={t.sessionsTitle} />
           {speaker.sessions.length === 0 ? (
             <p className="ct-small text-muted">{t.noSessions}</p>
           ) : (
@@ -865,7 +865,7 @@ function Einwilligungen({ rows, datum, t }: { rows: SpeakerConsentRow[]; datum: 
   };
   return (
     <Card id="einwilligungen">
-      <CardHeader title={t.consentsTitle} description={t.consentsHint} />
+      <CardHeader ebene="h2" title={t.consentsTitle} description={t.consentsHint} />
       <dl className="grid gap-x-6 gap-y-2">
         {EINWILLIGUNGEN.map(({ art, label }) => (
           <Zeile key={art} label={t[label]} value={text(stand.get(art))} />

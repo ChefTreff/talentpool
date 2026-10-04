@@ -116,6 +116,7 @@ export function LeadsView({
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader
+          ebene="h2"
           title={`${t.unassignedTitle} (${unassigned.length})`}
           description={t.unassignedHint}
         />
@@ -243,7 +244,7 @@ export function LeadsView({
       </div>
 
       <Card>
-        <CardHeader title={t.addTitle} description={t.addHint} />
+        <CardHeader ebene="h2" title={t.addTitle} description={t.addHint} />
         <div className="flex flex-wrap items-end gap-3">
           <Field label={t.stageLabel} htmlFor="lead-buehne" className="min-w-56">
             <Select

@@ -95,7 +95,7 @@ export function AufgabenListe({
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader title={t.newTitle} description={t.newHint} />
+        <CardHeader ebene="h2" title={t.newTitle} description={t.newHint} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.key} htmlFor="nk" hint={t.keyHint}>
             <Input

@@ -37,8 +37,12 @@ const zaehle = (pfad: string) => {
 
 /** Bereiche, in denen jeder `CardHeader` seine Ebene ausdrücklich trägt. */
 const UMGESTELLT = [
+  "app/(admin)/admin/edition/",
   "app/(admin)/admin/fotos/",
   "app/(admin)/admin/partner/",
+  "app/(admin)/admin/speaker/",
+  "app/(admin)/admin/speaker-leads/",
+  "app/(admin)/admin/volunteers/",
 ];
 
 /** Die Fälle, die bei `h3` bleiben: Datei → Anzahl und Grund. Alles andere in den umgestellten Bereichen ist `h2`. */
