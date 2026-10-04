@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ButtonDownload } from "@/components/ui/Button";
+import { ButtonDownload, ButtonLink } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -20,11 +20,13 @@ type Asset = { id: string; kind: string; storage_path: string; filename: string;
 /**
  * Media Kit (PART-041, ADM-023; Konrad 25.09.: „ja, bitte in einem“).
  *
- * Zwei Dinge für die Kommunikation des Partners rund um den Summit:
+ * Drei Dinge für die Kommunikation des Partners rund um den Summit:
  * - **Eure Partnergrafik** („Wir sind dabei“) — je Organisation eine, erstellt
  *   vom Marketing unter `/admin/grafiken` (`partner_asset`, Art
  *   `partner_graphic`). Der Partner lädt sie herunter; ersetzen kann er sie
  *   nicht — das sagt die Bucket-Policy, nicht diese Seite.
+ * - **Die „Meet us at“-Grafik zum Selbermachen** (PART-096) — der Partner
+ *   erzeugt sie mit Logo oder Ansprechperson im Browser, siehe `./grafik`.
  * - **Das Media Kit** — Dateien der Edition (`edition_file`, Art `media_kit`),
  *   für alle Partner gleich: Logos, Vorlagen, Textbausteine.
  *
@@ -85,6 +87,14 @@ export default async function PartnerMediaPage() {
           ) : (
             <EmptyState title={s.graphicEmptyTitle} description={s.graphicEmptyBody} />
           )}
+        </Card>
+
+        <Card>
+          <CardHeader ebene="h2" title={s.meetTitle} description={s.meetLead} />
+          {/* Sekundär: die eine Hauptaktion der Seite ist der Download der Partnergrafik. */}
+          <ButtonLink href="/partner/media/grafik" variant="secondary">
+            {s.meetAction}
+          </ButtonLink>
         </Card>
 
         <Card>
