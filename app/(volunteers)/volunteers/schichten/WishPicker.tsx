@@ -88,7 +88,7 @@ export function WishPicker({
 
   return (
     <Card>
-      <CardHeader title={t.wishTitle} description={t.wishLead.replace("{max}", String(MAX_WISHES))} />
+      <CardHeader ebene="h2" title={t.wishTitle} description={t.wishLead.replace("{max}", String(MAX_WISHES))} />
       {shifts.length === 0 ? (
         <p className="ct-help">{t.wishNone}</p>
       ) : (

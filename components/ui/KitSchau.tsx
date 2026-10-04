@@ -175,7 +175,7 @@ export function KitSchau({
             footer={<Button size="sm">{t.ticketAction}</Button>}
           />
           <Card>
-            <CardHeader title={t.formTitle} description={t.formHint} />
+            <CardHeader ebene="h2" title={t.formTitle} description={t.formHint} />
             <div className="flex flex-col gap-4">
               <Field label={t.formField} htmlFor="kit-a" hint={t.formFieldHint} required requiredLabel={t.formRequired}>
                 <Input id="kit-a" placeholder={t.formPlaceholder} />

@@ -53,7 +53,7 @@ export function TicketCard({
   if (couponStatus === "redeemed") {
     return (
       <Card>
-        <CardHeader title={t.ticketTitle} description={t.ticketLead} />
+        <CardHeader ebene="h2" title={t.ticketTitle} description={t.ticketLead} />
         <div className="flex flex-wrap items-center gap-3">
           <Badge tone="success">{t.ticketRedeemed}</Badge>
           <span className="ct-help">{t.ticketRedeemedBody}</span>
@@ -65,7 +65,7 @@ export function TicketCard({
   if (!code) {
     return (
       <Card>
-        <CardHeader title={t.ticketTitle} description={t.ticketLead} />
+        <CardHeader ebene="h2" title={t.ticketTitle} description={t.ticketLead} />
         <p className="ct-help">{t.ticketPending}</p>
       </Card>
     );

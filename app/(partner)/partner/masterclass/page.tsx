@@ -81,12 +81,12 @@ export default async function PartnerMasterclassPage() {
               </Card>
 
               <Card>
-                <CardHeader title={s.contentTitle} description={s.contentLead} />
+                <CardHeader ebene="h3" title={s.contentTitle} description={s.contentLead} />
                 <MasterclassInhalt session={x} sprachen={sprachen} canEdit={canEdit} t={s} rpcMessages={t.rpc} unsaved={t.common.unsaved} />
               </Card>
 
               <Card>
-                <CardHeader title={s.goodiesTitle} description={s.goodiesLead} />
+                <CardHeader ebene="h3" title={s.goodiesTitle} description={s.goodiesLead} />
                 <GoodiesFrage
                   sessionId={x.id}
                   details={x.format_details}
@@ -107,7 +107,7 @@ export default async function PartnerMasterclassPage() {
               </Card>
 
               <Card>
-                <CardHeader title={talk.speakersLabel} description={s.speakersLead} />
+                <CardHeader ebene="h3" title={talk.speakersLabel} description={s.speakersLead} />
                 <div className="flex flex-col gap-4">
                   {dazu.length > 0 ? (
                     dazu.map((sp) => <SpeakerKarte key={sp.profile_id} speaker={sp} canEdit={canEdit} t={talk} rpcMessages={t.rpc} />)

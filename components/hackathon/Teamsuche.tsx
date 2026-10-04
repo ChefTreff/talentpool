@@ -73,7 +73,7 @@ export function Teamsuche({
 
   return (
     <Card>
-      <CardHeader title={t.searchTitle} description={modus === "solo" ? t.searchLeadSolo : t.searchLeadTeam} />
+      <CardHeader ebene="h2" title={t.searchTitle} description={modus === "solo" ? t.searchLeadSolo : t.searchLeadTeam} />
       <div className="flex flex-col gap-6">
         {/* Offene Anfragen und Einladungen zuerst — dort wartet jemand auf eine Antwort. */}
         {offen.length > 0 && (

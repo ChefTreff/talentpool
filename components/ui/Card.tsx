@@ -38,22 +38,30 @@ export function Card({
   );
 }
 
+/**
+ * Kopf einer Karte. **Die Ebene ist Pflicht** (QS-054, Konrad 04.10.2026, K-60: „Versalien passen, bitte alle
+ * umstellen“): ein Kopf ohne ausdrückliche Ebene steht nicht mehr im Code, und der Compiler verlangt sie.
+ *
+ * - **`h2`** (`.ct-h2`, Display-Schrift in Versalien 18/24): die Karte ist ein **Abschnitt der Seite**, auch wenn
+ *   sie sich je Tag, Session oder Stopp wiederholt und jede ihren eigenen Inhalt trägt. Die Gliederung springt so
+ *   nicht von `h1` auf `h3`.
+ * - **`h3`** (`.ct-h3`, 16/24 in Normalschrift): die Karte ist ein **Unterabschnitt unter einer Überschrift derselben
+ *   Einheit** (Inhalt, Goodies und Sprecher unter dem Titel einer Masterclass) oder ein **gleichförmiger
+ *   Listeneintrag** (Challenge-Katalog, Karte je Team). Jeder `h3` steht im Wächtertest
+ *   (`tests/cardheader-ebene.test.ts`) mit Grund.
+ *
+ * Die Ebene steht als **erste Eigenschaft** (`<CardHeader ebene="h2" title=…`); der Test zählt so.
+ */
 export function CardHeader({
   title,
   description,
   action,
-  ebene = "h3",
+  ebene,
 }: {
   title: string;
   description?: string;
   action?: ReactNode;
-  /**
-   * `h2`, wenn die Karte ein **Abschnitt der Seite** ist (QS-054): dann
-   * `.ct-h2`, wie das Talent-Muster es für Abschnitte vorsieht („ein `<h2>`
-   * ist `.ct-h2` — auch in Karten“), und die Gliederung springt nicht von
-   * `h1` auf `h3`. `h3` (Vorgabe) bleibt für Karten unter einem Abschnittskopf.
-   */
-  ebene?: "h2" | "h3";
+  ebene: "h2" | "h3";
 }) {
   const Kopf = ebene;
   return (
