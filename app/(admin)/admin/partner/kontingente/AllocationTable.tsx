@@ -125,7 +125,7 @@ export function AllocationTable({
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader title={t.discountTitle} description={t.discountLead} />
+        <CardHeader ebene="h2" title={t.discountTitle} description={t.discountLead} />
         <div className="flex flex-wrap items-end gap-3">
           <Field label={t.colOrg} htmlFor="d-org">
             <Select

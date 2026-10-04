@@ -76,7 +76,7 @@ export function HubspotArchiveCard({ t }: { t: Record<string, string> }) {
 
   return (
     <Card className="mb-4">
-      <CardHeader title={t.archiveTitle} description={t.archiveLead} />
+      <CardHeader ebene="h2" title={t.archiveTitle} description={t.archiveLead} />
       <div className="mt-3 flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => void ruf(true)} loading={laeuft} disabled={laeuft}>
           {t.archiveList}

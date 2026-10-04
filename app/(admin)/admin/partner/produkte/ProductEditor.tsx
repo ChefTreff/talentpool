@@ -230,6 +230,7 @@ export function ProductEditor({
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader
+          ebene="h2"
           title={t.productsTitle}
           description={`${t.productsLead} · ${products.length}`}
           action={
@@ -304,6 +305,7 @@ export function ProductEditor({
       {draft && (
         <Card id="produkt-editor">
           <CardHeader
+            ebene="h2"
             title={isNew ? t.productNew : (draft.name_de ?? draft.sku)}
             description={isNew ? t.productNewLead : draft.sku}
           />

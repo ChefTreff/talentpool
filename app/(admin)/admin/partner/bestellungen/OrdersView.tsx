@@ -116,7 +116,7 @@ export function OrdersView({
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader title={t.invoiceTitle} description={t.invoiceLead} />
+        <CardHeader ebene="h2" title={t.invoiceTitle} description={t.invoiceLead} />
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" disabled={pending} onClick={() => invoices(true)}>
             {t.dryRun}
@@ -149,7 +149,7 @@ export function OrdersView({
       </Card>
 
       <Card>
-        <CardHeader title={t.ordersTitle} description={`${t.ordersLead} · ${orders.length}`} />
+        <CardHeader ebene="h2" title={t.ordersTitle} description={`${t.ordersLead} · ${orders.length}`} />
         {orders.length === 0 ? (
           <p className="ct-help">{t.ordersEmpty}</p>
         ) : (
@@ -291,6 +291,7 @@ export function OrdersView({
 
       <Card>
         <CardHeader
+          ebene="h2"
           title={t.requestsTitle}
           description={`${t.requestsLead} · ${requests.filter((r) => r.status === "open").length} ${t.countOpen}`}
         />
@@ -344,7 +345,7 @@ export function OrdersView({
       </Card>
 
       <Card>
-        <CardHeader title={t.reportTitle} description={t.reportLead} />
+        <CardHeader ebene="h2" title={t.reportTitle} description={t.reportLead} />
         {report.length === 0 ? (
           <p className="ct-help">{t.reportEmpty}</p>
         ) : (

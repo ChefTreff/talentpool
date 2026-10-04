@@ -66,7 +66,7 @@ export function SponsorWallCard({ t }: { t: Record<string, string> }) {
 
   return (
     <Card className="mb-4">
-      <CardHeader title={t.sponsorTitle} description={t.sponsorLead} />
+      <CardHeader ebene="h2" title={t.sponsorTitle} description={t.sponsorLead} />
       <div className="mt-3 flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => void ruf(true)} loading={laeuft} disabled={laeuft}>
           {t.productSyncDryRun}

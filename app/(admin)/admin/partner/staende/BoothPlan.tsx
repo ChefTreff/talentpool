@@ -76,7 +76,7 @@ export function BoothPlan({
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader title={t.boothAssignTitle} description={t.boothAssignLead} />
+        <CardHeader ebene="h2" title={t.boothAssignTitle} description={t.boothAssignLead} />
         <div className="flex flex-wrap items-end gap-3">
           <Field label={t.colBooth} htmlFor="b-booth" hint={t.boothFreeHint}>
             <Select
@@ -133,7 +133,7 @@ export function BoothPlan({
         const rows = plan.filter((r) => r.event_day_id === d.id);
         return (
           <Card key={d.id}>
-            <CardHeader title={d.label} description={`${rows.length} ${t.boothsOnDay}`} />
+            <CardHeader ebene="h2" title={d.label} description={`${rows.length} ${t.boothsOnDay}`} />
             {rows.length === 0 ? (
               <p className="ct-help">{t.boothDayEmpty}</p>
             ) : (

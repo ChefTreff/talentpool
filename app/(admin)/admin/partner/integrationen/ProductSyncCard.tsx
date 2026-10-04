@@ -95,7 +95,7 @@ export function ProductSyncCard({
 
   return (
     <Card className="mb-4">
-      <CardHeader title={t.productSyncTitle} description={t.productSyncLead} />
+      <CardHeader ebene="h2" title={t.productSyncTitle} description={t.productSyncLead} />
       <div className="mt-3 flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => los(true)} loading={laeuft} disabled={laeuft}>
           {laeuft ? t.productSyncRunning : t.productSyncDryRun}
