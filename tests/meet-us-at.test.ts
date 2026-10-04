@@ -17,6 +17,8 @@ import {
   layoutFuer,
   mitDeckkraft,
   schriftgroesseFuer,
+  umbrechen,
+  zeilenFuer,
   type FormatKey,
   type Rect,
 } from "@/lib/grafik/meet-us-at";
@@ -173,6 +175,27 @@ describe("Meet us at: Bilder und Texte einpassen", () => {
     const k = kuerzen(messe, "Ein sehr langer Firmenname GmbH & Co. KG", 200, 20);
     assert.ok(k.endsWith("…"));
     assert.ok(messe(k, 20) <= 200);
+  });
+
+  it("umbrechen: bricht an Wortgrenzen; ein zu langes Wort bleibt allein auf seiner Zeile", () => {
+    assert.deepEqual(umbrechen(messe, "aaaa bbbb cccc", 100, 20), ["aaaa bbbb", "cccc"]);
+    assert.deepEqual(umbrechen(messe, "kurz", 100, 20), ["kurz"]);
+    assert.deepEqual(umbrechen(messe, "x".repeat(40) + " ab", 100, 20), ["x".repeat(40), "ab"]);
+    assert.deepEqual(umbrechen(messe, "   ", 100, 20), []);
+  });
+
+  it("zeilenFuer: nimmt zwei Zeilen in der größten Schrift, die passt, und kürzt erst am Ende", () => {
+    const r = zeilenFuer(messe, "Beispiel Maschinenbau GmbH", 700, 90, 30, 2);
+    assert.equal(r.zeilen.length, 2);
+    assert.ok(r.groesse < 90 && r.groesse >= 30);
+    assert.ok(r.zeilen.every((z) => messe(z, r.groesse) <= 700));
+    assert.ok(!r.zeilen.some((z) => z.endsWith("…")), "so viel Text passt auf zwei Zeilen");
+    const kurz = zeilenFuer(messe, "Anna GmbH", 700, 90, 30, 2);
+    assert.deepEqual(kurz, { groesse: 90, zeilen: ["Anna GmbH"] });
+    const lang = zeilenFuer(messe, "Wort ".repeat(60), 300, 90, 30, 2);
+    assert.equal(lang.groesse, 30);
+    assert.equal(lang.zeilen.length, 2);
+    assert.ok(lang.zeilen[1].endsWith("…"), "nur der Rest der letzten Zeile wird gekürzt");
   });
 
   it("mitDeckkraft: macht aus #rrggbb ein rgba und lässt andere Schreibweisen stehen", () => {
@@ -338,6 +361,14 @@ describe("Meet us at: Zeichnen", () => {
     const { ctx, aufrufe } = attrappe();
     zeichneMeetUsAt(ctx, EINGABE, { logo: null, foto: null }, FARBEN, SCHRIFTEN);
     assert.ok(texte(aufrufe).includes("Beispiel GmbH"));
+  });
+
+  it("Logo-Motiv ohne Logo: ein langer Firmenname bricht auf zwei Zeilen um, statt abgeschnitten zu werden", () => {
+    const { ctx, aufrufe } = attrappe();
+    zeichneMeetUsAt(ctx, { ...EINGABE, firma: "Beispiel Maschinenbau GmbH" }, { logo: null, foto: null }, FARBEN, SCHRIFTEN);
+    const zeilen = aufrufe.filter((x) => x.fn === "fillText" && x.align === "center").map((x) => String(x.args[0]));
+    assert.equal(zeilen.length, 2, zeilen.join("|"));
+    assert.equal(zeilen.join(" "), "Beispiel Maschinenbau GmbH", "nichts fehlt, nichts ist gekürzt");
   });
 
   it("Personen-Motiv: Name, Position und Firma stehen rechtsbündig, das Porträt füllt das Dreieck", () => {

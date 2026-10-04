@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { BildZuschnitt } from "@/components/ui/BildZuschnitt";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -9,6 +10,7 @@ import { FileButton } from "@/components/ui/FileButton";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { partnergrafikAblegen } from "@/components/partner/partnergrafik-upload";
 import {
   FORMATE,
   FORMAT_SCHLUESSEL,
@@ -48,6 +50,13 @@ export type MeetUsAtProps = {
   t: Strings;
   /** Wörterbuch `meetUsAtGrafik` je Sprache: was **auf** der Grafik steht. */
   texte: Record<"de" | "en", Strings>;
+  /**
+   * Nur im Admin (PART-097): die fertige Grafik als Partnergrafik der Organisation
+   * ablegen. Dort wird die Komponente ohne Logo und ohne Kontakte aufgerufen —
+   * das Marketing wählt beides selbst, ein Lesezugriff auf Partnerdaten gibt es
+   * für diese Rolle nicht. `zurueck` ist die Seite, auf die es nach dem Ablegen geht.
+   */
+  ablegen?: { orgId: string; editionId: string; zurueck: string };
 };
 
 /** Alles, was erst im Browser bekannt ist: Tokenfarben und Schriftfamilien. */
@@ -83,8 +92,9 @@ const alsBild = (img: HTMLImageElement): Bild => ({
  * zur Laufzeit aus (Skill-Regel 2) und wartet, bis die Schriften geladen sind —
  * sonst zeichnete die erste Fassung in der Ersatzschrift.
  */
-export function MeetUsAt({ orgName, logo, kontakte, edition, portalSprache, t, texte }: MeetUsAtProps) {
+export function MeetUsAt({ orgName, logo, kontakte, edition, portalSprache, t, texte, ablegen }: MeetUsAtProps) {
   const toast = useToast();
+  const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [basis, setBasis] = useState<Basis | null>(null);
@@ -100,6 +110,7 @@ export function MeetUsAt({ orgName, logo, kontakte, edition, portalSprache, t, t
   const [foto, setFoto] = useState<Bild | null>(null);
   // Das gewählte Porträt, solange der Zuschnitt-Dialog offen ist (ADM-066).
   const [zuschnitt, setZuschnitt] = useState<File | null>(null);
+  const [legtAb, setLegtAb] = useState(false);
 
   const erster = kontakte[0] ?? null;
   const [kontaktId, setKontaktId] = useState(erster?.id ?? "");
@@ -240,22 +251,52 @@ export function MeetUsAt({ orgName, logo, kontakte, edition, portalSprache, t, t
     }
   }
 
-  function herunterladen() {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        toast("error", t.exportFailed);
-        return;
-      }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = dateiname(variante === "person" ? name : firma, format, variante);
-      a.click();
-      URL.revokeObjectURL(url);
-      toast("success", t.downloaded);
-    }, "image/png");
+  /** Die Leinwand als PNG-Datei, mit dem Namen, unter dem sie heruntergeladen oder abgelegt wird. */
+  function alsDatei(): Promise<File | null> {
+    return new Promise((ok) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return ok(null);
+      canvas.toBlob(
+        (blob) =>
+          ok(blob ? new File([blob], dateiname(variante === "person" ? name : firma, format, variante), { type: "image/png" }) : null),
+        "image/png",
+      );
+    });
+  }
+
+  async function herunterladen() {
+    const datei = await alsDatei();
+    if (!datei) {
+      toast("error", t.exportFailed);
+      return;
+    }
+    const url = URL.createObjectURL(datei);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = datei.name;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("success", t.downloaded);
+  }
+
+  /** Nur mit `ablegen` (Admin): die Grafik als neue Version der Partnergrafik hochladen und zurück zur Liste. */
+  async function alsPartnergrafikAblegen() {
+    if (!ablegen) return;
+    setLegtAb(true);
+    const datei = await alsDatei();
+    if (!datei) {
+      setLegtAb(false);
+      toast("error", t.exportFailed);
+      return;
+    }
+    const r = await partnergrafikAblegen(ablegen.orgId, ablegen.editionId, datei);
+    setLegtAb(false);
+    if (!r.ok) {
+      toast("error", r.key === "not_allowed" ? t.storeNotAllowed : t.storeFailed);
+      return;
+    }
+    toast("success", t.stored);
+    router.push(ablegen.zurueck);
   }
 
   const L = FORMATE[format];
@@ -422,12 +463,18 @@ export function MeetUsAt({ orgName, logo, kontakte, edition, portalSprache, t, t
             <h2 id="mu-laden" className="ct-h3 text-ink">
               {t.stepDownload}
             </h2>
-            <div>
-              <Button disabled={!basis} onClick={herunterladen}>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Im Admin ist das Ablegen die Hauptaktion, das Herunterladen die zweite. */}
+              {ablegen && (
+                <Button disabled={!basis || legtAb} loading={legtAb} onClick={() => void alsPartnergrafikAblegen()}>
+                  {legtAb ? t.storing : t.store}
+                </Button>
+              )}
+              <Button variant={ablegen ? "secondary" : "primary"} disabled={!basis || legtAb} onClick={() => void herunterladen()}>
                 {t.download}
               </Button>
             </div>
-            <p className="ct-help">{t.tip}</p>
+            {ablegen ? <p className="ct-help">{t.storeHint}</p> : <p className="ct-help">{t.tip}</p>}
             <p className="ct-help">{t.privacyNote}</p>
           </section>
         </div>

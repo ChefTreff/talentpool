@@ -170,6 +170,49 @@ export function kuerzen(messe: Messer, text: string, maxBreite: number, groesse:
   return `${t}…`;
 }
 
+/** Bricht einen Text an Wortgrenzen in Zeilen von höchstens `maxBreite`; ein zu langes Wort steht allein auf seiner Zeile. */
+export function umbrechen(messe: Messer, text: string, maxBreite: number, groesse: number): string[] {
+  const woerter = text.trim().split(/\s+/).filter(Boolean);
+  const zeilen: string[] = [];
+  let aktuell = "";
+  for (const wort of woerter) {
+    const probe = aktuell ? `${aktuell} ${wort}` : wort;
+    if (aktuell && messe(probe, groesse) > maxBreite) {
+      zeilen.push(aktuell);
+      aktuell = wort;
+    } else {
+      aktuell = probe;
+    }
+  }
+  if (aktuell) zeilen.push(aktuell);
+  return zeilen;
+}
+
+/**
+ * Die größte Schrift zwischen `start` und `min`, bei der der Text in höchstens
+ * `maxZeilen` Zeilen passt, und die Zeilen dazu. Passt er auch bei `min` nicht,
+ * läuft der Rest in die letzte Zeile und wird dort mit „…“ gekürzt.
+ */
+export function zeilenFuer(
+  messe: Messer,
+  text: string,
+  maxBreite: number,
+  start: number,
+  min: number,
+  maxZeilen: number,
+): { groesse: number; zeilen: string[] } {
+  let g = start;
+  let zeilen = umbrechen(messe, text, maxBreite, g);
+  while ((zeilen.length > maxZeilen || zeilen.some((z) => messe(z, g) > maxBreite)) && g > min) {
+    g = Math.max(min, Math.floor(g * 0.92));
+    zeilen = umbrechen(messe, text, maxBreite, g);
+  }
+  if (zeilen.length > maxZeilen) {
+    zeilen = [...zeilen.slice(0, maxZeilen - 1), zeilen.slice(maxZeilen - 1).join(" ")];
+  }
+  return { groesse: g, zeilen: zeilen.map((z) => kuerzen(messe, z, maxBreite, g)) };
+}
+
 /**
  * Das Quellrechteck, mit dem ein Bild ein Zielfeld lückenlos füllt (cover). Ein
  * Querformat wird seitlich gekappt, mittig; ein Hochformat unten, damit der
