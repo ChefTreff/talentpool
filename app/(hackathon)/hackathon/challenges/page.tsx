@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
-import { cn } from "@/components/ui/cn";
+import { ChipLink } from "@/components/ui/Chip";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -68,19 +67,13 @@ export default async function ChallengesPage({
       {tracks.length > 0 && (
         <nav className="mb-4 flex flex-wrap gap-1" aria-label={t.hackathon.track}>
           {reiter.map((r) => (
-            <Link
+            <ChipLink
               key={r.key ?? "alle"}
               href={r.key ? `/hackathon/challenges?track=${encodeURIComponent(r.key)}` : "/hackathon/challenges"}
-              aria-current={r.key === aktiv ? "page" : undefined}
-              className={cn(
-                "rounded-ct-sm px-2.5 py-1.5 ct-label transition-colors",
-                r.key === aktiv
-                  ? "bg-accent-soft text-accent-deep"
-                  : "text-muted hover:bg-surface-hover hover:text-ink",
-              )}
+              aktiv={r.key === aktiv}
             >
               {r.label}
-            </Link>
+            </ChipLink>
           ))}
         </nav>
       )}

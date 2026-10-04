@@ -15,7 +15,7 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
-import { cn } from "@/components/ui/cn";
+import { Chip } from "@/components/ui/Chip";
 import { FormatDetailsBlock } from "./FormatDetailsBlock";
 import type { FormatDetails } from "./types";
 import {
@@ -224,34 +224,13 @@ export function ProgrammeView({
       {/* Tagwahl */}
       <div className="flex flex-wrap gap-1" role="group" aria-label={t.day}>
         {days.map((d) => (
-          <button
-            key={d}
-            type="button"
-            aria-pressed={day === d}
-            onClick={() => setDay(d)}
-            className={cn(
-              "rounded-ct-sm px-2.5 py-1.5 ct-label",
-              day === d
-                ? "bg-accent-soft text-accent-deep"
-                : "text-muted hover:bg-surface-hover hover:text-ink",
-            )}
-          >
+          <Chip key={d} aktiv={day === d} onClick={() => setDay(d)}>
             {formatDay(d, dateLocale)}
-          </button>
+          </Chip>
         ))}
-        <button
-          type="button"
-          aria-pressed={day === "all"}
-          onClick={() => setDay("all")}
-          className={cn(
-            "rounded-ct-sm px-2.5 py-1.5 ct-label",
-            day === "all"
-              ? "bg-accent-soft text-accent-deep"
-              : "text-muted hover:bg-surface-hover hover:text-ink",
-          )}
-        >
+        <Chip aktiv={day === "all"} onClick={() => setDay("all")}>
           {t.allDays}
-        </button>
+        </Chip>
       </div>
 
       {/* Filter */}
