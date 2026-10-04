@@ -30,6 +30,7 @@ export { BildZuschnitt, ZuschnittTexteGeber, type ZuschnittTexte } from "./BildZ
 export { CopyButton } from "./CopyButton";
 export { EmbedGate } from "./EmbedGate";
 export { CheckMark } from "./CheckMark";
+export { Checkbox } from "./Checkbox";
 export { Countdown } from "./Countdown";
 export { DeadlineCard } from "./DeadlineCard";
 export { FristMarke } from "./FristMarke";

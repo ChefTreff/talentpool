@@ -273,6 +273,18 @@
     accent-color: var(--ct-accent-strong);
   }
 
+  /* Die Beschriftung eines Kontrollkästchens ist die Trefferfläche — und stand in den
+     rund 70 Stellen des Portals bei 20 bis 28 px (QS-065 (7)). Auf groben Zeigern jetzt
+     mindestens 44, für jedes `<label>` mit Kästchen oder Optionsfeld, auch die von Hand
+     gebauten; am Desktop bleibt die Zeile dicht. `min-height` statt Innenabstand, damit
+     mehrzeilige Einwilligungstexte, die ohnehin höher sind, nicht noch wachsen. In
+     `@layer base`: eine ausdrückliche Höhe an der Stelle (`h-11`, `min-h-11`) gewinnt. */
+  @media (pointer: coarse) {
+    label:has(input[type="checkbox"], input[type="radio"]) {
+      min-height: 2.75rem;
+    }
+  }
+
   /* Der Admin im Kontrastton Lila statt Navy (QS-046, Konrad 24.09.: „man
      erkennt nicht sofort, dass man im Admin ist"). Umgestellt werden nur
      Variablen im Bereich der Leiste — jede Klasse darin (`text-on-navy-muted`,

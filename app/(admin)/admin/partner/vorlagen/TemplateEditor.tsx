@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -258,19 +259,15 @@ export function TemplateEditor({
               />
             </Field>
             <Field label={t.fieldRequired} htmlFor="tpl-req">
-              <input
+              <Checkbox
                 id="tpl-req"
-                type="checkbox"
-                className="h-5 w-5"
                 checked={draft.required}
                 onChange={(e) => patch({ required: e.target.checked })}
               />
             </Field>
             <Field label={t.fieldActive} htmlFor="tpl-active">
-              <input
+              <Checkbox
                 id="tpl-active"
-                type="checkbox"
-                className="h-5 w-5"
                 checked={draft.active}
                 onChange={(e) => patch({ active: e.target.checked })}
               />

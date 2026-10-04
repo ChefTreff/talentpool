@@ -13,6 +13,7 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CheckMark } from "@/components/ui/CheckMark";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { FileButton } from "@/components/ui/FileButton";
 import { FristMarke, type FristTexte } from "@/components/ui/FristMarke";
@@ -436,10 +437,8 @@ export function ChecklistView({
                                   onChange={(e) => setAnswer(d, f.key, e.target.value)}
                                 />
                               ) : f.type === "boolean" ? (
-                                <input
+                                <Checkbox
                                   id={`a-${d.id}-${f.key}`}
-                                  type="checkbox"
-                                  className="h-5 w-5"
                                   checked={answerOf(d, f.key) === "true"}
                                   onChange={(e) => setAnswer(d, f.key, e.target.checked ? "true" : "false")}
                                 />
