@@ -76,7 +76,11 @@ export function Button({
   );
 }
 
-/** Gleiche Optik als Link — für Navigation statt Aktion. */
+/**
+ * Gleiche Optik als Link — für Navigation statt Aktion. `data-knopf` sagt der
+ * Tabellenzeile, dass hier ein Bedienelement steht (`Tr` erkennt es und wird 56
+ * hoch, QS-065); ein gewöhnlicher Textlink in der Zeile trägt es nicht.
+ */
 export function ButtonLink({
   variant = "primary",
   size = "md",
@@ -85,7 +89,7 @@ export function ButtonLink({
   ...rest
 }: OwnProps & ComponentProps<typeof Link>) {
   return (
-    <Link {...rest} className={cn(base, variants[variant], sizes[size], className)}>
+    <Link {...rest} data-knopf="" className={cn(base, variants[variant], sizes[size], className)}>
       {children}
     </Link>
   );
@@ -104,7 +108,7 @@ export function ButtonDownload({
   ...rest
 }: Omit<OwnProps, "loading"> & Omit<ComponentProps<"a">, "download"> & { href: string }) {
   return (
-    <a {...rest} download className={cn(base, variants[variant], sizes[size], className)}>
+    <a {...rest} download data-knopf="" className={cn(base, variants[variant], sizes[size], className)}>
       {children}
     </a>
   );
