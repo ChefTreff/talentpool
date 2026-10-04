@@ -302,7 +302,7 @@ function Row({
   const titleField = locale === "en" ? "title_en" : "title_de";
 
   return (
-    <Tr>
+    <Tr dicht>
       <Td className="text-muted">{row.stage_name}</Td>
       <Td className="text-muted tabular-nums">{date.format(new Date(row.start_at))}</Td>
       <Td className="tabular-nums text-muted">

@@ -138,7 +138,7 @@ Konrads Abnahme auf der Preview und seine acht Entscheidungen. Grundlage: `docs/
 4. **Design-System v2 gilt**, die alte Gestaltung wird abgelöst (Rollout D2). Die Kit-Schau unter `/design` bleibt als Nachschlagewerk.
 5. **Die Seitenleiste bleibt Navy.** Das Team-Portal hat eine helle Leiste; übernommen wird sie nicht. `QS-001` und `QS-007` bleiben damit gültig.
 6. **Knöpfe und Chips bleiben 8-px-Rechtecke.** Die Pillen des Team-Portals werden nicht übernommen — eine Form konsequent (§5).
-7. **Zeilenhöhe 44, mit Bedienelementen 56.** 44 gilt für reine Datenzeilen; sobald ein Knopf oder Feld in der Zeile steht, braucht sie die Höhe des Bedienelements plus Abstand (`<Tr controls>`).
+7. **Zeilenhöhe 44, mit Bedienelementen 56.** 44 gilt für reine Datenzeilen; sobald ein Knopf oder Feld in der Zeile steht, braucht sie die Höhe des Bedienelements plus Abstand. Seit 02.10.2026 (QS-065) erkennt die Zeile ihre Bedienelemente selbst (`:has()` in `Tr`: Knopf, Auswahl, Feld, Kontrollkästchen, `ButtonLink`); `<Tr controls>` bleibt für das, was CSS nicht sieht, und `<Tr dicht>` hält die Arbeitstabellen Programm und Regie bei 44.
 8. **Fotos:** die Penno-Serie der Website ist freigegeben, unbeschränkte Nutzungsrechte bei ChefTreff. Bilder erscheinen in Hero-Band, Detail-Karten und Personen-Karten — sonst nirgends.
 
 **Rechtstexte:** Impressum und Datenschutz verweisen auf die Hauptwebsite (`chef-treff.de/impressum/`, `chef-treff.de/datenschutzerklärung/`), Ziel in neuem Tab. Offen bleibt als P1 auf Konrads Checkliste, ob die Erklärung der Website die Verarbeitung **im Portal** abdeckt (Magic-Link, Supabase, Vercel, Resend, Assistent, Speicherfristen) — `QS-018`.
