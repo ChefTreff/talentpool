@@ -82,7 +82,7 @@ export function LoginForm({
               Highlight-Wort steht im Highlight-Pink (8,0:1). */}
           <em className="ct-highlight text-highlight">{labels.titleHighlight}</em>
         </h1>
-        <p className="ct-laica mt-4 max-w-[46ch] text-on-navy-muted">{labels.lead}</p>
+        <p className="ct-laica mt-4 max-w-lead text-on-navy-muted">{labels.lead}</p>
       </div>
 
       {status === "sent" ? (
@@ -123,7 +123,7 @@ export function LoginForm({
 
       <div className="mt-8">
         <p className="ct-label text-on-navy">{labels.helpTitle}</p>
-        <p className="ct-small mt-1 max-w-[52ch] text-on-navy-muted">
+        <p className="ct-small mt-1 max-w-meldung text-on-navy-muted">
           {labels.helpBody}{" "}
           <a
             href={`mailto:${labels.helpMailbox}`}

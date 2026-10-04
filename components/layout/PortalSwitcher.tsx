@@ -39,7 +39,7 @@ export function PortalSwitcher({
   return (
     <Menu
       label={label}
-      width="w-[13rem]"
+      width="w-52"
       trigger={
         <>
           <span className="ct-label min-w-0 flex-1 truncate text-on-navy">{name}</span>

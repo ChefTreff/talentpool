@@ -312,7 +312,7 @@ function Row({
         {row.session_id && row.can_edit ? (
           <Input
             aria-label={t.colTitle}
-            className="w-full min-w-[16rem]"
+            className="w-full min-w-64"
             value={draft}
             disabled={pending}
             onChange={(e) => setDraft(e.target.value)}

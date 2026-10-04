@@ -37,7 +37,7 @@ export function PortraitShape({
     <div
       className={cn(
         "relative shrink-0",
-        gross ? "h-[168px] w-[168px]" : "h-14 w-14",
+        gross ? "h-42 w-42" : "h-14 w-14",
         className,
       )}
     >

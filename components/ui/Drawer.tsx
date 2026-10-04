@@ -53,7 +53,7 @@ export function Drawer({
       onCancel={onClose}
       aria-label={title}
       className={
-        "ml-auto mr-0 h-dvh max-h-none w-full max-w-[520px] rounded-none border-l bg-surface p-0 " +
+        "ml-auto mr-0 h-dvh max-h-none w-full max-w-drawer rounded-none border-l bg-surface p-0 " +
         "text-ink backdrop:bg-navy/40 open:flex open:flex-col"
       }
     >

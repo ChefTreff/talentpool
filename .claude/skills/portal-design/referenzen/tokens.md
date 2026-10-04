@@ -94,7 +94,7 @@ Ein geclipptes Element trägt **keinen Rand**. Wo eine Form eine Kontur braucht 
 | Abstand (8-pt) | 4 · 8 · 16 · 24 · 32 · 48 · 64 · 80 · 120 → Tailwind `1 2 4 6 8 12 16 20 30` |
 | Radius | `rounded-ct-sm` 6 · `rounded-ct-md` 8 (Portal-Standard) · `rounded-ct-lg` 12 · `rounded-full` nur für Avatare und Punkte |
 | Höhen | Bedienelement 40 px (`h-10`), in Tabellen 32 px (`h-8`), Tabellenzeile 44 px |
-| Breiten | Inhalt 1200 (Admin-Tabellen 1400), Textspalte 800, Formular 640 |
+| Breiten | Inhalt 1200 (Admin-Tabellen 1400), Textspalte 800, Formular 640, Detail 1000 · Dialog 560 (`max-w-dialog`), Schubfach 520 (`max-w-drawer`) · Zeilenlänge Einleitung und Leerzustand 46 Zeichen (`max-w-lead`), Fehlermeldung 52 (`max-w-meldung`). Alle als `--ct-w-*` in `:root` und `--container-*` im Theme von `globals.css`; ein Maß ohne Token kommt dorthin, nie als `max-w-[560px]` in einen Baustein (Test `kit-tokens`) |
 | Raster | ≥ 1280: 12 Spalten / 24 Gutter / 80 Rand · 768–1279: 8 / 20 / 40 · < 768: 4 / 16 / 20 |
 
 Karten-Innenabstand 24, Karte ↔ Karte 16–24, Sektion ↔ Sektion 32–48.
