@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BildZuschnitt } from "@/components/ui/BildZuschnitt";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -97,6 +98,8 @@ export function MeetUsAt({ orgName, logo, kontakte, edition, portalSprache, t, t
   const [logoFehler, setLogoFehler] = useState(false);
   const [eigenesLogo, setEigenesLogo] = useState<{ bild: Bild; name: string } | null>(null);
   const [foto, setFoto] = useState<Bild | null>(null);
+  // Das gewählte Porträt, solange der Zuschnitt-Dialog offen ist (ADM-066).
+  const [zuschnitt, setZuschnitt] = useState<File | null>(null);
 
   const erster = kontakte[0] ?? null;
   const [kontaktId, setKontaktId] = useState(erster?.id ?? "");
@@ -186,16 +189,22 @@ export function MeetUsAt({ orgName, logo, kontakte, edition, portalSprache, t, t
     zeichneMeetUsAt(ctx, e, { logo: aktivesLogo, foto }, basis.farben, basis.schriften);
   }, [basis, format, variante, tg, jahr, zeile, plakette, logoGroesse, name, rolle, firma, aktivesLogo, foto]);
 
-  /** Datei prüfen und als Bild öffnen; Fehler meldet die Funktion selbst. */
-  async function oeffnen(datei: File, erlaubt: string[]): Promise<Bild | null> {
+  /** Typ und Größe prüfen, bevor etwas geöffnet wird; den Fehler meldet die Funktion selbst. */
+  function pruefen(datei: File, erlaubt: string[]): boolean {
     if (datei.size > MAX_BYTES) {
       toast("error", t.tooBig);
-      return null;
+      return false;
     }
     if (datei.type && !erlaubt.includes(datei.type)) {
       toast("error", t.wrongType);
-      return null;
+      return false;
     }
+    return true;
+  }
+
+  /** Datei prüfen und als Bild öffnen. */
+  async function oeffnen(datei: File, erlaubt: string[]): Promise<Bild | null> {
+    if (!pruefen(datei, erlaubt)) return null;
     const url = URL.createObjectURL(datei);
     try {
       return alsBild(await ladeBild(url));
@@ -212,8 +221,13 @@ export function MeetUsAt({ orgName, logo, kontakte, edition, portalSprache, t, t
     if (bild) setEigenesLogo({ bild, name: datei.name });
   }
 
-  async function fotoWaehlen(datei: File) {
-    const bild = await oeffnen(datei, MIME);
+  /** Das Porträt wird erst zugeschnitten (ADM-066): das Dreieck zeigt, was in der Grafik zu sehen sein wird. */
+  function fotoWaehlen(datei: File) {
+    if (pruefen(datei, MIME)) setZuschnitt(datei);
+  }
+
+  async function fotoUebernehmen(zugeschnitten: File) {
+    const bild = await oeffnen(zugeschnitten, MIME);
     if (bild) setFoto(bild);
   }
 
@@ -253,169 +267,182 @@ export function MeetUsAt({ orgName, logo, kontakte, edition, portalSprache, t, t
   const breite = format === "quadrat" ? "max-w-lg" : format === "hochformat" ? "max-w-md" : "max-w-xs";
 
   return (
-    <div className="flex flex-col gap-6 lg:flex-row">
-      {/* Am Rechner bleibt die Vorschau beim Scrollen sichtbar, solange man unten Felder ändert. */}
-      <Card className="lg:sticky lg:top-6 lg:flex-1 lg:self-start">
-        <div className={`mx-auto w-full ${breite}`}>
-          <canvas
-            ref={canvasRef}
-            width={L.breite}
-            height={L.hoehe}
-            role="img"
-            aria-label={vorschau}
-            className="w-full rounded-ct-sm border bg-navy"
-            style={{ aspectRatio: `${L.breite} / ${L.hoehe}` }}
-          />
-        </div>
-        <p className="ct-help mt-3 text-center" role="status">
-          {basis ? "" : t.loading}
-        </p>
-      </Card>
-
-      <div className="flex flex-1 flex-col gap-6">
-        <section aria-labelledby="mu-motiv" className="flex flex-col gap-3">
-          <h2 id="mu-motiv" className="ct-h3 text-ink">
-            {t.stepMotif}
-          </h2>
-          <Select
-            id="mu-variante"
-            aria-labelledby="mu-motiv"
-            value={variante}
-            onChange={(e) => setVariante(e.target.value as Variante)}
-            options={VARIANTEN.map((v) => ({ value: v, label: v === "person" ? t.motifPerson : t.motifLogo }))}
-          />
-        </section>
-
-        <section aria-labelledby="mu-format" className="flex flex-col gap-3">
-          <h2 id="mu-format" className="ct-h3 text-ink">
-            {t.stepFormat}
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t.format} htmlFor="mu-format-wahl">
-              <Select
-                id="mu-format-wahl"
-                value={format}
-                onChange={(e) => setFormat(e.target.value as FormatKey)}
-                options={FORMAT_SCHLUESSEL.map((k) => ({ value: k, label: t[`format${k[0].toUpperCase()}${k.slice(1)}`] }))}
-              />
-            </Field>
-            <Field label={t.language} htmlFor="mu-sprache">
-              <Select
-                id="mu-sprache"
-                value={sprache}
-                onChange={(e) => setSprache(e.target.value as "de" | "en")}
-                options={[
-                  { value: "de", label: t.languageDe },
-                  { value: "en", label: t.languageEn },
-                ]}
-              />
-            </Field>
-          </div>
-          <p className="ct-help">{t.formatHint}</p>
-        </section>
-
-        {variante === "logo" ? (
-          <section aria-labelledby="mu-logo" className="flex flex-col gap-3">
-            <h2 id="mu-logo" className="ct-h3 text-ink">
-              {t.stepLogo}
-            </h2>
-            <p className="ct-help">
-              {eigenesLogo
-                ? t.logoChosen.replace("{name}", eigenesLogo.name)
-                : logoFehler
-                  ? t.logoFailed
-                  : logo
-                    ? t.logoStored.replace("{name}", logo.name)
-                    : t.logoMissing}
-            </p>
-            <FileButton
-              variant="secondary"
-              sofort
-              label={aktivesLogo ? t.logoReplace : t.logoChoose}
-              accept={MIME_LOGO.join(",")}
-              hint={t.logoRules}
-              onFile={(f) => void logoWaehlen(f)}
+    <>
+      <div className="flex flex-col gap-6 lg:flex-row">
+        {/* Am Rechner bleibt die Vorschau beim Scrollen sichtbar, solange man unten Felder ändert. */}
+        <Card className="lg:sticky lg:top-6 lg:flex-1 lg:self-start">
+          <div className={`mx-auto w-full ${breite}`}>
+            <canvas
+              ref={canvasRef}
+              width={L.breite}
+              height={L.hoehe}
+              role="img"
+              aria-label={vorschau}
+              className="w-full rounded-ct-sm border bg-navy"
+              style={{ aspectRatio: `${L.breite} / ${L.hoehe}` }}
             />
+          </div>
+          <p className="ct-help mt-3 text-center" role="status">
+            {basis ? "" : t.loading}
+          </p>
+        </Card>
+
+        <div className="flex flex-1 flex-col gap-6">
+          <section aria-labelledby="mu-motiv" className="flex flex-col gap-3">
+            <h2 id="mu-motiv" className="ct-h3 text-ink">
+              {t.stepMotif}
+            </h2>
+            <Select
+              id="mu-variante"
+              aria-labelledby="mu-motiv"
+              value={variante}
+              onChange={(e) => setVariante(e.target.value as Variante)}
+              options={VARIANTEN.map((v) => ({ value: v, label: v === "person" ? t.motifPerson : t.motifLogo }))}
+            />
+          </section>
+
+          <section aria-labelledby="mu-format" className="flex flex-col gap-3">
+            <h2 id="mu-format" className="ct-h3 text-ink">
+              {t.stepFormat}
+            </h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="flex flex-col gap-1" htmlFor="mu-groesse">
-                <span className="ct-label text-ink">{t.logoSize}</span>
-                <input
-                  id="mu-groesse"
-                  type="range"
-                  min={0.4}
-                  max={1}
-                  step={0.01}
-                  value={logoGroesse}
-                  onChange={(e) => setLogoGroesse(Number(e.target.value))}
-                  // Wie der Regler der Speaker-Grafik: 44 px Höhe auf groben Zeigern (SPK-079).
-                  className="w-full accent-accent pointer-coarse:h-11"
-                />
-              </label>
-              <Field label={t.plate} htmlFor="mu-plakette" hint={t.plateHint}>
+              <Field label={t.format} htmlFor="mu-format-wahl">
                 <Select
-                  id="mu-plakette"
-                  value={plakette}
-                  onChange={(e) => setPlakette(e.target.value as "hell" | "dunkel")}
+                  id="mu-format-wahl"
+                  value={format}
+                  onChange={(e) => setFormat(e.target.value as FormatKey)}
+                  options={FORMAT_SCHLUESSEL.map((k) => ({ value: k, label: t[`format${k[0].toUpperCase()}${k.slice(1)}`] }))}
+                />
+              </Field>
+              <Field label={t.language} htmlFor="mu-sprache">
+                <Select
+                  id="mu-sprache"
+                  value={sprache}
+                  onChange={(e) => setSprache(e.target.value as "de" | "en")}
                   options={[
-                    { value: "hell", label: t.plateLight },
-                    { value: "dunkel", label: t.plateDark },
+                    { value: "de", label: t.languageDe },
+                    { value: "en", label: t.languageEn },
                   ]}
                 />
               </Field>
             </div>
-            <Field label={t.fieldCompany} htmlFor="mu-firma-logo">
-              <Input id="mu-firma-logo" value={firma} maxLength={80} onChange={(e) => setFirma(e.target.value)} />
-            </Field>
+            <p className="ct-help">{t.formatHint}</p>
           </section>
-        ) : (
-          <section aria-labelledby="mu-person" className="flex flex-col gap-3">
-            <h2 id="mu-person" className="ct-h3 text-ink">
-              {t.stepPerson}
-            </h2>
-            {kontakte.length > 0 && (
-              <Field label={t.contactPick} htmlFor="mu-kontakt">
-                <Select
-                  id="mu-kontakt"
-                  value={kontaktId}
-                  placeholder={t.contactNone}
-                  onChange={(e) => kontaktWaehlen(e.target.value)}
-                  options={kontakte.map((k) => ({ value: k.id, label: k.name }))}
-                />
-              </Field>
-            )}
-            <Field label={t.fieldName} htmlFor="mu-name">
-              <Input id="mu-name" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} />
-            </Field>
-            <Field label={t.fieldRole} htmlFor="mu-rolle">
-              <Input id="mu-rolle" value={rolle} maxLength={80} onChange={(e) => setRolle(e.target.value)} />
-            </Field>
-            <Field label={t.fieldCompany} htmlFor="mu-firma">
-              <Input id="mu-firma" value={firma} maxLength={80} onChange={(e) => setFirma(e.target.value)} />
-            </Field>
-            <FileButton
-              variant="secondary"
-              sofort
-              label={foto ? t.photoReplace : t.photoChoose}
-              accept={MIME.join(",")}
-              hint={t.photoRules}
-              onFile={(f) => void fotoWaehlen(f)}
-            />
-          </section>
-        )}
 
-        <section aria-labelledby="mu-laden" className="flex flex-col gap-3">
-          <h2 id="mu-laden" className="ct-h3 text-ink">
-            {t.stepDownload}
-          </h2>
-          <div>
-            <Button disabled={!basis} onClick={herunterladen}>
-              {t.download}
-            </Button>
-          </div>
-          <p className="ct-help">{t.tip}</p>
-          <p className="ct-help">{t.privacyNote}</p>
-        </section>
+          {variante === "logo" ? (
+            <section aria-labelledby="mu-logo" className="flex flex-col gap-3">
+              <h2 id="mu-logo" className="ct-h3 text-ink">
+                {t.stepLogo}
+              </h2>
+              <p className="ct-help">
+                {eigenesLogo
+                  ? t.logoChosen.replace("{name}", eigenesLogo.name)
+                  : logoFehler
+                    ? t.logoFailed
+                    : logo
+                      ? t.logoStored.replace("{name}", logo.name)
+                      : t.logoMissing}
+              </p>
+              <FileButton
+                variant="secondary"
+                sofort
+                label={aktivesLogo ? t.logoReplace : t.logoChoose}
+                accept={MIME_LOGO.join(",")}
+                hint={t.logoRules}
+                onFile={(f) => void logoWaehlen(f)}
+              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-1" htmlFor="mu-groesse">
+                  <span className="ct-label text-ink">{t.logoSize}</span>
+                  <input
+                    id="mu-groesse"
+                    type="range"
+                    min={0.4}
+                    max={1}
+                    step={0.01}
+                    value={logoGroesse}
+                    onChange={(e) => setLogoGroesse(Number(e.target.value))}
+                    // Wie der Regler der Speaker-Grafik: 44 px Höhe auf groben Zeigern (SPK-079).
+                    className="w-full accent-accent pointer-coarse:h-11"
+                  />
+                </label>
+                <Field label={t.plate} htmlFor="mu-plakette" hint={t.plateHint}>
+                  <Select
+                    id="mu-plakette"
+                    value={plakette}
+                    onChange={(e) => setPlakette(e.target.value as "hell" | "dunkel")}
+                    options={[
+                      { value: "hell", label: t.plateLight },
+                      { value: "dunkel", label: t.plateDark },
+                    ]}
+                  />
+                </Field>
+              </div>
+              <Field label={t.fieldCompany} htmlFor="mu-firma-logo">
+                <Input id="mu-firma-logo" value={firma} maxLength={80} onChange={(e) => setFirma(e.target.value)} />
+              </Field>
+            </section>
+          ) : (
+            <section aria-labelledby="mu-person" className="flex flex-col gap-3">
+              <h2 id="mu-person" className="ct-h3 text-ink">
+                {t.stepPerson}
+              </h2>
+              {kontakte.length > 0 && (
+                <Field label={t.contactPick} htmlFor="mu-kontakt">
+                  <Select
+                    id="mu-kontakt"
+                    value={kontaktId}
+                    placeholder={t.contactNone}
+                    onChange={(e) => kontaktWaehlen(e.target.value)}
+                    options={kontakte.map((k) => ({ value: k.id, label: k.name }))}
+                  />
+                </Field>
+              )}
+              <Field label={t.fieldName} htmlFor="mu-name">
+                <Input id="mu-name" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} />
+              </Field>
+              <Field label={t.fieldRole} htmlFor="mu-rolle">
+                <Input id="mu-rolle" value={rolle} maxLength={80} onChange={(e) => setRolle(e.target.value)} />
+              </Field>
+              <Field label={t.fieldCompany} htmlFor="mu-firma">
+                <Input id="mu-firma" value={firma} maxLength={80} onChange={(e) => setFirma(e.target.value)} />
+              </Field>
+              <FileButton
+                variant="secondary"
+                sofort
+                label={foto ? t.photoReplace : t.photoChoose}
+                accept={MIME.join(",")}
+                hint={t.photoRules}
+                onFile={fotoWaehlen}
+              />
+            </section>
+          )}
+
+          <section aria-labelledby="mu-laden" className="flex flex-col gap-3">
+            <h2 id="mu-laden" className="ct-h3 text-ink">
+              {t.stepDownload}
+            </h2>
+            <div>
+              <Button disabled={!basis} onClick={herunterladen}>
+                {t.download}
+              </Button>
+            </div>
+            <p className="ct-help">{t.tip}</p>
+            <p className="ct-help">{t.privacyNote}</p>
+          </section>
+        </div>
       </div>
-    </div>
+
+      {zuschnitt && (
+        <BildZuschnitt
+          datei={zuschnitt}
+          onAbbruch={() => setZuschnitt(null)}
+          onFertig={(zugeschnitten) => {
+            setZuschnitt(null);
+            void fotoUebernehmen(zugeschnitten);
+          }}
+        />
+      )}
+    </>
   );
 }
