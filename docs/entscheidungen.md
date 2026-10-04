@@ -1230,3 +1230,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 
 - **#345** (Design, nur Oberfläche): 26 `CardHeader` auf `ebene="h2"`, kein h3; Wächtertest erweitert. Konflikt nur in der QS-054-Statuszelle (mein „gebaut #344“ gegen „geplant #345“), von Design gelöst; Regel für den Rest der Serie: Design pflegt die Statuszelle allein, gestapelte PRs holen main nur bei Bedarf herein. #346 (Admin übrige) folgt, danach Portale und `ebene` als Pflichtangabe.
 
+## 2026-10-04 — #346 gemergt (QS-054 Bereich 3: Admin übrige)
+
+- **#346** (Design, nur Oberfläche): 17 `CardHeader` auf `ebene="h2"` (Hackathon, Mail-Vorlagen, Benachrichtigungen, Feedback, Grafiken, Team, Technik), kein h3 — damit trägt im ganzen Admin jeder Kartenkopf seine Ebene. Es folgt der letzte Bereich: Partner-, Volunteers- und Hackathon-Portal (16 h2, 6 h3 mit Grund), `ebene` als Pflichtangabe im Kit und Wächter über das ganze Repo.
+
