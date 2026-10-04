@@ -39,7 +39,7 @@ export function ErrorState({
       <Ueberschrift tabIndex={-1} className="ct-h3 mt-4 text-ink">
         {title}
       </Ueberschrift>
-      <p className="ct-help mt-1 max-w-[52ch]">{description}</p>
+      <p className="ct-help mt-1 max-w-meldung">{description}</p>
       <p className="ct-small mt-4 text-muted">
         {idLabel}: <span className="select-all text-ink tabular-nums">{id}</span>
       </p>

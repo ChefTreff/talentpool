@@ -55,7 +55,7 @@ export function KitSchau({
   const [themen, setThemen] = useState<string[]>([]);
 
   return (
-    <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-content px-4 py-8 sm:px-6">
       <HeroBand
         eyebrow={t.bandEyebrow}
         title={t.bandTitle}

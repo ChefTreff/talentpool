@@ -67,7 +67,7 @@ export function DateRow({
         className,
       )}
     >
-      <div className="w-[7.5rem] shrink-0">
+      <div className="w-30 shrink-0">
         <span
           className={cn(
             "inline-flex w-full items-center justify-center rounded-ct-md border px-2 py-1 ct-label tabular-nums",

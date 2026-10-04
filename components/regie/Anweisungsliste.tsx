@@ -154,7 +154,7 @@ function Zeile({
   const feld = (key: AnweisungFeld, label: string, placeholder?: string, wide = false) => (
     <Input
       aria-label={`${label} · ${slot.title ?? t.regieNoSession}`}
-      className={wide ? "w-full min-w-[14rem]" : "w-full min-w-[9rem]"}
+      className={wide ? "w-full min-w-56" : "w-full min-w-36"}
       value={draft[key]}
       placeholder={placeholder}
       disabled={pending}
@@ -185,7 +185,7 @@ function Zeile({
         {hhmm.format(new Date(slot.start_at))}–{hhmm.format(new Date(slot.end_at))}
       </Td>
       <Td>
-        <div className="flex min-w-[12rem] flex-col gap-0.5">
+        <div className="flex min-w-48 flex-col gap-0.5">
           <span className="ct-label text-ink">{slot.title ?? t.regieNoSession}</span>
           {namen && <span className="ct-help">{namen}</span>}
         </div>

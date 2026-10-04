@@ -62,7 +62,7 @@ export function Modal({
         // `overscroll-contain`: wer im langen Dialog ans Ende scrollt, zieht nicht
         // die Seite dahinter mit (QS-014, Web Interface Guidelines „Touch“).
         "m-auto w-full overscroll-contain rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40",
-        size === "wide" ? "max-w-5xl" : "max-w-[560px]",
+        size === "wide" ? "max-w-5xl" : "max-w-dialog",
       )}
     >
       {children}

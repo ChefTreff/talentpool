@@ -188,7 +188,7 @@ function CueRow({
   const jsonText = (key: "mic_assignments" | "media", label: string) => (
     <Input
       aria-label={label}
-      className="w-full min-w-[9rem]"
+      className="w-full min-w-36"
       value={json[key]}
       disabled={pending}
       onChange={(e) => setJson((d) => ({ ...d, [key]: e.target.value }))}
@@ -205,7 +205,7 @@ function CueRow({
   const field = (key: keyof typeof draft, label: string, wide = false) => (
     <Input
       aria-label={label}
-      className={wide ? "w-full min-w-[14rem]" : "w-full min-w-[9rem]"}
+      className={wide ? "w-full min-w-56" : "w-full min-w-36"}
       value={draft[key]}
       disabled={pending}
       onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))}

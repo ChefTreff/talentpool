@@ -14,7 +14,7 @@ export function EmptyState({
     <div className="flex flex-col items-center justify-center rounded-ct-lg border border-dashed bg-surface px-6 py-12 text-center">
       <Triangle />
       <h3 className="ct-h3 mt-4 text-ink">{title}</h3>
-      <p className="ct-help mt-1 max-w-[46ch]">{description}</p>
+      <p className="ct-help mt-1 max-w-lead">{description}</p>
       {action && <div className="mt-6">{action}</div>}
     </div>
   );

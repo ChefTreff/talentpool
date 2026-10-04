@@ -85,6 +85,15 @@
      der volle Inhalt (1200). Stand an drei Stellen als roher Wert — bei drei
      Verwendungen ist es ein Mass und kein Einzelfall. */
   --ct-w-detail: 1000px;
+  /* Überlagerungen und Lesezeilen (QS-065 (10)). Standen als rohe `max-w-[560px]`, `max-w-[520px]`,
+     `max-w-[46ch]` und `max-w-[52ch]` in `Modal`, `Drawer`, `HeroBand`, `EmptyState` und `ErrorState`:
+     Maße, die das Aussehen jedes Dialogs und jedes Leerzustands bestimmen, gehören zu den Tokens.
+     Die beiden Zeilenlängen sind Zeichen, keine Pixel — eine Einleitung und eine Fehlermeldung
+     brechen nach ihrer Schrift um, nicht nach dem Bildschirm. */
+  --ct-w-dialog: 560px;
+  --ct-w-drawer: 520px;
+  --ct-w-lead: 46ch;
+  --ct-w-meldung: 52ch;
 
   /* --- Formensprache Events (Design-System v2, 17.09.2026) -----------------
      Die Grundformen der Division als Tokens, damit keine Komponente ihre
@@ -217,6 +226,10 @@
   --container-form: var(--ct-w-form);
   --container-sidebar: var(--ct-w-sidebar);
   --container-detail: var(--ct-w-detail);
+  --container-dialog: var(--ct-w-dialog);
+  --container-drawer: var(--ct-w-drawer);
+  --container-lead: var(--ct-w-lead);
+  --container-meldung: var(--ct-w-meldung);
 
   --radius-ct-sm: var(--ct-radius-sm);
   --radius-ct-md: var(--ct-radius-md);

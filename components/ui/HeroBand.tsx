@@ -58,7 +58,7 @@ export function HeroBand({
     >
       <BandShapes />
       <div className="flex flex-wrap items-end justify-between gap-6">
-        <div className="max-w-[46ch]">
+        <div className="max-w-lead">
           {eyebrow && <p className="ct-eyebrow text-on-navy-muted">{eyebrow}</p>}
           <h1 className="ct-band-title mt-2 text-on-navy">
             {title}
@@ -90,7 +90,7 @@ function BandShapes() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 hidden md:block">
       <div
-        className="absolute -right-10 -top-16 h-[260px] w-[260px] opacity-70"
+        className="absolute -right-10 -top-16 h-65 w-65 opacity-70"
         style={{
           background: "var(--ct-gradient-shape)",
           clipPath: "var(--ct-shape-triangle)",
@@ -98,7 +98,7 @@ function BandShapes() {
         }}
       />
       <svg
-        className="absolute right-40 top-6 h-20 w-[180px] text-accent"
+        className="absolute right-40 top-6 h-20 w-45 text-accent"
         viewBox="0 0 180 80"
         fill="none"
         stroke="currentColor"

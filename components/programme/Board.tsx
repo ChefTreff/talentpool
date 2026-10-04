@@ -1369,7 +1369,7 @@ function ConfirmDialog({
       ref={ref}
       onCancel={onCancel}
       // `m-auto` wie im Kit-Modal: Preflight nimmt dem Dialog das zentrierende `margin: auto`.
-      className="m-auto max-w-[420px] rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40"
+      className="m-auto max-w-105 rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40"
     >
       <h2 className="ct-h3">{title}</h2>
       <p className="ct-help mt-2">{body}</p>

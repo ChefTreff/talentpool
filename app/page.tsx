@@ -31,7 +31,7 @@ export default async function Home() {
                 {t.home.titleHighlight}
               </em>
             </h1>
-            <p className="ct-laica mt-5 max-w-[46ch] text-on-navy-muted">
+            <p className="ct-laica mt-5 max-w-lead text-on-navy-muted">
               {t.home.lead}
             </p>
           </div>
