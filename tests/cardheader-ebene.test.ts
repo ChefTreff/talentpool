@@ -10,8 +10,11 @@ import { describe, it } from "node:test";
 
 const lies = (pfad: string) => readFileSync(pfad, "utf8");
 
-/** Jedes `<CardHeader …>`-Öffnungs-Tag einer Datei (mehrzeilig). */
-const koepfe = (pfad: string) => [...lies(pfad).matchAll(/<CardHeader\b[^>]*?(?:\/>|>)/gs)].map((m) => m[0]);
+/** Anzahl aller `<CardHeader`-Aufrufe und derer, die `ebene="h2"` als erste Eigenschaft tragen (so steht es in den umgestellten Seiten). */
+const zaehle = (pfad: string) => {
+  const t = lies(pfad);
+  return { alle: (t.match(/<CardHeader\b/g) ?? []).length, h2: (t.match(/<CardHeader\s+ebene="h2"/g) ?? []).length };
+};
 
 describe("CardHeader als Abschnittskopf (QS-054)", () => {
   const UMGESTELLT: [string, number][] = [
@@ -20,9 +23,9 @@ describe("CardHeader als Abschnittskopf (QS-054)", () => {
   ];
   for (const [datei, n] of UMGESTELLT) {
     it(`${datei}: alle ${n} Köpfe tragen \`ebene="h2"\``, () => {
-      const alle = koepfe(datei);
-      assert.equal(alle.length, n, "Anzahl der Köpfe");
-      for (const k of alle) assert.match(k, /ebene="h2"/);
+      const z = zaehle(datei);
+      assert.equal(z.alle, n, "Anzahl der Köpfe");
+      assert.equal(z.h2, n, "alle auf h2");
     });
   }
 
