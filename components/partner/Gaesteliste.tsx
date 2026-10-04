@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Field } from "@/components/ui/Field";
+import { BildZuschnitt } from "@/components/ui/BildZuschnitt";
 import { FileButton } from "@/components/ui/FileButton";
 import { Input } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
@@ -81,6 +82,8 @@ export function Gaesteliste({
   const [offen, setOffen] = useState<"neu" | GastRow | null>(null);
   const [entwurf, setEntwurf] = useState<Entwurf>(LEER);
   const [foto, setFoto] = useState<File | null>(null);
+  // Das gewählte Foto, solange der Zuschnitt-Dialog offen ist (ADM-066).
+  const [zuschnitt, setZuschnitt] = useState<File | null>(null);
   const [fehler, setFehler] = useState<Fehler>({});
   const [serverFehler, setServerFehler] = useState<string | null>(null);
   const [entfernen, setEntfernen] = useState<GastRow | null>(null);
@@ -121,7 +124,8 @@ export function Gaesteliste({
       return;
     }
     setFehler((f) => ({ ...f, photo: undefined }));
-    setFoto(file);
+    // Erst zuschneiden (ADM-066); der Ausschnitt ersetzt die Datei, die mit dem Formular hochgeladen wird.
+    setZuschnitt(file);
   }
 
   /** Datei direkt in den Bucket, dann registrieren — wie beim Speaker-Foto (SPK-004). */
@@ -396,6 +400,17 @@ export function Gaesteliste({
           pending={pending}
           onConfirm={() => entfernenBestaetigt(entfernen)}
           onCancel={() => setEntfernen(null)}
+        />
+      )}
+
+      {zuschnitt && (
+        <BildZuschnitt
+          datei={zuschnitt}
+          onAbbruch={() => setZuschnitt(null)}
+          onFertig={(fertig) => {
+            setZuschnitt(null);
+            setFoto(fertig);
+          }}
         />
       )}
     </div>

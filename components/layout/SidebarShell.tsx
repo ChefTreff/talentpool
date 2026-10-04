@@ -9,6 +9,7 @@ import { AssistentBubble } from "@/components/wiki/AssistentBubble";
 import { FehlerKontextGeber } from "@/components/fehler/Fehlergrenze";
 import { fehlerTexte } from "@/components/fehler/fehler";
 import { TestbetriebHinweis } from "@/components/ui/TestbetriebHinweis";
+import { ZuschnittTexteGeber } from "@/components/ui/BildZuschnitt";
 import { vorschlaegeFuer } from "@/lib/wiki/assistent";
 import { getMyAreas, getSessionContext } from "@/lib/auth";
 import { getI18n, type Locale } from "@/lib/i18n";
@@ -232,7 +233,8 @@ export async function SidebarShell({
               bekommt hier Sprache und Postfach des Bereichs mit, und Leiste
               und Fuß bleiben stehen, wenn eine Seite ausfällt. */}
           <FehlerKontextGeber texte={fehlerTexte(t.errors)} mailbox={mailbox ?? mailboxFor(area)}>
-            {children}
+            {/* Die Texte des Foto-Zuschnitts in der Sprache des Bereichs (ADM-066). */}
+            <ZuschnittTexteGeber texte={t.zuschnitt}>{children}</ZuschnittTexteGeber>
           </FehlerKontextGeber>
           <PortalFooter
             mailbox={mailbox ?? mailboxFor(area)}

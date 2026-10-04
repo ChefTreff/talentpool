@@ -1,10 +1,10 @@
-# Konrads offene Entscheidungen und Aufgaben — Stand 02.10.2026 (abends; finale Liste oben, Archiv darunter)
+# Konrads offene Entscheidungen und Aufgaben — Stand 04.10.2026 (Sonntag vormittags; finale Liste oben, Archiv darunter)
 
 Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Security-Check, Datenschutz-Checkliste und Abschluss-Checkliste. Antworten bitte gesammelt mit der Kennung (z. B. „K-01: Seitengruppe“). Erledigtes streiche ich nach deiner Antwort hier und im jeweiligen Dokument.
 
-## Finale Liste — was Konrad macht (Stand 02.10.2026, abends)
+## Finale Liste — was Konrad macht (Stand 04.10.2026, Sonntag vormittags)
 
-Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Die Chats laufen wieder (Partner-Chat neu gestartet ~18:00; den Admin-Chat startest du noch neu — Startpaket in `docs/chat-startpakete.md`, Zeile Admin).
+Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Seit Freitagabend gemergt: #330 (K-47 Archiv-Karte), #331 (ADM-066 Zuschnitt-Dialog), #332 (QS-065 Admin-Teil); PART-096 „Meet us at“ kommt heute Mittag vom Partner-Chat. Admin-Chat ist fertig und geschlossen, Design und Partner laufen.
 
 ### A · Heute: Klicks und Einstellungen
 
@@ -26,11 +26,11 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 **3 · ~~K-48 Wiki~~ — erledigt 02.10. (veröffentlicht):** `/admin/wiki` → Filter „Entwurf“ → die sechs Hackathon-Artikel (challenge-definieren, mentoren-jury, pitch-vorstellung, preise, rueckwand, teilnehmende) → je „Veröffentlichen“.
 
-**4 · K-47 HubSpot — Konrad 02.10. ~18:00: ja → Admin-Chat übernimmt.** Die vorhandene Archiv-Karte (Admin → Partner → Integrationen) listet nur Produkte ohne Artikelnummer, `I-10729` hat eine — darum baut der Admin-Chat nach seinem Neustart ein Suchfeld „Artikelnummer“ in die Karte (nur lesende Suche, Trockenlauf zeigt den Treffer). **Für dich bleibt ein Klick nach dem Merge:** Admin → Partner → Integrationen → HubSpot-Archiv → `I-10729` eingeben → Treffer prüfen → „Archivieren“ (Papierkorb, 90 Tage rückholbar). Kein scharfer Lauf aus einem Chat heraus (Regel wie A·10).
+**4 · K-47 HubSpot — gebaut #330, jetzt dein Klick:** Admin → Partner → Integrationen → Karte „Altbestand archivieren“ → Feld „Artikelnummer“ `I-10729` → „Suchen“ → Treffer ankreuzen (nichts ist vorgewählt) → „Archivieren“ → Rückfrage bestätigen. HubSpot legt das Produkt in den Papierkorb (90 Tage rückholbar), das Portal schreibt einen Audit-Eintrag. Kein Lauf aus einem Chat heraus (Regel wie A·10).
 
 **5 · ~~K-51 Award-Fristen~~ — erledigt 02.10.; Rückfrage Konrad: warum zwei Felder DE/EN je Frist? (Antwort: die Fristen tragen eine zweisprachige Bezeichnung für Partner und öffentliche Seite — das Datum ist eines; zeigt die Seite zwei Datumsfelder, ist es ein Fehler → melden; Konrad 02.10. ~18:00: verstanden):** `/admin/fristen` → `award_apply_until`, `award_vote_from`, `award_vote_until` → Datum setzen (stehen als Platzhalter „Konrad legt fest“).
 
-**6 · ADM-010 Fotos — Upload geht (Konrad 02.10.), aber Bilder sitzen schief → neu ADM-066 Zuschnitt-Dialog (Design/Admin):** Admin → Medien → Ansprechpersonen → Person → Foto wählen (lädt sofort, ein Klick je Person).
+**6 · ~~ADM-010 Fotos~~ — ADM-066 Zuschnitt-Dialog gebaut #331:** Admin → Medien → Ansprechpersonen → Person → Foto wählen → Dialog mit Dreiecksrahmen: verschieben, zoomen (Regler, Mausrad, zwei Finger) → „Übernehmen“ lädt den Ausschnitt hoch. Dasselbe beim Talent-Porträt, Speaker-Foto und Gäste-Foto. Bitte die Fotos der Ansprechpersonen damit einmal neu setzen.
 
 **7 · ~~#274 schließen~~ — erledigt (Architektur-Session hat ihn mit Kommentar geschlossen; auf GitHub geht das unten im PR mit „Close pull request“).**
 
@@ -63,22 +63,22 @@ Der Trockenlauf stand: 570 Vorlagen aus den Planstellen 2026 (Akkreditierung 106
 |---|---|---|
 | Verwaltung | `/admin/personen` → Löschung (ADM-031); `/admin/verwaltung` → Zugänge → Kiosk-Gerät anlegen; Teammitglied anlegen mit `konrad+zztest-team@chef-treff.de` | Löschweg, Kiosk, Einladung |
 | Dubletten | `/admin/dubletten` → TEST-Paar: Vorschau, Zusammenführen, Rückweg | Protokoll stimmt |
-| Initiativen und Award | `/admin/initiativen` (Funnel-Stufe mit Notiz), `/admin/initiativen/award`; öffentlich ohne Login `/award` und `/award/bewerben` (ZZTEST-Initiative, Testbilder) | Abstimmung ohne Kontaktdaten, Fristen greifen |
-| Medien | `/admin/medien` → Video, Link (Matterport), Datei mit Zielgruppe, Ansprechpersonen-Foto | Zielgruppe wirkt, Porträt sitzt in der Form |
+| Initiativen und Award | `/admin/initiativen` (Stufen-Zähler oben filtern die Liste, Funnel-Stufe mit Notiz), `/admin/initiativen/award` (Statuswechsel in Richtung öffentlich fragt nach, #332); öffentlich ohne Login `/award` und `/award/bewerben` (Bilder über Kit-Knopf, ZZTEST-Initiative) | Abstimmung ohne Kontaktdaten, Fristen greifen, Rückfrage erscheint |
+| Medien | `/admin/medien` → Video, Link (Matterport), Datei mit Zielgruppe, Ansprechpersonen-Foto **mit Zuschnitt-Dialog (#331)** | Zielgruppe wirkt, Porträt sitzt nach dem Zuschnitt in der Dreiecksform |
 | Produktion | `/admin/produktion/produkte` (Artikel anlegen, Bild), `/admin/produktion/staende` (Liste je Stand, Prüfpunkt Standgröße), `/admin/produktion/bestellungen` (CSV), `/admin/produktion/dateien` (Zielgruppe) | Rechte, CSV öffnet sauber |
-| Partner-Verwaltung | Logo-Wand mit Kategorie (Test-Org „Automatisch: Premium“), `/admin/company-tours/zuordnung` (Partner zuordnen, tauschen) | Auffangsatz, Audit |
+| Partner-Verwaltung | Logo-Wand als Tabelle mit Kategorie (#332, Test-Org „Automatisch: Premium“), `/admin/company-tours/zuordnung` (Partner zuordnen, tauschen), `/admin/partner/integrationen` → Archiv-Karte: `I-10729` suchen und archivieren (K-47, #330) | Auffangsatz, Audit, Tabelle stapelt am Handy |
 | Bewerbungen | `/admin/bewerbungen` (60 TEST-Bewerbungen: Filter, Suche, Sammelentscheidung) | Einwilligung sichtbar |
 | Hackathon | `/hackathon` (Bewerbung mit Track-Wunsch, Wunsch-Challenges, Portfolio; Teamsuche; Abgabe mit Frist; Leaderboard), `/admin/hackathon` (Tracks, Wunschprofile, Auswertung, Datensatz) | Fremde Teams sehen nur Bestätigtes |
-| Talent | `/profil` (Porträt in einem Klick), `/benachrichtigungen`, `/fotos` (TEST-Community-Abend), `/feedback` (anonym und mit Klarnamen), `/events` (Anmeldelink kopieren) | Streifen „Testbetrieb“ sichtbar |
-| Speaker | `/speaker/session` (Folien → nach K-03 in Drive), `/speaker/travel`, `/speaker/profil`; `/admin/speaker/website` (Sanity-Vorschau, Übertragen gesperrt) | Rollenbeschriftung, Handybreite |
-| Partner | `/partner/messestand` (Rundgang, Hallenplan), `/partner` (Kasten Rundgang), Shop, Checkliste (Fristmarke am Handy = PART-094) | Liste in #313 für die Seiten hinter Login |
+| Talent | `/profil` (Porträt: wählen → zuschneiden → lädt sofort, #331), `/benachrichtigungen`, `/fotos` (TEST-Community-Abend), `/feedback` (anonym und mit Klarnamen), `/events` (Anmeldelink kopieren) | Streifen „Testbetrieb“ sichtbar, Porträt passt ins Dreieck |
+| Speaker | `/speaker/session` (Folien → Drive-Kopie, Spiegelung läuft seit 02.10.), `/speaker/travel`, `/speaker/profil` (Foto mit Zuschnitt, #331); `/admin/speaker/website` (Sanity-Vorschau, Übertragen gesperrt) | Rollenbeschriftung, Handybreite |
+| Partner | `/partner/messestand` (Rundgang, Hallenplan), `/partner` (Kasten Rundgang), Shop, Checkliste (Fristmarke am Handy = PART-094), Gästeliste (Foto mit Zuschnitt, #331); **„Meet us at“-Grafik (PART-096) sobald gemergt — ich sage Bescheid** | Liste in #313 für die Seiten hinter Login |
 | Programm | `/admin/programm`, `/speaker-leads/board`, `/speaker-leads/regie` („Regieplan (Programm)“) | drei Ansichten gleich strukturiert |
 
 Feedback wie immer gesammelt an mich, mit Nummern; am Handy einmal quer durch.
 
 ### C · Vor Montag: Team-Zugriff
 1. Teammitglieder einladen: Admin → Verwaltung → Zugänge → **„Teammitglied anlegen“** → Vorname, Nachname, Arbeitsadresse, Rollen (je Bereich Lead und Team, kein admin) → Einladen. Erst mit `konrad+zztest-team@chef-treff.de` probieren.
-2. Testleitfaden ans Team: Drive „08_Projektplan & MVP / Team-Testleitfaden Testrunde ab 06.10.“ (Quelle `docs/team-testleitfaden.md`); Ergänzungen gern an mich.
+2. Testleitfaden ans Team: Drive „08_Projektplan & MVP / Team-Testleitfaden Testrunde ab 05.10.“ (Quelle `docs/team-testleitfaden.md`; die alte Kopie „ab 06.10.“ in Drive kannst du löschen, Datum war falsch); Ergänzungen gern an mich.
 3. K-25: Vercel → Settings → Environment Variables: alle Werte aus `docs/zugangs-liste.md` in Production **und** Preview vorhanden, `NEXT_PUBLIC_SITE_URL` = `https://portal.chef-treff.de`.
 4. Der gelbe Streifen „Testbetrieb“ ist an (Vorgabe); zum Go-live `sh scripts/env-set.sh NEXT_PUBLIC_TESTBETRIEB_HINWEIS --config` mit `false` und Redeploy.
 

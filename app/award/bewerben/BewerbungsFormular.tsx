@@ -5,6 +5,7 @@ import { neuesFenster } from "@/components/ui/neues-fenster";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
+import { FileButton } from "@/components/ui/FileButton";
 import { Input, Textarea } from "@/components/ui/Input";
 import { PRIVACY_URL } from "@/components/layout/PortalFooter";
 import { BROWSER_KANTE, HONIGTOPF, MAX_BILDER, MAX_BILD_BYTES, MAX_WOERTER, woerter } from "@/lib/award/regeln";
@@ -173,16 +174,20 @@ export function BewerbungsFormular({
           {text("website", t.website, { typ: "url" })}
           {text("university", t.university)}
         </div>
-        <Field label={t.images} htmlFor="aw-images" required requiredLabel={t.requiredLabel} hint={t.imagesHint} error={fehlerFuer("images")}>
-          <input
-            id="aw-images"
-            name="images"
-            type="file"
+        {/* Kit-Knopf statt rohem Dateifeld (QS-065); `onFiles` erlaubt Mehrfachauswahl.
+            Die gewählten Namen stehen darunter, damit man vor dem Senden sieht, was mitgeht. */}
+        <Field label={t.images} required requiredLabel={t.requiredLabel} hint={t.imagesHint} error={fehlerFuer("images")}>
+          <FileButton
+            variant="secondary"
+            label={bilder.length > 0 ? t.imagesChange : t.imagesChoose}
             accept="image/jpeg,image/png,image/webp"
-            multiple
-            className="ct-small"
-            onChange={(e) => setBilder(Array.from(e.target.files ?? []).slice(0, MAX_BILDER))}
+            onFiles={(dateien) => setBilder(dateien.slice(0, MAX_BILDER))}
           />
+          {bilder.length > 0 && (
+            <ul className="ct-small mt-2 flex flex-col gap-0.5" aria-label={t.imagesChosen.replace("{n}", String(bilder.length))}>
+              {bilder.map((b) => <li key={`${b.name}-${b.size}`} className="break-all">{b.name}</li>)}
+            </ul>
+          )}
         </Field>
         {text("notes", t.notes, { lang: true, zeilen: 4 })}
         <label className="flex items-start gap-2 ct-small">

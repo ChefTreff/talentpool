@@ -171,7 +171,8 @@ export function ShiftTemplates({
               onChange={(e) => setArea(e.target.value)}
             />
           </Field>
-          <Button disabled={pending} onClick={() => openDraft()}>
+          {/* Die eine Hauptaktion der Seite ist „Anwenden“; eine neue Vorlage ist nachrangig (QS-065). */}
+          <Button variant="secondary" disabled={pending} onClick={() => openDraft()}>
             {t.tplNew}
           </Button>
         </div>
