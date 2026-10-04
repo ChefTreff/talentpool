@@ -229,7 +229,7 @@ export function ShiftPlan({
   if (Object.keys(areas).length === 0) {
     return (
       <Card>
-        <CardHeader title={t.noAreasTitle} description={t.noAreasBody} />
+        <CardHeader ebene="h2" title={t.noAreasTitle} description={t.noAreasBody} />
         <p className="ct-help">{t.noAreasHint}</p>
       </Card>
     );
@@ -273,7 +273,7 @@ export function ShiftPlan({
 
       {(withoutWish.length > 0 || withoutSafety.length > 0) && (
         <Card>
-          <CardHeader title={t.followUpTitle} description={t.followUpLead} />
+          <CardHeader ebene="h2" title={t.followUpTitle} description={t.followUpLead} />
           <div className="flex flex-col gap-3">
             {withoutWish.length > 0 && (
               <p className="ct-small">

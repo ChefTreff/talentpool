@@ -160,7 +160,7 @@ export function ShiftTemplates({
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader title={t.tplTitle} description={t.tplLead} />
+        <CardHeader ebene="h2" title={t.tplTitle} description={t.tplLead} />
         <div className="flex flex-wrap items-end gap-3">
           <Field label={t.area} htmlFor="t-area" className="w-56">
             <Select
@@ -226,7 +226,7 @@ export function ShiftTemplates({
 
       {templates.length > 0 && (
         <Card>
-          <CardHeader title={t.tplApplyTitle} description={t.tplApplyLead} />
+          <CardHeader ebene="h2" title={t.tplApplyTitle} description={t.tplApplyLead} />
           <div className="flex flex-wrap gap-4">
             {days.map((d) => (
               <label key={d.id} className="flex items-center gap-2">

@@ -71,7 +71,7 @@ export function WebsiteSpeaker({ konfiguriert, schreibenErlaubt, t }: { konfigur
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader title={t.gateTitle} />
+        <CardHeader ebene="h2" title={t.gateTitle} />
         <ul className="flex list-disc flex-col gap-1 pl-5 ct-small text-ink">
           <li>{t.gate1}</li>
           <li>{t.gate2}</li>
@@ -84,6 +84,7 @@ export function WebsiteSpeaker({ konfiguriert, schreibenErlaubt, t }: { konfigur
 
       <Card>
         <CardHeader
+          ebene="h2"
           title={t.runTitle}
           description={t.runLead}
           action={

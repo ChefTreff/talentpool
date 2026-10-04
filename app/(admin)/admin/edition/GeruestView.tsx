@@ -101,7 +101,7 @@ export function GeruestView({
       />
 
       <Card id="tage">
-        <CardHeader title={t.daysTitle} description={t.daysHint} />
+        <CardHeader ebene="h2" title={t.daysTitle} description={t.daysHint} />
         <Table>
           <Thead>
             <Th>{t.colDate}</Th>
@@ -183,7 +183,7 @@ export function GeruestView({
 
       {/* --- Bühnen -------------------------------------------------------- */}
       <Card id="buehnen">
-        <CardHeader title={t.stagesTitle} description={t.stagesHint} />
+        <CardHeader ebene="h2" title={t.stagesTitle} description={t.stagesHint} />
         <Table>
           <Thead>
             <Th>{t.colName}</Th>
@@ -285,7 +285,7 @@ export function GeruestView({
 
       {/* --- Öffnungszeiten ------------------------------------------------ */}
       <Card id="zeiten">
-        <CardHeader title={t.hoursTitle} description={t.hoursHint} />
+        <CardHeader ebene="h2" title={t.hoursTitle} description={t.hoursHint} />
         {geruest.days.length === 0 || geruest.stages.length === 0 ? (
           <p className="ct-small text-muted">{t.hoursNeedsBoth}</p>
         ) : (
@@ -331,7 +331,7 @@ export function GeruestView({
 
       {/* --- Tracks -------------------------------------------------------- */}
       <Card id="tracks">
-        <CardHeader title={t.tracksTitle} description={t.tracksHint} />
+        <CardHeader ebene="h2" title={t.tracksTitle} description={t.tracksHint} />
         <Table>
           <Thead>
             <Th>{t.colNameDe}</Th>
