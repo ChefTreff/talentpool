@@ -4,7 +4,7 @@ Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Secu
 
 ## Finale Liste — was Konrad macht (Stand 04.10.2026, Sonntag vormittags)
 
-Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Seit Freitagabend gemergt: #330 (K-47 Archiv-Karte), #331 (ADM-066 Zuschnitt-Dialog), #332 (QS-065 Admin-Teil); dazu #333 (Tabellenzeilen 56 px, K-57), #334 PART-096 „Meet us at“-Grafik, #335 (Kontrollkästchen 44 px am Handy) und #336 PART-097 (Admin-Weg zur Grafik). Admin-Chat ist fertig und geschlossen, Design und Partner laufen.
+Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Seit Freitagabend gemergt: #330 (K-47 Archiv-Karte), #331 (ADM-066 Zuschnitt-Dialog), #332 (QS-065 Admin-Teil); dazu #333 (Tabellenzeilen 56 px, K-57), #334 PART-096 „Meet us at“-Grafik, #335 (Kontrollkästchen 44 px am Handy), #336 PART-097 (Admin-Weg zur Grafik), #337 (Chip-Baustein, Reiter 44 px am Handy) und #338 (Speaker-Maske auf dem gemeinsamen Zuschnitt-Kern). Admin-Chat ist fertig und geschlossen, Design und Partner laufen.
 
 ### A · Heute: Klicks und Einstellungen
 
@@ -72,7 +72,7 @@ Der Trockenlauf stand: 570 Vorlagen aus den Planstellen 2026 (Akkreditierung 106
 | Bewerbungen | `/admin/bewerbungen` (60 TEST-Bewerbungen: Filter, Suche, Sammelentscheidung) | Einwilligung sichtbar |
 | Hackathon | `/hackathon` (Bewerbung mit Track-Wunsch, Wunsch-Challenges, Portfolio; Teamsuche; Abgabe mit Frist; Leaderboard), `/admin/hackathon` (Tracks, Wunschprofile, Auswertung, Datensatz) | Fremde Teams sehen nur Bestätigtes |
 | Talent | `/profil` (Porträt: wählen → zuschneiden → lädt sofort, #331), `/benachrichtigungen`, `/fotos` (TEST-Community-Abend), `/feedback` (anonym und mit Klarnamen), `/events` (Anmeldelink kopieren) | Streifen „Testbetrieb“ sichtbar, Porträt passt ins Dreieck |
-| Speaker | `/speaker/session` (Folien → Drive-Kopie, Spiegelung läuft seit 02.10.), `/speaker/travel`, `/speaker/profil` (Foto mit Zuschnitt, #331); `/admin/speaker/website` (Sanity-Vorschau, Übertragen gesperrt) | Rollenbeschriftung, Handybreite |
+| Speaker | `/speaker/session` (Folien → Drive-Kopie, Spiegelung läuft seit 02.10.), `/speaker/travel`, `/speaker/profil` (Foto mit Zuschnitt, #331), `/speaker/grafik` (Maske: Ziehen, Regler, Pinch, Mausrad, Bild bedeckt den Rahmen immer, #338); `/admin/speaker/website` (Sanity-Vorschau, Übertragen gesperrt) | Rollenbeschriftung, Handybreite |
 | Partner | `/partner/messestand` (Rundgang, Hallenplan), `/partner` (Kasten Rundgang), Shop, Checkliste (Fristmarke am Handy = PART-094), Gästeliste (Foto mit Zuschnitt, #331); **„Meet us at“-Grafik (PART-096, #334):** `/partner/media` → Karte „Meet us at“ → „Grafik erstellen“ → Motiv Logo (Test-Org hat keine Logodatei: „Logo wählen“ nimmt eine PNG vom Rechner) oder Ansprechperson (Porträt → Zuschnitt), Format Quadrat/Hochformat/Story, DE/EN → Herunterladen | Liste in #313 für die Seiten hinter Login; Grafik: Wortmarke als Schrift, Download kommt als PNG |
 | Programm | `/admin/programm`, `/speaker-leads/board`, `/speaker-leads/regie` („Regieplan (Programm)“); Programm → Gerüst (`GeruestView`): Zeilen mit Feldern sind seit #333 56 px hoch — zu luftig? (K-57) | drei Ansichten gleich strukturiert; Programm und Regie bleiben dicht (44 px) |
 
