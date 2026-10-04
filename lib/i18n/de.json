@@ -1083,6 +1083,7 @@
     "partnerGraphicsCount": "{n} von {total} mit Grafik",
     "partnerGraphicsEmptyBody": "Sobald Partner angelegt sind, erscheinen sie hier.",
     "partnerGraphicsEmptyTitle": "Noch keine Partner in dieser Edition",
+    "partnerGraphicsGenerate": "Mit Generator erzeugen",
     "partnerGraphicsLead": "Je Partner eine Grafik „Wir sind dabei“ mit seinem Logo. Hochladen oder ersetzen — der Partner sieht immer die neueste unter „Media Kit“, die alten bleiben im Verlauf.",
     "partnerGraphicsMissing": "Fehlt",
     "partnerGraphicsPreview": "Ansehen",
@@ -1270,6 +1271,19 @@
     "title": "Mail",
     "version": "Version",
     "waiting": "wartend"
+  },
+  "adminMeetUs": {
+    "back": "Zurück zu Grafiken & Media Kit",
+    "lead": "Für {org}: Motiv, Format und Sprache wählen, Logo oder Porträt einsetzen. Die fertige Grafik lässt sich laden oder als Partnergrafik ablegen — der Partner findet sie unter „Media Kit“.",
+    "logoMissing": "Hier liegt kein Logo des Partners vor. Wähle die Logodatei selbst; bis dahin steht der Firmenname als Platzhalter da.",
+    "privacyNote": "Logo und Porträt werden nicht gespeichert, die Grafik entsteht im Browser. Gespeichert wird nur die fertige Grafik, und nur wenn du sie als Partnergrafik ablegst.",
+    "store": "Als Partnergrafik ablegen",
+    "storeFailed": "Die Grafik ließ sich nicht ablegen. Versuche es noch einmal oder lade sie herunter und lege sie unter „Partnergrafiken“ ab.",
+    "storeHint": "Der Partner lädt sie unter „Media Kit“ herunter. Es gilt immer die zuletzt abgelegte Grafik, eine frühere bleibt als Version erhalten. Das Quadrat passt auf jedem Kanal.",
+    "storeNotAllowed": "Dafür fehlt dir die Rolle.",
+    "stored": "Als Partnergrafik abgelegt — der Partner sieht sie jetzt.",
+    "storing": "Wird abgelegt …",
+    "title": "„Meet us at“-Grafik erzeugen"
   },
   "adminNotifications": {
     "acConnected": "Schlüssel hinterlegt. Der Sync läuft alle 15 Minuten; solange das Schreiben nicht freigeschaltet ist, wird nur gezählt.",
