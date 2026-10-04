@@ -503,6 +503,19 @@ body {
   .ct-link:hover {
     color: var(--ct-accent-deep);
   }
+  /* Das Ziel eines Knopfes oder Links reicht bis an den Rand der Zelle oder Zeile, in der er steht
+     (QS-064): der Name in einer Tabelle ist sonst 20 px hoch in einer 56-px-Zeile, und am Handy
+     trifft man den Text nicht. Das Elternelement ist `relative` (`<Td className="relative">`,
+     `<li className="relative">`); der Rest der Zelle liegt unter der Fläche, ist aber kein Ziel
+     eines anderen Bedienelements. Der Zeiger zeigt das Ziel an, `Tr` bringt die Hover-Fläche. */
+  .ct-ziel {
+    cursor: pointer;
+  }
+  .ct-ziel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
 }
 
 /* Tabellen, die unter 640 px zu Blöcken werden (QS-058, `<Table stapeln>`).
@@ -534,6 +547,8 @@ body {
   .ct-stapeln td {
     display: block;
     height: auto;
+    /* Eine Zelle mit `max-w-72` (Pipeline: Einordnung, nächster Schritt) füllt gestapelt die Zeile. */
+    max-width: none;
     padding-block: 0.25rem;
     white-space: normal;
     text-align: left;

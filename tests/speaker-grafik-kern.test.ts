@@ -77,6 +77,16 @@ describe("Hear-me-speak-Maske auf dem gemeinsamen Kern (SPK-080)", () => {
     assert.match(q, /if \(a\.ladefehler\) toast\("error", t\.loadFailed\)/);
   });
 
+  it("das Porträt wird gleich nach der Auswahl geladen — kein Knopf „Upload“ für etwas, das nie hochgeladen wird (SPK-081)", () => {
+    const q = ohneKommentare(src(MASKE));
+    const start = q.indexOf("<FileButton");
+    assert.ok(start >= 0, "der Auswahlknopf fehlt");
+    const knopf = q.slice(start, q.indexOf("/>", start));
+    assert.match(knopf, /\bsofort\b/);
+    assert.match(knopf, /onFile=\{onFile\}/);
+    assert.doesNotMatch(knopf, /uploadLabel|changeLabel/);
+  });
+
   it("alle Texte der Maske gibt es auf Deutsch und Englisch", () => {
     for (const key of ["tooBig", "wrongType", "loadFailed", "exportFailed", "downloaded", "canvasEmpty", "canvasWithImage", "dragHint", "zoom", "reset", "download"]) {
       assert.ok((de.speakerGraphic as Record<string, string>)[key], `de ${key}`);

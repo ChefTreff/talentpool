@@ -217,11 +217,11 @@ export function PipelineView({
           <p className="ct-help mb-2">{tv.faelligHint}</p>
           <ul className="flex flex-col gap-1">
             {faellig.map((s) => (
-              <li key={s.id} className="flex flex-wrap items-center gap-2">
+              <li key={s.id} className="relative flex flex-wrap items-center gap-2 pointer-coarse:py-3">
                 <Badge tone={ueberfaellig(s) ? "error" : "warning"}>
                   {ueberfaellig(s) ? tv.overdue : tv.dueToday}
                 </Badge>
-                <button type="button" onClick={() => setOpenId(s.id)} className="ct-link text-left">
+                <button type="button" onClick={() => setOpenId(s.id)} className="ct-link ct-ziel text-left">
                   {name(s)}
                 </button>
                 <span className="ct-small text-ink">{s.next_task!.body}</span>
@@ -335,7 +335,7 @@ export function PipelineView({
           onOpen={setOpenId}
         />
       ) : (
-        <Table>
+        <Table stapeln>
           <Thead>
             <Th>{t.colName}</Th>
             <Th>{t.colRole}</Th>
@@ -348,11 +348,11 @@ export function PipelineView({
           <Tbody>
             {visible.map((s) => (
               <Tr key={s.id}>
-                <Td>
+                <Td className="relative">
                   <button
                     type="button"
                     onClick={() => setOpenId(s.id)}
-                    className="ct-link text-left"
+                    className="ct-link ct-ziel text-left"
                   >
                     {name(s)}
                   </button>
@@ -361,10 +361,10 @@ export function PipelineView({
                     {[s.job_title, s.organization_name].filter(Boolean).join(" · ")}
                   </div>
                 </Td>
-                <Td className="text-muted">
+                <Td className="text-muted" label={t.colRole}>
                   {labels.speakerType[s.speaker_type] ?? s.speaker_type}
                 </Td>
-                <Td>
+                <Td label={t.colStatus}>
                   <Badge tone={PIPELINE_TONE[s.pipeline_status] ?? "neutral"}>
                     {labels.pipeline[s.pipeline_status] ?? s.pipeline_status}
                   </Badge>
@@ -379,7 +379,7 @@ export function PipelineView({
                     </div>
                   )}
                 </Td>
-                <Td>
+                <Td label={te.priority}>
                   {s.priority ? (
                     <Badge tone={PRIO_TONE[s.priority] ?? "neutral"}>
                       {einordnungOptionen.priority[s.priority] ?? s.priority}
@@ -390,7 +390,7 @@ export function PipelineView({
                 </Td>
                 {/* Einordnung aus der Arbeitstabelle (LEAD-039): Kategorie und
                     Cluster, darunter Thema oder Rolle. */}
-                <Td className="max-w-72">
+                <Td className="max-w-72" label={te.title}>
                   {s.category || s.topic_cluster || s.topic_role ? (
                     <div className="flex flex-col gap-0.5">
                       {(s.category || s.topic_cluster) && (
@@ -412,7 +412,7 @@ export function PipelineView({
                 {/* Vor der Zusage zählt, wo die Ansprache steht (LEAD-039): der
                     nächste Schritt aus dem Verlauf statt der freien Notiz — die
                     steht weiter im Fenster. */}
-                <Td className="max-w-80">
+                <Td className="max-w-80" label={tv.nextStep}>
                   {s.next_task ? (
                     <div className="flex flex-col gap-0.5">
                       <span className="line-clamp-2 ct-small text-ink">{s.next_task.body}</span>
@@ -430,7 +430,7 @@ export function PipelineView({
                     <span className="ct-help">{common.none}</span>
                   )}
                 </Td>
-                <Td className="text-muted">{s.owner_name || common.none}</Td>
+                <Td className="text-muted" label={t.colOwner}>{s.owner_name || common.none}</Td>
               </Tr>
             ))}
           </Tbody>
@@ -505,7 +505,7 @@ function BestaetigtTabelle({
   onOpen: (id: string) => void;
 }) {
   return (
-    <Table>
+    <Table stapeln>
       <Thead>
         <Th>{t.colName}</Th>
         <Th>{t.colStatus}</Th>
@@ -520,14 +520,14 @@ function BestaetigtTabelle({
           const sessions = s.sessions ?? [];
           return (
             <Tr key={s.id}>
-              <Td>
-                <button type="button" onClick={() => onOpen(s.id)} className="ct-link text-left">
+              <Td className="relative">
+                <button type="button" onClick={() => onOpen(s.id)} className="ct-link ct-ziel text-left">
                   {name(s)}
                 </button>
                 {s.stage_guest && <Badge className="ml-2">{tg.badge}</Badge>}
                 <div className="ct-help">{[s.job_title, s.organization_name].filter(Boolean).join(" · ")}</div>
               </Td>
-              <Td>
+              <Td label={t.colStatus}>
                 <Badge tone={PIPELINE_TONE[s.pipeline_status] ?? "neutral"}>
                   {labels.pipeline[s.pipeline_status] ?? s.pipeline_status}
                 </Badge>
@@ -537,7 +537,7 @@ function BestaetigtTabelle({
                   </div>
                 )}
               </Td>
-              <Td className="text-muted">
+              <Td className="text-muted" label={t.colSessions}>
                 {sessions.length === 0 ? (
                   <Badge tone="warning">{t.noSession}</Badge>
                 ) : (
@@ -559,7 +559,7 @@ function BestaetigtTabelle({
               </Td>
               {/* SPK-070: ein Gast wird nicht eingeladen und macht kein Onboarding —
                   statt Warnungen steht da, wer ihn pflegt. */}
-              <Td>
+              <Td label={t.colInvite}>
                 {s.stage_guest ? (
                   <span className="ct-help">—</span>
                 ) : s.invited_at ? (
@@ -570,7 +570,7 @@ function BestaetigtTabelle({
                   <Badge tone="warning">{t.notInvited}</Badge>
                 )}
               </Td>
-              <Td>
+              <Td label={t.colMissing}>
                 {s.stage_guest ? (
                   <span className="ct-help">{tg.viaPartner}</span>
                 ) : (s.next_open ?? []).length === 0 ? (
@@ -583,7 +583,7 @@ function BestaetigtTabelle({
                   </div>
                 )}
               </Td>
-              <Td>
+              <Td label={t.colProgramme}>
                 {sessions.length === 0 ? (
                   <span className="ct-help">—</span>
                 ) : (
@@ -596,7 +596,7 @@ function BestaetigtTabelle({
                   </div>
                 )}
               </Td>
-              <Td className="text-muted">{s.owner_name || (s.stage_guest ? tg.viaPartner : none)}</Td>
+              <Td className="text-muted" label={t.colOwner}>{s.owner_name || (s.stage_guest ? tg.viaPartner : none)}</Td>
             </Tr>
           );
         })}

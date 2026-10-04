@@ -13,11 +13,11 @@
 | Chat | Seit Mittag gemergt | Weiter |
 |---|---|---|
 | Admin & Schnittstellen | #316 K-52 (0264); **#330 K-47 Archiv-Karte mit Artikelnummer, #332 QS-065 Admin-Teil — gemergt 04.10.** | Chat ist geschlossen, Liste leer. Nach Konrads Feedbackrunde neue Punkte aus seiner Liste; **K-24** später (Kontakt-Eigenschaft „CT Summit Contact Type“); ADM-066 ist mit #331 an allen vier Stellen eingebaut |
-| Partner | #313, #329, #334 PART-096, #336 PART-097, **#338 SPK-080 Speaker-Maske auf `useBildAusschnitt` — gemergt 04.10.** | SPK-081 (Knopf „Upload“ in der Maske → `FileButton sofort`) als kleiner PR, danach Pause bis Konrads Feedback. K-53 erledigt; PART-010 (Oktober-Preise), PART-077 (Laura) |
+| Partner | #313, #329, #334 PART-096, #336 PART-097, #338 SPK-080, **#339 SPK-081 (Porträt lädt sofort) — gemergt 04.10.** | **Pause** bis Konrads Feedback vom 04.10. K-53 erledigt; PART-010 (Oktober-Preise), PART-077 (Laura) |
 | Speaker-Domäne | #320 SPK-074-Nachtrag (0262), #325 SPK-079 | **K-03 komplett erledigt:** „Spiegelung nachholen“ 02.10. ~18:10 geklickt, Befund durch die Architektur-Session (live gelesen): 2/2 aktuelle Präsentationen `ok` mit Drive-ID, 0 Fehler → SPK-023 läuft im Echtbetrieb, daraus nichts mehr offen; Testleitfaden-Abschnitt Speaker/Stage-Lead als PR (nur dieser Abschnitt); Kern der Grafikmaske für PART-096 mit Partner teilen; K-54 nächste Woche; K-56 nach Konrad |
 | Talent, Hackathon & Volunteers | #317 VOL-002 (0260), #318 K-34 (0261), #322 AC-Sync (0263), #324 VOL-003 | Liste komplett; Pause bis Konrads Feedback. Konrad: A·10 drei Läufe, K-55 Wortlaut Unterweisung, HACK-001 |
-| Design | #319–#335, **#337 QS-064 (1) Chip/ChipLink (sieben Kopien, SectionTabs) — gemergt 04.10.**; QS-067 angelegt (wartet auf K-58) | QS-064 (2) Namensziel Pipeline-Tabellen → (3) Kacheln zweispaltig → QS-065 (10) Kit-Tokens → HACK-013 → QS-054-Rest; ein PR je Punkt. GeruestView-Frage bei Konrad (K-57) |
-| Architektur-Session | 0262–0264 live; #327–#338 gemergt; Rollen-Probe 6/6; Spiegel-Lauf 2/2 ok | Konrads Feedbackrunde heute verteilen; Montag Team-Zugriff (Testleitfaden 05.10.); offene Fragen K-57, K-58 |
+| Design | #319–#337, **#340 QS-064 (2)+(3) Pipeline am Handy (`.ct-ziel`, Tabellen stapeln, Kacheln zweispaltig) — gemergt 04.10.** | QS-065 (10) Kit-Tokens → HACK-013 → QS-054-Rest; ein PR je Punkt. Offen aus QS-064: sechs Textknöpfe `ct-link text-left` in Partner/Admin Stelle für Stelle beim Anfassen. GeruestView-Frage bei Konrad (K-57), QS-067 wartet auf K-58 |
+| Architektur-Session | 0262–0264 live; #327–#340 gemergt; Rollen-Probe 6/6; Spiegel-Lauf 2/2 ok | Konrads Feedbackrunde heute verteilen; Montag Team-Zugriff (Testleitfaden 05.10.); offene Fragen K-57, K-58 |
 
 ## Pause 02.10. Mittag (Modellvergleich) — Stand und Fortsetzung je Chat
 
