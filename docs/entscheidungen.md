@@ -1226,3 +1226,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 
 - **#344** (Design, nur Oberfläche): 31 `CardHeader` unter Admin → Partner auf `ebene="h2"`, ein h3 mit Grund (Stopp einer Tour unter „Touren der Organisation“). Regel für alle Bereiche (im Wächtertest): h2 für Abschnitte der Seite, auch wiederholte je Tag/Session/Stopp; h3 nur für Unterabschnitte derselben Einheit und gleichförmige Listeneinträge; jeder h3 steht im Test mit Datei, Anzahl und Grund. Umgestellt per Skript über den TypeScript-Syntaxbaum. Weitere PRs: Admin → Speaker/Speaker-Leads/Edition/Volunteers, Admin übrige, Partner-/Volunteers-/Hackathon-Portal; danach wird `ebene` im Kit Pflicht (tsc) und der Wächter prüft das ganze Repo.
 
+## 2026-10-04 — #345 gemergt (QS-054 Bereich 2: Admin → Speaker, Speaker-Leads, Edition, Volunteers)
+
+- **#345** (Design, nur Oberfläche): 26 `CardHeader` auf `ebene="h2"`, kein h3; Wächtertest erweitert. Konflikt nur in der QS-054-Statuszelle (mein „gebaut #344“ gegen „geplant #345“), von Design gelöst; Regel für den Rest der Serie: Design pflegt die Statuszelle allein, gestapelte PRs holen main nur bei Bedarf herein. #346 (Admin übrige) folgt, danach Portale und `ebene` als Pflichtangabe.
+
