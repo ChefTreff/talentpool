@@ -43,9 +43,9 @@ const ERLAUBT = ["image/jpeg", "image/png", "image/webp"];
  * diesem Auftritt: ein beschriftetes Formular zum Hinzufügen (Art, Bildnachweis,
  * Datei), darunter die vorhandenen Bilder.
  *
- * **Fehler und Erfolg stehen im Schubfach, nicht als Toast**: ein
- * `<dialog showModal>` liegt über der Seite, ein Toast dahinter wäre unsichtbar
- * (ADM-041).
+ * **Fehler und Erfolg stehen im Schubfach, nicht als Toast** (ADM-062): die Meldung gehört neben den Knopf, der sie
+ * ausgelöst hat, und bleibt stehen, bis die nächste Aktion läuft. Ein Toast liegt seit ADM-041 über dem Dialog,
+ * wäre also sichtbar — verschwindet aber nach vier Sekunden, mitten im Hochladen mehrerer Bilder.
  *
  * Die Slot-Grafik gibt es je Auftritt **einmal** — eine neue ersetzt die alte
  * (die Datenbank setzt sie auf ungültig, gelöscht wird nichts). Bühnenfotos
