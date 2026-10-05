@@ -260,6 +260,7 @@
       "noEdition": "There is no edition yet.",
       "noPhone": "no number",
       "onWaitlist": "on the waiting list",
+      "quotaAdminOnly": "Quotas and capacities are set by the admin role (agreed with the hotel). Requests are confirmed or declined by the speaker team under Approvals.",
       "quotaSaved": "Quota saved",
       "shuttleCancelled": "Ride cancelled.",
       "shuttleConfirm": "Approve",

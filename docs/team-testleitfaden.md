@@ -63,7 +63,7 @@ Jeder Weg: öffnen, einmal den Normalfall durchspielen, einmal einen Fehlerfall 
 Ergänzt die Zeile „Programm und Speaker“ (Abschnitt 4) und die Zeilen „Speaker“ und „Stage Leads“ (Abschnitt 5). Je Seite ein Normalfall und ein Fehlerfall; dazu gehört jedes Mal der Blick am Handy und in beiden Sprachen.
 
 **Zugang — bei Konrad anfragen**
-- Den Speaker-Bereich im Admin (Gruppe „Speaker & Programm“) sehen Bereichslead Speaker und Programm-Team.
+- Den Speaker-Bereich im Admin (Gruppe „Speaker & Programm“) sehen Bereichslead Speaker und Programm-Team. **Hotelanfragen bestätigen oder ablehnen** dürfen beide; **Reisekosten** (freigeben, zurückweisen, auszahlen) nur der Bereichslead Speaker — Geld läuft über die Bereichsleitung; **Hotel-Kontingente** (Kapazität, aktivieren) ändert nur Konrad, du siehst sie zum Lesen.
 - Das **Speaker-Portal** siehst du, wenn Konrad dir ein ZZTEST-Speaker-Profil mit deiner Arbeitsadresse anlegt oder dich als Kontakt mit Zugang an einen ZZTEST-Speaker hängt. Mit mehreren Profilen wählst du oben in der Leiste unter „Du arbeitest für“. Das Portal startet auf Englisch — oben auf DE umschalten.
 - Das **Stage-Lead-Portal** öffnet die Rolle Speaker-Manager auf der Bühne „TEST — Bühne Stage Lead“. Mit Programm-Team oder Bereichslead Speaker siehst du darin alle Bühnen.
 - **ZZTEST-Speaker anlegen:** `/speaker-leads/pipeline` → „Speaker anlegen“ (im Admin gibt es dafür keinen eigenen Knopf, ADM-004). Der Name beginnt mit ZZTEST, als E-Mail deine eigene Arbeitsadresse mit Zusatz, z. B. `vorname+zztest1@chef-treff.de` — Einladungen und Freigaben landen dann bei dir. Den Hotel-Anspruch setzt das Speaker-Team im Admin (Speaker → Karte „Pass & Hospitality“); ohne ihn zeigt die Anreise kein Hotel.

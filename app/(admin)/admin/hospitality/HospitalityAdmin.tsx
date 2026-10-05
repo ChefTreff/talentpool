@@ -48,6 +48,7 @@ const TONE: Record<string, BadgeTone> = {
 };
 
 export function HospitalityAdmin({
+  canEditQuota,
   quotas,
   editions,
   tiers,
@@ -58,6 +59,8 @@ export function HospitalityAdmin({
   common,
   rpcMessages,
 }: {
+  /** Nur admin: Kapazität und Aktivierung ändern (`upsert_hospitality_quota` prüft `is_staff()`). */
+  canEditQuota: boolean;
   quotas: AdminQuota[];
   editions: { id: string; name: string }[];
   tiers: Record<string, string>;
@@ -117,6 +120,7 @@ export function HospitalityAdmin({
   return (
     <div className="flex flex-col gap-4">
       {editions.length === 0 && <p className="ct-help">{t.noEdition}</p>}
+      {!canEditQuota && <p className="ct-help">{t.quotaAdminOnly}</p>}
 
       {quotas.map((q) => (
         <Card key={q.quota_id} className="p-4">
@@ -144,26 +148,28 @@ export function HospitalityAdmin({
               </p>
             </div>
 
-            <div className="flex flex-wrap items-end gap-2">
-              <Field label={t.capacity} htmlFor={`cap-${q.quota_id}`}>
-                <Input
-                  id={`cap-${q.quota_id}`}
-                  type="number"
-                  min={0}
-                  className="w-24"
-                  value={capacity[q.quota_id] ?? String(q.capacity)}
-                  onChange={(e) =>
-                    setCapacity((c) => ({ ...c, [q.quota_id]: e.target.value }))
-                  }
-                />
-              </Field>
-              <Button size="sm" variant="secondary" disabled={pending} onClick={() => onCapacity(q)}>
-                {common.save}
-              </Button>
-              <Button size="sm" variant="ghost" disabled={pending} onClick={() => onActive(q)}>
-                {q.active ? t.deactivate : t.activate}
-              </Button>
-            </div>
+            {canEditQuota && (
+              <div className="flex flex-wrap items-end gap-2">
+                <Field label={t.capacity} htmlFor={`cap-${q.quota_id}`}>
+                  <Input
+                    id={`cap-${q.quota_id}`}
+                    type="number"
+                    min={0}
+                    className="w-24"
+                    value={capacity[q.quota_id] ?? String(q.capacity)}
+                    onChange={(e) =>
+                      setCapacity((c) => ({ ...c, [q.quota_id]: e.target.value }))
+                    }
+                  />
+                </Field>
+                <Button size="sm" variant="secondary" disabled={pending} onClick={() => onCapacity(q)}>
+                  {common.save}
+                </Button>
+                <Button size="sm" variant="ghost" disabled={pending} onClick={() => onActive(q)}>
+                  {q.active ? t.deactivate : t.activate}
+                </Button>
+              </div>
+            )}
           </div>
 
           {(q.bookings ?? []).length > 0 && (

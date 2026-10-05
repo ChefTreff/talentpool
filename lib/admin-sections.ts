@@ -169,7 +169,9 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { key: "speakers", path: "/admin/speaker", roles: ["area_lead_speaker", "programme_team"] },
   { key: "speakerLeads", path: "/admin/speaker-leads", roles: ["area_lead_speaker", "programme_team"] },
   { key: "speakerTickets", path: "/admin/speaker-tickets", roles: ["area_lead_speaker", "programme_team"] },
-  { key: "expenses", path: "/admin/reisekosten", roles: ["area_lead_speaker", "programme_team"] },
+  // Geld nur über die Bereichsleitung (Plan 05.10.2026): `is_expense_approver()` ist admin oder
+  // area_lead_speaker — das Programm-Team stand hier, bekam aber 42501 (v6_hotel_freigabe_rechte).
+  { key: "expenses", path: "/admin/reisekosten", roles: ["area_lead_speaker"] },
   { key: "hospitality", path: "/admin/hospitality", roles: ["area_lead_speaker", "programme_team"] },
   { key: "reception", path: "/admin/reception", roles: ["area_lead_speaker", "programme_team"] },
   { key: "travel", path: "/admin/anreise", roles: ["area_lead_speaker", "programme_team", "area_lead_production", "production_team"] },
