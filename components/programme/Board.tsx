@@ -19,6 +19,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { formatDay, formatMinutes, minutesOfDay, parseClock, zonedTimeToInstant } from "@/lib/tz";
 import {
   dayWindow,
+  halbeStunden as halbeStundenIn,
   hourMarks as hourMarksIn,
   minutesFromOffset,
   resizedEnd,
@@ -610,6 +611,7 @@ export function Board({
     () => hourMarksIn(windowStart, windowEnd),
     [windowEnd, windowStart],
   );
+  const halfMarks = useMemo(() => halbeStundenIn(windowStart, windowEnd), [windowEnd, windowStart]);
 
   // LEAD-018: die Zeit im Schubfach ist nur änderbar, wo diese Sicht den Slot
   // bearbeiten darf — sonst bekommt das Schubfach die Funktion gar nicht.
@@ -847,6 +849,7 @@ export function Board({
                   vorschau={vorschau?.stageId === stage.id ? vorschau : null}
                   windowStart={windowStart}
                   hourMarks={hourMarks}
+                  halfMarks={halfMarks}
                   onDoubleClick={(e) => onColumnDoubleClick(stage, e)}
                 >
                   {(slotsByStage.get(stage.id) ?? []).map((serverSlot) => {
@@ -1025,6 +1028,7 @@ function StageColumn({
   vorschau,
   windowStart,
   hourMarks,
+  halfMarks,
   onDoubleClick,
   children,
 }: {
@@ -1039,6 +1043,8 @@ function StageColumn({
   vorschau: { startMin: number; endMin: number } | null;
   windowStart: number;
   hourMarks: number[];
+  /** Die halben Stunden dazwischen, feiner gezeichnet (ADM-069). */
+  halfMarks: number[];
   onDoubleClick: (e: React.MouseEvent<HTMLDivElement>) => void;
   children: React.ReactNode;
 }) {
@@ -1069,10 +1075,19 @@ function StageColumn({
           style={{ top: (b.von - windowStart) * PX_PER_MIN, height: (b.bis - b.von) * PX_PER_MIN }}
         />
       ))}
+      {/* ADM-069: die Stundenlinie in voller Farbe (vorher mit 60 % kaum zu sehen), die halbe Stunde gestrichelt
+          dazwischen — so liest man Beginn und Ende eines Slots an der Spalte ab. */}
       {hourMarks.map((m) => (
         <div
           key={m}
-          className="pointer-events-none absolute inset-x-0 border-t border-border/60"
+          className="pointer-events-none absolute inset-x-0 border-t border-border-strong/40"
+          style={{ top: (m - windowStart) * PX_PER_MIN }}
+        />
+      ))}
+      {halfMarks.map((m) => (
+        <div
+          key={m}
+          className="pointer-events-none absolute inset-x-0 border-t border-dashed border-border"
           style={{ top: (m - windowStart) * PX_PER_MIN }}
         />
       ))}

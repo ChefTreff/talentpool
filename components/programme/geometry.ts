@@ -50,6 +50,14 @@ export function dayWindow(
   return { start: FALLBACK_START, end: FALLBACK_END };
 }
 
+/**
+ * Abstand zwischen zwei Karten, die aufeinander folgen (ADM-069, Konrad 05.10.: „klarere Linien pro Slot“).
+ * Mit 2 px flossen drei Final-Slots hintereinander zu einem Block zusammen — die Fläche ist überall dieselbe
+ * Akzentfarbe, und nur ein weißer Strich von 2 px trennte sie. Der Abstand liegt **unter** der Karte: der Beginn
+ * steht genau auf der Rasterlinie, das Ablegen rechnet weiter mit dem oberen Rand der Karte.
+ */
+export const SLOT_ABSTAND = 4;
+
 /** Position und Höhe einer Slot-Karte in der Spalte. */
 export function slotBox(
   startMin: number,
@@ -59,7 +67,7 @@ export function slotBox(
   return {
     top: (startMin - windowStart) * PX_PER_MIN,
     // Mindesthöhe, damit auch ein 5-Minuten-Slot anklickbar bleibt.
-    height: Math.max(22, (endMin - startMin) * PX_PER_MIN - 2),
+    height: Math.max(22, (endMin - startMin) * PX_PER_MIN - SLOT_ABSTAND),
   };
 }
 
@@ -93,6 +101,15 @@ export function resizedEnd(
   deltaPx: number,
 ): number {
   return Math.max(startMin + GRID_MIN, snapTo5(endMin + deltaPx / PX_PER_MIN));
+}
+
+/** Halbe Stunden im Fenster, ohne die vollen — die feinere Linie zwischen zwei Stundenlinien (ADM-069). */
+export function halbeStunden(windowStart: number, windowEnd: number): number[] {
+  const marks: number[] = [];
+  for (let m = Math.ceil((windowStart - 30) / 60) * 60 + 30; m < windowEnd; m += 60) {
+    if (m > windowStart) marks.push(m);
+  }
+  return marks;
 }
 
 /** Volle Stunden im Fenster — die Linien und Beschriftungen des Rasters. */
