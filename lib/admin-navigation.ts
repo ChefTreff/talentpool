@@ -142,12 +142,31 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
 export function sichtbareNavigation(
   offen: (section: AdminSectionKey) => boolean,
   nav: Record<string, unknown>,
-): { label: string; items: { href: string; label: string }[] }[] {
+  /** Zähler und Unterpunkte je Menüpunkt, nach dessen Adresse (ADM-080/081); ohne Eintrag bleibt der Punkt, wie er ist. */
+  zusatz: Record<string, NavZusatz> = {},
+): { label: string; items: NavEintrag[] }[] {
   const gruppen = (nav.sections ?? {}) as Record<string, string>;
   return ADMIN_NAVIGATION.map((g) => ({
     label: g.gruppe ? (gruppen[g.gruppe] ?? g.gruppe) : "",
     items: g.punkte
       .filter((p) => offen(p.section))
-      .map((p) => ({ href: p.href, label: String(nav[p.label] ?? p.label) })),
+      .map((p) => ({ href: p.href, label: String(nav[p.label] ?? p.label), ...zusatz[p.href] })),
   })).filter((g) => g.items.length > 0);
 }
+
+/**
+ * Ein Unterpunkt unter einem Menüpunkt, der **innerhalb derselben Seite** wechselt — über einen
+ * Abfrageparameter, nicht über einen Pfad (`/admin/einreichungen?art=hotel`). `param` sagt, welcher
+ * Wert ihn aktiv macht; `standard` heißt: er gilt auch, wenn der Parameter fehlt (die Seite wählt dann
+ * selbst, `waehleArt`).
+ */
+export type NavUnterpunkt = {
+  href: string;
+  label: string;
+  count?: number;
+  /** Vorlesetext zur Zahl („3 offen“) — die Zahl allein sagt einem Screenreader nichts. */
+  countLabel?: string;
+  param?: { name: string; value: string; standard?: boolean };
+};
+export type NavZusatz = { count?: number; countLabel?: string; kinder?: NavUnterpunkt[] };
+export type NavEintrag = { href: string; label: string } & NavZusatz;

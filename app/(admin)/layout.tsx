@@ -4,7 +4,12 @@ import { ADMIN_SECTIONS, type AdminSectionKey } from "@/lib/admin-sections";
 import { mayEnterAdminSection } from "@/lib/admin-access";
 import { getI18n } from "@/lib/i18n";
 import { SidebarShell, type SidebarGroup } from "@/components/layout/SidebarShell";
-import { sichtbareNavigation } from "@/lib/admin-navigation";
+import { sichtbareNavigation, type NavZusatz } from "@/lib/admin-navigation";
+import { FREIGABE_ARTEN, FREIGABE_PFAD, freigabeNavigation, type FreigabeArt } from "@/lib/freigaben";
+import { ladeFreigabeZaehler } from "@/lib/freigaben-server";
+
+/** Die Abschnitte, über die jemand eine Freigabe-Art entscheiden darf — hat er keinen, braucht es keinen Zähler. */
+const FREIGABE_ABSCHNITTE = ["submissions", "programme", "expenses", "hospitality"] as const;
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +55,22 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     ).filter((k): k is AdminSectionKey => k !== null),
   );
 
-  const groups: SidebarGroup[] = sichtbareNavigation((k) => offen.has(k), nav);
+  // ADM-080/081: wartende Freigaben im Menü — die Summe am Punkt „Freigaben“, darunter je Art, die die Person
+  // entscheiden darf, ein Unterpunkt mit eigener Zahl. Ein Aufruf, der selbst nur ihre Arten zählt; fehlt er oder
+  // scheitert er, bleibt die Leiste, wie sie war. Nach einer Aktion auf der Seite aktualisiert `router.refresh()`
+  // auch die Leiste (Layouts gehören zum Baum, den es neu holt).
+  const zusatz: Record<string, NavZusatz> = {};
+  if (FREIGABE_ABSCHNITTE.some((k) => offen.has(k))) {
+    const freigaben = freigabeNavigation(await ladeFreigabeZaehler(), {
+      tab: Object.fromEntries(
+        FREIGABE_ARTEN.map((a) => [a, t.adminApprovals[`tab_${a}` as const]]),
+      ) as Record<FreigabeArt, string>,
+      offen: t.adminApprovals.openCount,
+    });
+    if (freigaben) zusatz[FREIGABE_PFAD] = freigaben;
+  }
+
+  const groups: SidebarGroup[] = sichtbareNavigation((k) => offen.has(k), nav, zusatz);
 
   return (
     <SidebarShell area="admin" label={t.areas.admin.portal} rootHref="/admin" groups={groups}>
