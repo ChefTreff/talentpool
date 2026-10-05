@@ -85,7 +85,7 @@ Die Bausteine in der Reihenfolge, in der sie im Code stehen (das Gerüst ist die
   {nachZusage && <Block id="hospitality" … />}
   {nachZusage && <Block id="programm" … />}
 
-  {/* Fußleiste: <ModalFuss> aus dem Kit (QS-068) — klebt unten und läuft mit dem Polster des Fensters bis an den Rand */}
+  {/* Fußleiste: <ModalFuss> aus dem Kit (QS-068) — klebt unten, läuft mit dem Polster des Fensters bis an den Rand und zeigt die `error`-Meldung des Fensters über den Knöpfen */}
 </Modal>
 ```
 
@@ -180,7 +180,7 @@ Ein Block, den die Rolle nicht sehen darf, steht **nicht im Baum** (auch nicht z
 - Kontextzeile: die drei Angaben untereinander; die Frist unter dem Text.
 - Pipeline: eine Spalte (Verlauf, dann Einordnung); ein Verlaufseintrag steht zweizeilig (Datum und Art, darunter der Text), eine offene Aufgabe als Kästchen und Text mit der Frist darunter.
 - Die Fußleiste klebt unten und hat zwei Knöpfe; kein Statustext.
-- Das `Modal` hat am Handy 16 statt 24 px Polster (QS-068, eigener PR); die klebende Fußleiste ist `<ModalFuss>` und braucht kein Maß von Hand.
+- Das `Modal` hat am Handy 16 statt 24 px Polster (QS-068, eigener PR); die klebende Fußleiste ist `<ModalFuss>` und braucht kein Maß von Hand. Die `error`-Meldung des Fensters steht in dieser Fußleiste über den Knöpfen (QS-068, Folge) — also weiter als `error` am `Modal` übergeben, nicht als eigener Absatz.
 
 ### Die Admin-Detailseite `/admin/speaker/[id]`
 
