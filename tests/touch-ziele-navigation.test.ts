@@ -17,7 +17,7 @@ const COARSE = /pointer-coarse:min-h-11/g;
 
 describe("Touch-Ziele in der Shell (QS-059)", () => {
   const ERWARTET: [string, number][] = [
-    ["components/layout/SidebarNav.tsx", 2], // Punkt und Abschnittslink
+    ["components/layout/SidebarNav.tsx", 3], // Punkt, Abschnittslink und Unterpunkt (ADM-081)
     ["components/layout/SidebarShell.tsx", 1], // Logo
     ["components/layout/AppHeader.tsx", 3], // Logo, Abmelden, Anmelden
     ["components/layout/LocaleSwitcher.tsx", 1],

@@ -1,11 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/components/ui/cn";
 
-export type SidebarItem = { href: string; label: string };
+/**
+ * Ein Unterpunkt, der innerhalb **derselben Seite** wechselt — über einen Abfrageparameter, nicht über einen
+ * Pfad. `param` sagt, welcher Wert ihn aktiv macht; `standard`: er gilt auch, wenn der Parameter fehlt.
+ */
+export type SidebarKind = {
+  href: string;
+  label: string;
+  count?: number;
+  /** Vorlesetext zur Zahl („3 offen“); die sichtbare Zahl ist für Screenreader ausgeblendet. */
+  countLabel?: string;
+  param?: { name: string; value: string; standard?: boolean };
+};
+/** `count` und `kinder` sind Zugaben (ADM-080/081, Freigaben): ohne sie ist der Punkt, was er war. */
+export type SidebarItem = { href: string; label: string; count?: number; countLabel?: string; kinder?: SidebarKind[] };
 export type SidebarGroup = { label: string; items: SidebarItem[] };
 
 /**
@@ -76,7 +90,17 @@ export function SidebarNav({
                       )}
                     >
                       {item.label}
+                      {/* Der aktive Punkt ist eine helle Pille: Pink gilt nur auf dunklem Grund (Badge `highlight`),
+                          dort nimmt die Zahl den Akzent-Ton. */}
+                      {item.count !== undefined && item.count > 0 && (
+                        <Zaehler count={item.count} label={item.countLabel} tone={active ? "accent" : "highlight"} />
+                      )}
                     </Link>
+                    {item.kinder && item.kinder.length > 0 && (
+                      <Suspense fallback={null}>
+                        <Unterpunkte kinder={item.kinder} elternAktiv={active} />
+                      </Suspense>
+                    )}
                     {active && abschnitte.length > 1 && (
                       <ul className="mt-0.5 flex flex-col gap-0.5 border-l border-on-navy/20 pl-2.5 ml-2.5">
                         {abschnitte.map((a) => (
@@ -98,6 +122,61 @@ export function SidebarNav({
           </div>
         ))}
     </nav>
+  );
+}
+
+/**
+ * Die Zahl wartender Einträge am Menüpunkt (ADM-080). Die sichtbare Zahl ist für Screenreader
+ * ausgeblendet und durch den Vorlesetext ersetzt („3 offen“) — sonst läse er die Zahl zweimal oder
+ * ohne Bezug. Zustand steht in Zahl und Wort, nicht in der Farbe allein.
+ */
+function Zaehler({ count, label, tone }: { count: number; label?: string; tone: "highlight" | "accent" | "text" }) {
+  return (
+    <>
+      {/* Am Elternpunkt eine Pille (die Summe soll auffallen), an den Unterpunkten nur die Zahl: fünf rosa
+          Pillen untereinander riefen fünfmal „dringend“ und machten die Leiste unruhig. */}
+      <span aria-hidden="true" className="ml-auto pl-2">
+        {tone === "text" ? <span className="ct-label tabular-nums">{count}</span> : <Badge tone={tone}>{count}</Badge>}
+      </span>
+      {label && <span className="sr-only">{label}</span>}
+    </>
+  );
+}
+
+/**
+ * Unterpunkte, die innerhalb **derselben Seite** wechseln (ADM-081: die Reiter der Freigaben im Menü).
+ *
+ * Aktiv ist ein Unterpunkt, wenn der Elternpunkt aktiv ist und der Abfrageparameter seinen Wert trägt.
+ * Fehlt der Parameter — oder trägt er einen Wert, den kein Unterpunkt kennt —, wählt die Seite selbst
+ * (`waehleArt`); dann gilt der Unterpunkt mit `standard`. Eigene Komponente, weil `useSearchParams`
+ * eine Suspense-Grenze verlangt, ohne den Rest der Leiste an die Adresszeile zu hängen.
+ */
+function Unterpunkte({ kinder, elternAktiv }: { kinder: SidebarKind[]; elternAktiv: boolean }) {
+  const suche = useSearchParams();
+  return (
+    <ul className="mt-0.5 ml-2.5 flex flex-col gap-0.5 border-l border-on-navy/20 pl-2.5">
+      {kinder.map((k) => {
+        const gesetzt = k.param ? suche.get(k.param.name) : null;
+        const bekannt = k.param ? kinder.some((x) => x.param?.value === gesetzt) : false;
+        const aktiv =
+          elternAktiv && !!k.param && (bekannt ? gesetzt === k.param.value : k.param.standard === true);
+        return (
+          <li key={k.href}>
+            <Link
+              href={k.href}
+              aria-current={aktiv ? "page" : undefined}
+              className={cn(
+                "flex items-center rounded-ct-sm px-2.5 py-1 ct-help transition-colors hover:bg-on-navy/10 hover:text-on-navy pointer-coarse:min-h-11",
+                aktiv ? "bg-on-navy/10 font-semibold text-on-navy" : "text-on-navy-muted",
+              )}
+            >
+              {k.label}
+              {k.count !== undefined && k.count > 0 && <Zaehler count={k.count} label={k.countLabel} tone="text" />}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
