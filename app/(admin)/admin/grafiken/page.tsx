@@ -1,6 +1,7 @@
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { AbschnittsNavigation, Sektion } from "@/components/ui/Abschnitte";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { GrafikenView } from "./GrafikenView";
@@ -79,17 +80,32 @@ export default async function AdminGrafikenPage() {
   return (
     <>
       <PageHeader word={t.admin.words.graphics} title={t.adminGrafiken.title} description={t.adminGrafiken.lead} />
-      <GrafikenView
-        sessions={(sessionRows ?? []) as SessionZeile[]}
-        bilder={bilder.map((b) => ({ ...b, url: nachPfad.get(b.storage_path) ?? null }))}
-        dateLocale={t.meta.dateLocale}
-        t={t.adminGrafiken}
-        common={{ none: t.common.none }}
+      {/* ADM-075: drei Abschnitte untereinander — wer das Media Kit sucht, soll nicht an der langen Liste vorbei scrollen. */}
+      <AbschnittsNavigation
+        label={t.common.onThisPage}
+        items={[
+          { id: "auftritte", label: g.sectionSessions },
+          ...(editionId
+            ? [
+                { id: "media-kit", label: g.mediaKitTitle },
+                { id: "partnergrafiken", label: g.partnerGraphicsTitle },
+              ]
+            : []),
+        ]}
       />
+      <Sektion id="auftritte" title={g.sectionSessions}>
+        <GrafikenView
+          sessions={(sessionRows ?? []) as SessionZeile[]}
+          bilder={bilder.map((b) => ({ ...b, url: nachPfad.get(b.storage_path) ?? null }))}
+          dateLocale={t.meta.dateLocale}
+          t={t.adminGrafiken}
+          common={{ none: t.common.none, cancel: t.common.cancel, upload: t.common.upload, chooseOtherFile: t.common.chooseOtherFile }}
+        />
+      </Sektion>
 
       {editionId && (
         <>
-          <section aria-labelledby="h-media-kit" className="mt-10">
+          <section id="media-kit" aria-labelledby="h-media-kit" className="mt-10 scroll-mt-20">
             <h2 id="h-media-kit" className="ct-h2 text-ink">{g.mediaKitTitle}</h2>
             <p className="ct-help mt-1 mb-4 max-w-text">{g.mediaKitLead}</p>
             <MediaKitAdmin
@@ -126,7 +142,7 @@ export default async function AdminGrafikenPage() {
             />
           </section>
 
-          <section aria-labelledby="h-partnergrafiken" className="mt-10">
+          <section id="partnergrafiken" aria-labelledby="h-partnergrafiken" className="mt-10 scroll-mt-20">
             <h2 id="h-partnergrafiken" className="ct-h2 text-ink">{g.partnerGraphicsTitle}</h2>
             <p className="ct-help mt-1 mb-4 max-w-text">{g.partnerGraphicsLead}</p>
             <PartnergrafikenAdmin
@@ -137,6 +153,9 @@ export default async function AdminGrafikenPage() {
               }))}
               dateLocale={t.meta.dateLocale}
               t={{
+                colPartner: g.colPartner,
+                colStatus: g.colStatus,
+                colActions: g.colActions,
                 search: g.partnerGraphicsSearch,
                 count: g.partnerGraphicsCount,
                 version: g.partnerGraphicsVersion,

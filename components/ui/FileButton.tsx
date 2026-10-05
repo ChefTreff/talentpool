@@ -57,6 +57,7 @@ export function FileButton({
   icon,
   className,
   variant = "primary",
+  size = "md",
   sofort = false,
   laedt = false,
 }: {
@@ -84,6 +85,12 @@ export function FileButton({
    * `<Button variant="secondary">`.
    */
   variant?: "primary" | "secondary";
+  /**
+   * `sm` für eine Zeile mit anderen kleinen Knöpfen (ADM-075, Partnergrafiken): 32 px wie `<Button size="sm">`, am
+   * Handy 44. Der Auswahl-Knopf stand sonst als einziger 44 px hoch zwischen 32-px-Nachbarn. `md` (Vorgabe) bleibt
+   * der Knopf einer eigenen Zeile.
+   */
+  size?: "md" | "sm";
   /**
    * Die Auswahl startet den Upload gleich: `onFile` läuft direkt aus dem
    * Dateifenster, es gibt keinen zweiten Klick. Für Porträts und andere
@@ -126,7 +133,8 @@ export function FileButton({
               Feld selbst, das direkt darunter liegt. */}
           <span
             className={cn(
-              "inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-ct-md px-5 ct-label transition-colors",
+              "inline-flex cursor-pointer items-center gap-2 rounded-ct-md ct-label transition-colors",
+              size === "sm" ? "h-8 px-3 pointer-coarse:min-h-11" : "min-h-11 px-5",
               variant === "secondary"
                 ? "border-2 border-accent bg-transparent text-accent-strong hover:bg-accent/10"
                 : "bg-accent-strong text-on-navy hover:bg-accent-deep",
