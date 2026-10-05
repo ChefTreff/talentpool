@@ -26,6 +26,7 @@ docs/design-briefing.md|07_Mockups & Design/Design-Briefing v0.3 (Claude, 2026-0
 docs/design-vorschlaege-2026-09-24.md|07_Mockups & Design/Design-Vorschläge 2026-09-24 (Claude).md
 docs/design-vorschlaege-2026-10-04.md|07_Mockups & Design/Design-Vorschläge 2026-10-04 — Hackathon-Startseite als Event-Seite (Claude).md
 docs/design-vorschlaege-2026-10-05.md|07_Mockups & Design/Design-Vorschläge 2026-10-05 — Personen-Fenster Speaker (Claude).md
+docs/design-vorschlaege-2026-10-06.md|07_Mockups & Design/Design-Vorschläge 2026-10-06 — Partner-Portal Wiki, Daten, Dateien, Tickets, Talk (Claude).md
 docs/entscheidungen-archiv.md|08_Projektplan & MVP/Entscheidungslog Archiv bis 13.09.2026 (Claude).md
 docs/entscheidungen.md|08_Projektplan & MVP/Entscheidungslog (Claude, laufend).md
 docs/abschluss-checkliste.md|08_Projektplan & MVP/Abschluss-Checkliste (Claude, laufend).md
