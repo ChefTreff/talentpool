@@ -94,20 +94,22 @@ describe("LEAD-054: vor und nach der Zusage", () => {
 describe("LEAD-054: Oberfläche", () => {
   const fenster = () => quelle("app/(speaker-leads)/speaker-leads/SpeakerFenster.tsx");
   const liste = () => quelle("app/(speaker-leads)/speaker-leads/PipelineView.tsx");
+  // Der Kopf mit Hauptaktion, Menü und „Als Nächstes“ steht seit LEAD-055 Teil 2 einmal für Fenster und Admin-Detail.
+  const kopf = () => quelle("components/speaker/SpeakerKopf.tsx");
 
   // LEAD-055 hat das Fenster umgebaut (Kopf mit einer Hauptaktion, fünf Blöcke): was LEAD-054 zusagt, gilt weiter, steht aber
   // an neuer Stelle — die Zusage ist die Hauptaktion des Kopfes, die Stände ändert „Stand ändern …“, die drei Blöcke nach der
   // Zusage haben ihre Bedingung, die Pflichten stehen als Marken und als „Als Nächstes“ (`tests/lead-055-fenster.test.ts`).
   it("das Fenster zeigt vor der Zusage nur die Stände bis zur Zusage und meldet sie mit einer Aktion", () => {
-    const f = fenster();
-    assert.match(f, /const nachZusage = warNachZusage\(speaker\);/);
+    assert.match(fenster(), /const nachZusage = warNachZusage\(speaker\);/);
+    const k = kopf();
     // „Stand ändern …“: nur die Stände der Phase
-    assert.match(f, /\(nachZusage \|\| STAENDE_VOR_ZUSAGE\.includes\(s\)\)/);
+    assert.match(k, /\(nachZusage \|\| STAENDE_VOR_ZUSAGE\.includes\(s\)\)/);
     // die Zusage ist die Hauptaktion — hier die Meldung, mit dem Namen im Toast
-    assert.match(f, /setPipeline\(speaker\.id, "confirmed"\), t\.confirmedMoved\.replace\("\{name\}", name\)/);
-    assert.match(f, /kannZusageMelden\(speaker\.pipeline_status\) && <p className="ct-help mt-2">\{t\.pipelineLockedHint\}<\/p>/);
+    assert.match(k, /aktionen\.setPipeline\("confirmed"\), t\.confirmedMoved\.replace\("\{name\}", name\)/);
+    assert.match(k, /kannZusageMelden\(speaker\.pipeline_status\) && <p className="ct-help mt-2">\{t\.pipelineLockedHint\}<\/p>/);
     // vor der Zusage heisst der Schritt „Hat bestätigt“, danach wieder wie im Vokabular
-    assert.match(f, /s === "confirmed" && !nachZusage \? t\.confirmAction/);
+    assert.match(k, /s === "confirmed" && !nachZusage \? t\.confirmAction/);
   });
 
   it("Onboarding, Hospitality und Programm stehen erst nach der Zusage im Fenster", () => {
@@ -133,8 +135,8 @@ describe("LEAD-054: Oberfläche", () => {
     assert.match(f, /const pflichten = naechstePflichten\(speaker\);/);
     assert.match(f, /const marken = blockMarken\(pflichten\);/);
     assert.match(f, /const aktion = hauptaktion\(speaker, isTeam\);/);
-    assert.match(f, /t\[`duty_\$\{naechstes\.pflicht\}`\]/);
-    assert.match(f, /nachZusage && !gast \? t\.dutiesDone : t\.noNextStep/);
+    assert.match(kopf(), /t\[`duty_\$\{naechstes\.pflicht\}`\]/);
+    assert.match(kopf(), /nachZusage && !gast \? t\.dutiesDone : t\.noNextStep/);
     // eine Mail an den Speaker löst die Einladung aus: sie fragt vorher und nennt die Adresse
     assert.match(f, /fuehreAus\(\(\) => inviteSpeaker\(speaker\.id\), t\.invited\)/);
     assert.match(f, /nenne\(t\.inviteConfirmBody, \{ email: speaker\.email \}\)/);
@@ -149,12 +151,15 @@ describe("LEAD-054: Oberfläche", () => {
     assert.match(l, /<Th>\{t\.colAction\}<\/Th>/);
   });
 
-  it("der Admin hat dieselbe Schnellaktion in der Statuskarte des Speakers (Admin-Weg)", () => {
+  it("der Admin hat dieselbe Hauptaktion im Kopf des Speakers (Admin-Weg) — derselbe Baustein wie das Fenster", () => {
     const d = quelle("app/(admin)/admin/speaker/[id]/Detail.tsx");
-    assert.match(d, /kannZusageMelden\(speaker\.pipeline_status\) && \(/);
-    assert.match(d, /setPipeline\(speaker\.id, "confirmed"\), t\.statusSaved/);
+    assert.match(d, /<SpeakerKopf\b/);
+    assert.match(d, /setPipeline: \(status, grund\) => setPipeline\(speaker\.id, status, grund \?\? null\)/);
+    // die Zusage in einem Klick steht im Kopf, für Fenster und Admin zugleich
+    assert.match(kopf(), /aktionen\.setPipeline\("confirmed"\), t\.confirmedMoved\.replace\("\{name\}", name\)/);
+    assert.match(kopf(), /kannZusageMelden\(speaker\.pipeline_status\) && <p className="ct-help mt-2">\{t\.pipelineLockedHint\}<\/p>/);
     for (const sprache of ["de", "en"] as const) {
-      assert.ok(woerterbuch(sprache).adminSpeaker.confirmAction, `${sprache}.adminSpeaker.confirmAction fehlt`);
+      assert.ok(woerterbuch(sprache).leads.confirmAction, `${sprache}.leads.confirmAction fehlt`);
     }
   });
 

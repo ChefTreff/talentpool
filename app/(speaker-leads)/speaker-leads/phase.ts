@@ -50,11 +50,17 @@ export function naechstePflichten(
     | "travel_costs_covered"
     | "travel_costs_approved"
     | "sessions"
-  >,
+  > & {
+    /**
+     * PART-091: der Partner verwaltet alles, die Mails gehen an seinen Kontakt — dann gibt es keine Einladung des Speakers
+     * (das Admin-Detail kennt das aus `speaker_detail()`; die Liste der Leads trägt es nicht, dort ist es `undefined`).
+     */
+    mail_via?: unknown;
+  },
 ): Pflicht[] {
   if (!istNachZusage(s.pipeline_status) || s.stage_guest) return [];
   const offen: Pflicht[] = [];
-  if (!s.invited_at) offen.push("invite");
+  if (!s.invited_at && !s.mail_via) offen.push("invite");
   if (s.hospitality_status === "none") offen.push("hospitality");
   if (s.travel_costs_covered && !s.travel_costs_approved) offen.push("travel");
   if ((s.sessions ?? []).length === 0) offen.push("session");

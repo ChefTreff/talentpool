@@ -197,17 +197,116 @@ describe("LEAD-055: Änderungen verwerfen? — was beim Schließen verloren ging
   });
 });
 
+describe("LEAD-055: der gemeinsame Kopf (Quelltext)", () => {
+  const k = () => quelle("components/speaker/SpeakerKopf.tsx");
+
+  it("Fenster und Admin-Detail nehmen denselben Kopf — Aktionen, Texte und Regeln gibt es einmal", () => {
+    assert.match(quelle("app/(speaker-leads)/speaker-leads/SpeakerFenster.tsx"), /import \{ SpeakerKopf, type KopfErgebnis \} from "@\/components\/speaker\/SpeakerKopf";/);
+    assert.match(quelle("app/(speaker-leads)/speaker-leads/SpeakerFenster.tsx"), /<SpeakerKopf\b/);
+    assert.match(quelle("app/(admin)/admin/speaker/[id]/Detail.tsx"), /<SpeakerKopf\b/);
+  });
+
+  it("nimmt seine Bausteine aus dem Kit: Stufenleiste, Menü, Knöpfe", () => {
+    assert.match(k(), /import \{ Stufenleiste \} from "@\/components\/ui\/Stufenleiste";/);
+    assert.match(k(), /import \{ Menu, MenuItem, MenuSeparator \} from "@\/components\/ui\/Menu";/);
+    assert.match(k(), /import \{ Button, ButtonLink \} from "@\/components\/ui\/Button";/);
+  });
+
+  it("eine Hauptaktion (primär), daneben „Weitere Aktionen“ als Menü im hellen Ton", () => {
+    const text = k();
+    assert.match(text, /const aktion = hauptaktion\(speaker, team\);/);
+    assert.match(text, /<Menu ton="hell" label=\{t\.moreActions\} trigger=\{<span>\{t\.moreActions\}<\/span>\}>/);
+    // genau ein Knopf ohne `variant` in der Aktionszeile: die Hauptaktion
+    const zeileAktion = text.slice(text.indexOf("{/* … die eine Hauptaktion"), text.indexOf("<Menu ton="));
+    assert.equal((zeileAktion.match(/<Button\b/g) ?? []).length, 1);
+    assert.doesNotMatch(zeileAktion, /variant=/);
+    assert.match(zeileAktion, /loading=\{pending\}/);
+  });
+
+  it("die Menüeinträge gibt es nur, wo die Rolle sie darf — die Einladung nie für Gäste und nie, wenn der Partner alles verwaltet", () => {
+    const text = k();
+    assert.match(text, /\{darfWeitergeben && \(\s+<MenuItem/);
+    assert.match(text, /const darfErneutEinladen = !gast && !speaker\.mail_via && nachZusage && !abgesagt && Boolean\(speaker\.invited_at\);/);
+    assert.match(text, /\{!abgesagt && \(\s+<>\s+<MenuSeparator \/>/);
+  });
+
+  it("Absage, Stand ändern und Weitergeben laufen über ein Panel unter der Zeile — kein Dialog über dem Dialog", () => {
+    const text = k();
+    assert.match(text, /\{panel === "absage" && \(/);
+    assert.match(text, /\{panel === "stand" && \(/);
+    assert.match(text, /\{panel === "weitergeben" && \(/);
+    assert.match(text, /aktionen\.setPipeline\("declined", grund\)/);
+    assert.match(text, /aktionen\.setPipeline\(neuerStand\)/);
+    assert.match(text, /aktionen\.handover\(nachfolge \|\| null\)/);
+    // „Stand ändern“ bietet die Absage nicht an — sie hat einen eigenen Eintrag mit Grund
+    assert.match(text, /s !== speaker\.pipeline_status && s !== "declined"/);
+    // vor der Zusage nur die Stände davor
+    assert.match(text, /\(nachZusage \|\| STAENDE_VOR_ZUSAGE\.includes\(s\)\)/);
+  });
+
+  it("die Betreuung leeren darf nur, wer es darf (Admin): sonst ist ein gewählter Empfänger Pflicht", () => {
+    const text = k();
+    assert.match(text, /const weitergabeBereit = ohneBetreuung \? nachfolge !== aktuellerOwner : nachfolge !== "";/);
+    assert.match(text, /placeholder=\{ohneBetreuung \? t\.withoutOwner : common\.choose\}/);
+  });
+
+  it("die Stufenleiste liest nur; eine Absage hält sie an", () => {
+    const text = k();
+    assert.match(text, /<Stufenleiste[\s\S]*?aktuell=\{speaker\.pipeline_status\}\s+ende=\{abgesagt \? t\.stageEnded : undefined\}\s+\/>/);
+    assert.match(text, /schritte=\{STUFEN\.map\(\(s\) => \(\{ key: s, label: labels\.pipeline\[s\] \?\? s \}\)\)\}/);
+  });
+
+  it("Kontext: Betreuung, „Als Nächstes“ (Pflicht, Aufgabe mit Frist) oder die Absage, E-Mail oder der Satz „Kontakt nicht sichtbar“", () => {
+    const text = k();
+    assert.match(text, /const naechstes = alsNaechstes\(speaker\);/);
+    assert.match(text, /naechstes\.art === "abgesagt"/);
+    assert.match(text, /t\.declinedLine\.replace\("\{date\}", datum\(speaker\.declined_at\)\)/);
+    assert.match(text, /t\[`duty_\$\{naechstes\.pflicht\}`\]/);
+    assert.match(text, /nachZusage && !gast \? t\.dutiesDone : t\.noNextStep/);
+    assert.match(text, /\{speaker\.email \? \(/);
+    assert.match(text, /t\.contactHidden/);
+  });
+
+  it("die Zusage nennt den Namen im Toast (der Platzhalter blieb im Fenster bisher stehen)", () => {
+    assert.match(k(), /t\.confirmedMoved\.replace\("\{name\}", name\)/);
+  });
+
+  it("die Einladung fragt der Aufrufer — der Kopf löst sie nie selbst aus", () => {
+    const text = k();
+    assert.match(text, /else if \(a === "invite"\) onEinladen\(\);/);
+    assert.match(text, /\{darfErneutEinladen && <MenuItem onSelect=\{onEinladen\}>\{t\.inviteAgain\}<\/MenuItem>\}/);
+    // (in Kommentaren darf der Name stehen — gemeint ist der Code)
+    const code = text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+    assert.doesNotMatch(code, /inviteSpeaker|invite_speaker/);
+  });
+
+  it("alle Texte stehen in DE und EN — auch die neuen Schlüssel des Kopfes", () => {
+    const text = k();
+    const direkt = [...text.matchAll(/\bt\.([A-Za-z]\w*)/g)].map((m) => m[1]).filter((x) => x !== "replace");
+    const ueberAktion = [...text.matchAll(/^\s+\w+: "(action\w+|confirmAction)",$/gm)].map((m) => m[1]);
+    const schluessel = [...new Set([...direkt, ...ueberAktion])];
+    assert.ok(schluessel.length > 30, "der Kopf liest viele Texte");
+    for (const sprache of ["de", "en"] as const) {
+      const w = woerterbuch(sprache).leads;
+      assert.deepEqual(schluessel.filter((x) => w[x] === undefined), [], `${sprache}.leads: fehlende Texte`);
+    }
+    // die Überfällig-Marke und die Frist kommen aus dem Verlauf
+    for (const sprache of ["de", "en"] as const) {
+      const w = woerterbuch(sprache).speakerVerlauf;
+      for (const x of ["overdue", "dueToday", "dueOn"]) assert.ok(w[x], `${sprache}.speakerVerlauf.${x}`);
+    }
+  });
+});
+
 describe("LEAD-055: das Fenster (Quelltext)", () => {
   const f = () => quelle("app/(speaker-leads)/speaker-leads/SpeakerFenster.tsx");
 
-  it("nimmt seine Bausteine aus dem Kit: Block, Stufenleiste, Menü, Porträt, Rückfrage", () => {
+  it("nimmt seine Bausteine aus dem Kit: Block, Porträt, InfoList, Rückfrage", () => {
     for (const [name, pfad] of [
       ["Block", "@/components/ui/Block"],
-      ["Stufenleiste", "@/components/ui/Stufenleiste"],
       ["PortraitShape", "@/components/ui/PortraitShape"],
       ["InfoList", "@/components/ui/InfoList"],
     ]) assert.match(f(), new RegExp(`import \\{ ${name} \\} from "${pfad.replace(/\//g, "\\/")}";`), name);
-    assert.match(f(), /import \{ Menu, MenuItem, MenuSeparator \} from "@\/components\/ui\/Menu";/);
     assert.match(f(), /import \{[^}]*\bConfirmDialog\b[^}]*\} from "@\/components\/ui\/Modal";/);
   });
 
@@ -249,49 +348,15 @@ describe("LEAD-055: das Fenster (Quelltext)", () => {
     assert.doesNotMatch(grunddaten, /offen=/);
   });
 
-  it("eine Hauptaktion (primär), daneben „Weitere Aktionen“ als Menü im hellen Ton", () => {
+  it("der Kopf bekommt Rolle, Aktionen und Rückfrage vom Fenster: die Einladung fragt vorher und nennt die Adresse", () => {
     const text = f();
-    assert.match(text, /const aktion = hauptaktion\(speaker, isTeam\);/);
-    assert.match(text, /<Menu ton="hell" label=\{t\.moreActions\} trigger=\{<span>\{t\.moreActions\}<\/span>\}>/);
-    // genau ein Knopf ohne `variant` in der Aktionszeile: die Hauptaktion
-    const zeileAktion = text.slice(text.indexOf("{/* … die eine Hauptaktion"), text.indexOf("<Menu ton="));
-    assert.equal((zeileAktion.match(/<Button\b/g) ?? []).length, 1);
-    assert.doesNotMatch(zeileAktion, /variant=/);
-    assert.match(zeileAktion, /loading=\{pending\}/);
-  });
-
-  it("die Menüeinträge gibt es nur, wo die Rolle sie darf", () => {
-    const text = f();
-    assert.match(text, /const darfWeitergeben = \(isTeam \|\| speaker\.owner_person_id === meId\) && managers\.length > 0;/);
-    assert.match(text, /const darfErneutEinladen = !gast && nachZusage && !abgesagt && Boolean\(speaker\.invited_at\);/);
-    assert.match(text, /\{!abgesagt && \(\s+<>\s+<MenuSeparator \/>/);
-  });
-
-  it("Absage, Stand ändern und Weitergeben laufen über ein Panel unter der Zeile — kein Dialog über dem Dialog", () => {
-    const text = f();
-    assert.match(text, /\{panel === "absage" && \(/);
-    assert.match(text, /\{panel === "stand" && \(/);
-    assert.match(text, /\{panel === "weitergeben" && \(/);
-    assert.match(text, /setPipeline\(speaker\.id, "declined", grund\)/);
-    assert.match(text, /setPipeline\(speaker\.id, neuerStand\)/);
-    assert.match(text, /handoverSpeaker\(speaker\.id, nachfolge\)/);
-    // „Stand ändern“ bietet die Absage nicht an — sie hat einen eigenen Eintrag mit Grund
-    assert.match(text, /s !== speaker\.pipeline_status && s !== "declined"/);
-  });
-
-  it("die Stufenleiste liest nur; eine Absage hält sie an", () => {
-    const text = f();
-    assert.match(text, /<Stufenleiste[\s\S]*?aktuell=\{speaker\.pipeline_status\}\s+ende=\{abgesagt \? t\.stageEnded : undefined\}\s+\/>/);
-    assert.match(text, /schritte=\{STUFEN\.map\(\(s\) => \(\{ key: s, label: labels\.pipeline\[s\] \?\? s \}\)\)\}/);
-  });
-
-  it("Kontext: Betreuung, „Als Nächstes“ (Pflicht, Aufgabe mit Frist) oder die Absage, E-Mail oder der Satz „Kontakt nicht sichtbar“", () => {
-    const text = f();
-    assert.match(text, /const naechstes = alsNaechstes\(speaker\);/);
-    assert.match(text, /naechstes\.art === "abgesagt"/);
-    assert.match(text, /nenne\(t\.declinedLine, \{ date: datum\(speaker\.declined_at\) \}\)/);
-    assert.match(text, /\{speaker\.email \? \(/);
-    assert.match(text, /t\.contactHidden/);
+    assert.match(text, /<SpeakerKopf[\s\S]*?team=\{isTeam\}[\s\S]*?onRun=\{fuehreAus\}\s+onEinladen=\{\(\) => setEinladungFrage\(true\)\}/);
+    assert.match(text, /blockPrefix="fenster-"/);
+    assert.match(text, /body=\{speaker\.email \? nenne\(t\.inviteConfirmBody, \{ email: speaker\.email \}\) : t\.inviteConfirmBodyNoMail\}/);
+    assert.match(text, /fuehreAus\(\(\) => inviteSpeaker\(speaker\.id\), t\.invited\)/);
+    // der Kopf und der Block Onboarding fragen; sonst ruft nichts im Fenster `inviteSpeaker` auf
+    assert.equal((text.match(/setEinladungFrage\(true\)/g) ?? []).length, 2);
+    assert.equal((text.match(/inviteSpeaker\(/g) ?? []).length, 1);
   });
 
   it("Prio im Kopf nur für das Team, die Hotel-Kategorie nur bei Abweichung und nur der Teil vor der Klammer", () => {
@@ -302,26 +367,13 @@ describe("LEAD-055: das Fenster (Quelltext)", () => {
     assert.match(text, /\{hotelAbweichend && <Badge tone="accent">\{nenne\(t\.hotelBadge, \{ tier: hotelKurz \}\)\}<\/Badge>\}/);
   });
 
-  it("eine Mail an den Speaker (Einladung) fragt vorher und nennt die Adresse — in der Hauptaktion, im Menü und im Block", () => {
-    const text = f();
-    assert.equal((text.match(/setEinladungFrage\(true\)/g) ?? []).length, 3);
-    assert.match(text, /body=\{speaker\.email \? nenne\(t\.inviteConfirmBody, \{ email: speaker\.email \}\) : t\.inviteConfirmBodyNoMail\}/);
-    assert.match(text, /fuehreAus\(\(\) => inviteSpeaker\(speaker\.id\), t\.invited\)/);
-    // ohne Rückfrage ruft nichts im Fenster `inviteSpeaker` auf
-    assert.equal((text.match(/inviteSpeaker\(/g) ?? []).length, 1);
-  });
-
   it("Stand-Aktionen schließen das Fenster nicht; nur „Änderungen speichern“ tut es", () => {
     const text = f();
-    assert.match(text, /function fuehreAus\(aktionFn: \(\) => Promise<LeadResult>, okText: string, danach\?: \(\) => void\)/);
-    const fuehreAus = text.slice(text.indexOf("function fuehreAus"), text.indexOf("function onHauptaktion"));
+    assert.match(text, /function fuehreAus\(aktionFn: \(\) => Promise<KopfErgebnis>, okText: string, danach\?: \(\) => void\)/);
+    const fuehreAus = text.slice(text.indexOf("function fuehreAus"), text.indexOf("function onSave"));
     assert.doesNotMatch(fuehreAus, /onClose\(\)/);
     const onSave = text.slice(text.indexOf("function onSave"), text.indexOf("const opt ="));
     assert.match(onSave, /onClose\(\);/);
-  });
-
-  it("die Zusage nennt den Namen im Toast (der Platzhalter blieb im Fenster bisher stehen)", () => {
-    assert.match(f(), /t\.confirmedMoved\.replace\("\{name\}", name\)/);
   });
 
   it("„Änderungen speichern“ ist zweitrangig, die Fußleiste ist `ModalFuss` und das letzte Kind — ohne eigene Meldung", () => {
@@ -346,20 +398,17 @@ describe("LEAD-055: das Fenster (Quelltext)", () => {
 
   it("alle Texte, die das Fenster liest, stehen in DE und EN", () => {
     const text = f();
-    const direkt = [...text.matchAll(/\bt\.([A-Za-z]\w*)/g)].map((m) => m[1]);
-    const ueberAktion = [...text.matchAll(/^\s+\w+: "(action\w+|confirmAction)",$/gm)].map((m) => m[1]);
-    const schluessel = [...new Set([...direkt, ...ueberAktion])].filter((k) => k !== "replace");
-    assert.ok(schluessel.length > 60, "das Fenster liest viele Texte");
+    const schluessel = [...new Set([...text.matchAll(/\bt\.([A-Za-z]\w*)/g)].map((m) => m[1]))].filter((x) => x !== "replace");
+    assert.ok(schluessel.length > 40, "das Fenster liest viele Texte");
     for (const sprache of ["de", "en"] as const) {
       const w = woerterbuch(sprache).leads;
-      const fehlend = schluessel.filter((k) => w[k] === undefined);
-      assert.deepEqual(fehlend, [], `${sprache}.leads: fehlende Texte`);
+      assert.deepEqual(schluessel.filter((x) => w[x] === undefined), [], `${sprache}.leads: fehlende Texte`);
     }
-    // jede Pflicht, jeder Schritt des Speakers und jede Hauptaktion hat ihren Text
+    // jede Pflicht und jeder Schritt des Speakers hat seinen Text; die Hauptaktionen haben ihre Knopftexte
     for (const sprache of ["de", "en"] as const) {
       const w = woerterbuch(sprache).leads;
       for (const p of ["invite", "hospitality", "travel", "session"]) assert.ok(w[`duty_${p}`], `${sprache}.duty_${p}`);
-      for (const k of ["actionContact", "confirmAction", "actionInvite", "actionHospitality", "actionTravel", "actionSession"]) assert.ok(w[k], `${sprache}.${k}`);
+      for (const x of ["actionContact", "confirmAction", "actionInvite", "actionHospitality", "actionTravel", "actionSession"]) assert.ok(w[x], `${sprache}.${x}`);
     }
   });
 

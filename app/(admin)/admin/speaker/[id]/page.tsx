@@ -8,6 +8,7 @@ import type { ContactOption, SpeakerConsentRow, SpeakerDetail, SpeakerManager } 
 import { aktuellesFotoAdresse } from "@/lib/speaker/foto";
 import { fotoTexte } from "@/components/speaker/foto-texte";
 import { boardEvents } from "@/components/programme/events";
+import { verlaufStandVon, type VerlaufEintrag } from "@/lib/speaker/verlauf";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export default async function AdminSpeakerDetail({
   if (error || !data) notFound();
   const speaker = data as SpeakerDetail;
 
-  const [{ data: managers }, { data: contacts }, vocab, events, { data: consentRows }, fotoUrl] = await Promise.all([
+  const [{ data: managers }, { data: contacts }, vocab, events, { data: consentRows }, fotoUrl, { data: verlaufRows }] = await Promise.all([
     supabase.rpc("speaker_managers"),
     supabase.rpc("edition_contacts_admin", { p_edition_id: speaker.edition_id }),
     loadVocabMap(supabase, locale),
@@ -45,6 +46,8 @@ export default async function AdminSpeakerDetail({
     supabase.rpc("speaker_consents_admin", { p_profile_id: id }),
     // LEAD-029: das Foto auch im Admin hochladen — hier die signierte Adresse.
     aktuellesFotoAdresse(supabase, id),
+    // LEAD-055: die nächste Aufgabe und die letzte Aktivität für den Kopf — `speaker_detail()` trägt sie nicht.
+    supabase.rpc("speaker_activities", { p_profile_id: id }),
   ]);
   const { data: stageRows } = events.length
     ? await supabase
@@ -87,11 +90,13 @@ export default async function AdminSpeakerDetail({
       te={t.speakerEinordnung}
       meId={ctx.personId ?? ""}
       verlaufArten={vgroup(vocab, "speaker_activity_kind")}
+      verlaufStand={verlaufStandVon((verlaufRows ?? []) as VerlaufEintrag[])}
       tv={t.speakerVerlauf}
       tg={t.speakerGast}
       dateLocale={t.meta.dateLocale}
       word={t.admin.words.speakers}
       t={t.adminSpeaker}
+      tl={t.leads}
       common={{
         cancel: t.common.cancel,
         choose: t.common.choose,

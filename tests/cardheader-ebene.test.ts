@@ -72,7 +72,8 @@ describe("CardHeader als Abschnittskopf (QS-054)", () => {
 
   it("es gibt weit mehr Abschnittsköpfe als Ausnahmen", () => {
     const summe = dateien.reduce((s, f) => ({ h2: s.h2 + zaehle(f).h2, h3: s.h3 + zaehle(f).h3 }), { h2: 0, h3: 0 });
-    assert.ok(summe.h2 >= 100, `h2: ${summe.h2}`);
+    // 100 bis LEAD-055 Teil 2: das Admin-Detail der Speaker ist auf `Block` umgezogen (Überschrift im Block, nicht im CardHeader).
+    assert.ok(summe.h2 >= 90, `h2: ${summe.h2}`);
     assert.equal(summe.h3, H3_GESAMT);
   });
 

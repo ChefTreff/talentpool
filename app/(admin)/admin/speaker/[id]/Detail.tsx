@@ -4,11 +4,15 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { Card, CardHeader } from "@/components/ui/Card";
+import { Block } from "@/components/ui/Block";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
+import { InfoList } from "@/components/ui/InfoList";
 import { Input, Textarea } from "@/components/ui/Input";
+import { ConfirmDialog } from "@/components/ui/Modal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
@@ -28,7 +32,8 @@ import {
   type AdminResult,
 } from "../actions";
 import { KontakteCard } from "@/components/speaker/KontakteCard";
-import { kannZusageMelden } from "@/app/(speaker-leads)/speaker-leads/phase";
+import { SpeakerKopf, type KopfErgebnis } from "@/components/speaker/SpeakerKopf";
+import { aufraeumen, blockMarken, naechstePflichten, warNachZusage, type PflichtBlock } from "@/app/(speaker-leads)/speaker-leads/phase";
 import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
 import { Verlauf } from "@/components/speaker/Verlauf";
 import { PhotoUpload } from "@/components/speaker/PhotoUpload";
@@ -38,43 +43,27 @@ import {
   einordnungEntwurf,
   kontaktViaHatAdresse,
 } from "@/lib/speaker/einordnung";
+import type { VerlaufStand } from "@/lib/speaker/verlauf";
 import { RIDER_FLAGS, SOCIAL_KEYS, type ContactOption, type SpeakerConsentRow, type SpeakerDetail, type SpeakerManager } from "../types";
 
 type Strings = Record<string, string>;
 
-const TONE: Record<string, BadgeTone> = {
-  confirmed: "success",
-  onboarded: "success",
-  ready: "success",
-  published: "accent",
-  attended: "accent",
-  declined: "error",
-};
-
 /**
- * Das Detailblatt eines Speakers — **Archetyp B · Detail**
- * (`referenzen/muster.md`).
+ * Das Detailblatt eines Speakers — **Archetyp B · Detail** (`referenzen/muster.md`), seit LEAD-055 (Teil 2) mit demselben
+ * Kopf und denselben Blöcken wie das Personen-Fenster der Leads, nur als Karten: wer das Fenster kennt, kennt die Seite.
  *
- * Alles, was in `speaker_profile` steht, ist hier zu sehen — aber nicht alles
- * in einem einzigen Formular. Die Felder, die man beim Pflegen zusammen
- * anfasst, teilen sich einen Entwurf und **einen** Speichern-Knopf; alles, was
- * sofort wirkt und protokolliert wird (Status, Betreuung, Einladung,
- * Kostenfreigabe), ist eine eigene Handlung mit eigener Rückmeldung. Ein
- * gemeinsames „Speichern" über beides würde verwischen, was gerade passiert
- * ist.
- *
- * Drei Dinge machen den Archetyp aus, und alle drei lösen dasselbe Problem —
- * dass dreißig Felder in acht Karten gleich wichtig aussehen:
- *
- * 1. Das **Handlungsband** ganz oben sammelt, was sofort wirkt. Diese Dinge
- *    haben kein „Speichern", also dürfen sie nicht zwischen Formularfeldern
- *    stehen.
- * 2. **Zwei Spalten ab 1024 px:** links der Entwurf, rechts das Nur-Lesen.
- *    Was von woanders kommt (Reise, Sessions, Zeitstempel), sieht dann auch
- *    anders aus als das, was man hier ändert.
- * 3. Der **Speichern-Balken klebt unten und erscheint nur bei Änderungen**.
- *    Ein dauerhaft sichtbarer Knopf ohne Aufgabe ist eine Einladung zum
- *    Leerklicken — und danach weiß niemand mehr, ob etwas passiert ist.
+ * - **Kopf:** Badges, **eine Hauptaktion**, „Weitere Aktionen“ (Betreuung, Stand ändern, Einladung erneut, Absage), die
+ *   Stufenleiste und die Zeile „Betreut von · Als Nächstes · E-Mail“ — der Baustein `SpeakerKopf`, den auch das Fenster nimmt.
+ *   Was sofort wirkt und protokolliert wird (Stand, Betreuung, Einladung, Kostenfreigabe), steht dort und braucht kein
+ *   „Speichern“; vorher saß es in einem Handlungsband zwischen zwei Spalten.
+ * - **Sechs Blöcke in fester Reihenfolge**, eine Spalte: Grunddaten, Pipeline, Onboarding, Profil, Hospitality, Programm. Der Admin
+ *   sieht in jedem Stand alle (LEAD-054: „Admin sieht weiter alles“); die Marken („Nächste Pflicht“, „Offen · 2“, „Erledigt“, nach
+ *   einer Absage nach der Zusage „Aufräumen“) lesen wie im Fenster aus `naechstePflichten()` und sagen, wo man hinschauen soll.
+ *   Der Block **Profil** (Biografien, Links, Technik) gibt es nur hier: das pflegt der Speaker selbst.
+ * - Die Felder der Blöcke teilen sich **einen** Entwurf und **einen** Speichern-Balken, der unten klebt und **nur bei Änderungen**
+ *   erscheint; was aus anderen Quellen kommt (Reise, Sessions, Zeitstempel, Einwilligungen), steht lesend im jeweiligen Block.
+ *   Ein dauerhaft sichtbarer Knopf ohne Aufgabe ist eine Einladung zum Leerklicken.
+ * - **Admin-Vollständigkeit:** die Seite ist die Obermenge des Fensters — kein Feld des Fensters fehlt hier.
  */
 export function SpeakerDetailView({
   speaker,
@@ -87,9 +76,11 @@ export function SpeakerDetailView({
   einordnungOptionen,
   meId,
   verlaufArten,
+  verlaufStand,
   dateLocale,
   word,
   t,
+  tl,
   te,
   tv,
   tg,
@@ -112,10 +103,14 @@ export function SpeakerDetailView({
   meId: string;
   /** Bezeichnungen aus `speaker_activity_kind` (Verlauf, LEAD-039 Schnitt 2). */
   verlaufArten: Record<string, string>;
+  /** Nächste Aufgabe und letzte Aktivität aus dem Verlauf — `speaker_detail()` liefert sie nicht, die Seite liest sie dazu. */
+  verlaufStand: VerlaufStand;
   dateLocale: string;
   /** Das kursive Wort des Abschnitts im Seitenkopf (QS-037). */
   word: string;
   t: Strings;
+  /** `leads`-Texte — dieselben wie im Fenster: Kopf, Blocktitel, Marken, Kurzfassungen. */
+  tl: Strings;
   /** `speakerEinordnung`-Texte — dieselben wie im Fenster der Speaker-Leads. */
   te: Strings;
   /** `speakerVerlauf`-Texte. */
@@ -130,13 +125,12 @@ export function SpeakerDetailView({
   const [pending, startTransition] = useTransition();
 
   const [draft, setDraft] = useState(() => draftVon(speaker));
-  const [status, setStatus] = useState(speaker.pipeline_status);
-  const [grund, setGrund] = useState(speaker.decline_reason ?? "");
-  const [owner, setOwner] = useState(speaker.owner_person_id ?? "");
   const [lead, setLead] = useState(speaker.lead_contact_id ?? "");
   const [buddy, setBuddy] = useState(speaker.buddy_contact_id ?? "");
   // SPK-072: an wen die Speaker-Mails gehen ("" = den Speaker selbst).
   const [mailVia, setMailViaWahl] = useState(speaker.mail_via?.contact_id ?? "");
+  /** Die Einladung ist eine Mail an den Speaker: sie fragt vorher und nennt die Adresse. */
+  const [einladungFrage, setEinladungFrage] = useState(false);
   const mitZugang = (speaker.speaker_contacts ?? []).filter((k) => k.has_access);
   // Einordnung (LEAD-039): Ausgangsstand aus dem geladenen Speaker — nach
   // `router.refresh()` kommt ein neuer herein, und der Balken verschwindet.
@@ -155,13 +149,21 @@ export function SpeakerDetailView({
   const set = <K extends keyof typeof draft>(key: K, value: (typeof draft)[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
 
-  function report(res: AdminResult, okText: string) {
+  function report(res: AdminResult | KopfErgebnis, okText: string): boolean {
     if (res.ok) {
       toast("success", okText);
       router.refresh();
-      return;
+      return true;
     }
     toast("error", message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+    return false;
+  }
+
+  /** Eine Aktion des Kopfes oder eines Blocks: Toast und Aktualisieren bei Erfolg, der Fehler als Toast sonst. */
+  function fuehreAus(aktion: () => Promise<AdminResult | KopfErgebnis>, okText: string, danach?: () => void) {
+    startTransition(async () => {
+      if (report(await aktion(), okText)) danach?.();
+    });
   }
 
   function onSave() {
@@ -210,9 +212,6 @@ export function SpeakerDetailView({
   const opt = (map: Record<string, string>) =>
     Object.entries(map).map(([value, label]) => ({ value, label }));
 
-  const statusChanged = status !== speaker.pipeline_status;
-  const declining = status === "declined";
-
   // Der Speichern-Balken erscheint nur, wenn es etwas zu speichern gibt.
   // Verglichen wird gegen denselben Ausgangszustand, aus dem `draft` gebaut
   // wurde — nach `router.refresh()` kommt ein neuer `speaker` herein und der
@@ -242,6 +241,97 @@ export function SpeakerDetailView({
     Object.keys(einordnungAenderungen(einordnungVorher, einordnung)).length === 0 &&
     !buehnenGeaendert(einordnungVorher, einordnung);
 
+  // --- Kopf ---------------------------------------------------------------------------------------------------------------
+  // Dieselben Felder wie im Fenster der Leads — `speaker_detail()` nennt sie nur anders.
+  const kopfSpeaker = {
+    pipeline_status: speaker.pipeline_status,
+    confirmed_at: speaker.confirmed_at,
+    declined_at: speaker.declined_at,
+    decline_reason: speaker.decline_reason,
+    owner_person_id: speaker.owner_person_id,
+    owner_name: speaker.owner_name,
+    email: speaker.person.email,
+    invited_at: speaker.invited_at,
+    hospitality_status: speaker.hospitality_status,
+    travel_costs_covered: speaker.travel_costs_covered,
+    travel_costs_approved: speaker.travel_costs_approved_at !== null,
+    sessions: speaker.sessions,
+    stage_guest: Boolean(speaker.stage_guest),
+    next_task: verlaufStand.next_task,
+    mail_via: speaker.mail_via,
+  };
+  const nachZusage = warNachZusage(kopfSpeaker);
+  const abgesagt = speaker.pipeline_status === "declined";
+  const gast = Boolean(speaker.stage_guest);
+  const pflichten = naechstePflichten(kopfSpeaker);
+  const marken = blockMarken(pflichten);
+  const haengt = aufraeumen({
+    hospitality_status: speaker.hospitality_status,
+    travel_costs_approved: speaker.travel_costs_approved_at !== null,
+    sessions: speaker.sessions,
+  });
+  const kategorie = speaker.category ? (einordnungOptionen.category[speaker.category] ?? speaker.category) : null;
+  // Das Admin-Detail ist das Team: die interne Einstufung (A/B/C) steht hier im Kopf, im Fenster der Stage Leads nicht.
+  const prio = speaker.priority ? (einordnungOptionen.priority[speaker.priority] ?? speaker.priority) : null;
+  const hotelAbweichend = speaker.hotel_tier !== "standard";
+  const hotelKurz = (labels.hotelTier[speaker.hotel_tier] ?? speaker.hotel_tier).split(" (")[0];
+
+  // --- Blöcke -------------------------------------------------------------------------------------------------------------
+  /** Marke eines Pflicht-Blocks: aus den offenen Pflichten, nach einer Absage „Aufräumen“, für Gäste keine. */
+  const markeVon = (b: PflichtBlock): { text: string; ton: BadgeTone } | undefined => {
+    if (gast) return undefined;
+    if (abgesagt) return haengt[b] ? { text: tl.markCleanup, ton: "warning" } : undefined;
+    const m = marken[b];
+    if (m.zustand === "erledigt") return { text: tl.markDone, ton: "success" };
+    if (m.zustand === "naechste") return { text: tl.markNext, ton: "accent" };
+    return { text: m.n > 1 ? tl.markOpenN.replace("{n}", String(m.n)) : tl.markOpen, ton: "warning" };
+  };
+  const offenVon = (b: PflichtBlock) => !gast && !abgesagt && marken[b].zustand === "naechste";
+
+  const nenne = (vorlage: string, werte: Record<string, string>) =>
+    Object.entries(werte).reduce((text, [k, v]) => text.replace(`{${k}}`, v), vorlage);
+  const teile = (...teile: (string | false | null | undefined)[]) => teile.filter(Boolean).join(" · ") || undefined;
+
+  const offeneAufgaben = verlaufStand.open_tasks ?? 0;
+  const bioFehlt = [!speaker.bio_short_de && "DE", !speaker.bio_short_en && "EN"].filter(Boolean) as string[];
+  const anzahlLinks = SOCIAL_KEYS.filter((k) => (socials0[k] ?? "") !== "").length;
+  const sessions = speaker.sessions;
+
+  const kurzGrunddaten = teile(
+    fotoUrl === null && tl.shortNoPhoto,
+    speaker.internal_notes_visible && !speaker.internal_notes && tl.shortNoNote,
+  );
+  const kurzPipeline = nachZusage
+    ? teile(
+        speaker.confirmed_at && nenne(tl.shortConfirmedOn, { date: datum.format(new Date(speaker.confirmed_at)) }),
+        kategorie && nenne(tl.shortCategory, { c: kategorie }),
+        prio,
+      )
+    : teile(
+        verlaufStand.last_activity_at
+          ? nenne(tl.shortActivity, { date: datum.format(new Date(verlaufStand.last_activity_at)) })
+          : tl.shortNoActivity,
+        offeneAufgaben > 0 && (offeneAufgaben === 1 ? tl.shortOneTask : nenne(tl.shortTasks, { n: String(offeneAufgaben) })),
+      );
+  const kurzOnboarding = teile(
+    speaker.mail_via
+      ? t.shortManaged
+      : speaker.invited_at
+        ? nenne(tl.shortInvited, { date: datum.format(new Date(speaker.invited_at)) })
+        : tl.shortNotInvited,
+    speaker.person.has_account ? t.hasAccount : t.noAccount,
+  );
+  const kurzProfil = teile(
+    bioFehlt.length === 0 ? t.shortBioDone : bioFehlt.length === 2 ? t.shortBioNone : nenne(t.shortBioMissing, { lang: bioFehlt[0] }),
+    anzahlLinks > 0 && (anzahlLinks === 1 ? t.shortOneLink : nenne(t.shortLinks, { n: String(anzahlLinks) })),
+  );
+  const kurzHospitality = teile(
+    `${tl.fieldHospitality}: ${labels.hospitality[speaker.hospitality_status] ?? speaker.hospitality_status}`,
+    `${tl.travel}: ${speaker.travel_costs_covered ? tl.travelCoveredYes : tl.travelCoveredNo}`,
+  );
+  const kurzProgramm =
+    sessions.length === 0 ? tl.shortNoSession : sessions.length === 1 ? tl.shortOneSession : nenne(tl.shortSessions, { n: String(sessions.length) });
+
   return (
     <>
       <PageHeader
@@ -255,289 +345,74 @@ export function SpeakerDetailView({
         }
       />
 
-      {/* Die Seite ist die laengste der Anwendung — zehn Karten untereinander,
-          und man scrollt blind (QS-026). Die Abschnitte stehen hier einmal;
-          dieselbe Liste spiegelt die Seitenleiste. */}
+      {/* Die Seite ist die laengste der Anwendung (QS-026) — jetzt sechs Blöcke statt zehn Karten. Die Abschnitte stehen hier
+          einmal; dieselbe Liste spiegelt die Seitenleiste. */}
       <AbschnittsNavigation
         label={t.sectionsLabel}
         items={[
-          { id: "status", label: t.pipelineTitle },
-          { id: "betreuung", label: t.careTitle },
-          { id: "stammdaten", label: t.basicsTitle },
-          { id: "einordnung", label: te.title },
-          { id: "verlauf", label: tv.title },
-          { id: "bio", label: t.bioTitle },
-          { id: "links", label: t.linksTitle },
-          { id: "hospitality", label: t.hospitalityTitle },
-          { id: "reise", label: t.travelTitle },
-          { id: "sessions", label: t.sessionsTitle },
+          { id: "grunddaten", label: tl.blockBasics },
+          { id: "pipeline", label: tl.blockPipeline },
+          { id: "onboarding", label: tl.blockOnboarding },
+          { id: "profil", label: t.blockProfile },
+          { id: "hospitality", label: tl.blockHospitality },
+          { id: "programm", label: tl.blockProgramme },
         ]}
       />
 
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone={TONE[speaker.pipeline_status] ?? "neutral"}>
-            {labels.pipeline[speaker.pipeline_status] ?? speaker.pipeline_status}
-          </Badge>
-          <Badge>{labels.speakerType[speaker.speaker_type] ?? speaker.speaker_type}</Badge>
-          {speaker.stage_guest && <Badge>{tg.badge}</Badge>}
-          {speaker.stage_guest && <span className="ct-help text-muted">{tg.hint}</span>}
+        {/* --- Kopf: Badges, die eine Hauptaktion, Weitere Aktionen, Stufenleiste, Kontext --------------------------------- */}
+        <Card>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge>{labels.speakerType[speaker.speaker_type] ?? speaker.speaker_type}</Badge>
+            {kategorie && <Badge>{kategorie}</Badge>}
+            {prio && <Badge>{prio}</Badge>}
+            {hotelAbweichend && <Badge tone="accent">{nenne(tl.hotelBadge, { tier: hotelKurz })}</Badge>}
+            {gast && <Badge>{tg.badge}</Badge>}
+            {speaker.assistant_name && (
+              <Badge tone="accent">
+                {tl.assistant}: {speaker.assistant_name}
+              </Badge>
+            )}
+            {speaker.person.has_account ? (
+              <Badge tone="success">{t.hasAccount}</Badge>
+            ) : (
+              <Badge tone="warning">{t.noAccount}</Badge>
+            )}
+          </div>
+          {gast && <p className="ct-help mt-2 text-muted">{tg.hint}</p>}
           {/* PART-091: der Partner verwaltet alles — die Mails gehen an seinen Kontakt. */}
           {speaker.mail_via && (
-            <span className="ct-help text-muted">
-              {(speaker.mail_via.has_access ? t.mailVia : t.mailViaNoAccess).replace(
-                "{name}",
-                speaker.mail_via.name ?? "—",
-              )}
-            </span>
-          )}
-          {speaker.confirmed_at && (
-            <span className="ct-help text-muted">
-              {t.confirmedOn} {datum.format(new Date(speaker.confirmed_at))}
-            </span>
-          )}
-          {speaker.declined_at && (
-            <span className="ct-help text-muted">
-              {t.declinedOn} {datum.format(new Date(speaker.declined_at))}
-              {speaker.decline_reason
-                ? ` · ${labels.declineReason[speaker.decline_reason] ?? speaker.decline_reason}`
-                : ""}
-            </span>
-          )}
-          {speaker.person.has_account ? (
-            <Badge tone="success">{t.hasAccount}</Badge>
-          ) : (
-            <Badge tone="warning">{t.noAccount}</Badge>
-          )}
-        </div>
-
-        {/* --- Handlungsband: wirkt sofort, kein Speichern ------------------ */}
-        <section aria-labelledby="sofort">
-          <h2 id="sofort" className="ct-eyebrow mb-2 text-muted">
-            {t.sectionActions}
-          </h2>
-          <p className="ct-help mb-3">{t.sectionActionsHint}</p>
-          <div className="flex flex-col gap-4">
-        <Card id="status">
-          <CardHeader ebene="h2" title={t.pipelineTitle} description={t.pipelineHint} />
-          <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
-            <Field label={t.pipelineTitle} htmlFor="status">
-              <Select
-                id="status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                options={opt(labels.pipeline)}
-              />
-            </Field>
-            {declining && (
-              <Field label={t.declineReason} htmlFor="grund">
-                <Select
-                  id="grund"
-                  value={grund}
-                  placeholder={common.choose}
-                  onChange={(e) => setGrund(e.target.value)}
-                  options={opt(labels.declineReason)}
-                />
-              </Field>
-            )}
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                disabled={pending || !statusChanged || (declining && grund === "")}
-                onClick={() =>
-                  startTransition(async () =>
-                    report(await setPipeline(speaker.id, status, declining ? grund : null), t.statusSaved),
-                  )
-                }
-              >
-                {t.setStatus}
-              </Button>
-              {/* LEAD-054: die Zusage in einem Klick — dieselbe Aktion wie in der Pipeline der Stage Leads. */}
-              {kannZusageMelden(speaker.pipeline_status) && (
-                <Button
-                  variant="secondary"
-                  disabled={pending}
-                  onClick={() =>
-                    startTransition(async () =>
-                      report(await setPipeline(speaker.id, "confirmed"), t.statusSaved),
-                    )
-                  }
-                >
-                  {t.confirmAction}
-                </Button>
-              )}
-              {/* SPK-070: `invite_speaker` weist Gäste ab (0188) — kein Knopf dafür.
-                  PART-091: ebenso, wenn der Partner alles verwaltet. */}
-              {!speaker.stage_guest && !speaker.mail_via && (
-                <Button
-                  variant="ghost"
-                  disabled={pending}
-                  onClick={() =>
-                    startTransition(async () => report(await inviteSpeaker(speaker.id), t.invited))
-                  }
-                >
-                  {speaker.invited_at ? t.inviteAgain : t.invite}
-                </Button>
-              )}
-            </div>
-          </div>
-          {speaker.invited_at && (
-            <p className="ct-help mt-3 text-muted">
-              {t.invitedOn} {zeitpunkt.format(new Date(speaker.invited_at))}
+            <p className="ct-help mt-2 text-muted">
+              {(speaker.mail_via.has_access ? t.mailVia : t.mailViaNoAccess).replace("{name}", speaker.mail_via.name ?? "—")}
             </p>
           )}
+          <SpeakerKopf
+            speaker={kopfSpeaker}
+            name={name}
+            team
+            ownerOptionen={managers.map((m) => ({ value: m.person_id, label: m.display_name ?? m.email ?? m.person_id }))}
+            darfWeitergeben
+            ohneBetreuung
+            pending={pending}
+            onRun={fuehreAus}
+            onEinladen={() => setEinladungFrage(true)}
+            aktionen={{
+              setPipeline: (status, grund) => setPipeline(speaker.id, status, grund ?? null),
+              handover: (personId) => handoverSpeaker(speaker.id, personId),
+              approveTravel: () => approveTravelCosts(speaker.id, true),
+            }}
+            blockPrefix=""
+            boardPfad="/admin/programm"
+            labels={{ pipeline: labels.pipeline, declineReason: labels.declineReason }}
+            t={tl}
+            tv={tv}
+            common={common}
+            dateLocale={dateLocale}
+          />
         </Card>
 
-        <Card id="betreuung">
-          <CardHeader ebene="h2" title={t.careTitle} description={t.careHint} />
-          <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
-            <Field label={t.owner} htmlFor="owner" className="sm:col-span-2">
-              <Select
-                id="owner"
-                value={owner}
-                placeholder={t.withoutOwner}
-                onChange={(e) => setOwner(e.target.value)}
-                options={managers.map((m) => ({
-                  value: m.person_id,
-                  label: m.display_name ?? m.email ?? m.person_id,
-                }))}
-              />
-            </Field>
-            <Button
-              variant="secondary"
-              disabled={pending || owner === (speaker.owner_person_id ?? "")}
-              onClick={() =>
-                startTransition(async () =>
-                  report(await handoverSpeaker(speaker.id, owner || null), t.ownerSaved),
-                )
-              }
-            >
-              {t.setOwner}
-            </Button>
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-3 sm:items-end">
-            <Field label={t.contactLead} htmlFor="lead">
-              <Select
-                id="lead"
-                value={lead}
-                placeholder={t.contactDefault}
-                onChange={(e) => setLead(e.target.value)}
-                options={contacts
-                  .filter((c) => c.type === "speaker_lead")
-                  .map((c) => ({ value: c.id, label: c.display_name }))}
-              />
-            </Field>
-            <Field label={t.contactBuddy} htmlFor="buddy">
-              <Select
-                id="buddy"
-                value={buddy}
-                placeholder={t.contactDefault}
-                onChange={(e) => setBuddy(e.target.value)}
-                options={contacts
-                  .filter((c) => c.type === "speaker_buddy")
-                  .map((c) => ({ value: c.id, label: c.display_name }))}
-              />
-            </Field>
-            <Button
-              variant="secondary"
-              disabled={
-                pending ||
-                (lead === (speaker.lead_contact_id ?? "") && buddy === (speaker.buddy_contact_id ?? ""))
-              }
-              onClick={() =>
-                startTransition(async () =>
-                  report(await setContacts(speaker.id, lead || null, buddy || null), t.contactsSaved),
-                )
-              }
-            >
-              {t.setContacts}
-            </Button>
-          </div>
-
-          {/* Assistenz, Agentur und Office in einer Liste (SPK-040, 0148).
-              Dieselbe Karte wie im Speaker-Portal — „Admin-Vollständigkeit":
-              was das Team dort sieht, kann es hier auch pflegen. */}
-          <div className="mt-5 border-t pt-4">
-            <KontakteCard
-              kontakte={speaker.speaker_contacts ?? []}
-              readOnly={false}
-              profileId={speaker.id}
-              aktionen={{ save: saveSpeakerContact, remove: removeSpeakerContact }}
-              t={t}
-              common={common}
-              message={message}
-            />
-          </div>
-
-          {/* SPK-072 (PART-091): über wen die Speaker-Mails gehen. Zur Wahl
-              stehen nur Kontakte mit Zugang — ohne ihn liefe die Weiche ohnehin
-              auf den Speaker zurück. Aufheben geht jederzeit. */}
-          {(mitZugang.length > 0 || speaker.mail_via) && (
-            <div className="mt-5 flex flex-wrap items-end gap-3 border-t pt-4">
-              <Field label={t.mailViaLabel} htmlFor="mail-via" hint={t.mailViaHint} className="min-w-64">
-                <Select
-                  id="mail-via"
-                  value={mailVia}
-                  disabled={pending}
-                  onChange={(e) => setMailViaWahl(e.target.value)}
-                  options={[
-                    { value: "", label: t.mailViaSelf },
-                    ...mitZugang.map((k) => ({
-                      value: k.id,
-                      label: [k.first_name, k.last_name].filter(Boolean).join(" ") || k.email || k.kind,
-                    })),
-                    // Eingetragen, aber ohne Zugang: steht gekennzeichnet da, damit
-                    // sich die Umleitung aufheben lässt — sonst zeigte die Liste
-                    // „den Speaker selbst“, und eine Auswahl änderte nichts.
-                    ...(speaker.mail_via && !speaker.mail_via.has_access
-                      ? [{
-                          value: speaker.mail_via.contact_id,
-                          label: t.mailViaNoAccessOption.replace("{name}", speaker.mail_via.name ?? "—"),
-                        }]
-                      : []),
-                  ]}
-                />
-              </Field>
-              <Button
-                variant="secondary"
-                disabled={pending || mailVia === (speaker.mail_via?.contact_id ?? "")}
-                onClick={() =>
-                  startTransition(async () => report(await setMailVia(speaker.id, mailVia || null), t.mailViaSaved))
-                }
-              >
-                {t.mailViaApply}
-              </Button>
-            </div>
-          )}
-        </Card>
-
-        {/* LEAD-029: das Foto wirkt sofort, also ins Handlungsband. */}
-        <PhotoUpload
-          profileId={speaker.id}
-          editionId={speaker.edition_id}
-          photoUrl={fotoUrl}
-          register={registerSpeakerPhotoAsAdmin}
-          ansicht="betreut"
-          t={tf}
-          rpcMessages={rpcMessages}
-        />
-          </div>
-        </section>
-
-        {/* --- Zwei Spalten: links der Entwurf, rechts das Nur-Lesen --------
-            Unter 1024 px untereinander, Entwurf zuerst — wer auf dem Telefon
-            ein Detailblatt öffnet, will ändern, nicht nachschlagen. */}
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-        <section aria-labelledby="entwurf" className="flex flex-col gap-4">
-          <div>
-            <h2 id="entwurf" className="ct-eyebrow text-muted">
-              {t.sectionDraft}
-            </h2>
-            <p className="ct-help">{t.sectionDraftHint}</p>
-          </div>
-        <Card id="stammdaten">
-          <CardHeader ebene="h2" title={t.basicsTitle} />
+        {/* --- Die Blöcke: Reihenfolge fest, nur was offen ist, ändert sich mit dem Stand ----------------------------------- */}
+        <Block id="grunddaten" karte ebene="h2" titel={tl.blockBasics} kurz={kurzGrunddaten}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.speakerType} htmlFor="typ">
               <Select
@@ -573,40 +448,236 @@ export function SpeakerDetailView({
               <p className="ct-small py-2">{speaker.person.preferred_language ?? common.none}</p>
             </Field>
           </div>
-        </Card>
 
-        {/* Einordnung aus der Arbeitstabelle (LEAD-039) — dieselben Felder wie im
-            Fenster der Speaker-Leads, im gemeinsamen Speichern-Balken. */}
-        <Card id="einordnung">
-          <CardHeader ebene="h2" title={te.title} description={te.hint} />
-          <EinordnungFelder
-            idPrefix="einordnung"
-            value={einordnung}
-            onChange={setEinordnung}
-            optionen={einordnungOptionen}
-            t={te}
-            none={common.none}
-            disabled={pending}
+          {/* LEAD-029: das Foto wirkt sofort, ohne Speichern. */}
+          <div className="mt-5">
+            <PhotoUpload
+              profileId={speaker.id}
+              editionId={speaker.edition_id}
+              photoUrl={fotoUrl}
+              register={registerSpeakerPhotoAsAdmin}
+              ansicht="betreut"
+              variante="abschnitt"
+              t={tf}
+              rpcMessages={rpcMessages}
+            />
+          </div>
+
+          <div className="mt-5">
+            {speaker.internal_notes_visible ? (
+              <Field label={t.notesTitle} htmlFor="notiz" hint={t.notesHint}>
+                <Textarea
+                  id="notiz"
+                  rows={4}
+                  value={draft.internal_notes}
+                  onChange={(e) => set("internal_notes", e.target.value)}
+                />
+              </Field>
+            ) : (
+              <>
+                <h3 className="ct-label text-ink">{t.notesTitle}</h3>
+                <p className="ct-small mt-1 text-muted">{t.notesHidden}</p>
+              </>
+            )}
+          </div>
+        </Block>
+
+        <Block id="pipeline" karte ebene="h2" titel={tl.blockPipeline} kurz={kurzPipeline} offen={!nachZusage}>
+          {/* Zeitstempel: Zusage- und Absagedatum setzt die Datenbank selbst — beim ersten Wechsel, nicht bei jedem Klick. */}
+          {(speaker.confirmed_at || speaker.declined_at) && (
+            <div className="mb-4">
+              <dl className="ct-help flex flex-col gap-0.5">
+                {speaker.confirmed_at && (
+                  <div className="flex gap-1">
+                    <dt className="font-semibold">{t.confirmedOn}:</dt>
+                    <dd>{datum.format(new Date(speaker.confirmed_at))}</dd>
+                  </div>
+                )}
+                {speaker.declined_at && (
+                  <div className="flex gap-1">
+                    <dt className="font-semibold">{t.declinedOn}:</dt>
+                    <dd>
+                      {datum.format(new Date(speaker.declined_at))}
+                      {speaker.decline_reason
+                        ? ` · ${labels.declineReason[speaker.decline_reason] ?? speaker.decline_reason}`
+                        : ""}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+              <p className="ct-help mt-1 text-muted">{t.pipelineHint}</p>
+            </div>
+          )}
+          <div className="grid gap-x-8 gap-y-6 lg:grid-cols-2">
+            {/* Verlauf (LEAD-039 Schnitt 2): speichert je Eintrag sofort und steht deshalb nicht im gemeinsamen
+                Speichern-Balken. Der Anker `#verlauf` führt die Übersicht aller Verläufe hierher — der Browser klappt den
+                Block dabei von selbst auf. */}
+            <section id="verlauf" className="scroll-mt-20">
+              <h3 className="ct-label mb-1 text-ink">{tv.title}</h3>
+              <p className="ct-help mb-3">{tv.hint}</p>
+              <Verlauf
+                profileId={speaker.id}
+                meId={meId}
+                zustaendige={managers.map((m) => ({ id: m.person_id, name: m.display_name ?? m.email ?? "—" }))}
+                arten={verlaufArten}
+                dateLocale={dateLocale}
+                t={tv}
+                rpcMessages={rpcMessages}
+              />
+            </section>
+            {/* Einordnung aus der Arbeitstabelle (LEAD-039) — dieselben Felder wie im Fenster der Speaker-Leads, im
+                gemeinsamen Speichern-Balken. */}
+            <section id="einordnung" className="scroll-mt-20">
+              <h3 className="ct-label mb-1 text-ink">{te.title}</h3>
+              <p className="ct-help mb-3">{te.hint}</p>
+              <EinordnungFelder
+                idPrefix="einordnung"
+                value={einordnung}
+                onChange={setEinordnung}
+                optionen={einordnungOptionen}
+                t={te}
+                none={common.none}
+                disabled={pending}
+              />
+            </section>
+          </div>
+        </Block>
+
+        <Block
+          id="onboarding"
+          karte
+          ebene="h2"
+          titel={tl.blockOnboarding}
+          marke={markeVon("onboarding")}
+          kurz={kurzOnboarding}
+          offen={offenVon("onboarding")}
+        >
+          <InfoList
+            schmal
+            items={[
+              {
+                key: "invited",
+                label: tl.onboardingInvitation,
+                value: speaker.mail_via
+                  ? t.shortManaged
+                  : speaker.invited_at
+                    ? `${t.invitedOn} ${zeitpunkt.format(new Date(speaker.invited_at))}`
+                    : tl.shortNotInvited,
+              },
+              { key: "access", label: t.portalAccess, value: speaker.person.has_account ? t.accessYes : t.accessNo },
+              { key: "email", label: tl.onboardingEmail, value: speaker.person.email ?? common.none },
+            ]}
           />
-        </Card>
+          {/* SPK-070: `invite_speaker` weist Gäste ab (0188) — kein Knopf dafür.
+              PART-091: ebenso, wenn der Partner alles verwaltet. */}
+          {!speaker.stage_guest && !speaker.mail_via && (
+            <div className="mt-3">
+              <Button variant="secondary" size="sm" disabled={pending} onClick={() => setEinladungFrage(true)}>
+                {speaker.invited_at ? tl.inviteAgain : tl.invite}
+              </Button>
+            </div>
+          )}
 
-        {/* Verlauf (LEAD-039 Schnitt 2): speichert je Eintrag sofort und steht
-            deshalb nicht im gemeinsamen Speichern-Balken. */}
-        <Card id="verlauf">
-          <CardHeader ebene="h2" title={tv.title} description={tv.hint} />
-          <Verlauf
-            profileId={speaker.id}
-            meId={meId}
-            zustaendige={managers.map((m) => ({ id: m.person_id, name: m.display_name ?? m.email ?? "—" }))}
-            arten={verlaufArten}
-            dateLocale={dateLocale}
-            t={tv}
-            rpcMessages={rpcMessages}
-          />
-        </Card>
+          {/* SPK-074 (K-40): Einwilligungen der Speakerin, nur lesend. Geben kann sie das Team nicht — nur die Speakerin selbst
+              oder, im Verwaltet-Fall, der Kontakt mit Zugang stellvertretend. */}
+          <Einwilligungen rows={consents} datum={datum} t={t} />
 
-        <Card id="bio">
-          <CardHeader ebene="h2" title={t.bioTitle} description={t.bioHint} />
+          <section className="mt-6 border-t pt-5">
+            <h3 className="ct-label text-ink">{t.careTitle}</h3>
+            <p className="ct-help mb-3">{t.careHint}</p>
+            <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
+              <Field label={t.contactLead} htmlFor="lead">
+                <Select
+                  id="lead"
+                  value={lead}
+                  placeholder={t.contactDefault}
+                  onChange={(e) => setLead(e.target.value)}
+                  options={contacts
+                    .filter((c) => c.type === "speaker_lead")
+                    .map((c) => ({ value: c.id, label: c.display_name }))}
+                />
+              </Field>
+              <Field label={t.contactBuddy} htmlFor="buddy">
+                <Select
+                  id="buddy"
+                  value={buddy}
+                  placeholder={t.contactDefault}
+                  onChange={(e) => setBuddy(e.target.value)}
+                  options={contacts
+                    .filter((c) => c.type === "speaker_buddy")
+                    .map((c) => ({ value: c.id, label: c.display_name }))}
+                />
+              </Field>
+              <Button
+                variant="secondary"
+                disabled={
+                  pending ||
+                  (lead === (speaker.lead_contact_id ?? "") && buddy === (speaker.buddy_contact_id ?? ""))
+                }
+                onClick={() => fuehreAus(() => setContacts(speaker.id, lead || null, buddy || null), t.contactsSaved)}
+              >
+                {t.setContacts}
+              </Button>
+            </div>
+
+            {/* Assistenz, Agentur und Office in einer Liste (SPK-040, 0148). Dieselbe Karte wie im Speaker-Portal —
+                „Admin-Vollständigkeit": was das Team dort sieht, kann es hier auch pflegen. */}
+            <div className="mt-5 border-t pt-4">
+              <KontakteCard
+                kontakte={speaker.speaker_contacts ?? []}
+                readOnly={false}
+                profileId={speaker.id}
+                aktionen={{ save: saveSpeakerContact, remove: removeSpeakerContact }}
+                t={t}
+                common={common}
+                message={message}
+              />
+            </div>
+
+            {/* SPK-072 (PART-091): über wen die Speaker-Mails gehen. Zur Wahl stehen nur Kontakte mit Zugang — ohne ihn
+                liefe die Weiche ohnehin auf den Speaker zurück. Aufheben geht jederzeit. */}
+            {(mitZugang.length > 0 || speaker.mail_via) && (
+              <div className="mt-5 flex flex-wrap items-end gap-3 border-t pt-4">
+                <Field label={t.mailViaLabel} htmlFor="mail-via" hint={t.mailViaHint} className="min-w-64">
+                  <Select
+                    id="mail-via"
+                    value={mailVia}
+                    disabled={pending}
+                    onChange={(e) => setMailViaWahl(e.target.value)}
+                    options={[
+                      { value: "", label: t.mailViaSelf },
+                      ...mitZugang.map((k) => ({
+                        value: k.id,
+                        label: [k.first_name, k.last_name].filter(Boolean).join(" ") || k.email || k.kind,
+                      })),
+                      // Eingetragen, aber ohne Zugang: steht gekennzeichnet da, damit
+                      // sich die Umleitung aufheben lässt — sonst zeigte die Liste
+                      // „den Speaker selbst“, und eine Auswahl änderte nichts.
+                      ...(speaker.mail_via && !speaker.mail_via.has_access
+                        ? [{
+                            value: speaker.mail_via.contact_id,
+                            label: t.mailViaNoAccessOption.replace("{name}", speaker.mail_via.name ?? "—"),
+                          }]
+                        : []),
+                    ]}
+                  />
+                </Field>
+                <Button
+                  variant="secondary"
+                  disabled={pending || mailVia === (speaker.mail_via?.contact_id ?? "")}
+                  onClick={() => fuehreAus(() => setMailVia(speaker.id, mailVia || null), t.mailViaSaved)}
+                >
+                  {t.mailViaApply}
+                </Button>
+              </div>
+            )}
+          </section>
+        </Block>
+
+        <Block id="profil" karte ebene="h2" titel={t.blockProfile} kurz={kurzProfil}>
+          <p className="ct-help mb-4">{t.profileHint}</p>
+          <h3 className="ct-label mb-1 text-ink">{t.bioTitle}</h3>
+          <p className="ct-help mb-3">{t.bioHint}</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.bioShortDe} htmlFor="bsd">
               <Textarea id="bsd" rows={3} value={draft.bio_short_de} onChange={(e) => set("bio_short_de", e.target.value)} />
@@ -621,10 +692,8 @@ export function SpeakerDetailView({
               <Textarea id="ble" rows={5} value={draft.bio_long_en} onChange={(e) => set("bio_long_en", e.target.value)} />
             </Field>
           </div>
-        </Card>
 
-        <Card id="links">
-          <CardHeader ebene="h2" title={t.linksTitle} />
+          <h3 className="ct-label mb-3 mt-6 border-t pt-5 text-ink">{t.linksTitle}</h3>
           <div className="grid gap-4 sm:grid-cols-3">
             {SOCIAL_KEYS.map((k) => (
               <Field key={k} label={t[`social_${k}`] ?? k} htmlFor={`s-${k}`}>
@@ -639,24 +708,24 @@ export function SpeakerDetailView({
             <Field label={t.riderNotes} htmlFor="rn">
               <Textarea id="rn" rows={2} value={draft.notes} onChange={(e) => set("notes", e.target.value)} />
             </Field>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               {RIDER_FLAGS.map((k) => (
-                <label key={k} className="flex items-center gap-2 ct-small">
-                  <input
-                    type="checkbox"
-                    checked={draft[k]}
-                    onChange={(e) => set(k, e.target.checked)}
-                    className="size-4"
-                  />
-                  {t[`rider_${k}`] ?? k}
-                </label>
+                <Checkbox key={k} label={t[`rider_${k}`] ?? k} checked={draft[k]} onChange={(e) => set(k, e.target.checked)} />
               ))}
             </div>
           </div>
-        </Card>
+        </Block>
 
-        <Card id="hospitality">
-          <CardHeader ebene="h2" title={t.hospitalityTitle} description={t.hospitalityHint} />
+        <Block
+          id="hospitality"
+          karte
+          ebene="h2"
+          titel={tl.blockHospitality}
+          marke={markeVon("hospitality")}
+          kurz={kurzHospitality}
+          offen={offenVon("hospitality")}
+        >
+          <p className="ct-help mb-4">{t.hospitalityHint}</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t.passType} htmlFor="pass">
               <Select id="pass" value={draft.pass_type} onChange={(e) => set("pass_type", e.target.value)} options={opt(labels.passType)} />
@@ -667,19 +736,10 @@ export function SpeakerDetailView({
             <Field label={t.hotelTier} htmlFor="ht">
               <Select id="ht" value={draft.hotel_tier} onChange={(e) => set("hotel_tier", e.target.value)} options={opt(labels.hotelTier)} />
             </Field>
-            <div className="flex flex-col justify-center gap-2">
-              <label className="flex items-center gap-2 ct-small">
-                <input type="checkbox" checked={draft.lounge_access} onChange={(e) => set("lounge_access", e.target.checked)} className="size-4" />
-                {t.loungeAccess}
-              </label>
-              <label className="flex items-center gap-2 ct-small">
-                <input type="checkbox" checked={draft.reception_eligible} onChange={(e) => set("reception_eligible", e.target.checked)} className="size-4" />
-                {t.receptionEligible}
-              </label>
-              <label className="flex items-center gap-2 ct-small">
-                <input type="checkbox" checked={draft.travel_costs_covered} onChange={(e) => set("travel_costs_covered", e.target.checked)} className="size-4" />
-                {t.travelCostsCovered}
-              </label>
+            <div className="flex flex-col justify-center gap-1">
+              <Checkbox label={t.loungeAccess} checked={draft.lounge_access} onChange={(e) => set("lounge_access", e.target.checked)} />
+              <Checkbox label={t.receptionEligible} checked={draft.reception_eligible} onChange={(e) => set("reception_eligible", e.target.checked)} />
+              <Checkbox label={t.travelCostsCovered} checked={draft.travel_costs_covered} onChange={(e) => set("travel_costs_covered", e.target.checked)} />
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t pt-4">
@@ -698,11 +758,9 @@ export function SpeakerDetailView({
               variant="ghost"
               disabled={pending}
               onClick={() =>
-                startTransition(async () =>
-                  report(
-                    await approveTravelCosts(speaker.id, speaker.travel_costs_approved_at === null),
-                    speaker.travel_costs_approved_at === null ? t.approved : t.approvalRevoked,
-                  ),
+                fuehreAus(
+                  () => approveTravelCosts(speaker.id, speaker.travel_costs_approved_at === null),
+                  speaker.travel_costs_approved_at === null ? t.approved : t.approvalRevoked,
                 )
               }
             >
@@ -713,89 +771,46 @@ export function SpeakerDetailView({
             speaker={speaker}
             labels={labels.expenseMode}
             pending={pending}
-            onSave={(mode, cents) =>
-              startTransition(async () => report(await setExpenseMode(speaker.id, mode, cents), t.saved))
-            }
+            onSave={(mode, cents) => fuehreAus(() => setExpenseMode(speaker.id, mode, cents), t.saved)}
             t={t}
             common={common}
           />
-        </Card>
 
-        {speaker.internal_notes_visible ? (
-          <Card>
-            <CardHeader ebene="h2" title={t.notesTitle} description={t.notesHint} />
-            <Textarea
-              rows={4}
-              value={draft.internal_notes}
-              onChange={(e) => set("internal_notes", e.target.value)}
-            />
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader ebene="h2" title={t.notesTitle} />
-            <p className="ct-small text-muted">{t.notesHidden}</p>
-          </Card>
-        )}
-
-          {/* Der Balken klebt unten — aber nur, solange es etwas zu speichern
-              gibt. Ein Knopf, der nichts tut, ist eine Einladung zum
-              Leerklicken. */}
-          {!unveraendert && (
-            <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center justify-end gap-3 border-t bg-canvas px-1 py-3">
-              <span className="ct-help mr-auto">{t.unsaved}</span>
-              <Button
-                variant="ghost"
-                disabled={pending}
-                onClick={() => {
-                  setDraft(draftVon(speaker));
-                  setEinordnung(einordnungVorher);
-                }}
-              >
-                {t.discard}
-              </Button>
-              {/* Mit einer Adresse in „Kontakt via“ nicht speichern — das Feld sagt, warum. */}
-              <Button onClick={onSave} disabled={pending || adresse}>
-                {common.save}
-              </Button>
+          {/* Die An- und Abreise trägt der Speaker selbst ein; hier steht nur, was da ist. */}
+          <section className="mt-6 border-t pt-5">
+            <h3 className="ct-label text-ink">{t.travelTitle}</h3>
+            <p className="ct-help mb-3">{t.travelHint}</p>
+            <div className="flex flex-col gap-3">
+              {!speaker.travel && <p className="ct-small text-muted">{t.noTravel}</p>}
+              <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                {speaker.travel && (
+                  <>
+                    <Zeile label={t.arrival} value={reise(speaker.travel.arrival_date, speaker.travel.arrival_time, speaker.travel.arrival_mode, speaker.travel.arrival_ref, labels.travelMode, datum, common.none)} />
+                    <Zeile label={t.departure} value={reise(speaker.travel.departure_date, speaker.travel.departure_time, speaker.travel.departure_mode, speaker.travel.departure_ref, labels.travelMode, datum, common.none)} />
+                  </>
+                )}
+                {/* SPK-069: was gebucht ist, statt des alten Abhol-Hakens — auch ohne eingetragene Anreise. */}
+                <Zeile label={t.shuttle} value={shuttleStand(speaker.shuttle, t)} />
+                {speaker.travel && <Zeile label={t.travelNote} value={speaker.travel.note ?? common.none} />}
+              </dl>
             </div>
-          )}
-        </section>
+          </section>
+        </Block>
 
-        {/* --- Nur lesen ---------------------------------------------------- */}
-        <section aria-labelledby="nurlesen" className="flex flex-col gap-4">
-          <div>
-            <h2 id="nurlesen" className="ct-eyebrow text-muted">
-              {t.sectionReadonly}
-            </h2>
-            <p className="ct-help">{t.sectionReadonlyHint}</p>
-          </div>
-        <Card id="reise">
-          <CardHeader ebene="h2" title={t.travelTitle} description={t.travelHint} />
-          <div className="flex flex-col gap-3">
-            {!speaker.travel && <p className="ct-small text-muted">{t.noTravel}</p>}
-            <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
-              {speaker.travel && (
-                <>
-                  <Zeile label={t.arrival} value={reise(speaker.travel.arrival_date, speaker.travel.arrival_time, speaker.travel.arrival_mode, speaker.travel.arrival_ref, labels.travelMode, datum, common.none)} />
-                  <Zeile label={t.departure} value={reise(speaker.travel.departure_date, speaker.travel.departure_time, speaker.travel.departure_mode, speaker.travel.departure_ref, labels.travelMode, datum, common.none)} />
-                </>
-              )}
-              {/* SPK-069: was gebucht ist, statt des alten Abhol-Hakens — auch ohne eingetragene Anreise. */}
-              <Zeile label={t.shuttle} value={shuttleStand(speaker.shuttle, t)} />
-              {speaker.travel && <Zeile label={t.travelNote} value={speaker.travel.note ?? common.none} />}
-            </dl>
-          </div>
-        </Card>
-
-        <Einwilligungen rows={consents} datum={datum} t={t} />
-
-        <Card id="sessions">
-          <CardHeader ebene="h2" title={t.sessionsTitle} />
-          {speaker.sessions.length === 0 ? (
+        <Block
+          id="programm"
+          karte
+          ebene="h2"
+          titel={tl.blockProgramme}
+          marke={markeVon("programm")}
+          kurz={kurzProgramm}
+          offen={offenVon("programm")}
+        >
+          {sessions.length === 0 ? (
             <p className="ct-small text-muted">{t.noSessions}</p>
           ) : (
             <ul className="flex flex-col gap-2">
-              {speaker.sessions.map((s) => (
+              {sessions.map((s) => (
                 <li key={s.session_id} className="flex flex-wrap items-baseline gap-2 border-b pb-2 last:border-0">
                   <span className="ct-small font-medium">{s.title_de || s.title_en || common.none}</span>
                   {s.stage_name && <span className="ct-help text-muted">{s.stage_name}</span>}
@@ -805,15 +820,55 @@ export function SpeakerDetailView({
               ))}
             </ul>
           )}
-        </Card>
+          <div className="mt-3">
+            <ButtonLink href="/admin/programm" variant="secondary" size="sm">
+              {tl.actionSession}
+            </ButtonLink>
+          </div>
+        </Block>
 
         <p className="ct-help text-muted">
           {t.created} {zeitpunkt.format(new Date(speaker.created_at))} · {t.updated}{" "}
           {zeitpunkt.format(new Date(speaker.updated_at))}
         </p>
-        </section>
-        </div>
+
+        {/* Der Balken klebt unten — aber nur, solange es etwas zu speichern gibt. Ein Knopf, der nichts tut, ist eine
+            Einladung zum Leerklicken. */}
+        {!unveraendert && (
+          <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center justify-end gap-3 border-t bg-canvas px-1 py-3">
+            <span className="ct-help mr-auto">{t.unsaved}</span>
+            <Button
+              variant="ghost"
+              disabled={pending}
+              onClick={() => {
+                setDraft(draftVon(speaker));
+                setEinordnung(einordnungVorher);
+              }}
+            >
+              {t.discard}
+            </Button>
+            {/* Mit einer Adresse in „Kontakt via“ nicht speichern — das Feld sagt, warum. */}
+            <Button onClick={onSave} disabled={pending || adresse}>
+              {common.save}
+            </Button>
+          </div>
+        )}
       </div>
+
+      {einladungFrage && (
+        <ConfirmDialog
+          title={tl.inviteConfirmTitle}
+          body={speaker.person.email ? nenne(tl.inviteConfirmBody, { email: speaker.person.email }) : tl.inviteConfirmBodyNoMail}
+          confirmLabel={tl.invite}
+          cancelLabel={common.cancel}
+          pending={pending}
+          onConfirm={() => {
+            setEinladungFrage(false);
+            fuehreAus(() => inviteSpeaker(speaker.id), tl.invited);
+          }}
+          onCancel={() => setEinladungFrage(false)}
+        />
+      )}
     </>
   );
 }
@@ -879,14 +934,15 @@ function Einwilligungen({ rows, datum, t }: { rows: SpeakerConsentRow[]; datum: 
     return (r.granted ? t.consentGranted : t.consentNotGiven).replace("{date}", tag);
   };
   return (
-    <Card id="einwilligungen">
-      <CardHeader ebene="h2" title={t.consentsTitle} description={t.consentsHint} />
+    <section id="einwilligungen" className="mt-6 scroll-mt-20 border-t pt-5">
+      <h3 className="ct-label text-ink">{t.consentsTitle}</h3>
+      <p className="ct-help mb-3">{t.consentsHint}</p>
       <dl className="grid gap-x-6 gap-y-2">
         {EINWILLIGUNGEN.map(({ art, label }) => (
           <Zeile key={art} label={t[label]} value={text(stand.get(art))} />
         ))}
       </dl>
-    </Card>
+    </section>
   );
 }
 

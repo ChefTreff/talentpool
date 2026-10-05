@@ -61,3 +61,34 @@ export function fristStand(dueOn: string, heuteIso: string): "ueberfaellig" | "h
   if (dueOn === heuteIso) return "heute";
   return "spaeter";
 }
+
+/**
+ * Den Stand des Verlaufs aus den Einträgen **eines** Speakers ableiten — für das Admin-Detail, das `manager_speakers` nicht
+ * aufruft (LEAD-055 Teil 2). Dieselbe Rechnung wie dort: offene Aufgaben sind `task` ohne `done_at`; die nächste ist die mit der
+ * frühesten Frist (bei gleicher Frist die früher eingetragene); die letzte Aktivität ist die späteste Zeit — bei einer Aufgabe
+ * ihr Erledigt-Zeitpunkt, sonst der Zeitpunkt des Eintrags.
+ */
+export function verlaufStandVon(eintraege: readonly VerlaufEintrag[]): VerlaufStand {
+  const zeit = (iso: string) => Date.parse(iso);
+  const offen = eintraege.filter((e) => e.kind === "task" && e.done_at === null && e.due_on !== null);
+  const naechste = [...offen].sort(
+    (a, b) => (a.due_on as string).localeCompare(b.due_on as string) || zeit(a.occurred_at) - zeit(b.occurred_at),
+  )[0];
+  const zeiten = eintraege
+    .map((e) => (e.kind === "task" ? e.done_at : e.occurred_at))
+    .filter((z): z is string => Boolean(z))
+    .map(zeit);
+  return {
+    open_tasks: offen.length,
+    next_task: naechste
+      ? {
+          id: naechste.id,
+          body: naechste.body,
+          due_on: naechste.due_on as string,
+          assignee_person_id: naechste.assignee_person_id,
+          assignee_name: naechste.assignee_name,
+        }
+      : null,
+    last_activity_at: zeiten.length > 0 ? new Date(Math.max(...zeiten)).toISOString() : null,
+  };
+}
