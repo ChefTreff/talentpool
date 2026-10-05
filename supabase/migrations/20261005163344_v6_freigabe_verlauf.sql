@@ -1,3 +1,5 @@
+-- 0267 · „Bereits freigegeben“ je Freigabe-Art (freigabe_verlauf, Keyset-Blättern)
+-- Angewendet von der Architektur-Session am 05.10.2026 als 20261005163344.
 -- NNNN · Freigabe-Verlauf: „Bereits freigegeben“ je Reiter der zentralen Freigabe-Übersicht (ADM-081 Teil 2, Konrad 05.10.2026)
 --
 -- Anlass: Unter den offenen Einträgen jedes Reiters (`/admin/einreichungen`) soll eine eingeklappte Ansicht „Bereits
