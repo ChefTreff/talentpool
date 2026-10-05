@@ -38,6 +38,8 @@ export type BoardSlot = {
   slot_id: string;
   stage_id: string;
   stage_name: string;
+  /** Art der Bühne aus `programme_board` (`main`, `partner_booth`, …); die Sicht liefert sie immer. */
+  stage_type?: string | null;
   event_day_id: string;
   day_date: string;
   event_id: string;

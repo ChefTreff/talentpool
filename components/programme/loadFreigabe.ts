@@ -67,15 +67,16 @@ export async function loadSlotFreigaben(roleNames: readonly string[]): Promise<S
     };
   });
 
-  // Hauptbühnen: platziert, nicht veröffentlicht, nicht abgesagt.
+  // Hauptbühnen: platziert, nicht veröffentlicht, nicht abgesagt. **Dieselbe Regel steht in
+  // `freigabe_zaehler()`** (Menü-Zähler, ADM-072b) — Bühnenart aus der Sicht selbst, nicht aus der Liste der aktiven
+  // Bühnen, damit eine inaktive Standbühne hier nicht anders gezählt wird als im Menü.
   const partnerIds = new Set(partner.map((p) => p.session_id));
-  const standbuehnen = new Set(data.stages.filter((s) => s.type === "partner_booth").map((s) => s.id));
   const buehnen: BuehnenFreigabe[] = data.rows
     .filter(
       (r) =>
         r.session_id &&
         !partnerIds.has(r.session_id) &&
-        !standbuehnen.has(r.stage_id) &&
+        r.stage_type !== "partner_booth" &&
         (r.publish_status === "draft" || r.publish_status === "review"),
     )
     .map((r) => ({
