@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -58,6 +59,7 @@ const STATUS_TONE: Record<string, BadgeTone> = {
 };
 
 export function ExpenseQueue({
+  modus = "verlauf",
   claims,
   categories,
   dateLocale,
@@ -65,6 +67,13 @@ export function ExpenseQueue({
   common,
   rpcMessages,
 }: {
+  /**
+   * ADM-072: **Freigeben und Zurückweisen gibt es nur in der zentralen Freigabe-Übersicht**
+   * (`modus="freigabe"`, nur eingereichte Anträge). Im Bereich Reisekosten (`verlauf`) stehen
+   * alle Anträge zum Lesen; was danach kommt — als ausgezahlt buchen, Rechnung ablegen, die
+   * Bankdaten ansehen — bleibt dort, denn es ist keine Freigabe.
+   */
+  modus?: "freigabe" | "verlauf";
   claims: QueueClaim[];
   categories: Record<string, string>;
   dateLocale: string;
@@ -239,15 +248,24 @@ export function ExpenseQueue({
             </div>
 
             <div className="flex w-full max-w-80 flex-col gap-2">
-              <Field label={t.note} htmlFor={`note-${c.id}`} hint={t.noteHint}>
-                <Input
-                  id={`note-${c.id}`}
-                  value={note(c.id)}
-                  onChange={(e) => setNotes((n) => ({ ...n, [c.id]: e.target.value }))}
-                />
-              </Field>
+              {/* Die Anmerkung gehört zur Entscheidung (Zurückweisen verlangt sie) und zur
+                  Auszahlung (Zahlungsreferenz) — sonst steht sie nirgends. */}
+              {(modus === "freigabe" || c.status === "approved") && (
+                <Field label={t.note} htmlFor={`note-${c.id}`} hint={t.noteHint}>
+                  <Input
+                    id={`note-${c.id}`}
+                    value={note(c.id)}
+                    onChange={(e) => setNotes((n) => ({ ...n, [c.id]: e.target.value }))}
+                  />
+                </Field>
+              )}
               <div className="flex flex-wrap gap-2">
-                {c.status === "submitted" && (
+                {c.status === "submitted" && modus === "verlauf" && (
+                  <Link href="/admin/einreichungen?art=reisekosten" className="ct-link ct-ziel">
+                    {t.toApprovals}
+                  </Link>
+                )}
+                {c.status === "submitted" && modus === "freigabe" && (
                   <>
                     <Button size="sm" disabled={pending} onClick={() => setAskApprove(c)}>
                       {t.approve}
@@ -280,7 +298,7 @@ export function ExpenseQueue({
                   </>
                 )}
               </div>
-              {c.status === "submitted" && note(c.id).trim() === "" && (
+              {c.status === "submitted" && modus === "freigabe" && note(c.id).trim() === "" && (
                 <p className="ct-help">{t.rejectNeedsNote}</p>
               )}
             </div>

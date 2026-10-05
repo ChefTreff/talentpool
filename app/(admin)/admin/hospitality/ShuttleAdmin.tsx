@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -30,12 +31,20 @@ const STATUS_TONE: Record<string, BadgeTone> = {
  * „kurz nachfragen" und „im Dunkeln raten".
  */
 export function ShuttleAdmin({
+  modus = "verlauf",
   rows,
   t,
   common,
   rpcMessages,
   dateLocale,
 }: {
+  /**
+   * ADM-072: **Freigeben und Ablehnen einer angefragten Fahrt gibt es nur in der zentralen
+   * Freigabe-Übersicht** (`modus="freigabe"`, nur angefragte Fahrten). Im Bereich Hotels
+   * (`verlauf`) steht die ganze Liste zum Lesen, dazu der Export und das Stornieren einer
+   * bestätigten Fahrt — das ist keine Freigabe.
+   */
+  modus?: "freigabe" | "verlauf";
   rows: ShuttleAdminRow[];
   t: Strings;
   common: { cancel: string };
@@ -46,6 +55,7 @@ export function ShuttleAdmin({
   const toast = useToast();
   const [pending, start] = useTransition();
   const [nurOffen, setNurOffen] = useState(true);
+  const freigabe = modus === "freigabe";
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, {
@@ -55,8 +65,11 @@ export function ShuttleAdmin({
 
   const offen = rows.filter((r) => r.status === "requested").length;
   const sichtbar = useMemo(
-    () => rows.filter((r) => (nurOffen ? r.status === "requested" : r.status !== "cancelled")),
-    [rows, nurOffen],
+    () =>
+      rows.filter((r) =>
+        freigabe || nurOffen ? r.status === "requested" : r.status !== "cancelled",
+      ),
+    [rows, nurOffen, freigabe],
   );
 
   function run(fn: () => Promise<{ ok: boolean; key?: string }>, ok: string) {
@@ -72,33 +85,37 @@ export function ShuttleAdmin({
   }
 
   return (
-    <section aria-labelledby="h-shuttle" className="mt-10 flex flex-col gap-3">
+    <section aria-labelledby="h-shuttle" className={freigabe ? "flex flex-col gap-3" : "mt-10 flex flex-col gap-3"}>
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 id="h-shuttle" className="ct-h2 text-ink">
           {t.shuttleTitle}
         </h2>
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Der Export läuft über eine Route, nicht über eine Server-Action:
-              eine Datei will heruntergeladen werden, nicht zurückgegeben. */}
-          <ButtonLink href="/api/admin/shuttle/export?format=csv" variant="secondary" size="sm">
-            {t.shuttleExportCsv}
-          </ButtonLink>
-          <ButtonLink href="/api/admin/shuttle/export?format=xlsx" variant="secondary" size="sm">
-            {t.shuttleExportXlsx}
-          </ButtonLink>
-        </div>
+        {!freigabe && (
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Der Export läuft über eine Route, nicht über eine Server-Action:
+                eine Datei will heruntergeladen werden, nicht zurückgegeben. */}
+            <ButtonLink href="/api/admin/shuttle/export?format=csv" variant="secondary" size="sm">
+              {t.shuttleExportCsv}
+            </ButtonLink>
+            <ButtonLink href="/api/admin/shuttle/export?format=xlsx" variant="secondary" size="sm">
+              {t.shuttleExportXlsx}
+            </ButtonLink>
+          </div>
+        )}
       </div>
       <p className="ct-help">{t.shuttleLead.replace("{n}", String(offen))}</p>
 
-      <label className="flex w-fit items-center gap-2 ct-help">
-        <input
-          type="checkbox"
-          className="size-4"
-          checked={nurOffen}
-          onChange={(e) => setNurOffen(e.target.checked)}
-        />
-        {t.shuttleOnlyOpen}
-      </label>
+      {!freigabe && (
+        <label className="flex w-fit items-center gap-2 ct-help">
+          <input
+            type="checkbox"
+            className="size-4"
+            checked={nurOffen}
+            onChange={(e) => setNurOffen(e.target.checked)}
+          />
+          {t.shuttleOnlyOpen}
+        </label>
+      )}
 
       {sichtbar.length === 0 ? (
         <EmptyState
@@ -156,7 +173,7 @@ export function ShuttleAdmin({
                   </Td>
                   <Td>
                     <div className="flex flex-wrap gap-2">
-                      {r.status === "requested" && (
+                      {r.status === "requested" && freigabe && (
                         <Button
                           size="sm"
                           disabled={pending}
@@ -165,7 +182,14 @@ export function ShuttleAdmin({
                           {t.shuttleConfirm}
                         </Button>
                       )}
-                      {r.status !== "cancelled" && (
+                      {r.status === "requested" && !freigabe && (
+                        <Link href="/admin/einreichungen?art=shuttle" className="ct-link ct-ziel">
+                          {t.toApprovals}
+                        </Link>
+                      )}
+                      {/* Ablehnen einer Anfrage ist Sache der Freigabe; im Bereich bleibt das
+                          Stornieren einer bestätigten Fahrt. */}
+                      {(freigabe ? r.status === "requested" : r.status === "confirmed") && (
                         <Button
                           size="sm"
                           variant="ghost"
