@@ -310,6 +310,17 @@ Das Problem eines Detailblatts ist nie der Platz, sondern die **Gleichrangigkeit
 - **Der Speichern-Balken klebt unten** und erscheint nur, wenn es Ungespeichertes gibt. Ein dauerhaft sichtbarer Knopf, der nichts zu tun hat, ist eine Einladung zum Leerklicken.
 - Leere Felder bleiben sichtbar mit „—" (`common.none`): dass etwas **nicht** gepflegt ist, ist auch eine Auskunft.
 
+#### B′ · Detail aus Blöcken (Vorschlag LEAD-055, 05.10.2026 — noch nicht umgesetzt)
+
+Für das Personenfenster der Pipeline und die Admin-Detailseite eines Speakers; Entwurf mit Bildern in `docs/design-vorschlaege-2026-10-05.md`. Der Archetyp B bleibt gültig, bis der Speaker-Chat umbaut. Die Änderung in drei Sätzen: **Handlungsband und zwei Spalten werden zu einem Kopf und einer Spalte aus Blöcken.**
+
+- **Der Kopf trägt die Rangfolge:** Person (Foto, Name, Jobtitel · Organisation, Badges), **eine Hauptaktion** (primär, das Verb des nächsten Schritts), „Weitere Aktionen“ (`Menu ton="hell"`), die `Stufenleiste` (wo steht die Sache im Ablauf) und eine Kontextzeile (Betreuung, Als Nächstes, Kontakt). Aktionen mit „…“ öffnen ein Panel direkt unter der Zeile, keinen Dialog über dem Dialog.
+- **Fünf Blöcke in fester Reihenfolge** (`Block`): Grunddaten, Pipeline, Onboarding, Hospitality, Programm. Die Reihenfolge ändert sich nie, nur was offen ist; der Rest ist eine Zeile mit Titel, Marke („Nächste Pflicht“, „Offen · 2“, „Erledigt“ — Wort **und** Ton) und einer Kurzfassung, die wiederholt nie, was der Kopf sagt, und verrät nichts, was die Rolle nicht sehen darf.
+- **Was die Rolle oder der Stand nicht zeigt, wird nicht gezeichnet:** kein zugeklappter Block mit Schloss, keine Lücke.
+- **Eine Spalte** im Fenster, auf der Seite und am Handy; zwei Spalten nur innerhalb eines Blocks. Am Handy **Aufklappen statt Reiter** — die Zeilen mit ihren Marken sind die Übersicht.
+- **Im Fenster** sind die Blöcke Abschnitte mit Trennlinie (`border-t`), **auf einer Seite** Karten (`karte`, `ebene="h2"`) — nie Karte in Karte. Unterüberschriften stehen eine Ebene unter dem Block (`ct-label`).
+- **Die eine primäre Aktion ist die Hauptaktion**; „Änderungen speichern“ ist `secondary`. Ungespeichertes in zugeklappten Blöcken ist unsichtbar — deshalb fragt Schließen mit `ConfirmDialog`.
+
 ### C · Formular (umgesetzt in `/partner/onboarding`)
 
 Für alles, was ausgefüllt wird: Onboarding, Anmeldung, Einreichung, Profil.
