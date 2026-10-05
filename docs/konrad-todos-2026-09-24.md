@@ -77,6 +77,8 @@ Protokoll: Granola „Speaker CRM: Feedbackrunde“ (05.10., 14 Uhr). Alles steh
 
 **18 · Paulina liefert dir (du gibst es an mich weiter):** **K-62** finale Liste der Themen, Kategorien, Prio/Tier und wer welche Speaker betreut (→ Pipeline-Felder, Vokabular, Swapcard); **K-63** Titel-Briefing (Schlagwörter: Beschreibung) für den Generator (→ SPK-083); Liste fehlender Felder im Speaker-Detail (→ ADM-079); Kontaktdaten der Ansprechpersonen pflegen (deine Handynummer ist noch Platzhalter).
 
+**19 · K-69 Speaker-Fenster neu (Entwurf Design #351, LEAD-055 aus Paulinas Runde):** Vorschlag mit drei Bildern in `docs/design-vorschlaege-2026-10-05.md` (Design hat dir die Bilder geschickt). **Drei Fragen:** (a) Gefällt der Aufbau — Kopf mit einer Hauptaktion je Stand und Stufenleiste, darunter fünf Blöcke in fester Reihenfolge (Grunddaten, Pipeline, Onboarding, Hospitality, Programm)? (b) „Änderungen speichern“ zweitrangig als Umrissknopf, damit die Stand-Aktion („Hat bestätigt“, „Einladen“ …) der auffälligste Knopf ist? (c) Am Handy Aufklappen der Blöcke statt Reiter? Der Speaker-Chat baut nach deinem Go um.
+
 ### B · Sonntag: Durchklicken für die Feedbackrunde (dein Konto sieht alles)
 
 | Bereich | Adresse | Was prüfen |
@@ -243,6 +245,7 @@ Datenschutz und Sicherheit macht Konrad in den nächsten Tagen; vorab entschiede
 | K-66 | **Hear-me-speak-Vorlage 2027:** Hintergrundgrafik ist noch FLS26 | Konrad liefert die Vorlage oder Design baut sie (FUTURE LEADER SUMMIT, K-58) → SPK-092 | Konrad 05.10. |
 | K-67 | **Paulinas Admin-Zugang bis 06.10.:** Verwaltung → Zugänge → Teammitglied anlegen, Rollen für den Speaker-Bereich; Testwoche 06.–10.10., Feedback bis 17.10., ab 19.10. voll im System | Konrad legt an (oben Punkt A+·14) | Konrad & Paulina 05.10. |
 | K-68 | **Rückfragen aus dem Protokoll** (oben Punkt A+·17): (a) SPK-085 Keynote-Auswahl Umfang, (b) LEAD-061 Hauptbühnen-Filter auch im Admin, (c) ADM-073 Ablage der Spiegel-Einrichtung, (d) SPK-082 erledigten Punkt wieder öffnen, (e) LEAD-059 „keine Präsentation“ auch durch Speaker, (f) Veröffentlichungsregel als Hinweis | **Konrad 05.10.: (a) ganzer Session-Bereich, (b) nur Board, Admin mit Umschalter/Filter, (c) FLS-Grunddaten, (d) ja, (e) auch Speaker, (f) nein (nur intern)** — in die Zeilen übernommen | Plan 05.10.; erledigt 05.10. |
+| K-69 | **Speaker-Fenster neu (LEAD-055, Entwurf Design #351):** (a) Aufbau Kopf mit Hauptaktion und Stufenleiste, fünf Blöcke fest? (b) „Speichern“ zweitrangig, Stand-Aktion primär? (c) Handy: Aufklappen statt Reiter? Vorschlag `docs/design-vorschlaege-2026-10-05.md` | Empfehlung: (a) ja, (b) ja — ein Primärknopf je Fenster (Skill-Regel 1), (c) ja, Reiter verstecken am Handy zu viel | Design-Chat 05.10. (oben Punkt A+·19) |
 ## Antworten Konrad (24.09., Nacht)
 - **ADM-057 / #164:** Kundennummer = HubSpot-Eigenschaft `company_id` („Übergreifende Kundennummer (Company ID)“) → Übernahme in den Ingest beim Admin-Chat.
 - **SPK-068 vorziehen (P1 sofort):** Speaker-Ticket ausstellen — Konrad will es testen; Kette vivenu → Portal → Swapcard muss funktionieren.
