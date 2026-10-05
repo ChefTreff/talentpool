@@ -179,6 +179,13 @@ const BUSINESS_KEYS = new Set([
   "not_a_companion",
   "ticket_cancelled",
   "invalid_quota",
+  // Side Events (Vorschlag v6_side_events, ADM-077): Einladung statt Reception. `not_eligible`, `too_long` und `fields_required` stehen
+  // schon oben; `side_event_full` trägt die freien Plätze, `side_event_closed` die Frist im Detail (`lib/side-event/meldung.ts`).
+  "side_event_not_invited",
+  "side_event_not_published",
+  "side_event_closed",
+  "side_event_full",
+  "invalid_side_event",
   // Partner-Portal (Migrationen 0040-0042)
   "primary_exists",
   "primary_required",

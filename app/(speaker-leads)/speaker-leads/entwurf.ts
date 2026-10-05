@@ -11,7 +11,6 @@ export type FensterEntwurf = {
   job_title: string;
   organization_name: string;
   internal_notes: string;
-  reception_eligible: boolean;
   travel_costs_covered: boolean;
   pass_type: string;
   lounge_access: boolean;
@@ -26,7 +25,6 @@ export function fensterEntwurf(s: ManagedSpeaker): FensterEntwurf {
     job_title: s.job_title ?? "",
     organization_name: s.organization_name ?? "",
     internal_notes: s.internal_notes ?? "",
-    reception_eligible: s.reception_eligible,
     travel_costs_covered: s.travel_costs_covered,
     pass_type: s.pass_type,
     lounge_access: s.lounge_access,
@@ -40,7 +38,6 @@ const FELDER: (keyof FensterEntwurf)[] = [
   "job_title",
   "organization_name",
   "internal_notes",
-  "reception_eligible",
   "travel_costs_covered",
 ];
 

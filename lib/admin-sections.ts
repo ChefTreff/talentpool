@@ -73,7 +73,7 @@ export type AdminSectionKey =
   | "speakerTickets"
   | "expenses"
   | "hospitality"
-  | "reception"
+  | "sideEvents"
   | "travel"
   | "submissions"
   | "regie"
@@ -173,7 +173,8 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // area_lead_speaker — das Programm-Team stand hier, bekam aber 42501 (v6_hotel_freigabe_rechte).
   { key: "expenses", path: "/admin/reisekosten", roles: ["area_lead_speaker"] },
   { key: "hospitality", path: "/admin/hospitality", roles: ["area_lead_speaker", "programme_team"] },
-  { key: "reception", path: "/admin/reception", roles: ["area_lead_speaker", "programme_team"] },
+  // ADM-077: aus der Speaker Reception wurden die Side Events (mehrere je Edition, Einladungen mit Mail-Link). Dieselben Rollen wie zuvor.
+  { key: "sideEvents", path: "/admin/side-events", roles: ["area_lead_speaker", "programme_team"] },
   { key: "travel", path: "/admin/anreise", roles: ["area_lead_speaker", "programme_team", "area_lead_production", "production_team"] },
   { key: "submissions", path: "/admin/einreichungen", roles: ["area_lead_speaker", "programme_team"] },
   { key: "regie", path: "/admin/regie", roles: ["area_lead_production", "production_team", "programme_team"] },
