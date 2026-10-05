@@ -95,6 +95,14 @@ begin
                     holder_company = null, holder_position = null, buyer_email = null,
                     team_note = null, extra_fields = '{}'::jsonb
    where person_id = p_person_id;
+  -- ADM-076: Begleittickets hängen am Profil des Speakers, nicht an einer Person (`person_id` ist leer). Die Begleitung hat
+  --         hier nie ein Konto gehabt und kann die Löschung nicht selbst verlangen — wie der Kontakt ohne Portalzugang (0127)
+  --         fällt sie mit dem Profil, das sie eingetragen hat. Name und Adresse gehen; Status, Pass und Lounge bleiben als Zahl.
+  --         Was bei vivenu steht (ausgestellte Tickets), räumt die externe Löschung dort auf.
+  update ticket set holder_email = null, holder_first_name = null, holder_last_name = null,
+                    holder_company = null, holder_position = null, buyer_email = null,
+                    team_note = null, extra_fields = '{}'::jsonb
+   where source = 'speaker_companion' and speaker_profile_id = any (v_profile);
 
   -- 7 · Speaker-Profil und was daran hängt.
   update speaker_profile set

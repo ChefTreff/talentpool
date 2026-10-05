@@ -1,3 +1,5 @@
+-- 0268 · Speaker-Tickets final: Kontingent, Begleittickets, Lounge je Ticket, Löschweg der Begleitungen
+-- Angewendet von der Architektur-Session am 05.10.2026 als 20261005170530.
 -- NNNN · Speaker-Tickets final: Begleittickets beliebig, Lounge je Ticket, das Team legt an (ADM-076, Konrad und Paulina 05.10.2026)
 --
 -- Anlass: „Speaker-Tickets final“ (Feedbackrunde 05.10.): das Team legt Tickets an und stellt sie aus, **Kontingente je

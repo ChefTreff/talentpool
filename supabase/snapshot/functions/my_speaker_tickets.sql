@@ -22,11 +22,19 @@ begin
                      t.checked_in_at, t.created_at, t.purchased_at as issued_at
               from ticket t where t.speaker_profile_id = v_sp.id and t.source = 'speaker' and t.status <> 'cancelled'
               order by t.created_at desc limit 1) x),
+    -- Bis zur Umstellung der Oberfläche: das jüngste aktive Begleitticket wie bisher (ein alter App-Stand liest nur dieses).
     'companion', (select to_jsonb(x) from (
               select t.id, t.status, t.pass_type, t.holder_first_name as first_name, t.holder_last_name as last_name, t.holder_email::text as email,
                      t.team_note, t.created_at, t.approved_at, t.purchased_at as issued_at, (t.barcode is not null) as issued
               from ticket t where t.speaker_profile_id = v_sp.id and t.source = 'speaker_companion' and t.status <> 'cancelled'
               order by t.created_at desc limit 1) x),
+    -- ADM-076: alle aktiven Begleitungen, die älteste zuerst, mit der Lounge-Berechtigung, und das Kontingent dazu.
+    'companions', coalesce((select jsonb_agg(to_jsonb(x) order by x.created_at, x.id) from (
+              select t.id, t.status, t.pass_type, t.holder_first_name as first_name, t.holder_last_name as last_name, t.holder_email::text as email,
+                     t.team_note, t.created_at, t.approved_at, t.purchased_at as issued_at, (t.barcode is not null) as issued, t.lounge_access
+              from ticket t where t.speaker_profile_id = v_sp.id and t.source = 'speaker_companion' and t.status <> 'cancelled') x), '[]'::jsonb),
+    'companion_quota', v_sp.companion_quota,
+    'companion_used', (select count(*)::integer from ticket t where t.speaker_profile_id = v_sp.id and t.source = 'speaker_companion' and t.status <> 'cancelled'),
     'companion_history', (select coalesce(jsonb_agg(jsonb_build_object('id', t.id, 'status', t.status, 'first_name', t.holder_first_name,
                                                                         'last_name', t.holder_last_name, 'team_note', t.team_note, 'created_at', t.created_at)
                                                      order by t.created_at desc), '[]'::jsonb)

@@ -192,6 +192,7 @@
 | Welle 6 · 0265 | **Hotel-Freigaben für das Speaker-Team, Reisekosten nur Bereichsleitung** (`20261005160632`, `v6_hotel_freigabe_rechte`; Details im Migrationskopf) | — |
 | Welle 6 · 0266 | **Freigabe-Zähler im Admin-Menü (freigabe_zaehler, SECURITY INVOKER)** (`20261005162006`, `v6_freigabe_zaehler`; Details im Migrationskopf) | — |
 | Welle 6 · 0267 | **„Bereits freigegeben“ je Freigabe-Art (freigabe_verlauf, Keyset-Blättern)** (`20261005163344`, `v6_freigabe_verlauf`; Details im Migrationskopf) | — |
+| Welle 6 · 0268 | **Speaker-Tickets final: Kontingent, Begleittickets, Lounge je Ticket, Löschweg der Begleitungen** (`20261005170530`, `v6_speaker_tickets_final`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

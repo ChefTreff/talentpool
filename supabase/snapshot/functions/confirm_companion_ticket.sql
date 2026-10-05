@@ -13,10 +13,11 @@ begin
   if v_t.status <> 'requested' then raise exception 'not_pending' using errcode = 'P0001', detail = v_t.status; end if;
   update ticket set status = 'approved', approved_by = current_person_id(), approved_at = now(), team_note = nullif(btrim(p_note), '')
    where id = p_ticket_id;
-  -- PART-091: an den Empfänger der Speaker-Mails.
+  -- PART-091: an den Empfänger der Speaker-Mails — bei einem verwalteten Speaker eine dritte Person. ADM-076: **ohne** die Adresse der
+  -- Begleitung; `mail_log.meta.vars` speichert die Variablen im Klartext, und die Vorlage nennt die Adresse nicht mehr.
   perform queue_speaker_mail('companion_ticket_confirmed', v_sp.id,
                      jsonb_build_object('companion_name', btrim(coalesce(v_t.holder_first_name, '') || ' ' || coalesce(v_t.holder_last_name, '')),
-                                        'companion_email', v_t.holder_email::text, 'note', coalesce(nullif(btrim(p_note), ''), '')),
+                                        'note', coalesce(nullif(btrim(p_note), ''), '')),
                      'ticket', p_ticket_id);
   perform log_audit('ticket.companion_approved', 'ticket', p_ticket_id::text, jsonb_build_object('status', v_t.status),
                     jsonb_build_object('status', 'approved', 'note', p_note));

@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-05 16:33 UTC · 122 Tabellen · 6 Views · 709 Funktionen
+> Stand: 2026-10-05 17:05 UTC · 122 Tabellen · 6 Views · 713 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1885,6 +1885,7 @@ Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality,
 | `stage_guest` | boolean | ja | `false` |  | Vom Partner angelegter Gast der Standbühne (PART-081; seit PART-091 nur dort, nicht mehr am Talk): erscheint in der Event-App als Speaker am veröffentlichten Programmpunkt, bekommt keinen Speaker-Zugang, kein Onboarding, keine Kommunikation, kein Freiticket, keine Lounge. Einlass über ein Ticket aus dem Partner-Kontingent. |
 | `stage_guest_consent_at` | timestamp with time zone |  |  |  | Wann der Partner bestätigt hat, dass die Person informiert und einverstanden ist, dass Name, Position und Porträt in der Event-App erscheinen (Auflage der Architektur-Session zu K-32). Selbstauskunft, kein Nachweis — das Setzen steht mit Akteur im Audit-Log. |
 | `mail_via_contact_id` | uuid |  |  |  | PART-091: Empfängerregel „Kontakt statt Speaker“. Gesetzt, wenn der Partner alles rund um den Slot verwaltet: alle Speaker-Mails (Einladung, Erinnerungen, Ticket, Präsentation) gehen an diesen Kontakt (speaker_contact dieses Profils, mit has_access), der Speaker selbst bekommt keine. Leer = der Speaker direkt. Entfernen des Kontakts hebt die Regel auf. |
+| `companion_quota` | integer | ja | `1` |  | Wie viele Begleittickets dieser Speaker haben darf (0–50, Standard 1). Das Team erhöht es im Admin (set_companion_quota); gezählt werden nicht stornierte Begleittickets. |
 
 ### `speaker_reception`
 Speaker Reception je Edition (A7.4): Zeit, Ort, Beschreibung, Obergrenze. Anmeldung in speaker_reception_rsvp. Sichtbar nur für Speaker mit reception_eligible.
@@ -2085,7 +2086,7 @@ Ticket aus vivenu (Barcode = QR) oder Freiticket (Crew/Speaker). Badge-Felder we
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `speaker_profile_id` | uuid |  |  | `speaker_profile.id` | Freiticket aus dem Speaker-Portal: eigenes Ticket (source speaker) oder Begleitticket (source speaker_companion). |
-| `lounge_access` | boolean | ja | `false` |  | Speaker-Lounge; aus speaker_profile.lounge_access, Begleittickets nie. |
+| `lounge_access` | boolean | ja | `false` |  | Speaker-Lounge. Am eigenen Speaker-Ticket aus speaker_profile.lounge_access (der Sync zieht nach, auch nach der Ausstellung); am Begleitticket setzt das Team sie je Ticket (set_ticket_lounge), Standard aus. |
 | `team_note` | text |  |  |  | Hinweis des Teams an den Anfragenden (Ablehnungsgrund, Rückfrage). |
 | `requested_by` | uuid |  |  | `person.id` |  |
 | `approved_by` | uuid |  |  | `person.id` |  |
@@ -2809,6 +2810,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_booth_assignment` | p_booth_id: uuid, p_event_day_id: uuid, p_note: text, p_org_edition_id: uuid |
 | `set_booth_review` | p_item_key: text, p_note: text, p_org_edition_id: uuid, p_status: text |
 | `set_booth_service_check` | p_checked: boolean, p_note: text, p_org_edition_id: uuid, p_product_sku: text |
+| `set_companion_quota` | p_profile_id: uuid, p_quota: integer |
 | `set_company_tour_type` | p_tour_id: uuid, p_type: text |
 | `set_contact_roles` | p_org_id: uuid, p_person_id: uuid, p_roles: text[] |
 | `set_diet` | p_diet: text, p_note: text |
@@ -2875,6 +2877,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_ticket_allocation_discount` | p_discount_percent: integer, p_org_edition_id: uuid, p_pass_type: text, p_quantity: integer |
 | `set_ticket_allocation_vivenu` | p_coupon_code: text, p_error: text, p_id: uuid, p_status: text, p_undershop_url: text, p_vivenu_coupon_id: text, p_vivenu_undershop_id: text |
 | `set_ticket_issued` | p_barcode: text, p_ticket_id: uuid, p_ticket_type_map_id: uuid, p_vivenu_ticket_id: text, p_vivenu_transaction_id: text |
+| `set_ticket_lounge` | p_lounge: boolean, p_ticket_id: uuid |
 | `set_ticket_secret` | p_secret: text, p_ticket_id: uuid |
 | `set_volunteer_coupon` | p_coupon_code: text, p_error: text, p_profile_id: uuid, p_status: text, p_vivenu_coupon_id: text |
 | `set_volunteer_status` | p_note: text, p_profile_id: uuid, p_status: text |
@@ -2933,6 +2936,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_tasks_admin` | p_edition_id: uuid |
 | `speaker_ticket_create` | p_profile_id: uuid |
 | `speaker_ticket_for_issue` | p_ticket_id: uuid |
+| `speaker_ticket_quotas` | p_edition_id: uuid |
 | `speaker_tickets_admin` | p_edition_id: uuid |
 | `speaker_travel_list` | p_edition_id: uuid |
 | `sponsoring_level_key` | p_level: text |
@@ -2952,6 +2956,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `sync_deliverables` | p_org_edition_id: uuid |
 | `sync_granted_roles` | p_org_id: uuid |
 | `sync_ticket_allocations` | p_org_edition_id: uuid |
+| `team_add_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_lounge: boolean, p_profile_id: uuid |
 | `team_members` | args: ? |
 | `team_role_keys` | args: ? |
 | `template_applies` | p_org_edition_id: uuid, p_template: public.deliverable_template |

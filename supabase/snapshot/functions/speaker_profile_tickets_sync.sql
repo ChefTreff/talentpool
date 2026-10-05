@@ -19,11 +19,16 @@ begin
                         jsonb_build_object('pipeline_status', new.pipeline_status, 'tickets', v_n));
     end if;
   end if;
-  if tg_op = 'UPDATE' and (new.pass_type is distinct from old.pass_type or new.lounge_access is distinct from old.lounge_access) then
-    update ticket set pass_type = new.pass_type, lounge_access = new.lounge_access
-     where speaker_profile_id = new.id and source = 'speaker' and status in ('requested', 'approved');
+  -- Der Pass-Typ steckt im vivenu-Tickettyp: nach der Ausstellung ändert er sich hier nicht mehr.
+  if tg_op = 'UPDATE' and new.pass_type is distinct from old.pass_type then
     update ticket set pass_type = new.pass_type
-     where speaker_profile_id = new.id and source = 'speaker_companion' and status in ('requested', 'approved');
+     where speaker_profile_id = new.id and source in ('speaker', 'speaker_companion') and status in ('requested', 'approved');
+  end if;
+  -- ADM-076: Die Lounge trägt vivenu nicht — sie ist **unser** Merkmal und folgt dem Profil am eigenen Ticket in jedem
+  -- lebenden Stand, auch ausgestellt. (Begleittickets steuert `set_ticket_lounge`, nie dieses Flag.)
+  if tg_op = 'UPDATE' and new.lounge_access is distinct from old.lounge_access then
+    update ticket set lounge_access = new.lounge_access
+     where speaker_profile_id = new.id and source = 'speaker' and status in ('requested', 'approved', 'valid');
   end if;
   return new;
 end $$;
