@@ -227,7 +227,8 @@
       "status_rejected": "Zurückgewiesen",
       "status_submitted": "Eingereicht",
       "submittedOn": "eingereicht",
-      "title": "Reisekosten"
+      "title": "Reisekosten",
+      "toApprovals": "Zu den Freigaben"
     },
     "hospitality": {
       "activate": "Aktivieren",
@@ -277,6 +278,7 @@
       "shuttle_requested": "Angefragt",
       "teamNote": "Anmerkung",
       "title": "Hotels und Shuttles",
+      "toApprovals": "Zu den Freigaben",
       "used": "Belegt",
       "waitlisted": "Warteliste"
     },
@@ -354,7 +356,7 @@
       "speakerTasks": "Speaker-Aufgaben",
       "speakerTickets": "Speaker-Tickets",
       "speakers": "Speaker",
-      "submissions": "Einreichungen",
+      "submissions": "Freigaben",
       "suppression": "Sperrliste",
       "team": "Team",
       "tech": "Technik",
@@ -906,6 +908,21 @@
       "volunteers": "Crew",
       "wiki": "Wissen"
     }
+  },
+  "adminApprovals": {
+    "emptyBody": "Neue Eingänge erscheinen hier, sobald jemand etwas einreicht oder anfragt.",
+    "emptyTitle": "Hier wartet nichts",
+    "lead": "Alles, was auf eine Entscheidung wartet — an einem Ort",
+    "noAccessBody": "Welche Freigaben du entscheidest, hängt von deinen Rollen ab. Frag das Speaker-Team, wenn dir etwas fehlt.",
+    "noAccessTitle": "Keine Freigaben für dich",
+    "openCount": "offen",
+    "tab_hotel": "Hotel",
+    "tab_inhalte": "Titel & Beschreibungen",
+    "tab_reisekosten": "Reisekosten",
+    "tab_shuttle": "Shuttle",
+    "tab_slots": "Slots",
+    "tabsLabel": "Art der Freigabe",
+    "title": "Freigaben"
   },
   "adminDeletions": {
     "actionDelete": "Profil löschen",

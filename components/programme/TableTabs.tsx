@@ -29,8 +29,9 @@ export async function TableTabs({
       items={[
         { href: basePath, label: t.admin.programmeTable.tabBoard, exact: true },
         { href: `${basePath}/tabelle`, label: t.admin.programmeTable.tabTable },
+        // ADM-072: die Freigabe der Slots steht in der zentralen Freigabe-Übersicht.
         ...(withRelease
-          ? [{ href: `${basePath}/freigabe`, label: t.admin.programmeRelease.tab }]
+          ? [{ href: "/admin/einreichungen?art=slots", label: t.admin.programmeRelease.tab, aktiv: false }]
           : []),
       ]}
     />

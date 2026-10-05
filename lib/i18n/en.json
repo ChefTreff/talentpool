@@ -227,7 +227,8 @@
       "status_rejected": "Sent back",
       "status_submitted": "Submitted",
       "submittedOn": "submitted",
-      "title": "Travel expenses"
+      "title": "Travel expenses",
+      "toApprovals": "Go to approvals"
     },
     "hospitality": {
       "activate": "Activate",
@@ -277,6 +278,7 @@
       "shuttle_requested": "Requested",
       "teamNote": "Note",
       "title": "Hotels and shuttles",
+      "toApprovals": "Go to approvals",
       "used": "Used",
       "waitlisted": "Waiting list"
     },
@@ -354,7 +356,7 @@
       "speakerTasks": "Speaker tasks",
       "speakerTickets": "Speaker tickets",
       "speakers": "Speakers",
-      "submissions": "Submissions",
+      "submissions": "Approvals",
       "suppression": "Suppression list",
       "team": "Team",
       "tech": "Tech",
@@ -906,6 +908,21 @@
       "volunteers": "Crew",
       "wiki": "Know-how"
     }
+  },
+  "adminApprovals": {
+    "emptyBody": "New items appear here as soon as someone submits or requests something.",
+    "emptyTitle": "Nothing waiting here",
+    "lead": "Everything waiting for a decision — in one place",
+    "noAccessBody": "Which approvals you decide depends on your roles. Ask the speaker team if something is missing.",
+    "noAccessTitle": "No approvals for you",
+    "openCount": "open",
+    "tab_hotel": "Hotel",
+    "tab_inhalte": "Titles & descriptions",
+    "tab_reisekosten": "Travel expenses",
+    "tab_shuttle": "Shuttle",
+    "tab_slots": "Slots",
+    "tabsLabel": "Kind of approval",
+    "title": "Approvals"
   },
   "adminDeletions": {
     "actionDelete": "Delete profile",

@@ -120,6 +120,13 @@
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
+ *   … --apply --nur=freigaben      (ADM-072: je eine wartende Freigabe an Konrads Testprofil —
+ *                                   eingereichter Titel mit Beschreibung, Reisekosten-Abrechnung
+ *                                   über 1,00 €, Hotelanfrage auf der Warteliste; ohne Mail.
+ *                                   Alle fünf Reiter von /admin/einreichungen füllt
+ *                                   `--nur=standstatus,shuttle,freigaben`. ACHTUNG: Freigeben der
+ *                                   Abrechnung löst SevDesk-Beleg und Qonto-Mail aus — zum
+ *                                   Ausprobieren Zurückweisen nehmen)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -3138,6 +3145,151 @@ async function shuttleFahrten(me, ed) {
   }
 }
 
+/** ADM-072: so erkennt man im Admin und beim Aufräumen die drei wartenden TEST-Freigaben. */
+const FREIGABE_HINWEIS = `${PREFIX}nur zum Ausprobieren der Freigabe`;
+/**
+ * Rechnungsnummer der TEST-Abrechnung. `invoice_no` ist eindeutig, und das Präfix
+ * zeigt auch in SevDesk, woher ein Beleg kommt, falls jemand die Abrechnung freigibt.
+ */
+const FREIGABE_RECHNUNG = `${PREFIX_CODE}-RK-0001`;
+
+/**
+ * ADM-072: je eine wartende Freigabe an Konrads Testprofil, damit
+ * `/admin/einreichungen` (Reiter Titel & Beschreibungen, Reisekosten, Hotel) nicht nur
+ * seinen Leerzustand zeigt. Die Reiter Slots und Shuttle füllen `standstatus` und
+ * `shuttle` — für alle fünf: `--apply --nur=standstatus,shuttle,freigaben`.
+ *
+ * - **Titel & Beschreibung:** ein eingereichter Vorschlag zur TEST-Keynote (Status
+ *   `submitted`, Hinweis „TEST — nur zum Ausprobieren der Freigabe“). Der Titel ist der
+ *   der Session, damit `ownSession` sie auch nach einer Freigabe wiederfindet.
+ * - **Reisekosten:** eine eingereichte Abrechnung über 1,00 €, Rechnungsnummer
+ *   `ZZTEST-RK-0001`, ohne hinterlegte Bankdaten („Bankdaten anzeigen“ bleibt leer).
+ *   **Achtung: Freigeben legt die Rechnung ab, schickt einen Beleg an SevDesk und eine
+ *   Mail an Qonto** — dieselbe Folge wie bei einer echten Abrechnung. Zum Ausprobieren
+ *   des Entscheidens ist Zurückweisen (mit Anmerkung) der folgenlose Weg. Eine schon
+ *   freigegebene TEST-Abrechnung setzt ein zweiter Lauf nicht zurück (der Beleg ist
+ *   draußen); `--remove` räumt sie samt Rechnungsdatei weg.
+ * - **Hotel:** eine Anfrage auf der Warteliste am ersten aktiven Hotel-Kontingent, für den
+ *   verwalteten TEST-Speaker (`--nur=verwaltet`), ersatzweise für Konrads Profil. Eine
+ *   Buchung, die Konrad selbst gemacht hat, bleibt unangetastet — es gibt eine je Profil.
+ *   `waitlisted` zählt nicht zum Kontingent (`hospitality_used`) — die Testbuchung nimmt
+ *   echten Speakern keinen Platz weg. Bestätigen belegt dagegen einen Platz, bis
+ *   `--apply --nur=freigaben` sie zurücksetzt oder `--remove` sie löscht; Ablehnen ist
+ *   folgenlos.
+ *
+ * Direkt geschrieben, nicht über `submit_expense` oder `book_hospitality`: so geht keine
+ * Mail an das Speaker-Team. Ein zweiter Lauf setzt entschiedene Einträge (Vorschlag,
+ * Hotel, zurückgewiesene Abrechnung) auf „wartet“ zurück.
+ */
+async function freigabenSchritt(me, ed) {
+  const { data: sp } = await admin.from("speaker_profile").select("id")
+    .eq("person_id", me.id).eq("edition_id", ed.id).maybeSingle();
+  if (!sp) return fail("Freigaben", "kein Speaker-Profil — zuerst ein volles --apply");
+  const name = [me.first_name, me.last_name].filter(Boolean).join(" ") || "Konrad";
+  const sum = await summit(ed);
+
+  // --- Titel & Beschreibung -------------------------------------------------
+  const { data: sitzung } = await admin.from("session").select("id")
+    .eq("event_id", sum?.id ?? ed.id).eq("title_de", `${PREFIX}Keynote`).maybeSingle();
+  if (!sitzung) {
+    fail("Eingereichter Titel und Beschreibung", "keine Testsession — zuerst ein volles --apply");
+  } else {
+    const { data: vorschlag } = await admin.from("session_submission").select("id, status")
+      .eq("session_id", sitzung.id).eq("notes", FREIGABE_HINWEIS).maybeSingle();
+    if (vorschlag?.status === "submitted") {
+      note("Eingereichter Titel und Beschreibung", "schon eingereicht");
+    } else {
+      await write("Eingereichter Titel und Beschreibung der Testsession (wartet auf Freigabe)", () => {
+        const zeile = {
+          title: `${PREFIX}Keynote`,
+          description: `${PREFIX}Neue Beschreibung der Testsession — zum Ausprobieren von Freigeben und Zurückweisen.`,
+          topics: [], language: "de", status: "submitted",
+          reviewed_by: null, reviewed_at: null, review_note: null,
+        };
+        return vorschlag
+          ? admin.from("session_submission").update(zeile).eq("id", vorschlag.id)
+          : admin.from("session_submission").insert({
+              ...zeile, session_id: sitzung.id, speaker_profile_id: sp.id,
+              submitted_by: me.id, notes: FREIGABE_HINWEIS,
+            });
+      });
+    }
+  }
+
+  // --- Reisekosten ----------------------------------------------------------
+  const { data: abrechnung } = await admin.from("expense_claim").select("id, status")
+    .eq("invoice_no", FREIGABE_RECHNUNG).maybeSingle();
+  if (abrechnung?.status === "submitted") {
+    note("Reisekosten-Abrechnung", "schon eingereicht");
+  } else if (abrechnung && !["draft", "rejected"].includes(abrechnung.status)) {
+    note("Reisekosten-Abrechnung", `schon ${abrechnung.status} — der Beleg ist draußen, nicht zurückgesetzt (--remove räumt auf)`);
+  } else {
+    await write("Reisekosten-Abrechnung über 1,00 € (wartet auf Freigabe)", () => {
+      const zeile = {
+        status: "submitted", currency: "EUR", amount_cents: 100,
+        positions: [{
+          date: sum?.tage?.[0]?.day_date ?? ed.start_date, category: "train",
+          description: `${PREFIX}Zugfahrt (nur zum Ausprobieren der Freigabe)`, amount_cents: 100,
+        }],
+        bank_masked: `${PREFIX_CODE} •••• 0000`, bank_holder: `${PREFIX}${name}`,
+        submitted_at: new Date().toISOString(), submitted_by: me.id,
+        reviewed_by: null, reviewed_at: null, review_note: null,
+      };
+      return abrechnung
+        ? admin.from("expense_claim").update(zeile).eq("id", abrechnung.id)
+        : admin.from("expense_claim").insert({ ...zeile, profile_id: sp.id, invoice_no: FREIGABE_RECHNUNG });
+    });
+  }
+
+  // --- Hotel ----------------------------------------------------------------
+  const { data: hotel } = await admin.from("hospitality_quota").select("id")
+    .eq("edition_id", ed.id).eq("kind", "hotel").eq("active", true)
+    .order("sort_order").limit(1).maybeSingle();
+  if (!hotel) {
+    return fail("Hotelanfrage", "kein aktives Hotel-Kontingent (/admin/hospitality) — angelegt wird nichts");
+  }
+  // Eine Hotelbuchung je Profil (so verlangt es `book_hospitality`), und Konrad hat unter
+  // /speaker/reise meist selbst schon gebucht. Die Anfrage kommt deshalb an den verwalteten
+  // TEST-Speaker (`--nur=verwaltet`), ersatzweise an Konrads Profil, wenn er noch nichts hat.
+  const { data: verwaltet } = await admin.from("person_email").select("person_id")
+    .eq("email", verwaltetAdresse()).maybeSingle();
+  const { data: verwaltetesProfil } = verwaltet
+    ? await admin.from("speaker_profile").select("id").eq("person_id", verwaltet.person_id).eq("edition_id", ed.id).maybeSingle()
+    : { data: null };
+  const kandidaten = [verwaltetesProfil?.id, sp.id].filter(Boolean);
+  const { data: bekannt } = await admin.from("hospitality_booking").select("id, status")
+    .in("profile_id", kandidaten).eq("kind", "hotel").contains("details", { special: FREIGABE_HINWEIS }).limit(1);
+  const anfrage = bekannt?.[0] ?? null;
+  if (anfrage?.status === "waitlisted") return note("Hotelanfrage", "wartet schon");
+  let ziel = null;
+  if (!anfrage) {
+    for (const id of kandidaten) {
+      const { data: belegt } = await admin.from("hospitality_booking").select("id")
+        .eq("profile_id", id).eq("kind", "hotel").neq("status", "cancelled").limit(1);
+      if ((belegt ?? []).length === 0) { ziel = id; break; }
+    }
+    if (!ziel) {
+      return note("Hotelanfrage", "kein Testprofil ohne Hotelbuchung — Konrad hat selbst gebucht; zuerst --nur=verwaltet, dann noch einmal");
+    }
+  }
+  await write("Hotelanfrage auf der Warteliste (wartet auf Freigabe)", () => {
+    const zeile = {
+      status: "waitlisted", guests: 1,
+      confirmed_by: null, confirmed_at: null, cancelled_at: null, team_note: null,
+    };
+    return anfrage
+      ? admin.from("hospitality_booking").update(zeile).eq("id", anfrage.id)
+      : admin.from("hospitality_booking").insert({
+          ...zeile, quota_id: hotel.id, profile_id: ziel, kind: "hotel", created_by: me.id,
+          details: {
+            check_in: sum?.tage?.[0]?.day_date ?? ed.start_date,
+            check_out: sum?.tage?.[sum.tage.length - 1]?.day_date ?? ed.end_date,
+            special: FREIGABE_HINWEIS,
+          },
+        });
+  });
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
@@ -3160,6 +3312,7 @@ const SCHRITTE = {
   portraet: testPortraet,
   "ticket-zurueck": ticketZurueck,
   shuttle: shuttleFahrten,
+  freigaben: freigabenSchritt,
   buehne: stageLeadBuehne,
   standstatus: standStatus,
   verwaltet: verwalteterSpeaker,
@@ -3479,6 +3632,28 @@ async function remove(me) {
   // Profil ohne Kennzeichnung stehen bleibt.
   await write("TEST-Shuttle-Fahrten entfernt", () =>
     admin.from("shuttle_booking").delete().eq("note", MARK),
+  );
+  // ADM-072: die wartenden Freigaben. Alle drei hängen per `on delete cascade` an Profil
+  // oder Session — ausdrücklich, falls das Profil stehen bleibt. Bei der Abrechnung vorher
+  // die Rechnungsdatei: sie liegt nur dann im Bucket, wenn jemand die Abrechnung freigegeben
+  // hat, und geht nicht per Kaskade mit.
+  await write("TEST-Abrechnung entfernt (mit abgelegter Rechnung)", async () => {
+    const { data: dateien } = await admin.from("speaker_asset").select("id, storage_path")
+      .eq("kind", "invoice").eq("filename", `${FREIGABE_RECHNUNG}.pdf`);
+    if ((dateien ?? []).length > 0) {
+      const { error } = await admin.storage.from("speaker-assets").remove(dateien.map((d) => d.storage_path));
+      if (error) return { data: null, error };
+    }
+    const weg = await admin.from("expense_claim").delete().eq("invoice_no", FREIGABE_RECHNUNG);
+    if (weg.error) return weg;
+    if ((dateien ?? []).length === 0) return weg;
+    return admin.from("speaker_asset").delete().in("id", dateien.map((d) => d.id));
+  });
+  await write("TEST-Hotelanfrage entfernt", () =>
+    admin.from("hospitality_booking").delete().contains("details", { special: FREIGABE_HINWEIS }),
+  );
+  await write("TEST-Vorschlag für Titel und Beschreibung entfernt", () =>
+    admin.from("session_submission").delete().eq("notes", FREIGABE_HINWEIS),
   );
   await write("Speaker-Profil entfernt", () =>
     admin.from("speaker_profile").delete().eq("person_id", me.id).eq("internal_notes", MARK),

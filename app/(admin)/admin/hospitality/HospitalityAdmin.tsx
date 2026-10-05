@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/shared";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
@@ -9,7 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
-import { confirmBooking, declineBooking, saveQuota } from "../actions";
+import { saveQuota } from "../actions";
 
 type Strings = Record<string, string>;
 
@@ -72,7 +73,6 @@ export function HospitalityAdmin({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [capacity, setCapacity] = useState<Record<string, string>>({});
-  const [notes, setNotes] = useState<Record<string, string>>({});
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateOnly = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
@@ -88,7 +88,6 @@ export function HospitalityAdmin({
     /^\d{4}-\d{2}-\d{2}$/.test(value) ? bareDate.format(new Date(`${value}T00:00:00Z`)) : value;
   const label = (q: AdminQuota) =>
     (locale === "en" ? q.label_en : q.label_de) ?? q.label_de ?? "—";
-  const note = (id: string) => notes[id] ?? "";
 
   function run(fn: Promise<{ ok: boolean; key?: string }>, okText: string) {
     startTransition(async () => {
@@ -198,30 +197,12 @@ export function HospitalityAdmin({
                       </p>
                     )}
                   </div>
+                  {/* ADM-072: bestätigen und ablehnen gibt es nur noch in der zentralen
+                      Freigabe-Übersicht; hier steht die Liste zum Lesen. */}
                   {b.status !== "confirmed" && (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Input
-                        aria-label={t.teamNote}
-                        className="w-44"
-                        value={note(b.id)}
-                        onChange={(e) => setNotes((n) => ({ ...n, [b.id]: e.target.value }))}
-                      />
-                      <Button
-                        size="sm"
-                        disabled={pending}
-                        onClick={() => run(confirmBooking(b.id, note(b.id)), t.bookingConfirmed)}
-                      >
-                        {t.confirm}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={pending || note(b.id).trim() === ""}
-                        onClick={() => run(declineBooking(b.id, note(b.id)), t.bookingDeclined)}
-                      >
-                        {t.decline}
-                      </Button>
-                    </div>
+                    <Link href="/admin/einreichungen?art=hotel" className="ct-link ct-ziel">
+                      {t.toApprovals}
+                    </Link>
                   )}
                 </li>
               ))}
