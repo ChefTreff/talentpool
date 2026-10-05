@@ -35,6 +35,8 @@ export type CompanionTicket = {
   issued_at: string | null;
   /** Ausgestellt — der Barcode geht direkt an die Begleitung, nicht hierher. */
   issued: boolean;
+  /** Lounge-Zugang der Begleitung (ADM-076) — das Team setzt ihn je Ticket. Fehlt, solange die Migration nicht lebt. */
+  lounge_access?: boolean;
 };
 
 export type CompanionHistoryEntry = {
@@ -56,6 +58,30 @@ export type SpeakerTickets = {
   /** Sieht gerade die Assistenz zu? Dann fehlt der Barcode absichtlich. */
   is_assistant: boolean;
   own: OwnTicket | null;
+  /** Das jüngste aktive Begleitticket — so lasen es die Stände vor ADM-076; die Ansicht liest `companions`. */
   companion: CompanionTicket | null;
+  /**
+   * ADM-076: **alle** aktiven Begleitungen, die älteste zuerst, dazu das Kontingent. Fehlt, solange die Migration
+   * `v6_speaker_tickets_final` nicht angewendet ist — dann gilt wie bisher genau eine Begleitung (`companion`).
+   */
+  companions?: CompanionTicket[];
+  companion_quota?: number;
+  companion_used?: number;
   companion_history: CompanionHistoryEntry[];
 };
+
+/**
+ * Was die Ansicht aus der Antwort liest — mit dem alten Stand als Rückfall: ohne die neuen Felder eine Begleitung und
+ * Kontingent 1, so wie es bis ADM-076 galt. Eine Funktion statt Ausdrücke in der Ansicht, damit der Rückfall getestet ist.
+ */
+export function begleitungen(t: Pick<SpeakerTickets, "companion" | "companions" | "companion_quota" | "companion_used">): {
+  liste: CompanionTicket[];
+  kontingent: number;
+  vergeben: number;
+  kannAnfragen: boolean;
+} {
+  const liste = t.companions ?? (t.companion ? [t.companion] : []);
+  const kontingent = t.companion_quota ?? 1;
+  const vergeben = t.companion_used ?? liste.length;
+  return { liste, kontingent, vergeben, kannAnfragen: vergeben < kontingent };
+}

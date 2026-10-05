@@ -13,7 +13,7 @@ import { useToast } from "@/components/ui/Toast";
 // Der QR-Zeichner liegt seit #178 im Kit (QS-048); die eigene Kopie ist weg.
 import { QrCode } from "@/components/ui/QrCode";
 import { cancelCompanion, requestCompanion } from "./actions";
-import type { SpeakerTickets } from "./types";
+import { begleitungen, type CompanionTicket, type SpeakerTickets } from "./types";
 
 type Strings = Record<string, string>;
 
@@ -51,12 +51,14 @@ export function TicketsView({
   const [email, setEmail] = useState("");
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
-  const [askCancel, setAskCancel] = useState(false);
+  // Welche Begleitung gerade zurückgezogen werden soll (ADM-076: es können mehrere sein).
+  const [askCancel, setAskCancel] = useState<CompanionTicket | null>(null);
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
   const own = tickets.own;
-  const companion = tickets.companion;
+  // Alle aktiven Begleitungen und das Kontingent; ohne die neuen Felder gilt der alte Stand (eine Begleitung, Kontingent 1).
+  const { liste: companions, kontingent, vergeben, kannAnfragen } = begleitungen(tickets);
 
   function onRequest() {
     startTransition(async () => {
@@ -73,11 +75,10 @@ export function TicketsView({
     });
   }
 
-  function onCancel() {
-    if (!companion) return;
+  function onCancel(ziel: CompanionTicket) {
     startTransition(async () => {
-      setAskCancel(false);
-      const res = await cancelCompanion(companion.id);
+      setAskCancel(null);
+      const res = await cancelCompanion(ziel.id);
       if (!res.ok) {
         toast("error", message(res.key));
         return;
@@ -195,75 +196,88 @@ export function TicketsView({
 
         {!tickets.eligible ? (
           <p className="ct-help">{t.companionAfterConfirmation}</p>
-        ) : companion ? (
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge tone={STATUS_TONE[companion.status] ?? "neutral"}>
-                  {t[`companion_${companion.status}`] ?? companion.status}
-                </Badge>
-                {companion.pass_type && (
-                  <Badge>{passTypes[companion.pass_type] ?? companion.pass_type}</Badge>
-                )}
-              </div>
-              <p className="ct-label mt-2 text-ink">
-                {[companion.first_name, companion.last_name].filter(Boolean).join(" ") ||
-                  common.none}
-              </p>
-              {companion.email && <p className="ct-help">{companion.email}</p>}
-              <p className="ct-help mt-2">
-                {companion.status === "requested" && t.companionRequestedHint}
-                {companion.status === "approved" &&
-                  t.companionApprovedHint.replace("{email}", companion.email ?? "")}
-                {companion.issued && t.companionIssuedHint}
-              </p>
-              {companion.team_note && (
-                <p className="ct-help mt-1">
-                  {t.teamNote}: {companion.team_note}
-                </p>
-              )}
-            </div>
-            {/* Ausgestelltes zieht man nicht mehr selbst zurück — die RPC
-                antwortet dann `already_issued`, das sagen wir vorher. */}
-            {companion.issued ? (
-              <p className="ct-help max-w-65">{t.companionIssuedContact}</p>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={pending}
-                onClick={() => setAskCancel(true)}
-              >
-                {t.companionWithdraw}
-              </Button>
-            )}
-          </div>
         ) : (
           <>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Field label={t.companionFirstName} htmlFor="c_first">
-                <Input id="c_first" value={first} onChange={(e) => setFirst(e.target.value)} />
-              </Field>
-              <Field label={t.companionLastName} htmlFor="c_last">
-                <Input id="c_last" value={last} onChange={(e) => setLast(e.target.value)} />
-              </Field>
-              <Field label={t.companionEmail} htmlFor="c_email" hint={t.companionEmailHint}>
-                <Input
-                  id="c_email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </Field>
-            </div>
-            <div className="mt-4">
-              <Button
-                disabled={pending || email.trim() === "" || first.trim() === ""}
-                onClick={onRequest}
-              >
-                {t.companionRequest}
-              </Button>
-            </div>
+            {/* ADM-076: so viele Begleitungen, wie das Team zugesagt hat (Standard 1, 0 bis 50). Die Zeile sagt, wo man steht. */}
+            <p className="ct-label text-ink">
+              {t.companionQuotaLine.replace("{used}", String(vergeben)).replace("{quota}", String(kontingent))}
+            </p>
+
+            {companions.length > 0 && (
+              <ul className="mt-4 flex flex-col">
+                {companions.map((companion) => (
+                  <li
+                    key={companion.id}
+                    className="flex flex-wrap items-start justify-between gap-4 border-t py-4 first:border-t-0 first:pt-0"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge tone={STATUS_TONE[companion.status] ?? "neutral"}>
+                          {t[`companion_${companion.status}`] ?? companion.status}
+                        </Badge>
+                        {companion.pass_type && <Badge>{passTypes[companion.pass_type] ?? companion.pass_type}</Badge>}
+                        {companion.lounge_access && <Badge tone="accent">{t.loungeBadge}</Badge>}
+                      </div>
+                      <p className="ct-label mt-2 text-ink">
+                        {[companion.first_name, companion.last_name].filter(Boolean).join(" ") || common.none}
+                      </p>
+                      {companion.email && <p className="ct-help">{companion.email}</p>}
+                      <p className="ct-help mt-2">
+                        {companion.status === "requested" && t.companionRequestedHint}
+                        {companion.status === "approved" &&
+                          t.companionApprovedHint.replace("{email}", companion.email ?? "")}
+                        {companion.issued && t.companionIssuedHint}
+                      </p>
+                      {companion.team_note && (
+                        <p className="ct-help mt-1">
+                          {t.teamNote}: {companion.team_note}
+                        </p>
+                      )}
+                    </div>
+                    {/* Ausgestelltes zieht man nicht mehr selbst zurück — die RPC
+                        antwortet dann `already_issued`, das sagen wir vorher. */}
+                    {companion.issued ? (
+                      <p className="ct-help max-w-65">{t.companionIssuedContact}</p>
+                    ) : (
+                      <Button variant="ghost" size="sm" disabled={pending} onClick={() => setAskCancel(companion)}>
+                        {t.companionWithdraw}
+                      </Button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* Anfragen nur, solange Kontingent da ist; sonst steht da, warum (0 oder ausgeschöpft). */}
+            {!kannAnfragen ? (
+              <p className="ct-help mt-4">{kontingent === 0 ? t.companionQuotaNone : t.companionQuotaFull}</p>
+            ) : (
+              <div className={companions.length > 0 ? "mt-6 border-t pt-4" : "mt-4"}>
+                {companions.length > 0 && <h3 className="ct-label mb-3 text-ink">{t.companionAnother}</h3>}
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Field label={t.companionFirstName} htmlFor="c_first">
+                    <Input id="c_first" value={first} onChange={(e) => setFirst(e.target.value)} maxLength={100} />
+                  </Field>
+                  <Field label={t.companionLastName} htmlFor="c_last">
+                    <Input id="c_last" value={last} onChange={(e) => setLast(e.target.value)} maxLength={100} />
+                  </Field>
+                  <Field label={t.companionEmail} htmlFor="c_email" hint={t.companionEmailHint}>
+                    <Input
+                      id="c_email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      maxLength={254}
+                    />
+                  </Field>
+                </div>
+                <div className="mt-4">
+                  <Button disabled={pending || email.trim() === "" || first.trim() === ""} onClick={onRequest}>
+                    {t.companionRequest}
+                  </Button>
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -290,8 +304,13 @@ export function TicketsView({
           confirmLabel={t.companionWithdraw}
           cancelLabel={common.cancel}
           pending={pending}
-          onCancel={() => setAskCancel(false)}
-          onConfirm={onCancel}
+          detail={
+            <p className="ct-label">
+              {[askCancel.first_name, askCancel.last_name].filter(Boolean).join(" ") || common.none}
+            </p>
+          }
+          onCancel={() => setAskCancel(null)}
+          onConfirm={() => onCancel(askCancel)}
         />
       )}
 
