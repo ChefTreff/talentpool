@@ -1,0 +1,10 @@
+<!-- Erzeugt von scripts/icons-erzeugen.mjs aus public/brand/cheftreff-logo.svg und den Tokens ct-navy (#081a35)
+     und ct-on-navy (#f5f4f2) in app/globals.css. Nicht von Hand ändern, sondern das Skript neu laufen lassen. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<rect width="64" height="64" rx="14" fill="#081a35"/>
+<g transform="translate(8 18.20011) scale(0.2421)" fill="#f5f4f2">
+<path d="M44.1275 25.2653L68.6257 11.1229L49.3969 0L0 28.5005V85.5015L49.3969 114.002L68.6257 102.91L44.1275 88.7675V25.2653Z"/>
+<path d="M129.64 11.1229L154.138 25.2653V88.7675L151.519 90.2773L129.64 102.91L148.9 114.002L198.266 85.5015V28.5005L148.9 0L129.64 11.1229Z"/>
+<path d="M49.7667 28.5005V85.5015L99.1327 114.002L148.499 85.5015V28.5005L99.1327 0L49.7667 28.5005Z"/>
+</g>
+</svg>
