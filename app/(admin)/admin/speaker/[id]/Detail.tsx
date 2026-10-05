@@ -28,6 +28,7 @@ import {
   type AdminResult,
 } from "../actions";
 import { KontakteCard } from "@/components/speaker/KontakteCard";
+import { kannZusageMelden } from "@/app/(speaker-leads)/speaker-leads/phase";
 import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
 import { Verlauf } from "@/components/speaker/Verlauf";
 import { PhotoUpload } from "@/components/speaker/PhotoUpload";
@@ -351,6 +352,20 @@ export function SpeakerDetailView({
               >
                 {t.setStatus}
               </Button>
+              {/* LEAD-054: die Zusage in einem Klick — dieselbe Aktion wie in der Pipeline der Stage Leads. */}
+              {kannZusageMelden(speaker.pipeline_status) && (
+                <Button
+                  variant="secondary"
+                  disabled={pending}
+                  onClick={() =>
+                    startTransition(async () =>
+                      report(await setPipeline(speaker.id, "confirmed"), t.statusSaved),
+                    )
+                  }
+                >
+                  {t.confirmAction}
+                </Button>
+              )}
               {/* SPK-070: `invite_speaker` weist Gäste ab (0188) — kein Knopf dafür.
                   PART-091: ebenso, wenn der Partner alles verwaltet. */}
               {!speaker.stage_guest && !speaker.mail_via && (
