@@ -61,8 +61,11 @@ describe("ADM-072: die zentrale Seite", () => {
 
   it("öffnet für jeden, der mindestens eine Art entscheiden darf, und prüft jede Art einzeln", () => {
     const s = seite();
-    assert.match(s, /requireAnyAdminSection\(\["submissions", "programme", "expenses", "hospitality"\]/);
-    assert.match(s, /mayEnterAdminSection\(ABSCHNITT\[a\], roleNames\)/);
+    assert.match(s, /requireAnyAdminSection\(FREIGABE_ABSCHNITTE, PATH\)/);
+    assert.match(s, /mayEnterAdminSection\(FREIGABE_ABSCHNITT\[a\], roleNames\)/);
+    // Die Tor-Tabelle steht an einer Stelle (Seite, Verlauf und Menü lesen sie): lib/freigaben.ts
+    const lib = quelle("lib/freigaben.ts");
+    assert.match(lib, /FREIGABE_ABSCHNITTE = \["submissions", "programme", "expenses", "hospitality"\] as const;/);
     for (const [art, abschnitt] of [
       ["inhalte", "submissions"],
       ["slots", "programme"],
@@ -70,7 +73,7 @@ describe("ADM-072: die zentrale Seite", () => {
       ["hotel", "hospitality"],
       ["shuttle", "hospitality"],
     ]) {
-      assert.match(s, new RegExp(`${art}: "${abschnitt}"`), `${art} → ${abschnitt}`);
+      assert.match(lib, new RegExp(`${art}: "${abschnitt}"`), `${art} → ${abschnitt}`);
     }
   });
 
@@ -204,13 +207,27 @@ describe("ADM-072: Testdaten für Konrads Konto", () => {
     assert.match(schritt(), /!\["draft", "rejected"\]\.includes\(abrechnung\.status\)/);
   });
 
+  it("ADM-081: schon Entschiedenes für „Bereits freigegeben“ — bezahlt statt freigegeben, damit kein Knopf nach SevDesk führt", () => {
+    const s = schritt();
+    assert.match(skript(), /const FREIGABE_RECHNUNG_ERLEDIGT = `\$\{PREFIX_CODE\}-RK-0002`;/);
+    assert.match(s, /invoice_no: FREIGABE_RECHNUNG_ERLEDIGT, status: "paid"/);
+    // `approved` böte „Rechnung erneut ablegen“ (SevDesk, Qonto); die schon entschiedene Abrechnung bekommt ihn nie
+    assert.doesNotMatch(s.slice(s.indexOf("invoice_no: FREIGABE_RECHNUNG_ERLEDIGT"), s.indexOf("// --- Hotel")), /status: "approved"/);
+    assert.match(s, /status: "approved", notes: FREIGABE_HINWEIS_ERLEDIGT/);
+    // wer entschieden hat und wann — die Spalten, aus denen die Datenbank-Funktion liest
+    assert.match(s, /reviewed_by: me\.id, reviewed_at: gestern/);
+    assert.match(s, /paid_at: gestern, paid_by: me\.id/);
+  });
+
   it("--remove räumt Abrechnung samt Rechnungsdatei, Hotelanfrage und Vorschlag weg", () => {
     const s = skript();
     const remove = s.slice(s.indexOf("async function remove(me)"), s.indexOf("const me = await person();"));
     assert.match(remove, /TEST-Abrechnung entfernt \(mit abgelegter Rechnung\)/);
     assert.match(remove, /storage\.from\("speaker-assets"\)\.remove\(dateien\.map/);
     assert.match(remove, /from\("hospitality_booking"\)\.delete\(\)\.contains\("details", \{ special: FREIGABE_HINWEIS \}\)/);
-    assert.match(remove, /from\("session_submission"\)\.delete\(\)\.eq\("notes", FREIGABE_HINWEIS\)/);
+    assert.match(remove, /from\("session_submission"\)\.delete\(\)\.in\("notes", \[FREIGABE_HINWEIS, FREIGABE_HINWEIS_ERLEDIGT\]\)/);
+    assert.match(remove, /const rechnungen = \[FREIGABE_RECHNUNG, FREIGABE_RECHNUNG_ERLEDIGT\];/);
+    assert.match(remove, /\.delete\(\)\.in\("invoice_no", rechnungen\)/);
     // vor dem Profil, damit nichts als Waise bleibt
     assert.ok(remove.indexOf("TEST-Abrechnung entfernt") < remove.indexOf('"Speaker-Profil entfernt"'));
   });
