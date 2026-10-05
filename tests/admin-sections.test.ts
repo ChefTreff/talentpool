@@ -155,6 +155,16 @@ describe("Admin-Abschnitte: Rollen", () => {
     assert.equal(canEnterAdminSection("persons", produktion), false);
   });
 
+  it("Reisekosten gehören der Bereichsleitung: Geld nur über area_lead_speaker, nicht über das Programm-Team", () => {
+    // `is_expense_approver()` ist admin oder area_lead_speaker; der Abschnitt zeigte vorher auch das
+    // Programm-Team, dem die Datenbank 42501 gab (Plan 05.10.2026, v6_hotel_freigabe_rechte).
+    assert.equal(canEnterAdminSection("expenses", ["area_lead_speaker"]), true);
+    assert.equal(canEnterAdminSection("expenses", ["programme_team"]), false);
+    // Hotels und Speaker-Tickets bleiben beim Programm-Team — dort geben die Funktionen es her.
+    assert.equal(canEnterAdminSection("hospitality", ["programme_team"]), true);
+    assert.equal(canEnterAdminSection("speakerTickets", ["programme_team"]), true);
+  });
+
   it("der Partner-Lead sieht Partner und Initiativen, nicht die Speaker-Listen", () => {
     const partner = ["area_lead_partner"];
     assert.equal(canEnterAdminSection("partner", partner), true);
@@ -271,30 +281,39 @@ describe("Admin-Abschnitte: Rollen", () => {
  * schreiben — über **alle** Dateien hinweg, nicht nur über die erste.
  *
  * PORT1b setzt die Tabelle einmal vollständig (`delete` + `insert`); spätere
- * Migrationen legen einzelne Abschnitte nach. Die Vereinigung ist deshalb der
- * Endstand, **solange niemand Zeilen löscht**. Tut das doch einmal jemand, muss
- * dieser Helfer mit — sonst prüft er einen Stand, den es nicht mehr gibt.
+ * Migrationen legen einzelne Abschnitte nach — und nehmen einzelne Paare wieder
+ * weg (`delete … where section = … and role = …`, so `v6_hotel_freigabe_rechte`
+ * für Reisekosten und Programm-Team). Der Endstand ist deshalb **die Reihenfolge
+ * der Anweisungen** über alle Dateien: erst die versionierten in Versionsfolge,
+ * dann die Vorschläge. Ein nur gesammeltes Insert-Set prüfte sonst einen Stand,
+ * den es nicht mehr gibt.
  */
 function gespiegeltePaare(): Set<string> {
   const dir = join("supabase", "migrations");
-  const dateien = [
-    ...readdirSync(dir).filter((f) => f.endsWith(".sql")).map((f) => join(dir, f)),
-    ...(existsSync(join(dir, "vorschlag"))
-      ? readdirSync(join(dir, "vorschlag")).filter((f) => f.endsWith(".sql")).map((f) => join(dir, "vorschlag", f))
-      : []),
-  ];
+  const sql = (ordner: string) =>
+    existsSync(ordner)
+      ? readdirSync(ordner).filter((f) => f.endsWith(".sql")).sort().map((f) => join(ordner, f))
+      : [];
+  const dateien = [...sql(dir), ...sql(join(dir, "vorschlag"))];
   const paare = new Set<string>();
+  // Eine Anweisung je Treffer, in Textreihenfolge. Zeilenkommentare vorher entfernen: ein
+  // Kommentar, der „delete from admin_section_role“ erwähnt, ist keine Anweisung.
+  const anweisung =
+    /insert into admin_section_role[^;]*;|delete from admin_section_role\s*;|delete from admin_section_role\s+where\s+section\s*=\s*'([^']+)'\s+and\s+role\s*=\s*'([^']+)'/gi;
   for (const datei of dateien) {
     if (statSync(datei).isDirectory()) continue;
-    const sql = readFileSync(datei, "utf8");
-    let von = sql.indexOf("insert into admin_section_role");
-    while (von !== -1) {
-      const bis = sql.indexOf(";", von);
-      const block = sql.slice(von, bis === -1 ? undefined : bis);
-      for (const [, section, role] of block.matchAll(/\('([^']+)',\s*'([^']+)'\)/g)) {
-        paare.add(`${section}|${role}`);
+    const text = readFileSync(datei, "utf8").replace(/--[^\n]*/g, "");
+    for (const m of text.matchAll(anweisung)) {
+      const kopf = m[0].toLowerCase();
+      if (kopf.startsWith("insert")) {
+        for (const [, section, role] of m[0].matchAll(/\('([^']+)',\s*'([^']+)'\)/g)) {
+          paare.add(`${section}|${role}`);
+        }
+      } else if (m[1] !== undefined) {
+        paare.delete(`${m[1]}|${m[2]}`);
+      } else {
+        paare.clear();
       }
-      von = sql.indexOf("insert into admin_section_role", bis === -1 ? sql.length : bis);
     }
   }
   return paare;

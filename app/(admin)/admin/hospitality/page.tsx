@@ -11,7 +11,10 @@ import type { ShuttleAdminRow } from "@/components/shuttle/types";
 export const dynamic = "force-dynamic";
 
 export default async function AdminHospitalityPage() {
-  await requireAdminSection("hospitality", "/admin/hospitality");
+  const { roleNames } = await requireAdminSection("hospitality", "/admin/hospitality");
+  // Kontingente sind die Kooperation mit dem Hotel (Plan 05.10.2026): anlegen und ändern bleibt bei
+  // admin (`upsert_hospitality_quota` prüft `is_staff()`); das Speaker-Team verteilt, es ändert sie nicht.
+  const canEditQuota = roleNames.includes("admin");
   const { locale, t } = await getI18n();
   const supabase = await createSupabaseServerClient();
 
@@ -41,6 +44,7 @@ export default async function AdminHospitalityPage() {
         />
       ) : (
         <HospitalityAdmin
+          canEditQuota={canEditQuota}
           quotas={quotas}
           editions={((events ?? []) as { id: string; name: string | null; slug: string }[]).map(
             (e) => ({ id: e.id, name: e.name ?? e.slug }),
