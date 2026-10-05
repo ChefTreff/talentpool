@@ -20,6 +20,7 @@ export function Menu({
   label,
   align = "start",
   width = "w-56",
+  ton = "navy",
   children,
 }: {
   /** Inhalt des Auslösers (Name, Avatar, Bereichsname). */
@@ -28,6 +29,12 @@ export function Menu({
   label: string;
   align?: "start" | "end";
   width?: string;
+  /**
+   * Auf welchem Grund der Auslöser steht: `navy` (Vorgabe: Kopfzeile und Seitenleiste, Hover als Aufhellung)
+   * oder `hell` (Fenster, Karte, Seite: der Auslöser hat einen Rand und eine Hover-Fläche wie ein
+   * zweitrangiger Knopf, LEAD-055 „Weitere Aktionen“).
+   */
+  ton?: "navy" | "hell";
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -63,9 +70,31 @@ export function Menu({
         aria-haspopup="menu"
         aria-controls={open ? id : undefined}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full min-h-11 items-center gap-2 rounded-ct-sm px-2 py-1.5 text-left transition-colors hover:bg-on-navy/10"
+        className={cn(
+          "flex w-full items-center gap-2 text-left transition-colors",
+          ton === "hell"
+            ? "min-h-10 rounded-ct-md border border-border-strong bg-surface px-3 ct-label text-ink hover:bg-surface-hover pointer-coarse:min-h-11"
+            : "min-h-11 rounded-ct-sm px-2 py-1.5 hover:bg-on-navy/10",
+        )}
       >
         {trigger}
+        {ton === "hell" && (
+          // Der Pfeil sagt „hier klappt etwas auf“ — ohne ihn sah der Auslöser neben einem Hauptknopf wie ein
+          // zweiter, gleichrangiger Knopf aus (LEAD-055).
+          <svg
+            aria-hidden
+            focusable="false"
+            viewBox="0 0 12 12"
+            className={cn("h-3 w-3 shrink-0 text-accent transition-transform duration-150", open && "rotate-180")}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 4.5 6 7.5 9 4.5" />
+          </svg>
+        )}
       </button>
 
       {open && (
