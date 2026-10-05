@@ -6,7 +6,29 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 
-type Strings = Record<string, string>;
+/**
+ * Die Texte der Einwilligung (Wörterbuch `logoWandEinwilligung`) als eigener Typ.
+ * Mit `Record<string, string>` und einem Cast am Aufruf fiel ein fehlender
+ * Schlüssel erst im Browser auf — die Karte stürzte ab, und mit ihr der Logo-Schritt
+ * im Onboarding und die Organisationsseite im Admin (PART-105). So fällt er beim
+ * Aufruf auf.
+ */
+export type LogoWandTexte = {
+  title: string;
+  explain: string;
+  consequence: string;
+  badgeGranted: string;
+  badgeMissing: string;
+  /** mit `{date}` */
+  grantedOn: string;
+  granted: string;
+  revoked: string;
+  grant: string;
+  revoke: string;
+  confirmRevoke: string;
+  cancel: string;
+  saving: string;
+};
 
 /**
  * Die Erlaubnis, das Logo für die Foto-Wand einfarbig weiß zu drucken
@@ -36,7 +58,7 @@ export function LogoWandEinwilligung({
   canEdit: boolean;
   onSet: (granted: boolean) => Promise<{ ok: true } | { ok: false; key: string }>;
   dateLocale: string;
-  t: Strings;
+  t: LogoWandTexte;
   rpcMessages: Record<string, string>;
 }) {
   const router = useRouter();
