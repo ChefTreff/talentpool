@@ -31,6 +31,7 @@ import {
   type LeadResult,
 } from "./actions";
 import { PIPELINE_ORDER, type ManagedSpeaker, type ManagerOption } from "./types";
+import { STAENDE_VOR_ZUSAGE, istNachZusage, kannZusageMelden, naechstePflichten } from "./phase";
 
 type Strings = Record<string, string>;
 
@@ -143,6 +144,11 @@ export function SpeakerFenster({
     [speaker.title, speaker.first_name, speaker.last_name].filter(Boolean).join(" ") ||
     common.none;
 
+  // LEAD-054: vor der Zusage nur Grunddaten, Ansprache und Einordnung; mit der
+  // Zusage öffnen sich Onboarding, Hospitality und Programm.
+  const nachZusage = istNachZusage(speaker.pipeline_status);
+  const pflichten = naechstePflichten(speaker);
+
   function report(res: LeadResult, okText: string) {
     if (res.ok) {
       setFehler(null);
@@ -232,13 +238,76 @@ export function SpeakerFenster({
         </Button>
       </div>
 
+      {/* LEAD-054: vor der Zusage die eine Frage „Hat die Person zugesagt?“ mit der
+          Aktion dazu; danach sagt das Fenster, was als Nächstes zu tun ist. Die
+          Aktion ist `secondary`: die eine primäre Aktion des Fensters bleibt
+          „Speichern“. */}
+      {kannZusageMelden(speaker.pipeline_status) && (
+        <section
+          aria-labelledby="fenster-zusage"
+          className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-ct-md border border-accent-soft bg-accent-soft p-4"
+        >
+          <div className="min-w-0">
+            <h3 id="fenster-zusage" className="ct-label text-ink">
+              {t.confirmPromptTitle}
+            </h3>
+            <p className="ct-help">{t.pipelineLockedHint}</p>
+          </div>
+          <Button
+            variant="secondary"
+            disabled={pending}
+            onClick={() =>
+              startTransition(async () =>
+                void report(await setPipeline(speaker.id, "confirmed"), t.confirmedMoved),
+              )
+            }
+          >
+            {t.confirmAction}
+          </Button>
+        </section>
+      )}
+      {nachZusage && !speaker.stage_guest && (
+        <section aria-labelledby="fenster-pflichten" className="mt-4 rounded-ct-md border bg-canvas p-4">
+          <h3 id="fenster-pflichten" className="ct-label text-ink">
+            {t.dutiesTitle}
+          </h3>
+          {pflichten.length === 0 ? (
+            <p className="mt-2">
+              <Badge tone="success">{t.dutiesDone}</Badge>
+            </p>
+          ) : (
+            <ul className="mt-2 flex flex-col gap-2">
+              {pflichten.map((p) => (
+                <li key={p} className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="ct-small text-ink">{t[`duty_${p}`]}</span>
+                  {p === "invite" && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() =>
+                        startTransition(async () =>
+                          void report(await inviteSpeaker(speaker.id), t.invited),
+                        )
+                      }
+                    >
+                      {t.invite}
+                    </Button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
       <div className="mt-5 grid gap-x-8 gap-y-5 lg:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-5">
           {/* Pipeline */}
           <section className="border-t pt-4">
             <h3 className="ct-label mb-2 text-ink">{t.pipeline}</h3>
             <div className="flex flex-wrap gap-1">
-              {PIPELINE_ORDER.map((s) => (
+              {PIPELINE_ORDER.filter((s) => nachZusage || STAENDE_VOR_ZUSAGE.includes(s)).map((s) => (
                 <Button
                   key={s}
                   size="sm"
@@ -257,7 +326,7 @@ export function SpeakerFenster({
                     );
                   }}
                 >
-                  {labels.pipeline[s] ?? s}
+                  {s === "confirmed" && !nachZusage ? t.confirmAction : (labels.pipeline[s] ?? s)}
                 </Button>
               ))}
             </div>
@@ -395,28 +464,33 @@ export function SpeakerFenster({
                   }
                 />
               </Field>
-              <label className="flex items-center gap-2 ct-label">
-                <input
-                  type="checkbox"
-                  className="size-4"
-                  checked={draft.reception_eligible}
-                  onChange={(e) =>
-                    setDraft((d) => ({ ...d, reception_eligible: e.target.checked }))
-                  }
-                />
-                {t.receptionEligible}
-              </label>
-              <label className="flex items-center gap-2 ct-label">
-                <input
-                  type="checkbox"
-                  className="size-4"
-                  checked={draft.travel_costs_covered}
-                  onChange={(e) =>
-                    setDraft((d) => ({ ...d, travel_costs_covered: e.target.checked }))
-                  }
-                />
-                {t.travelCovered}
-              </label>
+              {/* Erst nach der Zusage (LEAD-054): vorher steht hier nur, was zur Ansprache gehört. */}
+              {nachZusage && (
+                <>
+                  <label className="flex items-center gap-2 ct-label">
+                    <input
+                      type="checkbox"
+                      className="size-4"
+                      checked={draft.reception_eligible}
+                      onChange={(e) =>
+                        setDraft((d) => ({ ...d, reception_eligible: e.target.checked }))
+                      }
+                    />
+                    {t.receptionEligible}
+                  </label>
+                  <label className="flex items-center gap-2 ct-label">
+                    <input
+                      type="checkbox"
+                      className="size-4"
+                      checked={draft.travel_costs_covered}
+                      onChange={(e) =>
+                        setDraft((d) => ({ ...d, travel_costs_covered: e.target.checked }))
+                      }
+                    />
+                    {t.travelCovered}
+                  </label>
+                </>
+              )}
               <Field label={t.internalNotes} htmlFor="notes" hint={t.internalNotesHint}>
                 <Textarea
                   id="notes"
@@ -428,8 +502,8 @@ export function SpeakerFenster({
             </div>
           </section>
 
-          {/* Team-Felder — für Manager gar nicht erst sichtbar */}
-          {isTeam && (
+          {/* Team-Felder — für Manager gar nicht erst sichtbar, und erst nach der Zusage (LEAD-054) */}
+          {isTeam && nachZusage && (
             <section className="border-t pt-4">
               <h3 className="ct-label mb-1 text-ink">{t.teamFields}</h3>
               <p className="ct-help mb-3">{t.teamFieldsHint}</p>
@@ -475,34 +549,36 @@ export function SpeakerFenster({
             </section>
           )}
 
-          {/* Sessions und offene Schritte */}
-          <section className="border-t pt-4">
-            <h3 className="ct-label mb-2 text-ink">{t.sessions}</h3>
-            {(speaker.sessions ?? []).length === 0 ? (
-              <p className="ct-help">{t.noSessionHint}</p>
-            ) : (
-              <ul className="flex flex-col gap-1">
-                {(speaker.sessions ?? []).map((s) => (
-                  <li key={s.session_id} className="ct-help">
-                    {(locale === "en" ? s.title_en : s.title_de) ?? s.title_de ?? "—"}
-                    {s.stage_name && ` · ${s.stage_name}`}
-                    {s.start_at && ` · ${dateTime.format(new Date(s.start_at))}`}
-                    {s.publish_status && ` · ${s.publish_status}`}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <h3 className="ct-label mb-2 mt-4 text-ink">{t.openSteps}</h3>
-            {(speaker.next_open ?? []).length === 0 ? (
-              <Badge tone="success">{t.allDone}</Badge>
-            ) : (
-              <div className="flex flex-wrap gap-1">
-                {(speaker.next_open ?? []).map((step) => (
-                  <Badge key={step}>{t[`step_${step}`] ?? step}</Badge>
-                ))}
-              </div>
-            )}
-          </section>
+          {/* Sessions und offene Schritte — das Programm gibt es erst nach der Zusage (LEAD-054) */}
+          {nachZusage && (
+            <section className="border-t pt-4">
+              <h3 className="ct-label mb-2 text-ink">{t.sessions}</h3>
+              {(speaker.sessions ?? []).length === 0 ? (
+                <p className="ct-help">{t.noSessionHint}</p>
+              ) : (
+                <ul className="flex flex-col gap-1">
+                  {(speaker.sessions ?? []).map((s) => (
+                    <li key={s.session_id} className="ct-help">
+                      {(locale === "en" ? s.title_en : s.title_de) ?? s.title_de ?? "—"}
+                      {s.stage_name && ` · ${s.stage_name}`}
+                      {s.start_at && ` · ${dateTime.format(new Date(s.start_at))}`}
+                      {s.publish_status && ` · ${s.publish_status}`}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <h3 className="ct-label mb-2 mt-4 text-ink">{t.openSteps}</h3>
+              {(speaker.next_open ?? []).length === 0 ? (
+                <Badge tone="success">{t.allDone}</Badge>
+              ) : (
+                <div className="flex flex-wrap gap-1">
+                  {(speaker.next_open ?? []).map((step) => (
+                    <Badge key={step}>{t[`step_${step}`] ?? step}</Badge>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
           {/* Betreuung weitergeben.
 
@@ -544,35 +620,37 @@ export function SpeakerFenster({
             </section>
           )}
 
-          {/* Reisekosten */}
-          <section className="border-t pt-4">
-            <h3 className="ct-label mb-2 text-ink">{t.travel}</h3>
-            <p className="ct-help">
-              {speaker.travel_costs_covered ? t.travelCoveredYes : t.travelCoveredNo}
-              {" · "}
-              {speaker.travel_costs_approved ? t.travelApprovedYes : t.travelApprovedNo}
-            </p>
-            <p className="ct-help mt-1">{t.travelApproveHint}</p>
-            {/* Freigeben darf nur Bereichsleitung oder Admin (`approve_travel_costs`
-                antwortet sonst 42501). Einem Manager den Knopf zu zeigen, den er
-                nicht drücken kann, wäre nur eine Einladung in den Fehler. */}
-            {isTeam && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  disabled={pending || speaker.travel_costs_approved}
-                  onClick={() =>
-                    startTransition(async () =>
-                      void report(await approveTravelCosts(speaker.id, true), t.travelApproved),
-                    )
-                  }
-                >
-                  {t.travelApprove}
-                </Button>
-              </div>
-            )}
-          </section>
+          {/* Reisekosten — erst nach der Zusage (LEAD-054) */}
+          {nachZusage && (
+            <section className="border-t pt-4">
+              <h3 className="ct-label mb-2 text-ink">{t.travel}</h3>
+              <p className="ct-help">
+                {speaker.travel_costs_covered ? t.travelCoveredYes : t.travelCoveredNo}
+                {" · "}
+                {speaker.travel_costs_approved ? t.travelApprovedYes : t.travelApprovedNo}
+              </p>
+              <p className="ct-help mt-1">{t.travelApproveHint}</p>
+              {/* Freigeben darf nur Bereichsleitung oder Admin (`approve_travel_costs`
+                  antwortet sonst 42501). Einem Manager den Knopf zu zeigen, den er
+                  nicht drücken kann, wäre nur eine Einladung in den Fehler. */}
+              {isTeam && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={pending || speaker.travel_costs_approved}
+                    onClick={() =>
+                      startTransition(async () =>
+                        void report(await approveTravelCosts(speaker.id, true), t.travelApproved),
+                      )
+                    }
+                  >
+                    {t.travelApprove}
+                  </Button>
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </div>
 
@@ -584,8 +662,8 @@ export function SpeakerFenster({
         <Button onClick={onSave} loading={pending} disabled={adresse}>
           {common.save}
         </Button>
-        {/* `invite_speaker` weist Gäste ab (0188) — der Knopf steht dann gar nicht erst da. */}
-        {!speaker.stage_guest && (
+        {/* `invite_speaker` weist Gäste ab (0188) und verlangt die Zusage (`not_confirmed`) — der Knopf steht dann gar nicht erst da. */}
+        {!speaker.stage_guest && nachZusage && (
           <Button
             variant="secondary"
             disabled={pending}

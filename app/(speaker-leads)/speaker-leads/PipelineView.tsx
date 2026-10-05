@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/shared";
 import { useUrlFilter } from "@/components/ui/useUrlFilter";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
@@ -11,10 +12,13 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { Chip } from "@/components/ui/Chip";
+import { useToast } from "@/components/ui/Toast";
 import { NewSpeakerDrawer } from "./NewSpeakerDrawer";
 import type { EinordnungOptionen } from "@/components/speaker/Einordnung";
 import { fristStand, heute } from "@/lib/speaker/verlauf";
 import { SpeakerFenster } from "./SpeakerFenster";
+import { setPipeline } from "./actions";
+import { kannZusageMelden } from "./phase";
 import {
   PIPELINE_BESTAETIGT,
   PIPELINE_ORDER,
@@ -126,6 +130,24 @@ export function PipelineView({
   const fristDatum = (iso: string) => dateTime.format(new Date(`${iso}T12:00:00`));
   const name = (s: ManagedSpeaker) =>
     [s.title, s.first_name, s.last_name].filter(Boolean).join(" ") || common.none;
+
+  // LEAD-054: „Hat bestätigt“ direkt in der Zeile — die Person wandert in die
+  // Liste der Bestätigten, ihre Onboarding- und Hospitality-Felder öffnen sich.
+  const router = useRouter();
+  const toast = useToast();
+  const [pendingZusage, startZusage] = useTransition();
+  function meldeZusage(s: ManagedSpeaker) {
+    startZusage(async () => {
+      const res = await setPipeline(s.id, "confirmed");
+      if (!res.ok) {
+        const text = rpcMessages[res.key] ?? rpcMessages.unknown ?? res.key;
+        toast("error", text + (res.detail ? ` (${res.detail})` : ""));
+        return;
+      }
+      toast("success", t.confirmedMoved.replace("{name}", name(s)));
+      router.refresh();
+    });
+  }
 
   // Nur die Stände dieser Seite (LEAD-028). Das Schubfach sucht weiter in allen
   // Speakern: wer hier gerade bestätigt wurde, bleibt offen, bis man es schliesst.
@@ -344,6 +366,7 @@ export function PipelineView({
             <Th>{te.title}</Th>
             <Th>{tv.nextStep}</Th>
             <Th>{t.colOwner}</Th>
+            <Th>{t.colAction}</Th>
           </Thead>
           <Tbody>
             {visible.map((s) => (
@@ -431,6 +454,20 @@ export function PipelineView({
                   )}
                 </Td>
                 <Td className="text-muted" label={t.colOwner}>{s.owner_name || common.none}</Td>
+                {/* LEAD-054: die Zusage direkt in der Zeile melden. */}
+                <Td>
+                  {kannZusageMelden(s.pipeline_status) && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="whitespace-nowrap"
+                      disabled={pendingZusage}
+                      onClick={() => meldeZusage(s)}
+                    >
+                      {t.confirmAction}
+                    </Button>
+                  )}
+                </Td>
               </Tr>
             ))}
           </Tbody>
