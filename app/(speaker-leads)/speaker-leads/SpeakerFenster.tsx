@@ -10,22 +10,20 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { InfoList } from "@/components/ui/InfoList";
 import { Input, Textarea } from "@/components/ui/Input";
-import { Menu, MenuItem, MenuSeparator } from "@/components/ui/Menu";
 import { ConfirmDialog, Modal, ModalFuss } from "@/components/ui/Modal";
 import { PortraitShape } from "@/components/ui/PortraitShape";
 import { Select } from "@/components/ui/Select";
-import { Stufenleiste } from "@/components/ui/Stufenleiste";
 import { useToast } from "@/components/ui/Toast";
 import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
 import { Verlauf } from "@/components/speaker/Verlauf";
 import { PhotoUpload } from "@/components/speaker/PhotoUpload";
+import { SpeakerKopf, type KopfErgebnis } from "@/components/speaker/SpeakerKopf";
 import {
   buehnenGeaendert,
   einordnungAenderungen,
   einordnungEntwurf,
   kontaktViaHatAdresse,
 } from "@/lib/speaker/einordnung";
-import { fristStand, heute } from "@/lib/speaker/verlauf";
 import {
   approveTravelCosts,
   handoverSpeaker,
@@ -35,49 +33,15 @@ import {
   speakerFoto,
   setStageCandidates,
   updateSpeaker,
-  type LeadResult,
 } from "./actions";
-import { PIPELINE_ORDER, type ManagedSpeaker, type ManagerOption } from "./types";
-import {
-  STAENDE_VOR_ZUSAGE,
-  STUFEN,
-  alsNaechstes,
-  aufraeumen,
-  blockMarken,
-  hauptaktion,
-  kannZusageMelden,
-  naechstePflichten,
-  warNachZusage,
-  type Hauptaktion,
-  type PflichtBlock,
-} from "./phase";
+import type { ManagedSpeaker, ManagerOption } from "./types";
+import { aufraeumen, blockMarken, hauptaktion, naechstePflichten, warNachZusage, type PflichtBlock } from "./phase";
 import { entwurfGeaendert, fensterEntwurf } from "./entwurf";
 
 type Strings = Record<string, string>;
 
-/** Der Wörterbuch-Schlüssel des Knopftextes je Hauptaktion. */
-const AKTION_TEXT: Record<Hauptaktion, string> = {
-  contact: "actionContact",
-  confirm: "confirmAction",
-  invite: "actionInvite",
-  hospitality: "actionHospitality",
-  travel: "actionTravel",
-  session: "actionSession",
-};
-
 /** Das Programmboard der Leads — dorthin führt „Im Programmboard zuordnen“. */
 const BOARD_PFAD = "/speaker-leads/board";
-
-/**
- * Springt zu einem Block und klappt ihn auf. Ein Anker (`#id`) täte es auch, aber er schriebe die Adresse um und liefe beim
- * zweiten Klick ins Leere (`hashchange` kommt nur, wenn sich der Anker ändert).
- */
-function springeZu(id: string) {
-  const el = document.getElementById(id);
-  if (!(el instanceof HTMLDetailsElement)) return;
-  el.open = true;
-  el.scrollIntoView({ block: "start" });
-}
 
 /**
  * Ein Speaker als zentrales Fenster (LEAD-026, Konrad 24.09.: „die Seitenleiste ist zu schmal für die Informationsfülle;
@@ -155,15 +119,7 @@ export function SpeakerFenster({
   // ADM-062: Fehler stehen im Fenster, nicht als Toast am Bildschirmrand.
   const [fehler, setFehler] = useState<string | null>(null);
 
-  /** Das eine Aktionspanel unter der Aktionszeile — dieselbe Fläche wie früher das Absage-Panel. */
-  const [panel, setPanel] = useState<null | "absage" | "stand" | "weitergeben">(null);
-  /** Der gewählte Grund einer Absage. */
-  const [grund, setGrund] = useState("");
-  /** Der gewählte neue Stand (Panel „Stand ändern“). */
-  const [neuerStand, setNeuerStand] = useState("");
-  /** Empfänger einer Übergabe. */
-  const [nachfolge, setNachfolge] = useState("");
-  /** Rückfragen: eine Mail an den Speaker und das Verwerfen von Änderungen. */
+  /** Rückfragen: eine Mail an den Speaker und das Verwerfen von Änderungen (das Aktionspanel steht im Kopf). */
   const [einladungFrage, setEinladungFrage] = useState(false);
   const [verwerfenFrage, setVerwerfenFrage] = useState(false);
 
@@ -196,9 +152,6 @@ export function SpeakerFenster({
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
   const datum = (iso: string) => dateTime.format(new Date(iso));
-  // Fristen sind Kalendertage ohne Uhrzeit — um 12 Uhr gelesen, damit die Zeitzone den Tag nicht verschiebt.
-  const fristDatum = (iso: string) => dateTime.format(new Date(`${iso}T12:00:00`));
-  const [heuteIso] = useState(() => heute());
   const name =
     [speaker.title, speaker.first_name, speaker.last_name].filter(Boolean).join(" ") ||
     common.none;
@@ -213,9 +166,8 @@ export function SpeakerFenster({
   const marken = blockMarken(pflichten);
   const haengt = aufraeumen(speaker);
   const aktion = hauptaktion(speaker, isTeam);
-  const naechstes = alsNaechstes(speaker);
 
-  function report(res: LeadResult, okText: string): boolean {
+  function report(res: KopfErgebnis, okText: string): boolean {
     if (res.ok) {
       setFehler(null);
       toast("success", okText);
@@ -227,20 +179,10 @@ export function SpeakerFenster({
   }
 
   /** Eine Aktion des Fensters: Toast und Aktualisieren bei Erfolg, der Fehler im Fenster sonst. Das Fenster bleibt offen. */
-  function fuehreAus(aktionFn: () => Promise<LeadResult>, okText: string, danach?: () => void) {
+  function fuehreAus(aktionFn: () => Promise<KopfErgebnis>, okText: string, danach?: () => void) {
     startTransition(async () => {
       if (report(await aktionFn(), okText)) danach?.();
     });
-  }
-
-  function onHauptaktion(a: Hauptaktion) {
-    if (a === "contact") fuehreAus(() => setPipeline(speaker.id, "contacted"), t.pipelineSaved);
-    else if (a === "confirm") {
-      fuehreAus(() => setPipeline(speaker.id, "confirmed"), t.confirmedMoved.replace("{name}", name));
-    } else if (a === "invite") setEinladungFrage(true);
-    else if (a === "hospitality") springeZu("fenster-hospitality");
-    else if (a === "travel") fuehreAus(() => approveTravelCosts(speaker.id, true), t.travelApproved);
-    // `session` ist ein Link ins Programmboard und läuft nicht über diese Funktion.
   }
 
   function onSave() {
@@ -288,8 +230,6 @@ export function SpeakerFenster({
 
   const opt = (map: Record<string, string>) =>
     Object.entries(map).map(([value, label]) => ({ value, label }));
-  const standName = (s: string) =>
-    s === "confirmed" && !nachZusage ? t.confirmAction : (labels.pipeline[s] ?? s);
 
   // --- Kopf ---------------------------------------------------------------------------------------------------------------
   const untertitel = [speaker.job_title, speaker.organization_name].filter(Boolean).join(" · ");
@@ -300,15 +240,7 @@ export function SpeakerFenster({
   const hotelAbweichend = speaker.hotel_tier !== "standard";
   const hotelKurz = (labels.hotelTier[speaker.hotel_tier] ?? speaker.hotel_tier).split(" (")[0];
 
-  const stufe = Math.max(0, STUFEN.indexOf(speaker.pipeline_status));
-
-  // Stände, die „Stand ändern …“ anbietet: die der Phase, ohne den jetzigen — die Absage hat ihren eigenen Menüpunkt.
-  const standOptionen = PIPELINE_ORDER.filter(
-    (s) => (nachZusage || STAENDE_VOR_ZUSAGE.includes(s)) && s !== speaker.pipeline_status && s !== "declined",
-  ).map((s) => ({ value: s, label: standName(s) }));
-
   const darfWeitergeben = (isTeam || speaker.owner_person_id === meId) && managers.length > 0;
-  const darfErneutEinladen = !gast && nachZusage && !abgesagt && Boolean(speaker.invited_at);
 
   // --- Blöcke -------------------------------------------------------------------------------------------------------------
   /** Marke eines Pflicht-Blocks: aus den offenen Pflichten, nach einer Absage „Aufräumen“, für Gäste keine. */
@@ -381,209 +313,32 @@ export function SpeakerFenster({
         {/* SPK-070: ein Gast des Partners bekommt weder Einladung noch Onboarding. */}
         {gast && <p className="ct-help mt-2">{tg.hint}</p>}
 
-        {/* … die eine Hauptaktion und die weiteren … */}
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-          {aktion === "session" ? (
-            <ButtonLink key="hauptaktion" href={BOARD_PFAD} className="max-sm:w-full">
-              {t[AKTION_TEXT.session]}
-            </ButtonLink>
-          ) : (
-            aktion && (
-              <Button
-                key="hauptaktion"
-                className="max-sm:w-full"
-                loading={pending}
-                onClick={() => onHauptaktion(aktion)}
-              >
-                {t[AKTION_TEXT[aktion]]}
-              </Button>
-            )
-          )}
-          <Menu ton="hell" label={t.moreActions} trigger={<span>{t.moreActions}</span>}>
-            {darfWeitergeben && (
-              <MenuItem
-                onSelect={() => {
-                  setPanel("weitergeben");
-                  setNachfolge("");
-                }}
-              >
-                {t.handoverMenu}
-              </MenuItem>
-            )}
-            <MenuItem
-              onSelect={() => {
-                setPanel("stand");
-                setNeuerStand("");
-              }}
-            >
-              {t.changeStage}
-            </MenuItem>
-            {darfErneutEinladen && <MenuItem onSelect={() => setEinladungFrage(true)}>{t.inviteAgain}</MenuItem>}
-            {!abgesagt && (
-              <>
-                <MenuSeparator />
-                <MenuItem
-                  onSelect={() => {
-                    setPanel("absage");
-                    setGrund(speaker.decline_reason ?? "");
-                  }}
-                >
-                  {t.declineMenu}
-                </MenuItem>
-              </>
-            )}
-          </Menu>
-        </div>
-        {kannZusageMelden(speaker.pipeline_status) && <p className="ct-help mt-2">{t.pipelineLockedHint}</p>}
-
-        {/* Das Aktionspanel: kein Dialog über dem Dialog. */}
-        {panel === "absage" && (
-          <div className="mt-3 flex flex-col gap-2 rounded-ct-md border bg-canvas p-3">
-            {/* Bei einer Absage fragen wir nach dem Grund, bevor wir umschalten — hinterher trägt ihn niemand mehr
-                nach, und für die nächste Edition ist er mehr wert als die Absage. */}
-            <Field label={t.declineReason} htmlFor="absage-grund" hint={t.declineReasonHint}>
-              <Select
-                id="absage-grund"
-                value={grund}
-                placeholder={common.choose}
-                options={opt(labels.declineReason)}
-                onChange={(e) => setGrund(e.target.value)}
-              />
-            </Field>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                disabled={pending || grund === ""}
-                onClick={() =>
-                  fuehreAus(() => setPipeline(speaker.id, "declined", grund), t.pipelineSaved, () => setPanel(null))
-                }
-              >
-                {t.declineConfirm}
-              </Button>
-              <Button size="sm" variant="ghost" disabled={pending} onClick={() => setPanel(null)}>
-                {common.cancel}
-              </Button>
-            </div>
-          </div>
-        )}
-        {panel === "stand" && (
-          <div className="mt-3 flex flex-col gap-2 rounded-ct-md border bg-canvas p-3">
-            <Field label={t.changeStageLabel} htmlFor="stand-neu" hint={t.pipelineHint}>
-              <Select
-                id="stand-neu"
-                value={neuerStand}
-                placeholder={common.choose}
-                options={standOptionen}
-                onChange={(e) => setNeuerStand(e.target.value)}
-              />
-            </Field>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                disabled={pending || neuerStand === ""}
-                onClick={() =>
-                  fuehreAus(() => setPipeline(speaker.id, neuerStand), t.pipelineSaved, () => setPanel(null))
-                }
-              >
-                {t.changeStageConfirm}
-              </Button>
-              <Button size="sm" variant="ghost" disabled={pending} onClick={() => setPanel(null)}>
-                {common.cancel}
-              </Button>
-            </div>
-          </div>
-        )}
-        {panel === "weitergeben" && (
-          <div className="mt-3 flex flex-col gap-2 rounded-ct-md border bg-canvas p-3">
-            {/* Angeboten wird das nur, wo es auch erlaubt ist: das Team darf jeden zuordnen, eine Lead-Person nur abgeben,
-                was sie heute selbst betreut (Migration 0103). Der Eintrag für alle wäre bei der Hälfte der Zeilen eine
-                Einladung in den Fehler. */}
-            <div className="flex flex-wrap items-end gap-2">
-              <Field label={t.handoverTo} htmlFor="nachfolge" className="min-w-52 grow">
-                <Select
-                  id="nachfolge"
-                  value={nachfolge}
-                  placeholder={common.choose}
-                  options={managers
-                    .filter((m) => m.person_id !== speaker.owner_person_id)
-                    .map((m) => ({ value: m.person_id, label: m.display_name ?? m.person_id }))}
-                  onChange={(e) => setNachfolge(e.target.value)}
-                />
-              </Field>
-              <Button
-                size="sm"
-                disabled={pending || nachfolge === ""}
-                onClick={() =>
-                  fuehreAus(() => handoverSpeaker(speaker.id, nachfolge), t.handedOver, () => {
-                    setPanel(null);
-                    setNachfolge("");
-                  })
-                }
-              >
-                {t.handoverAction}
-              </Button>
-              <Button size="sm" variant="ghost" disabled={pending} onClick={() => setPanel(null)}>
-                {common.cancel}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* … wo er steht … */}
-        <Stufenleiste
-          className="mt-4"
-          label={t.stageLabel}
-          zaehler={nenne(t.stageCounter, { n: String(stufe + 1), m: String(STUFEN.length) })}
-          schritte={STUFEN.map((s) => ({ key: s, label: labels.pipeline[s] ?? s }))}
-          aktuell={speaker.pipeline_status}
-          ende={abgesagt ? t.stageEnded : undefined}
+        {/* … die eine Hauptaktion, die weiteren, wo er steht und was als Nächstes zu tun ist: der Kopf, den auch das
+            Admin-Detail benutzt (`components/speaker/SpeakerKopf.tsx`). */}
+        <SpeakerKopf
+          speaker={speaker}
+          name={name}
+          team={isTeam}
+          ownerOptionen={managers
+            .filter((m) => m.person_id !== speaker.owner_person_id)
+            .map((m) => ({ value: m.person_id, label: m.display_name ?? m.person_id }))}
+          darfWeitergeben={darfWeitergeben}
+          pending={pending}
+          onRun={fuehreAus}
+          onEinladen={() => setEinladungFrage(true)}
+          aktionen={{
+            setPipeline: (status, grund) => setPipeline(speaker.id, status, grund),
+            handover: (personId) => handoverSpeaker(speaker.id, personId ?? ""),
+            approveTravel: () => approveTravelCosts(speaker.id, true),
+          }}
+          blockPrefix="fenster-"
+          boardPfad={BOARD_PFAD}
+          labels={{ pipeline: labels.pipeline, declineReason: labels.declineReason }}
+          t={t}
+          tv={tv}
+          common={common}
+          dateLocale={dateLocale}
         />
-
-        {/* … und was als Nächstes zu tun ist. */}
-        <dl className="mt-3 flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-6">
-          <div className="flex gap-1.5">
-            <dt className="ct-label text-muted">{t.currentOwner}</dt>
-            <dd className="ct-small text-ink">{speaker.owner_name || common.none}</dd>
-          </div>
-          {naechstes.art === "abgesagt" ? (
-            <div>
-              <dd className="ct-small font-semibold text-error-ink">
-                {speaker.declined_at ? nenne(t.declinedLine, { date: datum(speaker.declined_at) }) : t.stageEnded}
-                {speaker.decline_reason && ` · ${labels.declineReason[speaker.decline_reason] ?? speaker.decline_reason}`}
-              </dd>
-            </div>
-          ) : (
-            <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
-              <dt className="ct-label text-muted">{t.nextLabel}</dt>
-              <dd className="ct-small text-ink">
-                {naechstes.art === "pflicht" && t[`duty_${naechstes.pflicht}`]}
-                {naechstes.art === "aufgabe" && speaker.next_task && (
-                  <span className="inline-flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                    <span className="line-clamp-2">{speaker.next_task.body}</span>
-                    {fristStand(speaker.next_task.due_on, heuteIso) === "ueberfaellig" ? (
-                      <Badge tone="error">{tv.overdue}</Badge>
-                    ) : fristStand(speaker.next_task.due_on, heuteIso) === "heute" ? (
-                      <Badge tone="warning">{tv.dueToday}</Badge>
-                    ) : null}
-                    <span className="ct-help">{tv.dueOn.replace("{date}", fristDatum(speaker.next_task.due_on))}</span>
-                  </span>
-                )}
-                {naechstes.art === "nichts" && (nachZusage && !gast ? t.dutiesDone : t.noNextStep)}
-              </dd>
-            </div>
-          )}
-          {/* Kontakt: die RPC gibt die Adresse nur im Scope heraus. */}
-          {speaker.email ? (
-            <div className="flex gap-1.5">
-              <dt className="ct-label text-muted">{t.contactEmail}</dt>
-              <dd className="ct-small min-w-0 break-all text-ink">{speaker.email}</dd>
-            </div>
-          ) : (
-            <div>
-              <dd className="ct-help">{t.contactHidden}</dd>
-            </div>
-          )}
-        </dl>
 
         {/* Blöcke: die Reihenfolge ist fest, nur was offen ist, ändert sich mit dem Stand. */}
         <div className="mt-4">
