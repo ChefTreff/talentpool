@@ -33,6 +33,9 @@ type Strings = Record<string, string>;
  * bei Hallenplan und Anfahrt in zwei Schritten direkt zu Supabase
  * (`/api/admin/media-kit`); die Route prüft die Rolle, `set_edition_file` noch
  * einmal. Fehler stehen im Toast, weil sie keinem Formularfeld gehören.
+ *
+ * **Auswählen ist zweitrangig, „Hochladen“ die Hauptaktion der Karte** (ADM-075): `FileButton variant="secondary"`
+ * für den ersten Schritt; der Knopf danach (mit dem Dateinamen daneben) ist der primäre.
  */
 export function MediaKitAdmin({
   editionId,
@@ -132,7 +135,8 @@ export function MediaKitAdmin({
             uploadLabel={common.upload}
             changeLabel={common.chooseOtherFile}
             accept=".pdf,.png,.jpg,.jpeg,.webp,.svg,.zip"
-            disabled={busy}
+            variant="secondary"
+            laedt={busy}
             hint={t.uploadHint}
             onFile={(file) => void hochladen(file)}
           />

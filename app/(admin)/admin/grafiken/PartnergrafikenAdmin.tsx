@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
+import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FileButton } from "@/components/ui/FileButton";
 import { SuchFeld } from "@/components/ui/SuchFeld";
+import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 import { partnergrafikAblegen } from "@/components/partner/partnergrafik-upload";
@@ -35,6 +35,13 @@ type Strings = Record<string, string>;
  *
  * Die Suche filtert im Browser — die Liste enthält jeden Partner der Edition
  * einmal, das sind wenige hundert Zeilen.
+ *
+ * **Eine Tabelle statt einer Liste aus Badge, zwei Links und einem Umrissknopf**
+ * (ADM-075, Konrad 05.10.: „die Buttons sauberer strukturieren“): Partner, Stand,
+ * Aktionen in festen Spalten, die Aktionen rechtsbündig und alle gleich groß —
+ * „Ansehen“ (ruhig), „Mit Generator erzeugen“ und „Hochladen“ oder „Ersetzen“ (Umriss). Vorher hatte der
+ * Auswahlknopf 44 px zwischen Textlinks, und die Ränder standen von Zeile zu Zeile
+ * woanders, weil „Ersetzen“ und „Grafik hochladen“ verschieden breit sind.
  */
 export function PartnergrafikenAdmin({
   editionId,
@@ -92,45 +99,58 @@ export function PartnergrafikenAdmin({
           {t.count.replace("{n}", String(mitGrafik)).replace("{total}", String(zeilen.length))}
         </span>
       </div>
-      <Card className="p-0">
-        <ul className="flex flex-col">
+      <Table stapeln>
+        <Thead>
+          <Th>{t.colPartner}</Th>
+          <Th>{t.colStatus}</Th>
+          <Th>
+            <span className="sr-only">{t.colActions}</span>
+          </Th>
+        </Thead>
+        <Tbody>
           {gezeigt.map((z) => (
-            <li key={z.org_id} className="flex flex-wrap items-center gap-3 border-b px-4 py-3 last:border-b-0">
-              {/* Auf dem Telefon eine eigene Zeile, sonst bliebe dem Namen neben Badge und Knopf kaum Platz. */}
-              <span className="ct-small min-w-0 flex-1 basis-full text-ink sm:basis-0">
-                {z.org_name ?? "—"}
+            <Tr key={z.org_id}>
+              <Td>
+                <span className="ct-label text-ink">{z.org_name ?? "—"}</span>
                 {z.asset_id && z.created_at && (
-                  <span className="ct-help block">
+                  <span className="ct-help block text-muted">
                     {[z.filename, t.version.replace("{n}", String(z.version ?? 1)), datum.format(new Date(z.created_at))]
                       .filter(Boolean)
                       .join(" · ")}
                   </span>
                 )}
-              </span>
-              {z.asset_id ? <Badge tone="success">{t.statusSet}</Badge> : <Badge tone="warning">{t.statusMissing}</Badge>}
-              {z.url && (
-                <a className="ct-link ct-small" href={z.url} {...neuesFenster}>
-                  {t.preview}
-                </a>
-              )}
-              {/* Der Generator (PART-097): dieselbe Grafik wie im Partner-Portal, Logo und Foto wählt das Marketing selbst. */}
-              <Link className="ct-link ct-small" href={`/admin/grafiken/meet-us-at?org=${z.org_id}`}>
-                {t.generate}
-              </Link>
-              <FileButton
-                label={z.asset_id ? t.replace : t.choose}
-                uploadLabel={common.upload}
-                changeLabel={common.chooseOtherFile}
-                accept=".png,.jpg,.jpeg,.webp,.pdf"
-                variant="secondary"
-                disabled={laeuft !== null}
-                onFile={(file) => void hochladen(z.org_id, file)}
-              />
-              {laeuft === z.org_id && <span className="ct-help">{t.uploading}</span>}
-            </li>
+              </Td>
+              <Td label={t.colStatus}>
+                {z.asset_id ? <Badge tone="success">{t.statusSet}</Badge> : <Badge tone="warning">{t.statusMissing}</Badge>}
+              </Td>
+              <Td>
+                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                  {z.url && (
+                    <ButtonLink href={z.url} variant="ghost" size="sm" {...neuesFenster}>
+                      {t.preview}
+                    </ButtonLink>
+                  )}
+                  {/* Der Generator (PART-097): dieselbe Grafik wie im Partner-Portal, Logo und Foto wählt das Marketing selbst. */}
+                  <ButtonLink href={`/admin/grafiken/meet-us-at?org=${z.org_id}`} variant="secondary" size="sm">
+                    {t.generate}
+                  </ButtonLink>
+                  <FileButton
+                    label={z.asset_id ? t.replace : t.choose}
+                    uploadLabel={common.upload}
+                    changeLabel={common.chooseOtherFile}
+                    accept=".png,.jpg,.jpeg,.webp,.pdf"
+                    variant="secondary"
+                    size="sm"
+                    laedt={laeuft === z.org_id}
+                    disabled={laeuft !== null}
+                    onFile={(file) => void hochladen(z.org_id, file)}
+                  />
+                </div>
+              </Td>
+            </Tr>
           ))}
-        </ul>
-      </Card>
+        </Tbody>
+      </Table>
     </div>
   );
 }

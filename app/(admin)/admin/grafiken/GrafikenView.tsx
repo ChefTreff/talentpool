@@ -4,10 +4,13 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card, CardHeader } from "@/components/ui/Card";
+import { Chip } from "@/components/ui/Chip";
+import { Drawer } from "@/components/ui/Drawer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Field } from "@/components/ui/Field";
 import { FileButton } from "@/components/ui/FileButton";
 import { Input } from "@/components/ui/Input";
+import { ConfirmDialog } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
@@ -28,7 +31,21 @@ const ERLAUBT = ["image/jpeg", "image/png", "image/webp"];
  *
  * Deshalb steht die Session-Liste vorn und nicht die Bildergalerie — die Frage
  * ist nicht „welche Bilder haben wir", sondern „welcher Auftritt hat noch
- * keines". Der Filter „nur ohne" ist der Standardweg durch diese Seite.
+ * keines". Der Filter „ohne Foto“ und „ohne Grafik“ ist der Standardweg durch
+ * diese Seite, und er steht als Auswahlknöpfe mit der Zahl dabei.
+ *
+ * **Eine Zeile, ein ruhiger Knopf** (ADM-075, Konrad 05.10.: „die Buttons sauberer
+ * strukturieren, das sieht total doof aus“). Vorher stand in jeder Zeile ein
+ * Bündel aus Auswahl, Bildnachweis und einem großen Primärknopf, der in die
+ * zweite Zeile umbrach — acht Primärknöpfe untereinander, und was sie
+ * bewirkten, war nirgends beschriftet. Jetzt zeigt die Zeile den Stand (Wort
+ * **und** Farbe) und einen Knopf „Bilder“. Der öffnet ein Schubfach mit allem zu
+ * diesem Auftritt: ein beschriftetes Formular zum Hinzufügen (Art, Bildnachweis,
+ * Datei), darunter die vorhandenen Bilder.
+ *
+ * **Fehler und Erfolg stehen im Schubfach, nicht als Toast**: ein
+ * `<dialog showModal>` liegt über der Seite, ein Toast dahinter wäre unsichtbar
+ * (ADM-041).
  *
  * Die Slot-Grafik gibt es je Auftritt **einmal** — eine neue ersetzt die alte
  * (die Datenbank setzt sie auf ungültig, gelöscht wird nichts). Bühnenfotos
@@ -45,16 +62,22 @@ export function GrafikenView({
   bilder: Bild[];
   dateLocale: string;
   t: Strings;
-  common: { none: string };
+  common: { none: string; cancel: string; upload: string; chooseOtherFile: string };
 }) {
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [filter, setFilter] = useState<"alle" | "ohne_foto" | "ohne_grafik">("alle");
   const [suche, setSuche] = useState("");
+  /** Das Schubfach: zu welchem Auftritt gerade Bilder gezeigt und hinzugefügt werden. */
   const [offen, setOffen] = useState<string | null>(null);
-  const [art, setArt] = useState<Record<string, string>>({});
-  const [credit, setCredit] = useState<Record<string, string>>({});
+  const [art, setArt] = useState("stage_photo");
+  const [credit, setCredit] = useState("");
+  /** Meldungen des Schubfachs. */
+  const [fehler, setFehler] = useState<string | null>(null);
+  const [erfolg, setErfolg] = useState<string | null>(null);
+  /** Das Bild, dessen Löschen gerade bestätigt wird — es ist danach weg, auch aus dem Speicher. */
+  const [zuLoeschen, setZuLoeschen] = useState<Bild | null>(null);
 
   const zeit = new Intl.DateTimeFormat(dateLocale, { dateStyle: "short", timeStyle: "short" });
 
@@ -73,10 +96,30 @@ export function GrafikenView({
 
   const ohneFoto = sessions.filter((s) => s.photos === 0).length;
   const ohneGrafik = sessions.filter((s) => s.graphics === 0).length;
+  const aktuell = offen ? sessions.find((s) => s.session_id === offen) : undefined;
 
-  /** Ein Fehler wird gesagt, nicht verschluckt — und nie geworfen. */
+  function oeffnen(sessionId: string) {
+    setOffen(sessionId);
+    setArt("stage_photo");
+    setCredit("");
+    setFehler(null);
+    setErfolg(null);
+  }
+
+  function schliessen() {
+    setOffen(null);
+    setZuLoeschen(null);
+  }
+
+  /**
+   * Ein Fehler wird gesagt, nicht verschluckt — und nie geworfen. Im Schubfach steht er im Schubfach,
+   * sonst als Toast.
+   */
   function melden(key: string, detail?: string) {
-    toast("error", (t[`error_${key}`] ?? t.error_unknown) + (detail ? ` (${detail})` : ""));
+    const text = (t[`error_${key}`] ?? t.error_unknown) + (detail ? ` (${detail})` : "");
+    setErfolg(null);
+    if (offen) setFehler(text);
+    else toast("error", text);
   }
 
   /**
@@ -91,7 +134,9 @@ export function GrafikenView({
    * kurzen Weg, und gelesen wird nur noch über `postJson`, das nie wirft.
    */
   async function hochladen(sessionId: string, datei: File) {
-    const kind = art[sessionId] ?? "stage_photo";
+    const kind = art;
+    setFehler(null);
+    setErfolg(null);
     try {
       // Zuerst hier prüfen: der Bucket weist es ohnehin ab, aber dann hätte
       // der Upload schon begonnen — und das dauert bei 20 MB.
@@ -126,11 +171,13 @@ export function GrafikenView({
         mime: datei.type,
         size_bytes: datei.size,
         cutout: kind === "slot_graphic",
-        ...(credit[sessionId] ? { credit: credit[sessionId] } : {}),
+        ...(credit ? { credit } : {}),
       });
       if (!zeile.ok) return melden(zeile.key, zeile.detail);
 
-      toast("success", t.uploaded);
+      // Der Bildnachweis gilt für dieses Bild; die Art bleibt, denn oft folgen mehrere Fotos.
+      setCredit("");
+      setErfolg(t.uploaded);
       router.refresh();
     } catch {
       // Letzte Grenze. Was hier ankommt, hat niemand vorhergesehen — aber es
@@ -147,7 +194,8 @@ export function GrafikenView({
         melden(json?.error ?? "unknown");
         return;
       }
-      toast("success", t.deleted);
+      setFehler(null);
+      setErfolg(t.deleted);
       router.refresh();
     } catch {
       melden("network");
@@ -156,46 +204,45 @@ export function GrafikenView({
 
   return (
     <div className="flex flex-col gap-4">
-      <Card>
-        <div className="grid gap-3 sm:grid-cols-3 sm:items-end">
-          <label className="flex flex-col gap-1 sm:col-span-2">
-            <span className="ct-label text-ink">{t.search}</span>
-            <SuchFeld value={suche} onChange={(e) => setSuche(e.target.value)} placeholder={t.searchHint} />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="ct-label text-ink">{t.filter}</span>
-            <Select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as typeof filter)}
-              options={[
-                { value: "alle", label: t.filterAll },
-                { value: "ohne_foto", label: `${t.filterNoPhoto} (${ohneFoto})` },
-                { value: "ohne_grafik", label: `${t.filterNoGraphic} (${ohneGrafik})` },
-              ]}
-            />
-          </label>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+        <div className="min-w-64 flex-1">
+          <SuchFeld aria-label={t.search} value={suche} onChange={(e) => setSuche(e.target.value)} placeholder={t.searchHint} />
         </div>
-      </Card>
+        {/* Die Auswahl, die am häufigsten gebraucht wird, liegt offen da — mit der Zahl dabei. */}
+        <div role="group" aria-label={t.filter} className="flex flex-wrap gap-1">
+          <Chip aktiv={filter === "alle"} onClick={() => setFilter("alle")}>
+            {t.filterAll} ({sessions.length})
+          </Chip>
+          <Chip aktiv={filter === "ohne_foto"} onClick={() => setFilter("ohne_foto")}>
+            {t.filterNoPhoto} ({ohneFoto})
+          </Chip>
+          <Chip aktiv={filter === "ohne_grafik"} onClick={() => setFilter("ohne_grafik")}>
+            {t.filterNoGraphic} ({ohneGrafik})
+          </Chip>
+        </div>
+      </div>
 
       {gefiltert.length === 0 ? (
         <EmptyState title={t.emptyTitle} description={t.emptyBody} />
       ) : (
-        <Table>
+        <Table stapeln>
           <Thead>
             <Th>{t.colSession}</Th>
             <Th>{t.colSpeakers}</Th>
-            <Th numeric>{t.colPhotos}</Th>
-            <Th numeric>{t.colGraphic}</Th>
-            <Th>{t.colUpload}</Th>
+            <Th>{t.colPhotos}</Th>
+            <Th>{t.colGraphic}</Th>
+            <Th>
+              <span className="sr-only">{t.colActions}</span>
+            </Th>
           </Thead>
           <Tbody>
             {gefiltert.map((s) => (
               <Tr key={s.session_id}>
-                <Td>
+                <Td className="relative">
                   <button
                     type="button"
-                    className="ct-link text-left font-medium"
-                    onClick={() => setOffen(offen === s.session_id ? null : s.session_id)}
+                    className="ct-link ct-ziel text-left font-medium"
+                    onClick={() => oeffnen(s.session_id)}
                   >
                     {s.title ?? common.none}
                   </button>
@@ -205,41 +252,29 @@ export function GrafikenView({
                       .join(" · ")}
                   </span>
                 </Td>
-                <Td>
+                <Td label={t.colSpeakers}>
                   <span className="ct-help text-muted">{s.speakers ?? common.none}</span>
                 </Td>
-                <Td numeric>
-                  {s.photos === 0 ? <Badge tone="warning">0</Badge> : s.photos}
+                {/* Zustand in Wort und Farbe: „Fehlt“ steht da, die Zahl bei vorhandenen Fotos auch. */}
+                <Td label={t.colPhotos}>
+                  {s.photos === 0 ? (
+                    <Badge tone="warning">{t.missing}</Badge>
+                  ) : (
+                    <span className="ct-small tabular-nums text-ink">{s.photos}</span>
+                  )}
                 </Td>
-                <Td numeric>
-                  {s.graphics === 0 ? <Badge tone="warning">0</Badge> : <Badge tone="success">1</Badge>}
+                <Td label={t.colGraphic}>
+                  {s.graphics === 0 ? <Badge tone="warning">{t.missing}</Badge> : <Badge tone="success">{t.present}</Badge>}
                 </Td>
-                <Td>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Select
-                      aria-label={t.colUpload}
-                      className="w-40"
-                      value={art[s.session_id] ?? "stage_photo"}
-                      onChange={(e) => setArt((a) => ({ ...a, [s.session_id]: e.target.value }))}
-                      options={[
-                        { value: "stage_photo", label: t.kind_stage_photo },
-                        { value: "slot_graphic", label: t.kind_slot_graphic },
-                      ]}
-                    />
-                    <Input
-                      aria-label={t.credit}
-                      className="w-36"
-                      placeholder={t.credit}
-                      value={credit[s.session_id] ?? ""}
-                      onChange={(e) => setCredit((c) => ({ ...c, [s.session_id]: e.target.value }))}
-                    />
-                    <FileButton
-                      label={t.upload}
-                      accept="image/jpeg,image/png,image/webp"
-                      disabled={pending}
-                      onFile={(datei) => startTransition(async () => hochladen(s.session_id, datei))}
-                    />
-                  </div>
+                <Td className="text-right">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    aria-label={t.manageLabel.replace("{title}", s.title ?? common.none)}
+                    onClick={() => oeffnen(s.session_id)}
+                  >
+                    {t.manage}
+                  </Button>
                 </Td>
               </Tr>
             ))}
@@ -247,25 +282,91 @@ export function GrafikenView({
         </Table>
       )}
 
-      {offen && (
-        <Card>
-          <CardHeader
-            ebene="h2"
-            title={sessions.find((s) => s.session_id === offen)?.title ?? common.none}
-            description={t.imagesHint}
-            action={
-              <Button variant="ghost" onClick={() => setOffen(null)}>
-                {t.close}
-              </Button>
-            }
-          />
-          <Bilder
-            bilder={bilder.filter((b) => b.session_id === offen)}
-            t={t}
-            pending={pending}
-            onDelete={(id) => startTransition(async () => loeschen(id))}
-          />
-        </Card>
+      <Drawer
+        open={offen !== null}
+        onClose={schliessen}
+        title={aktuell?.title ?? common.none}
+        closeLabel={t.close}
+        error={fehler}
+      >
+        {aktuell && (
+          <div className="flex flex-col gap-8">
+            <p className="ct-help">
+              {[
+                aktuell.stage_name,
+                aktuell.start_at ? zeit.format(new Date(aktuell.start_at)) : null,
+                aktuell.speakers,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+
+            <section aria-labelledby="gr-neu" className="flex flex-col gap-4">
+              <h3 id="gr-neu" className="ct-label text-ink">
+                {t.addTitle}
+              </h3>
+              <Field label={t.kindLabel} htmlFor="gr-art">
+                <Select
+                  id="gr-art"
+                  value={art}
+                  onChange={(e) => setArt(e.target.value)}
+                  options={[
+                    { value: "stage_photo", label: t.kind_stage_photo },
+                    { value: "slot_graphic", label: t.kind_slot_graphic },
+                  ]}
+                />
+              </Field>
+              <Field label={t.credit} htmlFor="gr-credit" hint={t.creditHint}>
+                <Input id="gr-credit" value={credit} maxLength={200} onChange={(e) => setCredit(e.target.value)} />
+              </Field>
+              {/* Auswählen ist zweitrangig, das Hochladen danach die eine Hauptaktion des Schubfachs. */}
+              <FileButton
+                label={t.upload}
+                uploadLabel={common.upload}
+                changeLabel={common.chooseOtherFile}
+                accept="image/jpeg,image/png,image/webp"
+                variant="secondary"
+                hint={t.uploadHint}
+                disabled={pending}
+                laedt={pending}
+                onFile={(datei) => startTransition(async () => hochladen(aktuell.session_id, datei))}
+              />
+              <p role="status" className="ct-small text-success-ink">
+                {erfolg}
+              </p>
+            </section>
+
+            <section aria-labelledby="gr-bilder" className="flex flex-col gap-3">
+              <h3 id="gr-bilder" className="ct-label text-ink">
+                {t.existingTitle.replace("{n}", String(bilder.filter((b) => b.session_id === aktuell.session_id).length))}
+              </h3>
+              <p className="ct-help">{t.imagesHint}</p>
+              <Bilder
+                bilder={bilder.filter((b) => b.session_id === aktuell.session_id)}
+                t={t}
+                pending={pending}
+                onDelete={(b) => setZuLoeschen(b)}
+              />
+            </section>
+          </div>
+        )}
+      </Drawer>
+
+      {zuLoeschen && (
+        <ConfirmDialog
+          title={t.deleteTitle}
+          body={t.deleteBody}
+          detail={<p className="ct-label break-all">{zuLoeschen.filename}</p>}
+          confirmLabel={t.delete}
+          cancelLabel={common.cancel}
+          pending={pending}
+          onCancel={() => setZuLoeschen(null)}
+          onConfirm={() => {
+            const id = zuLoeschen.id;
+            setZuLoeschen(null);
+            startTransition(async () => loeschen(id));
+          }}
+        />
       )}
     </div>
   );
@@ -280,11 +381,11 @@ function Bilder({
   bilder: Bild[];
   t: Strings;
   pending: boolean;
-  onDelete: (id: string) => void;
+  onDelete: (bild: Bild) => void;
 }) {
   if (bilder.length === 0) return <p className="ct-small text-muted">{t.noImages}</p>;
   return (
-    <ul className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-3">
       {bilder.map((b) => (
         <li key={b.id} className="flex flex-col gap-2 rounded-ct-md border p-3">
           {b.url ? (
@@ -306,7 +407,7 @@ function Bilder({
           </div>
           <span className="ct-help break-all text-muted">{b.filename}</span>
           {b.credit && <span className="ct-help text-muted">© {b.credit}</span>}
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => onDelete(b.id)}>
+          <Button size="sm" variant="ghost" className="self-start" disabled={pending} onClick={() => onDelete(b)}>
             {t.delete}
           </Button>
         </li>
