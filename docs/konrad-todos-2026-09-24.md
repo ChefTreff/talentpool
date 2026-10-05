@@ -1,8 +1,8 @@
-# Konrads offene Entscheidungen und Aufgaben — Stand 04.10.2026 (Sonntag vormittags; finale Liste oben, Archiv darunter)
+# Konrads offene Entscheidungen und Aufgaben — Stand 05.10.2026 (spät; Pause bis Donnerstag 08.10.; finale Liste oben, Archiv darunter)
 
 Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Security-Check, Datenschutz-Checkliste und Abschluss-Checkliste. Antworten bitte gesammelt mit der Kennung (z. B. „K-01: Seitengruppe“). Erledigtes streiche ich nach deiner Antwort hier und im jeweiligen Dokument.
 
-## Finale Liste — was Konrad macht (Stand 04.10.2026, Sonntag vormittags)
+## Finale Liste — was Konrad macht (Stand 05.10.2026 spät; Chats pausieren bis Donnerstag 08.10., Paulina testet weiter)
 
 Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Seit Freitagabend gemergt: #330 (K-47 Archiv-Karte), #331 (ADM-066 Zuschnitt-Dialog), #332 (QS-065 Admin-Teil); dazu #333 (Tabellenzeilen 56 px, K-57), #334 PART-096 „Meet us at“-Grafik, #335 (Kontrollkästchen 44 px am Handy), #336 PART-097 (Admin-Weg zur Grafik), #337 (Chip-Baustein, Reiter 44 px am Handy), #338/#339 (Speaker-Maske auf dem gemeinsamen Zuschnitt-Kern, Porträt lädt sofort) und #340 (Stage-Lead-Pipeline am Handy: Name als Ziel der Zelle, Tabellen stapeln, Kacheln zweispaltig). Admin-Chat ist fertig und geschlossen, Design und Partner laufen.
 
