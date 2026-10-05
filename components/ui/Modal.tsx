@@ -61,7 +61,11 @@ export function Modal({
       className={cn(
         // `overscroll-contain`: wer im langen Dialog ans Ende scrollt, zieht nicht
         // die Seite dahinter mit (QS-014, Web Interface Guidelines „Touch“).
-        "m-auto w-full overscroll-contain rounded-ct-lg border bg-surface p-6 text-ink backdrop:bg-navy/40",
+        //
+        // Das Polster ist am Handy 16 px, ab 640 px 24 (QS-068): bei 375 px blieben von der Breite 327 px für
+        // den Inhalt, und ein Formular mit zwei Spalten oder ein langer Text verlor damit 16 px ohne Not. Alles,
+        // was gegen das Polster arbeitet — die Meldung unten, `ModalFuss` — nimmt dieselben beiden Maße.
+        "m-auto w-full overscroll-contain rounded-ct-lg border bg-surface p-4 text-ink backdrop:bg-navy/40 sm:p-6",
         size === "wide" ? "max-w-5xl" : "max-w-dialog",
       )}
     >
@@ -69,12 +73,34 @@ export function Modal({
       {error && (
         <p
           role="alert"
-          className="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-error-soft bg-error-soft px-6 py-3 ct-small text-error-ink"
+          className="sticky bottom-0 -mx-4 -mb-4 mt-4 border-t border-error-soft bg-error-soft px-4 py-3 ct-small text-error-ink sm:-mx-6 sm:-mb-6 sm:mt-6 sm:px-6"
         >
           {error}
         </p>
       )}
     </dialog>
+  );
+}
+
+/**
+ * Die klebende Fußleiste eines langen Fensters (QS-068): „Speichern“ soll nicht erst nach dem Scrollen zu finden
+ * sein. Sie läuft über das Polster des `Modal` hinaus bis an den Rand und klebt unten — dafür stehen hier **beide**
+ * Maße des Polsters (16 px am Handy, 24 ab 640 px), und keine Seite muss sie kennen. Vorher setzte das Personen-Fenster
+ * der Leads `-mx-6 -mb-6` von Hand; mit dem kleineren Polster am Handy hätte das 8 px über den Rand hinaus gereicht
+ * und das Fenster seitlich scrollbar gemacht. Ein Test zählt nach, dass keine Seite mehr mit dem alten Maß arbeitet.
+ *
+ * Als letztes Kind des `Modal` setzen. Die Knöpfe stehen nebeneinander und brechen um; die eine Hauptaktion zuerst.
+ */
+export function ModalFuss({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "sticky -bottom-4 -mx-4 -mb-4 mt-4 flex flex-wrap gap-2 border-t bg-surface px-4 py-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:mt-6 sm:px-6",
+        className,
+      )}
+    >
+      {children}
+    </div>
   );
 }
 

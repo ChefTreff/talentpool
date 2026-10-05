@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
+import { Modal, ModalFuss } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
@@ -656,7 +656,7 @@ export function SpeakerFenster({
 
       {/* Die Leiste klebt am unteren Rand des Fensters: es ist lang, und
           „Speichern“ soll nicht erst nach dem Scrollen zu finden sein. */}
-      <div className="sticky -bottom-6 -mx-6 -mb-6 mt-6 flex flex-wrap gap-2 border-t bg-surface px-6 py-4">
+      <ModalFuss>
         {/* Mit einer Adresse in „Kontakt via“ wird nicht gespeichert — das Feld
             sagt, warum (kein Toast für einen Formularfehler). */}
         <Button onClick={onSave} loading={pending} disabled={adresse}>
@@ -679,7 +679,7 @@ export function SpeakerFenster({
         <Button variant="ghost" disabled={pending} onClick={onClose}>
           {common.close}
         </Button>
-      </div>
+      </ModalFuss>
     </Modal>
   );
 }

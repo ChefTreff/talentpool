@@ -67,11 +67,11 @@ describe("Das Schubfach (ADM-075)", () => {
     assert.match(ANSICHT, /laedt=\{pending\}/);
   });
 
-  it("Fehler und Erfolg stehen im Schubfach, nicht als Toast dahinter (ein Dialog liegt über der Seite)", () => {
+  it("Fehler und Erfolg stehen im Schubfach neben dem Knopf und bleiben stehen, statt nach vier Sekunden als Toast zu verschwinden (ADM-062)", () => {
     assert.match(ANSICHT, /error=\{fehler\}/);
     assert.match(ANSICHT, /if \(offen\) setFehler\(text\);\s*else toast\("error", text\);/);
     assert.match(ANSICHT, /<p role="status" className="ct-small text-success-ink">\s*\{erfolg\}/);
-    // Der Erfolgs-Toast ist weg; ein zweiter hinter dem Schubfach wäre unsichtbar.
+    // Der Erfolgs-Toast ist weg: die Meldung steht im Schubfach, ein zweiter daneben sagte dasselbe flüchtig.
     assert.doesNotMatch(ANSICHT, /toast\("success"/);
   });
 

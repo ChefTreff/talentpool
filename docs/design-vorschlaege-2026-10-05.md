@@ -85,7 +85,7 @@ Die Bausteine in der Reihenfolge, in der sie im Code stehen (das Gerüst ist die
   {nachZusage && <Block id="hospitality" … />}
   {nachZusage && <Block id="programm" … />}
 
-  {/* Fußleiste: klebt wie heute (sticky -bottom-6 -mx-6 -mb-6) */}
+  {/* Fußleiste: <ModalFuss> aus dem Kit (QS-068) — klebt unten und läuft mit dem Polster des Fensters bis an den Rand */}
 </Modal>
 ```
 
@@ -180,7 +180,7 @@ Ein Block, den die Rolle nicht sehen darf, steht **nicht im Baum** (auch nicht z
 - Kontextzeile: die drei Angaben untereinander; die Frist unter dem Text.
 - Pipeline: eine Spalte (Verlauf, dann Einordnung); ein Verlaufseintrag steht zweizeilig (Datum und Art, darunter der Text), eine offene Aufgabe als Kästchen und Text mit der Frist darunter.
 - Die Fußleiste klebt unten und hat zwei Knöpfe; kein Statustext.
-- Optional: das `Modal` hat am Handy `p-6` — mit `p-4` unter 640 px gewönne der Inhalt 16 px. Das ist eine Änderung für alle Dialoge und gehört in einen eigenen PR (ich kann ihn liefern).
+- Das `Modal` hat am Handy 16 statt 24 px Polster (QS-068, eigener PR); die klebende Fußleiste ist `<ModalFuss>` und braucht kein Maß von Hand.
 
 ### Die Admin-Detailseite `/admin/speaker/[id]`
 

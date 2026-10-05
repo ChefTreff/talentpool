@@ -10,7 +10,7 @@ export type { BadgeTone } from "./Badge";
 export { Chip, ChipLink } from "./Chip";
 export { Table, Thead, Tbody, Tr, Th, Td } from "./Table";
 export { Drawer } from "./Drawer";
-export { Modal, ConfirmDialog } from "./Modal";
+export { Modal, ModalFuss, ConfirmDialog } from "./Modal";
 export { useUngesichert, type UngesichertTexte } from "./useUngesichert";
 export { useEditorImBild } from "./useEditorImBild";
 export { ToastProvider, useToast, ToastItem } from "./Toast";
