@@ -161,6 +161,7 @@ export default async function AdminPartnerOrgPage({
       contactTexts={{ ...t.partnerContacts, ownLoginHint: t.adminPartner.contactsHint }}
       dataTexts={t.partner}
       industries={vgroup(vocab, "industry")}
+      einwilligung={t.logoWandEinwilligung}
       common={{
         cancel: t.common.cancel,
         none: t.common.none,

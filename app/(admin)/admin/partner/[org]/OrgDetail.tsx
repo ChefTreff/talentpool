@@ -13,7 +13,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
-import { LogoWandEinwilligung } from "@/components/partner/LogoWandEinwilligung";
+import { LogoWandEinwilligung, type LogoWandTexte } from "@/components/partner/LogoWandEinwilligung";
 import { ContactList } from "@/components/partner/ContactList";
 import { Gaesteliste } from "@/components/partner/Gaesteliste";
 import type { GastRow } from "@/components/partner/gaeste";
@@ -102,6 +102,7 @@ export function OrgDetail({
   contactTexts,
   dataTexts,
   industries,
+  einwilligung,
   common,
   rpcMessages,
 }: {
@@ -143,6 +144,8 @@ export function OrgDetail({
   dataTexts: Strings;
   /** Vokabular `industry` für das Feld Branche. */
   industries: Record<string, string>;
+  /** Texte der Einwilligung zum Weißen des Logos — dieselben wie im Partnerportal (`logoWandEinwilligung`). */
+  einwilligung: LogoWandTexte;
   common: { cancel: string; none: string; save: string; close: string; required: string; unsaved: UngesichertTexte };
   rpcMessages: Record<string, string>;
 }) {
@@ -482,7 +485,7 @@ export function OrgDetail({
             return res.ok ? { ok: true } : { ok: false, key: res.key };
           }}
           dateLocale={dateLocale}
-          t={t.logoWall as unknown as Record<string, string>}
+          t={einwilligung}
           rpcMessages={rpcMessages}
         />
       </Card>

@@ -72,6 +72,7 @@ export default async function PartnerOnboardingPage() {
         overview={overview}
         logos={logos}
         industries={vgroup(vocab, "industry")}
+        einwilligung={t.logoWandEinwilligung}
         locale={locale}
         dateLocale={t.meta.dateLocale}
         t={t.partner}
