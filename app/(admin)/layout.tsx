@@ -5,11 +5,14 @@ import { mayEnterAdminSection } from "@/lib/admin-access";
 import { getI18n } from "@/lib/i18n";
 import { SidebarShell, type SidebarGroup } from "@/components/layout/SidebarShell";
 import { sichtbareNavigation, type NavZusatz } from "@/lib/admin-navigation";
-import { FREIGABE_ARTEN, FREIGABE_PFAD, freigabeNavigation, type FreigabeArt } from "@/lib/freigaben";
+import {
+  FREIGABE_ABSCHNITTE,
+  FREIGABE_ARTEN,
+  FREIGABE_PFAD,
+  freigabeNavigation,
+  type FreigabeArt,
+} from "@/lib/freigaben";
 import { ladeFreigabeZaehler } from "@/lib/freigaben-server";
-
-/** Die Abschnitte, über die jemand eine Freigabe-Art entscheiden darf — hat er keinen, braucht es keinen Zähler. */
-const FREIGABE_ABSCHNITTE = ["submissions", "programme", "expenses", "hospitality"] as const;
 
 export const dynamic = "force-dynamic";
 

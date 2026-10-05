@@ -917,6 +917,15 @@
   "adminApprovals": {
     "emptyBody": "Neue Eingänge erscheinen hier, sobald jemand etwas einreicht oder anfragt.",
     "emptyTitle": "Hier wartet nichts",
+    "history": {
+      "decidedBy": "freigegeben von",
+      "empty": "Noch nichts freigegeben.",
+      "loadMore": "Mehr laden",
+      "loading": "Lädt …",
+      "retry": "Noch einmal versuchen",
+      "title": "Bereits freigegeben",
+      "unknownDecider": "unbekannt"
+    },
     "lead": "Alles, was auf eine Entscheidung wartet — an einem Ort",
     "noAccessBody": "Welche Freigaben du entscheidest, hängt von deinen Rollen ab. Frag das Speaker-Team, wenn dir etwas fehlt.",
     "noAccessTitle": "Keine Freigaben für dich",

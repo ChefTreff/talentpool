@@ -917,6 +917,15 @@
   "adminApprovals": {
     "emptyBody": "New items appear here as soon as someone submits or requests something.",
     "emptyTitle": "Nothing waiting here",
+    "history": {
+      "decidedBy": "approved by",
+      "empty": "Nothing approved yet.",
+      "loadMore": "Load more",
+      "loading": "Loading…",
+      "retry": "Try again",
+      "title": "Already approved",
+      "unknownDecider": "unknown"
+    },
     "lead": "Everything waiting for a decision — in one place",
     "noAccessBody": "Which approvals you decide depends on your roles. Ask the speaker team if something is missing.",
     "noAccessTitle": "No approvals for you",
