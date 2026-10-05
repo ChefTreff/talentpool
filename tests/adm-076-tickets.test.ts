@@ -287,6 +287,11 @@ describe("ADM-076: Admin-Seite", () => {
     assert.match(d, /teamAddCompanionTicket\(gewaehlt\.profile_id, email, first, last, lounge\)/);
     // der Fehler der Datenbank steht im Dialog, nicht nur als Toast
     assert.match(d, /<Modal label=\{t\.addTitle\} onCancel=\{onClose\} error=\{fehler\}>/);
+    // die Fußleiste kommt aus dem Kit (QS-068); das Absenden gehört über `form` zum Formular darüber, nicht von Hand gebaut
+    assert.match(d, /import \{ Modal, ModalFuss \} from "@\/components\/ui\/Modal";/);
+    assert.match(d, /<form id="bt_form" onSubmit=\{onSubmit\}/);
+    assert.match(d, /<ModalFuss>\s+<Button type="submit" form="bt_form" disabled=\{pending \|\| !bereit\}>/);
+    assert.doesNotMatch(d, /-mx-6|-mb-6|-bottom-6/);
   });
 
   it("die Kontingent-Tabelle prüft nur den Bereich 0–50, die Datenbank hat das letzte Wort", () => {

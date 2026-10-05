@@ -18,6 +18,75 @@ export function istFreigabeArt(wert: string | undefined): wert is FreigabeArt {
   return (FREIGABE_ARTEN as readonly string[]).includes(wert ?? "");
 }
 
+/** Der Admin-Abschnitt, der über eine Art entscheidet — Seite, Zähler und Verlauf prüfen dasselbe Tor. */
+export const FREIGABE_ABSCHNITT: Record<FreigabeArt, "submissions" | "programme" | "expenses" | "hospitality"> = {
+  inhalte: "submissions",
+  slots: "programme",
+  reisekosten: "expenses",
+  hotel: "hospitality",
+  shuttle: "hospitality",
+};
+
+/** Alle Abschnitte, über die jemand mindestens eine Art entscheiden kann. */
+export const FREIGABE_ABSCHNITTE = ["submissions", "programme", "expenses", "hospitality"] as const;
+
+/**
+ * Eine bereits entschiedene Freigabe (`freigabe_verlauf`, ADM-081 Teil 2). Titel, Betrag, Notiz und der Name der
+ * entscheidenden Person aus dem Team — sonst nichts. `entschieden_am` bleibt als **Zeichenkette** erhalten: es ist
+ * zugleich der Cursor der nächsten Seite, und ein Weg über `Date` kappte die Mikrosekunden.
+ */
+export type Verlaufszeile = {
+  objekt_id: string;
+  entschieden_am: string;
+  entschieden_von: string | null;
+  titel: string;
+  detail: string | null;
+  notiz: string | null;
+  betrag_cents: number | null;
+  termin: string | null;
+};
+
+/** Zeilen je Seite der Ansicht „Bereits freigegeben“; die Oberfläche fragt eine mehr und weiß so, ob es weitergeht. */
+export const VERLAUF_SEITE = 20;
+
+export type VerlaufCursor = { at: string; id: string };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// ISO-8601 mit Zeitzone, Sekundenbruchteile beliebig — so liefert PostgREST `timestamptz`.
+const ZEITPUNKT = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}(:?\d{2})?)$/;
+
+/** Nimmt nur ein Paar aus Zeitpunkt und Kennung an — alles andere kommt nie bis zur Datenbank. */
+export function istVerlaufCursor(wert: unknown): wert is VerlaufCursor {
+  if (typeof wert !== "object" || wert === null) return false;
+  const c = wert as Record<string, unknown>;
+  return typeof c.at === "string" && ZEITPUNKT.test(c.at) && typeof c.id === "string" && UUID.test(c.id);
+}
+
+/** Liest die Antwort von `freigabe_verlauf` — nur Zeilen, die der Vertrag beschreibt; der Rest fällt weg. */
+export function parseVerlauf(daten: unknown): Verlaufszeile[] {
+  if (!Array.isArray(daten)) return [];
+  const text = (v: unknown) => (typeof v === "string" && v !== "" ? v : null);
+  const zeilen: Verlaufszeile[] = [];
+  for (const roh of daten) {
+    if (typeof roh !== "object" || roh === null) continue;
+    const r = roh as Record<string, unknown>;
+    const id = text(r.objekt_id);
+    const am = text(r.entschieden_am);
+    if (!id || !am) continue;
+    zeilen.push({
+      objekt_id: id,
+      entschieden_am: am,
+      entschieden_von: text(r.entschieden_von),
+      titel: text(r.titel) ?? "—",
+      detail: text(r.detail),
+      notiz: text(r.notiz),
+      betrag_cents: typeof r.betrag_cents === "number" && Number.isFinite(r.betrag_cents) ? r.betrag_cents : null,
+      termin: text(r.termin),
+    });
+  }
+  return zeilen;
+}
+
 /**
  * Welche Art die Seite zeigt: die gewählte, wenn die Person sie entscheiden darf;
  * sonst die erste mit offenen Einträgen; sonst die erste erlaubte. `null`, wenn

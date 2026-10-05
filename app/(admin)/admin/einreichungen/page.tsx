@@ -3,8 +3,17 @@ import { mayEnterAdminSection } from "@/lib/admin-access";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
-import { FREIGABE_ARTEN, summeOffen, waehleArt, type FreigabeArt, type FreigabeZaehler } from "@/lib/freigaben";
+import {
+  FREIGABE_ABSCHNITT,
+  FREIGABE_ABSCHNITTE,
+  FREIGABE_ARTEN,
+  summeOffen,
+  waehleArt,
+  type FreigabeArt,
+  type FreigabeZaehler,
+} from "@/lib/freigaben";
 import { SectionTabs } from "@/components/layout/SectionTabs";
+import { Block } from "@/components/ui/Block";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SubmissionQueue, type PendingSubmission } from "@/components/einreichungen/SubmissionQueue";
@@ -14,21 +23,13 @@ import { ShuttleAdmin } from "../hospitality/ShuttleAdmin";
 import type { AdminQuota } from "../hospitality/HospitalityAdmin";
 import { ExpenseQueue, type QueueClaim } from "../reisekosten/ExpenseQueue";
 import { HotelFreigabe, type OffeneBuchung } from "./HotelFreigabe";
+import { FreigabeVerlauf } from "./FreigabeVerlauf";
 import type { ShuttleAdminRow } from "@/components/shuttle/types";
 import type { ManagerScope } from "@/app/(speaker-leads)/speaker-leads/types";
 
 export const dynamic = "force-dynamic";
 
 const PATH = "/admin/einreichungen";
-
-/** Welcher Admin-Abschnitt entscheidet über welche Art — jede Art hat ihre eigene Rechteprüfung. */
-const ABSCHNITT: Record<FreigabeArt, "submissions" | "programme" | "expenses" | "hospitality"> = {
-  inhalte: "submissions",
-  slots: "programme",
-  reisekosten: "expenses",
-  hotel: "hospitality",
-  shuttle: "hospitality",
-};
 
 /**
  * Die zentrale Freigabe-Übersicht (ADM-072, Paulina 05.10.: „alles Freigabepflichtige
@@ -41,7 +42,7 @@ const ABSCHNITT: Record<FreigabeArt, "submissions" | "programme" | "expenses" | 
  * betreten darf — und die Datenbank prüft bei jeder Aktion noch einmal.
  */
 export default async function FreigabenPage({ searchParams }: { searchParams: Promise<{ art?: string }> }) {
-  const { roleNames } = await requireAnyAdminSection(["submissions", "programme", "expenses", "hospitality"], PATH);
+  const { roleNames } = await requireAnyAdminSection(FREIGABE_ABSCHNITTE, PATH);
   const { locale, t } = await getI18n();
   const { art: artParam } = await searchParams;
   const supabase = await createSupabaseServerClient();
@@ -49,7 +50,7 @@ export default async function FreigabenPage({ searchParams }: { searchParams: Pr
 
   const darf = Object.fromEntries(
     await Promise.all(
-      FREIGABE_ARTEN.map(async (a) => [a, await mayEnterAdminSection(ABSCHNITT[a], roleNames)] as const),
+      FREIGABE_ARTEN.map(async (a) => [a, await mayEnterAdminSection(FREIGABE_ABSCHNITT[a], roleNames)] as const),
     ),
   ) as Record<FreigabeArt, boolean>;
 
@@ -188,6 +189,12 @@ export default async function FreigabenPage({ searchParams }: { searchParams: Pr
             ) : (
               <EmptyState title={ta.emptyTitle} description={ta.emptyBody} />
             ))}
+          {/* ADM-081 Teil 2: was schon entschieden ist, eingeklappt unter den offenen Einträgen. Die Liste lädt erst
+              beim Aufklappen (`freigabe_verlauf` über eine Server-Action mit demselben Abschnitts-Tor); `key` setzt sie
+              beim Wechsel des Reiters zurück. */}
+          <Block key={art} id="bereits-freigegeben" titel={ta.history.title} ebene="h2" className="mt-8">
+            <FreigabeVerlauf art={art} dateLocale={t.meta.dateLocale} t={ta.history} rpcMessages={t.rpc} />
+          </Block>
         </>
       )}
     </>

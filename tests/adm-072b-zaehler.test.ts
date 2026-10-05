@@ -105,7 +105,9 @@ describe("ADM-081: Zähler und Unterpunkte für den Menüpunkt „Freigaben“",
 describe("ADM-072b: Layout und Leiste", () => {
   it("das Layout fragt nur, wenn die Person überhaupt eine Art entscheiden darf, und bleibt ohne Zähler heil", () => {
     const l = quelle("app/(admin)/layout.tsx");
-    assert.match(l, /const FREIGABE_ABSCHNITTE = \["submissions", "programme", "expenses", "hospitality"\] as const;/);
+    // dieselbe Abschnittsliste wie Seite und Verlauf (lib/freigaben.ts), nicht eine eigene Abschrift
+    assert.match(l, /FREIGABE_ABSCHNITTE,\s+FREIGABE_ARTEN,/);
+    assert.doesNotMatch(l, /const FREIGABE_ABSCHNITTE =/);
     assert.match(l, /if \(FREIGABE_ABSCHNITTE\.some\(\(k\) => offen\.has\(k\)\)\)/);
     assert.match(l, /await ladeFreigabeZaehler\(\)/);
     assert.match(l, /sichtbareNavigation\(\(k\) => offen\.has\(k\), nav, zusatz\)/);

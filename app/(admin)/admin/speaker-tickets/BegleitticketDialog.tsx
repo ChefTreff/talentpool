@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
-import { Modal } from "@/components/ui/Modal";
+import { Modal, ModalFuss } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { setCompanionQuota, teamAddCompanionTicket } from "./actions";
@@ -98,7 +98,7 @@ export function BegleitticketDialog({
 
   return (
     <Modal label={t.addTitle} onCancel={onClose} error={fehler}>
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      <form id="bt_form" onSubmit={onSubmit} className="flex flex-col gap-4">
         <div>
           <h2 className="ct-h3">{t.addTitle}</h2>
           <p className="ct-help mt-2">{t.addLead}</p>
@@ -142,16 +142,17 @@ export function BegleitticketDialog({
           <Input id="bt_email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={254} />
         </Field>
         <Checkbox label={t.fieldLounge} hint={t.fieldLoungeHint} checked={lounge} onChange={(e) => setLounge(e.target.checked)} />
-
-        <div className="flex gap-2">
-          <Button type="submit" disabled={pending || !bereit}>
-            {t.addSubmit}
-          </Button>
-          <Button type="button" variant="ghost" onClick={onClose}>
-            {t.cancel}
-          </Button>
-        </div>
       </form>
+
+      {/* Am Handy bleibt „Anlegen“ in Reichweite, auch wenn die Tastatur das Fenster scrollen lässt (QS-068). */}
+      <ModalFuss>
+        <Button type="submit" form="bt_form" disabled={pending || !bereit}>
+          {t.addSubmit}
+        </Button>
+        <Button type="button" variant="ghost" onClick={onClose}>
+          {t.cancel}
+        </Button>
+      </ModalFuss>
     </Modal>
   );
 }

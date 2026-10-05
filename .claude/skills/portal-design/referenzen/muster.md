@@ -91,6 +91,8 @@ Die Marker sind Sechsecke auf einer durchgehenden Linie — waagerecht ab 640 px
 
 `<Modal label onCancel>` für Entscheidungen, `<Drawer open onClose title footer>` für Detail- und Bearbeitungsansichten. Beide nutzen natives `<dialog showModal>` — Fokusfalle, Escape und Inertisierung kommen vom Browser. Nichts davon nachbauen.
 
+**Das Polster eines `Modal` ist am Handy 16 px, ab 640 px 24** (QS-068). Was gegen das Polster arbeitet, nimmt beide Maße: die klebende Fußleiste eines langen Fensters ist `<ModalFuss>` (letztes Kind des `Modal`), die Meldung unten `error` am `Modal` — nie `-mx-6 -mb-6 -bottom-6` von Hand, das reichte am Handy 8 px über den Rand und machte das Fenster seitlich scrollbar (ein Test zählt nach). Bekannt und offen: bei einer Meldung deckt sie die klebende Fußleiste unten teilweise ab, solange nicht bis zum Ende gescrollt ist (beide kleben am unteren Rand); der Drawer trennt das mit seinem Aufbau aus Kopf, Rolle und Fuß.
+
 ## Sidebar, Bereichsname und Fuss
 
 `SidebarShell`: Navy-Seitenleiste, oben links Bereichsname („CHEFTREFF SPEAKER PORTAL"), Gruppen *Übersicht · Profil/Unternehmen · Summit · Formate · Support*. Wer nur einen Bereich hat, sieht keine Spur der anderen — kein Umschalter, keine Links, nichts im HTML (Feedback-Runde 1, Punkt 2).

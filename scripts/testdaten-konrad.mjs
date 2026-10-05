@@ -3237,6 +3237,12 @@ const FREIGABE_HINWEIS = `${PREFIX}nur zum Ausprobieren der Freigabe`;
  * zeigt auch in SevDesk, woher ein Beleg kommt, falls jemand die Abrechnung freigibt.
  */
 const FREIGABE_RECHNUNG = `${PREFIX_CODE}-RK-0001`;
+/**
+ * ADM-081 Teil 2: schon **Entschiedenes**, damit „Bereits freigegeben“ (`freigabe_verlauf`) in Konrads Konto nicht
+ * leer bleibt. Eigene Kennzeichen, damit der wartende Eintrag oben (und sein Zurücksetzen) unberührt bleibt.
+ */
+const FREIGABE_HINWEIS_ERLEDIGT = `${PREFIX}nur zum Ausprobieren von „Bereits freigegeben“`;
+const FREIGABE_RECHNUNG_ERLEDIGT = `${PREFIX_CODE}-RK-0002`;
 
 /**
  * ADM-072: je eine wartende Freigabe an Konrads Testprofil, damit
@@ -3262,9 +3268,19 @@ const FREIGABE_RECHNUNG = `${PREFIX_CODE}-RK-0001`;
  *   `--apply --nur=freigaben` sie zurücksetzt oder `--remove` sie löscht; Ablehnen ist
  *   folgenlos.
  *
+ * - **Schon entschieden (ADM-081 Teil 2, „Bereits freigegeben“):** ein freigegebener
+ *   Vorschlag zur TEST-Keynote (von Konrad, gestern) und eine **bezahlte** TEST-Abrechnung
+ *   `ZZTEST-RK-0002` (1,00 €, gestern freigegeben). `paid` mit Absicht: bei `approved` bietet
+ *   die Reisekosten-Liste „Rechnung erneut ablegen“, und das ginge an SevDesk und Qonto;
+ *   bei `paid` gibt es keinen Knopf. Beides zählt unter „Bereits freigegeben“ (Reiter Titel
+ *   & Beschreibungen, Reisekosten). Hotel und Shuttle zeigen dort Konrads vorhandene
+ *   bestätigte Buchung bzw. die bestätigte TEST-Fahrt aus `shuttle`; unter Slots erscheint,
+ *   was Konrad selbst freigibt (eine TEST-Session der Teststandbühne).
+ *
  * Direkt geschrieben, nicht über `submit_expense` oder `book_hospitality`: so geht keine
  * Mail an das Speaker-Team. Ein zweiter Lauf setzt entschiedene Einträge (Vorschlag,
- * Hotel, zurückgewiesene Abrechnung) auf „wartet“ zurück.
+ * Hotel, zurückgewiesene Abrechnung) auf „wartet“ zurück; die schon entschiedenen TEST-
+ * Einträge bleiben, wie sie sind.
  */
 async function freigabenSchritt(me, ed) {
   const { data: sp } = await admin.from("speaker_profile").select("id")
@@ -3324,6 +3340,45 @@ async function freigabenSchritt(me, ed) {
         ? admin.from("expense_claim").update(zeile).eq("id", abrechnung.id)
         : admin.from("expense_claim").insert({ ...zeile, profile_id: sp.id, invoice_no: FREIGABE_RECHNUNG });
     });
+  }
+
+  // --- Schon entschieden (für „Bereits freigegeben“) ---------------------------
+  const gestern = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const vorgestern = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
+  if (sitzung) {
+    const { data: erledigt } = await admin.from("session_submission").select("id")
+      .eq("session_id", sitzung.id).eq("notes", FREIGABE_HINWEIS_ERLEDIGT).maybeSingle();
+    if (erledigt) {
+      note("Schon freigegebener Vorschlag", "schon da");
+    } else {
+      await write("Schon freigegebener Vorschlag zur Testsession (für „Bereits freigegeben“)", () =>
+        admin.from("session_submission").insert({
+          session_id: sitzung.id, speaker_profile_id: sp.id, submitted_by: me.id,
+          title: `${PREFIX}Keynote`, description: `${PREFIX}Früherer, schon freigegebener Vorschlag.`,
+          topics: [], language: "de", status: "approved", notes: FREIGABE_HINWEIS_ERLEDIGT,
+          reviewed_by: me.id, reviewed_at: gestern, review_note: `${PREFIX}freigegeben`,
+        }),
+      );
+    }
+  }
+  const { data: bezahlt } = await admin.from("expense_claim").select("id")
+    .eq("invoice_no", FREIGABE_RECHNUNG_ERLEDIGT).maybeSingle();
+  if (bezahlt) {
+    note("Schon bezahlte Reisekosten-Abrechnung", "schon da");
+  } else {
+    await write("Schon bezahlte Reisekosten-Abrechnung über 1,00 € (für „Bereits freigegeben“)", () =>
+      admin.from("expense_claim").insert({
+        profile_id: sp.id, invoice_no: FREIGABE_RECHNUNG_ERLEDIGT, status: "paid", currency: "EUR", amount_cents: 100,
+        positions: [{
+          date: sum?.tage?.[0]?.day_date ?? ed.start_date, category: "train",
+          description: `${PREFIX}Zugfahrt (schon bezahlt)`, amount_cents: 100,
+        }],
+        bank_masked: `${PREFIX_CODE} •••• 0000`, bank_holder: `${PREFIX}${name}`,
+        submitted_at: vorgestern, submitted_by: me.id,
+        reviewed_by: me.id, reviewed_at: gestern, review_note: `${PREFIX}freigegeben, ohne SevDesk und Qonto`,
+        paid_at: gestern, paid_by: me.id, payment_ref: `${PREFIX}nicht überwiesen`,
+      }),
+    );
   }
 
   // --- Hotel ----------------------------------------------------------------
@@ -3724,13 +3779,14 @@ async function remove(me) {
   // die Rechnungsdatei: sie liegt nur dann im Bucket, wenn jemand die Abrechnung freigegeben
   // hat, und geht nicht per Kaskade mit.
   await write("TEST-Abrechnung entfernt (mit abgelegter Rechnung)", async () => {
+    const rechnungen = [FREIGABE_RECHNUNG, FREIGABE_RECHNUNG_ERLEDIGT];
     const { data: dateien } = await admin.from("speaker_asset").select("id, storage_path")
-      .eq("kind", "invoice").eq("filename", `${FREIGABE_RECHNUNG}.pdf`);
+      .eq("kind", "invoice").in("filename", rechnungen.map((r) => `${r}.pdf`));
     if ((dateien ?? []).length > 0) {
       const { error } = await admin.storage.from("speaker-assets").remove(dateien.map((d) => d.storage_path));
       if (error) return { data: null, error };
     }
-    const weg = await admin.from("expense_claim").delete().eq("invoice_no", FREIGABE_RECHNUNG);
+    const weg = await admin.from("expense_claim").delete().in("invoice_no", rechnungen);
     if (weg.error) return weg;
     if ((dateien ?? []).length === 0) return weg;
     return admin.from("speaker_asset").delete().in("id", dateien.map((d) => d.id));
@@ -3738,8 +3794,8 @@ async function remove(me) {
   await write("TEST-Hotelanfrage entfernt", () =>
     admin.from("hospitality_booking").delete().contains("details", { special: FREIGABE_HINWEIS }),
   );
-  await write("TEST-Vorschlag für Titel und Beschreibung entfernt", () =>
-    admin.from("session_submission").delete().eq("notes", FREIGABE_HINWEIS),
+  await write("TEST-Vorschläge für Titel und Beschreibung entfernt (wartend und freigegeben)", () =>
+    admin.from("session_submission").delete().in("notes", [FREIGABE_HINWEIS, FREIGABE_HINWEIS_ERLEDIGT]),
   );
   await write("Speaker-Profil entfernt", () =>
     admin.from("speaker_profile").delete().eq("person_id", me.id).eq("internal_notes", MARK),
