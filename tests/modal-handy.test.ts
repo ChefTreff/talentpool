@@ -124,7 +124,8 @@ describe("Niemand arbeitet mehr von Hand gegen das Polster (QS-068)", () => {
 
   it("das Personen-Fenster der Leads nutzt `ModalFuss` statt eigener Maße", () => {
     const fenster = lies("app/(speaker-leads)/speaker-leads/SpeakerFenster.tsx");
-    assert.match(fenster, /import \{ Modal, ModalFuss \} from "@\/components\/ui\/Modal";/);
+    // Der Import darf weitere Bausteine des Moduls tragen (LEAD-055: `ConfirmDialog` für „Änderungen verwerfen?“).
+    assert.match(fenster, /import \{[^}]*\bModalFuss\b[^}]*\} from "@\/components\/ui\/Modal";/);
     assert.match(fenster, /<ModalFuss>[\s\S]*<\/ModalFuss>\s*<\/Modal>/);
   });
 });

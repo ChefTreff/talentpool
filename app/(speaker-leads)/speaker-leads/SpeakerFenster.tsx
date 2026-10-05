@@ -3,12 +3,18 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/shared";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Block } from "@/components/ui/Block";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
+import { InfoList } from "@/components/ui/InfoList";
 import { Input, Textarea } from "@/components/ui/Input";
-import { Modal, ModalFuss } from "@/components/ui/Modal";
+import { Menu, MenuItem, MenuSeparator } from "@/components/ui/Menu";
+import { ConfirmDialog, Modal, ModalFuss } from "@/components/ui/Modal";
+import { PortraitShape } from "@/components/ui/PortraitShape";
 import { Select } from "@/components/ui/Select";
+import { Stufenleiste } from "@/components/ui/Stufenleiste";
 import { useToast } from "@/components/ui/Toast";
 import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
 import { Verlauf } from "@/components/speaker/Verlauf";
@@ -19,6 +25,7 @@ import {
   einordnungEntwurf,
   kontaktViaHatAdresse,
 } from "@/lib/speaker/einordnung";
+import { fristStand, heute } from "@/lib/speaker/verlauf";
 import {
   approveTravelCosts,
   handoverSpeaker,
@@ -31,16 +38,63 @@ import {
   type LeadResult,
 } from "./actions";
 import { PIPELINE_ORDER, type ManagedSpeaker, type ManagerOption } from "./types";
-import { STAENDE_VOR_ZUSAGE, istNachZusage, kannZusageMelden, naechstePflichten } from "./phase";
+import {
+  STAENDE_VOR_ZUSAGE,
+  STUFEN,
+  alsNaechstes,
+  aufraeumen,
+  blockMarken,
+  hauptaktion,
+  kannZusageMelden,
+  naechstePflichten,
+  warNachZusage,
+  type Hauptaktion,
+  type PflichtBlock,
+} from "./phase";
+import { entwurfGeaendert, fensterEntwurf } from "./entwurf";
 
 type Strings = Record<string, string>;
 
+/** Der Wörterbuch-Schlüssel des Knopftextes je Hauptaktion. */
+const AKTION_TEXT: Record<Hauptaktion, string> = {
+  contact: "actionContact",
+  confirm: "confirmAction",
+  invite: "actionInvite",
+  hospitality: "actionHospitality",
+  travel: "actionTravel",
+  session: "actionSession",
+};
+
+/** Das Programmboard der Leads — dorthin führt „Im Programmboard zuordnen“. */
+const BOARD_PFAD = "/speaker-leads/board";
+
 /**
- * Ein Speaker als zentrales Fenster (LEAD-026, Konrad 24.09.: „die
- * Seitenleiste ist zu schmal für die Informationsfülle; nach dem Speichern
- * bleibt der Kontakt offen“). Zwei Spalten: links, wo die Ansprache steht —
- * Pipeline und Einordnung (LEAD-039) —, rechts die Stammdaten, Sessions,
- * Übergabe und Reisekosten. „Speichern“ schliesst das Fenster.
+ * Springt zu einem Block und klappt ihn auf. Ein Anker (`#id`) täte es auch, aber er schriebe die Adresse um und liefe beim
+ * zweiten Klick ins Leere (`hashchange` kommt nur, wenn sich der Anker ändert).
+ */
+function springeZu(id: string) {
+  const el = document.getElementById(id);
+  if (!(el instanceof HTMLDetailsElement)) return;
+  el.open = true;
+  el.scrollIntoView({ block: "start" });
+}
+
+/**
+ * Ein Speaker als zentrales Fenster (LEAD-026, Konrad 24.09.: „die Seitenleiste ist zu schmal für die Informationsfülle;
+ * nach dem Speichern bleibt der Kontakt offen“) — aufgeräumt in LEAD-055 (Konrad und Paulina 05.10.: „noch sehr
+ * unübersichtlich“, Entwurf von Design: `docs/design-vorschlaege-2026-10-05.md`).
+ *
+ * **Oben steht, wer das ist, wo er steht und was als Nächstes zu tun ist; darunter nur Blöcke, von denen offen ist, was zum
+ * Stand gehört.**
+ *
+ * - Der **Kopf** trägt die Rangfolge: Person, **eine** Hauptaktion (`hauptaktion()`), „Weitere Aktionen“ (Menü), die Stufenleiste
+ *   und eine Zeile Kontext. Was den Stand ändert oder weitergibt, läuft über Aktionspanels unter der Zeile — kein Dialog über dem
+ *   Dialog; nur was eine Mail an den Speaker auslöst (Einladung) und das Verwerfen von Änderungen fragen vorher.
+ * - **Fünf Blöcke in fester Reihenfolge** — Grunddaten, Pipeline, Onboarding, Hospitality, Programm —, in einer Spalte. Die
+ *   letzten drei gibt es erst nach der Zusage (LEAD-054), Onboarding und Hospitality nicht für Gäste von Partnern (SPK-070). Marken
+ *   („Nächste Pflicht“, „Offen · 2“, „Erledigt“) und die Hauptaktion lesen aus `naechstePflichten()` — die eine Quelle.
+ * - „Änderungen speichern“ schreibt den Entwurf und schließt das Fenster (LEAD-026), ist aber **zweitrangig**: die eine
+ *   primäre Aktion ist die Hauptaktion. Stand-Aktionen schließen es nicht.
  */
 export function SpeakerFenster({
   speaker,
@@ -98,31 +152,32 @@ export function SpeakerFenster({
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
-  /** Offener Absage-Dialog: `null` = zu, sonst der gewählte Grund. */
-  const [absage, setAbsage] = useState<string | null>(null);
   // ADM-062: Fehler stehen im Fenster, nicht als Toast am Bildschirmrand.
   const [fehler, setFehler] = useState<string | null>(null);
+
+  /** Das eine Aktionspanel unter der Aktionszeile — dieselbe Fläche wie früher das Absage-Panel. */
+  const [panel, setPanel] = useState<null | "absage" | "stand" | "weitergeben">(null);
+  /** Der gewählte Grund einer Absage. */
+  const [grund, setGrund] = useState("");
+  /** Der gewählte neue Stand (Panel „Stand ändern“). */
+  const [neuerStand, setNeuerStand] = useState("");
   /** Empfänger einer Übergabe. */
   const [nachfolge, setNachfolge] = useState("");
+  /** Rückfragen: eine Mail an den Speaker und das Verwerfen von Änderungen. */
+  const [einladungFrage, setEinladungFrage] = useState(false);
+  const [verwerfenFrage, setVerwerfenFrage] = useState(false);
 
-  const [draft, setDraft] = useState({
-    speaker_type: speaker.speaker_type,
-    job_title: speaker.job_title ?? "",
-    organization_name: speaker.organization_name ?? "",
-    internal_notes: speaker.internal_notes ?? "",
-    reception_eligible: speaker.reception_eligible,
-    travel_costs_covered: speaker.travel_costs_covered,
-    pass_type: speaker.pass_type,
-    lounge_access: speaker.lounge_access,
-    hotel_tier: speaker.hotel_tier,
-    hospitality_status: speaker.hospitality_status,
-  });
+  const [draft, setDraft] = useState(() => fensterEntwurf(speaker));
 
   // Einordnung (LEAD-039): der gespeicherte Stand und der Entwurf daneben — so
   // geht nur mit, was sich geändert hat.
   const einordnungVorher = useMemo(() => einordnungEntwurf(speaker), [speaker]);
   const [einordnung, setEinordnung] = useState(einordnungVorher);
   const adresse = kontaktViaHatAdresse(einordnung.contact_via);
+
+  // Etwas, das beim Schließen verloren ginge? Dann fragt „Schließen“ und Escape zurück.
+  const geaendert = entwurfGeaendert(fensterEntwurf(speaker), draft, isTeam, einordnungVorher, einordnung);
+  const schliessen = () => (geaendert ? setVerwerfenFrage(true) : onClose());
 
   // LEAD-029: das Profilfoto — die Adresse ist signiert und kommt vom Server;
   // nach einem Upload zählt `fotoStand` hoch und holt die neue.
@@ -140,23 +195,52 @@ export function SpeakerFenster({
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const dateTime = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
+  const datum = (iso: string) => dateTime.format(new Date(iso));
+  // Fristen sind Kalendertage ohne Uhrzeit — um 12 Uhr gelesen, damit die Zeitzone den Tag nicht verschiebt.
+  const fristDatum = (iso: string) => dateTime.format(new Date(`${iso}T12:00:00`));
+  const [heuteIso] = useState(() => heute());
   const name =
     [speaker.title, speaker.first_name, speaker.last_name].filter(Boolean).join(" ") ||
     common.none;
 
   // LEAD-054: vor der Zusage nur Grunddaten, Ansprache und Einordnung; mit der
-  // Zusage öffnen sich Onboarding, Hospitality und Programm.
-  const nachZusage = istNachZusage(speaker.pipeline_status);
+  // Zusage öffnen sich Onboarding, Hospitality und Programm — auch nach einer Absage
+  // nach der Zusage, denn dann ist aufzuräumen (LEAD-055).
+  const nachZusage = warNachZusage(speaker);
+  const abgesagt = speaker.pipeline_status === "declined";
+  const gast = speaker.stage_guest;
   const pflichten = naechstePflichten(speaker);
+  const marken = blockMarken(pflichten);
+  const haengt = aufraeumen(speaker);
+  const aktion = hauptaktion(speaker, isTeam);
+  const naechstes = alsNaechstes(speaker);
 
-  function report(res: LeadResult, okText: string) {
+  function report(res: LeadResult, okText: string): boolean {
     if (res.ok) {
       setFehler(null);
       toast("success", okText);
       router.refresh();
-      return;
+      return true;
     }
     setFehler(message(res.key) + (res.detail ? ` (${res.detail})` : ""));
+    return false;
+  }
+
+  /** Eine Aktion des Fensters: Toast und Aktualisieren bei Erfolg, der Fehler im Fenster sonst. Das Fenster bleibt offen. */
+  function fuehreAus(aktionFn: () => Promise<LeadResult>, okText: string, danach?: () => void) {
+    startTransition(async () => {
+      if (report(await aktionFn(), okText)) danach?.();
+    });
+  }
+
+  function onHauptaktion(a: Hauptaktion) {
+    if (a === "contact") fuehreAus(() => setPipeline(speaker.id, "contacted"), t.pipelineSaved);
+    else if (a === "confirm") {
+      fuehreAus(() => setPipeline(speaker.id, "confirmed"), t.confirmedMoved.replace("{name}", name));
+    } else if (a === "invite") setEinladungFrage(true);
+    else if (a === "hospitality") springeZu("fenster-hospitality");
+    else if (a === "travel") fuehreAus(() => approveTravelCosts(speaker.id, true), t.travelApproved);
+    // `session` ist ein Link ins Programmboard und läuft nicht über diese Funktion.
   }
 
   function onSave() {
@@ -204,242 +288,307 @@ export function SpeakerFenster({
 
   const opt = (map: Record<string, string>) =>
     Object.entries(map).map(([value, label]) => ({ value, label }));
+  const standName = (s: string) =>
+    s === "confirmed" && !nachZusage ? t.confirmAction : (labels.pipeline[s] ?? s);
+
+  // --- Kopf ---------------------------------------------------------------------------------------------------------------
+  const untertitel = [speaker.job_title, speaker.organization_name].filter(Boolean).join(" · ");
+  const kategorie = speaker.category ? (einordnungOptionen.category[speaker.category] ?? speaker.category) : null;
+  // „Prio“ ist die interne Einstufung der Programmleitung: im Kopf nur für das Team (LEAD-053 zieht dieselbe Grenze durch das Fenster).
+  const prio = isTeam && speaker.priority ? (einordnungOptionen.priority[speaker.priority] ?? speaker.priority) : null;
+  // Die Hotel-Kategorie nur, wenn sie von der Vorgabe abweicht — und nur der Teil vor der Klammer („Premium (Grand Elysée)“).
+  const hotelAbweichend = speaker.hotel_tier !== "standard";
+  const hotelKurz = (labels.hotelTier[speaker.hotel_tier] ?? speaker.hotel_tier).split(" (")[0];
+
+  const stufe = Math.max(0, STUFEN.indexOf(speaker.pipeline_status));
+
+  // Stände, die „Stand ändern …“ anbietet: die der Phase, ohne den jetzigen — die Absage hat ihren eigenen Menüpunkt.
+  const standOptionen = PIPELINE_ORDER.filter(
+    (s) => (nachZusage || STAENDE_VOR_ZUSAGE.includes(s)) && s !== speaker.pipeline_status && s !== "declined",
+  ).map((s) => ({ value: s, label: standName(s) }));
+
+  const darfWeitergeben = (isTeam || speaker.owner_person_id === meId) && managers.length > 0;
+  const darfErneutEinladen = !gast && nachZusage && !abgesagt && Boolean(speaker.invited_at);
+
+  // --- Blöcke -------------------------------------------------------------------------------------------------------------
+  /** Marke eines Pflicht-Blocks: aus den offenen Pflichten, nach einer Absage „Aufräumen“, für Gäste keine. */
+  const markeVon = (b: PflichtBlock): { text: string; ton: BadgeTone } | undefined => {
+    if (gast) return undefined;
+    if (abgesagt) return haengt[b] ? { text: t.markCleanup, ton: "warning" } : undefined;
+    const m = marken[b];
+    if (m.zustand === "erledigt") return { text: t.markDone, ton: "success" };
+    if (m.zustand === "naechste") return { text: t.markNext, ton: "accent" };
+    return { text: m.n > 1 ? t.markOpenN.replace("{n}", String(m.n)) : t.markOpen, ton: "warning" };
+  };
+  const offenVon = (b: PflichtBlock) => !gast && !abgesagt && marken[b].zustand === "naechste";
+
+  const sessions = speaker.sessions ?? [];
+  const offeneSchritte = speaker.next_open ?? [];
+  const nenne = (vorlage: string, werte: Record<string, string>) =>
+    Object.entries(werte).reduce((text, [k, v]) => text.replace(`{${k}}`, v), vorlage);
+  const teile = (...teile: (string | false | null | undefined)[]) => teile.filter(Boolean).join(" · ") || undefined;
+
+  const kurzGrunddaten = teile(foto !== null && foto.editionId && !foto.url && t.shortNoPhoto, !speaker.internal_notes && t.shortNoNote);
+  const offeneAufgaben = speaker.open_tasks ?? 0;
+  const kurzPipeline = nachZusage
+    ? teile(
+        speaker.confirmed_at && nenne(t.shortConfirmedOn, { date: datum(speaker.confirmed_at) }),
+        kategorie && nenne(t.shortCategory, { c: kategorie }),
+        prio,
+      )
+    : teile(
+        speaker.last_activity_at ? nenne(t.shortActivity, { date: datum(speaker.last_activity_at) }) : t.shortNoActivity,
+        offeneAufgaben > 0 && (offeneAufgaben === 1 ? t.shortOneTask : nenne(t.shortTasks, { n: String(offeneAufgaben) })),
+      );
+  const kurzOnboarding = teile(
+    speaker.invited_at ? nenne(t.shortInvited, { date: datum(speaker.invited_at) }) : t.shortNotInvited,
+    offeneSchritte.length > 0 && nenne(t.shortStepsOpen, { n: String(offeneSchritte.length) }),
+  );
+  const kurzHospitality = teile(
+    isTeam && `${t.fieldHospitality}: ${labels.hospitality[speaker.hospitality_status] ?? speaker.hospitality_status}`,
+    `${t.travel}: ${speaker.travel_costs_covered ? t.travelCoveredYes : t.travelCoveredNo}`,
+  );
+  const kurzProgramm =
+    sessions.length === 0 ? t.shortNoSession : sessions.length === 1 ? t.shortOneSession : nenne(t.shortSessions, { n: String(sessions.length) });
 
   return (
-    <Modal label={name} onCancel={onClose} size="wide" error={fehler}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-2">
-          <h2 className="ct-h3 text-ink">{name}</h2>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge>{labels.pipeline[speaker.pipeline_status] ?? speaker.pipeline_status}</Badge>
-            {speaker.stage_guest && <Badge>{tg.badge}</Badge>}
-            {speaker.assistant_name && (
-              <Badge tone="accent">
-                {t.assistant}: {speaker.assistant_name}
-              </Badge>
-            )}
-            {speaker.invited_at && (
-              <span className="ct-help">
-                {t.invitedOn} {dateTime.format(new Date(speaker.invited_at))}
-              </span>
-            )}
+    <>
+      <Modal label={name} onCancel={schliessen} size="wide" error={fehler}>
+        {/* Kopf: wer das ist … */}
+        <div className="flex items-start gap-3">
+          <PortraitShape name={name} photoUrl={foto?.url} size="sm" />
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h2 className="ct-h3 text-ink">{name}</h2>
+            {untertitel && <p className="ct-help">{untertitel}</p>}
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <Badge>{labels.speakerType[speaker.speaker_type] ?? speaker.speaker_type}</Badge>
+              {kategorie && <Badge>{kategorie}</Badge>}
+              {prio && <Badge>{prio}</Badge>}
+              {hotelAbweichend && <Badge tone="accent">{nenne(t.hotelBadge, { tier: hotelKurz })}</Badge>}
+              {gast && <Badge>{tg.badge}</Badge>}
+              {speaker.assistant_name && (
+                <Badge tone="accent">
+                  {t.assistant}: {speaker.assistant_name}
+                </Badge>
+              )}
+            </div>
           </div>
-          {/* SPK-070: ein Gast des Partners bekommt weder Einladung noch Onboarding. */}
-          {speaker.stage_guest && <p className="ct-help">{tg.hint}</p>}
-          {/* Kontakt: die RPC gibt die Adresse nur im Scope heraus. */}
-          {speaker.email ? (
-            <p className="ct-help">{speaker.email}</p>
-          ) : (
-            <p className="ct-help">{t.contactHidden}</p>
-          )}
-        </div>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          {common.close}
-        </Button>
-      </div>
-
-      {/* LEAD-054: vor der Zusage die eine Frage „Hat die Person zugesagt?“ mit der
-          Aktion dazu; danach sagt das Fenster, was als Nächstes zu tun ist. Die
-          Aktion ist `secondary`: die eine primäre Aktion des Fensters bleibt
-          „Speichern“. */}
-      {kannZusageMelden(speaker.pipeline_status) && (
-        <section
-          aria-labelledby="fenster-zusage"
-          className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-ct-md border border-accent-soft bg-accent-soft p-4"
-        >
-          <div className="min-w-0">
-            <h3 id="fenster-zusage" className="ct-label text-ink">
-              {t.confirmPromptTitle}
-            </h3>
-            <p className="ct-help">{t.pipelineLockedHint}</p>
-          </div>
-          <Button
-            variant="secondary"
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () =>
-                void report(await setPipeline(speaker.id, "confirmed"), t.confirmedMoved),
-              )
-            }
-          >
-            {t.confirmAction}
+          {/* Am Handy steht „Schließen“ nur in der Fußleiste: der Name hat die ganze Breite. */}
+          <Button variant="ghost" size="sm" className="max-sm:hidden" onClick={schliessen}>
+            {common.close}
           </Button>
-        </section>
-      )}
-      {nachZusage && !speaker.stage_guest && (
-        <section aria-labelledby="fenster-pflichten" className="mt-4 rounded-ct-md border bg-canvas p-4">
-          <h3 id="fenster-pflichten" className="ct-label text-ink">
-            {t.dutiesTitle}
-          </h3>
-          {pflichten.length === 0 ? (
-            <p className="mt-2">
-              <Badge tone="success">{t.dutiesDone}</Badge>
-            </p>
-          ) : (
-            <ul className="mt-2 flex flex-col gap-2">
-              {pflichten.map((p) => (
-                <li key={p} className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="ct-small text-ink">{t[`duty_${p}`]}</span>
-                  {p === "invite" && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() =>
-                        startTransition(async () =>
-                          void report(await inviteSpeaker(speaker.id), t.invited),
-                        )
-                      }
-                    >
-                      {t.invite}
-                    </Button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
+        </div>
+        {/* SPK-070: ein Gast des Partners bekommt weder Einladung noch Onboarding. */}
+        {gast && <p className="ct-help mt-2">{tg.hint}</p>}
 
-      <div className="mt-5 grid gap-x-8 gap-y-5 lg:grid-cols-2">
-        <div className="flex min-w-0 flex-col gap-5">
-          {/* Pipeline */}
-          <section className="border-t pt-4">
-            <h3 className="ct-label mb-2 text-ink">{t.pipeline}</h3>
-            <div className="flex flex-wrap gap-1">
-              {PIPELINE_ORDER.filter((s) => nachZusage || STAENDE_VOR_ZUSAGE.includes(s)).map((s) => (
-                <Button
-                  key={s}
-                  size="sm"
-                  variant={s === speaker.pipeline_status ? "primary" : "secondary"}
-                  disabled={pending || s === speaker.pipeline_status}
-                  onClick={() => {
-                    // Bei einer Absage fragen wir nach dem Grund, bevor wir
-                    // umschalten — hinterher trägt ihn niemand mehr nach, und
-                    // für die nächste Edition ist er mehr wert als die Absage.
-                    if (s === "declined") {
-                      setAbsage(speaker.decline_reason ?? "");
-                      return;
-                    }
-                    startTransition(async () =>
-                      void report(await setPipeline(speaker.id, s), t.pipelineSaved),
-                    );
+        {/* … die eine Hauptaktion und die weiteren … */}
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          {aktion === "session" ? (
+            <ButtonLink key="hauptaktion" href={BOARD_PFAD} className="max-sm:w-full">
+              {t[AKTION_TEXT.session]}
+            </ButtonLink>
+          ) : (
+            aktion && (
+              <Button
+                key="hauptaktion"
+                className="max-sm:w-full"
+                loading={pending}
+                onClick={() => onHauptaktion(aktion)}
+              >
+                {t[AKTION_TEXT[aktion]]}
+              </Button>
+            )
+          )}
+          <Menu ton="hell" label={t.moreActions} trigger={<span>{t.moreActions}</span>}>
+            {darfWeitergeben && (
+              <MenuItem
+                onSelect={() => {
+                  setPanel("weitergeben");
+                  setNachfolge("");
+                }}
+              >
+                {t.handoverMenu}
+              </MenuItem>
+            )}
+            <MenuItem
+              onSelect={() => {
+                setPanel("stand");
+                setNeuerStand("");
+              }}
+            >
+              {t.changeStage}
+            </MenuItem>
+            {darfErneutEinladen && <MenuItem onSelect={() => setEinladungFrage(true)}>{t.inviteAgain}</MenuItem>}
+            {!abgesagt && (
+              <>
+                <MenuSeparator />
+                <MenuItem
+                  onSelect={() => {
+                    setPanel("absage");
+                    setGrund(speaker.decline_reason ?? "");
                   }}
                 >
-                  {s === "confirmed" && !nachZusage ? t.confirmAction : (labels.pipeline[s] ?? s)}
-                </Button>
-              ))}
-            </div>
-            <p className="ct-help mt-2">{t.pipelineHint}</p>
-
-            {/* Zeitstempel aus Migration 0099: sie sagen, wie lange eine Zusage
-                gedauert hat und warum jemand abgesagt hat. */}
-            <dl className="ct-help mt-3 flex flex-col gap-0.5">
-              {speaker.confirmed_at && (
-                <div className="flex gap-1">
-                  <dt className="font-semibold">{t.confirmedOn}:</dt>
-                  <dd>{dateTime.format(new Date(speaker.confirmed_at))}</dd>
-                </div>
-              )}
-              {speaker.declined_at && (
-                <div className="flex gap-1">
-                  <dt className="font-semibold">{t.declinedOn}:</dt>
-                  <dd>
-                    {dateTime.format(new Date(speaker.declined_at))}
-                    {speaker.decline_reason &&
-                      ` · ${labels.declineReason[speaker.decline_reason] ?? speaker.decline_reason}`}
-                  </dd>
-                </div>
-              )}
-            </dl>
-
-            {absage !== null && (
-              <div className="mt-3 flex flex-col gap-2 rounded-ct-sm border bg-canvas p-3">
-                <Field label={t.declineReason} htmlFor="absage-grund" hint={t.declineReasonHint}>
-                  <Select
-                    id="absage-grund"
-                    value={absage}
-                    placeholder={common.choose}
-                    options={opt(labels.declineReason)}
-                    onChange={(e) => setAbsage(e.target.value)}
-                  />
-                </Field>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    disabled={pending || absage === ""}
-                    onClick={() =>
-                      startTransition(async () => {
-                        const grund = absage;
-                        setAbsage(null);
-                        void report(
-                          await setPipeline(speaker.id, "declined", grund),
-                          t.pipelineSaved,
-                        );
-                      })
-                    }
-                  >
-                    {t.declineConfirm}
-                  </Button>
-                  <Button size="sm" variant="ghost" disabled={pending} onClick={() => setAbsage(null)}>
-                    {common.cancel}
-                  </Button>
-                </div>
-              </div>
+                  {t.declineMenu}
+                </MenuItem>
+              </>
             )}
-          </section>
-
-          {/* Einordnung aus der Arbeitstabelle (LEAD-039) */}
-          <section className="border-t pt-4">
-            <h3 className="ct-label mb-1 text-ink">{te.title}</h3>
-            <p className="ct-help mb-3">{te.hint}</p>
-            <EinordnungFelder
-              idPrefix={`einordnung-${speaker.id}`}
-              value={einordnung}
-              onChange={setEinordnung}
-              optionen={einordnungOptionen}
-              t={te}
-              none={common.none}
-              disabled={pending}
-            />
-          </section>
+          </Menu>
         </div>
+        {kannZusageMelden(speaker.pipeline_status) && <p className="ct-help mt-2">{t.pipelineLockedHint}</p>}
 
-        <div className="flex min-w-0 flex-col gap-5">
-          {/* LEAD-029: das Foto hochladen oder austauschen, wie im Admin-Detail. */}
-          {foto?.editionId && (
-          <PhotoUpload
-            profileId={speaker.id}
-            editionId={foto.editionId}
-            photoUrl={foto.url}
-            register={registerSpeakerPhotoAsLead}
-            ansicht="betreut"
-            variante="abschnitt"
-            onDone={() => setFotoStand((n) => n + 1)}
-            t={tf}
-            rpcMessages={rpcMessages}
-          />
+        {/* Das Aktionspanel: kein Dialog über dem Dialog. */}
+        {panel === "absage" && (
+          <div className="mt-3 flex flex-col gap-2 rounded-ct-md border bg-canvas p-3">
+            {/* Bei einer Absage fragen wir nach dem Grund, bevor wir umschalten — hinterher trägt ihn niemand mehr
+                nach, und für die nächste Edition ist er mehr wert als die Absage. */}
+            <Field label={t.declineReason} htmlFor="absage-grund" hint={t.declineReasonHint}>
+              <Select
+                id="absage-grund"
+                value={grund}
+                placeholder={common.choose}
+                options={opt(labels.declineReason)}
+                onChange={(e) => setGrund(e.target.value)}
+              />
+            </Field>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                disabled={pending || grund === ""}
+                onClick={() =>
+                  fuehreAus(() => setPipeline(speaker.id, "declined", grund), t.pipelineSaved, () => setPanel(null))
+                }
+              >
+                {t.declineConfirm}
+              </Button>
+              <Button size="sm" variant="ghost" disabled={pending} onClick={() => setPanel(null)}>
+                {common.cancel}
+              </Button>
+            </div>
+          </div>
+        )}
+        {panel === "stand" && (
+          <div className="mt-3 flex flex-col gap-2 rounded-ct-md border bg-canvas p-3">
+            <Field label={t.changeStageLabel} htmlFor="stand-neu" hint={t.pipelineHint}>
+              <Select
+                id="stand-neu"
+                value={neuerStand}
+                placeholder={common.choose}
+                options={standOptionen}
+                onChange={(e) => setNeuerStand(e.target.value)}
+              />
+            </Field>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                disabled={pending || neuerStand === ""}
+                onClick={() =>
+                  fuehreAus(() => setPipeline(speaker.id, neuerStand), t.pipelineSaved, () => setPanel(null))
+                }
+              >
+                {t.changeStageConfirm}
+              </Button>
+              <Button size="sm" variant="ghost" disabled={pending} onClick={() => setPanel(null)}>
+                {common.cancel}
+              </Button>
+            </div>
+          </div>
+        )}
+        {panel === "weitergeben" && (
+          <div className="mt-3 flex flex-col gap-2 rounded-ct-md border bg-canvas p-3">
+            {/* Angeboten wird das nur, wo es auch erlaubt ist: das Team darf jeden zuordnen, eine Lead-Person nur abgeben,
+                was sie heute selbst betreut (Migration 0103). Der Eintrag für alle wäre bei der Hälfte der Zeilen eine
+                Einladung in den Fehler. */}
+            <div className="flex flex-wrap items-end gap-2">
+              <Field label={t.handoverTo} htmlFor="nachfolge" className="min-w-52 grow">
+                <Select
+                  id="nachfolge"
+                  value={nachfolge}
+                  placeholder={common.choose}
+                  options={managers
+                    .filter((m) => m.person_id !== speaker.owner_person_id)
+                    .map((m) => ({ value: m.person_id, label: m.display_name ?? m.person_id }))}
+                  onChange={(e) => setNachfolge(e.target.value)}
+                />
+              </Field>
+              <Button
+                size="sm"
+                disabled={pending || nachfolge === ""}
+                onClick={() =>
+                  fuehreAus(() => handoverSpeaker(speaker.id, nachfolge), t.handedOver, () => {
+                    setPanel(null);
+                    setNachfolge("");
+                  })
+                }
+              >
+                {t.handoverAction}
+              </Button>
+              <Button size="sm" variant="ghost" disabled={pending} onClick={() => setPanel(null)}>
+                {common.cancel}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* … wo er steht … */}
+        <Stufenleiste
+          className="mt-4"
+          label={t.stageLabel}
+          zaehler={nenne(t.stageCounter, { n: String(stufe + 1), m: String(STUFEN.length) })}
+          schritte={STUFEN.map((s) => ({ key: s, label: labels.pipeline[s] ?? s }))}
+          aktuell={speaker.pipeline_status}
+          ende={abgesagt ? t.stageEnded : undefined}
+        />
+
+        {/* … und was als Nächstes zu tun ist. */}
+        <dl className="mt-3 flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-6">
+          <div className="flex gap-1.5">
+            <dt className="ct-label text-muted">{t.currentOwner}</dt>
+            <dd className="ct-small text-ink">{speaker.owner_name || common.none}</dd>
+          </div>
+          {naechstes.art === "abgesagt" ? (
+            <div>
+              <dd className="ct-small font-semibold text-error-ink">
+                {speaker.declined_at ? nenne(t.declinedLine, { date: datum(speaker.declined_at) }) : t.stageEnded}
+                {speaker.decline_reason && ` · ${labels.declineReason[speaker.decline_reason] ?? speaker.decline_reason}`}
+              </dd>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+              <dt className="ct-label text-muted">{t.nextLabel}</dt>
+              <dd className="ct-small text-ink">
+                {naechstes.art === "pflicht" && t[`duty_${naechstes.pflicht}`]}
+                {naechstes.art === "aufgabe" && speaker.next_task && (
+                  <span className="inline-flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <span className="line-clamp-2">{speaker.next_task.body}</span>
+                    {fristStand(speaker.next_task.due_on, heuteIso) === "ueberfaellig" ? (
+                      <Badge tone="error">{tv.overdue}</Badge>
+                    ) : fristStand(speaker.next_task.due_on, heuteIso) === "heute" ? (
+                      <Badge tone="warning">{tv.dueToday}</Badge>
+                    ) : null}
+                    <span className="ct-help">{tv.dueOn.replace("{date}", fristDatum(speaker.next_task.due_on))}</span>
+                  </span>
+                )}
+                {naechstes.art === "nichts" && (nachZusage && !gast ? t.dutiesDone : t.noNextStep)}
+              </dd>
+            </div>
           )}
-          {/* Verlauf (LEAD-039 Schnitt 2): Notizen, Kontakte, Aufgaben mit Frist —
-              oben rechts, weil er in der Akquise am häufigsten gebraucht wird. */}
-          <section className="border-t pt-4">
-            <h3 className="ct-label mb-1 text-ink">{tv.title}</h3>
-            <p className="ct-help mb-3">{tv.hint}</p>
-            <Verlauf
-              profileId={speaker.id}
-              meId={meId}
-              zustaendige={managers.map((m) => ({ id: m.person_id, name: m.display_name ?? "—" }))}
-              arten={verlaufArten}
-              dateLocale={dateLocale}
-              t={tv}
-              rpcMessages={rpcMessages}
-            />
-          </section>
+          {/* Kontakt: die RPC gibt die Adresse nur im Scope heraus. */}
+          {speaker.email ? (
+            <div className="flex gap-1.5">
+              <dt className="ct-label text-muted">{t.contactEmail}</dt>
+              <dd className="ct-small min-w-0 break-all text-ink">{speaker.email}</dd>
+            </div>
+          ) : (
+            <div>
+              <dd className="ct-help">{t.contactHidden}</dd>
+            </div>
+          )}
+        </dl>
 
-          {/* Stammdaten */}
-          <section className="border-t pt-4">
-            <h3 className="ct-label mb-3 text-ink">{t.details}</h3>
-            <div className="flex flex-col gap-4">
+        {/* Blöcke: die Reihenfolge ist fest, nur was offen ist, ändert sich mit dem Stand. */}
+        <div className="mt-4">
+          <Block id="fenster-grunddaten" ebene="h3" titel={t.blockBasics} kurz={kurzGrunddaten}>
+            <div className="grid gap-4 sm:grid-cols-3">
               <Field label={t.fieldType} htmlFor="type">
                 <Select
                   id="type"
@@ -459,38 +608,27 @@ export function SpeakerFenster({
                 <Input
                   id="org"
                   value={draft.organization_name}
-                  onChange={(e) =>
-                    setDraft((d) => ({ ...d, organization_name: e.target.value }))
-                  }
+                  onChange={(e) => setDraft((d) => ({ ...d, organization_name: e.target.value }))}
                 />
               </Field>
-              {/* Erst nach der Zusage (LEAD-054): vorher steht hier nur, was zur Ansprache gehört. */}
-              {nachZusage && (
-                <>
-                  <label className="flex items-center gap-2 ct-label">
-                    <input
-                      type="checkbox"
-                      className="size-4"
-                      checked={draft.reception_eligible}
-                      onChange={(e) =>
-                        setDraft((d) => ({ ...d, reception_eligible: e.target.checked }))
-                      }
-                    />
-                    {t.receptionEligible}
-                  </label>
-                  <label className="flex items-center gap-2 ct-label">
-                    <input
-                      type="checkbox"
-                      className="size-4"
-                      checked={draft.travel_costs_covered}
-                      onChange={(e) =>
-                        setDraft((d) => ({ ...d, travel_costs_covered: e.target.checked }))
-                      }
-                    />
-                    {t.travelCovered}
-                  </label>
-                </>
-              )}
+            </div>
+            {/* LEAD-029: das Foto hochladen oder austauschen, wie im Admin-Detail. */}
+            {foto?.editionId && (
+              <div className="mt-4">
+                <PhotoUpload
+                  profileId={speaker.id}
+                  editionId={foto.editionId}
+                  photoUrl={foto.url}
+                  register={registerSpeakerPhotoAsLead}
+                  ansicht="betreut"
+                  variante="abschnitt"
+                  onDone={() => setFotoStand((n) => n + 1)}
+                  t={tf}
+                  rpcMessages={rpcMessages}
+                />
+              </div>
+            )}
+            <div className="mt-4">
               <Field label={t.internalNotes} htmlFor="notes" hint={t.internalNotesHint}>
                 <Textarea
                   id="notes"
@@ -500,186 +638,265 @@ export function SpeakerFenster({
                 />
               </Field>
             </div>
-          </section>
+          </Block>
 
-          {/* Team-Felder — für Manager gar nicht erst sichtbar, und erst nach der Zusage (LEAD-054) */}
-          {isTeam && nachZusage && (
-            <section className="border-t pt-4">
-              <h3 className="ct-label mb-1 text-ink">{t.teamFields}</h3>
-              <p className="ct-help mb-3">{t.teamFieldsHint}</p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label={t.fieldPassType} htmlFor="pass">
-                  <Select
-                    id="pass"
-                    value={draft.pass_type}
-                    options={opt(labels.passType)}
-                    onChange={(e) => setDraft((d) => ({ ...d, pass_type: e.target.value }))}
-                  />
-                </Field>
-                <Field label={t.fieldHotelTier} htmlFor="tier">
-                  <Select
-                    id="tier"
-                    value={draft.hotel_tier}
-                    options={opt(labels.hotelTier)}
-                    onChange={(e) => setDraft((d) => ({ ...d, hotel_tier: e.target.value }))}
-                  />
-                </Field>
-                <Field label={t.fieldHospitality} htmlFor="hosp">
-                  <Select
-                    id="hosp"
-                    value={draft.hospitality_status}
-                    options={opt(labels.hospitality)}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, hospitality_status: e.target.value }))
-                    }
-                  />
-                </Field>
-                <label className="flex items-center gap-2 self-end pb-2 ct-label">
-                  <input
-                    type="checkbox"
-                    className="size-4"
-                    checked={draft.lounge_access}
-                    onChange={(e) =>
-                      setDraft((d) => ({ ...d, lounge_access: e.target.checked }))
-                    }
-                  />
-                  {t.fieldLounge}
-                </label>
-              </div>
-            </section>
-          )}
+          <Block id="fenster-pipeline" ebene="h3" titel={t.blockPipeline} kurz={kurzPipeline} offen={!nachZusage}>
+            {/* Zeitstempel aus Migration 0099: sie sagen, wie lange eine Zusage gedauert hat und warum jemand abgesagt hat. */}
+            {(speaker.confirmed_at || speaker.declined_at) && (
+              <dl className="ct-help mb-4 flex flex-col gap-0.5">
+                {speaker.confirmed_at && (
+                  <div className="flex gap-1">
+                    <dt className="font-semibold">{t.confirmedOn}:</dt>
+                    <dd>{datum(speaker.confirmed_at)}</dd>
+                  </div>
+                )}
+                {speaker.declined_at && (
+                  <div className="flex gap-1">
+                    <dt className="font-semibold">{t.declinedOn}:</dt>
+                    <dd>
+                      {datum(speaker.declined_at)}
+                      {speaker.decline_reason &&
+                        ` · ${labels.declineReason[speaker.decline_reason] ?? speaker.decline_reason}`}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            )}
+            <div className="grid gap-x-8 gap-y-6 lg:grid-cols-2">
+              {/* Verlauf (LEAD-039 Schnitt 2): Notizen, Kontakte, Aufgaben mit Frist — links, weil er in der Akquise am
+                  häufigsten gebraucht wird. */}
+              <section>
+                <h4 className="ct-label mb-1 text-ink">{tv.title}</h4>
+                <p className="ct-help mb-3">{tv.hint}</p>
+                <Verlauf
+                  profileId={speaker.id}
+                  meId={meId}
+                  zustaendige={managers.map((m) => ({ id: m.person_id, name: m.display_name ?? "—" }))}
+                  arten={verlaufArten}
+                  dateLocale={dateLocale}
+                  t={tv}
+                  rpcMessages={rpcMessages}
+                />
+              </section>
+              {/* Einordnung aus der Arbeitstabelle (LEAD-039) */}
+              <section>
+                <h4 className="ct-label mb-1 text-ink">{te.title}</h4>
+                <p className="ct-help mb-3">{te.hint}</p>
+                <EinordnungFelder
+                  idPrefix={`einordnung-${speaker.id}`}
+                  value={einordnung}
+                  onChange={setEinordnung}
+                  optionen={einordnungOptionen}
+                  t={te}
+                  none={common.none}
+                  disabled={pending}
+                />
+              </section>
+            </div>
+          </Block>
 
-          {/* Sessions und offene Schritte — das Programm gibt es erst nach der Zusage (LEAD-054) */}
-          {nachZusage && (
-            <section className="border-t pt-4">
-              <h3 className="ct-label mb-2 text-ink">{t.sessions}</h3>
-              {(speaker.sessions ?? []).length === 0 ? (
-                <p className="ct-help">{t.noSessionHint}</p>
-              ) : (
-                <ul className="flex flex-col gap-1">
-                  {(speaker.sessions ?? []).map((s) => (
-                    <li key={s.session_id} className="ct-help">
-                      {(locale === "en" ? s.title_en : s.title_de) ?? s.title_de ?? "—"}
-                      {s.stage_name && ` · ${s.stage_name}`}
-                      {s.start_at && ` · ${dateTime.format(new Date(s.start_at))}`}
-                      {s.publish_status && ` · ${s.publish_status}`}
-                    </li>
-                  ))}
-                </ul>
+          {nachZusage && !gast && (
+            <Block
+              id="fenster-onboarding"
+              ebene="h3"
+              titel={t.blockOnboarding}
+              marke={markeVon("onboarding")}
+              kurz={kurzOnboarding}
+              offen={offenVon("onboarding")}
+            >
+              <InfoList
+                schmal
+                items={[
+                  {
+                    key: "invited",
+                    label: t.onboardingInvitation,
+                    value: speaker.invited_at ? nenne(t.shortInvited, { date: datum(speaker.invited_at) }) : t.shortNotInvited,
+                  },
+                  { key: "email", label: t.onboardingEmail, value: speaker.email ?? t.contactHidden },
+                ]}
+              />
+              {/* Die Einladung schickt eine Mail an den Speaker — deshalb fragt sie vorher. `invite_speaker` weist Gäste ab
+                  (0188) und verlangt die Zusage (`not_confirmed`): für sie steht der Knopf gar nicht erst da. */}
+              {!abgesagt && (
+                <div className="mt-3">
+                  <Button variant="secondary" size="sm" disabled={pending} onClick={() => setEinladungFrage(true)}>
+                    {speaker.invited_at ? t.inviteAgain : t.invite}
+                  </Button>
+                </div>
               )}
-              <h3 className="ct-label mb-2 mt-4 text-ink">{t.openSteps}</h3>
-              {(speaker.next_open ?? []).length === 0 ? (
+              <h4 className="ct-label mb-2 mt-5 text-ink">{t.openSteps}</h4>
+              {offeneSchritte.length === 0 ? (
                 <Badge tone="success">{t.allDone}</Badge>
               ) : (
                 <div className="flex flex-wrap gap-1">
-                  {(speaker.next_open ?? []).map((step) => (
+                  {offeneSchritte.map((step) => (
                     <Badge key={step}>{t[`step_${step}`] ?? step}</Badge>
                   ))}
                 </div>
               )}
-            </section>
+            </Block>
           )}
 
-          {/* Betreuung weitergeben.
-
-              Angeboten wird das nur, wo es auch erlaubt ist: das Team darf jeden
-              zuordnen, eine Lead-Person nur abgeben, was sie heute selbst
-              betreut (Migration 0103). Der Knopf für alle wäre bei der Hälfte
-              der Zeilen eine Einladung in den Fehler. */}
-          {(isTeam || speaker.owner_person_id === meId) && (
-            <section className="border-t pt-4">
-              <h3 className="ct-label mb-1 text-ink">{t.handover}</h3>
-              <p className="ct-help mb-3">
-                {speaker.owner_name ? `${t.currentOwner}: ${speaker.owner_name}` : t.noOwner}
-              </p>
-              <div className="flex flex-wrap items-end gap-2">
-                <Field label={t.handoverTo} htmlFor="nachfolge" className="min-w-52 grow">
-                  <Select
-                    id="nachfolge"
-                    value={nachfolge}
-                    placeholder={common.choose}
-                    options={managers
-                      .filter((m) => m.person_id !== speaker.owner_person_id)
-                      .map((m) => ({ value: m.person_id, label: m.display_name ?? m.person_id }))}
-                    onChange={(e) => setNachfolge(e.target.value)}
-                  />
-                </Field>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  disabled={pending || nachfolge === ""}
-                  onClick={() =>
-                    startTransition(async () =>
-                      void report(await handoverSpeaker(speaker.id, nachfolge), t.handedOver),
-                    )
-                  }
-                >
-                  {t.handoverAction}
-                </Button>
+          {nachZusage && !gast && (
+            <Block
+              id="fenster-hospitality"
+              ebene="h3"
+              titel={t.blockHospitality}
+              marke={markeVon("hospitality")}
+              kurz={kurzHospitality}
+              offen={offenVon("hospitality")}
+            >
+              {/* Team-Felder — für Manager gar nicht erst sichtbar (LEAD-054): ihnen sagt ein Satz, wer sie setzt. */}
+              {isTeam ? (
+                <>
+                  <h4 className="ct-label mb-3 text-ink">{t.teamFields}</h4>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label={t.fieldPassType} htmlFor="pass">
+                      <Select
+                        id="pass"
+                        value={draft.pass_type}
+                        options={opt(labels.passType)}
+                        onChange={(e) => setDraft((d) => ({ ...d, pass_type: e.target.value }))}
+                      />
+                    </Field>
+                    <Field label={t.fieldHotelTier} htmlFor="tier">
+                      <Select
+                        id="tier"
+                        value={draft.hotel_tier}
+                        options={opt(labels.hotelTier)}
+                        onChange={(e) => setDraft((d) => ({ ...d, hotel_tier: e.target.value }))}
+                      />
+                    </Field>
+                    <Field label={t.fieldHospitality} htmlFor="hosp">
+                      <Select
+                        id="hosp"
+                        value={draft.hospitality_status}
+                        options={opt(labels.hospitality)}
+                        onChange={(e) => setDraft((d) => ({ ...d, hospitality_status: e.target.value }))}
+                      />
+                    </Field>
+                    <Checkbox
+                      label={t.fieldLounge}
+                      className="self-end"
+                      checked={draft.lounge_access}
+                      onChange={(e) => setDraft((d) => ({ ...d, lounge_access: e.target.checked }))}
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="ct-help">{t.teamFieldsHint}</p>
+              )}
+              <div className="mt-4 flex flex-col gap-1">
+                <Checkbox
+                  label={t.receptionEligible}
+                  checked={draft.reception_eligible}
+                  onChange={(e) => setDraft((d) => ({ ...d, reception_eligible: e.target.checked }))}
+                />
+                <Checkbox
+                  label={t.travelCovered}
+                  checked={draft.travel_costs_covered}
+                  onChange={(e) => setDraft((d) => ({ ...d, travel_costs_covered: e.target.checked }))}
+                />
               </div>
-            </section>
-          )}
-
-          {/* Reisekosten — erst nach der Zusage (LEAD-054) */}
-          {nachZusage && (
-            <section className="border-t pt-4">
-              <h3 className="ct-label mb-2 text-ink">{t.travel}</h3>
+              <h4 className="ct-label mb-1 mt-5 text-ink">{t.travel}</h4>
               <p className="ct-help">
                 {speaker.travel_costs_covered ? t.travelCoveredYes : t.travelCoveredNo}
                 {" · "}
                 {speaker.travel_costs_approved ? t.travelApprovedYes : t.travelApprovedNo}
               </p>
               <p className="ct-help mt-1">{t.travelApproveHint}</p>
-              {/* Freigeben darf nur Bereichsleitung oder Admin (`approve_travel_costs`
-                  antwortet sonst 42501). Einem Manager den Knopf zu zeigen, den er
-                  nicht drücken kann, wäre nur eine Einladung in den Fehler. */}
+              {/* Freigeben darf nur Bereichsleitung oder Admin (`approve_travel_costs` antwortet sonst 42501). Einem
+                  Manager den Knopf zu zeigen, den er nicht drücken kann, wäre nur eine Einladung in den Fehler. */}
               {isTeam && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button
                     size="sm"
                     variant="secondary"
                     disabled={pending || speaker.travel_costs_approved}
-                    onClick={() =>
-                      startTransition(async () =>
-                        void report(await approveTravelCosts(speaker.id, true), t.travelApproved),
-                      )
-                    }
+                    onClick={() => fuehreAus(() => approveTravelCosts(speaker.id, true), t.travelApproved)}
                   >
                     {t.travelApprove}
                   </Button>
                 </div>
               )}
-            </section>
+            </Block>
+          )}
+
+          {nachZusage && (
+            <Block
+              id="fenster-programm"
+              ebene="h3"
+              titel={t.blockProgramme}
+              marke={markeVon("programm")}
+              kurz={kurzProgramm}
+              offen={offenVon("programm")}
+            >
+              {sessions.length === 0 ? (
+                <p className="ct-help">{t.noSessionHint}</p>
+              ) : (
+                <ul className="flex flex-col gap-1">
+                  {sessions.map((s) => (
+                    <li key={s.session_id} className="ct-help">
+                      {(locale === "en" ? s.title_en : s.title_de) ?? s.title_de ?? "—"}
+                      {s.stage_name && ` · ${s.stage_name}`}
+                      {s.start_at && ` · ${datum(s.start_at)}`}
+                      {s.publish_status && ` · ${labels.publishStatus?.[s.publish_status] ?? s.publish_status}`}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {isTeam && aktion !== "session" && (
+                <div className="mt-3">
+                  <ButtonLink href={BOARD_PFAD} variant="secondary" size="sm">
+                    {t.actionSession}
+                  </ButtonLink>
+                </div>
+              )}
+            </Block>
           )}
         </div>
-      </div>
 
-      {/* Die Leiste klebt am unteren Rand des Fensters: es ist lang, und
-          „Speichern“ soll nicht erst nach dem Scrollen zu finden sein. */}
-      <ModalFuss>
-        {/* Mit einer Adresse in „Kontakt via“ wird nicht gespeichert — das Feld
-            sagt, warum (kein Toast für einen Formularfehler). */}
-        <Button onClick={onSave} loading={pending} disabled={adresse}>
-          {common.save}
-        </Button>
-        {/* `invite_speaker` weist Gäste ab (0188) und verlangt die Zusage (`not_confirmed`) — der Knopf steht dann gar nicht erst da. */}
-        {!speaker.stage_guest && nachZusage && (
-          <Button
-            variant="secondary"
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () =>
-                void report(await inviteSpeaker(speaker.id), t.invited),
-              )
-            }
-          >
-            {speaker.invited_at ? t.inviteAgain : t.invite}
+        {/* Die Leiste klebt am unteren Rand des Fensters: es ist lang, und „Speichern“ soll nicht erst nach dem Scrollen zu
+            finden sein. Die Meldung des Fensters (`error`) zeigt `ModalFuss` selbst, über den Knöpfen. */}
+        <ModalFuss>
+          {/* Mit einer Adresse in „Kontakt via“ wird nicht gespeichert — das Feld sagt, warum (kein Toast für einen
+              Formularfehler). Zweitrangig: die eine primäre Aktion des Fensters ist die Hauptaktion oben. */}
+          <Button variant="secondary" onClick={onSave} loading={pending} disabled={adresse}>
+            {t.saveChanges}
           </Button>
-        )}
-        <Button variant="ghost" disabled={pending} onClick={onClose}>
-          {common.close}
-        </Button>
-      </ModalFuss>
-    </Modal>
+          <Button variant="ghost" disabled={pending} onClick={schliessen}>
+            {common.close}
+          </Button>
+        </ModalFuss>
+      </Modal>
+
+      {einladungFrage && (
+        <ConfirmDialog
+          title={t.inviteConfirmTitle}
+          body={speaker.email ? nenne(t.inviteConfirmBody, { email: speaker.email }) : t.inviteConfirmBodyNoMail}
+          confirmLabel={t.invite}
+          cancelLabel={common.cancel}
+          pending={pending}
+          onConfirm={() => {
+            setEinladungFrage(false);
+            fuehreAus(() => inviteSpeaker(speaker.id), t.invited);
+          }}
+          onCancel={() => setEinladungFrage(false)}
+        />
+      )}
+      {verwerfenFrage && (
+        <ConfirmDialog
+          title={t.discardTitle}
+          body={t.discardBody}
+          confirmLabel={t.discardConfirm}
+          cancelLabel={t.keepEditing}
+          onConfirm={() => {
+            setVerwerfenFrage(false);
+            onClose();
+          }}
+          onCancel={() => setVerwerfenFrage(false)}
+        />
+      )}
+    </>
   );
 }

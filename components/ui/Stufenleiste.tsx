@@ -81,7 +81,15 @@ export function Stufenleiste({
       {/* Am Handy fehlen die Namen unter den Stücken: eine Zeile sagt, wo man steht. Ab 640 px bleibt sie für
           Vorlesesoftware („Schritt 2 von 7“). */}
       <p className="ct-small text-ink sm:sr-only">
-        <span className="font-semibold">{name}</span> · {zaehler}
+        {/* Nach einem Ende (Absage) steht hier das Wort des Endes: „Lead · Schritt 1 von 7“ behauptete einen Stand, an dem
+            niemand mehr steht (LEAD-055). */}
+        {ende ? (
+          <span className="font-semibold text-error-ink">{ende}</span>
+        ) : (
+          <>
+            <span className="font-semibold">{name}</span> · {zaehler}
+          </>
+        )}
       </p>
     </div>
   );
