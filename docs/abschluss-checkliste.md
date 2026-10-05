@@ -149,3 +149,26 @@ Alles, was vor dem ersten echten Nutzer noch einmal geprüft oder umgestellt wir
 - [ ] **Testdaten entfernen** (Testkonten, Test-Tickets, Test-Fotos aus SPK-063/064), Sperrliste prüfen.
 - [ ] **Testbetrieb-Hinweis auf `false` stellen** (QS-056 c): `sh scripts/env-set.sh NEXT_PUBLIC_TESTBETRIEB_HINWEIS --config` mit dem Wert `false` (Production), danach Redeploy — die Variable wird beim Build eingebettet. Sonst sehen die ersten echten Nutzer den Streifen „Testbetrieb — Daten mit ZZTEST sind Testdaten“ unter der Kopfzeile jeder Seite.
 - [ ] **Weiterleitung `/produktion`** kann bleiben (schadet nicht, Konrad 24.09.).
+
+### Integrations-Klicktest vor dem Go-live (QS-072, K-71) — eine Sitzung, alle Verbindungen
+
+Konrad & Leopold 05.10.: „einen finalen Klick-Test für alle Swapcard-, vivenu- etc. Verbindungen aufnehmen, damit alles steht“. Konrad klickt mit seinem Konto (sieht alles) in einer Sitzung durch, am besten nach Paulinas Testwoche (ab 13.10.); jede Zeile bekommt ☐/✓ und bei Abweichung eine Backlog-Nummer. **Nichts davon löscht oder zahlt** — wo ein Schritt nach außen schreibt, steht es dabei; Scharfläufe (SevDesk-Beleg, Qonto-Überweisung, Sanity-Übertragen, HubSpot-Archiv) nur mit TEST-Daten oder bewusst.
+
+| ☐ | Verbindung | Wo klicken (Konrads Konto) | Erwartung | Rückweg / Hinweis |
+|---|---|---|---|---|
+| ☐ | **Supabase Auth** (Magic Link) | Abmelden, auf `portal.chef-treff.de` mit konrad@… anmelden; einmal mit falscher Adresse | Link kommt binnen einer Minute, einmal gültig; falsche Adresse erzeugt keinen Hinweis, ob das Konto existiert | Rate-Limits (K-14) erhöht |
+| ☐ | **vivenu — Partner-Tickets** | `/partner/tickets` (Test-Org): Code sichtbar, Shop-Knopf oben und unter den Codes (PART-110), „Mehr Tickets anfragen“ | Code öffnet den Secret Shop mit allen Ticketkategorien (PART-111); Anfrage erscheint unter Freigaben | keine echten Tickets kaufen |
+| ☐ | **vivenu — Speaker-Tickets** | `/admin/speaker-tickets`: TEST-Begleitticket ausstellen, Lounge setzen, Lounge-Liste CSV | Ticket wechselt auf ausgestellt (Webhook), CSV ohne E-Mail | Storno ausgestellter Tickets nur in vivenu; dein eigenes Ticket steht auf storniert (A·10) |
+| ☐ | **Swapcard — Event-App** | `/partner/event-app` (Checkliste, Loom), Admin → Speaker → Website/Export-Stand | Speaker, Sessions und Aussteller des 27er-Events im Abgleich ohne Fehler; Themen als Custom Field | Sync-Protokoll unter Admin → Verwaltung → Protokoll |
+| ☐ | **HubSpot — Produkte und Deals** | `/admin/partner/integrationen`: „Verbindung prüfen“, Produktabgleich Trockenlauf, Archiv-Karte `I-10729` (K-47) | Verbindung grün, Trockenlauf listet ohne zu schreiben; zweiter gewonnener Deal addiert Leistungen (PART-102) | Deal-Ingest bleibt aus (K-24) |
+| ☐ | **SevDesk — Belege** | `/partner/dateien` (Angebot/Rechnung der Test-Org), `/admin/einreichungen` → Reisekosten → TEST-Abrechnung **zurückweisen** | Belege laden; Zurückweisen erzeugt keinen Beleg | „Freigeben“ einer Abrechnung legt einen SevDesk-Beleg an und schickt eine Qonto-Mail — nur bewusst |
+| ☐ | **Qonto — Auslagen** | Admin → Reisekosten: Verlauf einer bezahlten TEST-Abrechnung (`ZZTEST-RK-0002`) | Zahlungsstand sichtbar, keine Bankdaten im Klartext | Überweisung gibt nur Konrad frei |
+| ☐ | **Sanity — Website** | `/admin/speaker/website`: Vorschau | Vorschau zeigt die Speaker, „Übertragen“ ist gesperrt (K-54) | Schalter erst nach Freigabe des Web-Teams |
+| ☐ | **Google Drive — Folien** | `/admin/technik` (ab ADM-073 unter FLS-Grunddaten): „Verbindung prüfen“, „Spiegelung nachholen“; eine TEST-Präsentation unter `/speaker/session` ersetzen | Verbindung grün, Kopie erscheint im Technik-Ordner, Fehlerzeile bleibt leer | Spiegel-Lauf 02.10. 2/2 ok |
+| ☐ | **Luma — Leads** | Talent → Leads (K-34): TEST-Luma-Leads mit Kanal Luma | Leads mit Einwilligungsgrundlage „Datenschutzerklärung“, kein Profil | Import-Lauf A·10 |
+| ☐ | **ActiveCampaign — Sync** | Admin → Talent → Konzepte/Themen: TEST-Talent mit Themen, Abmeldung zurück | Themen als Tags, Abmeldung kommt zurück (Cron) | Key vor 01.11. (K-43) |
+| ☐ | **Loom / Matterport — Einbettungen** | `/partner/tickets`, `/partner/event-app` (PART-115), `/partner/shop` (Pop-up), `/partner/messestand` (Rundgang) | Videos laden, Rundgang ohne Passwort | CSP Report-Only bis Bauende (K-13), Meldungen in den Vercel-Logs |
+| ☐ | **Google Maps — Anfahrt** | `/partner` (Karte) | Karte lädt, Hinweis zum Datenschutz | — |
+| ☐ | **Mail-Versand** | `/admin/mail`: Testmail an dich; eine TEST-Zusage mit zehn Minuten Puffer (PART-124) | Mail kommt, Puffer stoppt bei Rücknahme | Vorlagen DE/EN |
+| ☐ | **Typeform — Feedback** | `/feedback` (Talent): anonymer Link | Formular öffnet, keine Personendaten in der Adresse | — |
+
