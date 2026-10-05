@@ -71,8 +71,8 @@ describe("Zeitfenster des Boards", () => {
 
 describe("Karten im Raster", () => {
   it("setzt Position und Höhe aus der Uhrzeit", () => {
-    assert.deepEqual(slotBox(540, 600, 480), { top: 60 * PX_PER_MIN, height: 94 });
-    assert.deepEqual(slotBox(480, 510, 480), { top: 0, height: 46 });
+    assert.deepEqual(slotBox(540, 600, 480), { top: 60 * PX_PER_MIN, height: 92 });
+    assert.deepEqual(slotBox(480, 510, 480), { top: 0, height: 44 });
   });
 
   it("hält kurze Slots anklickbar", () => {

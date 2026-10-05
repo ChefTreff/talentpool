@@ -1,3 +1,5 @@
+-- 0266 · Freigabe-Zähler im Admin-Menü (freigabe_zaehler, SECURITY INVOKER)
+-- Angewendet von der Architektur-Session am 05.10.2026 als 20261005162006.
 -- NNNN · Freigabe-Zähler: wie viele Einträge warten je Art auf eine Entscheidung (ADM-072b / ADM-080, Konrad und Paulina 05.10.2026)
 --
 -- Anlass: Die zentrale Freigabe-Übersicht (`/admin/einreichungen`, ADM-072, #349) zählt je Reiter. Das Admin-Menü soll

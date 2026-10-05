@@ -190,6 +190,7 @@
 | Welle 6 · 0263 | **ActiveCampaign-Sync: Stand je Kontakt, Server-Funktionen für Abgleich und Widerruf, Zahlen für den Admin (TAL-009)** (`20261002143012`, `v6_activecampaign_sync`; Details im Migrationskopf) | — |
 | Welle 6 · 0264 | **Sechster Tour-Typ Marketing, Bestandstour zugeordnet (K-52)** (`20261002144630`, `v6_tour_typ_marketing`; Details im Migrationskopf) | — |
 | Welle 6 · 0265 | **Hotel-Freigaben für das Speaker-Team, Reisekosten nur Bereichsleitung** (`20261005160632`, `v6_hotel_freigabe_rechte`; Details im Migrationskopf) | — |
+| Welle 6 · 0266 | **Freigabe-Zähler im Admin-Menü (freigabe_zaehler, SECURITY INVOKER)** (`20261005162006`, `v6_freigabe_zaehler`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

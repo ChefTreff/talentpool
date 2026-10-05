@@ -111,7 +111,8 @@ export type KartenStil = { flaeche: string; text: string; durchgestrichen?: bool
 export const SLOT_STATUS_STYLE: Record<string, KartenStil> = {
   open: { flaeche: "border border-dashed border-border-strong bg-surface", text: "text-muted" },
   requested: { flaeche: "border-l-4 border-warning-ink bg-hatch-pending", text: "text-warning-ink" },
-  confirmed_title_open: { flaeche: "border-l-4 border-accent bg-accent-soft", text: "text-accent-deep" },
+  // ADM-069: der Rand rundherum (30 % Akzent, innen) — die helle Fläche lief sonst mit Weiß zusammen; die Leiste links bleibt.
+  confirmed_title_open: { flaeche: "border-l-4 border-accent bg-accent-soft ring-1 ring-inset ring-accent/30", text: "text-accent-deep" },
   final: { flaeche: "bg-accent", text: "text-white" },
   unused: {
     flaeche: "border border-dashed border-border-strong bg-canvas",
