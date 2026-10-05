@@ -182,3 +182,94 @@ async function sekretNachtragen(ticketId: string, vivenuTicketId: string): Promi
   revalidatePath("/admin/speaker-tickets");
   return { ok: true, vivenuTicketId, bereitsVorhanden: true };
 }
+
+// === ADM-076: Speaker-Tickets final — das Team legt an, stellt Kontingente und Lounge, storniert ====================
+//
+// Alle Aktionen laufen mit der **Sitzung** der angemeldeten Person (nie mit service_role): das Tor ist der Abschnitt
+// `speakerTickets`, und jede Funktion in der Datenbank prüft `is_speaker_team` noch einmal. Ausgestellt wird weiter nur über
+// `issueSpeakerTicket` (vivenu); hier entsteht nichts bei vivenu.
+
+export type TeamResult<T = void> =
+  | { ok: true; data: T }
+  | { ok: false; key: string; detail?: string };
+
+const TICKETS_PFAD = "/admin/speaker-tickets";
+
+function teamFehler(error: unknown): { ok: false; key: string; detail?: string } {
+  const f = toRpcFailure(error as never);
+  if (f.key === "unknown" && f.raw) console.error("[admin/speaker-tickets] RPC:", f.raw);
+  return { ok: false, key: f.key, detail: f.detail };
+}
+
+async function teamClient() {
+  await requireAdminSection("speakerTickets", TICKETS_PFAD);
+  return createSupabaseServerClient();
+}
+
+/**
+ * Ein Begleitticket für einen Speaker anlegen — direkt freigegeben (`approved`), ausgestellt wird danach in der Liste.
+ * Die Datenbank prüft Kontingent, Dublette, Eingaben und schickt dem Speaker die Mail (ohne Adresse der Begleitung).
+ */
+export async function teamAddCompanionTicket(
+  profileId: string,
+  email: string,
+  firstName: string,
+  lastName: string,
+  lounge: boolean,
+): Promise<TeamResult<{ id: string }>> {
+  const supabase = await teamClient();
+  const { data, error } = await supabase.rpc("team_add_companion_ticket", {
+    p_profile_id: profileId,
+    p_email: email,
+    p_first_name: firstName,
+    p_last_name: lastName,
+    p_lounge: lounge,
+  });
+  if (error) return teamFehler(error);
+  revalidatePath(TICKETS_PFAD);
+  return { ok: true, data: { id: (data as string) ?? "" } };
+}
+
+/** Das Begleitticket-Kontingent eines Speakers setzen (0–50, nicht unter die vergebenen). */
+export async function setCompanionQuota(profileId: string, quota: number): Promise<TeamResult> {
+  const supabase = await teamClient();
+  const { error } = await supabase.rpc("set_companion_quota", { p_profile_id: profileId, p_quota: quota });
+  if (error) return teamFehler(error);
+  revalidatePath(TICKETS_PFAD);
+  return { ok: true, data: undefined };
+}
+
+/** Lounge an einem **Begleitticket** (das eigene Ticket folgt dem Profil: `setSpeakerLounge`). */
+export async function setCompanionLounge(ticketId: string, lounge: boolean): Promise<TeamResult> {
+  const supabase = await teamClient();
+  const { error } = await supabase.rpc("set_ticket_lounge", { p_ticket_id: ticketId, p_lounge: lounge });
+  if (error) return teamFehler(error);
+  revalidatePath(TICKETS_PFAD);
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Lounge am **eigenen** Ticket: das Profil-Flag ist die Quelle (eine Quelle je Ticketart, Plan 05.10.), und
+ * `speaker_profile_tickets_sync` zieht es an das Ticket nach — auch an ein schon ausgestelltes. Derselbe Weg wie die
+ * Karte „Pass & Hospitality“ im Speaker-Detail (`update_speaker`, Team-Feld).
+ */
+export async function setSpeakerLounge(profileId: string, lounge: boolean): Promise<TeamResult> {
+  const supabase = await teamClient();
+  const { error } = await supabase.rpc("update_speaker", { p_profile_id: profileId, p_data: { lounge_access: lounge } });
+  if (error) return teamFehler(error);
+  revalidatePath(TICKETS_PFAD);
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Ein noch nicht ausgestelltes Begleitticket stornieren. **Ausgestellte** storniert das Team bei vivenu — die Oberfläche
+ * bietet es dort nicht an (und die Seite sagt, warum): ein nur hier stornierter Barcode bliebe am Einlass gültig, und ein
+ * eigener vivenu-Aufruf wäre ohne Sandbox-Beleg geraten. Der Webhook zieht den Stand hier nach.
+ */
+export async function cancelCompanionTicket(ticketId: string): Promise<TeamResult> {
+  const supabase = await teamClient();
+  const { error } = await supabase.rpc("cancel_companion_ticket", { p_ticket_id: ticketId });
+  if (error) return teamFehler(error);
+  revalidatePath(TICKETS_PFAD);
+  return { ok: true, data: undefined };
+}

@@ -171,6 +171,14 @@ const BUSINESS_KEYS = new Set([
   "not_cancellable",
   "not_approved",
   "barcode_required",
+  // Speaker-Tickets final (Vorschlag v6_speaker_tickets_final, ADM-076): Kontingent je Speaker, dieselbe Begleitung
+  // nie zweimal, Lounge nur am Begleitticket. `too_long` steht schon oben.
+  "quota_exceeded",
+  "companion_exists",
+  "quota_below_used",
+  "not_a_companion",
+  "ticket_cancelled",
+  "invalid_quota",
   // Partner-Portal (Migrationen 0040-0042)
   "primary_exists",
   "primary_required",

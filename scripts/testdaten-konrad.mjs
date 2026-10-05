@@ -127,6 +127,12 @@
  *                                   `--nur=standstatus,shuttle,freigaben`. ACHTUNG: Freigeben der
  *                                   Abrechnung löst SevDesk-Beleg und Qonto-Mail aus — zum
  *                                   Ausprobieren Zurückweisen nehmen)
+ *   … --apply --nur=begleitung     (ADM-076: Begleitticket-Kontingent 3 an Konrads Testprofil,
+ *                                   dazu zwei TEST-Begleitungen — eine freigegeben mit Lounge, eine
+ *                                   beantragt ohne; für /admin/speaker-tickets und /speaker/tickets;
+ *                                   ohne Mail. Erst nach „Migration live“ von
+ *                                   v6_speaker_tickets_final. ACHTUNG: „Ausstellen“ legt ein echtes
+ *                                   vivenu-Freiticket an — zum Ausprobieren Stornieren nehmen)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -3145,6 +3151,85 @@ async function shuttleFahrten(me, ed) {
   }
 }
 
+/** ADM-076: die Adressen der TEST-Begleitungen — Konrads eigenes Postfach, keine erfundenen Dritten. */
+const begleitAdresse = (i) => email.replace("@", `+zztest-begleitung-${i}@`);
+
+/**
+ * ADM-076: Begleittickets an Konrads Testprofil, damit `/admin/speaker-tickets` (Ansicht
+ * Kontingente, Liste mit Lounge-Schalter und Stornieren, Lounge-Liste als CSV) und
+ * `/speaker/tickets` (mehrere Begleitungen, „x von y vergeben“) nicht leer bleiben.
+ *
+ * - **Kontingent 3** (der Standard ist 1): zwei sind vergeben, ein Platz frei — „Begleitticket
+ *   anlegen“ geht einmal, danach steht „Kontingent voll“ samt „Kontingent auf n erhöhen“.
+ * - **Begleitung 1:** freigegeben (`approved`), Lounge an — „Stornieren“ ist sichtbar,
+ *   „Ausstellen“ möglich, und die Lounge-Liste zeigt sie als „freigegeben“.
+ * - **Begleitung 2:** beantragt (`requested`), Lounge aus — „Bestätigen“ und „Ablehnen“ in der
+ *   Liste, der Lounge-Schalter zum Einschalten.
+ *
+ * Die Adressen sind Konrads Postfach (`+zztest-begleitung-N`). Direkt geschrieben, nicht über
+ * `request_companion_ticket` oder `team_add_companion_ticket`: so geht keine Mail an Speaker-Leads
+ * oder Speaker. Ein zweiter Lauf setzt die beiden noch nicht ausgestellten Begleitungen auf den
+ * Stand oben zurück (Status, Lounge); eine ausgestellte bleibt unangetastet.
+ *
+ * **Erst nach „Migration live“** von `v6_speaker_tickets_final`: vorher gilt der Index „eine
+ * Begleitung je Speaker“, und die Spalte `companion_quota` fehlt — der Schritt meldet das.
+ * **Achtung: „Ausstellen“ legt ein echtes vivenu-Freiticket an** (Sandbox, solange
+ * `VIVENU_SANDBOX` nicht `false` ist) — dieselbe Folge wie beim eigenen Freiticket. Zum
+ * Ausprobieren ist Stornieren der folgenlose Weg; `--remove` räumt beide Begleitungen weg, was
+ * schon an vivenu hängt, bleibt stehen und wird gemeldet.
+ */
+async function begleitungSchritt(me, ed) {
+  const { data: sp } = await admin.from("speaker_profile").select("id, pass_type")
+    .eq("person_id", me.id).eq("edition_id", ed.id).maybeSingle();
+  if (!sp) return fail("Begleittickets", "kein Speaker-Profil — zuerst ein volles --apply");
+
+  // Die Spalte gibt es erst mit der Migration; ohne sie würde auch der alte Index die zweite Begleitung abweisen.
+  const { data: kontingent, error: kontingentFehler } = await admin.from("speaker_profile")
+    .select("companion_quota").eq("id", sp.id).maybeSingle();
+  if (kontingentFehler) {
+    return fail("Begleittickets", `Kontingent-Spalte fehlt (${kontingentFehler.message}) — Migration v6_speaker_tickets_final noch nicht live`);
+  }
+  if ((kontingent?.companion_quota ?? 0) >= 3) {
+    note("Begleitticket-Kontingent", "mindestens 3");
+  } else {
+    await write("Begleitticket-Kontingent auf 3", () =>
+      admin.from("speaker_profile").update({ companion_quota: 3 }).eq("id", sp.id));
+  }
+
+  const begleitungen = [
+    { i: 1, nachname: "Begleitung 1", status: "approved", lounge: true },
+    { i: 2, nachname: "Begleitung 2", status: "requested", lounge: false },
+  ];
+  for (const b of begleitungen) {
+    const adresse = begleitAdresse(b.i);
+    const { data: da, error } = await admin.from("ticket").select("id, barcode, vivenu_ticket_id")
+      .eq("speaker_profile_id", sp.id).eq("source", "speaker_companion").eq("holder_email", adresse)
+      .neq("status", "cancelled").maybeSingle();
+    if (error) {
+      fail(`Begleitung ${b.i}`, error);
+      continue;
+    }
+    if (da?.barcode || da?.vivenu_ticket_id) {
+      note(`Begleitung ${b.i}`, "schon ausgestellt — nicht angefasst");
+      continue;
+    }
+    // Wie über `team_add_companion_ticket` (freigegeben: von wem und wann) bzw. `request_companion_ticket` (beantragt).
+    const freigabe = b.status === "approved"
+      ? { approved_by: me.id, approved_at: new Date().toISOString() }
+      : { approved_by: null, approved_at: null };
+    await write(`Begleitung ${b.i} (${b.status}, Lounge ${b.lounge ? "an" : "aus"})`, () =>
+      da
+        ? admin.from("ticket").update({ status: b.status, lounge_access: b.lounge, ...freigabe }).eq("id", da.id)
+        : admin.from("ticket").insert({
+            event_id: ed.id, speaker_profile_id: sp.id, pass_type: sp.pass_type, lounge_access: b.lounge,
+            holder_email: adresse, holder_first_name: "TEST", holder_last_name: b.nachname,
+            status: b.status, personalization_status: "partial", price_cents: 0,
+            source: "speaker_companion", requested_by: me.id, ...freigabe,
+          }));
+  }
+  note("Begleittickets ausprobieren", "/admin/speaker-tickets → Ansicht Kontingente: Konrads Testprofil mit „2 von 3“; /speaker/tickets: Begleitungen mit Lounge-Abzeichen");
+}
+
 /** ADM-072: so erkennt man im Admin und beim Aufräumen die drei wartenden TEST-Freigaben. */
 const FREIGABE_HINWEIS = `${PREFIX}nur zum Ausprobieren der Freigabe`;
 /**
@@ -3368,6 +3453,7 @@ const SCHRITTE = {
   "ticket-zurueck": ticketZurueck,
   shuttle: shuttleFahrten,
   freigaben: freigabenSchritt,
+  begleitung: begleitungSchritt,
   buehne: stageLeadBuehne,
   standstatus: standStatus,
   verwaltet: verwalteterSpeaker,
