@@ -3791,6 +3791,21 @@
     "summary": "{n} of {gesamt} ready to print",
     "title": "Logos for the photo wall"
   },
+  "logoWandEinwilligung": {
+    "badgeGranted": "Agreed",
+    "badgeMissing": "Consent missing",
+    "cancel": "Cancel",
+    "confirmRevoke": "Yes, withdraw",
+    "consequence": "Without your consent we will not print your logo on the wall. We continue to use it unchanged for the website, event app and programme.",
+    "explain": "At the summit there is a large wall people take photos in front of. All partner logos appear on it in solid white — that is what makes the wall work as a whole, but it changes how your brand is shown. We need your consent for that.",
+    "grant": "We agree",
+    "granted": "Thank you — your logo goes on the wall.",
+    "grantedOn": "Agreed on {date}.",
+    "revoke": "Withdraw consent",
+    "revoked": "Withdrawn. Your logo will not go on the wall.",
+    "saving": "Saving …",
+    "title": "Logo on the photo wall"
+  },
   "mailStatus": {
     "bounced": "Bounced",
     "delivered": "Delivered",
