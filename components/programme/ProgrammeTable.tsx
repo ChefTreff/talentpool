@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUrlFilter } from "@/components/ui/useUrlFilter";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
@@ -14,6 +15,7 @@ import { cn } from "@/components/ui/cn";
 import { StatusMarke, StatusMuster } from "@/components/programme/StatusMarke";
 import { searchBoardPeople, setSessionOwner, setSessionSpeakers, setSlotStatus, upsertSession } from "./actions";
 import { fehlerText } from "./fehler";
+import { gruppiereSlots, type SlotGruppe } from "./gruppen";
 import { speakerName, SLOT_STATUS_ORDER, SLOT_STATUS_STYLE, type BoardDay, type BoardLabels, type BoardSlot, type BoardStage } from "./types";
 import { abgeleiteteNamen, ownerOptionen, verantwortlich, type OwnerCandidate, type SessionVerantwortung } from "./verantwortung";
 
@@ -79,14 +81,18 @@ export function ProgrammeTable({
   // IDs: die Bühne als Slug, der Tag als Datum wie im Board
   // (`?tag=2027-04-16`), die Sortierung als Spalte, „-“ heisst absteigend.
   const [filter, setFilter] = useUrlFilter(
-    { buehne: "", tag: "", status: "", query: "", sort: "time" },
+    { buehne: "", tag: "", status: "", query: "", sort: "time", gruppe: "" },
     { query: "q" },
   );
   const stage = stages.find((s) => s.slug === filter.buehne)?.id ?? "";
   const day = days.find((d) => d.day_date === filter.tag)?.id ?? "";
   const { status, query } = filter;
+  // ADM-069: gruppiert nach Bühne und Tag ist der Normalfall (`?gruppe=aus` hebt es auf). Dann gibt es die
+  // Spalten „Bühne“ und „Tag“ nicht — die Gruppe sagt beides — und die Sortierung gilt innerhalb der Gruppen.
+  const gruppiert = filter.gruppe !== "aus";
   const sortSpalte = filter.sort.replace(/^-/, "");
-  const sortKey: SortKey = (SORT_KEYS as string[]).includes(sortSpalte) ? (sortSpalte as SortKey) : "time";
+  const gewaehlt: SortKey = (SORT_KEYS as string[]).includes(sortSpalte) ? (sortSpalte as SortKey) : "time";
+  const sortKey: SortKey = gruppiert && (gewaehlt === "stage" || gewaehlt === "day") ? "time" : gewaehlt;
   const sortDesc = filter.sort.startsWith("-");
   const sort = useMemo(() => ({ key: sortKey, desc: sortDesc }), [sortKey, sortDesc]);
   const setStage = (id: string) => setFilter({ buehne: stages.find((s) => s.id === id)?.slug ?? "" });
@@ -165,6 +171,13 @@ export function ProgrammeTable({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, stage, day, status, query, sort, locale, labels]);
 
+  const gruppen = useMemo(
+    () => (gruppiert ? gruppiereSlots(visible, stages, days) : []),
+    [gruppiert, visible, stages, days],
+  );
+  // Zeit, Titel, Format, Speaker, [Verantwortlich], Status, Website — und ungruppiert vorn Bühne und Tag.
+  const spalten = 6 + (verantwortliche ? 1 : 0) + (gruppiert ? 0 : 2);
+
   const head = (key: SortKey, label: string) => (
     <Th sort={sort.key === key ? (sort.desc ? "descending" : "ascending") : "none"}>
       <button
@@ -220,6 +233,11 @@ export function ProgrammeTable({
           ]}
           onChange={(e) => setStatus(e.target.value)}
         />
+        <Checkbox
+          label={t.groupBy}
+          checked={gruppiert}
+          onChange={(e) => setFilter({ gruppe: e.target.checked ? "" : "aus" })}
+        />
         <span className="ct-help tabular-nums">
           {t.rowCount.replace("{n}", String(visible.length)).replace("{total}", String(rows.length))}
         </span>
@@ -230,8 +248,8 @@ export function ProgrammeTable({
       ) : (
         <Table>
           <Thead>
-            {head("stage", t.colStage)}
-            {head("day", t.colDay)}
+            {!gruppiert && head("stage", t.colStage)}
+            {!gruppiert && head("day", t.colDay)}
             {head("time", t.colTime)}
             {head("title", t.colTitle)}
             {head("format", t.colFormat)}
@@ -240,32 +258,114 @@ export function ProgrammeTable({
             {head("status", t.colStatus)}
             <Th>{t.colPublish}</Th>
           </Thead>
-          <Tbody>
-            {visible.map((r) => (
-              <Row
-                key={r.slot_id}
-                row={r}
-                labels={labels}
-                locale={locale}
-                t={t}
-                pending={pending}
-                date={date}
-                time={time}
-                title={title(r)}
-                speakersOpen={openSpeakers === r.slot_id}
-                onToggleSpeakers={() => setOpenSpeakers((id) => (id === r.slot_id ? null : r.slot_id))}
-                verantwortung={
-                  verantwortliche
-                    ? { zeile: r.session_id ? verantwortliche[r.session_id] : undefined, kandidaten: ownerCandidates, darfSetzen: canSetOwner }
-                    : null
-                }
-                run={run}
-              />
-            ))}
-          </Tbody>
+          {gruppiert ? (
+            gruppen.map((g) => (
+              <Tbody key={g.key}>
+                <GruppenKopf gruppe={g} spalten={spalten} locale={locale} date={date} time={time} t={t} />
+                {g.rows.map((r) => (
+                  <Row
+                    key={r.slot_id}
+                    row={r}
+                    labels={labels}
+                    locale={locale}
+                    t={t}
+                    pending={pending}
+                    date={date}
+                    time={time}
+                    title={title(r)}
+                    speakersOpen={openSpeakers === r.slot_id}
+                    onToggleSpeakers={() => setOpenSpeakers((id) => (id === r.slot_id ? null : r.slot_id))}
+                    verantwortung={
+                      verantwortliche
+                        ? { zeile: r.session_id ? verantwortliche[r.session_id] : undefined, kandidaten: ownerCandidates, darfSetzen: canSetOwner }
+                        : null
+                    }
+                    gruppiert={gruppiert}
+                    run={run}
+                  />
+                ))}
+              </Tbody>
+            ))
+          ) : (
+            <Tbody>
+              {visible.map((r) => (
+                <Row
+                  key={r.slot_id}
+                  row={r}
+                  labels={labels}
+                  locale={locale}
+                  t={t}
+                  pending={pending}
+                  date={date}
+                  time={time}
+                  title={title(r)}
+                  speakersOpen={openSpeakers === r.slot_id}
+                  onToggleSpeakers={() => setOpenSpeakers((id) => (id === r.slot_id ? null : r.slot_id))}
+                  verantwortung={
+                    verantwortliche
+                      ? { zeile: r.session_id ? verantwortliche[r.session_id] : undefined, kandidaten: ownerCandidates, darfSetzen: canSetOwner }
+                      : null
+                  }
+                  gruppiert={gruppiert}
+                  run={run}
+                />
+              ))}
+            </Tbody>
+          )}
         </Table>
       )}
     </div>
+  );
+}
+
+/**
+ * Kopf einer Gruppe (ADM-069): Bühne und Tag in einem Band, rechts wie voll die Gruppe ist. Die Zeile
+ * liegt im `<tbody>` der Gruppe und steht über allen Spalten (`scope="rowgroup"`), damit Vorlesesoftware
+ * „Main Stage, Freitag“ zu jeder Zeile darunter sagen kann.
+ */
+function GruppenKopf({
+  gruppe,
+  spalten,
+  locale,
+  date,
+  time,
+  t,
+}: {
+  gruppe: SlotGruppe;
+  spalten: number;
+  locale: string;
+  date: Intl.DateTimeFormat;
+  time: Intl.DateTimeFormat;
+  t: Strings;
+}) {
+  const tag = gruppe.day ? (locale === "en" ? gruppe.day.label_en ?? gruppe.day.label_de : gruppe.day.label_de ?? gruppe.day.label_en) : null;
+  const n = gruppe.rows.length;
+  return (
+    <tr>
+      <th
+        scope="rowgroup"
+        colSpan={spalten}
+        className="border-y border-border-strong bg-accent-soft px-4 py-3 text-left font-normal first:border-t-0"
+      >
+        {/* Klebt links, wenn die breite Tabelle seitlich scrollt: sonst stünde der Name der Bühne außerhalb des Bildes.
+            Am Handy höchstens so breit wie das Bild (18 rem): die Zahlen rutschen unter den Namen statt aus dem Bild. */}
+        <div className="sticky left-0 flex w-fit max-w-72 flex-wrap items-baseline gap-x-6 gap-y-1 sm:max-w-full">
+          <h2 className="ct-h2 text-ink">
+            {gruppe.stageName}
+            <span className="font-normal text-accent-deep">
+              {" · "}
+              {tag ? `${tag} ` : ""}
+              {date.format(new Date(gruppe.von))}
+            </span>
+          </h2>
+          <p className="ct-small tabular-nums text-ink">
+            {(n === 1 ? t.groupSlotOne : t.groupSlotMany).replace("{n}", String(n))}
+            {gruppe.offen > 0 && ` · ${t.groupOpen.replace("{n}", String(gruppe.offen))}`}
+            {` · ${time.format(new Date(gruppe.von))}–${time.format(new Date(gruppe.bis))}`}
+          </p>
+        </div>
+      </th>
+    </tr>
   );
 }
 
@@ -281,6 +381,7 @@ function Row({
   speakersOpen,
   onToggleSpeakers,
   verantwortung,
+  gruppiert,
   run,
 }: {
   row: BoardSlot;
@@ -295,6 +396,8 @@ function Row({
   onToggleSpeakers: () => void;
   /** ADM-018; `null` = Spalte ausgeblendet. */
   verantwortung: { zeile: SessionVerantwortung | undefined; kandidaten: OwnerCandidate[]; darfSetzen: boolean } | null;
+  /** ADM-069: in einer Gruppe nach Bühne und Tag fallen diese beiden Spalten weg. */
+  gruppiert: boolean;
   run: (action: Promise<{ ok: boolean; key?: string; detail?: string }>, okText: string) => void;
 }) {
   const [draft, setDraft] = useState(title);
@@ -302,10 +405,10 @@ function Row({
   const titleField = locale === "en" ? "title_en" : "title_de";
 
   return (
-    <Tr dicht>
-      <Td className="text-muted">{row.stage_name}</Td>
-      <Td className="text-muted tabular-nums">{date.format(new Date(row.start_at))}</Td>
-      <Td className="tabular-nums text-muted">
+    <Tr dicht className="border-border-strong/60 [&>td]:py-1">
+      {!gruppiert && <Td className="text-muted">{row.stage_name}</Td>}
+      {!gruppiert && <Td className="text-muted tabular-nums">{date.format(new Date(row.start_at))}</Td>}
+      <Td className="whitespace-nowrap tabular-nums text-muted">
         {time.format(new Date(row.start_at))}–{time.format(new Date(row.end_at))}
       </Td>
       <Td>
@@ -339,7 +442,7 @@ function Row({
           <span className="text-muted">{labels.format[row.format ?? ""] ?? "—"}</span>
         )}
       </Td>
-      <Td>
+      <Td className="min-w-72">
         <SpeakerCell
           row={row}
           t={t}
@@ -483,12 +586,14 @@ function SpeakerCell({
 
   return (
     <div className="flex flex-col gap-1.5">
+      {/* ADM-069: ein Name bricht nie in sich um („Ben / Muster ×“ machte aus einem Slot drei Zeilen und ließ die
+          Linien zwischen den Slots in den Chips untergehen); umbrochen wird zwischen den Namen. */}
       <div className="flex flex-wrap items-center gap-1">
         {speakers.length === 0 && <span className="ct-help">{t.noSpeakers}</span>}
         {speakers.map((s) => (
           // Bestätigt = grün, offen = neutral. Die Farbe wiederholt nur, was
           // der Name ohnehin sagt; die Information steht im Text.
-          <Badge key={s.person_id} tone={s.confirmed ? "success" : "neutral"}>
+          <Badge key={s.person_id} tone={s.confirmed ? "success" : "neutral"} className="whitespace-nowrap">
             {speakerName(s)}
             {editable && (
               <button
@@ -509,7 +614,7 @@ function SpeakerCell({
           </Badge>
         ))}
         {editable && (
-          <Button size="sm" variant="ghost" onClick={onToggle}>
+          <Button size="sm" variant="ghost" className="whitespace-nowrap" onClick={onToggle}>
             {open ? t.close : t.addSpeaker}
           </Button>
         )}
