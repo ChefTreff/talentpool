@@ -92,7 +92,7 @@ Alles steht nummeriert: **PART-098 bis PART-142** (Partner-Portal), **QS-069 bis
 
 **20 · Deine zwei Fragen, beantwortet:** *Upsells* (PART-102) — ja, über ein zweites HubSpot-Angebot; der Partner-Chat stellt sicher, dass der Abgleich einen zweiten gewonnenen Deal **zusätzlich** zählt und das Portal „nachgebucht am“ zeigt. *Zusage-Mail mit Verzögerung* (PART-124) — ja: die Mail geht über die Warteschlange mit zehn Minuten Puffer, in dieser Zeit stoppt eine Rücknahme der Zusage den Versand; der Hinweis oben nennt die Frist.
 
-**21 · K-71 Integrations-Klicktest vor dem Go-live (QS-072):** ich schreibe die Testliste je Verbindung (Swapcard, vivenu, HubSpot, SevDesk, Qonto, Sanity, Drive, Luma, ActiveCampaign, Loom/Matterport) in `docs/abschluss-checkliste.md`; du klickst sie in einer Sitzung durch, am besten nach Paulinas Testwoche.
+**21 · K-71 Integrations-Klicktest vor dem Go-live (QS-072):** die Testliste steht in `docs/abschluss-checkliste.md` (Abschnitt „Integrations-Klicktest“, 15 Verbindungen mit Klickweg, Erwartung und Rückweg); du klickst sie in einer Sitzung durch, am besten nach Paulinas Testwoche ab 13.10.
 
 **22 · K-72 Datenschutz-Vereinbarung (PART-129):** Teilnehmende stimmen bei der Bewerbung standardmäßig zu, dass ihre Daten an den Partner des Formats gehen — das muss in die Datenschutzerklärung und in die Vereinbarung mit den Partnern (Zweck, Felder, Löschung nach dem Summit). Gehört in den Datenschutz-Block K-18 bis K-23.
 
