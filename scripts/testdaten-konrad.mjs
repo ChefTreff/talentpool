@@ -60,9 +60,11 @@
  *   … --apply --nur=assistenz      (SPK-071: Konrad als Assistenz eines TEST-Speakers
  *                                   mit eigener Session — zweites Profil für die
  *                                   Profilwahl im Speaker-Portal; braucht buehne)
- *   … --apply --nur=pipeline       (drei Pipeline-Einträge vor der Zusage, mit
+ *   … --apply --nur=pipeline       (vier Pipeline-Einträge — Lead, Kontaktiert, Abgesagt
+ *                                   vor der Zusage und Abgesagt nach der Zusage —, mit
  *                                   Einordnung, Bühne in Frage und Verlauf samt
- *                                   überfälliger Aufgabe — LEAD-039)
+ *                                   überfälliger Aufgabe — LEAD-039; der vierte zeigt im
+ *                                   Personen-Fenster „Aufräumen“, LEAD-055)
  *   … --apply --nur=portraet       (SPK-047: TEST-Porträt an Konrads Speaker-Profil
  *                                   für den Fotoweg nach Swapcard; ein eigenes
  *                                   Porträt bleibt unangetastet)
@@ -1284,7 +1286,7 @@ async function standStatus(me, ed) {
 /**
  * LEAD-028: Einträge **vor der Zusage**, damit die Seite „Pipeline" nicht leer
  * ist — auf der Edition stehen sonst nur bestätigte Profile, und Konrad könnte
- * sie nicht abnehmen. Drei Test-Personen mit Adressen in **Konrads eigenem
+ * sie nicht abnehmen. Vier Test-Personen mit Adressen in **Konrads eigenem
  * Postfach** (`konrad+zztest-pipeline-N@…`) — keine erfundenen fremden
  * Kontaktdaten; der Name sagt, was sie sind. Owner ist Konrad, damit sie in
  * seiner Sicht stehen. `--remove` löscht die Personen, Profile und Adressen
@@ -1331,6 +1333,18 @@ const PIPELINE_TESTS = [
     buehne: false,
     verlauf: [{ kind: "note", body: "TEST — Absage: Termin passt nicht, für 2028 vormerken", vorTagen: 1 }],
   },
+  {
+    // LEAD-055: **nach** der Zusage abgesagt — `confirmed_at` bleibt stehen, das Personen-Fenster zeigt Onboarding, Hospitality
+    // und Programm weiter und markiert Hospitality mit „Aufräumen“ (die Hotelbuchung steht noch auf „Gebucht“).
+    nachname: "Pipeline 4 (abgesagt nach Zusage)", status: "declined", notiz: "TEST — Hotel noch zu stornieren.", grund: "termin",
+    bestaetigtVorTagen: 12, hospitality: "booked",
+    einordnung: {
+      category: "business", topic_cluster: "business_capital_industry", topic_role: null,
+      priority: "b", recommended_format: "keynote", contact_via: "TEST — über Konrad", outreach_channel: "email",
+    },
+    buehne: false,
+    verlauf: [{ kind: "note", body: "TEST — Absage nach der Zusage: Hotel stornieren, Session freigeben", vorTagen: 1 }],
+  },
 ];
 
 const pipelineAdresse = (i) => email.replace("@", `+zztest-pipeline-${i}@`);
@@ -1346,6 +1360,9 @@ async function pipelineEintraege(me, ed) {
         person_id: personId, edition_id: ed.id, speaker_type: "panelist", pipeline_status: e.status,
         owner_person_id: me.id, internal_notes: e.notiz, ...e.einordnung,
         ...(e.grund ? { declined_at: new Date().toISOString(), decline_reason: e.grund } : {}),
+        // LEAD-055: eine Absage nach der Zusage trägt `confirmed_at` weiter (der Trigger setzt es nur, nie zurück).
+        ...(e.bestaetigtVorTagen ? { confirmed_at: new Date(Date.now() - e.bestaetigtVorTagen * 86_400_000).toISOString() } : {}),
+        ...(e.hospitality ? { hospitality_status: e.hospitality } : {}),
       }, { onConflict: "person_id,edition_id" }).select("id").single();
       if (profil.error) return profil;
       const verlauf = await verlaufEintraege(me, profil.data.id, e.verlauf ?? []);

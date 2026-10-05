@@ -95,35 +95,51 @@ describe("LEAD-054: Oberfläche", () => {
   const fenster = () => quelle("app/(speaker-leads)/speaker-leads/SpeakerFenster.tsx");
   const liste = () => quelle("app/(speaker-leads)/speaker-leads/PipelineView.tsx");
 
-  it("das Fenster zeigt vor der Zusage nur die Auswahl bis zur Zusage und meldet sie mit einer Aktion", () => {
+  // LEAD-055 hat das Fenster umgebaut (Kopf mit einer Hauptaktion, fünf Blöcke): was LEAD-054 zusagt, gilt weiter, steht aber
+  // an neuer Stelle — die Zusage ist die Hauptaktion des Kopfes, die Stände ändert „Stand ändern …“, die drei Blöcke nach der
+  // Zusage haben ihre Bedingung, die Pflichten stehen als Marken und als „Als Nächstes“ (`tests/lead-055-fenster.test.ts`).
+  it("das Fenster zeigt vor der Zusage nur die Stände bis zur Zusage und meldet sie mit einer Aktion", () => {
     const f = fenster();
-    assert.match(f, /const nachZusage = istNachZusage\(speaker\.pipeline_status\);/);
-    assert.match(f, /PIPELINE_ORDER\.filter\(\(s\) => nachZusage \|\| STAENDE_VOR_ZUSAGE\.includes\(s\)\)/);
-    assert.match(f, /kannZusageMelden\(speaker\.pipeline_status\) && \(/);
-    assert.match(f, /setPipeline\(speaker\.id, "confirmed"\), t\.confirmedMoved/);
+    assert.match(f, /const nachZusage = warNachZusage\(speaker\);/);
+    // „Stand ändern …“: nur die Stände der Phase
+    assert.match(f, /\(nachZusage \|\| STAENDE_VOR_ZUSAGE\.includes\(s\)\)/);
+    // die Zusage ist die Hauptaktion — hier die Meldung, mit dem Namen im Toast
+    assert.match(f, /setPipeline\(speaker\.id, "confirmed"\), t\.confirmedMoved\.replace\("\{name\}", name\)/);
+    assert.match(f, /kannZusageMelden\(speaker\.pipeline_status\) && <p className="ct-help mt-2">\{t\.pipelineLockedHint\}<\/p>/);
     // vor der Zusage heisst der Schritt „Hat bestätigt“, danach wieder wie im Vokabular
     assert.match(f, /s === "confirmed" && !nachZusage \? t\.confirmAction/);
   });
 
   it("Onboarding, Hospitality und Programm stehen erst nach der Zusage im Fenster", () => {
     const f = fenster();
-    // die zwei Haken
-    const haken = f.slice(f.indexOf("{nachZusage && (\n                <>"));
-    assert.ok(haken.indexOf("draft.reception_eligible") > 0 && haken.indexOf("draft.reception_eligible") < haken.indexOf("</>"));
-    assert.ok(haken.indexOf("draft.travel_costs_covered") < haken.indexOf("</>"));
-    // Team-Felder, Sessions, Reisekosten, Einladung
-    assert.match(f, /\{isTeam && nachZusage && \(/);
-    assert.match(f, /\{nachZusage && \(\n\s+<section className="border-t pt-4">\n\s+<h3 className="ct-label mb-2 text-ink">\{t\.sessions\}/);
-    assert.match(f, /\{nachZusage && \(\n\s+<section className="border-t pt-4">\n\s+<h3 className="ct-label mb-2 text-ink">\{t\.travel\}/);
-    assert.match(f, /\{!speaker\.stage_guest && nachZusage && \(/);
+    assert.match(f, /\{nachZusage && !gast && \(\s+<Block\s+id="fenster-onboarding"/);
+    assert.match(f, /\{nachZusage && !gast && \(\s+<Block\s+id="fenster-hospitality"/);
+    assert.match(f, /\{nachZusage && \(\s+<Block\s+id="fenster-programm"/);
+    // die zwei Haken (Reception, Reisekosten vorgesehen) und die Team-Felder gehören zu Hospitality
+    const hospitality = f.slice(f.indexOf('id="fenster-hospitality"'), f.indexOf('id="fenster-programm"'));
+    assert.ok(hospitality.includes("draft.reception_eligible") && hospitality.includes("draft.travel_costs_covered"));
+    assert.match(hospitality, /\{isTeam \? \(/);
+    assert.ok(hospitality.indexOf("draft.pass_type") > hospitality.indexOf("{isTeam ? ("), "Team-Felder nur für das Team");
+    // Grunddaten und Pipeline stehen immer da (kein Block vor ihnen bedingt)
+    assert.match(f, /<Block id="fenster-grunddaten"/);
+    assert.match(f, /<Block id="fenster-pipeline"/);
+    // Einladung: nur nach der Zusage und nie für Gäste (`invite_speaker` weist sie ab)
+    const onboarding = f.slice(f.indexOf('id="fenster-onboarding"'), f.indexOf('id="fenster-hospitality"'));
+    assert.match(onboarding, /setEinladungFrage\(true\)/);
   });
 
-  it("nach der Zusage steht oben die Liste der nächsten Schritte, mit der Einladung als Aktion", () => {
+  it("nach der Zusage lesen Hauptaktion, Marken und „Als Nächstes“ aus den nächsten Pflichten, die Einladung fragt vorher", () => {
     const f = fenster();
     assert.match(f, /const pflichten = naechstePflichten\(speaker\);/);
-    assert.match(f, /nachZusage && !speaker\.stage_guest && \(/);
-    assert.match(f, /p === "invite" && \(/);
-    assert.match(f, /t\[`duty_\$\{p\}`\]/);
+    assert.match(f, /const marken = blockMarken\(pflichten\);/);
+    assert.match(f, /const aktion = hauptaktion\(speaker, isTeam\);/);
+    assert.match(f, /t\[`duty_\$\{naechstes\.pflicht\}`\]/);
+    assert.match(f, /nachZusage && !gast \? t\.dutiesDone : t\.noNextStep/);
+    // eine Mail an den Speaker löst die Einladung aus: sie fragt vorher und nennt die Adresse
+    assert.match(f, /fuehreAus\(\(\) => inviteSpeaker\(speaker\.id\), t\.invited\)/);
+    assert.match(f, /nenne\(t\.inviteConfirmBody, \{ email: speaker\.email \}\)/);
+    // die Karten „Hat die Person zugesagt?“ und „Nächste Schritte“ gibt es nicht mehr
+    assert.doesNotMatch(f, /fenster-pflichten|fenster-zusage|confirmPromptTitle|dutiesTitle/);
   });
 
   it("die Pipeline-Liste meldet die Zusage in der Zeile — nur bei Lead und Kontaktiert", () => {
@@ -146,10 +162,8 @@ describe("LEAD-054: Oberfläche", () => {
     const schluessel = [
       "colAction",
       "confirmAction",
-      "confirmPromptTitle",
       "confirmedMoved",
       "pipelineLockedHint",
-      "dutiesTitle",
       "dutiesDone",
       "duty_invite",
       "duty_hospitality",

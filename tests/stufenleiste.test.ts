@@ -49,6 +49,11 @@ describe("Stufenleiste (LEAD-055)", () => {
     assert.match(TEXT, /<span className="font-semibold">\{name\}<\/span> · \{zaehler\}/);
   });
 
+  it("nach einem Ende steht in dieser Zeile das Wort des Endes, nicht eine Stufe, an der niemand mehr steht (LEAD-055)", () => {
+    // Vorher las ein Abgesagter am Handy „Lead · Schritt 1 von 7“: ein unbekannter Stand zählt wie die erste Stufe.
+    assert.match(TEXT, /\{ende \? \(\s+<span className="font-semibold text-error-ink">\{ende\}<\/span>\s+\) : \(\s+<>\s+<span className="font-semibold">\{name\}<\/span> · \{zaehler\}/);
+  });
+
   it("eine Absage hält die Leiste an: kein aktives, kein erledigtes Stück, die Stücke blass, die Namen nicht", () => {
     assert.match(TEXT, /const aktiv = !ende && i === index;/);
     assert.match(TEXT, /const erledigt = !ende && i < index;/);
