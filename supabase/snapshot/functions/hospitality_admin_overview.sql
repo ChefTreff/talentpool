@@ -5,7 +5,7 @@ create or replace function hospitality_admin_overview(p_edition_id uuid DEFAULT 
  SET search_path TO 'public', 'extensions'
 AS $$
 begin
-  if not is_staff() then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not coalesce(is_speaker_team(p_edition_id), false) then raise exception 'not allowed' using errcode = '42501'; end if;
   return query
     select q.id, q.kind, q.tier, q.label_de, q.label_en, q.location, q.capacity, hospitality_used(q.id),
            (select count(*)::integer from hospitality_booking b where b.quota_id = q.id and b.status = 'waitlisted'), q.active, q.window_from, q.window_to,

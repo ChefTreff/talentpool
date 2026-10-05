@@ -6,7 +6,7 @@ create or replace function decline_hospitality(p_booking_id uuid, p_note text DE
 AS $$
 declare v_b hospitality_booking%rowtype;
 begin
-  if not is_staff() then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not coalesce(is_speaker_team(null), false) then raise exception 'not allowed' using errcode = '42501'; end if;
   select * into v_b from hospitality_booking where id = p_booking_id for update;
   if not found then raise exception 'booking_not_found' using errcode = 'P0002'; end if;
   update hospitality_booking set status = 'cancelled', cancelled_at = now(), team_note = coalesce(nullif(btrim(p_note), ''), team_note) where id = p_booking_id;

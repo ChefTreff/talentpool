@@ -1,3 +1,5 @@
+-- 0265 · Hotel-Freigaben für das Speaker-Team, Reisekosten nur Bereichsleitung
+-- Angewendet von der Architektur-Session am 05.10.2026 als 20261005160632.
 -- NNNN · Hotel-Freigaben für das Speaker-Team: Rechte-Gleichlauf (Befund Speaker-Chat 05.10.2026, ADM-072)
 --
 -- Anlass: Der Admin-Abschnitt „Hotels“ (`hospitality`) ist laut `lib/admin-sections.ts` für Bereichslead Speaker

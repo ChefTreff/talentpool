@@ -6,7 +6,7 @@ create or replace function confirm_hospitality(p_booking_id uuid, p_note text DE
 AS $$
 declare v_b hospitality_booking%rowtype; v_q hospitality_quota%rowtype; v_sp speaker_profile%rowtype; v_locale text;
 begin
-  if not is_staff() then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not coalesce(is_speaker_team(null), false) then raise exception 'not allowed' using errcode = '42501'; end if;
   select * into v_b from hospitality_booking where id = p_booking_id for update;
   if not found then raise exception 'booking_not_found' using errcode = 'P0002'; end if;
   if v_b.status = 'cancelled' then raise exception 'booking_cancelled' using errcode = 'P0001'; end if;

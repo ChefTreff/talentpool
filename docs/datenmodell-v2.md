@@ -189,6 +189,7 @@
 | Welle 6 · 0262 | **Stellvertretende Einwilligungen: Ops-Kontakt bestätigt alle vier, stellvertretende Textfassung (K-45, K-46, SPK-074)** (`20261002142337`, `v6_einwilligung_alle_stellvertretend`; Details im Migrationskopf) | — |
 | Welle 6 · 0263 | **ActiveCampaign-Sync: Stand je Kontakt, Server-Funktionen für Abgleich und Widerruf, Zahlen für den Admin (TAL-009)** (`20261002143012`, `v6_activecampaign_sync`; Details im Migrationskopf) | — |
 | Welle 6 · 0264 | **Sechster Tour-Typ Marketing, Bestandstour zugeordnet (K-52)** (`20261002144630`, `v6_tour_typ_marketing`; Details im Migrationskopf) | — |
+| Welle 6 · 0265 | **Hotel-Freigaben für das Speaker-Team, Reisekosten nur Bereichsleitung** (`20261005160632`, `v6_hotel_freigabe_rechte`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
