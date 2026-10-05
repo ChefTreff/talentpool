@@ -1290,3 +1290,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 
 - **#355** (Design, nur Oberfläche): `/admin/grafiken` — je Auftritt ein Umrissknopf „Bilder“ mit Stand, Filter als Auswahlknöpfe mit Zahl, Bilder und Upload in einem Schubfach (Hochladen als Hauptaktion), Partnergrafiken als Tabelle mit gleich großen Aktionen (`FileButton size="sm"`), Media Kit mit zweitrangigem Auswählen, Anker „Auf dieser Seite“; Löschen fragt vorher. Rechte (`requireAdminSection("graphics")`) und Upload-Weg (Platz → Supabase → Zeile) unverändert, per Test festgehalten. ADM-075 → Oberfläche gebaut #355; die Rechteumstellung auf `has_admin_section('graphics')` mit Lese-RPC bleibt beim Speaker-Chat (P2). Design-Startpaket der Runde 05.10. komplett, Pause bis K-69.
 
+## 2026-10-05 — #356 gemergt (QS-068 Dialoge am Handy, ModalFuss)
+
+- **#356** (Design, Kit): `Modal` mit 16 px Polster am Handy und 24 ab 640 px; Meldung unten und neuer Baustein `ModalFuss` (klebende Fußleiste) nehmen dieselben Maße, `SpeakerFenster` nutzt ihn statt eigener Negativränder; Test zählt handgesetzte Maße in app/ und components/. Korrektur zu #355: Toast liegt seit ADM-041 im Top-Layer und ist über einem Dialog sichtbar — Kommentar und Testbeschreibung richtiggestellt, Verhalten unverändert (Meldungen zu Aktionen im Schubfach bleiben im Schubfach, ADM-062). Entscheidung: die Überdeckung von Meldung und Fußleiste (beide kleben unten) strukturell lösen — Meldung in den Fuß ziehen wie beim Drawer, kleiner Folge-PR durch Design. QS-068 → gebaut #356.
+
