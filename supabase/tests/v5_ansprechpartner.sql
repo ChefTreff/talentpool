@@ -10,8 +10,8 @@
 --   07 leere Telefonnummer wird abgewiesen (Pflichtfeld);
 --   08 ein zweiter Standard sticht den ersten, statt am Index zu scheitern;
 --   09 Pflegen ohne Recht ⇒ 42501;
---   10 `edition_infos` gibt nur die eigene Zielgruppe (42501 für fremde);
---   11 die Tabellen haben keine Grants für `authenticated` — gelesen wird
+--   10 (entfallen mit `v6_auskuenfte_weg`: `edition_infos` gibt es nicht mehr);
+--   11 die Tabelle hat keine Grants für `authenticated` — gelesen wird
 --      ausschliesslich über die RPCs;
 --   12 Teilupdate: was nicht mitkommt, bleibt stehen; `photo_path: ''` leert
 --      ausdrücklich;
@@ -19,7 +19,7 @@
 --      passende Zuordnung geht durch;
 --   14 Anlegen ohne Pflichtfeld ⇒ 22023 `fields_required` statt 23502;
 --   15 Domain-CHECK ist schreibungsunabhängig (Grossbuchstaben angenommen);
---   16 Auskünfte pflegt jede Bereichsleitung, Ansprechpartner nur Admin/Partner/Speaker (42501).
+--   16 Ansprechpartner pflegen nur Admin/Partner/Speaker (42501); die Auskünfte (16a) entfielen mit `v6_auskuenfte_weg`.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 do $$
@@ -123,19 +123,6 @@ begin
     insert into t_res values ('09_pflegen_ohne_recht', 'ALLOWED (BUG)');
   exception when others then insert into t_res values ('09_pflegen_ohne_recht', 'abgewiesen ' || sqlstate); end;
 
-  -- 10 Auskünfte: die fremde Zielgruppe **vor** der Admin-Rolle prüfen.
-  -- `my_kb_audiences()` gibt dem Team alle Zielgruppen — als Admin wäre der
-  -- Schritt sinnlos grün geworden.
-  insert into edition_info (edition_id, key, audience, label_de, value_de, sort_order)
-  values (v_ed, 'zztest_oeffnung', array['partner'], 'Öffnungszeiten', 'Fr 12:00 – 20:00', 1);
-  select count(*) into v_n from edition_infos('partner', v_ed);
-  insert into t_res values ('10_eigene_zielgruppe',
-    case when v_n >= 1 then 'geliefert (richtig)' else 'LEER (BUG)' end);
-  begin
-    perform edition_infos('volunteer', v_ed);
-    insert into t_res values ('10_fremde_zielgruppe', 'ALLOWED (BUG)');
-  exception when others then insert into t_res values ('10_fremde_zielgruppe', 'abgewiesen ' || sqlstate); end;
-
   -- 08 zweiter Standard sticht den ersten (als Admin)
   insert into role_assignment (person_id, role, scope_type, scope_id, edition_id, valid_from)
   values (v_pid, 'admin', 'global', null, null, now() - interval '1 hour');
@@ -159,7 +146,7 @@ end $$;
 insert into t_res
 select '11_grants_' || t, case when has_table_privilege('authenticated', t, 'select')
                                then 'LESBAR (BUG)' else 'kein SELECT (richtig)' end
-  from unnest(array['edition_contact', 'edition_info']) as t;
+  from unnest(array['edition_contact']) as t;
 
 -- 12 Teilupdate über `upsert_edition_contact`
 do $$
@@ -229,15 +216,10 @@ begin
     insert into t_res values ('15_domain_gross', 'angenommen (richtig)');
   exception when others then insert into t_res values ('15_domain_gross', 'ABGEWIESEN (BUG) ' || sqlstate); end;
 
-  -- 16 Bereichsleitung Volunteers: Auskünfte ja, Ansprechpartner nein
+  -- 16 Bereichsleitung Volunteers: Ansprechpartner nein
   delete from role_assignment where person_id = v_pid and role = 'admin';
   insert into role_assignment (person_id, role, scope_type, scope_id, edition_id, valid_from)
   values (v_pid, 'area_lead_volunteers', 'edition', null, v_ed, now() - interval '1 hour');
-  begin
-    perform upsert_edition_info(jsonb_build_object('edition_id', v_ed, 'key', 'zztest_treffpunkt',
-      'audience', jsonb_build_array('volunteer'), 'label_de', 'Treffpunkt', 'value_de', 'Halle B'));
-    insert into t_res values ('16a_info_bereichsleitung', 'erlaubt (richtig)');
-  exception when others then insert into t_res values ('16a_info_bereichsleitung', 'ABGEWIESEN (BUG) ' || sqlstate); end;
   begin
     perform upsert_edition_contact(jsonb_build_object('id', v_sl::text, 'phone', '+49 40 5'));
     insert into t_res values ('16b_kontakt_bereichsleitung', 'ALLOWED (BUG)');
