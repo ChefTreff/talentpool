@@ -1,4 +1,4 @@
--- 0279 · Zusage-Mail mit Frist und Stornierung bei Rücknahme (PART-124)
+-- 00NN · Zusage-Mail mit Frist und Stornierung bei Rücknahme (PART-124)
 --
 -- Anlass: PART-124 (Konrad & Leopold 05.10., Durchgang Partner-Portal): „Achtung: Mit Zusage bekommt die Person eine Zusage-Mail.“ Konrads
 -- Frage dazu: „mit einigen Minuten Verzögerung?“ Plan-Entscheidung 08.10. (entscheidungen.md): ja — die Mail geht über die Warteschlange mit
