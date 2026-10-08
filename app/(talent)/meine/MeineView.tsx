@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { needsPartnerShare } from "@/lib/consent";
 import { formatDay, formatRange } from "@/lib/tz";
 import type { Locale } from "@/lib/i18n/shared";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
@@ -13,6 +14,8 @@ import { useToast } from "@/components/ui/Toast";
 import {
   cancelRegistration,
   confirmApplication,
+  releaseApplicationShare,
+  revokeApplicationShare,
   withdrawApplication,
   type TalentResult,
 } from "../actions";
@@ -133,6 +136,15 @@ export function MeineView({
     });
   }
 
+  function onShare(application: MyApplication, release: boolean) {
+    startTransition(async () => {
+      handle(
+        release ? await releaseApplicationShare(application.id, locale) : await revokeApplicationShare(application.id),
+        release ? t.shareReleasedToast : t.shareRevokedToast,
+      );
+    });
+  }
+
   function onCancel(registration: MyRegistration) {
     startTransition(async () => {
       handle(await cancelRegistration(registration.session_id), t.cancelledToast);
@@ -176,6 +188,7 @@ export function MeineView({
                 t={t}
                 onConfirm={() => onConfirm(a)}
                 onWithdraw={() => setAsk({ kind: "withdraw", application: a })}
+                onShare={(release) => onShare(a, release)}
               />
             ))}
           </ul>
@@ -301,6 +314,7 @@ function ApplicationCard({
   t,
   onConfirm,
   onWithdraw,
+  onShare,
 }: {
   application: MyApplication;
   session: ParticipationSession | undefined;
@@ -313,7 +327,10 @@ function ApplicationCard({
   t: Strings;
   onConfirm: () => void;
   onWithdraw: () => void;
+  onShare: (release: boolean) => void;
 }) {
+  // PART-129: bei Formaten mit Partner-Auswahl entscheidet die Weitergabe, ob der Partner die Bewerbung sieht.
+  const teilen = session ? needsPartnerShare(session.format, session.access_mode) && WITHDRAWABLE.includes(application.status) : false;
   const confirmable =
     application.status === "accepted" || application.status === "promoted";
   const deadlinePassed =
@@ -353,6 +370,10 @@ function ApplicationCard({
               )}
             </p>
           )}
+          {teilen && !application.consent_share && (
+            <p className="ct-help mt-2 text-warning-ink">{t.shareMissing}</p>
+          )}
+          {teilen && application.consent_share && <p className="ct-help mt-2">{t.shareGiven}</p>}
           {confirmable && needsTicket && (
             <p className="ct-help mt-1 text-warning-ink">{t.ticketNote}</p>
           )}
@@ -362,6 +383,16 @@ function ApplicationCard({
           {confirmable && (
             <Button size="sm" disabled={pending || deadlinePassed} onClick={onConfirm}>
               {t.confirmSpot}
+            </Button>
+          )}
+          {teilen && (
+            <Button
+              variant={application.consent_share ? "ghost" : "secondary"}
+              size="sm"
+              disabled={pending}
+              onClick={() => onShare(!application.consent_share)}
+            >
+              {application.consent_share ? t.shareRevoke : t.shareRelease}
             </Button>
           )}
           {WITHDRAWABLE.includes(application.status) && (
