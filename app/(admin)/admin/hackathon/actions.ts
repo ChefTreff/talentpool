@@ -88,3 +88,20 @@ export async function setChallengeDeadline(challengeId: string, deadline: string
   revalidatePath("/hackathon");
   return { ok: true };
 }
+
+/** Eckdaten des Hackathons (HACK-020): Datum, Uhrzeit, Ort, Zusatzzeile. Leere Felder werden gelöscht. */
+export async function saveHackathonInfo(v: {
+  start_date: string; end_date: string; start_time: string; end_time: string;
+  venue: string; location: string; note_de: string; note_en: string;
+}): Promise<Ergebnis> {
+  await requireAdminSection("hackathon");
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("set_hackathon_info", { p_data: v });
+  if (error) {
+    const f = toRpcFailure(error);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  revalidatePath("/admin/hackathon");
+  revalidatePath("/hackathon");
+  return { ok: true };
+}

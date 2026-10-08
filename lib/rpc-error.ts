@@ -124,6 +124,9 @@ const BUSINESS_KEYS = new Set([
   "feedback_limit",
   "invalid_rating",
   "missing_field",
+  // Hackathon-Eckdaten (HACK-020)
+  "invalid_range",
+  "note_too_long",
   // Schichtmodell Volunteers (VOL-002)
   "safety_ack_required",
   "wish_required",
