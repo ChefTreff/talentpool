@@ -2758,6 +2758,7 @@
     "integration.resolve_error": "Schnittstellenfehler erledigt",
     "kb.archived": "Wiki-Artikel archiviert",
     "kb.article_saved": "Wiki-Artikel gespeichert",
+    "kb.en_drafts_seeded": "Englische Entwürfe der Wiki-Artikel angelegt",
     "kb.published": "Wiki-Artikel veröffentlicht",
     "kb.unpublished": "Wiki-Artikel zurückgezogen",
     "mail.requeue": "Mail erneut eingereiht",
