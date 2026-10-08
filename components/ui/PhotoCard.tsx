@@ -20,6 +20,14 @@ import { cn } from "./cn";
  * das ist das Muster. Ausserhalb dieser Dreiergruppe gilt weiter: ein
  * `.ct-laica` pro Screen.
  *
+ * **Eine Überschrift je Karte** (QS-076, Konrad 08.10.2026): die Karte trägt
+ * den Namen der Seite, zu der sie führt, in der kursiven Form — und keine
+ * zweite, gewöhnliche Überschrift darunter. Vorher standen ein Stichwort
+ * („Summit“) und der Name („Summit 2027“) übereinander. Der Baustein hat dafür
+ * keinen `title` mehr: eine zweite Zeile lässt sich nicht mehr anhängen, auch
+ * nicht in einem Portal, das gerade nicht umgebaut wird (PART-098 war der
+ * Anfang im Partner-Portal).
+ *
  * **Die Aktion sitzt am Boden der Karte** (PART-098): steht die Karte in einer
  * Reihe gleich hoher Karten (Grid), stehen die Knöpfe auf einer Linie, auch wenn
  * die Texte verschieden lang sind. Vorher folgte der Knopf dem Text, und bei der
@@ -34,16 +42,13 @@ import { cn } from "./cn";
  */
 export function PhotoCard({
   word,
-  title,
   description,
   imageUrl,
   action,
   className,
 }: {
-  /** Das kursive Schlüsselwort im Akzent. Ein Wort, kein Halbsatz. */
+  /** Die Überschrift der Karte, kursiv im Akzent: der Name der Seite, zu der sie führt. Kurz, kein Halbsatz. */
   word: string;
-  /** Optional darunter eine gewöhnliche Überschrift. */
-  title?: string;
   description: string;
   /** Ohne Bild trägt die Karte eine Formfläche — das ist kein Fehlerfall. */
   imageUrl?: string | null;
@@ -70,7 +75,6 @@ export function PhotoCard({
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         <p className="ct-laica text-accent-strong sm:mt-4">{word}</p>
-        {title && <p className="ct-h3 mt-1 text-ink">{title}</p>}
         <p className="ct-small mt-1 text-muted">{description}</p>
         {/* `mt-auto` schiebt die Aktion an den Boden, wenn die Karte höher gestreckt wird; sonst bleibt es bei 12 px Abstand. */}
         {action && <div className="mt-auto pt-3">{action}</div>}
