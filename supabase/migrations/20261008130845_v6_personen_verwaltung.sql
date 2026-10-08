@@ -1,3 +1,5 @@
+-- 0278 · Personenverwaltung: Suche, Filter, Stammdaten und Adressen bearbeiten (ADM-091, ADM-092)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008130845.
 -- 00NN · Personen: durchsuchbare Liste und Stammdaten bearbeiten (ADM-091, ADM-092)
 --
 -- Anlass: Konrad 08.10.2026 (Admin-Feedback Teil 1): die Personenliste ist „lang, ohne Suche, ohne Filter, ohne relevante
