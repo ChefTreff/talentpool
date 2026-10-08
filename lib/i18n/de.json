@@ -3398,15 +3398,6 @@
     "wishTitle": "Gesucht",
     "yourCode": "Your join code"
   },
-  "home": {
-    "eyebrow": "ChefTreff",
-    "lead": "Profil, Programm, Bewerbungen, Tickets — einmal pflegen, formatübergreifend gültig.",
-    "loggedInAs": "Angemeldet als",
-    "loginCta": "Anmelden",
-    "profileCta": "Mein Profil",
-    "titleHighlight": "alles",
-    "titleLead": "Ein Login für"
-  },
   "initiativeStages": {
     "abgelehnt": "Abgelehnt",
     "agreement": "Vereinbarung",
@@ -3855,8 +3846,8 @@
     "sentTitle": "Link unterwegs",
     "submit": "Login-Link senden",
     "title": "Anmelden",
-    "titleHighlight": "zurück",
-    "titleLead": "Willkommen"
+    "titleHighlight": "Club",
+    "titleLead": "Welcome to the Future Leader"
   },
   "logoWall": {
     "categoryAuto": "Automatisch (aus der Stufe)",
