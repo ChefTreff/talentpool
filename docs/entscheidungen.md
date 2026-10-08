@@ -1381,3 +1381,10 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **#368** (Talent-Chat, nur Doku) gemergt: `docs/befund-part129-qs070-2026-10-08.md`.
 - Snapshot 751 Funktionen; `docs/schema.md` 123 Tabellen, 717 Funktionen; Rollen-Probe 6/6 ohne LECK (nach 0270–0272).
 - **PART-116 Befund** (SevDesk-Angebot über die API: Plan und Objekttyp, nur lesend) wandert zum Admin & Schnittstellen-Chat; die Oberfläche bleibt beim Partner-Chat. **PART-128 Teil 2** (Umstellung `ProfilAuswahl` auf den aufklappbaren Baustein, zwei Wörterbuchschlüssel) baut der Design-Chat als kleinen Folge-PR, weil der Partner-Chat mit der P1-Reihe voll ist.
+
+## 2026-10-08 — #369 und #370 gemergt (Design: PART-128 Baustein, QS-071 Nachtrag)
+
+- **#369** (Design): Kit-Baustein `MehrfachAuswahl aufklappbar` mit Zusammenfassung (zugeklappt eine Zeile wie ein Eingabefeld, „Offen für alle“ bei leerer Wahl; Wahl in Listenreihenfolge; 31 Tests, 15 Gegenproben); Gate grün auf 1d36a09f, main 40dbc5b1. **PART-128 Teil 2** (Umstellung `ProfilAuswahl`, `onToggle`-Schnittstelle bleibt, Schlüssel `profileOpen` DE/EN) baut Design als Folge-PR.
+- **#370** (Design): die fünf create-next-app-SVGs aus `public/` entfernt (QS-071 Nachtrag), kein Verweis im Code; Gate grün, main 8131e387.
+- Stand mittags: 0269–0272 live, #364–#366, #368–#370 gemergt; offen #367 (Talent, Konflikt mit main) und der nächste Design-PR. Nächste freie Nummer **0273**.
+
