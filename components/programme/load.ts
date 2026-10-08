@@ -4,6 +4,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup, vlabel } from "@/lib/vocab";
 import type { Locale } from "@/lib/i18n/shared";
 import { boardEvents, type BoardEvent } from "./events";
+import {
+  sichtbareBuehnen,
+  sperrzeitenAmTag,
+  type BoardSperrzeit,
+  type BuehnenWahl,
+  type Sperrzeit,
+} from "./buehnen";
 import type { BoardStageDay } from "./oeffnung";
 import type {
   BacklogSession,
@@ -45,6 +52,8 @@ export type BoardData = {
   stats: BoardStats[];
   /** Öffnungszeiten der Bühnen am gezeigten Tag (LEAD-033). */
   stageDays: BoardStageDay[];
+  /** Sperrzeiten, die den gezeigten Tag berühren, in Minuten dieses Tages (ADM-085, LEAD-062). */
+  sperrzeiten: BoardSperrzeit[];
   labels: BoardLabels;
 };
 
@@ -87,6 +96,13 @@ export async function loadBoard(input: {
    * Leer oder `undefined` heißt: alles, was Bühnen hat.
    */
   editionIds?: string[];
+  /**
+   * Welche Bühnen Spalten bekommen (LEAD-061): `alle` (Standard) oder nur die Hauptbühnen (`stage.kind` main und branded). Das
+   * Stage-Lead-Board fragt fest `haupt`, unter `/admin/programm` wählt das Team (`?buehnen=haupt`).
+   */
+  buehnen?: BuehnenWahl;
+  /** Bühnen, die in jeder Wahl stehen bleiben — die eigenen eines Stage Leads, auch wenn sie keine Hauptbühne sind. */
+  immerBuehnen?: readonly string[];
 }): Promise<BoardData> {
   const { locale } = await getI18n(input.fallbackLocale);
   const supabase = await createSupabaseServerClient();
@@ -105,6 +121,7 @@ export async function loadBoard(input: {
     backlog: [],
     stats: [],
     stageDays: [],
+    sperrzeiten: [],
     labels: boardLabels(await loadVocabMap(supabase, locale)),
   };
   if (events.length === 0) return empty;
@@ -119,7 +136,7 @@ export async function loadBoard(input: {
       .order("day_date"),
     supabase
       .from("stage")
-      .select("id, name, slug, type, room, sort_order, changeover_min, default_duration_min")
+      .select("id, name, slug, type, kind, valid_days, room, sort_order, changeover_min, default_duration_min")
       .eq("event_id", currentEvent.id)
       .eq("active", true)
       .order("sort_order"),
@@ -129,7 +146,7 @@ export async function loadBoard(input: {
   const days = (dayRows ?? []) as BoardDay[];
   const currentDay = days.find((d) => d.day_date === input.day) ?? days[0] ?? null;
 
-  const [{ data: slotRows }, { data: backlogRows }, { data: statsRows }, { data: stageDayRows }] = await Promise.all([
+  const [{ data: slotRows }, { data: backlogRows }, { data: statsRows }, { data: stageDayRows }, { data: sperrRows }] = await Promise.all([
     currentDay
       ? supabase
           .from("programme_board")
@@ -151,7 +168,19 @@ export async function loadBoard(input: {
     currentDay
       ? supabase.from("stage_day").select("stage_id, open_from, open_to").eq("event_day_id", currentDay.id)
       : Promise.resolve({ data: [] }),
+    // ADM-085/LEAD-062: die Sperrzeiten des Events — die Datenbank prüft sie bei jedem Slot, das Board zeigt sie nur. Wer sie nicht lesen
+    // darf (oder wo die Funktion fehlt), sieht das Board wie vorher.
+    supabase.rpc("stage_blocked_times", { p_event_id: currentEvent.id }),
   ]);
+
+  const alleSlots = (slotRows ?? []) as BoardSlot[];
+  const buehnen = sichtbareBuehnen((stageRows ?? []) as BoardStage[], {
+    tag: currentDay?.day_date ?? null,
+    mitSlots: new Set(alleSlots.map((s) => s.stage_id)),
+    wahl: input.buehnen ?? "alle",
+    immer: new Set(input.immerBuehnen ?? []),
+  });
+  const sichtbar = new Set(buehnen.map((b) => b.id));
 
   return {
     locale,
@@ -159,11 +188,13 @@ export async function loadBoard(input: {
     currentEvent,
     days,
     currentDay,
-    stages: (stageRows ?? []) as BoardStage[],
-    slots: (slotRows ?? []) as BoardSlot[],
+    stages: buehnen,
+    // Nur Slots der gezeigten Bühnen: sonst weitete ein ausgeblendeter Slot das Zeitfenster des Rasters.
+    slots: alleSlots.filter((s) => sichtbar.has(s.stage_id)),
     backlog: (backlogRows ?? []) as BacklogSession[],
     stats: (statsRows ?? []) as BoardStats[],
     stageDays: (stageDayRows ?? []) as BoardStageDay[],
+    sperrzeiten: currentDay ? sperrzeitenAmTag((sperrRows ?? []) as Sperrzeit[], currentDay.day_date, currentEvent.timezone) : [],
     labels: boardLabels(vocab),
   };
 }

@@ -292,6 +292,12 @@ const BUSINESS_KEYS = new Set([
   "day_not_found",
   "stage_not_found",
   "track_not_found",
+  // Bühnen-Stammdaten: Gültigkeitstage und Sperrzeiten (ADM-085, LEAD-062)
+  "slot_blocked",
+  "stage_not_valid_that_day",
+  "invalid_valid_day",
+  "invalid_blocked_time",
+  "blocked_time_not_found",
   // Messestand und Editionsdateien (Migration 20260915115415)
   "edition_file_not_found",
   "invalid_path",

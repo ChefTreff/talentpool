@@ -5,6 +5,13 @@ export type BoardStage = {
   name: string;
   slug: string;
   type: string | null;
+  /**
+   * Art der Bühne (ADM-085): generiert aus `type` und `partner_org_id` — `main`, `branded`, `booth`, `masterclass`,
+   * `interview_table`, `side_event`. Das Stage-Lead-Board zeigt `main` und `branded` (LEAD-061).
+   */
+  kind?: string | null;
+  /** Gültigkeitstage als `JJJJ-MM-TT`; leer = alle Eventtage (ADM-085). */
+  valid_days?: string[] | null;
   room: string | null;
   sort_order: number;
   changeover_min: number;
