@@ -15,9 +15,10 @@ function authorized(request: Request): boolean {
 }
 
 /**
- * Welle 3 A6: Ticket-Kontingente in vivenu anlegen (Undershop je Partner, Coupon je Pass-Typ). Läuft alle 30 Minuten (vercel.json) und holt alles,
- * was `ticket_allocations_pending()` liefert; `?allocation=<id>` verarbeitet genau ein Kontingent (Wiederholung nach einem Fehler). Nur mit `CRON_SECRET`,
- * service_role nach der Prüfung. Ohne `VIVENU_API_KEY` Trockenlauf.
+ * Welle 3 A6: Ticket-Kontingente in vivenu anlegen (Undershop je Partner, seit PART-111 **ein Coupon je Gruppe** aus Organisation, Edition und Rabattstufe —
+ * nicht mehr je Pass-Typ). Läuft alle 30 Minuten (vercel.json) und holt alles, was `ticket_allocations_pending()` liefert, dazu Gruppen aus der Zeit je
+ * Kategorie, die noch mehrere Coupons tragen und zusammengeführt werden; `?allocation=<id>` verarbeitet die Gruppe dieses Kontingents (Wiederholung
+ * nach einem Fehler). Nur mit `CRON_SECRET`, service_role nach der Prüfung. Ohne `VIVENU_API_KEY` Trockenlauf.
  */
 export async function GET(request: Request) {
   if (!authorized(request)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
