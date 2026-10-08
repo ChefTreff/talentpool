@@ -197,6 +197,7 @@
 | Welle 6 · 0270 | **Side Events: aus der Reception wird eine Einladungsliste (ADM-077, SPK-091)** (`20261008082640`, `v6_side_events`; Details im Migrationskopf) | — |
 | Welle 6 · 0271 | **Wiki: Thema und Produktbezug am Artikel (ADM-064 + PART-103)** (`20261008083319`, `v6_wiki_thema_produktbezug`; Details im Migrationskopf) | — |
 | Welle 6 · 0272 | **Hackathon-Startseite als Event-Seite: Eckdaten, Ansprechperson, Zähler (HACK-020 für HACK-013)** (`20261008083344`, `v6_hack_eventseite`; Details im Migrationskopf) | — |
+| Welle 6 · 0273 | **Neue Speaker von Partnern: Liste, Marke und Menü-Zähler (ADM-084)** (`20261008085130`, `v6_neue_speaker`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

@@ -20,6 +20,8 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 **K-79 · Go-Live-Checkliste: Wiki-Produktbezug setzen (ADM-064/PART-103, #366):** Nach „Migration live“ hat jeder Wiki-Artikel ein Feld „Produktbezug“ (Admin → Wiki). Der Backfill setzt nur masterclasses → Masterclass, company-tours → Company Tour, sponsored-talk → Talk; alles andere sehen alle Partner. Vor dem Go-live die übrigen Haken setzen; der Filter im Partner-Portal wirkt erst, wenn der Partner-Chat ihn nach „Migration live“ gebaut hat.
 
+**Neu zum Klicken (08.10. nachmittags):** /admin/speaker?liste=neu — Reiter „Neue Speaker“ mit den von Partnern angelegten TEST-Speakern, Zähler am Menüpunkt „Speaker“ (ADM-084, 0273); Betreuung, Buddy und Stand lassen sich direkt in der Zeile setzen. **Für dein Navigations-Feedback:** `docs/design-vorschlaege-2026-10-08.md` ist die Bestandsaufnahme der Admin-Navigation (53 Menüpunkte in 9 Gruppen, je Rolle 6 bis 23, 79 Seiten) — ohne Vorschlag, als Grundlage für deine Zusammenlegung.
+
 **Testdaten-Läufe heute nach „Migration live“ (A·10):** `--nur=side-events` genehmigst du im Speaker-Chat (er fährt ihn), `--nur=hackathon-eckdaten` nach #367 im Haupt-Checkout: `node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=hackathon-eckdaten`.
 
 **Paulinas Wochen-Feedback:** gesammelt an mich (Liste oder Granola-Link), ich verteile es in die Listen; **K-69, K-73 und das Go zu den Partner-Design-Vorschlägen** (PART-104/106/109/113/136) kommen laut dir nach dieser Baurunde — bis dahin warten diese Punkte.

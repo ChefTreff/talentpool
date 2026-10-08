@@ -1,3 +1,5 @@
+-- 0273 · Neue Speaker von Partnern: Liste, Marke und Menü-Zähler (ADM-084)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008085130.
 -- NNNN · Neue Speaker von Partnern: Liste, Marke und Menü-Zähler (ADM-084, Konrad & Leopold 05.10.2026)
 --
 -- Anlass: Legt ein Partner für seinen Talk oder seine gebrandete Bühne einen Speaker an (`partner_add_speaker`), entsteht ein
