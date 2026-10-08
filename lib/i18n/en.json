@@ -3409,12 +3409,6 @@
     "wishTitle": "Looking for",
     "yourCode": "Your join code"
   },
-  "home": {
-    "eyebrow": "ChefTreff",
-    "loginCta": "Sign in",
-    "titleHighlight": "Club",
-    "titleLead": "Welcome to the Future Leader"
-  },
   "initiativeStages": {
     "abgelehnt": "Declined",
     "agreement": "Agreement",
@@ -3863,8 +3857,8 @@
     "sentTitle": "Link on its way",
     "submit": "Send sign-in link",
     "title": "Sign in",
-    "titleHighlight": "back",
-    "titleLead": "Welcome"
+    "titleHighlight": "Club",
+    "titleLead": "Welcome to the Future Leader"
   },
   "logoWall": {
     "categoryAuto": "Automatic (from the level)",
