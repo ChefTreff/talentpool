@@ -97,7 +97,7 @@ Ohne Testdaten-Schritt — der Weg ist selbst der Test. **Nur mit einer eigenen 
 
 1. Admin → Verwaltung → **Zugänge** → Karte „Teammitglied einladen“.
 2. Vorname, Nachname (z. B. `ZZTEST`), Testadresse, Rollen ankreuzen (z. B. Partner-Team), „Anlegen und einladen“ → Rückfrage → bestätigen.
-3. Die Mail mit dem Anmelde-Link kommt an die Testadresse; die Person steht in der Liste darunter mit Rollen, Audit `access.team_member` und `access.invited` unter Verwaltung → Protokoll.
+3. Die Mail mit dem Anmelde-Link kommt an die Testadresse (hat die Person schon ein Konto, kommt stattdessen „Du bist jetzt im Team – hier anmelden“ mit den neuen Rollen in Worten, ADM-086; der Hinweis im Admin sagt „Hinweismail steht in der Warteschlange“, der Versand dauert bis zu zehn Minuten); die Person steht in der Liste darunter mit Rollen, Audit `access.team_member` und `access.invited` unter Verwaltung → Protokoll.
 4. Link in einem privaten Fenster öffnen → Login landet im Admin mit genau den Abschnitten der Rollen (Vorschau je Rolle unter Verwaltung → Rollen).
 5. Aufräumen: in der Liste „Zugang sperren“; Rollen unter Verwaltung → Team entziehen.
 
