@@ -146,6 +146,11 @@
  *                                   Tag gilt — für /admin/edition (Karte „Sperrzeiten“, Spalte „Gilt an“) und die
  *                                   Schraffur im Board. Braucht den Schritt `buehne`; erst nach „Migration live“ von
  *                                   v6_buehnen_stammdaten)
+ *   … --apply --nur=aenderungsmail  (LEAD-063: eine veröffentlichte TEST-Session „Änderungsmail“ mit Konrad als Speaker auf der
+ *                                   Stage-Lead-Testbühne am letzten Summit-Tag, 16:00–16:30 — wer den Slot unter /admin/programm
+ *                                   verschiebt, sieht unter /admin/mail eine wartende Mail an Konrads Postfach. Braucht den Schritt
+ *                                   `buehne` und Konrads Speaker-Profil; erst nach „Migration live“ von v6_mail_verzoegert.
+ *                                   **Die Session steht bis `--remove` im veröffentlichten Programm**)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -3410,6 +3415,64 @@ async function sperrzeitSchritt(me, ed) {
   note("Bühnen-Stammdaten ausprobieren", "/admin/edition: Karte „Sperrzeiten“ und die Spalte „Gilt an“ der Bühnen; /admin/programm: Schraffur auf der Stage-Lead-Testbühne am ersten Tag, Umschalter „Hauptbühnen“; /speaker-leads/board zeigt nur Hauptbühnen");
 }
 
+/** LEAD-063: Titel der TEST-Session für die Änderungsmail (das Präfix `TEST — ` räumt `--remove` ab). */
+const AENDERUNG_TITEL = `${PREFIX}Änderungsmail: Slot verschieben, Mail wartet`;
+
+/**
+ * LEAD-063: damit Konrad die Änderungsmail ausprobieren kann, ohne etwas Echtes anzufassen — eine **veröffentlichte** TEST-Session mit Konrad
+ * als Speaker auf der Stage-Lead-Testbühne (`zz-test-stagelead`, Schritt `buehne`), am letzten Summit-Tag 16:00–16:30 Uhr Hamburg.
+ *
+ * Konrad klickt: `/admin/programm` — den Slot „TEST — Änderungsmail …“ am letzten Tag auf der Stage-Lead-Testbühne verschieben (die Rückfrage nennt
+ * die Mail), danach `/admin/mail` — eine Zeile „Wartet“ an sein Postfach, im Detail „Versand frühestens …“ (15 Minuten) und unter „Eingesetzte
+ * Angaben“ die Änderung. Schiebt er den Slot zurück, steht dieselbe Zeile auf „Storniert“ (Grund: die Änderungen haben sich aufgehoben). Lässt er sie
+ * stehen, geht die Mail nach 15 bis 25 Minuten (der Lauf kommt alle zehn Minuten) an sein Postfach.
+ *
+ * **Bis `--remove` steht die Session im veröffentlichten Programm** (`/programm`) — mit dem Präfix „TEST —“ und einem Hinweis in der Beschreibung.
+ * Direkt geschrieben (der Service-Key ist keine handelnde Person, deshalb löst das Anlegen selbst keine Mail aus). Ein zweiter Lauf lässt Vorhandenes
+ * stehen. **Erst nach „Migration live“** von `v6_mail_verzoegert`; vorher meldet der Schritt, dass die Spalte fehlt.
+ */
+async function aenderungsmailSchritt(me, ed) {
+  const sum = await summit(ed);
+  const tag = sum?.tage?.[sum.tage.length - 1];
+  if (!sum || !tag) return fail("Änderungsmail", "kein Summit mit Tagen");
+  const { error: spalte } = await admin.from("mail_log").select("send_after").limit(1);
+  if (spalte) return fail("Änderungsmail", `Spalte fehlt (${spalte.message}) — Migration v6_mail_verzoegert noch nicht live`);
+  const { data: buehne } = await admin.from("stage").select("id").eq("event_id", sum.id).eq("slug", "zz-test-stagelead").maybeSingle();
+  if (!buehne) return fail("Änderungsmail", "keine Stage-Lead-Testbühne — zuerst --nur=buehne");
+  const { data: profil } = await admin.from("speaker_profile").select("id").eq("person_id", me.id).eq("edition_id", ed.id).maybeSingle();
+  if (!profil) return fail("Änderungsmail", "Konrad hat kein Speaker-Profil in der Edition — zuerst ein voller Lauf (--apply)");
+
+  // Ortszeit Hamburg im April: UTC+2.
+  const start = new Date(`${tag.day_date}T16:00:00+02:00`).toISOString();
+  const ende = new Date(`${tag.day_date}T16:30:00+02:00`).toISOString();
+  const sessionId = await write("Veröffentlichte TEST-Session „Änderungsmail“ (Stage-Lead-Testbühne, letzter Tag 16:00–16:30)", async () => {
+    // Am Titel wiederfinden, nicht an der Uhrzeit: wer den Slot im Walkthrough verschoben hat, behält seinen Stand.
+    const { data: da } = await admin.from("session").select("id, slot_id").eq("event_id", sum.id).eq("title_de", AENDERUNG_TITEL).maybeSingle();
+    if (da) return { data: da.id, error: null };
+    const { data: sl, error: slotFehler } = await admin.from("slot").insert({
+      stage_id: buehne.id, event_day_id: tag.id, start_at: start, end_at: ende,
+      slot_type: "content", status: "open", internal_title: AENDERUNG_TITEL,
+    }).select("id").single();
+    if (slotFehler) return { data: null, error: slotFehler };
+    const { data, error } = await admin.from("session").insert({
+      event_id: sum.id, slot_id: sl.id, format: "talk", language: "de", access_mode: "open", publish_status: "published",
+      title_de: AENDERUNG_TITEL, title_en: `${PREFIX}Change mail: move the slot, the mail waits`,
+      description_de: "Nur zum Ausprobieren der Änderungsmail — wird nach dem Test mit dem Testdaten-Skript (--remove) entfernt.",
+      description_en: "Only for trying out the change mail — removed after the test with the test-data script (--remove).",
+    }).select("id").single();
+    return { data: data?.id ?? null, error };
+  });
+  if (mode === "dry-run") return;
+  if (!sessionId) return;
+  await write("Konrad als Speaker der TEST-Session", () =>
+    admin.from("session_speaker").upsert(
+      { session_id: sessionId, person_id: me.id, role: "speaker", confirmed: true },
+      { onConflict: "session_id,person_id,role" },
+    ),
+  );
+  note("Änderungsmail ausprobieren", "/admin/programm: den Slot der TEST-Session am letzten Tag auf der Stage-Lead-Testbühne verschieben und bestätigen; /admin/mail: wartende Zeile mit „Versand frühestens“; zurückschieben storniert sie");
+}
+
 /** ADM-072: so erkennt man im Admin und beim Aufräumen die drei wartenden TEST-Freigaben. */
 const FREIGABE_HINWEIS = `${PREFIX}nur zum Ausprobieren der Freigabe`;
 /**
@@ -3636,6 +3699,7 @@ const SCHRITTE = {
   begleitung: begleitungSchritt,
   "side-events": sideEventsSchritt,
   sperrzeit: sperrzeitSchritt,
+  aenderungsmail: aenderungsmailSchritt,
   buehne: stageLeadBuehne,
   standstatus: standStatus,
   verwaltet: verwalteterSpeaker,
