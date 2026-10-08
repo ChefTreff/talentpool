@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Select, type SelectOption } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
@@ -133,7 +132,7 @@ export function NeueSpeaker({
                   {r.organization_name && <span className="ct-help block text-muted">{r.organization_name}</span>}
                 </Td>
                 <Td label={t.newColPartner}>
-                  <Badge>{r.partner_name ?? "—"}</Badge>
+                  {r.partner_name ?? "—"}
                 </Td>
                 <Td label={t.newColSession}>
                   {erste ? (
@@ -151,6 +150,7 @@ export function NeueSpeaker({
                 <Td label={t.newColStand}>
                   <Select
                     aria-label={`${t.newColStand}: ${name(r)}`}
+                    className="min-w-36"
                     value={wert(r, "stand")}
                     disabled={pending}
                     onChange={(e) => aendere(r, "stand", e.target.value)}
@@ -160,6 +160,7 @@ export function NeueSpeaker({
                 <Td label={t.colOwner}>
                   <Select
                     aria-label={`${t.colOwner}: ${name(r)}`}
+                    className="min-w-48"
                     value={wert(r, "owner")}
                     placeholder={t.withoutOwner}
                     disabled={pending}
@@ -175,6 +176,7 @@ export function NeueSpeaker({
                   {buddiesEditierbar ? (
                     <Select
                       aria-label={`${t.newColBuddy}: ${name(r)}`}
+                      className="min-w-48"
                       value={wert(r, "buddy")}
                       placeholder={t.contactDefault}
                       disabled={pending}
