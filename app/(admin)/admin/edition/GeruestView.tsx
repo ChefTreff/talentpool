@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
@@ -12,16 +13,21 @@ import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import {
+  removeBlockedTime,
   removeDay,
   removeStage,
   removeTrack,
+  saveBlockedTime,
   saveDay,
   saveStage,
   saveStageDay,
   saveTrack,
   type EditionResult,
 } from "./actions";
-import { BUEHNEN_ARTEN, type Geruest, type GeruestBuehnenTag } from "./types";
+import type { Sperrzeit } from "@/components/programme/buehnen";
+import { formatDay } from "@/lib/tz";
+import { feldZeit, gewaehlteTage, tageSpeichern, zeitFeld } from "./felder";
+import { BUEHNEN_ARTEN, type Geruest, type GeruestBuehne, type GeruestBuehnenTag, type GeruestTag } from "./types";
 
 type Strings = Record<string, string>;
 type Entwurf = Record<string, Record<string, string>>;
@@ -42,11 +48,16 @@ type Entwurf = Record<string, Record<string, string>>;
  */
 export function GeruestView({
   geruest,
+  sperrzeiten,
+  dateLocale,
   t,
   common,
   rpcMessages,
 }: {
   geruest: Geruest;
+  /** Sperrzeiten des Events (ADM-085, LEAD-062) aus `stage_blocked_times`. */
+  sperrzeiten: Sperrzeit[];
+  dateLocale: string;
   t: Strings;
   common: { cancel: string; choose: string; none: string; save: string };
   rpcMessages: Record<string, string>;
@@ -87,6 +98,32 @@ export function GeruestView({
   const lauf = (fn: () => Promise<EditionResult<string>>, ok: string) =>
     startTransition(async () => report(await fn(), ok));
 
+  /** Sperrzeit speichern; ist schon etwas in der Zeit eingeplant, sagt die Meldung es dazu (die Slots bleiben). */
+  const speichereSperrzeit = (daten: Record<string, unknown>) =>
+    startTransition(async () => {
+      const res = await saveBlockedTime(daten);
+      if (!res.ok) return report({ ok: false, key: res.key, detail: res.detail }, t.saved);
+      report({ ok: true, data: "" }, t.saved);
+      const n = res.data.affected;
+      if (n > 0) toast("info", n === 1 ? t.blockedAffectedOne : t.blockedAffected.replace("{n}", String(n)));
+    });
+
+  // ADM-085: Gültigkeitstage und Sperrzeiten.
+  const alleTage = geruest.days.map((d) => d.day_date);
+  const zone = geruest.event?.timezone ?? "Europe/Berlin";
+  /** Hat jemand alle Tage einer Bühne abgewählt? Dann kann sie nicht gespeichert werden — eine Bühne ohne Tag gäbe es nicht. */
+  const keineTage = (id: string) => entwurf[id]?.valid_days === "";
+  /** Die Felder einer Bühne zum Speichern: Gültigkeitstage als Liste, alle Tage = leer. */
+  const buehnenDaten = (s: GeruestBuehne): Record<string, unknown> => {
+    const { valid_days, ...rest } = entwurf[s.id] ?? {};
+    return { id: s.id, ...rest, ...(valid_days !== undefined ? { valid_days: tageSpeichern(valid_days, alleTage) } : {}) };
+  };
+  /** Eine neue Bühne: der Typ steht im Formular ausdrücklich da, also geht er auch mit (vorher blieb er leer und die Datenbank nahm `side`). */
+  const neueBuehnenDaten = (werte: Record<string, string>): Record<string, unknown> => {
+    const { valid_days, ...rest } = werte;
+    return { event_id: eventId, ...rest, ...(valid_days !== undefined ? { valid_days: tageSpeichern(valid_days, alleTage) } : {}) };
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* --- Tage ---------------------------------------------------------- */}
@@ -96,6 +133,7 @@ export function GeruestView({
           { id: "tage", label: t.daysTitle },
           { id: "buehnen", label: t.stagesTitle },
           { id: "zeiten", label: t.hoursTitle },
+          { id: "sperrzeiten", label: t.blockedTitle },
           { id: "tracks", label: t.tracksTitle },
         ]}
       />
@@ -184,22 +222,23 @@ export function GeruestView({
       {/* --- Bühnen -------------------------------------------------------- */}
       <Card id="buehnen">
         <CardHeader ebene="h2" title={t.stagesTitle} description={t.stagesHint} />
+        {/* Mindestbreiten je Spalte (Name, Art, Raum, Zahlen): sonst drückt die automatische Spaltenbreite die Felder auf ein, zwei Zeichen; wird es zu eng, scrollt die Tabelle im Container. */}
         <Table>
           <Thead>
             <Th>{t.colName}</Th>
             <Th>{t.colType}</Th>
+            <Th>{t.colValidDays}</Th>
             <Th>{t.colRoom}</Th>
             <Th numeric>{t.colCapacity}</Th>
             <Th numeric>{t.colChangeover}</Th>
             <Th numeric>{t.colDuration}</Th>
-            <Th>{t.colPartner}</Th>
             <Th numeric>{t.colSlots}</Th>
             <Th />
           </Thead>
           <Tbody>
             {geruest.stages.map((s) => (
               <Tr key={s.id}>
-                <Td>
+                <Td className="min-w-36">
                   <Input
                     aria-label={t.colName}
                     value={wert(s.id, "name", s.name)}
@@ -207,15 +246,34 @@ export function GeruestView({
                   />
                   {!s.active && <Badge className="mt-1">{t.inactive}</Badge>}
                 </Td>
-                <Td>
+                <Td className="min-w-40">
                   <Select
                     aria-label={t.colType}
                     value={wert(s.id, "type", s.type)}
                     onChange={(e) => setzen(s.id, "type", e.target.value)}
                     options={BUEHNEN_ARTEN.map((a) => ({ value: a, label: t[`stageType_${a}`] ?? a }))}
                   />
+                  {/* ADM-085: die Art, wie die Datenbank sie aus Typ und Partner ableitet — „gebrandet“ ist eine unserer Bühnen mit Partner.
+                      Der Partner steht gleich dabei (die frühere Spalte „Partnerbühne“ entfiel, damit die Tabelle mit „Gilt an“ in die Breite passt). */}
+                  {s.kind && (
+                    <span className="ct-help mt-1 block text-muted">
+                      {t[`kind_${s.kind}`] ?? s.kind}
+                      {s.kind === "branded" && s.partner_org_name ? ` ${t.brandedBy.replace("{partner}", s.partner_org_name)}` : ""}
+                    </span>
+                  )}
+                  {s.partner_org_name && s.kind !== "branded" && <span className="ct-help block text-muted">{s.partner_org_name}</span>}
                 </Td>
                 <Td>
+                  <TageWahl
+                    tage={geruest.days}
+                    gewaehlt={gewaehlteTage(entwurf[s.id]?.valid_days, s.valid_days ?? [], alleTage)}
+                    dateLocale={dateLocale}
+                    label={t.colValidDays}
+                    onChange={(neu) => setzen(s.id, "valid_days", neu.join(","))}
+                  />
+                  {keineTage(s.id) && <span className="ct-help block text-error">{t.validDaysNone}</span>}
+                </Td>
+                <Td className="min-w-24">
                   <Input
                     aria-label={t.colRoom}
                     value={wert(s.id, "room", s.room)}
@@ -223,7 +281,7 @@ export function GeruestView({
                   />
                 </Td>
                 {(["capacity", "changeover_min", "default_duration_min"] as const).map((f) => (
-                  <Td key={f} numeric>
+                  <Td key={f} numeric className="min-w-22">
                     <Input
                       type="number"
                       className="text-right"
@@ -233,17 +291,14 @@ export function GeruestView({
                     />
                   </Td>
                 ))}
-                <Td>
-                  <span className="ct-help text-muted">{s.partner_org_name ?? "—"}</span>
-                </Td>
                 <Td numeric>{s.slots}</Td>
                 <Td>
                   <div className="flex justify-end gap-2">
                     <Button
                       size="sm"
                       variant="secondary"
-                      disabled={pending || !geaendert(s.id)}
-                      onClick={() => lauf(() => saveStage({ id: s.id, ...entwurf[s.id] }), t.saved)}
+                      disabled={pending || !geaendert(s.id) || keineTage(s.id)}
+                      onClick={() => lauf(() => saveStage(buehnenDaten(s)), t.saved)}
                     >
                       {common.save}
                     </Button>
@@ -269,6 +324,7 @@ export function GeruestView({
               felder={[
                 { key: "name", label: t.colName, required: true },
                 { key: "type", label: t.colType, options: BUEHNEN_ARTEN.map((a) => ({ value: a, label: t[`stageType_${a}`] ?? a })) },
+                { key: "valid_days", label: t.colValidDays, tage: true },
                 { key: "room", label: t.colRoom },
                 { key: "capacity", type: "number", label: t.colCapacity },
                 { key: "changeover_min", type: "number", label: t.colChangeover },
@@ -277,7 +333,9 @@ export function GeruestView({
               spalten={9}
               addLabel={t.addStage}
               pending={pending}
-              onAdd={(werte) => lauf(() => saveStage({ event_id: eventId, ...werte }), t.added)}
+              tage={geruest.days}
+              dateLocale={dateLocale}
+              onAdd={(werte) => lauf(() => saveStage(neueBuehnenDaten(werte)), t.added)}
             />
           </Tbody>
         </Table>
@@ -327,6 +385,92 @@ export function GeruestView({
             </Tbody>
           </Table>
         )}
+      </Card>
+
+      {/* --- Sperrzeiten (ADM-085, LEAD-062) ------------------------------------------------------ */}
+      <Card id="sperrzeiten">
+        <CardHeader ebene="h2" title={t.blockedTitle} description={`${t.blockedHint} ${t.blockedZone.replace("{zone}", zone)}`} />
+        {sperrzeiten.length === 0 && <p className="ct-small mb-3 text-muted">{t.blockedEmpty}</p>}
+        <Table>
+          <Thead>
+            <Th>{t.blockedStage}</Th>
+            <Th>{t.blockedFrom}</Th>
+            <Th>{t.blockedTo}</Th>
+            <Th>{t.blockedReason}</Th>
+            <Th numeric>{t.blockedAffects}</Th>
+            <Th />
+          </Thead>
+          <Tbody>
+            {sperrzeiten.map((b) => {
+              const von = wert(b.id, "starts_at", zeitFeld(b.starts_at, zone));
+              const bis = wert(b.id, "ends_at", zeitFeld(b.ends_at, zone));
+              const grund = wert(b.id, "reason", b.reason);
+              const vollstaendig = von !== "" && bis !== "" && bis > von && grund.trim() !== "";
+              return (
+                <Tr key={b.id}>
+                  <Td className="min-w-48">
+                    <Select
+                      aria-label={t.blockedStage}
+                      value={wert(b.id, "stage_id", b.stage_id)}
+                      placeholder={t.blockedAllStages}
+                      onChange={(e) => setzen(b.id, "stage_id", e.target.value)}
+                      options={geruest.stages.map((s) => ({ value: s.id, label: s.name }))}
+                    />
+                  </Td>
+                  <Td className="min-w-52">
+                    <Input type="datetime-local" aria-label={t.blockedFrom} value={von} onChange={(e) => setzen(b.id, "starts_at", e.target.value)} />
+                  </Td>
+                  <Td className="min-w-52">
+                    <Input type="datetime-local" aria-label={t.blockedTo} value={bis} onChange={(e) => setzen(b.id, "ends_at", e.target.value)} />
+                  </Td>
+                  <Td className="min-w-56">
+                    <Input aria-label={t.blockedReason} maxLength={200} value={grund} onChange={(e) => setzen(b.id, "reason", e.target.value)} />
+                  </Td>
+                  <Td numeric className="whitespace-nowrap">
+                    {b.slots_affected === 0 ? t.blockedNone : b.slots_affected === 1 ? t.blockedSlotOne : t.blockedSlots.replace("{n}", String(b.slots_affected))}
+                  </Td>
+                  <Td>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={pending || !geaendert(b.id) || !vollstaendig}
+                        onClick={() =>
+                          speichereSperrzeit({
+                            id: b.id,
+                            stage_id: wert(b.id, "stage_id", b.stage_id) || null,
+                            starts_at: feldZeit(von, zone),
+                            ends_at: feldZeit(bis, zone),
+                            reason: grund,
+                          })
+                        }
+                      >
+                        {common.save}
+                      </Button>
+                      <Button size="sm" variant="ghost" disabled={pending} onClick={() => lauf(() => removeBlockedTime(b.id), t.removed)}>
+                        {t.remove}
+                      </Button>
+                    </div>
+                  </Td>
+                </Tr>
+              );
+            })}
+            <NeueSperrzeit
+              buehnen={geruest.stages}
+              t={t}
+              pending={pending}
+              onAdd={(w) =>
+                speichereSperrzeit({
+                  event_id: eventId,
+                  stage_id: w.stage_id || null,
+                  starts_at: feldZeit(w.von, zone),
+                  ends_at: feldZeit(w.bis, zone),
+                  reason: w.grund,
+                })
+              }
+            />
+          </Tbody>
+        </Table>
       </Card>
 
       {/* --- Tracks -------------------------------------------------------- */}
@@ -485,6 +629,8 @@ type Feld = {
   type?: string;
   required?: boolean;
   options?: { value: string; label: string }[];
+  /** Gültigkeitstage: ein Kästchen je Eventtag, alle angehakt als Standard (ADM-085). */
+  tage?: boolean;
 };
 
 /** Die letzte Zeile jeder Tabelle: anlegen, ohne die Seite zu wechseln. */
@@ -494,22 +640,39 @@ function NeueZeile({
   addLabel,
   pending,
   onAdd,
+  tage = [],
+  dateLocale = "de-DE",
 }: {
   felder: Feld[];
   spalten: number;
   addLabel: string;
   pending: boolean;
   onAdd: (werte: Record<string, string>) => void;
+  tage?: GeruestTag[];
+  dateLocale?: string;
 }) {
   const [werte, setWerte] = useState<Record<string, string>>({});
   const vollstaendig = felder.every((f) => !f.required || (werte[f.key] ?? "").trim() !== "");
+  const alleTage = tage.map((d) => d.day_date);
+  /** Was die Zeile anzeigt — und was beim Anlegen mitgeht: die Auswahl zeigt ihren ersten Eintrag, auch wenn niemand etwas gewählt hat. */
+  const angezeigt = (f: Feld) => werte[f.key] ?? (f.tage ? alleTage.join(",") : (f.options?.[0]?.value ?? ""));
+  const keineTage = felder.some((f) => f.tage && angezeigt(f) === "");
 
   return (
     <Tr>
       <Td colSpan={spalten}>
         <div className="flex flex-wrap items-end gap-2">
           {felder.map((f) =>
-            f.options ? (
+            f.tage ? (
+              <TageWahl
+                key={f.key}
+                tage={tage}
+                gewaehlt={angezeigt(f) === "" ? [] : angezeigt(f).split(",")}
+                dateLocale={dateLocale}
+                label={f.label}
+                onChange={(neu) => setWerte((w) => ({ ...w, [f.key]: neu.join(",") }))}
+              />
+            ) : f.options ? (
               <Select
                 key={f.key}
                 aria-label={f.label}
@@ -532,13 +695,92 @@ function NeueZeile({
           )}
           <Button
             size="sm"
-            disabled={pending || !vollstaendig}
+            disabled={pending || !vollstaendig || keineTage}
             onClick={() => {
-              onAdd(werte);
+              // Nur angefasste Felder gehen mit (leere Zahlenfelder würden sonst als "" an die Datenbank gehen) — dazu die
+              // angezeigten Standardwerte der Auswahl und der Tage, die sonst unausgesprochen blieben.
+              const neu = { ...werte };
+              for (const f of felder) {
+                if (neu[f.key] === undefined && (f.options || f.tage)) neu[f.key] = angezeigt(f);
+              }
+              onAdd(neu);
               setWerte({});
             }}
           >
             {addLabel}
+          </Button>
+        </div>
+      </Td>
+    </Tr>
+  );
+}
+
+/** Ein Kästchen je Eventtag (ADM-085): Gültigkeitstage einer Bühne. Alle angehakt heißt „jeder Tag“. */
+function TageWahl({
+  tage,
+  gewaehlt,
+  dateLocale,
+  label,
+  onChange,
+}: {
+  tage: GeruestTag[];
+  gewaehlt: string[];
+  dateLocale: string;
+  label: string;
+  onChange: (neu: string[]) => void;
+}) {
+  return (
+    <div role="group" aria-label={label} className="flex flex-wrap gap-x-3 whitespace-nowrap">
+      {tage.map((d) => (
+        <Checkbox
+          key={d.id}
+          label={formatDay(d.day_date, dateLocale, { withYear: false })}
+          checked={gewaehlt.includes(d.day_date)}
+          onChange={(e) => onChange((e.target.checked ? [...gewaehlt, d.day_date] : gewaehlt.filter((x) => x !== d.day_date)).sort())}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Die letzte Zeile der Sperrzeiten: Bühne, Von, Bis und Grund — Beginn und Ende in der Zeit des Events. */
+function NeueSperrzeit({
+  buehnen,
+  t,
+  pending,
+  onAdd,
+}: {
+  buehnen: GeruestBuehne[];
+  t: Strings;
+  pending: boolean;
+  onAdd: (werte: { stage_id: string; von: string; bis: string; grund: string }) => void;
+}) {
+  const [stageId, setStageId] = useState("");
+  const [von, setVon] = useState("");
+  const [bis, setBis] = useState("");
+  const [grund, setGrund] = useState("");
+  const vollstaendig = von !== "" && bis !== "" && bis > von && grund.trim() !== "";
+  return (
+    <Tr>
+      <Td colSpan={6}>
+        <div className="flex flex-wrap items-end gap-2">
+          <Select aria-label={t.blockedStage} className="w-48" value={stageId} placeholder={t.blockedAllStages} onChange={(e) => setStageId(e.target.value)} options={buehnen.map((s) => ({ value: s.id, label: s.name }))} />
+          <Input type="datetime-local" aria-label={t.blockedFrom} className="w-52" value={von} onChange={(e) => setVon(e.target.value)} />
+          <Input type="datetime-local" aria-label={t.blockedTo} className="w-52" value={bis} onChange={(e) => setBis(e.target.value)} />
+          <Input aria-label={t.blockedReason} placeholder={t.blockedReasonHint} maxLength={200} className="w-64" value={grund} onChange={(e) => setGrund(e.target.value)} />
+          <Button
+            size="sm"
+            disabled={pending || !vollstaendig}
+            title={vollstaendig ? undefined : t.blockedIncomplete}
+            onClick={() => {
+              onAdd({ stage_id: stageId, von, bis, grund });
+              setStageId("");
+              setVon("");
+              setBis("");
+              setGrund("");
+            }}
+          >
+            {t.blockedAdd}
           </Button>
         </div>
       </Td>

@@ -16,6 +16,7 @@ import { cn } from "@/components/ui/cn";
 import { requestTicketIncrease } from "../actions";
 import { REQUEST_PASS_TYPES, type TicketAllocationRow, type TicketRequestRow } from "../types";
 import { neuesFenster } from "@/components/ui/neues-fenster";
+import { ticketHinweise } from "@/components/partner/ticket-hinweise";
 
 type Strings = Record<string, string>;
 
@@ -209,6 +210,21 @@ export function TicketView({
         </Card>
       )}
 
+      {/* PART-112 (Konrad und Leopold, 05.10.): zwei Hinweise vorab — jede Person braucht ein eigenes Ticket, und
+          mehr Tickets fürs Standpersonal gibt es über „Mehr Tickets anfragen“. Beide standen schon auf der Seite,
+          aber klein, als Aufzählung ganz unten unter der Anleitung (PART-071) und im Einleitungstext. Jetzt stehen
+          sie oben, als Hinweisfläche in der Akzentfarbe (wie `Rueckgabe` in Warnfarbe): Information, keine Aktion
+          und keine zweite Frist. Keine `Card` mit `bg-accent-soft` — `bg-surface` der Karte gewinnt im erzeugten
+          CSS, die Fläche bliebe weiß. Den zweiten Hinweis gibt es nur mit dem Knopf, auf den er zeigt (`canRequest`). */}
+      <div role="note" className="rounded-ct-lg border border-accent-soft bg-accent-soft px-6 py-4">
+        <h2 className="ct-h3 text-accent-deep">{t.hintsTitle}</h2>
+        <ul className="ct-small mt-2 flex list-disc flex-col gap-1 pl-5 leading-6 text-accent-deep">
+          {ticketHinweise(t, canRequest).map((hinweis) => (
+            <li key={hinweis}>{hinweis}</li>
+          ))}
+        </ul>
+      </div>
+
       {/* PART-066: die Frist als grosse, laufende Zahl. */}
       {dueAt && dueText && (
         <DeadlineCard
@@ -340,10 +356,8 @@ export function TicketView({
             <p className="ct-small mt-1 leading-6">{t.step2Body}</p>
           </li>
         </ol>
-        <ul className="ct-small mt-4 flex list-disc flex-col gap-1 pl-5 leading-6">
-          <li>{t.ruleCodes}</li>
-          <li>{t.ruleOwnTicket}</li>
-        </ul>
+        {/* „Jede Person braucht ein eigenes Ticket“ steht seit PART-112 oben bei den Hinweisen. */}
+        <p className="ct-small mt-4 leading-6">{t.ruleCodes}</p>
       </section>
     </div>
   );

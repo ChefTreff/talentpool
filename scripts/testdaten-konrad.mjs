@@ -30,6 +30,8 @@
  *   … --apply --nur=tour-bewerbung (PART-046: Bewerbungen auf die TEST-Tour ohne Mail,
  *                                   Konrad zugesagt, TEST-Person ohne Einwilligung;
  *                                   PART-092: Konrads Bewerbung als Wunsch des Stopps;
+ *                                   PART-122: zweite TEST-Person mit Einwilligung und
+ *                                   vollem Profil für das Schubfach;
  *                                   braucht den Schritt tour)
  *   … --apply --nur=bewerbungen    (ADM-003: drei TEST-Masterclasses mit je 20 TEST-
  *                                   Bewerbungen ohne Mail, jede dritte ohne Einwilligung —
@@ -141,6 +143,11 @@
  *                                   den Abschnitt „Side Events“ in /speaker. Erst nach „Migration live“ von
  *                                   v6_side_events. Den One-Click-Link probiert man mit „Erneut einladen“ an der
  *                                   eigenen Einladung: die Mail geht an Konrads Postfach)
+ *   … --apply --nur=sperrzeit      (ADM-085/LEAD-062: eine TEST-Sperrzeit „Opening: bis 14:30 keine Slots“ auf der
+ *                                   Stage-Lead-Testbühne am ersten Summit-Tag und eine TEST-Bühne, die nur am ersten
+ *                                   Tag gilt — für /admin/edition (Karte „Sperrzeiten“, Spalte „Gilt an“) und die
+ *                                   Schraffur im Board. Braucht den Schritt `buehne`; erst nach „Migration live“ von
+ *                                   v6_buehnen_stammdaten)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -1791,16 +1798,18 @@ async function talkSpeaker(me, ed) {
 /**
  * Schritt `tour-bewerbung` (PART-046): zwei Bewerbungen auf die TEST-Tour, damit
  * `/partner/company-tour` → Bewerbungen und Teilnehmende etwas zeigen — Konrad
- * mit Einwilligung und zugesagt (steht unter Teilnehmende) und eine TEST-Person
- * ohne Einwilligung (Zeile ohne Namen). Dazu eine TEST-Frage der Tour-Session,
- * damit die Antwort mit Fragetext erscheint.
+ * mit Einwilligung und zugesagt (steht unter Teilnehmende), eine TEST-Person
+ * ohne Einwilligung (Zeile ohne Namen) und, seit PART-122, eine zweite TEST-Person
+ * mit Einwilligung und vollem Profil (Status, Hochschule, Fach, Ort, LinkedIn):
+ * ihr Name öffnet das Schubfach mit dem Profil. Dazu eine TEST-Frage der
+ * Tour-Session, damit die Antwort mit Fragetext erscheint.
  *
  * **Ohne Mail:** der Status `applied` löst über `trg_application_mail` die Mail
  * `application_received` aus. Deshalb `accepted` und `shortlisted` — solange die
  * Entscheidungen der Session nicht freigegeben sind, geht dabei nichts raus; sind
  * sie es, bricht der Schritt ab. Braucht den Schritt `tour`.
  */
-const tourBewerbungAdresse = () => email.replace("@", "+zztest-tour-1@");
+const tourBewerbungAdresse = (n = 1) => email.replace("@", `+zztest-tour-${n}@`);
 
 async function tourBewerbung(me, ed) {
   const { data: se } = await admin.from("session").select("id")
@@ -1815,7 +1824,7 @@ async function tourBewerbung(me, ed) {
     return;
   }
   if (mode === "dry-run") {
-    note("Tour-Bewerbungen (Konrad zugesagt mit Einwilligung, TEST-Person vorgemerkt ohne Einwilligung, TEST-Frage)");
+    note("Tour-Bewerbungen (Konrad zugesagt mit Einwilligung, TEST-Person vorgemerkt ohne Einwilligung, TEST-Person vorgemerkt mit Einwilligung und Profil, TEST-Frage)");
     return;
   }
   const frageText = `${PREFIX}Was interessiert dich an der Tour?`;
@@ -1848,6 +1857,30 @@ async function tourBewerbung(me, ed) {
     admin.from("application").upsert(
       { session_id: se.id, person_id: personId, status: "shortlisted",
         answers: { [frage.id]: "Bitte nicht weitergeben." }, consent_share: false },
+      { onConflict: "session_id,person_id" },
+    ),
+  );
+
+  // PART-122: die zweite TEST-Person — mit Einwilligung und vollem Profil, damit das Schubfach etwas zeigt:
+  // Status und Fach als Vokabel-Schlüssel (das Portal setzt die Beschriftung ein), Hochschule und Ort als Freitext,
+  // dazu eine LinkedIn-Adresse. Die Angaben stehen nur an TEST-Personen ohne Konto.
+  const { data: profilPersonId, error: ppe } = await admin.rpc("testdaten_person", {
+    p_first_name: "TEST", p_last_name: "Tourbewerbung Profil", p_email: tourBewerbungAdresse(2),
+  });
+  if (ppe || !profilPersonId) {
+    fail("Tour-Bewerbung mit Profil (TEST-Person)", ppe ?? "keine Person");
+    return;
+  }
+  await write("TEST-Angaben im Profil der Tour-Bewerberin (Status, Hochschule, Fach, Ort, LinkedIn)", () =>
+    admin.from("person").update({
+      occupation_status: "master", study_field: "business", university: `${PREFIX}Hochschule`,
+      city: `${PREFIX}Stadt`, linkedin_url: "https://www.linkedin.com/in/zztest",
+    }).eq("id", profilPersonId).eq("first_name", "TEST").is("auth_user_id", null),
+  );
+  await write("TEST-Bewerbung mit Einwilligung und Profil (vorgemerkt)", () =>
+    admin.from("application").upsert(
+      { session_id: se.id, person_id: profilPersonId, status: "shortlisted",
+        answers: { [frage.id]: "Ich möchte sehen, wie ein Stopp der Tour vorbereitet wird." }, consent_share: true },
       { onConflict: "session_id,person_id" },
     ),
   );
@@ -3349,6 +3382,64 @@ async function sideEventsSchritt(me, ed) {
   note("Side Events ausprobieren", "/admin/side-events: zwei Karten (Dinner mit 2 von 10 Plätzen, Entwurf), „Einladungen“ zeigt Konrad und die zwei TEST-Gäste; /speaker: Abschnitt „Side Events“ mit der Karte „Antwort offen“");
 }
 
+/** ADM-085: Kennzeichen der TEST-Sperrzeit und der TEST-Bühne mit Gültigkeitstagen. */
+const SPERRZEIT_GRUND = `${PREFIX}Opening: bis 14:30 keine Slots`;
+const TAG1_BUEHNE_SLUG = "zz-test-nur-tag-1";
+
+/**
+ * ADM-085/LEAD-061/LEAD-062: damit Konrads Konto die Bühnen-Stammdaten sieht, ohne etwas Echtes anzufassen.
+ *
+ * - **Sperrzeit:** `TEST — Opening: bis 14:30 keine Slots` auf der Stage-Lead-Testbühne (`zz-test-stagelead`, Schritt `buehne`), erster
+ *   Summit-Tag 13:00–14:30. Konrad sieht sie unter `/admin/edition` (Karte „Sperrzeiten“), im Board als Schraffur mit dem Grund und
+ *   als Zeile unter der Legende; legt er dort um 14:00 einen Slot an, kommt die Meldung „In diesem Zeitraum sind keine Slots möglich
+ *   (TEST — Opening … · 13:00–14:30)“, um 14:30 geht es.
+ * - **Gültigkeitstage:** eine neue Bühne `TEST — Bühne nur Tag 1` (Hauptbühne, `valid_days` = erster Summit-Tag). Im Gerüst steht nur
+ *   dieser Tag angehakt; am zweiten Tag zeigt das Board keine Spalte für sie.
+ * - Die **gebrandete Bühne** gibt es schon: `Testdaten Partnerbühne` ist eine Bühne mit Partner und steht im Gerüst als „Gebrandete
+ *   Bühne von …“. Der Umschalter „Hauptbühnen“ unter `/admin/programm` und das Stage-Lead-Board zeigen sie mit, die Standbühne und
+ *   die Räume nicht.
+ *
+ * Direkt geschrieben (die Tabelle hat keine Grants, der Service-Key schreibt). Ein zweiter Lauf lässt Vorhandenes stehen.
+ * **Erst nach „Migration live“** von `v6_buehnen_stammdaten`; vorher meldet der Schritt, dass die Tabelle fehlt. `--remove` löscht die
+ * Sperrzeit und die TEST-Bühne (hängt ein Slot daran, bleibt sie).
+ */
+async function sperrzeitSchritt(me, ed) {
+  const sum = await summit(ed);
+  const tag = sum?.tage?.[0]?.day_date;
+  if (!sum || !tag) return fail("Bühnen-Stammdaten", "kein Summit mit Tagen");
+  const { error: tabelle } = await admin.from("stage_blocked_time").select("id").limit(1);
+  if (tabelle) return fail("Bühnen-Stammdaten", `Tabelle fehlt (${tabelle.message}) — Migration v6_buehnen_stammdaten noch nicht live`);
+  const { data: lead } = await admin.from("stage").select("id").eq("event_id", sum.id).eq("slug", "zz-test-stagelead").maybeSingle();
+  if (!lead) return fail("Sperrzeit", "keine Stage-Lead-Testbühne — zuerst --nur=buehne");
+
+  const { data: da } = await admin.from("stage_blocked_time").select("id").eq("event_id", sum.id).eq("reason", SPERRZEIT_GRUND).maybeSingle();
+  if (da) {
+    note("Sperrzeit", "schon da");
+  } else {
+    // Ortszeit Hamburg im April: UTC+2 (wie die übrigen Schritte).
+    await write("Sperrzeit TEST-Opening (erster Tag, 13:00–14:30, Stage-Lead-Testbühne)", () =>
+      admin.from("stage_blocked_time").insert({
+        event_id: sum.id, stage_id: lead.id,
+        starts_at: new Date(`${tag}T13:00:00+02:00`).toISOString(), ends_at: new Date(`${tag}T14:30:00+02:00`).toISOString(),
+        reason: SPERRZEIT_GRUND, created_by: me.id,
+      }),
+    );
+  }
+
+  const { data: buehne } = await admin.from("stage").select("id").eq("event_id", sum.id).eq("slug", TAG1_BUEHNE_SLUG).maybeSingle();
+  if (buehne) {
+    note("Bühne nur Tag 1", "schon da");
+  } else {
+    await write(`${PREFIX}Bühne nur Tag 1 (Hauptbühne, gilt nur am ersten Tag)`, () =>
+      admin.from("stage").insert({
+        event_id: sum.id, name: `${PREFIX}Bühne nur Tag 1`, slug: TAG1_BUEHNE_SLUG, type: "main",
+        capacity: 40, default_duration_min: 30, sort_order: 90, active: true, valid_days: [tag],
+      }),
+    );
+  }
+  note("Bühnen-Stammdaten ausprobieren", "/admin/edition: Karte „Sperrzeiten“ und die Spalte „Gilt an“ der Bühnen; /admin/programm: Schraffur auf der Stage-Lead-Testbühne am ersten Tag, Umschalter „Hauptbühnen“; /speaker-leads/board zeigt nur Hauptbühnen");
+}
+
 /** ADM-072: so erkennt man im Admin und beim Aufräumen die drei wartenden TEST-Freigaben. */
 const FREIGABE_HINWEIS = `${PREFIX}nur zum Ausprobieren der Freigabe`;
 /**
@@ -3574,6 +3665,7 @@ const SCHRITTE = {
   freigaben: freigabenSchritt,
   begleitung: begleitungSchritt,
   "side-events": sideEventsSchritt,
+  sperrzeit: sperrzeitSchritt,
   buehne: stageLeadBuehne,
   standstatus: standStatus,
   verwaltet: verwalteterSpeaker,
@@ -3791,11 +3883,12 @@ async function remove(me) {
   // PART-091: der verwaltete TEST-Speaker. Profil, Kontakt und Zuordnung hängen mit
   // ON DELETE CASCADE an der Person; Konrads Rolle `speaker_assistant` geht mit den Rollen.
   // PART-046: die TEST-Person der Tour-Bewerbung; ihre Bewerbung hängt mit ON DELETE CASCADE an ihr.
-  await write("Tour-Bewerbung ohne Einwilligung entfernt", async () => {
-    const { data: adresse } = await admin.from("person_email").select("person_id")
-      .eq("email", tourBewerbungAdresse()).maybeSingle();
-    if (!adresse) return { data: null, error: null };
-    return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
+  await write("Tour-Bewerbungen der TEST-Personen entfernt (ohne Einwilligung, mit Profil)", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", [1, 2].map((n) => tourBewerbungAdresse(n)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
   // ADM-003: die TEST-Personen der Bewerbungsliste; ihre Bewerbungen hängen mit ON DELETE CASCADE
   // an ihnen, die Sessions gehen oben mit dem Präfix.
@@ -3822,6 +3915,16 @@ async function remove(me) {
     if (ids.length === 0) return { data: null, error: null };
     // Profile und Adressen hängen mit ON DELETE CASCADE an der Person.
     return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  // ADM-085: die TEST-Sperrzeit und die TEST-Bühne mit Gültigkeitstagen (hängt ein Slot daran, bleibt die Bühne). Vor Migration live gibt es die
+  // Tabelle nicht — dann meldet das Löschen einen Fehler, der hier bewusst nicht abbricht.
+  await write("TEST-Sperrzeit entfernt", () => admin.from("stage_blocked_time").delete().like("reason", `${PREFIX}%`));
+  await write("TEST-Bühne nur Tag 1 entfernt (nur ohne Slots)", async () => {
+    const { data: b } = await admin.from("stage").select("id").eq("slug", TAG1_BUEHNE_SLUG).maybeSingle();
+    if (!b) return { data: null, error: null };
+    const { count } = await admin.from("slot").select("id", { count: "exact", head: true }).eq("stage_id", b.id);
+    if ((count ?? 0) > 0) return { data: null, error: null };
+    return admin.from("stage").delete().eq("id", b.id);
   });
   // ADM-077: die Side Events (die Einladungen gehen per Kaskade mit) und die zwei TEST-Gäste, deren Profile an der Person hängen.
   await write("TEST-Side-Events entfernt (Einladungen gehen mit)", () =>

@@ -42,6 +42,9 @@ begin
   if not found then
     raise exception 'no event day for % on this stage', p_start using errcode = '22023';
   end if;
+  -- ADM-085: Gültigkeitstage der Zielbühne und Sperrzeiten — **vor** der Rückfrage zur Veröffentlichung, damit niemand erst
+  -- bestätigt und dann abgewiesen wird. Sperrzeiten gelten für Inhalts-Slots; Rahmen und feste Blöcke bleiben frei.
+  perform stage_slot_check(p_stage_id, p_start, p_end, v_slot.slot_type);
   select exists (select 1 from session se where se.slot_id = p_slot_id and se.publish_status = 'published')
     into v_published;
   if v_published and not p_confirm then

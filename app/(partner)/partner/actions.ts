@@ -9,6 +9,7 @@ import type { UpdateContactInput } from "@/components/partner/contacts";
 import type { GastAenderung, GastErgebnis, GastFoto, GastNeu } from "@/components/partner/gaeste";
 import { gastAendern, gastAnlegen, gastEntfernen, gastFotoRegistrieren, gastZuordnen } from "@/lib/partner/gaeste";
 import { ORG_COOKIE } from "./org";
+import { istPartnerEntscheidung } from "./types";
 
 /**
  * Partner-Portal. Alles über die RPCs aus A3/A4 mit dem Session-Client —
@@ -246,6 +247,9 @@ export async function decideApplication(
   rank?: number | null,
 ): Promise<PartnerResult> {
   const supabase = await client();
+  // PART-123: der Partner-Bereich kennt keine „Engere Wahl“. Die Datenbank erlaubt sie (das Team nutzt sie im
+  // Admin); hier kommt sie nicht durch — eine veraltete Seite im Browser oder ein selbst gebauter Aufruf.
+  if (!istPartnerEntscheidung(status)) return { ok: false, key: "invalid_decision", detail: status };
   const { error } = await supabase.rpc("decide_application", {
     p_application_id: applicationId,
     p_status: status,

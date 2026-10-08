@@ -26,6 +26,9 @@ begin
     raise exception 'no event day for % on this stage', p_start using errcode = '22023';
   end if;
 
+  -- ADM-085: Gültigkeitstage der Bühne und Sperrzeiten (nur Inhalts-Slots) — hart für alle, der Grund steht im detail.
+  perform stage_slot_check(p_stage_id, p_start, p_end, p_slot_type);
+
   -- Tagesrahmen (LEAD-016): für Stage Leads hart, für das Programm-Team eine
   -- Warnung wie bisher. Ohne Rahmen keine Grenze (siehe Kopf).
   select * into v_sd from stage_day where stage_id = p_stage_id and event_day_id = v_day.id;

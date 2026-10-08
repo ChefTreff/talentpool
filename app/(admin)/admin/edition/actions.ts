@@ -64,6 +64,25 @@ export async function saveStageDay(data: Record<string, unknown>) {
   return rpc("upsert_stage_day", { p_data: data });
 }
 
+/**
+ * Sperrzeit anlegen oder ändern (ADM-085, LEAD-062). Die Antwort sagt, wie viele **vorhandene** Inhalts-Slots schon in der Sperrzeit
+ * liegen — sie bleiben, werden aber beim nächsten Verschieben geprüft. Recht und Eingabeprüfung liegen in `upsert_stage_blocked_time`.
+ */
+export async function saveBlockedTime(
+  data: Record<string, unknown>,
+): Promise<EditionResult<{ id: string; affected: number }>> {
+  const supabase = await client();
+  const { data: antwort, error } = await supabase.rpc("upsert_stage_blocked_time", { p_data: data });
+  if (error) return fail(error);
+  refresh();
+  const r = (antwort ?? {}) as { id?: string; affected?: number };
+  return { ok: true, data: { id: r.id ?? "", affected: typeof r.affected === "number" ? r.affected : 0 } };
+}
+
+export async function removeBlockedTime(id: string) {
+  return rpc("delete_stage_blocked_time", { p_id: id });
+}
+
 export async function saveTrack(data: Record<string, unknown>) {
   return rpc("upsert_track", { p_data: data });
 }
