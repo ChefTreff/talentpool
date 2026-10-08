@@ -78,7 +78,7 @@ const DOMAINS = [
     name: "Inhalte, Kommunikation, Stammdaten, Integration",
     tables: [
       "kb_article", "mail_log", "mail_template", "portal_video", "edition_contact", "edition_file",
-      "edition_info", "vocab_term", "external_ref",
+      "vocab_term", "external_ref",
     ],
   },
 ];

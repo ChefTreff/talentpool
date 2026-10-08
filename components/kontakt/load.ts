@@ -14,15 +14,6 @@ export type MeinKontakt = {
   via: string;
 };
 
-export type EditionInfo = {
-  key: string;
-  label_de: string | null;
-  label_en: string | null;
-  value_de: string | null;
-  value_en: string | null;
-  sort_order: number;
-};
-
 // `contactPhotoUrl` steht in `photo.ts` — diese Datei zieht den Server-Client
 // herein und ist aus einer Client-Komponente nicht importierbar.
 export { contactPhotoUrl } from "./photo";
@@ -39,20 +30,4 @@ export async function loadMyContacts(editionId?: string | null): Promise<MeinKon
     return [];
   }
   return (data ?? []) as MeinKontakt[];
-}
-
-/** Allgemeine Auskünfte für eine Zielgruppe. 42501 heisst: nicht zuständig. */
-export async function loadEditionInfos(audience: string, editionId?: string | null): Promise<EditionInfo[]> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("edition_infos", {
-    p_audience: audience,
-    p_edition_id: editionId ?? null,
-  });
-  if (error) {
-    if (error.code !== "42501" && error.code !== "28000") {
-      console.error("[kontakt] edition_infos:", error.message);
-    }
-    return [];
-  }
-  return (data ?? []) as EditionInfo[];
 }
