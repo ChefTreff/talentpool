@@ -1,8 +1,7 @@
 -- Smoke-Test PORT4b (Zugaenge sperren statt loeschen). Belegt:
---   01 **alle sechs** Rechtefunktionen kennen die Sperre. Eine, die sie nicht
+--   01 **alle fünf** Rechtefunktionen kennen die Sperre (`can_edit_edition_info` entfiel mit `v6_auskuenfte_weg`). Eine, die sie nicht
 --      kennt, waere ein offenes Tor neben einer verschlossenen Tuer:
---      `has_role`, `active_roles`, `my_roles`, `is_kiosk_only`, `checkin_edition`,
---      `can_edit_edition_info`;
+--      `has_role`, `active_roles`, `my_roles`, `is_kiosk_only`, `checkin_edition`;
 --   02 entsperren stellt **alles** wieder her — `role_assignment` wurde nicht
 --      angefasst, sonst waere die Sperre eine Loeschung mit anderem Namen;
 --   03 die Person und ihre Geschichte bleiben: Zeile, Name, Mailadresse da;
@@ -47,8 +46,7 @@ begin
     'has_role=' || has_role('admin')::text
     || ', active=' || (select count(*) from active_roles())::text
     || ', my_roles=' || (select count(*) from my_roles())::text
-    || ', checkin_ed=' || (checkin_edition() is not null)::text
-    || ', edition_info=' || can_edit_edition_info()::text);
+    || ', checkin_ed=' || (checkin_edition() is not null)::text);
   -- `is_kiosk_only` ist nur wahr, wenn **ausschliesslich** die Kiosk-Rolle da
   -- ist. Mit der Admin-Rolle daneben waere die Pruefung in beiden Richtungen
   -- false und bewiese nichts — deshalb eigens ohne sie.
@@ -76,8 +74,7 @@ begin
     'has_role=' || has_role('admin')::text
     || ', active=' || (select count(*) from active_roles())::text
     || ', my_roles=' || (select count(*) from my_roles())::text
-    || ', checkin_ed=' || (checkin_edition() is not null)::text
-    || ', edition_info=' || can_edit_edition_info()::text);
+    || ', checkin_ed=' || (checkin_edition() is not null)::text);
 
   -- 03 die Person bleibt
   perform set_config('request.jwt.claims', '', true);
@@ -141,7 +138,7 @@ select * from t_res order by step;
 rollback;
 
 -- Lauf 26.09.2026 gegen jqmqvgaiyjudkvtncijw (Probelauf, zurueckgerollt): 13/13 gruen.
---   01a vorher has_role=true, active=2, my_roles=2, checkin_ed=true, edition_info=true;
+--   01a vorher has_role=true, active=2, my_roles=2, checkin_ed=true;
 --   01b gesperrt: alle fuenf false bzw. 0;
 --   01c kiosk vorher true, 01d gesperrt false (eigens ohne admin-Rolle geprueft,
 --       sonst waere is_kiosk_only in beiden Richtungen false und bewiese nichts);

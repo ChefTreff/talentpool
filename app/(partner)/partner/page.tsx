@@ -11,17 +11,17 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { PhotoCard } from "@/components/ui/PhotoCard";
-import { InfoList, type InfoEintrag } from "@/components/ui/InfoList";
 import { Fortschritt } from "@/components/ui/Fortschritt";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
-import { loadEditionInfos, loadMyContacts } from "@/components/kontakt/load";
+import { loadMyContacts } from "@/components/kontakt/load";
 import { Anfahrt } from "@/components/kontakt/Anfahrt";
 import { RUNDGANG_SCHLUESSEL, rundgangAus } from "@/components/partner/rundgang-adresse";
+import { naechsteFrist, naechsteZeilen, ordneFristen } from "@/components/partner/fristen-aufgaben";
 import { loadPortalLink } from "@/lib/portal-link/load";
+import { loadFristVorlagen } from "@/lib/partner/vorlagen";
 import { OnboardingNudge } from "./OnboardingNudge";
 import { visibleNavKeys } from "./nav";
 import { getPartnerScope } from "./org";
-import { FristenListe, fristTitel, fristenAuswahl } from "./fristen";
 import { ChecklistView } from "./checkliste/ChecklistView";
 import { canEditOnboarding, orgLabel, type Deliverable, type PartnerOverview } from "./types";
 
@@ -29,23 +29,8 @@ export const dynamic = "force-dynamic";
 
 const PARTNER_MAILBOX = "partner@chef-treff.de";
 
-/**
- * Die nächsten offenen Aufgaben für die Übersicht (PART-056): was noch zu tun
- * ist (offen, zurückgewiesen, überfällig), Zurückgewiesenes und Überfälliges
- * zuerst, dann nach Frist, ohne Frist zuletzt.
- */
-function naechsteOffene(deliverables: Deliverable[], anzahl: number): Deliverable[] {
-  const rang = (d: Deliverable) => (d.status === "rejected" ? 0 : d.status === "overdue" ? 1 : 2);
-  return deliverables
-    .filter((d) => d.status === "open" || d.status === "rejected" || d.status === "overdue")
-    .sort(
-      (a, b) =>
-        rang(a) - rang(b) ||
-        (a.due_at ?? "9999").localeCompare(b.due_at ?? "9999") ||
-        a.sort - b.sort,
-    )
-    .slice(0, anzahl);
-}
+/** So viele Zeilen zeigt die Übersicht; die ganze Liste steht auf der Checkliste. */
+const ZEILEN_UEBERSICHT = 6;
 
 /**
  * Die Startseite des Partner-Bereichs — **Archetyp D · Übersicht**
@@ -92,7 +77,7 @@ export default async function PartnerDashboard() {
   }
 
   const supabase = await createSupabaseServerClient();
-  const [{ data: overviewJson }, { data: deliverableRows }, vocab, kontakte, infos, tourLink] = await Promise.all([
+  const [{ data: overviewJson }, { data: deliverableRows }, vorlagen, vocab, kontakte, tourLink] = await Promise.all([
     supabase.rpc("partner_overview", {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
@@ -102,9 +87,10 @@ export default async function PartnerDashboard() {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
     }),
+    // PART-099: welche Aufgabe an welcher Frist der Edition hängt.
+    loadFristVorlagen(supabase),
     loadVocabMap(supabase, locale),
     loadMyContacts(current.edition_id),
-    loadEditionInfos("partner", current.edition_id),
     // PART-093: der 3D-Rundgang aus Admin → Medien → Links; ohne Eintrag fehlt der Kasten.
     loadPortalLink(RUNDGANG_SCHLUESSEL, "partner", current.edition_id),
   ]);
@@ -124,17 +110,17 @@ export default async function PartnerDashboard() {
     day: "numeric",
     month: "short",
   });
-  const naechsteAufgaben = naechsteOffene((deliverableRows ?? []) as Deliverable[], 5);
+  // PART-099: Aufgaben und Fristen sind eine Liste. Jede Aufgabe trägt ihre Frist, eine Frist ohne
+  // Aufgabe dieses Partners steht als eigene Zeile da, und das Band nennt die nächste Frist aus
+  // derselben Liste. `new Date().getTime()` statt `Date.now()`: der Zeitbezug einer `force-dynamic`-
+  // Seite ist gewollt (Regel `react-hooks/purity`, wie auf Tickets und Messestand).
+  const jetzt = new Date().getTime();
+  const aufgaben = (deliverableRows ?? []) as Deliverable[];
+  const zuordnung = ordneFristen(aufgaben, o.deadlines, vorlagen);
+  const zeilen = naechsteZeilen(aufgaben, zuordnung.ohneAufgabe, jetzt, ZEILEN_UEBERSICHT);
+  const naechste = naechsteFrist(aufgaben, zuordnung, jetzt, locale);
   const productName = (p: { name_de: string | null; name_en: string | null }) =>
     (locale === "en" ? p.name_en : p.name_de) ?? p.name_de ?? p.name_en ?? "—";
-
-  const zeiten: InfoEintrag[] = infos
-    .map((i) => ({
-      key: i.key,
-      label: (locale === "en" ? i.label_en : i.label_de) ?? i.label_de ?? i.label_en ?? i.key,
-      value: (locale === "en" ? i.value_en : i.value_de) ?? i.value_de ?? i.value_en ?? "",
-    }))
-    .filter((i) => i.value !== "");
 
   const tickets = o.ticket_allocations.reduce(
     (acc, a) => ({ used: acc.used + a.used_count, total: acc.total + a.quantity }),
@@ -150,7 +136,6 @@ export default async function PartnerDashboard() {
   const onboardingOffen = status !== "filled" && status !== "call_done";
   const darfOnboarding = canEditOnboarding(o.roles, o.team);
 
-  const { fristen, naechste, jetzt } = fristenAuswahl(o.deadlines, 4);
   /**
    * Das Lunch-Paket ist ein Angebot, kein Muss (PART-049). Der Hinweis steht
    * hier, solange seine Frist läuft — ist sie vorbei, hilft er niemandem mehr.
@@ -159,6 +144,7 @@ export default async function PartnerDashboard() {
   const lunchOffen = o.deadlines.some(
     (d) => d.key === "lunch_package" && d.due_at && new Date(d.due_at) > new Date(),
   );
+  const lunchInListe = zeilen.some((z) => z.art === "aufgabe" && z.aufgabe.key === "lunch_package");
 
   // Begrüsst wird die Person, die hier arbeitet — `session_context()` kennt
   // ihren Vornamen, ohne dass die Seite eine eigene Abfrage braucht.
@@ -200,41 +186,39 @@ export default async function PartnerDashboard() {
       has_allocations: o.ticket_allocations.length > 0,
     }),
   );
+  // PART-098 (Konrad 05.10.): die Karte trägt den **Namen des Bereichs** als Überschrift — Tickets,
+  // Event-App, Messeshop — und keine zweite darunter. Vorher stand ein Stichwort darüber („Zugang“,
+  // „Sichtbarkeit“, „Ausstattung“) und der Name des Bereichs noch einmal darunter.
   const einstiege = [
     sichtbar.has("tickets")
       ? {
           href: "/partner/tickets",
-          word: t.partner.wordAccess,
-          title: t.partnerTickets.title,
+          name: t.partnerTickets.title,
           body: t.partner.entryTicketsBody,
           action: t.partner.entryTicketsAction,
         }
       : {
           href: "/partner/kontakte",
-          word: t.partner.wordTeam,
-          title: t.partnerContacts.title,
+          name: t.partnerContacts.title,
           body: t.partner.entryTeamBody,
           action: t.partner.entryTeamAction,
         },
     {
       href: "/partner/event-app",
-      word: t.partner.wordVisibility,
-      title: t.partnerEventApp.title,
+      name: t.partnerEventApp.title,
       body: t.partner.entryEventAppBody,
       action: t.partner.entryEventAppAction,
     },
     sichtbar.has("shop")
       ? {
           href: "/partner/shop",
-          word: t.partner.wordEquipment,
-          title: t.partnerShop.title,
+          name: t.partnerShop.title,
           body: t.partner.entryShopBody,
           action: t.partner.entryShopAction,
         }
       : {
           href: "/partner/wiki",
-          word: t.wiki.word,
-          title: t.partner.navWiki,
+          name: t.partner.navWiki,
           body: t.partner.entryWikiBody,
           action: t.partner.entryWikiAction,
         },
@@ -263,9 +247,9 @@ export default async function PartnerDashboard() {
         action={band.action}
         aside={
           <BandStat
-            value={naechste ? kurzDatum.format(new Date(naechste.due_at!)) : "—"}
+            value={naechste ? kurzDatum.format(new Date(naechste.dueAt)) : "—"}
             label={t.partner.bandStatLabel}
-            hint={naechste ? fristTitel(naechste, locale) : t.partner.bandStatNone}
+            hint={naechste ? naechste.titel : t.partner.bandStatNone}
           />
         }
       />
@@ -273,13 +257,13 @@ export default async function PartnerDashboard() {
       {/* Die drei Einstiege (Talent-Muster, QS-037). Welche es sind, folgt
           aus dem, was dieser Partner sieht — dieselbe Regel wie das Menü
           (`visibleNavKeys`): eine Karte zu einer Seite, die es für ihn nicht
-          gibt, wäre ein Versprechen ins Leere. */}
+          gibt, wäre ein Versprechen ins Leere. Die Knöpfe stehen auf einer
+          Linie, auch bei verschieden langen Texten (PART-098, `PhotoCard`). */}
       <div className="mb-10 grid gap-6 sm:grid-cols-3">
         {einstiege.map((e) => (
           <PhotoCard
             key={e.href}
-            word={e.word}
-            title={e.title}
+            word={e.name}
             description={e.body}
             action={
               <ButtonLink href={e.href} variant="secondary" size="sm">
@@ -317,14 +301,14 @@ export default async function PartnerDashboard() {
         <StatCard label={t.partner.statContacts} value={o.contacts_count} />
       </div>
 
-      {/* PART-056/057: „Eure Pflichten“ und „Fristen“ in einem Abschnitt. Links die
-          nächsten offenen Aufgaben — dieselbe Liste wie auf der Checkliste, also
-          gleich hier abhakbar —, rechts die Fristen; „Alle Fristen“ führt zu
-          ihrem Abschnitt auf der Checkliste, wo sie jetzt auch stehen. */}
+      {/* PART-056/099: die nächsten Aufgaben — dieselbe Liste wie auf der Checkliste, also gleich hier
+          abhakbar. Die Fristen sind die Fristen dieser Aufgaben und stehen an ihnen; eine Frist, an der
+          keine Aufgabe dieses Partners hängt, reiht sich als Zeile ein. Es gibt keine zweite Liste
+          „Fristen“ mehr, und „Ganze Checkliste“ führt zu allem. */}
       <section aria-labelledby="aufgaben-fristen" className="mb-8">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
           <h2 id="aufgaben-fristen" className="ct-h2 text-ink">
-            {t.partner.tasksSectionTitle}
+            {t.partner.nextTasksTitle}
           </h2>
           {/* Der Stand als gemeinsamer Balken mit Zahl (QS-038), rechts im Kopf
               des Abschnitts; die überfälligen stehen als Wort dahinter. */}
@@ -344,73 +328,50 @@ export default async function PartnerDashboard() {
             )}
           </div>
         </div>
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <h3 className="ct-h3 mb-2 text-ink">{t.partner.nextTasksTitle}</h3>
-            {naechsteAufgaben.length === 0 ? (
-              <Card>
-                <p className="ct-help">
-                  {o.checklist.total > 0 ? t.partner.nextTasksNone : t.partnerChecklist.emptyBody}
-                </p>
-              </Card>
-            ) : (
-              <ChecklistView
-                orgId={current.org_id}
-                editionId={current.edition_id}
-                groups={[{ sku: null, label: t.partner.nextTasksTitle, items: naechsteAufgaben }]}
-                booth={o.booth}
-                canEdit={darfOnboarding}
-                variant="naechste"
-                locale={locale}
-                dateLocale={t.meta.dateLocale}
-                fristTexte={{
-                  label: t.partnerChecklist.deadlineLabel,
-                  days: t.partner.countdownDays,
-                  hours: t.partner.countdownHours,
-                  soon: t.partner.countdownSoon,
-                  passed: t.common.deadlinePassed,
-                  done: t.common.deadlineDone,
-                }}
-                t={t.partnerChecklist}
-                rpcMessages={t.rpc}
-              />
-            )}
-            <Link href="/partner/checkliste" className="ct-link mt-3 inline-block">
-              {t.partner.nextTasksAll}
-            </Link>
-            {/* PART-049: Das Lunch-Paket soll jeder Partner sehen, ohne dafür in
-                den Messeshop zu gehen — solange es offen ist und nicht ohnehin
-                unter den nächsten Aufgaben steht. */}
-            {lunchOffen && !naechsteAufgaben.some((d) => d.key === "lunch_package") && (
-              <div className="mt-4 border-t border-border pt-3">
-                <h4 className="ct-label text-ink">{t.partner.lunchCardTitle}</h4>
-                <p className="ct-help mt-1">{t.partner.lunchCardBody}</p>
-                <Link href="/partner/checkliste" className="ct-link mt-2 inline-block">
-                  {t.partner.lunchCardAction}
-                </Link>
-              </div>
-            )}
-          </div>
-          <div>
-            <h3 className="ct-h3 mb-2 text-ink">{t.partner.deadlinesTitle}</h3>
-            <Card className="p-0">
-              {fristen.length === 0 ? (
-                <p className="ct-help px-4 py-6">{t.partner.deadlinesNone}</p>
-              ) : (
-                <FristenListe
-                  fristen={fristen}
-                  jetzt={jetzt}
-                  locale={locale}
-                  dateLocale={t.meta.dateLocale}
-                  overdueLabel={t.partner.deadlineOverdue}
-                />
-              )}
-            </Card>
-            <Link href="/partner/checkliste#fristen" className="ct-link mt-3 inline-block">
-              {t.partner.deadlinesAll}
+        {zeilen.length === 0 ? (
+          <Card>
+            <p className="ct-help">
+              {o.checklist.total > 0 ? t.partner.nextTasksNone : t.partnerChecklist.emptyBody}
+            </p>
+          </Card>
+        ) : (
+          <ChecklistView
+            orgId={current.org_id}
+            editionId={current.edition_id}
+            groups={[{ sku: null, label: t.partner.nextTasksTitle, zeilen }]}
+            fristVon={zuordnung.fristVon}
+            booth={o.booth}
+            canEdit={darfOnboarding}
+            variant="naechste"
+            locale={locale}
+            dateLocale={t.meta.dateLocale}
+            fristTexte={{
+              label: t.partnerChecklist.deadlineLabel,
+              days: t.partner.countdownDays,
+              hours: t.partner.countdownHours,
+              soon: t.partner.countdownSoon,
+              passed: t.common.deadlinePassed,
+              done: t.common.deadlineDone,
+            }}
+            t={t.partnerChecklist}
+            rpcMessages={t.rpc}
+          />
+        )}
+        <Link href="/partner/checkliste" className="ct-link mt-3 inline-block">
+          {t.partner.nextTasksAll}
+        </Link>
+        {/* PART-049: Das Lunch-Paket soll jeder Partner sehen, ohne dafür in
+            den Messeshop zu gehen — solange es offen ist und nicht ohnehin
+            unter den nächsten Aufgaben steht. */}
+        {lunchOffen && !lunchInListe && (
+          <div className="mt-4 border-t border-border pt-3">
+            <h3 className="ct-label text-ink">{t.partner.lunchCardTitle}</h3>
+            <p className="ct-help mt-1">{t.partner.lunchCardBody}</p>
+            <Link href="/partner/checkliste" className="ct-link mt-2 inline-block">
+              {t.partner.lunchCardAction}
             </Link>
           </div>
-        </div>
+        )}
       </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -448,21 +409,6 @@ export default async function PartnerDashboard() {
           lead={t.partner.contactLead}
           buddy={t.partner.contactBuddy}
         />
-
-        {zeiten.length > 0 && (
-          <section className="flex flex-col gap-3">
-            <h2 className="ct-h2">{t.partner.timesTitle}</h2>
-            <Card>
-              <InfoList items={zeiten} />
-              <p className="ct-help mt-4">
-                {t.partner.timesWikiHint}{" "}
-                <Link className="ct-link" href="/partner/wiki">
-                  {t.partner.navWiki}
-                </Link>
-              </p>
-            </Card>
-          </section>
-        )}
 
         {/* PART-093: der Rundgang durch den Summit, nur wo es den Messestand gibt — dieselbe Regel wie das
             Menü (`sichtbar`): ein Knopf zu einer Seite, die der Partner nicht sieht, wäre ein Versprechen

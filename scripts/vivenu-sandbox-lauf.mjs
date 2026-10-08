@@ -9,6 +9,7 @@
  *   …                                                          shops        # Undershops und Coupons lesen
  *   …                                                          freiticket   # anlegen, Id merken
  *   …                                                          kette        # SPK-068: ganze Kette an Konrads Freiticket
+ *   …                                                          kontingent-probe  # PART-111: hält der Shop die Menge je Kategorie? (nur Sandbox)
  *   …                                                          storno <ticketId>
  *
  * Regeln für das Dev-Event (Konrads Vorgabe): **nichts löschen, was Konrad
@@ -343,6 +344,196 @@ const steps = {
     if (f3) throw new Error(`event_app_speakers: ${f3.message}`);
     const drin = (sp ?? []).filter((r) => String(r.email ?? "").toLowerCase() === String(z.holder_email ?? "").toLowerCase());
     console.log(`6 Swapcard-Export: ${(sp ?? []).length} Speaker, davon Konrad ${drin.length ? "enthalten" : "NICHT enthalten"}`);
+  },
+
+  /**
+   * **Kontingent-Probe (PART-111): hält der Undershop die Menge je Kategorie, wenn ein einziger Coupon
+   * mehr erlaubt?**
+   *
+   * „Ein Code für alle Kategorien“ heißt: ein Coupon je Organisation mit `maxTickets` als Summe und
+   * `allowedTickets` als Vereinigung der Kategorien. Die Grenze je Kategorie soll dann der Undershop
+   * halten — seine Zeilen tragen `amount` je Tickettyp (`inventoryStrategy: independent`). Ob vivenu das
+   * beim Anlegen eines Warenkorbs wirklich durchsetzt, steht im Code und im Runbook, ist aber nicht
+   * belegt. Dieser Schritt belegt es:
+   *
+   * Er legt einen Undershop mit zwei Zeilen an (Typ A: 2 Stück, Typ B: 3 Stück, alle übrigen Typen des
+   * Events geschlossen) und einen Coupon, der für beide Typen bis zu 10 Stück erlaubt — also mehr, als die
+   * Zeilen hergeben. Dann legt er Warenkörbe an (`POST /checkout`; nichts wird bezahlt oder abgeschlossen,
+   * jeder Warenkorb wird sofort wieder abgebrochen): bis zur Zeilengrenze muss es klappen, **ein Stück
+   * darüber muss abgelehnt werden** — auch bei einem einzelnen Typ, an dem die Summe des Shops und der
+   * Coupon noch Platz ließen.
+   *
+   * Nur gegen die Sandbox. Alles trägt den Präfix `ZZTEST`. Am Ende — auch nach einem Fehler — werden die
+   * Warenkörbe abgebrochen, der Coupon abgeschaltet (vivenu kennt kein Löschen von Coupons) und der
+   * Undershop entfernt; Konrads Undershops, Coupons und Tickettypen bleiben unberührt. Während der Schritt
+   * läuft, darf der Cron `/api/cron/vivenu-allocations` nicht schreiben (beide ersetzen das ganze
+   * `underShops`-Array des Events); Kollisionen erkennt man an einer Fehlermeldung, dann Schritt wiederholen.
+   *
+   * Ausgabe nur Zahlen und Zustände: keine Schlüssel, keine Ids, keine Warenkorb-Geheimnisse.
+   */
+  async "kontingent-probe"() {
+    if (!sandbox) throw new Error("kontingent-probe läuft nur gegen die Sandbox (VIVENU_SANDBOX=true).");
+    const ed = await edition();
+    const eventId = ed.vivenu_event_id;
+    const eventPfad = `/events/${encodeURIComponent(eventId)}`;
+    const ev = await vv(eventPfad);
+    const typen = (ev.tickets ?? []).filter((t) => t.active !== false && !String(t.name ?? "").startsWith(MARK));
+    if (typen.length < 2) throw new Error("Das Event braucht mindestens zwei aktive Tickettypen.");
+    const [a, b] = typen;
+    const idA = String(a._id);
+    const idB = String(b._id);
+    const MENGE_A = 2;
+    const MENGE_B = 3;
+    const COUPON_MAX = 10;
+    const stempel = Date.now().toString(36);
+    const shopName = `${MARK} Kontingent-Probe ${stempel}`;
+    const code = `${MARK}-PROBE-${stempel.toUpperCase()}`;
+    // Ids und Zeilenumbrüche aus Fehlertexten nehmen: ausgegeben werden nur Zahlen und Zustände.
+    const maskiere = (text) => String(text ?? "").replace(/[0-9a-f]{24}/gi, "<id>").replace(/\s+/g, " ").slice(0, 160);
+
+    const offen = [];
+    const ergebnisse = [];
+    let couponId = null;
+    let couponFelder = null;
+
+    /** Einen Warenkorb abbrechen — das Geheimnis kommt aus der Antwort und wird nie ausgegeben. */
+    const abbrechen = async (k) => {
+      try {
+        const antwort = await vv(`/checkout/${encodeURIComponent(k.id)}/abort`, { method: "POST", body: JSON.stringify({ secret: k.secret }) });
+        k.erledigt = true;
+        return antwort.status ?? "?";
+      } catch (e) {
+        return `Fehler ${maskiere(e.message)}`;
+      }
+    };
+
+    try {
+      // 1 Undershop: ein Lesen-Ändern-Schreiben des ganzen Arrays, wie in lib/vivenu/allocations.ts
+      const fenster = {};
+      if (typeof ev.sellStart === "string") fenster.sellStart = ev.sellStart;
+      if (typeof ev.sellEnd === "string") fenster.sellEnd = ev.sellEnd;
+      const zeile = (t, amount, aktiv) => ({
+        baseTicket: String(t._id),
+        name: String(t.name ?? "Ticket"),
+        price: aktiv ? 0 : typeof t.price === "number" ? t.price : 0,
+        amount,
+        active: aktiv,
+      });
+      const geschlossen = (ev.tickets ?? []).filter((t) => ![idA, idB].includes(String(t._id))).map((t) => zeile(t, 0, false));
+      const shop = {
+        name: shopName,
+        active: true,
+        unlockMode: "couponCode",
+        maxAmount: MENGE_A + MENGE_B,
+        maxAmountPerOrder: MENGE_A + MENGE_B,
+        ...fenster,
+        tickets: [zeile(a, MENGE_A, true), zeile(b, MENGE_B, true), ...geschlossen],
+      };
+      await vv(eventPfad, { method: "PUT", body: JSON.stringify({ underShops: [...(ev.underShops ?? []), shop] }) });
+      const nach = await vv(eventPfad);
+      const unser = (nach.underShops ?? []).find((s) => s.name === shopName);
+      if (!unser?._id) throw new Error("Undershop ohne _id in der Antwort");
+      console.log(`Undershop angelegt: Typ A ${MENGE_A} Stück, Typ B ${MENGE_B} Stück, Summe ${MENGE_A + MENGE_B}, ${geschlossen.length} übrige Typen geschlossen`);
+
+      // 2 Coupon: erlaubt beide Typen bis COUPON_MAX — mehr, als die Zeilen hergeben
+      couponFelder = {
+        name: `${MARK} Kontingent-Probe`,
+        discountType: "var",
+        discountValue: 1,
+        maxUsage: COUPON_MAX,
+        maxTickets: COUPON_MAX,
+        singleUsage: false,
+        allowAllEvents: false,
+        allowedEvents: [eventId],
+        allowAllTickets: false,
+        allowedTickets: [idA, idB],
+        unlocks: [{ target: "underShop", eventId, underShopId: String(unser._id) }],
+      };
+      const coupon = await vv(`/coupon`, { method: "POST", body: JSON.stringify({ ...couponFelder, code, active: true }) });
+      couponId = String(coupon._id);
+      console.log(`Coupon angelegt: beide Typen bis ${COUPON_MAX} Stück, Rabatt 100 %\n`);
+
+      // 3 Versuche. Die ersten Versuche je Typ gehen durch (Gegenprobe: der Shop verkauft überhaupt),
+      //   die darüber müssen scheitern — sonst hielte die Zeile die Menge nicht.
+      const versuch = async (name, wunsch, erwartet) => {
+        const items = wunsch.map(([t, amount]) => ({ type: "ticket", ticketTypeId: t, amount }));
+        const beschreibung = wunsch.map(([t, n]) => `${t === idA ? "A" : "B"}×${n}`).join(" + ");
+        let ok = false;
+        let zustand;
+        let k = null;
+        try {
+          const antwort = await vv(`/checkout`, {
+            method: "POST",
+            body: JSON.stringify({ type: "transaction", eventId, shopId: String(unser._id), coupons: [code], items }),
+          });
+          k = { id: String(antwort._id), secret: String(antwort.secret ?? ""), erledigt: false };
+          offen.push(k);
+          ok = true;
+          zustand = `angelegt (${antwort.status}), Preis ${antwort.realPrice}`;
+        } catch (e) {
+          const m = /^vivenu (\d+)/.exec(e.message ?? "");
+          zustand = `abgelehnt (HTTP ${m ? m[1] : "?"}: ${maskiere(String(e.message ?? "").replace(/^vivenu \d+ \S+: /, ""))})`;
+        }
+        // Sofort freigeben, damit die Reservierung den nächsten Versuch nicht verfälscht.
+        const frei = k ? ` · abgebrochen: ${await abbrechen(k)}` : "";
+        if (k) await new Promise((r) => setTimeout(r, 1000));
+        const wie = ok === erwartet ? "wie erwartet" : "ABWEICHUNG";
+        console.log(`${name}  ${beschreibung.padEnd(10)} ${erwartet ? "soll durchgehen" : "soll scheitern "} → ${zustand}${frei} — ${wie}`);
+        ergebnisse.push({ name, erwartet, ok });
+      };
+
+      await versuch("1", [[idA, MENGE_A]], true);
+      await versuch("2", [[idA, MENGE_A + 1]], false);
+      await versuch("3", [[idB, MENGE_B]], true);
+      await versuch("4", [[idB, MENGE_B + 1]], false);
+      await versuch("5", [[idA, MENGE_A], [idB, MENGE_B]], true);
+      await versuch("6", [[idA, MENGE_A], [idB, MENGE_B + 1]], false);
+    } finally {
+      // 4 Aufräumen — immer, auch nach einem Fehler.
+      const abgebrochen = [];
+      for (const k of offen.filter((x) => !x.erledigt)) abgebrochen.push(await abbrechen(k));
+      let coupon = "nicht angelegt";
+      if (couponId) {
+        try {
+          // vivenu kennt kein Löschen von Coupons: abschalten. `PUT` ersetzt den Coupon, deshalb der volle
+          // Satz mit zugedrehten Grenzen — wie `disabled` in lib/vivenu/allocations.ts.
+          await vv(`/coupon/${encodeURIComponent(couponId)}`, {
+            method: "PUT",
+            body: JSON.stringify({ ...couponFelder, active: false, maxTickets: 0, maxUsage: 0 }),
+          });
+          coupon = "abgeschaltet";
+        } catch (e) {
+          coupon = `NICHT abgeschaltet (${maskiere(e.message)}) — Coupon „${couponFelder?.name}“ von Hand im Dashboard abschalten`;
+        }
+      }
+      let shopStand = "nicht angelegt";
+      try {
+        const aktuell = await vv(eventPfad);
+        const vorher = aktuell.underShops ?? [];
+        // Nur unsere eigenen Probe-Shops, auch Reste eines früheren Abbruchs — nie, was Konrad angelegt hat.
+        const rest = vorher.filter((s) => !String(s.name ?? "").startsWith(`${MARK} Kontingent-Probe`));
+        if (rest.length !== vorher.length) {
+          await vv(eventPfad, { method: "PUT", body: JSON.stringify({ underShops: rest }) });
+          shopStand = `${vorher.length - rest.length} entfernt`;
+        }
+      } catch (e) {
+        shopStand = `NICHT entfernt (${maskiere(e.message)}) — Undershop „${shopName}“ von Hand im Dashboard entfernen`;
+      }
+      console.log(
+        `\nAufgeräumt: ${offen.filter((k) => k.erledigt).length} von ${offen.length} Warenkörben abgebrochen${abgebrochen.length ? ` (${abgebrochen.length} erst beim Aufräumen)` : ""}, Coupon ${coupon}, Undershop ${shopStand}`,
+      );
+    }
+
+    const passt = ergebnisse.filter((r) => r.ok === r.erwartet).length;
+    const drueber = ergebnisse.filter((r) => !r.erwartet);
+    const durchgesetzt = drueber.length > 0 && drueber.every((r) => !r.ok);
+    console.log(`\nErgebnis: ${passt} von ${ergebnisse.length} Versuchen wie erwartet.`);
+    console.log(
+      durchgesetzt
+        ? "Die Zeilengrenze je Kategorie wird durchgesetzt: JA — ein Coupon für alle Kategorien ist gedeckt."
+        : "Die Zeilengrenze je Kategorie wird durchgesetzt: NEIN oder nicht belegt — die Menge je Kategorie müsste am Coupon je Kategorie hängen.",
+    );
+    if (passt !== ergebnisse.length) process.exitCode = 2;
   },
 
   /** Das Wegwerf-Ticket wieder entwerten. */

@@ -70,6 +70,7 @@ Geblieben (Absicht): Konrads drei Tickettypen, seine Kategorien und „Konrads g
 | `shops` | Undershops mit Links und Coupons lesen |
 | `personalisieren <ticketId>` | Personalisierung wie im Portal (Secret bleibt verborgen) |
 | `freiticket` | Freiticket ohne Mailversand anlegen |
+| `kontingent-probe` | PART-111, **nur Sandbox**: Undershop mit zwei Zeilen (2 und 3 Stück) und ein Coupon für beide Typen bis 10 Stück; sechs Warenkörbe über `POST /checkout` (nichts wird bezahlt, jeder sofort abgebrochen) — drei bis zur Zeilengrenze müssen durchgehen, drei ein Stück darüber scheitern. Belegt, ob der Undershop die Menge je Kategorie hält, wenn ein einziger Coupon mehr erlaubt. Ausgabe nur Zahlen und Zustände; Exit 2 bei Abweichung |
 | `storno <ticketId>` | Ticket entwerten |
 
 Alles, was das Skript anlegt, trägt den Präfix `ZZTEST` und wird danach entfernt. Aus dem Dev-Event wird nichts gelöscht, was Konrad angelegt hat.

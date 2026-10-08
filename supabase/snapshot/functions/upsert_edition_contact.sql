@@ -9,7 +9,7 @@ declare v_id uuid; v_ed uuid; v_typ text; v_mail text; v_consent date; v_mail_ef
 begin
   v_id := nullif(p_data->>'id', '')::uuid;
   v_typ := nullif(btrim(p_data->>'type'), '');
-  if v_typ is not null and v_typ not in ('partner_lead','partner_buddy','speaker_lead','speaker_buddy','tour_lead') then
+  if v_typ is not null and v_typ not in ('partner_lead','partner_buddy','speaker_lead','speaker_buddy','tour_lead','hackathon_lead') then
     raise exception 'invalid_contact_type' using errcode = '22023', detail = coalesce(v_typ, 'null');
   end if;
   -- ADM-059: Wer nur den Abschnitt „Company Tours" hat, darf **Begleitungen**

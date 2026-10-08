@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { mitBetrifftZeile } from "./betrifft";
 import { ccPersonIds } from "./cc";
 import { sendViaResend } from "./client";
+import { metaOhneGeheimnisse, ohneGeheimnisse } from "./geheimnisse";
 import { portalUrl } from "./portal-url";
 import { fillVars, markdownToHtml, markdownToText, wrapHtml, type MailVars } from "./render";
 import { loadTemplate, senderAddress, type AdminClient } from "./send";
@@ -42,6 +43,8 @@ const MAX_ATTEMPTS = 3;
  * - Ohne `RESEND_API_KEY` (außer lokal) oder ohne Portal-URL bleibt die Warteschlange stehen:
  *   nichts geht verloren, nichts wird fälschlich als gesendet markiert.
  * - Vorübergehende Fehler werden bis zu dreimal versucht, dann `failed` mit Fehlertext.
+ * - Eine Zeile mit `send_after` in der Zukunft bleibt liegen (LEAD-063, PART-124). Der Lauf kommt alle
+ *   zehn Minuten; die reale Verzögerung ist also die Frist bis Frist + 10 Minuten.
  */
 export async function processMailQueue(): Promise<QueueRunResult> {
   const result: QueueRunResult = { processed: 0, sent: 0, failed: 0, suppressed: 0 };
@@ -53,10 +56,14 @@ export async function processMailQueue(): Promise<QueueRunResult> {
   if (!base) return { ...result, skipped: "NEXT_PUBLIC_SITE_URL fehlt – Warteschlange bleibt stehen" };
 
   const admin = createSupabaseAdminClient();
+  // LEAD-063: eine Zeile mit `send_after` in der Zukunft wartet noch — so werden mehrere Änderungen zu einer Mail, und eine
+  // Rücknahme kann sie stornieren. Ohne `send_after` geht die Mail wie bisher beim nächsten Lauf hinaus. Der Lauf selbst
+  // kennt die Fenster nicht: wer wartet, entscheidet die Datenbank (`queue_mail_debounced`, `cancel_queued_mail`).
   const { data, error } = await admin
     .from("mail_log")
     .select("id,to_email,person_id,template_key,locale,meta")
     .eq("status", "queued")
+    .or(`send_after.is.null,send_after.lte.${new Date().toISOString()}`)
     .order("queued_at")
     .limit(BATCH);
   if (error) throw new Error(`mail_log nicht lesbar: ${error.message}`);
@@ -88,7 +95,8 @@ async function deliver(
       await finish({ error: message, meta: { ...(row.meta ?? {}), attempts } });
       return "retry";
     }
-    await finish({ status: "failed", error: message, meta: { ...(row.meta ?? {}), attempts } });
+    // Endgültig gescheitert: ein Token (One-Click-Link) hat im Protokoll nichts mehr zu suchen — wer ihn braucht, lädt erneut ein.
+    await finish({ status: "failed", error: message, meta: ohneGeheimnisse({ ...(row.meta ?? {}), attempts }) });
     return "failed";
   };
 
@@ -98,7 +106,7 @@ async function deliver(
   if (supErr) return fail("Suppression-Prüfung fehlgeschlagen — nicht gesendet");
   if (suppressed) {
     const { data: hash } = await admin.rpc("email_hash", { p_email: row.to_email });
-    await finish({ status: "suppressed", to_email: `suppressed:${hash ?? "unknown"}` });
+    await finish({ status: "suppressed", to_email: `suppressed:${hash ?? "unknown"}`, ...metaOhneGeheimnisse(row.meta) });
     return "suppressed";
   }
 
@@ -140,7 +148,7 @@ async function deliver(
       provider: "dev",
       provider_id: `dev-${row.id}`,
       sent_at: new Date().toISOString(),
-      meta: { ...(row.meta ?? {}), dryRun: true },
+      meta: ohneGeheimnisse({ ...(row.meta ?? {}), dryRun: true }),
     });
     return "sent";
   }
@@ -155,6 +163,7 @@ async function deliver(
     idempotencyKey: `mail_log-${row.id}`,
   });
   if (!res.ok) return fail(res.error);
-  await finish({ status: "sent", subject, provider_id: res.providerId, sent_at: new Date().toISOString() });
+  // Nach dem Versand verschwindet ein Geheimnis aus den Variablen (der Rest bleibt für das Protokoll stehen).
+  await finish({ status: "sent", subject, provider_id: res.providerId, sent_at: new Date().toISOString(), ...metaOhneGeheimnisse(row.meta) });
   return "sent";
 }

@@ -83,7 +83,7 @@ describe("Company Tour im Partner-Portal (PART-046)", () => {
       ...benutzt(src("app/(partner)/partner/company-tour/page.tsx"), "s"),
       ...benutzt(src("app/(partner)/partner/company-tour/TourKopf.tsx"), "t"),
       ...benutzt(src("app/(partner)/partner/company-tour/TourBewerbungen.tsx"), "s"),
-      "profile_occupation_status", "profile_career_level", "profile_study_field", "profileTitle", "profileHint",
+      "profile_occupation_status", "profile_career_level", "profile_study_field", "profileTitle", "profileHint", "profileOpen",
     ];
     for (const sprache of ["de", "en"]) {
       const dict = JSON.parse(src(`lib/i18n/${sprache}.json`));

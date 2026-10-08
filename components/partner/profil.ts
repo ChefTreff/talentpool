@@ -11,6 +11,17 @@ export type ProfilOption = { key: string; label: string };
 /** `target_profile`, wie es `partner_update_tour_stop` und die Interview Tables speichern. */
 export type Zielprofil = Partial<Record<ProfilFeld, string[]>>;
 
+/**
+ * Welche Schlüssel unterscheiden zwei Listen (dazugekommen oder weggefallen)?
+ *
+ * Die aufklappbare Auswahl meldet ihre **ganze neue Liste** (PART-128), die Seiten wollen weiter hören, welcher Eintrag
+ * umgeschaltet wurde (`profilUmschalten`). Mit dem Baustein ändert sich bei jedem Klick genau ein Schlüssel; die
+ * Reihenfolge der beiden Listen spielt keine Rolle.
+ */
+export function geaenderteSchluessel(alt: string[], neu: string[]): string[] {
+  return [...neu.filter((k) => !alt.includes(k)), ...alt.filter((k) => !neu.includes(k))];
+}
+
 /** Einen Eintrag an- oder abwählen; leere Felder fallen weg, damit nichts Leeres gespeichert wird. */
 export function profilUmschalten(profil: Zielprofil, feld: ProfilFeld, key: string): Zielprofil {
   const jetzt = profil[feld] ?? [];

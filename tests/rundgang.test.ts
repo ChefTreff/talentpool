@@ -2,6 +2,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { migrationText } from "@/tests/migration-datei";
+import { EMBED_SANDBOX } from "@/components/ui/embed-sandbox";
 import {
   MATTERPORT_ALLOW,
   MATTERPORT_HOST,
@@ -115,13 +116,39 @@ describe("3D-Rundgang: CSP, Sandbox und Einbettung", () => {
     assert.deepEqual(MATTERPORT_ALLOW.split(/;\s*/), ["fullscreen", "xr-spatial-tracking"]);
   });
 
-  it("die EmbedGate behält für Loom die enge Vorgabe: ohne same-origin und ohne Herkunft", () => {
+  it("die EmbedGate-Vorgabe für Loom: Skripte, Präsentation und die eigene Herkunft des Rahmens — nicht mehr (K-76, PART-115)", () => {
+    const flags = EMBED_SANDBOX.split(" ").sort();
+    assert.deepEqual(flags, ["allow-presentation", "allow-same-origin", "allow-scripts"]);
+    // Nichts, womit der Rahmen die Seite wegnavigieren, Fenster öffnen oder Formulare absenden könnte.
+    for (const verboten of ["allow-top-navigation", "allow-top-navigation-by-user-activation", "allow-popups", "allow-popups-to-escape-sandbox", "allow-forms", "allow-modals", "allow-pointer-lock", "allow-downloads"]) {
+      assert.ok(!flags.includes(verboten), verboten);
+    }
     const gate = src("components/ui/EmbedGate.tsx");
-    assert.match(gate, /sandbox = "allow-scripts allow-presentation"/);
+    assert.match(gate, /sandbox = EMBED_SANDBOX,/);
+    assert.match(gate, /import \{ EMBED_SANDBOX \} from "\.\/embed-sandbox";/);
+    // Kein zweiter Wortlaut der Sandbox in der Komponente, der von der Konstante abweichen könnte.
+    assert.doesNotMatch(gate, /sandbox = "allow-/);
     assert.match(gate, /referrer = "no-referrer"/);
     assert.match(gate, /ratio = "aspect-video"/);
     const eventApp = src("app/(partner)/partner/event-app/page.tsx");
     assert.doesNotMatch(eventApp, /sandbox=|allow=|referrer=/);
+  });
+
+  it("der Matterport-Rahmen hat mindestens, was die Vorgabe hat, und braucht dieselbe eigene Herkunft", () => {
+    const matterport = MATTERPORT_SANDBOX.split(" ");
+    for (const f of EMBED_SANDBOX.split(" ")) assert.ok(matterport.includes(f), f);
+  });
+
+  it("`allow-same-origin` ruht auf drei Bedingungen — fällt eine, muss die Vorgabe neu bedacht werden", () => {
+    // 1. Die Seiten des Portals lassen sich nicht rahmen: ein Rahmen gleicher Herkunft könnte mit
+    //    `allow-scripts` + `allow-same-origin` seine Sandbox selbst entfernen.
+    assert.match(src("proxy.ts"), /"frame-ancestors 'none'"/);
+    // 2. Die Adresse eines Videos beginnt laut Datenbank immer mit Loom — in der Tabelle und in der Funktion.
+    const sql = migrationText("v5_portal_video");
+    assert.match(sql, /check \(url like 'https:\/\/www\.loom\.com\/%' or url like 'https:\/\/loom\.com\/%'\)/);
+    assert.match(sql, /if not \(v_url like 'https:\/\/www\.loom\.com\/%' or v_url like 'https:\/\/loom\.com\/%'\) then/);
+    // 3. Der Rundgang bettet nur my.matterport.com ein (`rundgangAus`, oben getestet), die CSP erlaubt Rahmen nur von dort und von Loom.
+    assert.match(src("proxy.ts"), /"frame-src 'self' https:\/\/www\.loom\.com https:\/\/my\.matterport\.com"/);
   });
 
   it("der Rundgang lädt erst auf Klick (EmbedGate) mit Ladezustand und Weg ohne Einbettung", () => {

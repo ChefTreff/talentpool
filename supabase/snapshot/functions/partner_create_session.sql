@@ -32,6 +32,8 @@ begin
   end if;
   select * into v_day from event_day where id = p_day_id and event_id = v_stage.event_id;
   if not found then raise exception 'day_not_found' using errcode = 'P0002'; end if;
+  -- ADM-085: Gültigkeitstage der Fläche (Sperrzeiten gelten für Inhalts-Slots, nicht für `partner_block`).
+  perform stage_slot_check(p_stage_id, p_start, p_end, 'partner_block');
 
   -- Anspruch: beim Side-Event zählt jedes Stück, beim Interview Table der Tisch — die Fläche
   -- existiert dann bereits, und wie viele Gespräche daraufpassen, entscheidet der Kalender.

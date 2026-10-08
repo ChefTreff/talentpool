@@ -20,10 +20,11 @@ import { FristMarke, type FristTexte } from "@/components/ui/FristMarke";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { fristBeschreibung, fristHinweis, fristTitel, type Zeile } from "@/components/partner/fristen-aufgaben";
 import { orderLunchPackage, submitDeliverable } from "../actions";
 import { usePflichtUpload } from "../UploadKachel";
 import { BUCKET } from "../upload";
-import type { AnswerField, Deliverable, DeliverableAsset, PartnerOverview } from "../types";
+import type { AnswerField, Deliverable, DeliverableAsset, PartnerDeadline, PartnerOverview } from "../types";
 
 type Strings = Record<string, string>;
 
@@ -42,13 +43,34 @@ export type ChecklistGroup = {
   /** `null` = gilt für alle, unabhängig von einer Leistung. */
   sku: string | null;
   label: string;
-  items: Deliverable[];
+  /**
+   * In der Reihenfolge, in der sie stehen: Aufgaben und Fristen, an denen keine Aufgabe hängt
+   * (PART-099) — eine Liste, keine zwei.
+   */
+  zeilen: Zeile[];
 };
+
+/**
+ * Das Zeichen links einer Frist ohne Aufgabe: ein Kalenderblatt statt des Hakens, denn es gibt
+ * nichts abzuhaken. Gleich gross wie `CheckMark`, damit die Titel auf einer Kante stehen.
+ */
+function FristZeichen({ label }: { label: string }) {
+  return (
+    <span title={label} className="flex h-5 w-5 shrink-0 items-center justify-center text-muted">
+      <svg viewBox="0 0 16 16" className="h-5 w-5" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.4">
+        <rect x="2.5" y="3.5" width="11" height="10" rx="1.5" />
+        <path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" />
+      </svg>
+      <span className="sr-only">{label}</span>
+    </span>
+  );
+}
 
 export function ChecklistView({
   orgId,
   editionId,
   groups,
+  fristVon,
   booth,
   canEdit,
   variant = "gruppen",
@@ -61,11 +83,13 @@ export function ChecklistView({
   orgId: string;
   editionId: string;
   groups: ChecklistGroup[];
+  /** Aufgabe (Kennung) → die Frist der Edition, an der sie hängt; ihr Text steht im Detail der Aufgabe. */
+  fristVon: Record<string, PartnerDeadline>;
   booth: PartnerOverview["booth"];
   canEdit: boolean;
   /**
    * `gruppen`: die ganze Checkliste (Seite Checkliste). `naechste`: nur die
-   * übergebenen Aufgaben ohne Köpfe — für die Übersicht (PART-056).
+   * übergebenen Zeilen ohne Köpfe — für die Übersicht (PART-056).
    */
   variant?: "gruppen" | "naechste";
   /** Wörter der Fristmarke (Deadline, noch n Tage, vorbei, erledigt) — wie an den Abschnittsköpfen. */
@@ -251,13 +275,62 @@ export function ChecklistView({
       />
     ) : null;
 
-  const zaehler = (group: ChecklistGroup) => (
-    <span className="ct-help ml-auto tabular-nums">
-      {t.groupDone
-        .replace("{done}", String(group.items.filter((d) => badgeStatus(d) === "accepted").length))
-        .replace("{total}", String(group.items.length))}
-    </span>
-  );
+  // Gezählt werden die Aufgaben; eine Frist ohne Aufgabe ist nichts, was man erledigt.
+  const aufgabenDer = (group: ChecklistGroup) => group.zeilen.flatMap((z) => (z.art === "aufgabe" ? [z.aufgabe] : []));
+  const zaehler = (group: ChecklistGroup) => {
+    const aufgaben = aufgabenDer(group);
+    return (
+      <span className="ct-help ml-auto tabular-nums">
+        {t.groupDone
+          .replace("{done}", String(aufgaben.filter((d) => badgeStatus(d) === "accepted").length))
+          .replace("{total}", String(aufgaben.length))}
+      </span>
+    );
+  };
+
+  /**
+   * Eine Frist, an der keine Aufgabe dieses Partners hängt (PART-099) — etwa die beiden Phasen des
+   * Messeshops. Sie steht in derselben Liste wie die Aufgaben und trägt dieselbe Fristmarke, aber
+   * ohne Haken und Status: es gibt nichts abzugeben, nur ein Datum zu kennen. Ihr Text steht
+   * gleich darunter; er ist kurz und sagt, was nach dem Datum gilt.
+   */
+  const fristZeile = (f: PartnerDeadline) => {
+    const vorbei = new Date(f.due_at!) <= new Date();
+    const marke = (
+      <FristMarke
+        kompakt
+        dueAt={f.due_at!}
+        dateText={dateOnly.format(new Date(f.due_at!))}
+        vorbei={vorbei}
+        t={fristTexte}
+      />
+    );
+    const text = fristBeschreibung(f, locale);
+    return (
+      <li key={`frist-${f.key}`} className="border-b last:border-b-0">
+        <div
+          className={
+            "flex items-center gap-3 border-l-2 py-2.5 pr-4 pl-4 " +
+            (vorbei ? "border-l-error-ink bg-error-soft/40" : "border-l-transparent")
+          }
+        >
+          <FristZeichen label={fristTexte.label} />
+          <div className="flex min-h-11 min-w-0 flex-1 flex-col justify-center gap-y-1">
+            <span className="ct-label text-ink">{fristTitel(f, locale)}</span>
+            {text && <span className="ct-help">{text}</span>}
+            {/* Mobil gibt es keine Fristspalte — dort steht die Markierung unter dem Text. */}
+            <span className="sm:hidden">{marke}</span>
+          </div>
+          <span className="hidden w-56 shrink-0 text-right sm:block">{marke}</span>
+          {/* Eine Frist hat keinen Status. Der Platz des Abzeichens bleibt frei, damit die Fristspalte
+              mit der der Aufgaben auf einer Kante steht — ohne ihn säße sie 43 px weiter rechts. */}
+          <span aria-hidden className="invisible hidden sm:block">
+            <Badge>{t.status_open}</Badge>
+          </span>
+        </div>
+      </li>
+    );
+  };
 
   // Eine Liste, keine Kartenwand: Haken links, Aufgabe in der Mitte, Frist
   // rechts. Details stehen erst beim Aufklappen da — vorher erschlug die Seite
@@ -266,7 +339,11 @@ export function ChecklistView({
   const liste = (group: ChecklistGroup) => (
     <Card className="p-0">
       <ul className="flex flex-col">
-        {group.items.map((d) => {
+        {group.zeilen.map((z) => {
+          if (z.art === "frist") return fristZeile(z.frist);
+          const d = z.aufgabe;
+          const fristDerAufgabe = fristVon[d.id];
+          const hinweis = fristDerAufgabe ? fristHinweis(fristDerAufgabe, d, locale) : null;
           const overdue = isOverdue(d);
           const editable = canEdit && EDITABLE.has(d.status);
           const rules: FileRules = d.file_rules;
@@ -328,6 +405,9 @@ export function ChecklistView({
                         {overdue && ` · ${t.stillPossible}`}
                       </p>
                     )}
+                    {/* PART-099: der Text der Frist, an der die Aufgabe hängt — die Frist selbst gibt es
+                        in der gemeinsamen Liste nicht mehr als eigene Zeile, ihr Text soll nicht mit. */}
+                    {hinweis && <p className="ct-help mt-1">{hinweis}</p>}
                     {d.submitted_at && (
                       <p className="ct-help mt-1">
                         {t.submittedOn} {dateTime.format(new Date(d.submitted_at))}

@@ -181,14 +181,14 @@ export async function registerSpeakerPhoto(input: {
 }
 
 /**
- * Zu- oder Absage zur Reception (SPK-003).
+ * Zu- oder Absage zu einem Side Event (ADM-077; zuvor die Reception, SPK-003).
  *
- * Obergrenze, Frist und Einladung prüft `set_reception_rsvp`; hier steht keine
- * zweite Regel daneben. Die Assistenz darf nicht antworten — eine Zusage ist
- * eine persönliche Entscheidung, keine Verwaltungsaufgabe.
+ * Einladung, Veröffentlichung, Obergrenze, Frist und Eventbeginn prüft `respond_side_event`; hier steht keine zweite Regel daneben. Die
+ * Assistenz darf nicht antworten — eine Zusage ist eine persönliche Entscheidung, keine Verwaltungsaufgabe (die Funktion sagt 42501, die
+ * Prüfung hier spart ihr nur den Weg).
  */
-export async function setReceptionRsvp(
-  receptionId: string,
+export async function respondSideEvent(
+  sideEventId: string,
   status: "yes" | "no",
   guests: number,
   note: string,
@@ -200,8 +200,8 @@ export async function setReceptionRsvp(
     return { ok: false, key: "not_allowed" };
   }
 
-  const { error } = await supabase.rpc("set_reception_rsvp", {
-    p_reception_id: receptionId,
+  const { error } = await supabase.rpc("respond_side_event", {
+    p_side_event_id: sideEventId,
     p_status: status,
     p_guests: guests,
     p_note: note.trim() ? note.trim() : null,

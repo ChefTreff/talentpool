@@ -44,6 +44,25 @@ export function kartenPadding(className?: string): string | false {
 }
 
 /**
+ * Die Fläche einer Karte — `bg-surface` (weiß), **nur wenn der Aufrufer keine eigene setzt** (QS-073, Befund
+ * Partner-Chat 08.10., #381).
+ *
+ * Gleiche Ursache wie bei `feldBreite` und `kartenPadding`: `cn` fügt Klassen bloss aneinander. Stehen
+ * `bg-surface` und `bg-accent-soft` zugleich an der Karte, entscheidet die Reihenfolge im erzeugten CSS, nicht
+ * die im `class`-Attribut — und dort stehen die Hintergründe **alphabetisch**: wer vor „surface“ kommt
+ * (`accent-soft`, `error-soft`, `success-soft`, `canvas`, `navy` …), verliert und bleibt weiß, wer dahinter kommt
+ * (`warning-soft`, `surface-hover`) gewinnt. Gemessen am 08.10.2026: `Card className="bg-warning-soft"` war
+ * gelb, `Card className="bg-accent-soft"` weiß — die Ticketseite („Gut zu wissen“) musste auf ein rohes `<div>`
+ * ausweichen, die Frist-Karte (`DeadlineCard`) und der Shop-Hinweis sahen nie so aus, wie sie gebaut waren.
+ *
+ * Gezählt wird nur das Kürzel `bg-` ohne Variante (auch `!bg-…`): `sm:bg-accent-soft` steht in einer
+ * Medienabfrage und setzt sich ohnehin durch, die weiße Fläche darunter soll dann bleiben.
+ */
+export function kartenFlaeche(className?: string): string | false {
+  return !/(^|\s)!?bg-/.test(className ?? "") && "bg-surface";
+}
+
+/**
  * Eine Karte **ohne** Innenabstand (`p-0`: Liste oder Tabelle bis zum Rand)
  * beschneidet ihren Inhalt an der Rundung (QS-055). Sonst läuft der Hintergrund
  * einer Zeile oder die rote Leiste einer überfälligen Frist eckig in die

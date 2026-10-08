@@ -62,7 +62,7 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
       { section: "speakerTickets", href: "/admin/speaker-tickets", label: "speakerTickets" },
       { section: "expenses", href: "/admin/reisekosten", label: "expenses" },
       { section: "hospitality", href: "/admin/hospitality", label: "hospitality" },
-      { section: "reception", href: "/admin/reception", label: "reception" },
+      { section: "sideEvents", href: "/admin/side-events", label: "sideEvents" },
       { section: "travel", href: "/admin/anreise", label: "travel" },
     ],
   },

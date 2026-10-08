@@ -37,6 +37,8 @@ export function WikiAdmin({
   editions,
   audiences,
   phases,
+  topics,
+  formats,
   t,
   common,
   rpcMessages,
@@ -45,6 +47,8 @@ export function WikiAdmin({
   editions: { id: string; slug: string; name: string }[];
   audiences: Record<string, string>;
   phases: Record<string, string>;
+  topics: Record<string, string>;
+  formats: Record<string, string>;
   t: Strings;
   common: { save: string; cancel: string; close: string; required: string };
   rpcMessages: Record<string, string>;
@@ -96,6 +100,7 @@ export function WikiAdmin({
             <Th>{t.colTitle}</Th>
             <Th>{t.colAudience}</Th>
             <Th>{t.colTopic}</Th>
+            <Th>{t.colProducts}</Th>
             <Th>{t.colEdition}</Th>
             <Th>{t.colLanguage}</Th>
             <Th>{t.colStatus}</Th>
@@ -108,6 +113,9 @@ export function WikiAdmin({
                 <Td><span className="ct-label">{a.title}</span></Td>
                 <Td className="text-muted">{a.audience.map((x) => audiences[x] ?? x).join(", ")}</Td>
                 <Td className="text-muted">{t[THEMA_TEXT[wikiKategorie(a)]]}</Td>
+                <Td className="text-muted">
+                  {a.product_formats.length === 0 ? t.productsAll : a.product_formats.map((f) => formats[f] ?? f).join(", ")}
+                </Td>
                 <Td className="text-muted">{a.edition_slug ?? t.evergreen}</Td>
                 <Td className="text-muted uppercase">{a.language}</Td>
                 <Td>
@@ -135,6 +143,17 @@ export function WikiAdmin({
                         {a.status === "published" ? t.unpublish : t.publish}
                       </Button>
                     )}
+                    {/* ADM-104: Ein archivierter Artikel kam nicht zurück, weil hier kein Knopf stand. */}
+                    {a.status === "archived" && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={pending}
+                        onClick={() => run(publishArticle(a.id, true), t.republished)}
+                      >
+                        {t.republish}
+                      </Button>
+                    )}
                   </div>
                 </Td>
               </Tr>
@@ -160,6 +179,8 @@ export function WikiAdmin({
             editions={editions}
             audiences={audiences}
             phases={phases}
+            topics={topics}
+            formats={formats}
             pending={pending}
             t={t}
             common={common}
@@ -177,6 +198,8 @@ function ArticleForm({
   editions,
   audiences,
   phases,
+  topics,
+  formats,
   pending,
   t,
   common,
@@ -187,6 +210,8 @@ function ArticleForm({
   editions: { id: string; slug: string; name: string }[];
   audiences: Record<string, string>;
   phases: Record<string, string>;
+  topics: Record<string, string>;
+  formats: Record<string, string>;
   pending: boolean;
   t: Strings;
   common: { save: string; cancel: string; close: string; required: string };
@@ -203,9 +228,18 @@ function ArticleForm({
     roles: (article?.roles ?? []).join(", "),
     audience: article?.audience ?? ["volunteer"],
     valid_until: article?.valid_until?.slice(0, 10) ?? "",
+    // ADM-064: Thema wie es im Portal erscheint — auch bei Bestand ohne Eintrag das abgeleitete.
+    category: article?.category ?? "",
+    product_formats: article?.product_formats ?? [],
   });
 
   const ohneKategorie = form.audience.length === 0;
+
+  const toggleFormat = (key: string) =>
+    setForm((f) => ({
+      ...f,
+      product_formats: f.product_formats.includes(key) ? f.product_formats.filter((x) => x !== key) : [...f.product_formats, key],
+    }));
 
   const toggle = (key: string) =>
     setForm((f) => ({
@@ -290,6 +324,35 @@ function ArticleForm({
         </Field>
       </div>
 
+      <div className="flex flex-wrap gap-4">
+        <Field label={t.fieldTopic} htmlFor="topic" hint={t.fieldTopicHint}>
+          <Select
+            id="topic"
+            className="w-64"
+            value={form.category}
+            options={[{ value: "", label: t.fieldTopicNone }, ...Object.entries(topics).map(([value, label]) => ({ value, label }))]}
+            onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+          />
+        </Field>
+      </div>
+
+      {/* PART-103: Produktbezug. Leer = der Artikel gilt für alle Partner; sonst sieht ihn im Portal nur,
+          wer ein Produkt dieses Formats gebucht hat. Relevanz, kein Zugriffsschutz. */}
+      {form.audience.includes("partner") && (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="ct-label mb-1 text-ink">{t.fieldProducts}</legend>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {Object.entries(formats).map(([key, label]) => (
+              <label key={key} className="flex min-h-11 items-center gap-2">
+                <input type="checkbox" className="h-5 w-5" checked={form.product_formats.includes(key)} onChange={() => toggleFormat(key)} />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+          <p className="ct-help">{form.product_formats.length === 0 ? t.fieldProductsAll : t.fieldProductsSome}</p>
+        </fieldset>
+      )}
+
       {form.audience.includes("volunteer") && (
         <Field label={t.fieldRoles} htmlFor="roles">
           <Input id="roles" value={form.roles} onChange={(e) => setForm((f) => ({ ...f, roles: e.target.value }))} />
@@ -323,6 +386,9 @@ function ArticleForm({
                 roles: form.roles.split(",").map((r) => r.trim()).filter(Boolean),
                 edition_id: form.edition_id || null,
                 valid_until: form.valid_until || null,
+                category: form.category || null,
+                // Ohne Partner-Zielgruppe ist der Produktbezug ohne Sinn — dann leeren, nicht still behalten.
+                product_formats: form.audience.includes("partner") ? form.product_formats : [],
               },
               t.saved,
             )

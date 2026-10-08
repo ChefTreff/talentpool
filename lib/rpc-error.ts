@@ -182,6 +182,13 @@ const BUSINESS_KEYS = new Set([
   "not_a_companion",
   "ticket_cancelled",
   "invalid_quota",
+  // Side Events (Vorschlag v6_side_events, ADM-077): Einladung statt Reception. `not_eligible`, `too_long` und `fields_required` stehen
+  // schon oben; `side_event_full` trägt die freien Plätze, `side_event_closed` die Frist im Detail (`lib/side-event/meldung.ts`).
+  "side_event_not_invited",
+  "side_event_not_published",
+  "side_event_closed",
+  "side_event_full",
+  "invalid_side_event",
   // Partner-Portal (Migrationen 0040-0042)
   "primary_exists",
   "primary_required",
@@ -229,7 +236,6 @@ const BUSINESS_KEYS = new Set([
   // ADM-051: Suche im Check-in unter drei Zeichen — eine leere Antwort waere irrefuehrend.
   "query_too_short",
   "invalid_audience",
-  "info_not_found",
   "note_required",
   "allocation_not_found",
   "request_not_found",
@@ -288,6 +294,12 @@ const BUSINESS_KEYS = new Set([
   "day_not_found",
   "stage_not_found",
   "track_not_found",
+  // Bühnen-Stammdaten: Gültigkeitstage und Sperrzeiten (ADM-085, LEAD-062)
+  "slot_blocked",
+  "stage_not_valid_that_day",
+  "invalid_valid_day",
+  "invalid_blocked_time",
+  "blocked_time_not_found",
   // Messestand und Editionsdateien (Migration 20260915115415)
   "edition_file_not_found",
   "invalid_path",

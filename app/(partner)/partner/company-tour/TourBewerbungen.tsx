@@ -5,6 +5,7 @@ import { ButtonDownload } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApplicantList } from "@/components/partner/ApplicantList";
+import { PROFIL_VOKABULARE } from "@/components/partner/bewerbung";
 import type { TourStopp } from "@/components/partner/tour";
 import { setTourWish } from "../actions";
 import type { PartnerApplication } from "../types";
@@ -59,6 +60,7 @@ export async function TourBewerbungen({
   const s = t.tour;
   const vocab = await loadVocabMap(supabase, locale);
   const statusLabels = vgroup(vocab, "application_status");
+  const profilWerte = Object.fromEntries(PROFIL_VOKABULARE.map((v) => [v, vgroup(vocab, v)]));
   const ergebnisse = await Promise.all(
     stopps.map((x) => supabase.rpc("partner_tour_applications", { p_stop_id: x.stop_id })),
   );
@@ -119,6 +121,7 @@ export async function TourBewerbungen({
               <ApplicantList
                 applications={zeilen}
                 statusLabels={statusLabels}
+                profilWerte={profilWerte}
                 wunsch={
                   !nurTeilnehmende && canEdit
                     ? { gewuenscht, max: MAX_WUENSCHE, setzen: setTourWish.bind(null, x.stop_id) }

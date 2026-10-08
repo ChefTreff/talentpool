@@ -61,6 +61,7 @@ import {
   type BoardStage,
   speakerName,
 } from "./types";
+import { imFenster, sperrenDerBuehne, type BoardSperrzeit } from "./buehnen";
 
 export type ProgrammeStrings = Record<string, string>;
 
@@ -87,6 +88,8 @@ export function Board({
   backlog,
   stats,
   stageDays = [],
+  sperrzeiten = [],
+  linkZusatz = "",
   partner,
   labels,
   locale,
@@ -131,6 +134,10 @@ export function Board({
   stats: Stats[];
   /** Öffnungszeiten der Bühnen am gezeigten Tag (LEAD-033) — `loadBoard` liefert sie. */
   stageDays?: readonly BoardStageDay[];
+  /** Sperrzeiten des gezeigten Tages (ADM-085, LEAD-062): als Schraffur mit Grund in der Spalte und als Zeile unter der Legende. */
+  sperrzeiten?: readonly BoardSperrzeit[];
+  /** Zusatz für die Links zu Tag und Veranstaltung, damit eine Wahl der Seite (`&buehnen=haupt`) beim Wechsel bleibt. */
+  linkZusatz?: string;
   /**
    * Partner-Sicht (LEAD-035/036/037), nur aus dem Partner-Portal: die eigenen
    * Bühnen zeigen den Partner-Status, das Schubfach fragt „Veröffentlichen“ an
@@ -279,6 +286,12 @@ export function Board({
     [oeffnungen, stages, windowEnd, windowStart],
   );
   const irgendwoZu = [...zuJeBuehne.values()].some((z) => z.length > 0);
+  // ADM-085/LEAD-062: Sperrzeiten des Tages je Spalte, auf das sichtbare Fenster zugeschnitten.
+  const sperrenJeBuehne = useMemo(
+    () => new Map(stages.map((s) => [s.id, imFenster(sperrenDerBuehne(sperrzeiten, s.id), windowStart, windowEnd)])),
+    [sperrzeiten, stages, windowEnd, windowStart],
+  );
+  const uhrzeit = (m: number) => (m >= 24 * 60 ? "24:00" : formatMinutes(m));
 
   // LEAD-035: in der Partner-Sicht spricht die Karte die Sprache des Partners.
   const statusTexte = partner ? partnerStatusTexte(partner.t) : null;
@@ -637,7 +650,7 @@ export function Board({
             {events.map((e) => (
               <a
                 key={e.id}
-                href={`${basePath}?event=${e.slug}`}
+                href={`${basePath}?event=${e.slug}${linkZusatz}`}
                 aria-current={e.id === currentEventId ? "page" : undefined}
                 className={cn(
                   "inline-flex min-h-11 items-center rounded-ct-sm px-3 ct-label",
@@ -665,7 +678,7 @@ export function Board({
                 return (
                   <a
                     key={d.id}
-                    href={`${basePath}?event=${currentEventSlug}&tag=${d.day_date}`}
+                    href={`${basePath}?event=${currentEventSlug}&tag=${d.day_date}${linkZusatz}`}
                     aria-current={aktiv ? "page" : undefined}
                     className={cn(
                       "inline-flex min-h-11 items-center gap-1.5 rounded-ct-sm px-4 ct-label transition-colors",
@@ -752,8 +765,29 @@ export function Board({
               {t.closedLegend}
             </span>
           )}
+          {sperrzeiten.length > 0 && (
+            <span className="inline-flex min-h-8 items-center gap-2 py-1 pl-1 pr-2 ct-help text-ink">
+              <span aria-hidden className="inline-block h-5 w-6 rounded-ct-sm border border-border bg-hatch-closed" />
+              {t.blockedLegend}
+            </span>
+          )}
           {pending && <span className="ct-help ml-auto">{t.saving}</span>}
         </div>
+        {/* LEAD-062: die Sperrzeiten des Tages auch als Text — die Schraffur in den Spalten ist für Vorlesegeräte unsichtbar, und der
+            Grund gehört dorthin, wo man plant, nicht erst in die Fehlermeldung. */}
+        {sperrzeiten.length > 0 && (
+          <p className="ct-help text-ink">
+            <span className="ct-label">{t.blockedNote}: </span>
+            {sperrzeiten
+              .map(
+                (b) =>
+                  `${b.grund} ${uhrzeit(b.von)}–${uhrzeit(b.bis)} (${
+                    b.stage_id === null ? t.blockedAllStages : (stages.find((s) => s.id === b.stage_id)?.name ?? "—")
+                  })`,
+              )
+              .join(" · ")}
+          </p>
+        )}
 
         {/* Board. Es scrollt in sich, damit die Kopfzeile mit den Bühnen
             oben und die Zeitachse links stehen bleiben (LEAD-015) — `sticky`
@@ -846,6 +880,7 @@ export function Board({
                   editable={bearbeitbar(stage.id)}
                   own={eigen(stage.id)}
                   zu={zuJeBuehne.get(stage.id) ?? []}
+                  sperren={sperrenJeBuehne.get(stage.id) ?? []}
                   vorschau={vorschau?.stageId === stage.id ? vorschau : null}
                   windowStart={windowStart}
                   hourMarks={hourMarks}
@@ -1025,6 +1060,7 @@ function StageColumn({
   editable,
   own,
   zu,
+  sperren,
   vorschau,
   windowStart,
   hourMarks,
@@ -1039,6 +1075,8 @@ function StageColumn({
   own: boolean;
   /** Außerhalb der Öffnungszeit (LEAD-033), Minuten seit Mitternacht. */
   zu: { von: number; bis: number }[];
+  /** Sperrzeiten der Bühne (und für alle Bühnen) im sichtbaren Fenster (ADM-085, LEAD-062). */
+  sperren: BoardSperrzeit[];
   /** LEAD-051: wohin die gezogene Karte in dieser Spalte fiele. */
   vorschau: { startMin: number; endMin: number } | null;
   windowStart: number;
@@ -1074,6 +1112,20 @@ function StageColumn({
           className="pointer-events-none absolute inset-x-0 bg-hatch-closed"
           style={{ top: (b.von - windowStart) * PX_PER_MIN, height: (b.bis - b.von) * PX_PER_MIN }}
         />
+      ))}
+      {/* LEAD-062: Sperrzeit — dieselbe Schraffur wie „geschlossen“, mit dem Grund als Text; die Datenbank weist einen Slot darin ab
+          (`slot_blocked`), hier steht es vorher. */}
+      {sperren.map((b) => (
+        <div
+          key={`sperre-${b.id}-${b.von}`}
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bg-hatch-closed"
+          style={{ top: (b.von - windowStart) * PX_PER_MIN, height: (b.bis - b.von) * PX_PER_MIN }}
+        >
+          <span className="absolute left-1 top-1 max-w-[calc(100%-0.5rem)] truncate rounded-ct-sm bg-surface px-1 ct-help text-ink">
+            {b.grund}
+          </span>
+        </div>
       ))}
       {/* ADM-069: die Stundenlinie in voller Farbe (vorher mit 60 % kaum zu sehen), die halbe Stunde gestrichelt
           dazwischen — so liest man Beginn und Ende eines Slots an der Spalte ab. */}

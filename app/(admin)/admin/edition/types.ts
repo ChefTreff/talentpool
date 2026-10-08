@@ -33,6 +33,10 @@ export type GeruestBuehne = {
   name: string;
   slug: string | null;
   type: string;
+  /** Art der Bühne, abgeleitet aus Typ und Partner (ADM-085): main, branded, booth, masterclass, interview_table, side_event. */
+  kind: string | null;
+  /** Gültigkeitstage `JJJJ-MM-TT`; leer = alle Eventtage (ADM-085). */
+  valid_days: string[];
   room: string | null;
   capacity: number | null;
   changeover_min: number;
@@ -66,5 +70,12 @@ export type GeruestTrack = {
   sessions: number;
 };
 
-/** Die vier Bühnenarten aus dem CHECK auf `stage.type`. */
-export const BUEHNEN_ARTEN = ["main", "side", "partner_booth", "room"] as const;
+/**
+ * Die Typen des Vokabulars `stage_type`. Vorher standen hier nur vier; Interview Tables und Side-Event-Orte (beide live vorhanden)
+ * ließen sich im Formular nicht darstellen — die Auswahl zeigte dann stillschweigend den ersten Eintrag (ADM-085: „das Formular
+ * zeigt den Typ ausdrücklich“).
+ */
+export const BUEHNEN_ARTEN = ["main", "side", "partner_booth", "room", "interview_table", "side_event_venue"] as const;
+
+/** Die Arten (`stage.kind`), wie sie die Datenbank ableitet — für die Beschriftung der Zeile. */
+export const BUEHNEN_KINDS = ["main", "branded", "booth", "masterclass", "interview_table", "side_event"] as const;

@@ -4,7 +4,7 @@ import { getI18n } from "@/lib/i18n";
 import { icsCalendar, icsFileName, type IcsEvent } from "@/lib/ics";
 import { portalUrl } from "@/lib/mail/portal-url";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { MyReception, SpeakerProfile } from "@/app/(speaker)/speaker/types";
+import type { MySideEvent, SpeakerProfile } from "@/app/(speaker)/speaker/types";
 import type { MySession } from "@/app/(speaker)/speaker/session/types";
 
 export const dynamic = "force-dynamic";
@@ -16,16 +16,16 @@ const UID_HOST = "portal.chef-treff.de";
  * Die eigenen Termine als `.ics` (SPK-014).
  *
  * Ohne Parameter kommt alles, was ansteht; `?session=<id>` und
- * `?reception=<id>` liefern einen einzelnen Termin — das brauchen die Knöpfe
- * an der Session und an der Reception.
+ * `?side_event=<id>` liefern einen einzelnen Termin — das brauchen die Knöpfe
+ * an der Session und am Side Event (ADM-077, zuvor die Reception).
  *
  * **Keine neue Rechtefläche.** Die Route liest ausschliesslich
- * `my_sessions()` und `my_receptions()`; beide geben von sich aus nur her, was
+ * `my_sessions()` und `my_side_events()`; beide geben von sich aus nur her, was
  * der angemeldeten Person gehört. Ein fremder oder erfundener Parameter kann
  * die Menge deshalb nur verkleinern, nie erweitern — er filtert die eigenen
  * Zeilen, er holt keine anderen.
  *
- * **Nur zugesagte Receptions.** Einen Termin in den Kalender zu schreiben, den
+ * **Nur zugesagte Side Events.** Einen Termin in den Kalender zu schreiben, den
  * man abgesagt hat, wäre falsch; einen, den man noch nicht beantwortet hat,
  * wäre aufdringlich. Wer zusagt, bekommt ihn — und wer wieder absagt, löscht
  * ihn selbst: eine Absage kann einen fremden Kalender nicht aufräumen.
@@ -40,9 +40,9 @@ export async function GET(request: Request) {
   await requireArea("speaker", `/api/speaker/kalender${url.search}`);
 
   const nurSession = url.searchParams.get("session");
-  const nurReception = url.searchParams.get("reception");
+  const nurSideEvent = url.searchParams.get("side_event");
   const nurEdition = url.searchParams.get("edition") !== null;
-  const einzeln = Boolean(nurSession || nurReception || nurEdition);
+  const einzeln = Boolean(nurSession || nurSideEvent || nurEdition);
 
   const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
@@ -50,9 +50,9 @@ export async function GET(request: Request) {
   const basis = portalUrl();
   const host = basis ? new URL(basis).host : UID_HOST;
 
-  const [{ data: sessionRows }, { data: receptionRows }, { data: profileJson }] = await Promise.all([
+  const [{ data: sessionRows }, { data: sideEventRows }, { data: profileJson }] = await Promise.all([
     supabase.rpc("my_sessions"),
-    supabase.rpc("my_receptions"),
+    supabase.rpc("my_side_events"),
     supabase.rpc("my_speaker_profile"),
   ]);
   const profile = (profileJson ?? null) as SpeakerProfile | null;
@@ -62,8 +62,8 @@ export async function GET(request: Request) {
   // Der Summit selbst: ein ganztaegiger Termin ueber seine Tage (SPK-026) —
   // Freitag und Samstag, nicht der Hackathon-Donnerstag der Edition, und mit
   // vollem Namen statt des Kuerzels (SPK-048). Er steht vor Slot und
-  // Reception, weil er der Rahmen ist.
-  if (!nurSession && !nurReception && profile) {
+  // Side Event, weil er der Rahmen ist.
+  if (!nurSession && !nurSideEvent && profile) {
     const summit = await loadSummit(supabase, profile.edition_id);
     const tage = summit.days;
     if (tage.length > 0) {
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
     }
   }
 
-  if (!nurReception && !nurEdition) {
+  if (!nurSideEvent && !nurEdition) {
     for (const s of (sessionRows ?? []) as MySession[]) {
       if (!s.start_at) continue; // ohne Slot gibt es keinen Termin
       if (nurSession && s.session_id !== nurSession) continue;
@@ -98,18 +98,18 @@ export async function GET(request: Request) {
   }
 
   if (!nurSession && !nurEdition) {
-    for (const r of (receptionRows ?? []) as MyReception[]) {
+    for (const r of (sideEventRows ?? []) as MySideEvent[]) {
       if (r.my_status !== "yes") continue;
-      if (nurReception && r.id !== nurReception) continue;
+      if (nurSideEvent && r.id !== nurSideEvent) continue;
       const titel = (locale === "en" ? r.title_en : r.title_de) || r.title_de;
       const text = locale === "en" ? r.description_en : r.description_de;
       events.push({
-        uid: `reception-${r.id}@${host}`,
+        uid: `side-event-${r.id}@${host}`,
         start: new Date(r.starts_at),
         end: r.ends_at ? new Date(r.ends_at) : null,
         summary: titel,
         location: [r.location, r.address].filter(Boolean).join(", ") || null,
-        description: [text, mitLink(t.speakerCalendar.receptionNote, basis, "/speaker")]
+        description: [text, mitLink(t.speakerCalendar.sideEventNote, basis, "/speaker")]
           .filter(Boolean)
           .join("\n\n"),
         url: basis ? `${basis}/speaker` : null,
