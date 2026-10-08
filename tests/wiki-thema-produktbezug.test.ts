@@ -40,7 +40,7 @@ describe("Wiki: Thema und Produktbezug am Artikel (ADM-064, PART-103)", () => {
   });
 
   it("der Editor schreibt Thema und Produktbezug, der Produktbezug nur mit Partner-Zielgruppe", () => {
-    const admin = lies("app/(admin)/admin/wiki/WikiAdmin.tsx");
+    const admin = lies("app/(admin)/admin/wiki/ArtikelFormular.tsx");
     assert.match(admin, /category: form\.category \|\| null/);
     assert.match(admin, /product_formats: form\.audience\.includes\("partner"\) \? form\.product_formats : \[\]/);
     assert.match(admin, /form\.audience\.includes\("partner"\) && \(/);
