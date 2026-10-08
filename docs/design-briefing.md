@@ -68,7 +68,7 @@ Einbindung: `@font-face` aus `/public/fonts` als WOFF2 (`font-display: swap`); S
 - **Breiten:** Content max 1200 (Admin-Tabellen dürfen 1400), Text-/Formularspalte 800 (Formulare 640 bevorzugt).
 - **Spacing-Skala (8-pt):** 4 micro · 8 xs · 16 s · 24 m · 32 l · 48 xl · 64 2xl · 80 3xl · 120 4xl. Portal: Karten-Innenabstand 24, Abstand Karte↔Karte 16–24, Sektion↔Sektion 32–48 (Website: 80–120).
 - **Ausrichtung:** Portal linksbündig; zentriert nur Login/Welcome/Empty-States.
-- **Navigation:** Partner/Speaker/Volunteer: Sidebar (Navy) mit Gruppen *Übersicht · Euer Unternehmen/Profil · Euer Summit · Eure Formate · Support*. Talent-Portal: Top-Nav, mobile-first. Admin/Manager: Desktop-first, dichte Tabellen, Filterleiste oben, sticky Header.
+- **Navigation:** Partner/Speaker/Volunteer: Sidebar (Navy) mit Gruppen *Home (erste Gruppe ohne Kopf, QS-076) · Euer Unternehmen/Profil · Euer Summit · Eure Formate · Support*. Talent-Portal: Top-Nav, mobile-first. Admin/Manager: Desktop-first, dichte Tabellen, Filterleiste oben, sticky Header.
 - **Dashboard-Muster:** Checkliste „3 von 5 erledigt", Fristen mit Countdown, Ansprechpartner-Karte, Kennzahl-Kacheln.
 
 ## 5 · Komponenten
@@ -154,3 +154,11 @@ Konrad, Feedback-Runde 24.09.: Die Startseite des Teilnehmer-Portals zeigt *„k
 5. **`<h2>` ist `.ct-h2`**, auch in Karten; `.ct-h3` für Titel innerhalb eines Abschnitts, Meldungen, Dialoge. Eine Karte je Seite darf den Akzent-Umriss tragen.
 6. **`PhotoCard` liegt unter 640 px quer** (Bildfläche als Quadrat links), damit drei Einstiege auf dem Telefon nicht tausend Pixel vor der Arbeit stehen.
 7. **Die Seitenleiste bleibt Navy — ausser im Admin** (QS-046, Konrad 24.09.: „farblich abgrenzen, z. B. der Kontrastton Lila statt Dunkelblau"). Der Admin trägt `accent-deep`, damit man sofort sieht, dass man in der Verwaltung ist; Entscheidung 5 vom 17.09. gilt für alle anderen Portale weiter. Dazu drei Ebenen in jeder Leiste (QS-045) und im Admin die Portale unten statt oben.
+
+## v0.9 (08.10.2026) — Home und eine Überschrift (QS-076)
+
+Konrad, Admin-Feedback 08.10.2026 (abends). Ausgeführt im Skill (Regel 11) und in `referenzen/muster.md`.
+
+1. **Die Startseite jedes Portals heißt „Home“**, nicht „Übersicht“ — in der Seitenleiste, im Titel und in beiden Sprachen (Talent, Speaker, Speaker-Leads, Partner, Hackathon, Admin; der Summit-Einstieg im Talent-Menü ebenso). Das Partner-Menü verliert dafür den Gruppenkopf „Übersicht“ über dem ersten Punkt, wie die übrigen Portale.
+2. **Eine Überschrift je Karte:** die Einstiegskarten (`PhotoCard`) tragen den Namen der Seite als kursive Überschrift und keine gewöhnliche Zeile darunter — im Partner-Portal seit PART-098, jetzt überall. Der Baustein kennt kein `title` mehr; auch „Next Up“ zeigt nur den Titel des Hinweises.
+3. **Globale Seiten (Home, Login, Shell) ändern sich in allen Portalen zugleich**, nie nur in einem — Skill-Regel 11, Prüfpunkt „Vor dem PR“.
