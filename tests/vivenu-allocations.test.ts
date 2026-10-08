@@ -1,13 +1,17 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { couponCode, undershopName, undershopUrl } from "@/lib/vivenu/naming";
+import { gruppenCode, undershopName, undershopUrl } from "@/lib/vivenu/naming";
 
 describe("vivenu-Kontingente", () => {
-  it("bildet Undershop-Namen und Coupon-Codes aus Edition und Org", () => {
+  it("bildet Undershop-Namen und den Code einer Gruppe aus Edition und Org — ohne Kategorie (PART-111)", () => {
     assert.equal(undershopName("fls27", "Erfolg GmbH"), "FLS27 · Erfolg GmbH");
-    const code = couponCode("fls27", "erfolg-gmbh", "Erfolg GmbH", "partner");
-    assert.match(code, /^FLS27-ERFOLGGMBH-PART-[0-9A-F]{6}$/);
-    assert.match(couponCode("fls27", null, "Ümläut & Co", "startup"), /^FLS27-MLUTCO-STAR-[0-9A-F]{6}$/);
+    const code = gruppenCode("fls27", "erfolg-gmbh", "Erfolg GmbH");
+    assert.match(code, /^FLS27-ERFOLGGMBH-[0-9A-F]{6}$/);
+    assert.match(gruppenCode("fls27", null, "Ümläut & Co"), /^FLS27-MLUTCO-[0-9A-F]{6}$/);
+    // Die Rabattstufe steht im Code, damit ein Mensch den Code des Rabattkontingents erkennt.
+    assert.match(gruppenCode("fls27", "erfolg", "Erfolg GmbH", 50), /^FLS27-ERFOLG-50-[0-9A-F]{6}$/);
+    // Zwei Aufrufe ergeben zwei verschiedene Codes: eindeutig ist der Code durch den Zufallsteil.
+    assert.notEqual(gruppenCode("fls27", "erfolg", "x"), gruppenCode("fls27", "erfolg", "x"));
   });
 
   it("baut den Undershop-Link aus VIVENU_SHOP_BASE", () => {

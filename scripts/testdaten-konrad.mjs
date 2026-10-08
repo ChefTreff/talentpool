@@ -705,8 +705,10 @@ async function apply(me, ed) {
 }
 
 /**
- * Ein Kontingent je Pass-Typ, damit `/partner/tickets` Codes, Einlöse-Stand
- * **und** den Weg „mehr anfragen" zeigt.
+ * Ein Kontingent je Pass-Typ, damit `/partner/tickets` den Code, den Einlöse-Stand je Kategorie
+ * **und** den Weg „mehr anfragen" zeigt. **Alle Kontingente tragen denselben Code** — seit PART-111
+ * (Konrad 05.10.: „nur ein Code“) teilen sich die Kontingente einer Organisation und Rabattstufe einen
+ * Coupon, und `/partner/tickets` zeigt ihn einmal.
  *
  * Wichtig: `synced_at` wird gesetzt. `ticket_allocations_pending()` nimmt alles
  * mit, was `status in ('pending_vivenu','error')` **oder** `synced_at is null`
@@ -729,7 +731,7 @@ async function ticketAllocation(me, ed, orgId) {
       return admin.from("org_ticket_allocation").insert({
         event_id: ed.id, org_id: orgId, org_edition_id: oe?.id ?? null,
         pass_type: p.pass_type, quantity: p.quantity,
-        coupon_code: `FLS27-${PREFIX_CODE}-${p.pass_type.toUpperCase()}`,
+        coupon_code: `FLS27-${PREFIX_CODE}`,
         used_count: 0, status: "active", synced_at: new Date().toISOString(), notes: MARK,
       }).select("id").single();
     });

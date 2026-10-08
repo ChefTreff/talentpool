@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
+import { nachGruppen } from "@/components/partner/kontingent-ansicht";
 import { saveAllocation, saveAllocationDiscount, syncAllocation } from "../actions";
 import { ALLOCATION_STATUS, type AdminAllocation, type OrgEditionOption } from "../types";
 
@@ -102,7 +103,11 @@ export function AllocationTable({
     });
   }
 
-  function onSave(a: AdminAllocation) {
+  /**
+   * Code und Shop-Link gehören der Gruppe (PART-111): sie stehen nur an der ersten Zeile, und nur von dort
+   * gehen sie mit. Die Action überträgt sie auf die übrigen aktiven Zeilen der Gruppe.
+   */
+  function onSave(a: AdminAllocation, kopf: boolean) {
     const d = draft(a);
     const quantity = Number(d.quantity);
     if (!Number.isInteger(quantity) || quantity < 0) {
@@ -113,8 +118,8 @@ export function AllocationTable({
       saveAllocation({
         id: a.id,
         quantity,
-        couponCode: d.code.trim() || null,
-        undershopUrl: d.url.trim() || null,
+        couponCode: kopf ? d.code.trim() || null : null,
+        undershopUrl: kopf ? d.url.trim() || null : null,
         status: d.status,
         notes: d.notes.trim() || null,
       }),
@@ -174,12 +179,17 @@ export function AllocationTable({
         <Th aria-label={t.colAction} />
       </Thead>
       <Tbody>
-        {rows.map((a) => {
+        {nachGruppen(rows).map(({ zeile: a, kopf }) => {
           const d = draft(a);
           return (
             <Tr key={a.id}>
               <Td>
-                <span className="ct-label text-ink">{a.org_name ?? common.none}</span>
+                {/* Eine Gruppe steht zusammen, der Name der Organisation nur an ihrer ersten Zeile; für Vorlesegeräte steht er an jeder. */}
+                {kopf ? (
+                  <span className="ct-label text-ink">{a.org_name ?? common.none}</span>
+                ) : (
+                  <span className="sr-only">{a.org_name ?? common.none}</span>
+                )}
                 {a.synced_at && (
                   <div className="ct-help">
                     {t.syncedAt} {dateTime.format(new Date(a.synced_at))}
@@ -215,19 +225,27 @@ export function AllocationTable({
                 </div>
               </Td>
               <Td>
-                <Input
-                  aria-label={t.colCode}
-                  className="w-48"
-                  value={d.code}
-                  onChange={(e) => patch(a, { code: e.target.value })}
-                />
-                <Input
-                  aria-label={t.colShopUrl}
-                  className="mt-1 w-48"
-                  placeholder={t.colShopUrl}
-                  value={d.url}
-                  onChange={(e) => patch(a, { url: e.target.value })}
-                />
+                {/* PART-111: ein Code und ein Shop-Link je Gruppe — bearbeitet wird er an ihrer ersten Zeile. */}
+                {kopf ? (
+                  <>
+                    <Input
+                      aria-label={t.colCode}
+                      className="w-48"
+                      value={d.code}
+                      onChange={(e) => patch(a, { code: e.target.value })}
+                    />
+                    <Input
+                      aria-label={t.colShopUrl}
+                      className="mt-1 w-48"
+                      placeholder={t.colShopUrl}
+                      value={d.url}
+                      onChange={(e) => patch(a, { url: e.target.value })}
+                    />
+                    <p className="ct-help mt-1 w-48">{t.codeShared}</p>
+                  </>
+                ) : (
+                  <span className="ct-help">{t.codeSameAbove}</span>
+                )}
               </Td>
               <Td>
                 <Select
@@ -248,7 +266,7 @@ export function AllocationTable({
               </Td>
               <Td>
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" disabled={pending} onClick={() => onSave(a)}>
+                  <Button size="sm" disabled={pending} onClick={() => onSave(a, kopf)}>
                     {common.save}
                   </Button>
                   {/* Ruft die Cron-Route serverseitig mit dem Secret auf. */}
