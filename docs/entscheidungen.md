@@ -1388,3 +1388,11 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **#370** (Design): die fünf create-next-app-SVGs aus `public/` entfernt (QS-071 Nachtrag), kein Verweis im Code; Gate grün, main 8131e387.
 - Stand mittags: 0269–0272 live, #364–#366, #368–#370 gemergt; offen #367 (Talent, Konflikt mit main) und der nächste Design-PR. Nächste freie Nummer **0273**.
 
+## 2026-10-08 — #371, #372, #373 (Hotfix) gemergt; Side Events live geprüft
+
+- **#373 Hotfix** (Speaker-Chat, main ca854a08): die öffentliche Seite `/side-event/<token>` antwortete auf Produktion mit 500 — `new Intl.DateTimeFormat(…, { dateStyle, timeStyle, timeZoneName })` wirft seit Node 24 (`TypeError: Invalid option : option`), der Formatierer entstand vor der Token-Prüfung. Fix: `lib/side-event/zeit.ts` mit zwei Formatierern, Test führt die Formatierung aus (de/en, Sommer/Winter), Wächter-Test über das Repo gegen dieselbe Mischung. Kein Datenabfluss (Fehler vor jeder Ausgabe), noch keine Einladung draußen. Produktionsprobe nach Deploy: 200, Header no-referrer/noindex/no-store. **Lehre:** Tests, die den Quelltext lesen, belegen keine Laufzeit — Formatierer und Bibliotheksaufrufe wirklich ausführen; Smoke-Test der öffentlichen Seiten nach jedem Merge mit neuer Route.
+- **Side Events live:** Testdaten-Schritt `--nur=side-events` gegen live gelaufen (Konrad hat im Speaker-Chat freigegeben): zwei TEST-Events, drei Einladungen, keine Mail, kein Token. Konrads Walkthrough steht in seiner Liste (K-74 erledigt).
+- **#372** (Partner-Chat, PART-099, main a7b723d1): Fristen und Aufgaben als eine Liste auf Übersicht und Checkliste; Zuordnung Aufgabe → Frist liest `deliverable_template` (key, product_sku, due_rule) über die Policy `deliverable_template_read` (authenticated, `active or is_staff()`; live geprüft). Beobachtung → **PART-144** (Fristen mit Produktbezug auch ohne Produkt sichtbar, P3).
+- **#371** (Design, nur Doku): Stufenleiste-Handy-Zeile im Vorschlag 10-05 nachgezogen.
+- Stand früher Nachmittag: 0269–0272 live, #364–#366 und #368–#373 gemergt; offen #367 (Talent, Konflikt — Chat nicht erreichbar, Übergabe im Startpaket) und #374 (Design, PART-128 Teil 2, im Gate). Nächste freie Nummer **0273**.
+
