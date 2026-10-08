@@ -1,5 +1,5 @@
-create or replace function kb_articles(p_audience text, p_language text DEFAULT 'de'::text, p_edition_id uuid DEFAULT NULL::uuid, p_role text DEFAULT NULL::text)
- RETURNS TABLE(id uuid, slug text, title text, body_md text, phase text, roles text[], language text, edition_id uuid, updated_at timestamp with time zone, is_overlay boolean)
+create or replace function kb_articles(p_audience text, p_language text DEFAULT 'de'::text, p_edition_id uuid DEFAULT NULL::uuid, p_role text DEFAULT NULL::text, p_formats text[] DEFAULT NULL::text[])
+ RETURNS TABLE(id uuid, slug text, title text, body_md text, phase text, roles text[], language text, edition_id uuid, updated_at timestamp with time zone, is_overlay boolean, category text, product_formats text[])
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -15,19 +15,26 @@ begin
   -- Locale-String des Browsers, und eine Ausnahme hülfe dem Leser nicht.
   v_lang := case when p_language in ('de', 'en') then p_language else 'de' end;
   return query
-    select distinct on (a.slug)
-           a.id, a.slug, a.title, a.body_md, a.phase, a.roles, a.language, a.edition_id,
-           a.updated_at, a.edition_id is not null
-      from kb_article a
-     where a.status = 'published'
-       and a.audience && array[p_audience]
-       and (a.valid_until is null or a.valid_until > now())
-       -- `a.edition_id = p_edition_id` ist NULL, wenn keine Edition gefragt ist —
-       -- dann bleibt nur der evergreen übrig. Mit `p_edition_id is null` als
-       -- drittem Oder-Zweig hätte die Überlagerung einer **alten** Edition
-       -- gewonnen, sobald niemand eine Edition mitgibt.
-       and (a.edition_id is null or a.edition_id = p_edition_id)
-       and (p_role is null or cardinality(a.roles) = 0 or a.roles && array[p_role])
-     -- Edition vor evergreen, dann Wunschsprache vor der anderen.
-     order by a.slug, a.edition_id nulls last, (a.language = v_lang) desc, a.sort_order;
+    select k.id, k.slug, k.title, k.body_md, k.phase, k.roles, k.language, k.edition_id,
+           k.updated_at, k.is_overlay, k.category, k.product_formats
+      from (
+        select distinct on (a.slug)
+               a.id, a.slug, a.title, a.body_md, a.phase, a.roles, a.language, a.edition_id,
+               a.updated_at, a.edition_id is not null as is_overlay, a.category, a.product_formats
+          from kb_article a
+         where a.status = 'published'
+           and a.audience && array[p_audience]
+           and (a.valid_until is null or a.valid_until > now())
+           -- `a.edition_id = p_edition_id` ist NULL, wenn keine Edition gefragt ist —
+           -- dann bleibt nur der evergreen übrig. Mit `p_edition_id is null` als
+           -- drittem Oder-Zweig hätte die Überlagerung einer **alten** Edition
+           -- gewonnen, sobald niemand eine Edition mitgibt.
+           and (a.edition_id is null or a.edition_id = p_edition_id)
+           and (p_role is null or cardinality(a.roles) = 0 or a.roles && array[p_role])
+         -- Edition vor evergreen, dann Wunschsprache vor der anderen.
+         order by a.slug, a.edition_id nulls last, (a.language = v_lang) desc, a.sort_order
+      ) k
+     -- PART-103: Produktbezug **nach** der Wahl Edition-vor-evergreen, sonst blendete ein Overlay
+     -- mit Produktbezug den allgemeinen Artikel wieder ein. NULL = kein Produktfilter.
+     where p_formats is null or cardinality(k.product_formats) = 0 or k.product_formats && p_formats;
 end $$;

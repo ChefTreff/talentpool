@@ -1,5 +1,5 @@
 create or replace function kb_articles_admin(p_audience text DEFAULT NULL::text)
- RETURNS TABLE(id uuid, slug text, title text, body_md text, phase text, roles text[], audience text[], language text, edition_id uuid, edition_slug text, status text, valid_until timestamp with time zone, owner_name text, updated_at timestamp with time zone, published_at timestamp with time zone)
+ RETURNS TABLE(id uuid, slug text, title text, body_md text, phase text, roles text[], audience text[], language text, edition_id uuid, edition_slug text, status text, valid_until timestamp with time zone, owner_name text, updated_at timestamp with time zone, published_at timestamp with time zone, category text, product_formats text[])
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
@@ -12,7 +12,7 @@ begin
     select a.id, a.slug, a.title, a.body_md, a.phase, a.roles, a.audience, a.language,
            a.edition_id, e.slug, a.status, a.valid_until,
            nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), ''),
-           a.updated_at, a.published_at
+           a.updated_at, a.published_at, a.category, a.product_formats
       from kb_article a
       left join event e on e.id = a.edition_id
       left join person p on p.id = a.owner_person_id

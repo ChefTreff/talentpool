@@ -194,6 +194,9 @@
 | Welle 6 · 0267 | **„Bereits freigegeben“ je Freigabe-Art (freigabe_verlauf, Keyset-Blättern)** (`20261005163344`, `v6_freigabe_verlauf`; Details im Migrationskopf) | — |
 | Welle 6 · 0268 | **Speaker-Tickets final: Kontingent, Begleittickets, Lounge je Ticket, Löschweg der Begleitungen** (`20261005170530`, `v6_speaker_tickets_final`; Details im Migrationskopf) | — |
 | Welle 6 · 0269 | **Hinweismail an Teammitglieder mit bestehendem Konto (ADM-086)** (`20261008081953`, `v6_team_hinweismail`; Details im Migrationskopf) | — |
+| Welle 6 · 0270 | **Side Events: aus der Reception wird eine Einladungsliste (ADM-077, SPK-091)** (`20261008082640`, `v6_side_events`; Details im Migrationskopf) | — |
+| Welle 6 · 0271 | **Wiki: Thema und Produktbezug am Artikel (ADM-064 + PART-103)** (`20261008083319`, `v6_wiki_thema_produktbezug`; Details im Migrationskopf) | — |
+| Welle 6 · 0272 | **Hackathon-Startseite als Event-Seite: Eckdaten, Ansprechperson, Zähler (HACK-020 für HACK-013)** (`20261008083344`, `v6_hack_eventseite`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

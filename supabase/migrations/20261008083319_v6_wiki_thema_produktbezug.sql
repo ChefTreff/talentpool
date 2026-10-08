@@ -1,3 +1,5 @@
+-- 0271 · Wiki: Thema und Produktbezug am Artikel (ADM-064 + PART-103)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008083319.
 -- 00NN · Wiki: Thema und Produktbezug am Artikel (ADM-064 + PART-103)
 --
 -- Anlass: PART-058 (#315) gruppiert die Wiki-Liste nach Thema; die Zuordnung stand übergangsweise im
