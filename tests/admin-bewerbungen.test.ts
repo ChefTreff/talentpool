@@ -250,12 +250,19 @@ describe("Bewerbungsdetails als gemeinsamer Baustein", () => {
     assert.doesNotMatch(src("components/partner/ApplicantList.tsx"), /verdeckt=\{false\}/);
   });
 
-  it("Partner-Portal und Admin nutzen dieselben Details und Statusfarben", () => {
+  it("Partner-Portal und Admin lesen Profil und Statusfarben mit denselben Helfern", () => {
+    // Das Partner-Portal zeigt das Profil seit PART-122 im Schubfach (BewerbungProfil), das Team aufgeklappt
+    // in der Zeile (BewerbungDetails). Beide lesen mit den Helfern aus bewerbung.ts — es gibt nur eine Regel
+    // dafür, was als Profilfeld, Antwort und LinkedIn-Adresse gilt.
     const partner = src("components/partner/ApplicantList.tsx");
     const admin = src("app/(admin)/admin/bewerbungen/BewerbungsListe.tsx");
-    for (const datei of [partner, admin]) {
-      assert.match(datei, /<BewerbungDetails application=/);
-      assert.match(datei, /BEWERBUNG_STATUS_TON\[/);
+    assert.match(partner, /<BewerbungProfil application=/);
+    assert.match(admin, /<BewerbungDetails application=/);
+    for (const datei of [partner, admin]) assert.match(datei, /BEWERBUNG_STATUS_TON\[/);
+    for (const datei of ["components/partner/BewerbungProfil.tsx", "components/partner/BewerbungDetails.tsx"]) {
+      for (const helfer of ["profilFelder", "antwortZeilen", "linkedinUrl"]) {
+        assert.match(src(datei), new RegExp(`\\b${helfer}\\(`), `${datei}: ${helfer}`);
+      }
     }
   });
 

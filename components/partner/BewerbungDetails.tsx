@@ -1,13 +1,15 @@
 import { neuesFenster } from "@/components/ui/neues-fenster";
-import { BEWERBUNG_PROFILFELDER, istVerdeckt, type BewerbungFuerDetails } from "@/components/partner/bewerbung";
+import { antwortZeilen, istVerdeckt, linkedinUrl, profilFelder, type BewerbungFuerDetails } from "@/components/partner/bewerbung";
 
 type Strings = Record<string, string>;
 
 /**
- * Profil, LinkedIn und Antworten einer Bewerbung (aus `ApplicantList`
- * herausgelöst, ADM-003) — in den Partner-Karten und in den aufgeklappten
- * Zeilen der Admin-Liste dieselbe Darstellung. Die Antworten stehen unter
- * ihrem Schlüssel; wer Fragetexte hat, gibt sie als Schlüssel herein.
+ * Profil, LinkedIn und Antworten einer Bewerbung in den aufgeklappten Zeilen
+ * der Admin-Liste (aus `ApplicantList` herausgelöst, ADM-003). Das Partner-
+ * Portal zeigt dieselben Angaben seit PART-122 im Schubfach (`BewerbungProfil`);
+ * was angezeigt wird, entscheiden die Helfer in `bewerbung.ts` für beide.
+ * Die Antworten stehen unter ihrem Schlüssel; wer Fragetexte hat, gibt sie
+ * als Schlüssel herein.
  *
  * `verdeckt` steht vorgabegemäss auf dem Datenstand (`istVerdeckt`). Die
  * Admin-Liste setzt es auf `false`: das Team bekommt Profil und Antworten
@@ -23,9 +25,10 @@ export function BewerbungDetails({
   verdeckt?: boolean;
 }) {
   if (verdeckt) return <p className="ct-help mt-2">{t.hiddenBody}</p>;
-  const profil = BEWERBUNG_PROFILFELDER.map((key) => [key, a.profile?.[key] ?? null] as const).filter(([, v]) => v);
-  const linkedin = typeof a.profile?.linkedin_url === "string" ? a.profile.linkedin_url : null;
-  const antworten = a.answers ? Object.entries(a.answers) : [];
+  const profil = profilFelder(a.profile);
+  // Die Adresse stammt aus dem Profil der Person: nur http und https werden verlinkt (PART-122).
+  const linkedin = linkedinUrl(a.profile);
+  const antworten = antwortZeilen(a.answers);
   return (
     <>
       {profil.length > 0 && (
@@ -48,7 +51,7 @@ export function BewerbungDetails({
           {antworten.map(([key, value]) => (
             <div key={key}>
               <dt className="font-semibold">{key}</dt>
-              <dd className="whitespace-pre-line">{Array.isArray(value) ? value.join(", ") : String(value)}</dd>
+              <dd className="whitespace-pre-line">{value}</dd>
             </div>
           ))}
         </dl>
