@@ -1454,3 +1454,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **Offenlegung Admin-Chat (PART-116):** `GET /Order/{id}/getPdf` bei SevDesk schreibt laut Doku Belege fest; einmal an einem schon versendeten Angebot gelesen, keine Änderung an einem der 21 Angebote. Nebenbefund Partner-Chat: `v3_partner_ingest.sql` bricht live bei Schritt 26 (`upsert_partner_contact` „not allowed“) — nach der Pause prüfen.
 - **Pause:** Stand je Chat in `docs/chat-startpakete.md` „Pause 08.10. abends“; nächste freie Nummer **0278**.
 
+## 2026-10-08 — Neustart nach der Pause: Kickoffs je Chat, #367 unverändert
+
+- Alle fünf Chats neu gestartet; Kickoffs verweisen auf die Zeilen „Pause 08.10. abends“. Reihenfolgen: Talent zuerst #367 auf main (Branch stand noch auf d9f9f99a, 0272 ist live); Design QS-076 (Home, eine Überschrift, Regel „globale Seiten überall zugleich“) vor dem Vorschlag 10-09; Admin ADM-091/092 → 094 → 096 → 102 (Datenmodell vorab) → 103 → 099; Partner PART-124 (0276 live) → PART-103 → P2/P3; Speaker Testdaten `--nur=aenderungsmail` nach Konrads Ja → ADM-106 → ADM-087 → Rest. Offen bei Konrad: K-81 bis K-84, Admin-Feedback Teil 2.
+
