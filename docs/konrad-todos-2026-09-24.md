@@ -134,7 +134,7 @@ Alles steht nummeriert: **PART-098 bis PART-142** (Partner-Portal), **QS-069 bis
 
 **21 · K-71 Integrations-Klicktest vor dem Go-live (QS-072):** die Testliste steht in `docs/abschluss-checkliste.md` (Abschnitt „Integrations-Klicktest“, 15 Verbindungen mit Klickweg, Erwartung und Rückweg); du klickst sie in einer Sitzung durch, am besten nach Paulinas Testwoche ab 13.10.
 
-**22 · K-72 Datenschutz-Vereinbarung (PART-129):** Teilnehmende stimmen bei der Bewerbung standardmäßig zu, dass ihre Daten an den Partner des Formats gehen — das muss in die Datenschutzerklärung und in die Vereinbarung mit den Partnern (Zweck, Felder, Löschung nach dem Summit). Gehört in den Datenschutz-Block K-18 bis K-23.
+**22 · K-72 Datenschutz-Vereinbarung (PART-129) — Entwurf liegt vor (08.10.): `docs/entwurf-k72-weitergabe-partner.md` (Kurztext für das Kontrollkästchen und Langtext DE/EN, beide Fassungen für K-78 A/B, fünf offene Punkte am Ende); bitte lesen, mit der Datenschutzberatung abstimmen und freigeben.** Ursprünglich: Teilnehmende stimmen bei der Bewerbung standardmäßig zu, dass ihre Daten an den Partner des Formats gehen — das muss in die Datenschutzerklärung und in die Vereinbarung mit den Partnern (Zweck, Felder, Löschung nach dem Summit). Gehört in den Datenschutz-Block K-18 bis K-23.
 
 **23 · Zur Kenntnis, Befunde folgen:** PART-111 (nur ein Secret-Shop-Code? der Partner-Chat prüft das vivenu-Modell und meldet), PART-105 (Logo-Seite kaputt, P1), PART-115 (Loom lädt nicht, P1), PART-129 (fehlender Bewerber, P1). Für PART-137 (Branding-Elemente) brauche ich von dir oder Laura die Liste der Branding-Items mit Format und Frist.
 
