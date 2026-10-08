@@ -30,17 +30,16 @@ describe("Admin-Startseite: Einstiege nach Rolle (QS-037)", () => {
     for (const e of EINSTIEGE) assert.equal(e.href, adminSection(e.key).path, e.key);
   });
 
-  it("hat für jede Karte Wort, Satz und Menütitel in DE und EN", () => {
+  it("hat für jede Karte Satz und Menütitel in DE und EN (die Überschrift der Karte ist der Menütitel, QS-076)", () => {
     for (const e of EINSTIEGE) {
       for (const [sprache, d] of [["de", de], ["en", en]] as const) {
-        assert.ok(d.admin.words[e.key], `${sprache}: admin.words.${e.key}`);
         assert.ok(d.admin.entries[e.key], `${sprache}: admin.entries.${e.key}`);
         assert.ok(typeof d.admin.nav[e.nav] === "string", `${sprache}: admin.nav.${e.nav}`);
       }
     }
   });
 
-  it("hat ein Seitenkopf-Wort für jeden Admin-Abschnitt ausser der Übersicht", () => {
+  it("hat ein Seitenkopf-Wort für jeden Admin-Abschnitt ausser Home (das Wort steht am Seitenkopf, nicht mehr an der Karte)", () => {
     for (const s of ADMIN_SECTIONS) {
       if (s.key === "overview") continue;
       assert.ok(de.admin.words[s.key], `de: admin.words.${s.key}`);

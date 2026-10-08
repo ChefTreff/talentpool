@@ -5,14 +5,14 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { Badge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
 import { RueckgabeHinweis, SessionStatusBadge, rueckgabeOffen, type RueckgabeTexte } from "../Rueckgabe";
 import { canEditOnboarding, type PartnerOverview } from "../types";
 import { SpeakerHinzufuegen } from "./SpeakerHinzufuegen";
-import { SpeakerKarte } from "./SpeakerKarte";
+import { SpeakerTabelle } from "./SpeakerTabelle";
 import type { PartnerFormatSession, PartnerSpeaker } from "./types";
 
 export const dynamic = "force-dynamic";
@@ -128,24 +128,32 @@ export default async function PartnerTalkPage() {
         <div className="flex flex-col gap-4">
           {sessions.map((x) => {
             const dazu = speakers.filter((sp) => sp.session_id === x.id);
+            // PART-136: was für alle Speaker gilt, steht einmal unter der Tabelle statt bei jedem Namen.
+            const kontakt = dazu.find((sp) => sp.mail_contact_name)?.mail_contact_name ?? null;
+            const pflegtSelbst = dazu.some((sp) => !sp.can_edit && !sp.mail_contact_name);
             return (
               <Card key={x.id}>
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="ct-h3 text-ink">{titel(x)}</h2>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge>{formatLabel[x.format] ?? x.format}</Badge>
-                    <SessionStatusBadge
-                      publishStatus={x.publish_status}
-                      returnNote={x.return_note}
-                      statusLabel={statusLabel}
-                      t={rueckgabe}
-                    />
-                  </div>
-                </div>
+                {/* PART-136: der Session-Titel ist die Überschrift der Karte (`h2`, `ct-h2`); „Wer spricht“ ist die
+                    Überschrift darunter (`h3`), die Namen sind Zeilen — jede Stufe kleiner als die über ihr. */}
+                <CardHeader
+                  ebene="h2"
+                  title={titel(x)}
+                  action={
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Badge>{formatLabel[x.format] ?? x.format}</Badge>
+                      <SessionStatusBadge
+                        publishStatus={x.publish_status}
+                        returnNote={x.return_note}
+                        statusLabel={statusLabel}
+                        t={rueckgabe}
+                      />
+                    </div>
+                  }
+                />
 
-                {/* Der Slot, wie im Speaker-Portal: Termin, Bühne, Tag. */}
-                <dl className="ct-small mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-                  <div>
+                {/* Der Slot, wie im Speaker-Portal: Termin und Bühne in **einer** Zeile. */}
+                <dl className="ct-small flex flex-wrap gap-x-8 gap-y-1">
+                  <div className="flex gap-2">
                     <dt className="ct-label text-muted">{s.slotLabel}</dt>
                     <dd className="tabular-nums text-ink">
                       {x.starts_at
@@ -153,7 +161,7 @@ export default async function PartnerTalkPage() {
                         : s.slotPending}
                     </dd>
                   </div>
-                  <div>
+                  <div className="flex gap-2">
                     <dt className="ct-label text-muted">{s.stageLabel}</dt>
                     <dd className="text-ink">{x.stage_name ?? s.stagePending}</dd>
                   </div>
@@ -171,19 +179,25 @@ export default async function PartnerTalkPage() {
                 )}
 
                 <div className="mt-5 flex flex-col gap-4 border-t border-border pt-4">
-                  <p className="ct-label text-ink">{s.speakersLabel}</p>
+                  <h3 className="ct-h3 text-ink">
+                    {dazu.length > 0 ? `${s.speakersLabel} (${dazu.length})` : s.speakersLabel}
+                  </h3>
                   {dazu.length > 0 ? (
-                    <div className="flex flex-col gap-4">
-                      {dazu.map((sp) => (
-                        <SpeakerKarte
-                          key={sp.profile_id}
-                          speaker={sp}
-                          canEdit={canEdit}
-                          t={s as unknown as Record<string, string>}
-                          rpcMessages={t.rpc}
-                        />
-                      ))}
-                    </div>
+                    <>
+                      <SpeakerTabelle
+                        speakers={dazu}
+                        canEdit={canEdit}
+                        t={s as unknown as Record<string, string>}
+                        rpcMessages={t.rpc}
+                      />
+                      {(pflegtSelbst || kontakt) && (
+                        <p className="ct-help">
+                          {[pflegtSelbst ? s.speakersNoteOwn : null, kontakt ? s.speakersNoteManaged.replace(/\{kontakt\}/g, kontakt) : null]
+                            .filter(Boolean)
+                            .join(" ")}
+                        </p>
+                      )}
+                    </>
                   ) : (
                     <p className="ct-help">{s.noSpeakerYet}</p>
                   )}

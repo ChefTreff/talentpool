@@ -95,8 +95,10 @@ export default async function MailPage({
       label: `${t.mailStatus[s.status as keyof typeof t.mailStatus] ?? s.status} (${s.anzahl})`,
     }));
 
-  const schluessel = [...new Set(((vorlagen.data ?? []) as { key: string }[]).map((v) => v.key))].sort();
-  const vorlagenOptionen: SelectOption[] = schluessel.map((k) => ({ value: k, label: k }));
+  // Anzeigename statt Systemname (ADM-102 d); die Liste hat eine Zeile je Vorlage.
+  const vorlagenOptionen: SelectOption[] = ((vorlagen.data ?? []) as { key: string; name_de: string }[])
+    .map((v) => ({ value: v.key, label: v.name_de }))
+    .sort((a, b) => a.label.localeCompare(b.label, "de"));
 
   return (
     <>

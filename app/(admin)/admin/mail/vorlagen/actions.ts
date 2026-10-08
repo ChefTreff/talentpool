@@ -1,16 +1,18 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdminSection } from "@/lib/auth";
+import { requireAnyAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 import { fillVars, markdownToHtml } from "@/lib/mail/render";
 
 /**
- * Mail-Vorlagen pflegen. Die RPCs prüfen `has_role('admin')` selbst — diese
- * Texte gehen an alle, das ist keine Aufgabe, die man nebenbei delegiert.
+ * Mail-Vorlagen pflegen. Seit ADM-102 prüfen die RPCs **je Schlüssel**, ob die Person die Kategorie der Vorlage
+ * bearbeiten darf (`can_edit_mail_template`): ein Partner-Team ändert Partner-Mails, nicht Speaker-Mails. Das Gate hier
+ * ist die Tür zur Seite (irgendein Vorlagen-Abschnitt), die Datenbank ist die Grenze je Vorlage.
  */
 const PATH = "/admin/mail/vorlagen";
+const ABSCHNITTE = ["mail", "mailSpeaker", "mailPartner", "mailParticipants", "mailVolunteers"] as const;
 
 export type VorlageResult<T = void> =
   | { ok: true; data: T }
@@ -23,16 +25,45 @@ function fail(error: unknown): { ok: false; key: string; detail?: string } {
 }
 
 async function client() {
-  await requireAdminSection("mail", PATH);
+  await requireAnyAdminSection(ABSCHNITTE, PATH);
   return createSupabaseServerClient();
 }
 
-export async function saveTemplate(data: Record<string, unknown>): Promise<VorlageResult<number>> {
+/** Eine Sprachfassung, so wie `upsert_mail_template` sie annimmt. */
+export type Fassungsdaten = { subject: string; body_md: string };
+
+/**
+ * Beide Sprachfassungen einer Vorlage **zusammen** speichern (ADM-102 e): eine Transaktion, je Sprache eigene Version und
+ * eigener Protokolleintrag. `null` lässt die Sprache unverändert.
+ */
+export async function saveTemplatePair(
+  key: string,
+  de: Fassungsdaten | null,
+  en: Fassungsdaten | null,
+): Promise<VorlageResult<{ de: number | null; en: number | null }>> {
   const supabase = await client();
-  const { data: version, error } = await supabase.rpc("upsert_mail_template", { p_data: data });
+  const { data, error } = await supabase.rpc("upsert_mail_template_pair", { p_key: key, p_de: de, p_en: en });
   if (error) return fail(error);
   revalidatePath(PATH);
-  return { ok: true, data: (version ?? 0) as number };
+  const r = (data ?? {}) as { de?: number | null; en?: number | null };
+  return { ok: true, data: { de: r.de ?? null, en: r.en ?? null } };
+}
+
+/** Anzeigename ändern (der Bereich) und — nur `admin` — Kategorie oder Platzhalter. */
+export async function setTemplateMeta(
+  key: string,
+  meta: { category?: string; name_de?: string; name_en?: string },
+): Promise<VorlageResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_mail_template_meta", {
+    p_key: key,
+    p_category: meta.category ?? null,
+    p_name_de: meta.name_de ?? null,
+    p_name_en: meta.name_en ?? null,
+  });
+  if (error) return fail(error);
+  revalidatePath(PATH);
+  return { ok: true, data: undefined };
 }
 
 export async function restoreTemplate(
@@ -87,7 +118,7 @@ export async function previewTemplate(
   body: string,
   vars: Record<string, string>,
 ): Promise<VorlageResult<{ subject: string; html: string }>> {
-  await requireAdminSection("mail", PATH);
+  await requireAnyAdminSection(ABSCHNITTE, PATH);
   return {
     ok: true,
     data: {

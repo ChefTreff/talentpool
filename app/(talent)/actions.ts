@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
+import { PARTNER_SHARE_VERSION } from "@/lib/consent";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
@@ -35,6 +36,7 @@ export async function applyToSession(
   sessionId: string,
   answers: Record<string, string>,
   consentShare: boolean,
+  language: string | null = null,
 ): Promise<TalentResult<{ applicationId: string }>> {
   await requireUser();
   const supabase = await createSupabaseServerClient();
@@ -42,10 +44,36 @@ export async function applyToSession(
     p_session_id: sessionId,
     p_answers: answers,
     p_consent_share: consentShare,
+    p_consent_version: PARTNER_SHARE_VERSION,
+    p_language: language,
   });
   if (error) return fail(error);
   revalidate();
   return { ok: true, data: { applicationId: data as string } };
+}
+
+/** Weitergabe an den Partner nachholen (PART-129): für Bewerbungen ohne Haken, nur die eigene. */
+export async function releaseApplicationShare(applicationId: string, language: string | null = null): Promise<TalentResult> {
+  await requireUser();
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("release_application_share", {
+    p_application_id: applicationId,
+    p_version: PARTNER_SHARE_VERSION,
+    p_language: language,
+  });
+  if (error) return fail(error);
+  revalidate();
+  return { ok: true, data: undefined };
+}
+
+/** Weitergabe widerrufen (PART-129): wirkt ab sofort für künftige Abrufe des Partners. */
+export async function revokeApplicationShare(applicationId: string): Promise<TalentResult> {
+  await requireUser();
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("revoke_application_share", { p_application_id: applicationId });
+  if (error) return fail(error);
+  revalidate();
+  return { ok: true, data: undefined };
 }
 
 /** Anmeldung. Liefert `confirmed` oder `waitlisted` zurück. */
