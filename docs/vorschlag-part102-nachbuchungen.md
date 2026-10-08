@@ -2,6 +2,8 @@
 
 Stand 08.10.2026, Partner-Chat. **Befund und Vorschlag — gebaut wird nach Freigabe** durch die Architektur-Session (Datenmodell) und, für die Frage unter „Offen“, durch Konrad und das Sales-Team. Code geprüft auf `main` (c85436ed), Live-Daten nur gelesen.
 
+> **Entschieden (Plan, 08.10.2026 abends):** das **Datenmodell ist freigegeben** — `org_product.nachgebucht_am timestamptz` (null = Erstbuchung, vom Ingest gesetzt, wenn der `org_edition` schon einen Deal hat), `partner_overview.products[]` liefert das Feld (Snapshot-Basis, fn-diff), Anzeige je SKU zusammengefasst („davon 2 nachgebucht am …“, mit PART-100) in Portal und Admin-Karte „Gebucht“, **keine Mail**. **F2: ja** — Kontakte am Folge-Deal sind optional, sobald die Organisation einen Hauptkontakt hat (`primary_conflict` und `primary_contact_multiple` bleiben). **F1 geht an Konrad als K-82** mit der Empfehlung A (neuer Deal in derselben Pipeline und Phase; Positionen am bestehenden Deal nur mit Nachtrag-Weg). **Der Bau von `v6_nachbuchung` beginnt erst nach Konrads Antwort auf K-82.** Der Nebenbefund zu `v3_partner_ingest.sql` (Schritt 25/26) steht im Log: den Test gegen den Livebestand neu schreiben (Admin-Chat oder Partner-Chat nach der Pause).
+
 ## Anlass
 
 PART-102 (Konrad & Leopold 05.10., Frage aus dem Sales): Leistungen lassen sich nachträglich hinzubuchen, meist über ein **zweites HubSpot-Angebot**. Antwort von Plan an Konrad (K-Liste 24.09., Nr. 20): ja — der Abgleich zählt einen zweiten gewonnenen Deal **zusätzlich**, das Portal zeigt „nachgebucht am …“. Zu prüfen war, ob das stimmt, und was fehlt.
