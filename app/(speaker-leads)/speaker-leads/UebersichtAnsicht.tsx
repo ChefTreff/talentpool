@@ -78,12 +78,11 @@ export function UebersichtAnsicht({
       />
 
       {/* Die drei Einstiege (QS-037): Akquise, Onboarding, Programm — der Weg
-          eines Speakers durch das Portal. Das Wort steht als Kopf auf der
-          Seite, zu der die Karte führt. */}
+          eines Speakers durch das Portal. Die Karte trägt den Namen der Seite,
+          zu der sie führt, als einzige Überschrift (QS-076). */}
       <div className="mb-10 grid gap-6 sm:grid-cols-3">
         <PhotoCard
-          word={tl.wordLineup}
-          title={tl.title}
+          word={tl.title}
           description={tl.entryPipelineBody}
           action={
             <ButtonLink href="/speaker-leads/pipeline" variant="secondary" size="sm">
@@ -92,8 +91,7 @@ export function UebersichtAnsicht({
           }
         />
         <PhotoCard
-          word={tl.wordOnboarding}
-          title={tl.confirmedTitle}
+          word={tl.confirmedTitle}
           description={tl.entryConfirmedBody}
           action={
             <ButtonLink href="/speaker-leads/bestaetigt" variant="secondary" size="sm">
@@ -102,8 +100,7 @@ export function UebersichtAnsicht({
           }
         />
         <PhotoCard
-          word={tl.wordProgramme}
-          title={tl.boardTitle}
+          word={tl.boardTitle}
           description={tl.entryBoardBody}
           action={
             <ButtonLink href="/speaker-leads/board" variant="secondary" size="sm">

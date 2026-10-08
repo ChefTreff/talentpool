@@ -98,7 +98,7 @@ Die Marker sind Sechsecke auf einer durchgehenden Linie — waagerecht ab 640 px
 
 ## Sidebar, Bereichsname und Fuss
 
-`SidebarShell`: Navy-Seitenleiste, oben links Bereichsname („CHEFTREFF SPEAKER PORTAL"), Gruppen *Übersicht · Profil/Unternehmen · Summit · Formate · Support*. Wer nur einen Bereich hat, sieht keine Spur der anderen — kein Umschalter, keine Links, nichts im HTML (Feedback-Runde 1, Punkt 2).
+`SidebarShell`: Navy-Seitenleiste, oben links Bereichsname („CHEFTREFF SPEAKER PORTAL"), Gruppen *Home (erste Gruppe ohne Kopf, QS-076) · Profil/Unternehmen · Summit · Formate · Support*. Wer nur einen Bereich hat, sieht keine Spur der anderen — kein Umschalter, keine Links, nichts im HTML (Feedback-Runde 1, Punkt 2).
 
 **Den Fuss zieht die Shell, nicht die Seite.** `SidebarShell` rendert `PortalFooter` selbst: Rollen-Postfach des Bereichs (`mailboxFor`), Impressum und Datenschutz auf die Hauptwebsite. Keine Seite setzt ihn noch einmal — vorher taten es zwei von 94, und die Pflichtangaben fehlten auf dem Rest. Ein eigenes Postfach gibt die Seite über `mailbox` mit.
 
@@ -355,7 +355,7 @@ Für alles, was ausgefüllt wird: Onboarding, Anmeldung, Einreichung, Profil.
 
 ### D · Übersicht (umgesetzt in `/partner`)
 
-Die Startseite eines Bereichs. Beantwortet in dieser Reihenfolge: **Wo bin ich · Was ist zu tun · Wie steht es · Wen frage ich.**
+Die Startseite eines Bereichs; im Menü und in der Überschrift heißt sie **„Home“** (QS-076) — „Übersicht“ ist nur der Name dieses Musters. Beantwortet in dieser Reihenfolge: **Wo bin ich · Was ist zu tun · Wie steht es · Wen frage ich.**
 
 ```
 ┌ HeroBand ── Gruss mit Highlight · ein Satz · [Aktion] · [Kennzahl] ┐  Navy
@@ -363,8 +363,8 @@ Die Startseite eines Bereichs. Beantwortet in dieser Reihenfolge: **Wo bin ich �
 │ NextStepBanner ── „3 von 8 Aufgaben offen"          [ Zur Liste ]  │  Akzent
 ├──────────────────────┬──────────────────────┬──────────────────────┤
 │ ▲ Bildfläche         │ ▲ Bildfläche         │ ▲ Bildfläche         │  Einstiege
-│ Bühne (kursiv)       │ Unterwegs (kursiv)   │ Spotlight (kursiv)   │  (PhotoCard,
-│ Titel · ein Satz     │ Titel · ein Satz     │ Titel · ein Satz     │   QS-037)
+│ Deine Session        │ Anreise              │ Deine Grafik         │  (PhotoCard,
+│ (kursiv) · ein Satz  │ (kursiv) · ein Satz  │ (kursiv) · ein Satz  │   QS-037, QS-076)
 ├──────────────┬───────┴──────┬──────────────┬┴──────────────────────┤
 │ StatCard     │ StatCard     │ StatCard     │ StatCard              │  4 Zahlen
 ├──────────────┴──────────────┴──────────────┴───────────────────────┤
@@ -389,7 +389,7 @@ Konrad, Feedback-Runde 24.09.: Auf der Startseite des Teilnehmer-Portals ist das
 **Startseite**
 
 1. `HeroBand` mit Gruss und **einem** Highlight-Wort (`highlight`, Pink auf Navy), einem Satz, **genau einer Aktion** und rechts der Kennzahl. Die Aktion ist der nächste offene Schritt, nicht „Mehr erfahren" — wer alles erledigt hat, bekommt den Weg zum Kern des Portals.
-2. Darunter die **drei Einstiege** als `PhotoCard`: Bildfläche, kursives Schlüsselwort, Titel, ein Satz, eine Nebenaktion (`variant="secondary" size="sm"`). Drei, nicht vier — die Website zeigt drei, und die dritte Karte ist die, bei der man merkt, ob man auswählt oder aufzählt. Die Bildflächen sind der Platz für die Penno-Fotos (QS-027); bis dahin trägt sie die Dreiecksform.
+2. Darunter die **drei Einstiege** als `PhotoCard`: Bildfläche, **eine** kursive Überschrift — der Name der Seite, zu der die Karte führt, keine zweite Zeile darunter (QS-076) —, ein Satz, eine Nebenaktion (`variant="secondary" size="sm"`). Drei, nicht vier — die Website zeigt drei, und die dritte Karte ist die, bei der man merkt, ob man auswählt oder aufzählt. Die Bildflächen sind der Platz für die Penno-Fotos (QS-027); bis dahin trägt sie die Dreiecksform.
 3. Dann die Arbeit (Checkliste, Termine), dann die Ansprechpersonen.
 
 Wer im Namen eines anderen arbeitet (Assistenz), wird nicht mit dessen Vornamen begrüsst: Titel bleibt der Name, ohne Highlight.
