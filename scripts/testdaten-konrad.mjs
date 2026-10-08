@@ -153,6 +153,11 @@
  *                                   verschiebt, sieht unter /admin/mail eine wartende Mail an Konrads Postfach. Braucht den Schritt
  *                                   `buehne` und Konrads Speaker-Profil; erst nach „Migration live“ von v6_mail_verzoegert.
  *                                   **Die Session steht bis `--remove` im veröffentlichten Programm**)
+ *   … --apply --nur=zusage-mail   (PART-124: eine freigegebene TEST-Masterclass der Test-Organisation mit drei TEST-Bewerbungen
+ *                                   „Engere Wahl“ — Konrad sagt im Partner-Portal zu (Masterclass → Bewerbungen), /admin/mail zeigt
+ *                                   die Zusage-Mail als „Wartet“ (Versand frühestens in zehn Minuten), eine andere Entscheidung bis
+ *                                   dahin storniert sie. Braucht den Schritt `partner`; die Frist sieht man erst nach „Migration
+ *                                   live“ von v6_zusage_mail_verzoegert)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -2013,6 +2018,83 @@ async function bewerbungenSchritt(me, ed) {
 }
 
 /**
+ * Schritt `zusage-mail` (PART-124): eine TEST-Masterclass der Test-Organisation, deren **Entscheidungen freigegeben** sind, mit drei
+ * TEST-Bewerbungen im Stand „Engere Wahl“. So kann Konrad im Partner-Portal selbst zusagen und sieht, was die Mail macht:
+ * Masterclass → Bewerbungen → „Zusagen“ bei einer TEST-Person; unter /admin/mail steht die Zusage-Mail auf „Wartet“ mit „Versand
+ * frühestens“ in zehn Minuten. Dann bei derselben Person „Absagen“ oder „Warteliste“: die Zusage-Mail steht auf „Storniert“ (Grund:
+ * Zusage zurückgenommen), die Mail zur neuen Entscheidung wartet. Wer nichts tut, bekommt die Zusage-Mail nach zehn bis zwanzig
+ * Minuten an sein Postfach (Plus-Adressen `+zztest-zusage-NN`).
+ *
+ * **Ohne Mail beim Anlegen:** „Engere Wahl“ löst weder bei der Bewerbung noch bei der Freigabe eine Mail aus — der Trigger kennt nur
+ * Eingang, Zusage, Nachrücken, Warteliste und Absage. Die Freigabe trägt der Schritt direkt ein (`decision_release`); der Freigabe-
+ * Trigger findet keine entschiedene Bewerbung. Ein zweiter Lauf setzt die Stände zurück (nach „Engere Wahl“) und storniert dabei eine
+ * wartende Zusage-Mail. Die Session bleibt Entwurf ohne Slot und erscheint im Programm nirgends. Braucht den Schritt `partner`
+ * (Test-Organisation mit Konrad als Hauptkontakt); die Frist sieht man erst nach „Migration live“ von v6_zusage_mail_verzoegert.
+ */
+const ZUSAGE_SESSION = `${PREFIX}Masterclass Zusage-Mail`;
+const ZUSAGE_PERSONEN = 3;
+const zusageAdresse = (i) => email.replace("@", `+zztest-zusage-${zweistellig(i)}@`);
+
+async function zusageMailSchritt(me, ed) {
+  const eventId = (await summit(ed))?.id ?? ed.id;
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) return fail("Zusage-Mail", "Test-Organisation fehlt — zuerst --nur=partner");
+  if (mode === "dry-run") {
+    note(`TEST-Masterclass „${ZUSAGE_SESSION}“ der Test-Organisation, Entscheidungen freigegeben, ` +
+      `${ZUSAGE_PERSONEN} TEST-Bewerbungen „Engere Wahl“ (ohne Mail)`);
+    return;
+  }
+
+  let { data: se } = await admin.from("session").select("id")
+    .eq("event_id", eventId).eq("title_de", ZUSAGE_SESSION).maybeSingle();
+  if (!se) {
+    se = await write(`Session ${ZUSAGE_SESSION} (Entwurf, Partner = Test-Organisation)`, () =>
+      admin.from("session").insert({
+        event_id: eventId, format: "masterclass", host_org_id: org.id, partner_org_id: org.id,
+        title_de: ZUSAGE_SESSION, title_en: `${PREFIX}Masterclass acceptance email`,
+        description_de: "Testformat für die verzögerte Zusage-Mail (PART-124).",
+        description_en: "Test format for the delayed acceptance email (PART-124).",
+        language: "de", access_mode: "application", publish_status: "draft", capacity: 12,
+        application_deadline: new Date(Date.now() + 30 * 86400000).toISOString(),
+      }).select("id").single(),
+    );
+  }
+  if (!se) return;
+
+  const personen = [];
+  for (let i = 1; i <= ZUSAGE_PERSONEN; i++) {
+    const { data: personId, error } = await admin.rpc("testdaten_person", {
+      p_first_name: "TEST", p_last_name: `Zusage ${zweistellig(i)}`, p_email: zusageAdresse(i),
+    });
+    if (error || !personId) return fail(`TEST-Person Zusage ${zweistellig(i)}`, error ?? "keine Person");
+    personen.push(personId);
+  }
+  note(`${personen.length} TEST-Personen (${zusageAdresse(1)} … ${zusageAdresse(ZUSAGE_PERSONEN)})`);
+
+  const jetzt = new Date().toISOString();
+  await write(`${ZUSAGE_SESSION}: ${personen.length} TEST-Bewerbungen „Engere Wahl“ (ohne Mail, Stände zurückgesetzt)`, () =>
+    admin.from("application").upsert(
+      personen.map((personId) => ({
+        session_id: se.id, person_id: personId, status: "shortlisted", rank: null,
+        decided_at: jetzt, confirm_by: null, consent_share: true, answers: {},
+      })),
+      { onConflict: "session_id,person_id" },
+    ),
+  );
+
+  // Die Freigabe zuletzt: ohne entschiedene Bewerbung (alle „Engere Wahl“) schickt der Freigabe-Trigger nichts.
+  const { data: frei } = await admin.from("decision_release").select("id").eq("session_id", se.id).maybeSingle();
+  if (frei) {
+    note("Entscheidungen der Session", "schon freigegeben");
+  } else {
+    await write("Entscheidungen der Session freigegeben (damit Zusagen die Mail auslösen)", () =>
+      admin.from("decision_release").insert({ session_id: se.id, released_by: me.id, note: `${MARK} — Zusage-Mail` }),
+    );
+  }
+}
+
+/**
  * Schritt `produktion` (PROD-004/005): eine TEST-Shop-Bestellung der Test-Organisation,
  * damit die Produktionsliste je Stand (`/admin/produktion/staende`) und die Bestellliste
  * (`/admin/produktion/bestellungen`) alle drei Quellen zeigen: die Paketausstattung kommt aus
@@ -3717,6 +3799,7 @@ const SCHRITTE = {
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
   bewerbungen: bewerbungenSchritt,
+  "zusage-mail": zusageMailSchritt,
   produktion: produktionSchritt,
   masterclass: masterclassSchritt,
   formate: formateSchritt,
@@ -3959,6 +4042,15 @@ async function remove(me) {
   await write("TEST-Personen der Bewerbungsliste entfernt", async () => {
     const { data: adressen } = await admin.from("person_email").select("person_id")
       .in("email", Array.from({ length: BEWERBUNG_PERSONEN }, (_, i) => bewerbungAdresse(i + 1)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  // PART-124: die TEST-Personen der Zusage-Mail; ihre Bewerbungen hängen mit ON DELETE CASCADE an ihnen, die Session geht oben mit
+  // dem Präfix, die Freigabe hängt mit ON DELETE CASCADE an der Session.
+  await write("TEST-Personen der Zusage-Mail entfernt", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", Array.from({ length: ZUSAGE_PERSONEN }, (_, i) => zusageAdresse(i + 1)));
     const ids = (adressen ?? []).map((a) => a.person_id);
     if (ids.length === 0) return { data: null, error: null };
     return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
