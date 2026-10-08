@@ -1463,3 +1463,10 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **#367** (Talent-Chat, main nach Merge): Hackathon-Startseite als Event-Seite (Eckdaten, Stand-Karte, Seitenspalte), Karte „Eckdaten“ in /admin/hackathon; Migration 0272 war seit dem Vormittag live, Vorschlagsdatei im Branch entfernt. Konrads Lauf `--nur=hackathon-eckdaten` (A·10) folgt.
 - **Test `tests/zugaenge.test.ts` (PORT4b):** zählte sechs Funktionen mit `role_assignment` und `person_id = current_person_id()`; mit 0275 fiel `can_edit_edition_info` weg → Schwelle auf 5 gesetzt (Plan, 4b3c7be4), die Sperrprüfung je Funktion bleibt. Befund vom Talent-Chat.
 
+## 2026-10-08 — Konrads Antworten K-82, K-83, K-84; Hackathon-Eckdaten live
+
+- **K-82:** „Empfehlung folgen“ → Nachbuchungen als neuer Deal in derselben Pipeline und Phase; Partner-Chat baut `v6_nachbuchung` und die PART-100-Anzeige nach PART-124/PART-103.
+- **K-83:** „Behalten“ → die drei akzent-getönten Karten bleiben (QS-073 abgeschlossen).
+- **K-84:** Q1 wie empfohlen (Menü „Eure Bühne“ erst mit zugewiesener Bühne). **Q2 entgegen der Empfehlung: ja** — auf Partner-Bühnen (Standbühne und gebrandete Bühne) legt der Partner im Rahmen seiner Zeiten selbst Slots an, die Slotlänge darf von der normalen abweichen, der Partner entscheidet. Folge: Rechte-Migration durch den Speaker-Chat (`can_edit_stage` für gebrandete Bühnen der eigenen Organisation; Anlegen/Verschieben/Löschen von Inhalts-Slots für Partner auf booth/branded innerhalb von stage_day bzw. partner_booth_window, freie Länge, Sperrzeiten des Events bleiben hart, Audit, Rechte-Probe) — Vorschlag vorab; Oberfläche /partner/buehne durch den Partner-Chat nach „Migration live“. Q3: `grants_role` an den Branding-SKUs ist Datenpflege.
+- **Hackathon:** Konrad hat `--nur=hackathon-eckdaten` ausgeführt (zweimal ok); Lesekontrolle des Talent-Chats steht aus. Offen bei Konrad nur noch K-81 (SevDesk) und Admin-Feedback Teil 2.
+
