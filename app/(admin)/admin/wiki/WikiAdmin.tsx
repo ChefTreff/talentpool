@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Field } from "@/components/ui/Field";
 import { Drawer } from "@/components/ui/Drawer";
-import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Field } from "@/components/ui/Field";
+import { Select } from "@/components/ui/Select";
+import { SuchFeld } from "@/components/ui/SuchFeld";
+import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
-import { Editor } from "@/components/wiki/Editor";
-import { archiveArticle, publishArticle, saveArticle } from "@/components/wiki/actions";
-import { KB_AUDIENCES, KB_PHASES, type KbAdminArticle } from "@/components/wiki/types";
-import { THEMA_TEXT, wikiKategorie } from "@/lib/wiki/kategorien";
+import { useUrlFilter } from "@/components/ui/useUrlFilter";
+import { archiveArticle, publishArticle, saveArticlePair } from "@/components/wiki/actions";
+import type { KbAdminArticle } from "@/components/wiki/types";
+import { gruppiere, passtArtikel, type WikiArtikel } from "@/lib/wiki/artikel";
+import { THEMA_TEXT, type WikiKategorie } from "@/lib/wiki/kategorien";
+import { ArtikelFormular } from "./ArtikelFormular";
 
 type Strings = Record<string, string>;
 
@@ -25,12 +27,13 @@ const STATUS_TONE: Record<string, BadgeTone> = {
 };
 
 /**
- * Der Editor. Eine Liste, ein Schubfach — kein eigener Seitenbaum, weil ein
- * Wiki mit dreissig Artikeln keine Navigation braucht, sondern eine Übersicht.
+ * Die Wiki-Übersicht (ADM-103). **Eine Zeile je Artikel** — das Paar aus deutscher und englischer Fassung —, ohne Slug;
+ * der Titel öffnet den Artikel. Suche und Filter (Thema, Zielgruppe, Status) gelten sofort und stehen in der Adresszeile.
+ * Edition, Slug und Produktbezug stehen nur im Artikel selbst.
  *
- * Die Liste zeigt evergreen und Edition **nebeneinander**, sortiert nach Slug:
- * so sieht man auf einen Blick, welcher Artikel dieses Jahr überlagert ist und
- * welcher noch auf der alten Fassung steht.
+ * Die Liste zeigt evergreen und Edition **nebeneinander** (Titel gleich, Edition im Artikel): so sieht man, welcher
+ * Artikel dieses Jahr überlagert ist. Der Status steht je Sprache — die englische Fassung darf Entwurf sein, während
+ * die deutsche im Portal steht.
  */
 export function WikiAdmin({
   articles,
@@ -56,19 +59,25 @@ export function WikiAdmin({
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
-  const [open, setOpen] = useState<KbAdminArticle | "neu" | null>(null);
-  // Fehler aus dem Schubfach stehen im Schubfach, nicht unten am Rand. Die
-  // Aktionen aus der Liste melden weiter ueber den Toast — dort ist er
-  // richtig, weil es kein Formular gibt (ADM-041, Skill-Verbotsliste).
+  const [open, setOpen] = useState<WikiArtikel | "neu" | null>(null);
+  // Fehler aus dem Schubfach stehen im Schubfach, nicht unten am Rand (ADM-041, Skill-Verbotsliste).
   const [fehler, setFehler] = useState<string | null>(null);
+  const [f, setF] = useUrlFilter({ q: "", thema: "", zielgruppe: "", status: "" }, { zielgruppe: "zielgruppe" });
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
+  const alle = useMemo(() => gruppiere(articles), [articles]);
+  const sichtbar = alle.filter((a) => passtArtikel(a, f));
+  const zeit = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" });
+
+  // Nach dem Neuladen zeigt das Schubfach den frischen Stand desselben Artikels.
+  const aktuell = open && open !== "neu" ? (alle.find((a) => a.schluessel === open.schluessel) ?? open) : open;
 
   function run(
     action: Promise<{ ok: boolean; key?: string; detail?: string }>,
     okText: string,
-    /** Kommt die Aktion aus dem Schubfach? Dann gehoert der Fehler hinein. */
+    /** Kommt die Aktion aus dem Schubfach? Dann gehört der Fehler hinein — und das Schubfach bleibt offen. */
     imSchubfach = false,
+    schliessen = true,
   ) {
     startTransition(async () => {
       const res = await action;
@@ -80,90 +89,104 @@ export function WikiAdmin({
       }
       setFehler(null);
       toast("success", okText);
-      setOpen(null);
+      if (schliessen) setOpen(null);
       router.refresh();
     });
   }
 
+  const statusBadge = (z: KbAdminArticle | null) =>
+    z ? (
+      <Badge tone={STATUS_TONE[z.status] ?? "neutral"}>
+        {t[`status${z.status[0].toUpperCase()}${z.status.slice(1)}`] ?? z.status}
+      </Badge>
+    ) : (
+      <Badge tone="warning">{t.missing}</Badge>
+    );
+
   return (
     <>
-      <div className="mb-4">
-        <Button onClick={() => setOpen("neu")}>{t.newArticle}</Button>
+      <div className="mb-4 flex flex-col gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Field label={t.searchLabel} htmlFor="wiki-q">
+            <SuchFeld id="wiki-q" value={f.q} placeholder={t.searchPlaceholder} onChange={(e) => setF({ q: e.target.value })} />
+          </Field>
+          <Field label={t.filterTopic} htmlFor="wiki-thema">
+            <Select
+              id="wiki-thema"
+              value={f.thema}
+              placeholder={t.filterAll}
+              options={[...Object.keys(THEMA_TEXT)].map((k) => ({ value: k, label: t[THEMA_TEXT[k as WikiKategorie]] }))}
+              onChange={(e) => setF({ thema: e.target.value })}
+            />
+          </Field>
+          <Field label={t.filterAudience} htmlFor="wiki-zielgruppe">
+            <Select
+              id="wiki-zielgruppe"
+              value={f.zielgruppe}
+              placeholder={t.filterAll}
+              options={Object.entries(audiences).map(([value, label]) => ({ value, label }))}
+              onChange={(e) => setF({ zielgruppe: e.target.value })}
+            />
+          </Field>
+          <Field label={t.colStatus} htmlFor="wiki-status">
+            <Select
+              id="wiki-status"
+              value={f.status}
+              placeholder={t.filterAll}
+              options={[
+                { value: "draft", label: t.statusDraft },
+                { value: "published", label: t.statusPublished },
+                { value: "archived", label: t.statusArchived },
+                { value: "missing", label: t.filterMissingEn },
+              ]}
+              onChange={(e) => setF({ status: e.target.value })}
+            />
+          </Field>
+        </div>
+        <div>
+          <Button onClick={() => setOpen("neu")}>{t.newArticle}</Button>
+        </div>
       </div>
 
-      {articles.length === 0 ? (
+      {alle.length === 0 ? (
         <EmptyState title={t.emptyAdmin} description={t.emptyAdminBody} />
+      ) : sichtbar.length === 0 ? (
+        <EmptyState title={t.noMatch} description={t.noResultsBody} />
       ) : (
-        <Table>
-          <Thead>
-            <Th>{t.colSlug}</Th>
-            <Th>{t.colTitle}</Th>
-            <Th>{t.colAudience}</Th>
-            <Th>{t.colTopic}</Th>
-            <Th>{t.colProducts}</Th>
-            <Th>{t.colEdition}</Th>
-            <Th>{t.colLanguage}</Th>
-            <Th>{t.colStatus}</Th>
-            <Th aria-label={t.edit} />
-          </Thead>
-          <Tbody>
-            {articles.map((a) => (
-              <Tr key={a.id}>
-                <Td className="text-muted">{a.slug}</Td>
-                <Td><span className="ct-label">{a.title}</span></Td>
-                <Td className="text-muted">{a.audience.map((x) => audiences[x] ?? x).join(", ")}</Td>
-                <Td className="text-muted">{t[THEMA_TEXT[wikiKategorie(a)]]}</Td>
-                <Td className="text-muted">
-                  {a.product_formats.length === 0 ? t.productsAll : a.product_formats.map((f) => formats[f] ?? f).join(", ")}
-                </Td>
-                <Td className="text-muted">{a.edition_slug ?? t.evergreen}</Td>
-                <Td className="text-muted uppercase">{a.language}</Td>
-                <Td>
-                  <Badge tone={STATUS_TONE[a.status] ?? "neutral"}>
-                    {t[`status${a.status[0].toUpperCase()}${a.status.slice(1)}`] ?? a.status}
-                  </Badge>
-                </Td>
-                <Td>
-                  <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="secondary" disabled={pending} onClick={() => setOpen(a)}>
-                      {t.edit}
-                    </Button>
-                    {a.status !== "archived" && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        disabled={pending}
-                        onClick={() =>
-                          run(
-                            publishArticle(a.id, a.status !== "published"),
-                            a.status === "published" ? t.unpublished : t.published,
-                          )
-                        }
-                      >
-                        {a.status === "published" ? t.unpublish : t.publish}
-                      </Button>
-                    )}
-                    {/* ADM-104: Ein archivierter Artikel kam nicht zurück, weil hier kein Knopf stand. */}
-                    {a.status === "archived" && (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={pending}
-                        onClick={() => run(publishArticle(a.id, true), t.republished)}
-                      >
-                        {t.republish}
-                      </Button>
-                    )}
-                  </div>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
+        <>
+          <p className="ct-label mb-2 text-ink">{t.countArticles.replace("{n}", String(sichtbar.length))}</p>
+          <Table stapeln>
+            <Thead>
+              <Th>{t.colTitle}</Th>
+              <Th>{t.colTopic}</Th>
+              <Th>{t.colAudience}</Th>
+              <Th>{t.colGerman}</Th>
+              <Th>{t.colEnglish}</Th>
+              <Th>{t.colUpdated}</Th>
+            </Thead>
+            <Tbody>
+              {sichtbar.map((a) => (
+                <Tr key={a.schluessel}>
+                  <Td>
+                    {/* Der Titel öffnet den Artikel (ADM-103 e) — als Link gestaltet, aber ein Knopf: er führt nicht auf eine Seite. */}
+                    <button type="button" className="ct-link ct-label min-h-8 text-left pointer-coarse:min-h-11" onClick={() => { setFehler(null); setOpen(a); }}>
+                      {a.titel}
+                    </button>
+                  </Td>
+                  <Td label={t.colTopic} className="text-muted">{t[THEMA_TEXT[a.thema as WikiKategorie]]}</Td>
+                  <Td label={t.colAudience} className="text-muted">{a.audience.map((x) => audiences[x] ?? x).join(", ")}</Td>
+                  <Td label={t.colGerman}>{statusBadge(a.de)}</Td>
+                  <Td label={t.colEnglish}>{statusBadge(a.en)}</Td>
+                  <Td label={t.colUpdated} className="text-muted">{zeit.format(new Date(a.geaendert))}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+          <p className="ct-help mt-3">{t.topicHint}</p>
+        </>
       )}
-      {articles.length > 0 && <p className="ct-help mt-3">{t.topicHint}</p>}
 
-      {open && (
+      {aktuell && (
         <Drawer
           open
           error={fehler}
@@ -171,11 +194,12 @@ export function WikiAdmin({
             setFehler(null);
             setOpen(null);
           }}
-          title={open === "neu" ? t.newArticle : open.title}
+          title={aktuell === "neu" ? t.newArticle : aktuell.titel}
           closeLabel={common.close}
         >
-          <ArticleForm
-            article={open === "neu" ? null : open}
+          <ArtikelFormular
+            key={aktuell === "neu" ? "neu" : aktuell.schluessel}
+            artikel={aktuell === "neu" ? null : aktuell}
             editions={editions}
             audiences={audiences}
             phases={phases}
@@ -184,224 +208,12 @@ export function WikiAdmin({
             pending={pending}
             t={t}
             common={common}
-            onSave={(input, okText) => run(saveArticle(input), okText, true)}
-            onArchive={(id) => run(archiveArticle(id), t.archived)}
+            onSave={(input, okText) => run(saveArticlePair(input), okText, true)}
+            onPublish={(id, published, okText) => run(publishArticle(id, published), okText, true, false)}
+            onArchive={(id) => run(archiveArticle(id), t.archived, true, false)}
           />
         </Drawer>
       )}
     </>
-  );
-}
-
-function ArticleForm({
-  article,
-  editions,
-  audiences,
-  phases,
-  topics,
-  formats,
-  pending,
-  t,
-  common,
-  onSave,
-  onArchive,
-}: {
-  article: KbAdminArticle | null;
-  editions: { id: string; slug: string; name: string }[];
-  audiences: Record<string, string>;
-  phases: Record<string, string>;
-  topics: Record<string, string>;
-  formats: Record<string, string>;
-  pending: boolean;
-  t: Strings;
-  common: { save: string; cancel: string; close: string; required: string };
-  onSave: (input: Record<string, unknown>, okText: string) => void;
-  onArchive: (id: string) => void;
-}) {
-  const [form, setForm] = useState({
-    slug: article?.slug ?? "",
-    title: article?.title ?? "",
-    body_md: article?.body_md ?? "",
-    language: article?.language ?? "de",
-    phase: article?.phase ?? "evergreen",
-    edition_id: article?.edition_id ?? "",
-    roles: (article?.roles ?? []).join(", "),
-    audience: article?.audience ?? ["volunteer"],
-    valid_until: article?.valid_until?.slice(0, 10) ?? "",
-    // ADM-064: Thema wie es im Portal erscheint — auch bei Bestand ohne Eintrag das abgeleitete.
-    category: article?.category ?? "",
-    product_formats: article?.product_formats ?? [],
-  });
-
-  const ohneKategorie = form.audience.length === 0;
-
-  const toggleFormat = (key: string) =>
-    setForm((f) => ({
-      ...f,
-      product_formats: f.product_formats.includes(key) ? f.product_formats.filter((x) => x !== key) : [...f.product_formats, key],
-    }));
-
-  const toggle = (key: string) =>
-    setForm((f) => ({
-      ...f,
-      audience: f.audience.includes(key) ? f.audience.filter((x) => x !== key) : [...f.audience, key],
-    }));
-
-  return (
-    <div className="flex flex-col gap-4">
-      <Field label={t.fieldSlug} htmlFor="slug" hint={article ? undefined : t.overlayHint}>
-        <Input
-          id="slug"
-          value={form.slug}
-          disabled={Boolean(article)}
-          onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-        />
-      </Field>
-
-      <Field label={t.fieldTitleDe} htmlFor="title">
-        <Input id="title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-      </Field>
-
-      {/* ADM-008: Die Kategorie ist Pflicht — sie steuert Sichtbarkeit und
-          Assistent. Ohne sie wies bisher erst das RPC ab (22023), nachdem
-          jemand den Artikel geschrieben hatte; jetzt sagt das Formular es
-          vorher. Die Tabelle prueft es weiterhin (kb_article_audience_chk). */}
-      <fieldset className="flex flex-col gap-2">
-        <legend className="ct-label mb-1 text-ink">
-          {t.fieldAudience}
-          <span aria-hidden className="ml-0.5 text-error-ink">
-            *
-          </span>
-          <span className="ml-1 ct-help font-semibold">({common.required})</span>
-        </legend>
-        <div className="flex flex-wrap gap-3">
-          {KB_AUDIENCES.map((a) => (
-            <label key={a} className="flex items-center gap-2">
-              <input type="checkbox" className="h-5 w-5" checked={form.audience.includes(a)} onChange={() => toggle(a)} />
-              <span>{audiences[a] ?? a}</span>
-            </label>
-          ))}
-        </div>
-        <p className={ohneKategorie ? "ct-help text-error-ink" : "ct-help"}>{t.audienceRequired}</p>
-      </fieldset>
-
-      <div className="flex flex-wrap gap-4">
-        <Field label={t.fieldLanguage} htmlFor="language">
-          <Select
-            id="language"
-            className="w-32"
-            value={form.language}
-            options={[{ value: "de", label: "DE" }, { value: "en", label: "EN" }]}
-            onChange={(e) => setForm((f) => ({ ...f, language: e.target.value }))}
-          />
-        </Field>
-        <Field label={t.fieldPhase} htmlFor="phase">
-          <Select
-            id="phase"
-            className="w-40"
-            value={form.phase}
-            options={KB_PHASES.map((p) => ({ value: p, label: phases[p] ?? p }))}
-            onChange={(e) => setForm((f) => ({ ...f, phase: e.target.value }))}
-          />
-        </Field>
-        <Field label={t.fieldEdition} htmlFor="edition">
-          <Select
-            id="edition"
-            className="w-48"
-            value={form.edition_id}
-            options={[{ value: "", label: t.evergreen }, ...editions.map((e) => ({ value: e.id, label: e.name }))]}
-            onChange={(e) => setForm((f) => ({ ...f, edition_id: e.target.value }))}
-          />
-        </Field>
-        <Field label={t.fieldValidUntil} htmlFor="valid">
-          <Input
-            id="valid"
-            type="date"
-            className="w-44"
-            value={form.valid_until}
-            onChange={(e) => setForm((f) => ({ ...f, valid_until: e.target.value }))}
-          />
-        </Field>
-      </div>
-
-      <div className="flex flex-wrap gap-4">
-        <Field label={t.fieldTopic} htmlFor="topic" hint={t.fieldTopicHint}>
-          <Select
-            id="topic"
-            className="w-64"
-            value={form.category}
-            options={[{ value: "", label: t.fieldTopicNone }, ...Object.entries(topics).map(([value, label]) => ({ value, label }))]}
-            onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-          />
-        </Field>
-      </div>
-
-      {/* PART-103: Produktbezug. Leer = der Artikel gilt für alle Partner; sonst sieht ihn im Portal nur,
-          wer ein Produkt dieses Formats gebucht hat. Relevanz, kein Zugriffsschutz. */}
-      {form.audience.includes("partner") && (
-        <fieldset className="flex flex-col gap-2">
-          <legend className="ct-label mb-1 text-ink">{t.fieldProducts}</legend>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            {Object.entries(formats).map(([key, label]) => (
-              <label key={key} className="flex min-h-11 items-center gap-2">
-                <input type="checkbox" className="h-5 w-5" checked={form.product_formats.includes(key)} onChange={() => toggleFormat(key)} />
-                <span>{label}</span>
-              </label>
-            ))}
-          </div>
-          <p className="ct-help">{form.product_formats.length === 0 ? t.fieldProductsAll : t.fieldProductsSome}</p>
-        </fieldset>
-      )}
-
-      {form.audience.includes("volunteer") && (
-        <Field label={t.fieldRoles} htmlFor="roles">
-          <Input id="roles" value={form.roles} onChange={(e) => setForm((f) => ({ ...f, roles: e.target.value }))} />
-        </Field>
-      )}
-
-      {/* F9.7: „Redaktionsoberfläche … vergleichbar mit dem Notion-Editor".
-          Dahinter bleibt Markdown — der Renderer erzeugt nur React-Knoten, und
-          gespeichertes HTML wäre genau der Weg, den wir nicht bauen wollen. */}
-      <fieldset className="flex flex-col gap-1">
-        <legend className="ct-label text-ink">{t.fieldBody}</legend>
-        <Editor
-          value={form.body_md}
-          onChange={(next) => setForm((f) => ({ ...f, body_md: next }))}
-          t={t}
-        />
-      </fieldset>
-
-      <div className="flex flex-wrap gap-2">
-        <Button
-          disabled={pending || ohneKategorie}
-          onClick={() =>
-            onSave(
-              {
-                ...(article ? { id: article.id } : { slug: form.slug }),
-                title: form.title,
-                body_md: form.body_md,
-                language: form.language,
-                phase: form.phase,
-                audience: form.audience,
-                roles: form.roles.split(",").map((r) => r.trim()).filter(Boolean),
-                edition_id: form.edition_id || null,
-                valid_until: form.valid_until || null,
-                category: form.category || null,
-                // Ohne Partner-Zielgruppe ist der Produktbezug ohne Sinn — dann leeren, nicht still behalten.
-                product_formats: form.audience.includes("partner") ? form.product_formats : [],
-              },
-              t.saved,
-            )
-          }
-        >
-          {common.save}
-        </Button>
-        {article && article.status !== "archived" && (
-          <Button variant="ghost" disabled={pending} onClick={() => onArchive(article.id)}>
-            {t.archive}
-          </Button>
-        )}
-      </div>
-    </div>
   );
 }
