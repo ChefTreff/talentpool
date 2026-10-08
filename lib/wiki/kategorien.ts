@@ -6,12 +6,12 @@
  * ihn zu finden; wer „Rückwand“ sucht, fragt nach einem Thema. Die Liste
  * gruppiert deshalb nach Aufgaben.
  *
- * **Übergangslösung im Code, kein Datenmodell.** Der Artikel hat noch kein Feld
- * `category`. Bis es das gibt (Migrationsvorschlag in der PR-Beschreibung,
- * Zuständigkeit Admin und Architektur), steht die Zuordnung hier: ein
- * ausdrücklich gesetztes `category` am Artikel gewinnt, sonst gilt die
- * Zuordnung nach Slug, sonst „Weitere Artikel“. Neue Artikel aus dem Editor
- * erscheinen also sofort — nur eben unter „Weitere“, bis jemand sie einordnet.
+ * **Das Thema steht am Artikel** (ADM-064, `kb_article.category`, Vokabular
+ * `wiki_category`; im Editor wählbar). Dieser Code ist nur noch der Rückfall:
+ * ein ausdrücklich gesetztes `category` gewinnt, sonst gilt die Zuordnung nach
+ * Slug, sonst „Weitere Artikel“. Die Schlüssel und die Reihenfolge der Themen
+ * stehen hier **und** im Vokabular — ein Test hält beide gleich
+ * (`tests/wiki-thema-produktbezug.test.ts`).
  *
  * Die Reihenfolge der Slugs je Kategorie ist die Reihenfolge in der Liste:
  * von der Übersicht zum Detail, nicht alphabetisch.
