@@ -45,6 +45,10 @@ export default async function LeadBoardPage({
     day: tag,
     fallbackLocale: "de",
     editionIds,
+    // LEAD-061 (Konrad 05.10.): im Stage-Lead-Board nur die Hauptbühnen — unsere Bühnen und die gebrandeten; keine Standbühnen,
+    // Masterclass-Räume, Interview Tables, Side-Event-Orte. Die eigene Bühne eines Leads bleibt in jedem Fall stehen.
+    buehnen: "haupt",
+    immerBuehnen: scope.stages.map((s) => s.id),
   });
 
   if (!board.currentEvent) {
@@ -88,6 +92,7 @@ export default async function LeadBoardPage({
         backlog={board.backlog}
         stats={board.stats}
         stageDays={board.stageDays}
+        sperrzeiten={board.sperrzeiten}
         labels={board.labels}
         locale={board.locale}
         t={t.admin.programme}

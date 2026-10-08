@@ -179,6 +179,7 @@ export default async function PartnerStagePage({
         backlog={board.backlog}
         stats={board.stats}
         stageDays={board.stageDays}
+        sperrzeiten={board.sperrzeiten}
         partner={partnerSicht}
         labels={board.labels}
         locale={board.locale}

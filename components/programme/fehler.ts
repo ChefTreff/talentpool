@@ -7,7 +7,13 @@
  * einer verletzten CHECK-Regel die ganze Zeile („Failing row contains …“) —
  * beides ist Diagnose, keine Meldung.
  */
-const LESBARES_DETAIL = new Set(["outside_partner_window", "outside_stage_day"]);
+const LESBARES_DETAIL = new Set([
+  "outside_partner_window",
+  "outside_stage_day",
+  // ADM-085/LEAD-062: der Grund und das Zeitfenster der Sperrzeit, das Datum eines nicht gültigen Tages — „Hinweis statt stiller Ablehnung“.
+  "slot_blocked",
+  "stage_not_valid_that_day",
+]);
 
 /**
  * Fehlertext einer Board-Aktion: die Meldung zum Schlüssel, bei einem

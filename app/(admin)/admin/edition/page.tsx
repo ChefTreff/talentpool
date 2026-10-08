@@ -4,6 +4,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { GeruestView } from "./GeruestView";
+import type { Sperrzeit } from "@/components/programme/buehnen";
 import type { Geruest } from "./types";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,10 @@ export default async function AdminEditionPage() {
   const { data, error } = await supabase.rpc("programme_skeleton");
   if (error || !data) notFound();
   const geruest = data as Geruest;
+  // ADM-085/LEAD-062: die Sperrzeiten des Events. Eine Zugabe — fehlt die Funktion oder das Recht, steht die Karte leer.
+  const { data: sperrRows } = geruest.event
+    ? await supabase.rpc("stage_blocked_times", { p_event_id: geruest.event.id })
+    : { data: [] };
 
   const zeitraum = [geruest.event?.start_date, geruest.event?.end_date]
     .filter(Boolean)
@@ -39,6 +44,8 @@ export default async function AdminEditionPage() {
       />
       <GeruestView
         geruest={geruest}
+        sperrzeiten={(sperrRows ?? []) as Sperrzeit[]}
+        dateLocale={t.meta.dateLocale}
         t={t.adminEdition}
         common={{
           cancel: t.common.cancel,
