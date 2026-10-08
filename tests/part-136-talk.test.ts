@@ -102,7 +102,7 @@ describe("PART-136: Talk — Speaker als Tabelle, Bearbeiten im Schubfach", () =
   });
 
   it("Eintragen, leerer Zustand und Programmhinweis bleiben", () => {
-    assert.match(seite, /<SpeakerHinzufuegen\s+sessionId=\{x\.id\}/);
+    assert.match(seite, /\{canEdit && \(\s*<SpeakerHinzufuegen\s+sessionId=\{x\.id\}/);
     assert.match(seite, /<p className="ct-help">\{s\.noSpeakerYet\}<\/p>/);
     assert.match(seite, /<p className="ct-help">\{s\.programmeHint\}<\/p>/);
   });
