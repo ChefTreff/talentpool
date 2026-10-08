@@ -20,7 +20,11 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 **K-79 · Go-Live-Checkliste: Wiki-Produktbezug setzen (ADM-064/PART-103, #366):** Nach „Migration live“ hat jeder Wiki-Artikel ein Feld „Produktbezug“ (Admin → Wiki). Der Backfill setzt nur masterclasses → Masterclass, company-tours → Company Tour, sponsored-talk → Talk; alles andere sehen alle Partner. Vor dem Go-live die übrigen Haken setzen; der Filter im Partner-Portal wirkt erst, wenn der Partner-Chat ihn nach „Migration live“ gebaut hat.
 
+**Neu zum Klicken (08.10. nachmittags):** /admin/speaker?liste=neu — Reiter „Neue Speaker“ mit den von Partnern angelegten TEST-Speakern, Zähler am Menüpunkt „Speaker“ (ADM-084, 0273); Betreuung, Buddy und Stand lassen sich direkt in der Zeile setzen. **Für dein Navigations-Feedback:** `docs/design-vorschlaege-2026-10-08.md` ist die Bestandsaufnahme der Admin-Navigation (53 Menüpunkte in 9 Gruppen, je Rolle 6 bis 23, 79 Seiten) — ohne Vorschlag, als Grundlage für deine Zusammenlegung.
+
 **Testdaten-Läufe heute nach „Migration live“ (A·10):** `--nur=side-events` genehmigst du im Speaker-Chat (er fährt ihn), `--nur=hackathon-eckdaten` nach #367 im Haupt-Checkout: `node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=hackathon-eckdaten`.
+
+**K-80 · Die sechste Hauptbühne (ADM-085/LEAD-061):** Live stehen fünf ChefTreff-Bühnen (Main Stage, Leadership & Growth, Industry, Startup, Impact & Tech); du sprachst von sechs Hauptbühnen. Welche ist die sechste, oder sind es fünf? Das Stage-Lead-Board zeigt künftig genau die Hauptbühnen (auch gebrandete), alles andere nur im Admin mit Filter.
 
 **Paulinas Wochen-Feedback:** gesammelt an mich (Liste oder Granola-Link), ich verteile es in die Listen; **K-69, K-73 und das Go zu den Partner-Design-Vorschlägen** (PART-104/106/109/113/136) kommen laut dir nach dieser Baurunde — bis dahin warten diese Punkte.
 
@@ -295,6 +299,7 @@ Datenschutz und Sicherheit macht Konrad in den nächsten Tagen; vorab entschiede
 | K-77 | **Ein Ticket-Code je Partner (PART-111, Partner-Chat 08.10.):** heute ein Coupon je Kategorie; ein Code je Organisation/Edition/Rabattstufe ist ohne Schema-Änderung machbar. Folge: die einlösende Person wählt die Kategorie selbst, Trennung Partner-/Talent-Code entfällt, Obergrenzen je Kategorie bleiben; 50 % bleibt eigener Code. Dazu: investor ohne aktiven Tickettyp in ticket_type_map | Empfehlung ja (dein Wunsch vom 05.10.); Merge nach deinem Ja. Setup investor mit der Oktober-Preisliste (PART-010) | Partner-Chat 08.10. (Befund PART-111) |
 | K-78 | **Datenweitergabe in Bewerbungen (PART-129, Talent-Chat #368):** consent_share je Bewerbung, Standard aus; 21 von 68 teilen nicht. A freiwillig, sichtbarer / B Pflichthaken bei Formaten mit Gastgeber-Auswahl (Company Tour, Interview Table, ggf. Masterclass) | Empfehlung B für diese Formate, A für den Rest, Nachholfunktion für den Bestand; Wortlaut mit K-72 | Talent-Chat 08.10. (Befund) |
 | K-79 | **Go-Live-Checkliste: Wiki-Produktbezug je Artikel setzen (ADM-064/PART-103, #366):** Backfill nur masterclasses, company-tours, sponsored-talk; ohne Bezug sehen alle Partner den Artikel | Vor dem Go-live unter Admin → Wiki die Haken setzen; Portal-Filter kommt vom Partner-Chat nach „Migration live“ | Admin-Chat 08.10. |
+| K-80 | **Sechste Hauptbühne (ADM-085/LEAD-061, Speaker-Chat 08.10.):** live fünf ChefTreff-Bühnen (Main Stage + vier), du nanntest sechs | Welche ist die sechste? Sonst bleiben es fünf; gebrandete Bühnen zählen zu den Hauptbühnen (Plan 08.10.) | Speaker-Chat 08.10. (Befund) |
 ## Antworten Konrad (24.09., Nacht)
 - **ADM-057 / #164:** Kundennummer = HubSpot-Eigenschaft `company_id` („Übergreifende Kundennummer (Company ID)“) → Übernahme in den Ingest beim Admin-Chat.
 - **SPK-068 vorziehen (P1 sofort):** Speaker-Ticket ausstellen — Konrad will es testen; Kette vivenu → Portal → Swapcard muss funktionieren.

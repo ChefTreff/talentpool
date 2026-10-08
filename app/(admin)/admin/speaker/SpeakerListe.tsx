@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { SuchFeld } from "@/components/ui/SuchFeld";
+import type { Herkunft } from "@/lib/neue-speaker";
 import type { AdminSpeakerRow } from "./types";
 
 type Strings = Record<string, string>;
@@ -43,11 +44,14 @@ export function SpeakerListe({
   t,
   te,
   tg,
+  herkunft = {},
 }: {
   rows: AdminSpeakerRow[];
   labels: Record<string, Record<string, string>>;
   dateLocale: string;
   t: Strings;
+  /** ADM-084: je Profil der Partner, der den Speaker angelegt hat, und ob er noch neu ist — nach Profil-Kennung. */
+  herkunft?: Record<string, Herkunft>;
   /** `speakerEinordnung`-Texte für die Filter nach Prio und Kategorie (LEAD-039). */
   te: Strings;
   /** `speakerGast`-Texte (SPK-070). */
@@ -204,7 +208,17 @@ export function SpeakerListe({
                       {name(r)}
                     </Link>
                     {r.stage_guest && <Badge className="ml-2">{tg.badge}</Badge>}
-                    {r.email && <span className="ct-help block text-muted">{r.email}</span>}
+                    {/* ADM-084: die Marke sagt, welcher Partner den Speaker angelegt hat; „Neu“, solange das Team Betreuung
+                        und Stand nicht gesetzt hat (die Liste „Neue Speaker“ zeigt genau diese). */}
+                    {herkunft[r.id] && (
+                      <Badge className="ml-2">{t.fromPartner.replace("{partner}", herkunft[r.id].partner)}</Badge>
+                    )}
+                    {herkunft[r.id]?.neu && (
+                      <Badge tone="warning" className="ml-2">
+                        {t.badgeNew}
+                      </Badge>
+                    )}
+                    {r.email &&<span className="ct-help block text-muted">{r.email}</span>}
                   </Td>
                   <Td>
                     <span className="block">{r.job_title ?? "—"}</span>
