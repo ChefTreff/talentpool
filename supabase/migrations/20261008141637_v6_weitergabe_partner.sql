@@ -1,4 +1,5 @@
--- 0000 · Weitergabe an Partner: Pflichthaken bei Formaten mit Partner-Auswahl, Nachweis, Nachholen (PART-129, K-78)
+-- 0284 · Weitergabe von Bewerbungsdaten an Partner, Weg B (PART-129, K-78)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008141637.
 -- Anlass: Befund docs/befund-part129-qs070-2026-10-08.md — `application.consent_share` ist standardmäßig aus (21 von 68
 -- Bewerbungen ohne Haken); Konrad K-78: **Weg B** für alle Formate, in denen Partner auswählen (Company Tour,
 -- Masterclass, Side-Event, Interview Table); Text nach docs/entwurf-k72-weitergabe-partner.md (Fassung B, mit
