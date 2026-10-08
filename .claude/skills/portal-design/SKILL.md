@@ -46,6 +46,7 @@ Der Styleguide beschreibt Marketing (Navy-Vollfläche, zentriert, 82-px-Versalie
 8. **Text sagt, was passiert.** „Speichern" → „Gespeichert". Fehler sagen, was zu tun ist. Du/ihr-Ansprache. Alle Begriffe aus `vocab_term`, DE **und** EN, nie hartcodiert.
 9. **Leerzustand ist eine Seite, kein Platzhalter:** ein Satz Erklärung + genau eine Aktion.
 10. **Kein Dark Mode.** Tokens bleiben theme-fähig, ausgeliefert wird nur Light.
+11. **Globale Seiten ändern sich in allen Portalen zugleich** (QS-076, Konrad 08.10.2026). Home — die Startseite jedes Portals, überall „Home“ genannt, nie „Übersicht“ —, Login und Shell (Seitenleiste, Kopf, Fuß) sind in jedem Portal dieselbe Seite. Eine strukturelle Änderung daran (Beschriftung, Überschriften, Karten, Reihenfolge, Gruppenköpfe) kommt in **einem** PR für Talent, Speaker, Speaker-Leads (Stage Leads), Partner, Volunteers, Hackathon und Admin oder gar nicht — nie nur in dem Portal, das Konrad gerade angesehen hat. Vor dem Bauen im ganzen Repo nach dem Baustein suchen, nicht im Portal des Befunds. Weicht ein Portal bewusst ab, stehen Grund und Ausnahme in der PR-Beschreibung und in einem Test. **Eine Karte auf Home trägt eine Überschrift:** `PhotoCard` kennt kein `title`, der Name der Seite steht kursiv als `word`.
 
 ## Verbotsliste (so sieht „von der KI gebaut" aus)
 
@@ -68,4 +69,5 @@ Die 13 Website-Blöcke (Desktop und Mobil), ihre Maße und die Übersetzung in P
 - [ ] Jede neue Komponente liefert: Default, Hover, Fokus, Disabled, Loading, Leer, Fehler.
 - [ ] Mobil (375) und Desktop (1440) angesehen; kein horizontales Scrollen außer in `overflow-x-auto`-Containern.
 - [ ] DE und EN vorhanden.
+- [ ] Berührt die Änderung Home, Login oder Shell? Dann stehen alle Portale im selben PR (Regel 11), jedes mit Musterdaten angesehen.
 - [ ] Abweichung von Brandbook oder Design-Briefing in der PR-Beschreibung benannt.
