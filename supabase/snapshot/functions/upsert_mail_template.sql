@@ -10,8 +10,8 @@ declare v_key text := nullif(btrim(p_data->>'key'), '');
         v_body text := nullif(btrim(p_data->>'body_md'), '');
         v_before jsonb; v_version integer;
 begin
-  if not has_role('admin') then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_key is null then raise exception 'fields_required' using errcode = '22023', detail = 'key'; end if;
+  if not can_edit_mail_template(v_key) then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_locale not in ('de', 'en') then
     raise exception 'invalid_locale' using errcode = '22023', detail = coalesce(v_locale, 'null');
   end if;

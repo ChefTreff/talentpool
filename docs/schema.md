@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-08 13:29 UTC · 123 Tabellen · 6 Views · 730 Funktionen
+> Stand: 2026-10-08 13:48 UTC · 124 Tabellen · 6 Views · 734 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -879,6 +879,19 @@ System-Mails DE/EN. Versand über Resend (lib/mail), Rendering aus Markdown.
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_by` | uuid |  |  | `person.id` | Wer die Vorlage zuletzt geaendert hat (0112). Der volle Vorher-/Nachhertext steht im Audit-Log. |
+
+### `mail_template_key`
+ADM-102: je Mail-Vorlage (nicht je Sprache) Kategorie, Anzeigename und erlaubte Platzhalter. Kein Fremdschluessel von mail_template.key: eine Vorlage ohne Zeile gilt als Kategorie system (nur admin).
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `key` | text | PK |  |  |  |
+| `category` | text | ja |  |  | Vokabular mail_category. |
+| `name_de` | text | ja |  |  |  |
+| `name_en` | text | ja |  |  |  |
+| `variables` | text[] | ja |  |  | Erlaubte Platzhalter ohne Klammern ({{first_name}} ⇒ first_name); Grundlage für „Platzhalter einfügen“ im Editor. |
+| `sort_order` | integer | ja | `0` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `next_up_item`
 Hinweise „Next Up" auf Home im Teilnehmer-Portal (TAL-006): Events und Programme, im Admin gepflegt. Keine Personendaten.
@@ -2403,6 +2416,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_edit_edition_contacts` | args: ? |
 | `can_edit_kb` | p_audience: text[] |
 | `can_edit_kb_all` | p_audience: text[] |
+| `can_edit_mail_template` | p_key: text |
 | `can_edit_next_up` | args: ? |
 | `can_edit_regie` | p_stage_id: uuid |
 | `can_edit_session` | p_session_id: uuid |
@@ -2622,7 +2636,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `mail_log_detail` | p_id: bigint |
 | `mail_log_stats` | p_days: integer |
 | `mail_template_history` | p_key: text, p_limit: integer, p_locale: text |
-| `mail_templates_admin` | args: ? |
+| `mail_template_section` | p_key: text |
+| `mail_templates_admin` | p_category: text |
 | `manage_person_email` | p_action: text, p_email: text, p_email_id: uuid, p_person_id: uuid |
 | `manager_shuttle_bookings` | p_edition_id: uuid |
 | `manager_speakers` | p_edition_id: uuid |
@@ -2872,6 +2887,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_initiative_stage` | p_note: text, p_org_edition_id: uuid, p_stage: text |
 | `set_logo_category` | p_category: text, p_org_edition_id: uuid |
 | `set_logo_whitening_consent` | p_edition_id: uuid, p_granted: boolean, p_org_id: uuid |
+| `set_mail_template_meta` | p_category: text, p_key: text, p_name_de: text, p_name_en: text, p_variables: text[] |
 | `set_my_cv` | p_path: text |
 | `set_my_photo` | p_path: text |
 | `set_my_shift_wishes` | p_edition_id: uuid, p_shift_ids: uuid[] |
@@ -3029,6 +3045,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_hospitality_quota` | p_data: jsonb |
 | `upsert_kb_article` | p_data: jsonb |
 | `upsert_mail_template` | p_data: jsonb |
+| `upsert_mail_template_pair` | p_de: jsonb, p_en: jsonb, p_key: text |
 | `upsert_next_up_item` | p_data: jsonb |
 | `upsert_partner_contact` | p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_position: text, p_roles: text[] |
 | `upsert_portal_link` | p_data: jsonb |
