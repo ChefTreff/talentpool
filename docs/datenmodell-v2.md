@@ -207,6 +207,7 @@
 | Welle 6 · 0280 | **Zusage-Mail wartet zehn Minuten, Rücknahme stoppt sie (PART-124)** (`20261008131805`, `v6_zusage_mail_verzoegert`; Details im Migrationskopf) | — |
 | Welle 6 · 0281 | **Mail-Vorlagen je Bereich: Kategorie, Anzeigenamen, Abschnitte, Paar-Funktion (ADM-102 Bau A)** (`20261008134736`, `v6_mail_vorlagen_kategorie`; Details im Migrationskopf) | — |
 | Welle 6 · 0282 | **Hauptbühnen 2027: Namen und sechste Bühne (K-80)** (`20261008134737`, `v6_hauptbuehnen_2027`; Details im Migrationskopf) | — |
+| Welle 6 · 0284 | **Weitergabe von Bewerbungsdaten an Partner, Weg B (PART-129, K-78)** (`20261008141637`, `v6_weitergabe_partner`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
