@@ -81,6 +81,7 @@ Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
 | Fehler im Formular | `Field error` |
 | Ergebnis einer Aktion | `useToast()` — kurz, sachlich, kein Ausrufezeichen |
 | gefährlich | `<ConfirmDialog>` mit Klartext, was passiert; Button `variant="destructive"` |
+| Hinweis oder Warnung auf einer Fläche | `<Card className="border-accent-soft bg-accent-soft">` (Hinweis) bzw. `border-warning-soft bg-warning-soft` (Warnung); der Text trägt den dunklen Ton derselben Familie (`text-accent-deep` 5,65 : 1, `text-warning-ink` 5,13 : 1). Die Tönung wirkt seit QS-073 an jeder Karte (`kartenFlaeche`) — vorher blieb `bg-accent-soft` an einer `Card` weiß; ein rohes `<div>` dafür ist nicht mehr nötig. Der Rand gehört zur Tönung |
 | Seite fällt aus | `error.tsx` je Bereich → `<Fehlergrenze>` (`components/fehler/`), Baustein `<ErrorState>`: was passiert ist, Fehler-ID, „Neu laden“ als einzige primäre Aktion, Weg zur Startseite. Nie die Meldung des Fehlers zeigen, nur `fehlerId(error)` (QS-023). Neue Bereiche bekommen ihre `error.tsx` mit — `tests/fehlergrenzen.test.ts` prüft es |
 
 ## Wizard
