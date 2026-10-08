@@ -14,6 +14,7 @@ import { DatasetUpload } from "@/components/hackathon/DatasetUpload";
 import { abgabeUrls, datasetUrl, type AbgabeZeile, type DatasetTarget } from "@/lib/hackathon/datensatz-server";
 import { AbgabeDateien, type AbgabeDatei } from "@/components/hackathon/AbgabeDateien";
 import { MetricResults } from "./MetricResults";
+import { EckdatenForm, type EckdatenWerte } from "./EckdatenForm";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,15 @@ export default async function AdminHackathonPage() {
     loadVocabMap(supabase, locale),
   ]);
   const trackLabels = vgroup(vocab, "hack_track");
+  // HACK-020: Eckdaten der Startseite. Die Zusatzzeile liefert die RPC in einer Sprache; für das Formular
+  // brauchen wir beide, deshalb direkt aus der Hackathon-Zeile (das Hack-Team darf sie lesen).
+  const { data: ev } = await supabase.from("event")
+    .select("start_date,end_date,start_time,end_time,venue,location,schedule_note_de,schedule_note_en")
+    .eq("format_tag", "hackathon").limit(1).maybeSingle();
+  const eckdaten: EckdatenWerte = {
+    start_date: ev?.start_date ?? null, end_date: ev?.end_date ?? null, start_time: ev?.start_time ?? null, end_time: ev?.end_time ?? null,
+    venue: ev?.venue ?? null, location: ev?.location ?? null, note_de: ev?.schedule_note_de ?? "", note_en: ev?.schedule_note_en ?? "",
+  };
   // HACK-015: Wunschprofile je Challenge — Pflege hier und Passung in der Auswahl.
   const { data: profilRows } = await supabase.rpc("hack_challenge_profiles", { p_language: locale });
   const wunschprofile = (profilRows ?? []) as Wunschprofil[];
@@ -74,6 +84,10 @@ export default async function AdminHackathonPage() {
     <>
       <PageHeader word={t.admin.words.hackathon} title={tt.title} description={tt.lead} />
       <div className="flex flex-col gap-6">
+        <Card>
+          <CardHeader ebene="h2" title={tt.infoTitle} description={tt.infoLead} />
+          <EckdatenForm initial={eckdaten} t={tt} rpcMessages={t.rpc} />
+        </Card>
         <Card>
           <CardHeader ebene="h2" title={tt.appsTitle} description={tt.appsLead} />
           <ApplicationsTable
