@@ -59,6 +59,8 @@ describe("PART-136: Talk — Speaker als Tabelle, Bearbeiten im Schubfach", () =
   it("`Table stapeln` mit drei Spalten (Person, Stand, Aktion); eine Zeile je Person, der Knopf nur mit Recht", () => {
     assert.match(tabelle, /<Table stapeln>/);
     assert.equal((tabelle.match(/<Th\b/g) ?? []).length, 3);
+    // Gestapelt trägt der Stand seine Beschriftung (Wächter in `tests/table-stapeln.test.ts`); Name und Aktion brauchen keine.
+    assert.equal((tabelle.match(/<Td label=\{t\.colStatus\}>/g) ?? []).length, 1);
     assert.match(tabelle, /<Th aria-label=\{t\.colAction\} \/>/);
     assert.match(tabelle, /const darfPflegen = canEdit && sp\.can_edit;/);
     assert.match(tabelle, /\{darfPflegen && \(\s*<Button size="sm" variant="secondary" onClick=\{\(\) => setOffen\(sp\.profile_id\)\}>/);

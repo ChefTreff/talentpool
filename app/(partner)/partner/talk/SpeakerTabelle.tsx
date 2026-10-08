@@ -65,7 +65,7 @@ export function SpeakerTabelle({
                   <span className="ct-label text-ink">{sp.display_name || t.unnamed}</span>
                   {zweitzeile && <span className="ct-help mt-0.5 block">{zweitzeile}</span>}
                 </Td>
-                <Td>
+                <Td label={t.colStatus}>
                   <span className="flex flex-wrap gap-1.5">
                     {sp.confirmed && <Badge tone="success">{t.confirmed}</Badge>}
                     {sp.mail_contact_name ? (
