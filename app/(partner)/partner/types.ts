@@ -315,13 +315,17 @@ export type PartnerApplication = {
   } | null;
 };
 
-/** Entscheidungen, die ein Partner treffen darf (Kontrakt B6). */
-export const APPLICATION_DECISIONS = [
-  "shortlisted",
-  "accepted",
-  "waitlisted",
-  "declined",
-] as const;
+/**
+ * Entscheidungen, die ein Partner trifft (Kontrakt B6): Zusage, Warteliste, Absage — in allen Formaten
+ * gleich. „Engere Wahl“ gibt es hier nicht mehr (PART-123, Konrad 05.10.: nicht intuitiv); das Team
+ * entscheidet im Admin weiter mit den vier Ständen der Datenbank (`decide_application`).
+ */
+export const APPLICATION_DECISIONS = ["accepted", "waitlisted", "declined"] as const;
+
+/** Ist `status` eine Entscheidung, die der Partner-Bereich annimmt? Die Aktion prüft es, die Liste bietet nur diese an. */
+export function istPartnerEntscheidung(status: string): boolean {
+  return (APPLICATION_DECISIONS as readonly string[]).includes(status);
+}
 
 /** Pass-Typen, die ein Partner nachfragen kann (Kontrakt B5). */
 export const REQUEST_PASS_TYPES = ["partner", "talent", "startup", "investor"] as const;
