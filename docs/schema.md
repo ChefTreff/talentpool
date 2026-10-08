@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-05 17:05 UTC · 122 Tabellen · 6 Views · 713 Funktionen
+> Stand: 2026-10-08 08:34 UTC · 123 Tabellen · 6 Views · 717 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -445,6 +445,10 @@ Format/Termin (Summit, Hackathon, Side-Event, Community). is_edition = Klammer w
 | `swapcard_event_id` | text |  |  |  | Swapcard-Event der Edition (Content-API); gesetzt über set_edition_swapcard. Ohne Wert überträgt der Adapter nichts. |
 | `hubspot_done_stage_id` | text |  |  |  | HubSpot-Phase, in die ein Deal nach gelungenem Ingest geschoben wird (z. B. „Onboarding Operations (Automation Complete)“); leer = kein Weiterschieben. |
 | `vivenu_volunteer_undershop_id` | text |  |  |  | Undershop „Volunteers" dieser Edition. Ein Shop, viele persönliche Coupons. |
+| `start_time` | time without time zone |  |  |  | Uhrzeit des Beginns am start_date, Ortszeit von event.timezone — heute nur für den Hackathon gepflegt (HACK-020). |
+| `end_time` | time without time zone |  |  |  |  |
+| `schedule_note_de` | text |  |  |  | Zusatzzeile unter den Eckdaten, z. B. Kick-off und Demos (HACK-020), höchstens 200 Zeichen. |
+| `schedule_note_en` | text |  |  |  |  |
 
 ### `event_day`
 Veranstaltungstag eines Events (Einlass, Programmbeginn/-ende).
@@ -813,6 +817,8 @@ Wissensbasis. `edition_id` NULL = jahresunabhängig; ein Artikel mit Edition üb
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_by` | uuid |  |  | `person.id` |  |
 | `published_at` | timestamp with time zone |  |  |  |  |
+| `category` | text |  |  |  | ADM-064: Thema des Artikels (Vokabular wiki_category). NULL = kein Thema, im Portal unter „Weitere Artikel“. |
+| `product_formats` | text[] | ja |  |  | PART-103: Produktbezug (Vokabular partner_format = product.format_key). Leer = für alle Partner; sonst nur für Partner, die ein Produkt dieses Formats gebucht haben. Relevanzfilter, kein Zugriffsschutz. |
 
 ### `kb_chunk`
 Artikel der Wissensbasis in H2-Abschnitten, für die Volltextsuche des Assistenten (0108). Entsteht ausschliesslich per Trigger aus kb_article; Zielgruppe und Status stehen bewusst NICHT hier, sondern werden beim Suchen aus kb_article gelesen.
@@ -1690,6 +1696,55 @@ Shuttle-Fahrten je Speaker-Profil (A7.1). Mehrere Fahrten je Speaker, auch Zwisc
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
+### `side_event`
+Side Event je Edition (ADM-077): Zeit, Ort, Beschreibung, Obergrenze. Eingeladen wird über side_event_invite; sichtbar ist es für Speaker nur mit Einladung und wenn veröffentlicht. Löst die Speaker Reception (0125) ab.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `edition_id` | uuid | ja |  | `event.id` |  |
+| `title_de` | text | ja |  |  |  |
+| `title_en` | text | ja |  |  |  |
+| `description_de` | text |  |  |  |  |
+| `description_en` | text |  |  |  |  |
+| `location` | text | ja |  |  |  |
+| `address` | text |  |  |  |  |
+| `starts_at` | timestamp with time zone | ja |  |  |  |
+| `ends_at` | timestamp with time zone |  |  |  |  |
+| `capacity` | integer |  |  |  | Obergrenze in **Plätzen**, nicht Zusagen — eine Begleitung belegt einen zweiten; gezählt werden nur Zusagen. NULL = unbegrenzt. |
+| `rsvp_deadline` | timestamp with time zone |  |  |  | Antwortfrist (optional): Antworten gelten bis Eventbeginn oder, wenn gesetzt, bis zu dieser Frist — die strengere Grenze gilt. Das Team setzt den Stand von Hand auch danach. |
+| `published` | boolean | ja | `false` |  |  |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `side_event_attempt`
+Anfragen an die öffentliche Seite /side-event/<token> je Quelle (award_hash, gesalzen) — Grundlage der Ratenbegrenzung; Zeilen älter als ein Tag räumt die Funktion selbst weg. Keine Grants.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `source_hash` | text | ja |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+
+### `side_event_invite`
+Einladung eines Speaker-Profils zu einem Side Event (ADM-077): eine Zeile je Profil, Status invited/yes/no. Eine Absage bleibt stehen, damit das Team „abgesagt“ von „nie geantwortet“ unterscheidet. Ohne Grants — gelesen und geschrieben wird über die RPCs.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `side_event_id` | uuid | PK |  | `side_event.id` |  |
+| `profile_id` | uuid | PK |  | `speaker_profile.id` |  |
+| `status` | text | ja | `invited` |  |  |
+| `guests` | integer | ja | `0` |  |  |
+| `note` | text |  |  |  | Hinweis des Speakers (Unverträglichkeit, Begleitung): Freitext, geht mit „Profil löschen“ weg (anonymize_person). |
+| `responded_at` | timestamp with time zone |  |  |  |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `via` | text | ja | `portal` |  | Wie der Stand zustande kam: portal (der Speaker im Portal), email (One-Click-Link), team (von Hand gesetzt, auch eine neu angelegte Einladung). |
+| `invited_at` | timestamp with time zone | ja | `now()` |  |  |
+| `invited_by` | uuid |  |  | `person.id` |  |
+| `token_hash` | text |  |  |  | sha256 (hex) des One-Click-Tokens aus der Einladungsmail — 32 Zufallsbytes, nie Klartext. Eine neue Einladungsmail ersetzt ihn (der alte Link ist dann tot). Gültig bis Eventbeginn. |
+| `mailed_at` | timestamp with time zone |  |  |  | Wann die Einladungsmail in die Warteschlange kam (nicht: wann sie ankam — das steht im Mail-Protokoll). |
+
 ### `slide_drive_mirror`
 Spiegelstand je Präsentationslinie (Speaker-Profil × Session) im Technik-Ordner (SPK-023). Ohne Fremdschlüssel: überlebt das Löschen, bis die Drive-Kopie entfernt ist. Nur service_role schreibt.
 
@@ -1886,42 +1941,6 @@ Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality,
 | `stage_guest_consent_at` | timestamp with time zone |  |  |  | Wann der Partner bestätigt hat, dass die Person informiert und einverstanden ist, dass Name, Position und Porträt in der Event-App erscheinen (Auflage der Architektur-Session zu K-32). Selbstauskunft, kein Nachweis — das Setzen steht mit Akteur im Audit-Log. |
 | `mail_via_contact_id` | uuid |  |  |  | PART-091: Empfängerregel „Kontakt statt Speaker“. Gesetzt, wenn der Partner alles rund um den Slot verwaltet: alle Speaker-Mails (Einladung, Erinnerungen, Ticket, Präsentation) gehen an diesen Kontakt (speaker_contact dieses Profils, mit has_access), der Speaker selbst bekommt keine. Leer = der Speaker direkt. Entfernen des Kontakts hebt die Regel auf. |
 | `companion_quota` | integer | ja | `1` |  | Wie viele Begleittickets dieser Speaker haben darf (0–50, Standard 1). Das Team erhöht es im Admin (set_companion_quota); gezählt werden nicht stornierte Begleittickets. |
-
-### `speaker_reception`
-Speaker Reception je Edition (A7.4): Zeit, Ort, Beschreibung, Obergrenze. Anmeldung in speaker_reception_rsvp. Sichtbar nur für Speaker mit reception_eligible.
-
-| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
-|---|---|---|---|---|---|
-| `id` | uuid | PK | `gen_random_uuid()` |  |  |
-| `edition_id` | uuid | ja |  | `event.id` |  |
-| `title_de` | text | ja |  |  |  |
-| `title_en` | text | ja |  |  |  |
-| `description_de` | text |  |  |  |  |
-| `description_en` | text |  |  |  |  |
-| `location` | text | ja |  |  |  |
-| `address` | text |  |  |  |  |
-| `starts_at` | timestamp with time zone | ja |  |  |  |
-| `ends_at` | timestamp with time zone |  |  |  |  |
-| `capacity` | integer |  |  |  | Obergrenze in **Plätzen**, nicht Zusagen — eine Begleitung belegt einen zweiten. NULL = unbegrenzt. |
-| `rsvp_deadline` | timestamp with time zone |  |  |  |  |
-| `published` | boolean | ja | `false` |  |  |
-| `created_by` | uuid |  |  | `person.id` |  |
-| `created_at` | timestamp with time zone | ja | `now()` |  |  |
-| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
-
-### `speaker_reception_rsvp`
-Zu- und Absagen zur Reception. Eine Zeile je Profil; eine Absage bleibt stehen, damit das Team den Unterschied zwischen „abgesagt" und „nie geantwortet" sieht.
-
-| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
-|---|---|---|---|---|---|
-| `reception_id` | uuid | PK |  | `speaker_reception.id` |  |
-| `profile_id` | uuid | PK |  | `speaker_profile.id` |  |
-| `status` | text | ja | `yes` |  |  |
-| `guests` | integer | ja | `0` |  |  |
-| `note` | text |  |  |  |  |
-| `responded_at` | timestamp with time zone | ja | `now()` |  |  |
-| `created_at` | timestamp with time zone | ja | `now()` |  |  |
-| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `speaker_stage_candidate`
 Bühnen, die für einen Speaker in Frage kommen (LEAD-039) — konkrete Bühnen der Edition. Intern wie das Profil: lesen mit can_manage_speaker, schreiben nur über set_speaker_stage_candidates.
@@ -2457,10 +2476,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_next_up_item` | p_id: uuid |
 | `delete_portal_link` | p_id: uuid |
 | `delete_portal_video` | p_id: uuid |
-| `delete_reception` | p_id: uuid |
 | `delete_regie_cue` | p_id: uuid |
 | `delete_session_asset` | p_id: uuid |
 | `delete_shift_template` | p_id: uuid |
+| `delete_side_event` | p_id: uuid |
 | `delete_speaker_activity` | p_id: uuid |
 | `delete_speaker_asset` | p_id: uuid |
 | `delete_speaker_task` | p_task_id: uuid |
@@ -2514,6 +2533,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `hack_dataset_path_allowed` | p_name: text |
 | `hack_dataset_targets` | p_edition_id: uuid, p_language: text |
 | `hack_edition` | p_edition_id: uuid |
+| `hack_event_info` | p_edition_id: uuid, p_language: text |
 | `hack_is_captain` | p_team_id: uuid |
 | `hack_is_participant` | p_edition_id: uuid |
 | `hack_join_code` | args: ? |
@@ -2548,6 +2568,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `invite_assistant` | p_email: text, p_first_name: text, p_last_name: text, p_profile_id: uuid |
 | `invite_hack_person` | p_message: text, p_person_id: uuid |
 | `invite_speaker` | p_profile_id: uuid |
+| `invite_to_side_event` | p_profile_ids: uuid[], p_resend: boolean, p_side_event_id: uuid |
 | `is_admin` | args: ? |
 | `is_application_team` | p_session_id: uuid |
 | `is_expense_approver` | args: ? |
@@ -2576,8 +2597,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `is_vocab_key` | p_key: text, p_vocabulary: text |
 | `is_volunteer_team` | args: ? |
 | `join_hack_team` | p_code: text, p_edition_id: uuid |
-| `kb_article_by_slug` | p_audience: text, p_edition_id: uuid, p_language: text, p_slug: text |
-| `kb_articles` | p_audience: text, p_edition_id: uuid, p_language: text, p_role: text |
+| `kb_article_by_slug` | p_audience: text, p_edition_id: uuid, p_formats: text[], p_language: text, p_slug: text |
+| `kb_articles` | p_audience: text, p_edition_id: uuid, p_formats: text[], p_language: text, p_role: text |
 | `kb_articles_admin` | p_audience: text |
 | `kb_log_question` | p_article_ids: uuid[], p_audience: text, p_duration_ms: integer, p_hit: boolean, p_language: text, p_question: text |
 | `kb_question_report` | p_days: integer |
@@ -2633,7 +2654,6 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_partner_orgs` | args: ? |
 | `my_partner_stages` | args: ? |
 | `my_photo_events` | args: ? |
-| `my_receptions` | p_edition_id: uuid |
 | `my_regie_stages` | p_edition_id: uuid |
 | `my_roles` | args: ? |
 | `my_session_photos` | args: ? |
@@ -2641,6 +2661,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_sessions` | args: ? |
 | `my_shifts` | p_edition_id: uuid |
 | `my_shuttle_bookings` | args: ? |
+| `my_side_events` | p_edition_id: uuid |
 | `my_speaker_assets` | p_profile_id: uuid |
 | `my_speaker_contacts` | p_profile_id: uuid |
 | `my_speaker_profile` | p_edition_id: uuid |
@@ -2739,9 +2760,6 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `purge_kb_questions` | p_days: integer |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `queue_speaker_mail` | p_profile_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
-| `reception_guests` | p_reception_id: uuid |
-| `reception_taken` | p_reception_id: uuid |
-| `receptions_admin` | p_edition_id: uuid |
 | `record_shop_invoice` | p_meta: jsonb, p_order_ids: uuid[], p_org_id: uuid, p_sevdesk_contact_id: text, p_sevdesk_invoice_id: text |
 | `record_speaker_consent_on_behalf` | p_consents: jsonb, p_profile_id: uuid, p_version: text |
 | `record_sync_error` | p_job_id: bigint, p_message: text, p_object_id: text, p_object_type: text, p_payload: jsonb |
@@ -2778,6 +2796,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `requeue_mail` | p_log_id: bigint |
 | `resolve_deletion_request` | p_action: text, p_id: uuid, p_note: text |
 | `resolve_sync_error` | p_id: bigint |
+| `respond_side_event` | p_guests: integer, p_note: text, p_side_event_id: uuid, p_status: text |
 | `restore_mail_template` | p_body_md: text, p_key: text, p_locale: text, p_subject: text |
 | `resync_deliverables` | p_edition_id: uuid |
 | `review_deliverable` | p_accepted: boolean, p_deliverable_id: uuid, p_note: text |
@@ -2838,6 +2857,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_hack_score` | p_criteria: jsonb, p_note: text, p_team_id: uuid |
 | `set_hack_seeking` | p_seeking: boolean |
 | `set_hack_team_looking` | p_looking: boolean, p_note: text, p_skills: text[] |
+| `set_hackathon_info` | p_data: jsonb |
 | `set_initiative_stage` | p_note: text, p_org_edition_id: uuid, p_stage: text |
 | `set_logo_category` | p_category: text, p_org_edition_id: uuid |
 | `set_logo_whitening_consent` | p_edition_id: uuid, p_granted: boolean, p_org_id: uuid |
@@ -2856,13 +2876,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_person_salutation` | p_de: text, p_en: text, p_person_id: uuid |
 | `set_primary_email` | p_email_id: uuid |
 | `set_product_external_ref` | p_external_id: text, p_sku: text, p_system: text |
-| `set_reception_rsvp` | p_guests: integer, p_note: text, p_reception_id: uuid, p_status: text |
 | `set_regie_anweisungen` | p_data: jsonb, p_slot_id: uuid |
 | `set_session_asset` | p_data: jsonb, p_id: uuid |
 | `set_session_owner` | p_person_id: uuid, p_session_id: uuid |
 | `set_session_partner` | p_org_id: uuid, p_session_id: uuid |
 | `set_session_questions` | p_questions: jsonb, p_replace_custom: boolean, p_session_id: uuid |
 | `set_session_speakers` | p_session_id: uuid, p_speakers: jsonb |
+| `set_side_event_status` | p_guests: integer, p_note: text, p_profile_id: uuid, p_side_event_id: uuid, p_status: text |
 | `set_slides_release` | p_asset_id: uuid, p_release: boolean |
 | `set_slot_status` | p_slot_id: uuid, p_status: text |
 | `set_speaker_activity_done` | p_done: boolean, p_id: uuid |
@@ -2914,6 +2934,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_sync_fulfilled_deliverables` | p_org_edition_id: uuid |
 | `shop_upsert_line` | p_edition_id: uuid, p_merch_config: jsonb, p_org_id: uuid, p_qty: numeric, p_sku: text |
 | `shuttle_bookings_admin` | p_edition_id: uuid |
+| `side_event_respond_by_token` | p_ip_hash: text, p_status: text, p_token: text |
+| `side_event_taken` | p_side_event_id: uuid |
+| `side_events_admin` | p_edition_id: uuid, p_side_event_id: uuid |
 | `slide_mirror_candidates` | p_asset_id: uuid, p_edition_id: uuid |
 | `slide_mirror_orphans` | p_limit: integer |
 | `slot_has_published_session` | p_slot_id: uuid |
@@ -3000,11 +3023,11 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_product` | p_data: jsonb |
 | `upsert_product_component` | p_bundle_sku: text, p_component_sku: text, p_qty: numeric |
 | `upsert_question_catalog` | p_data: jsonb |
-| `upsert_reception` | p_data: jsonb |
 | `upsert_regie_cue` | p_data: jsonb |
 | `upsert_session` | p_data: jsonb |
 | `upsert_shift` | p_data: jsonb |
 | `upsert_shift_template` | p_data: jsonb |
+| `upsert_side_event` | p_data: jsonb |
 | `upsert_speaker` | p_data: jsonb |
 | `upsert_speaker_contact` | p_data: jsonb |
 | `upsert_speaker_task` | p_data: jsonb |

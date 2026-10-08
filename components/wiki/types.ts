@@ -11,6 +11,10 @@ export type KbArticle = {
   edition_id: string | null;
   updated_at: string;
   is_overlay: boolean;
+  /** ADM-064: Thema (Vokabular `wiki_category`); `null` = kein Thema, im Portal „Weitere Artikel“. */
+  category: string | null;
+  /** PART-103: Produktbezug (Vokabular `partner_format`); leer = für alle. Relevanz, kein Zugriffsschutz. */
+  product_formats: string[];
 };
 
 export type KbAdminArticle = KbArticle & {

@@ -1,7 +1,7 @@
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { loadVocabMap, vlabel } from "@/lib/vocab";
+import { loadVocabMap, vgroup, vlabel } from "@/lib/vocab";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { WikiAdmin } from "./WikiAdmin";
 import { loadAdminArticles } from "@/components/wiki/load";
@@ -38,6 +38,8 @@ export default async function AdminWikiPage({
         editions={(editionRows ?? []) as { id: string; slug: string; name: string }[]}
         audiences={Object.fromEntries(KB_AUDIENCES.map((a) => [a, vlabel(vocab, "kb_audience", a)]))}
         phases={Object.fromEntries(KB_PHASES.map((p) => [p, vlabel(vocab, "kb_phase", p)]))}
+        topics={vgroup(vocab, "wiki_category")}
+        formats={vgroup(vocab, "partner_format")}
         t={t.wiki}
         common={{ save: t.common.save, cancel: t.common.cancel, close: t.common.close, required: t.common.required }}
         rpcMessages={t.rpc}

@@ -39,6 +39,10 @@ export type ArticleInput = {
   body_md?: string;
   valid_until?: string | null;
   sort_order?: number;
+  /** ADM-064: Schlüssel aus `wiki_category`; leer = kein Thema. Fehlt der Schlüssel, bleibt das Thema stehen. */
+  category?: string | null;
+  /** PART-103: Schlüssel aus `partner_format`; leere Liste = für alle. Fehlt der Schlüssel, bleibt der Bezug stehen. */
+  product_formats?: string[];
 };
 
 export async function saveArticle(input: ArticleInput): Promise<ActionResult<{ id: string }>> {

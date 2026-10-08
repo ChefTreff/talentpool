@@ -135,6 +135,12 @@
  *                                   ohne Mail. Erst nach „Migration live“ von
  *                                   v6_speaker_tickets_final. ACHTUNG: „Ausstellen“ legt ein echtes
  *                                   vivenu-Freiticket an — zum Ausprobieren Stornieren nehmen)
+ *   … --apply --nur=side-events    (ADM-077/SPK-091: ein veröffentlichtes TEST-Side-Event mit Obergrenze 10 und
+ *                                   ein Entwurf; Konrads Testprofil ist eingeladen (Stand „eingeladen“, ohne Mail),
+ *                                   zwei TEST-Speaker haben zu- und abgesagt — für /admin/side-events und
+ *                                   den Abschnitt „Side Events“ in /speaker. Erst nach „Migration live“ von
+ *                                   v6_side_events. Den One-Click-Link probiert man mit „Erneut einladen“ an der
+ *                                   eigenen Einladung: die Mail geht an Konrads Postfach)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -543,7 +549,6 @@ async function apply(me, ed) {
         organization_name: "ChefTreff",
         bio_short_de: "Testprofil für die Feedback-Runden.",
         bio_short_en: "Test profile for the feedback rounds.",
-        reception_eligible: true,
         lounge_access: true,
         pass_type: "speaker",
         hospitality_status: "eligible",
@@ -3247,6 +3252,101 @@ async function begleitungSchritt(me, ed) {
   note("Begleittickets ausprobieren", "/admin/speaker-tickets → Ansicht Kontingente: Konrads Testprofil mit „2 von 3“; /speaker/tickets: Begleitungen mit Lounge-Abzeichen");
 }
 
+/** ADM-077: die Adressen der TEST-Gäste der Side Events — Konrads Postfach, keine erfundenen Dritten. */
+const sideEventAdresse = (i) => email.replace("@", `+zztest-sideevent-${i}@`);
+const SIDE_EVENT_TITEL = `${PREFIX}Speaker Dinner`;
+const SIDE_EVENT_ENTWURF = `${PREFIX}Afterparty (Entwurf)`;
+
+/**
+ * ADM-077/SPK-091: Side Events, damit `/admin/side-events` (Liste mit Plätzen, Einladungen, Stand von Hand setzen,
+ * Veröffentlichen) und der Abschnitt „Side Events“ in `/speaker` nicht leer bleiben.
+ *
+ * - **`TEST — Speaker Dinner`:** veröffentlicht, Obergrenze 10, am ersten Summit-Tag um 19:00. Eingeladen sind Konrads
+ *   Testprofil (Stand **eingeladen** — in `/speaker` steht die Karte mit „Antwort offen“, Zusagen mit Begleitung und
+ *   Absagen lassen sich ausprobieren), ein TEST-Speaker mit **Zusage und einer Begleitung** (zwei Plätze belegt) und einer
+ *   mit **Absage**.
+ * - **`TEST — Afterparty (Entwurf)`:** nicht veröffentlicht — Konrad sieht sie im Admin, kein Speaker im Portal;
+ *   „Veröffentlichen“ schaltet sie frei (danach kann man einladen).
+ *
+ * Direkt geschrieben, nicht über `invite_to_side_event`: so geht keine Mail raus und es entsteht kein Link. Den
+ * One-Click-Link probiert man über /admin/side-events → Einladungen → **„Erneut einladen“** an Konrads Zeile: die Mail geht
+ * an sein eigenes Postfach. **Das Event ist nur für die drei TEST-Profile sichtbar** — ein echter Speaker sieht ohne
+ * Einladung nichts. Ein zweiter Lauf setzt Konrads Einladung auf „eingeladen“ zurück (Antwort, Begleitung, Hinweis, Link);
+ * die beiden TEST-Gäste behalten ihren Stand. Den Platzhalter („Side Events werden am … veröffentlicht“) legt dieser Schritt
+ * **nicht** an: die Frist `side_events_publish` wäre für jeden echten Speaker sichtbar — sie gehört unter /admin/fristen.
+ * **Erst nach „Migration live“** von `v6_side_events`; vorher meldet der Schritt, dass die Tabelle fehlt.
+ * `--remove` löscht beide Events (die Einladungen gehen mit) und die TEST-Gäste.
+ */
+async function sideEventsSchritt(me, ed) {
+  const { data: sp } = await admin.from("speaker_profile").select("id")
+    .eq("person_id", me.id).eq("edition_id", ed.id).maybeSingle();
+  if (!sp) return fail("Side Events", "kein Speaker-Profil — zuerst ein volles --apply");
+  const { error: tabelle } = await admin.from("side_event").select("id").limit(1);
+  if (tabelle) return fail("Side Events", `Tabelle fehlt (${tabelle.message}) — Migration v6_side_events noch nicht live`);
+
+  const sum = await summit(ed);
+  const tag = sum?.tage?.[0]?.day_date ?? ed.start_date;
+  const beginn = new Date(`${tag}T19:00:00+02:00`);
+  const ende = new Date(beginn.getTime() + 3 * 3600 * 1000);
+  const jetzt = new Date().toISOString();
+
+  const events = [
+    { titel: SIDE_EVENT_TITEL, ort: "Elbphilharmonie (TEST)", adresse: "Platz der Deutschen Einheit 4", published: true, capacity: 10, text: "Ein Abend für die Speaker — nur zum Ausprobieren." },
+    { titel: SIDE_EVENT_ENTWURF, ort: "Reeperbahn (TEST)", adresse: null, published: false, capacity: null, text: "Noch nicht veröffentlicht — nur zum Ausprobieren." },
+  ];
+  const ids = {};
+  for (const e of events) {
+    const { data: da } = await admin.from("side_event").select("id").eq("edition_id", ed.id).eq("title_de", e.titel).maybeSingle();
+    if (da) ids[e.titel] = da.id;
+    await write(`${e.titel} (${e.published ? "veröffentlicht, Obergrenze 10" : "Entwurf"})`, async () => {
+      const zeile = {
+        title_de: e.titel, title_en: e.titel, description_de: e.text, description_en: e.text,
+        location: e.ort, address: e.adresse, starts_at: beginn.toISOString(), ends_at: ende.toISOString(),
+        capacity: e.capacity, rsvp_deadline: null, published: e.published,
+      };
+      const r = da
+        ? await admin.from("side_event").update(zeile).eq("id", da.id).select("id").single()
+        : await admin.from("side_event").insert({ ...zeile, edition_id: ed.id, created_by: me.id }).select("id").single();
+      if (!r.error) ids[e.titel] = r.data.id;
+      return r;
+    });
+  }
+
+  const gaeste = [
+    { i: 1, nachname: "Side-Event-Gast 1", status: "yes", guests: 1, note: `${PREFIX}vegetarisch, mit Begleitung` },
+    { i: 2, nachname: "Side-Event-Gast 2", status: "no", guests: 0, note: null },
+  ];
+  for (const g of gaeste) {
+    await write(`${PREFIX}${g.nachname}: ${g.status === "yes" ? "zugesagt mit Begleitung" : "abgesagt"}`, async () => {
+      const { data: personId, error } = await admin.rpc("testdaten_person", {
+        p_first_name: "TEST", p_last_name: g.nachname, p_email: sideEventAdresse(g.i),
+      });
+      if (error) return { data: null, error };
+      const profil = await admin.from("speaker_profile").upsert({
+        person_id: personId, edition_id: ed.id, speaker_type: "panelist", pipeline_status: "confirmed",
+        confirmed_at: jetzt, owner_person_id: me.id, internal_notes: MARK,
+      }, { onConflict: "person_id,edition_id" }).select("id").single();
+      if (profil.error) return profil;
+      const { data: da } = await admin.from("side_event_invite").select("status")
+        .eq("side_event_id", ids[SIDE_EVENT_TITEL]).eq("profile_id", profil.data.id).maybeSingle();
+      if (da) return { data: da, error: null };   // ein Stand, den jemand inzwischen geändert hat, bleibt
+      return admin.from("side_event_invite").insert({
+        side_event_id: ids[SIDE_EVENT_TITEL], profile_id: profil.data.id, status: g.status, guests: g.guests, note: g.note,
+        via: "team", invited_by: me.id, invited_at: jetzt, responded_at: jetzt,
+      });
+    });
+  }
+
+  // Konrads eigene Einladung: jeder Lauf stellt sie auf „eingeladen“ zurück — so lässt sich der Weg wiederholen.
+  await write("Konrads Einladung zum TEST-Dinner (eingeladen, ohne Mail und ohne Link)", () =>
+    admin.from("side_event_invite").upsert({
+      side_event_id: ids[SIDE_EVENT_TITEL], profile_id: sp.id, status: "invited", guests: 0, note: null, via: "team",
+      invited_by: me.id, invited_at: jetzt, responded_at: null, token_hash: null, mailed_at: null,
+    }, { onConflict: "side_event_id,profile_id" }));
+
+  note("Side Events ausprobieren", "/admin/side-events: zwei Karten (Dinner mit 2 von 10 Plätzen, Entwurf), „Einladungen“ zeigt Konrad und die zwei TEST-Gäste; /speaker: Abschnitt „Side Events“ mit der Karte „Antwort offen“");
+}
+
 /** ADM-072: so erkennt man im Admin und beim Aufräumen die drei wartenden TEST-Freigaben. */
 const FREIGABE_HINWEIS = `${PREFIX}nur zum Ausprobieren der Freigabe`;
 /**
@@ -3471,6 +3571,7 @@ const SCHRITTE = {
   shuttle: shuttleFahrten,
   freigaben: freigabenSchritt,
   begleitung: begleitungSchritt,
+  "side-events": sideEventsSchritt,
   buehne: stageLeadBuehne,
   standstatus: standStatus,
   verwaltet: verwalteterSpeaker,
@@ -3718,6 +3819,17 @@ async function remove(me) {
     const ids = (adressen ?? []).map((a) => a.person_id);
     if (ids.length === 0) return { data: null, error: null };
     // Profile und Adressen hängen mit ON DELETE CASCADE an der Person.
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  // ADM-077: die Side Events (die Einladungen gehen per Kaskade mit) und die zwei TEST-Gäste, deren Profile an der Person hängen.
+  await write("TEST-Side-Events entfernt (Einladungen gehen mit)", () =>
+    admin.from("side_event").delete().like("title_de", `${PREFIX}%`),
+  );
+  await write("TEST-Gäste der Side Events entfernt (Profil und Einladung gehen mit)", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", [1, 2].map(sideEventAdresse));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
     return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
   await write("Verwalteter TEST-Speaker entfernt (Profil und Kontakt gehen mit)", async () => {

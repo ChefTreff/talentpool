@@ -26,7 +26,18 @@ const nextConfig: NextConfig = {
   // die Workspace-Wurzel und wählt den Haupt-Checkout.
   turbopack: { root: path.resolve(process.cwd()) },
   async headers() {
-    return [{ source: "/(.*)", headers: SECURITY_HEADERS }];
+    return [
+      { source: "/(.*)", headers: SECURITY_HEADERS },
+      // ADM-077: der Link aus der Einladungsmail trägt seinen Token im Pfad. Kein Suchindex, kein Referrer an fremde Seiten (die spätere Regel
+      // überschreibt die allgemeine für dieselben Schlüssel).
+      {
+        source: "/side-event/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
+    ];
   },
   async redirects() {
     const onPortalHost = [{ type: "host" as const, value: "portal.chef-treff.de" }];
@@ -53,6 +64,9 @@ const nextConfig: NextConfig = {
       // dritte Rollenliste für dieselbe Ansicht. Niemand verliert Zugang —
       // der Abschnitt `catering` schliesst Produktion ein.
       { source: "/admin/produktion/catering", destination: "/admin/catering", permanent: false },
+      // ADM-077: aus der Speaker Reception wurden die Side Events (Abschnitt `sideEvents`). Die alte Adresse steht in Lesezeichen und in
+      // Notizen — sie führt weiter, vor jeder Rollenprüfung.
+      { source: "/admin/reception", destination: "/admin/side-events", permanent: false },
     ];
   },
 };

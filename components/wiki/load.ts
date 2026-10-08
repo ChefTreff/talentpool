@@ -13,6 +13,12 @@ export async function loadArticles(input: {
   language: string;
   editionId?: string | null;
   role?: string | null;
+  /**
+   * PART-103: Formate der gebuchten Produkte (Vokabular `partner_format`). Ohne Angabe sieht man
+   * alle Artikel der Zielgruppe; mit Angabe (auch leer) nur die ohne Produktbezug und die zu
+   * diesen Formaten. Ein Relevanzfilter — die Zielgruppenprüfung bleibt die Datenbank.
+   */
+  formats?: string[] | null;
 }): Promise<KbArticle[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("kb_articles", {
@@ -20,6 +26,7 @@ export async function loadArticles(input: {
     p_language: input.language,
     p_edition_id: input.editionId ?? null,
     p_role: input.role ?? null,
+    p_formats: input.formats ?? null,
   });
   if (error) {
     if (error.code !== "42501") console.error("[wiki] kb_articles:", error.message);
