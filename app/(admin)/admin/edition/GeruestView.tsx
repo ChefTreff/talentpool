@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { searchBoardPartners } from "@/components/programme/actions";
+import { SuchAuswahl, type Treffer } from "@/components/programme/SuchAuswahl";
 import { Badge } from "@/components/ui/Badge";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Button } from "@/components/ui/Button";
@@ -26,7 +28,16 @@ import {
 } from "./actions";
 import type { Sperrzeit } from "@/components/programme/buehnen";
 import { formatDay } from "@/lib/tz";
-import { feldZeit, gewaehlteTage, tageSpeichern, zeitFeld } from "./felder";
+import {
+  feldZeit,
+  gewaehlteTage,
+  gewaehlterPartner,
+  partnerFeldSichtbar,
+  partnerFuerNeue,
+  partnerFuerSpeichern,
+  tageSpeichern,
+  zeitFeld,
+} from "./felder";
 import { BUEHNEN_ARTEN, type Geruest, type GeruestBuehne, type GeruestBuehnenTag, type GeruestTag } from "./types";
 
 type Strings = Record<string, string>;
@@ -67,9 +78,17 @@ export function GeruestView({
   const [pending, startTransition] = useTransition();
   const [entwurf, setEntwurf] = useState<Entwurf>({});
   const [weg, setWeg] = useState<{ art: "tag" | "buehne" | "track"; id: string; name: string } | null>(null);
+  /** ADM-106: die Namen frisch gewählter Partner nach ID — der Entwurf einer Bühne trägt nur die ID. */
+  const [partnerNamen, setPartnerNamen] = useState<Record<string, string>>({});
 
   const eventId = geruest.event?.id ?? "";
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
+  /**
+   * Partner suchen (ADM-106). `board_search_partners` liefert nur Organisationen **dieser Edition** (mit `org_edition`), nicht alle
+   * HubSpot-Firmen, und prüft selbst, ob die Person das Programm bearbeiten darf. Die Funktion bleibt zwischen den Zeichnungen
+   * dieselbe, sonst startet das Suchfeld bei jeder Zeichnung der Seite eine neue Anfrage.
+   */
+  const suchePartner = useCallback((q: string) => searchBoardPartners(eventId, q), [eventId]);
 
   function report(res: EditionResult<string>, okText: string) {
     if (res.ok) {
@@ -89,6 +108,12 @@ export function GeruestView({
 
   const setzen = (id: string, feld: string, v: string) =>
     setEntwurf((e) => ({ ...e, [id]: { ...(e[id] ?? {}), [feld]: v } }));
+
+  /** Partner einer Bühne wählen oder abnehmen: der Entwurf trägt die ID (leer = abgenommen), der Name wird für die Anzeige gemerkt. */
+  const waehlePartner = (id: string, h: Treffer | null) => {
+    if (h) setPartnerNamen((n) => ({ ...n, [h.id]: h.name }));
+    setzen(id, "partner_org_id", h ? h.id : "");
+  };
 
   const geaendert = (id: string) => Object.keys(entwurf[id] ?? {}).length > 0;
 
@@ -115,9 +140,18 @@ export function GeruestView({
   const keineTage = (id: string) => entwurf[id]?.valid_days === "";
   /** Die Felder einer Bühne zum Speichern: Gültigkeitstage als Liste, alle Tage = leer. */
   const buehnenDaten = (s: GeruestBuehne): Record<string, unknown> => {
-    const { valid_days, ...rest } = entwurf[s.id] ?? {};
-    return { id: s.id, ...rest, ...(valid_days !== undefined ? { valid_days: tageSpeichern(valid_days, alleTage) } : {}) };
+    const { valid_days, partner_org_id, ...rest } = entwurf[s.id] ?? {};
+    // ADM-106: der Partner geht nur mit, wo das Formular das Feld zeigt (Haupt- und Nebenbühne); eine leere ID heißt „abgenommen“.
+    const partner = partnerFuerSpeichern(rest.type ?? s.type, partner_org_id);
+    return {
+      id: s.id,
+      ...rest,
+      ...(partner !== undefined ? { partner_org_id: partner } : {}),
+      ...(valid_days !== undefined ? { valid_days: tageSpeichern(valid_days, alleTage) } : {}),
+    };
   };
+  /** Zeigt die Zeile das Partner-Feld? Nach der Art im Entwurf (ADM-106): wer die Art umstellt, sieht das Feld kommen und gehen. */
+  const zeigtPartner = (s: GeruestBuehne) => partnerFeldSichtbar(wert(s.id, "type", s.type));
   /** Eine neue Bühne: der Typ steht im Formular ausdrücklich da, also geht er auch mit (vorher blieb er leer und die Datenbank nahm `side`). */
   const neueBuehnenDaten = (werte: Record<string, string>): Record<string, unknown> => {
     const { valid_days, ...rest } = werte;
@@ -258,10 +292,34 @@ export function GeruestView({
                   {s.kind && (
                     <span className="ct-help mt-1 block text-muted">
                       {t[`kind_${s.kind}`] ?? s.kind}
-                      {s.kind === "branded" && s.partner_org_name ? ` ${t.brandedBy.replace("{partner}", s.partner_org_name)}` : ""}
+                      {!zeigtPartner(s) && s.kind === "branded" && s.partner_org_name
+                        ? ` ${t.brandedBy.replace("{partner}", s.partner_org_name)}`
+                        : ""}
                     </span>
                   )}
-                  {s.partner_org_name && s.kind !== "branded" && <span className="ct-help block text-muted">{s.partner_org_name}</span>}
+                  {/* ADM-106: bei Haupt- und Nebenbühnen ist der Partner eine Wahl — Suche unter den Organisationen der Edition, die Auswahl steht
+                      als Karte mit × darunter. Bei den anderen Arten setzen die Partner-Funktionen die Zuordnung; hier steht sie nur. */}
+                  {zeigtPartner(s) ? (
+                    <div className="mt-2">
+                      <SuchAuswahl
+                        kompakt
+                        id={`partner-${s.id}`}
+                        label={t.partnerLabel}
+                        placeholder={t.partnerSearch}
+                        value={gewaehlterPartner(
+                          entwurf[s.id]?.partner_org_id,
+                          { id: s.partner_org_id, name: s.partner_org_name },
+                          partnerNamen,
+                        )}
+                        disabled={pending}
+                        suchen={suchePartner}
+                        onChange={(h) => waehlePartner(s.id, h)}
+                        t={{ remove: t.partnerRemove, noHits: t.partnerNoHits }}
+                      />
+                    </div>
+                  ) : (
+                    s.partner_org_name && s.kind !== "branded" && <span className="ct-help block text-muted">{s.partner_org_name}</span>
+                  )}
                 </Td>
                 <Td>
                   <TageWahl
@@ -324,6 +382,7 @@ export function GeruestView({
               felder={[
                 { key: "name", label: t.colName, required: true },
                 { key: "type", label: t.colType, options: BUEHNEN_ARTEN.map((a) => ({ value: a, label: t[`stageType_${a}`] ?? a })) },
+                { key: "partner_org_id", label: t.partnerLabel, partner: true },
                 { key: "valid_days", label: t.colValidDays, tage: true },
                 { key: "room", label: t.colRoom },
                 { key: "capacity", type: "number", label: t.colCapacity },
@@ -335,6 +394,8 @@ export function GeruestView({
               pending={pending}
               tage={geruest.days}
               dateLocale={dateLocale}
+              suchen={suchePartner}
+              partnerTexte={{ placeholder: t.partnerSearch, remove: t.partnerRemove, noHits: t.partnerNoHits }}
               onAdd={(werte) => lauf(() => saveStage(neueBuehnenDaten(werte)), t.added)}
             />
           </Tbody>
@@ -631,6 +692,8 @@ type Feld = {
   options?: { value: string; label: string }[];
   /** Gültigkeitstage: ein Kästchen je Eventtag, alle angehakt als Standard (ADM-085). */
   tage?: boolean;
+  /** Partner-Organisation per Suche (ADM-106): erscheint nur bei Haupt- und Nebenbühnen und braucht `suchen` an der Zeile. */
+  partner?: boolean;
 };
 
 /** Die letzte Zeile jeder Tabelle: anlegen, ohne die Seite zu wechseln. */
@@ -642,6 +705,8 @@ function NeueZeile({
   onAdd,
   tage = [],
   dateLocale = "de-DE",
+  suchen,
+  partnerTexte,
 }: {
   felder: Feld[];
   spalten: number;
@@ -650,20 +715,47 @@ function NeueZeile({
   onAdd: (werte: Record<string, string>) => void;
   tage?: GeruestTag[];
   dateLocale?: string;
+  /** Suche für das Partner-Feld (ADM-106); ohne sie bleibt das Feld unsichtbar. */
+  suchen?: (query: string) => Promise<Treffer[]>;
+  partnerTexte?: { placeholder: string; remove: string; noHits: string };
 }) {
   const [werte, setWerte] = useState<Record<string, string>>({});
+  /** ADM-106: die Namen gewählter Partner nach ID — die Zeile hält nur die ID. */
+  const [partnerNamen, setPartnerNamen] = useState<Record<string, string>>({});
   const vollstaendig = felder.every((f) => !f.required || (werte[f.key] ?? "").trim() !== "");
   const alleTage = tage.map((d) => d.day_date);
   /** Was die Zeile anzeigt — und was beim Anlegen mitgeht: die Auswahl zeigt ihren ersten Eintrag, auch wenn niemand etwas gewählt hat. */
   const angezeigt = (f: Feld) => werte[f.key] ?? (f.tage ? alleTage.join(",") : (f.options?.[0]?.value ?? ""));
   const keineTage = felder.some((f) => f.tage && angezeigt(f) === "");
+  /** Das Partner-Feld erscheint nur bei Haupt- und Nebenbühnen (nach der gezeigten Art) — und nur, wenn die Zeile eine Suche hat. */
+  const art = werte.type ?? felder.find((f) => f.key === "type")?.options?.[0]?.value ?? "";
+  const zeigtPartner = (f: Feld) => Boolean(f.partner && suchen && partnerTexte && partnerFeldSichtbar(art));
 
   return (
     <Tr>
       <Td colSpan={spalten}>
         <div className="flex flex-wrap items-end gap-2">
           {felder.map((f) =>
-            f.tage ? (
+            f.partner ? (
+              zeigtPartner(f) && suchen && partnerTexte ? (
+                <SuchAuswahl
+                  key={f.key}
+                  kompakt
+                  className="w-40"
+                  id={`neu-${f.key}`}
+                  label={f.label}
+                  placeholder={partnerTexte.placeholder}
+                  value={gewaehlterPartner(werte[f.key], { id: null, name: null }, partnerNamen)}
+                  disabled={pending}
+                  suchen={suchen}
+                  onChange={(h) => {
+                    if (h) setPartnerNamen((n) => ({ ...n, [h.id]: h.name }));
+                    setWerte((w) => ({ ...w, [f.key]: h ? h.id : "" }));
+                  }}
+                  t={{ remove: partnerTexte.remove, noHits: partnerTexte.noHits }}
+                />
+              ) : null
+            ) : f.tage ? (
               <TageWahl
                 key={f.key}
                 tage={tage}
@@ -702,6 +794,12 @@ function NeueZeile({
               const neu = { ...werte };
               for (const f of felder) {
                 if (neu[f.key] === undefined && (f.options || f.tage)) neu[f.key] = angezeigt(f);
+                // Ein Partner, den die Zeile nicht (mehr) zeigt — die Art wurde danach gewechselt —, oder ein abgenommener geht nicht mit.
+                if (f.partner) {
+                  const partner = partnerFuerNeue(art, neu[f.key]);
+                  if (partner === undefined) delete neu[f.key];
+                  else neu[f.key] = partner;
+                }
               }
               onAdd(neu);
               setWerte({});
