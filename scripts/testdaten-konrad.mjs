@@ -105,6 +105,9 @@
  *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
  *                                   nur wenn er sich unter /hackathon schon beworben hat;
  *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
+ *   … --apply --nur=nachbuchung    (PART-102: zweiter Test-Deal mit zwei Nachbuchungs-Leistungen — „Partner Branding × 3, davon 2 nachgebucht am …“
+ *                                   und „Digital Branding, nachgebucht am …“ in /partner und in der Karte „Gebucht“ unter /admin/partner/<Org>;
+ *                                   braucht `partner` und die Migration v6_nachbuchung)
  *   … --apply --nur=benachrichtigungen (TAL-009: zwei TEST-Personen ohne Konto mit Themen,
  *                                   eine mit Newsletter-Einwilligung (anschreibbar), eine
  *                                   ohne — Zähler und Export in /admin/benachrichtigungen)
@@ -2208,6 +2211,68 @@ async function formateSchritt(me, ed) {
 }
 
 /**
+ * Schritt `nachbuchung` (PART-102, K-82: Nachbuchung = neuer Deal in derselben Pipeline): die Test-Organisation bekommt einen zweiten Deal mit
+ * zwei Folge-Leistungen und ihrem Zeitpunkt `nachgebucht_am` — **2 × „Partner Branding“** (die SKU ist schon gebucht, die Liste zeigt „× 3 ·
+ * davon 2 nachgebucht am …“) und **1 × „Digital Branding“** (neu, „nachgebucht am …“). Direkt geschrieben, ohne HubSpot: zwei Zeilen in
+ * `partner_deal` (`ZZTEST-DEAL-1` als erster, `ZZTEST-DEAL-2` als zweiter Deal) und zwei in `org_product` mit eigener Line-Item-Id. Konrad klickt:
+ * `/partner` — „Gebuchte Leistungen“ (eine Zeile je Leistung, mit Trennlinien), im Admin `/admin/partner/<Test-Organisation>` — „Gebucht“ und „Deals“.
+ *
+ * Nur Produkte **ohne Pass-Typ** (ein Pass-Typ legte ein vivenu-Kontingent an, siehe `partnerProdukte`) und ohne Rolle. Ein zweiter Lauf lässt Deals,
+ * Zeilen und den Zeitpunkt stehen (`ignoreDuplicates`). `--remove` nimmt die Deals und — mit der Organisation — die Zeilen mit. Braucht den Schritt `partner`
+ * und die Migration `v6_nachbuchung` (die Spalte); vorher meldet der Schritt, dass sie fehlt.
+ */
+const NACHBUCHUNG_DEAL_1 = "ZZTEST-DEAL-1";
+const NACHBUCHUNG_DEAL = "ZZTEST-DEAL-2";
+const NACHBUCHUNG_ZEILEN = [
+  { sku: "I-21634", qty: 2, lineItem: "ZZTEST-LI-2a" }, // Partner Branding — die SKU steht schon in PARTNER_PRODUKTE (× 1)
+  { sku: "I-95690", qty: 1, lineItem: "ZZTEST-LI-2b" }, // Digital Branding — neu
+];
+
+async function nachbuchungSchritt(me, ed) {
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  const { data: oe } = org
+    ? await admin.from("org_edition").select("id").eq("org_id", org.id).eq("edition_id", ed.id).maybeSingle()
+    : { data: null };
+  if (!oe) return fail("Nachbuchung", "Test-Organisation fehlt — zuerst --nur=partner");
+  if (mode === "dry-run") {
+    note(`Zweiter Deal ${NACHBUCHUNG_DEAL} der Test-Organisation mit zwei Nachbuchungs-Leistungen (Partner Branding × 2, Digital Branding × 1)`);
+    return;
+  }
+
+  const { data: produkte, error: pe } = await admin.from("product").select("sku, pass_type, net_price_cents, active, grants_role")
+    .in("sku", NACHBUCHUNG_ZEILEN.map((z) => z.sku));
+  if (pe || (produkte ?? []).length !== NACHBUCHUNG_ZEILEN.length || produkte.some((p) => !p.active)) {
+    return fail("Nachbuchung", pe ?? "Partner Branding oder Digital Branding fehlt im Produktstamm oder ist nicht aktiv");
+  }
+  const mitPass = produkte.find((p) => p.pass_type || p.grants_role);
+  if (mitPass) {
+    return fail("Nachbuchung", `${mitPass.sku} trägt einen Pass-Typ — würde ein vivenu-Kontingent auslösen (oder eine Rolle vergeben), nichts angelegt`);
+  }
+
+  await write(`Deals ${NACHBUCHUNG_DEAL_1} (erster) und ${NACHBUCHUNG_DEAL} (zweiter) der Test-Organisation`, () =>
+    admin.from("partner_deal").upsert(
+      [
+        { hubspot_deal_id: NACHBUCHUNG_DEAL_1, org_edition_id: oe.id, deal_name: `${PREFIX}Erstbuchung`, payload: { marker: MARK } },
+        { hubspot_deal_id: NACHBUCHUNG_DEAL, org_edition_id: oe.id, deal_name: `${PREFIX}Nachbuchung`, payload: { marker: MARK } },
+      ],
+      { onConflict: "hubspot_deal_id", ignoreDuplicates: true },
+    ),
+  );
+  const jetzt = new Date().toISOString();
+  await write("Zwei Nachbuchungs-Leistungen mit Zeitpunkt (Partner Branding × 2, Digital Branding × 1)", () =>
+    admin.from("org_product").upsert(
+      NACHBUCHUNG_ZEILEN.map((z) => ({
+        org_edition_id: oe.id, product_sku: z.sku, qty: z.qty, hubspot_line_item_id: z.lineItem, status: "booked",
+        unit_price_cents: produkte.find((p) => p.sku === z.sku).net_price_cents ?? 0,
+        nachgebucht_am: jetzt,
+      })),
+      { onConflict: "org_edition_id,product_sku,hubspot_line_item_id", ignoreDuplicates: true },
+    ),
+  );
+}
+
+/**
  * Schritt `masterclass` (PART-045): die TEST-Masterclass so, wie sie im Partner-
  * Portal aussehen soll.
  * - Der Slot zieht von der Teststandbühne in einen TEST-Raum: eine Masterclass
@@ -3751,6 +3816,7 @@ const SCHRITTE = {
   bewerbungen: bewerbungenSchritt,
   produktion: produktionSchritt,
   masterclass: masterclassSchritt,
+  nachbuchung: nachbuchungSchritt,
   formate: formateSchritt,
   ticket: speakerTicket,
   fotos: stagePhotos,
@@ -3793,6 +3859,8 @@ async function teilschritte(me, ed, namen) {
 }
 
 async function remove(me) {
+  // PART-102: die Test-Deals der Nachbuchung (die Leistungen gehen mit den Zeilen der Org-Edition; bleibt die Organisation stehen, bleiben die Deals sonst liegen).
+  await write("TEST-Deals der Nachbuchung entfernt", () => admin.from("partner_deal").delete().like("hubspot_deal_id", "ZZTEST-DEAL-%"));
   await write("TEST-Sperrlisten-Eintrag entfernt", async () => {
     const { data: hash, error } = await admin.rpc("email_hash", { p_email: sperrAdresse() });
     if (error) return { data: null, error };
