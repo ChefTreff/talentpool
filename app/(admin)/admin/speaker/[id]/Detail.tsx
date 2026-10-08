@@ -180,7 +180,6 @@ export function SpeakerDetailView({
         hotel_tier: draft.hotel_tier,
         hospitality_status: draft.hospitality_status,
         lounge_access: draft.lounge_access,
-        reception_eligible: draft.reception_eligible,
         travel_costs_covered: draft.travel_costs_covered,
         socials: Object.fromEntries(
           SOCIAL_KEYS.map((k) => [k, draft[k].trim()]).filter(([, v]) => v !== ""),
@@ -230,7 +229,6 @@ export function SpeakerDetailView({
     draft.hotel_tier === speaker.hotel_tier &&
     draft.hospitality_status === speaker.hospitality_status &&
     draft.lounge_access === speaker.lounge_access &&
-    draft.reception_eligible === speaker.reception_eligible &&
     draft.travel_costs_covered === speaker.travel_costs_covered &&
     draft.internal_notes === (speaker.internal_notes ?? "") &&
     draft.mic === (typeof rider0.mic === "string" ? rider0.mic : "") &&
@@ -738,7 +736,6 @@ export function SpeakerDetailView({
             </Field>
             <div className="flex flex-col justify-center gap-1">
               <Checkbox label={t.loungeAccess} checked={draft.lounge_access} onChange={(e) => set("lounge_access", e.target.checked)} />
-              <Checkbox label={t.receptionEligible} checked={draft.reception_eligible} onChange={(e) => set("reception_eligible", e.target.checked)} />
               <Checkbox label={t.travelCostsCovered} checked={draft.travel_costs_covered} onChange={(e) => set("travel_costs_covered", e.target.checked)} />
             </div>
           </div>
@@ -895,7 +892,6 @@ function draftVon(speaker: SpeakerDetail) {
     hotel_tier: speaker.hotel_tier,
     hospitality_status: speaker.hospitality_status,
     lounge_access: speaker.lounge_access,
-    reception_eligible: speaker.reception_eligible,
     travel_costs_covered: speaker.travel_costs_covered,
     internal_notes: speaker.internal_notes ?? "",
     mic: typeof rider.mic === "string" ? rider.mic : "",

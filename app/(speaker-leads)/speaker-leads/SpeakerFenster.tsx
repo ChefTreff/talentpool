@@ -193,7 +193,6 @@ export function SpeakerFenster({
         speaker_type: draft.speaker_type,
         job_title: draft.job_title,
         organization_name: draft.organization_name,
-        reception_eligible: draft.reception_eligible,
         travel_costs_covered: draft.travel_costs_covered,
       };
       // Jetzt, wo das Feld den gespeicherten Stand zeigt, ist ein geleertes
@@ -542,11 +541,6 @@ export function SpeakerFenster({
                 <p className="ct-help">{t.teamFieldsHint}</p>
               )}
               <div className="mt-4 flex flex-col gap-1">
-                <Checkbox
-                  label={t.receptionEligible}
-                  checked={draft.reception_eligible}
-                  onChange={(e) => setDraft((d) => ({ ...d, reception_eligible: e.target.checked }))}
-                />
                 <Checkbox
                   label={t.travelCovered}
                   checked={draft.travel_costs_covered}

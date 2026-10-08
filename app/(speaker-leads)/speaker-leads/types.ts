@@ -66,6 +66,7 @@ export type ManagedSpeaker = Einordnung & VerlaufStand & {
   pipeline_status: string;
   owner_person_id: string | null;
   owner_name: string | null;
+  /** Veraltet seit ADM-077: die Einladung zu einem Side Event ersetzt das Kennzeichen. Die Spalte bleibt stehen, wird aber nicht mehr gepflegt. */
   reception_eligible: boolean;
   travel_costs_covered: boolean;
   travel_costs_approved: boolean;
