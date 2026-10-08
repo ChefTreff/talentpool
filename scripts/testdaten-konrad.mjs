@@ -141,6 +141,9 @@
  *                                   ohne Mail. Erst nach „Migration live“ von
  *                                   v6_speaker_tickets_final. ACHTUNG: „Ausstellen“ legt ein echtes
  *                                   vivenu-Freiticket an — zum Ausprobieren Stornieren nehmen)
+ *   … --apply --nur=wiki           (PART-103: zweite TEST-Organisation „TEST — Partner nur Branding“ mit genau einem Produkt
+ *                                   (Partner Branding, ohne Pass-Typ), Konrad als Hauptkontakt — im Partner-Portal die Organisation
+ *                                   wechseln und /partner/wiki öffnen: Artikel zu nicht gebuchten Leistungen fehlen)
  *   … --apply --nur=side-events    (ADM-077/SPK-091: ein veröffentlichtes TEST-Side-Event mit Obergrenze 10 und
  *                                   ein Entwurf; Konrads Testprofil ist eingeladen (Stand „eingeladen“, ohne Mail),
  *                                   zwei TEST-Speaker haben zu- und abgesagt — für /admin/side-events und
@@ -304,7 +307,8 @@ async function partnerOrg(ed) {
         communication_name: `${PREFIX}Partner`,
         type: "corporate",
         website: "https://chef-treff.de",
-        description: "Testorganisation für die Feedback-Runden.",
+        // Die Spalte heißt `description_de`; `description` gibt es nicht mehr — ein frischer Lauf scheiterte hier (08.10.2026, beim Wiki-Schritt gefunden).
+        description_de: "Testorganisation für die Feedback-Runden.",
       })
       .select("id")
       .single();
@@ -336,7 +340,6 @@ async function partnerOrg(ed) {
           org_id: orgId,
           edition_id: ed.id,
           onboarding_status: "invited",
-          description_de: "Testorganisation für die Feedback-Runden.",
           invoice_email: email,
           sponsoring_level: "premium",
         })
@@ -2186,6 +2189,70 @@ async function produktionSchritt(me, ed) {
 }
 
 /**
+ * Schritt `wiki` (PART-103): eine zweite TEST-Organisation, die **nur** ein Branding-Produkt gebucht hat — damit Konrad sieht, was der
+ * Filter im Partner-Wiki tut. Seine erste Test-Organisation führt alle Produkte und sieht deshalb jeden Artikel; erst die zweite zeigt, dass
+ * Artikel zu Leistungen, die nicht gebucht sind, fehlen (heute „Masterclasses“ und „Sponsored Talk“). Konrad wechselt unter `/partner` in der
+ * Seitenleiste die Organisation („TEST — Partner nur Branding“) und öffnet `/partner/wiki`; zurück auf „TEST — Partner“ stehen alle Artikel
+ * wieder da. Die erste Organisation bleibt die Vorgabe (Sortierung nach Kommunikationsname: der kürzere Name zuerst).
+ *
+ * Gebucht wird `I-21634` „Partner Branding“ (Format `branding`, **ohne Pass-Typ und ohne Rolle** — ein Pass-Typ legte ein vivenu-Kontingent an
+ * und der Cron daraus einen echten Coupon, siehe `partnerProdukte`). Konrad ist Hauptkontakt. Idempotent; `--remove` nimmt die Organisation mit.
+ */
+const WIKI_ORG = `${PREFIX}Partner nur Branding GmbH`;
+const WIKI_ORG_NAME = `${PREFIX}Partner nur Branding`;
+const WIKI_PRODUKT = "I-21634";
+
+async function wikiFilterSchritt(me, ed) {
+  if (mode === "dry-run") {
+    note(`Zweite TEST-Organisation „${WIKI_ORG_NAME}“ mit nur einem Branding-Produkt (${WIKI_PRODUKT}), Konrad als Hauptkontakt`);
+    return;
+  }
+  const { data: produkt } = await admin.from("product").select("sku, format_key, pass_type, net_price_cents, active")
+    .eq("sku", WIKI_PRODUKT).maybeSingle();
+  if (!produkt?.active || produkt.format_key !== "branding") {
+    return fail("Wiki-Filter", `${WIKI_PRODUKT} ist kein aktives Branding-Produkt mehr — Auswahl im Skript anpassen`);
+  }
+  if (produkt.pass_type) {
+    return fail("Wiki-Filter", `${WIKI_PRODUKT} trägt einen Pass-Typ — würde ein vivenu-Kontingent auslösen, nichts angelegt`);
+  }
+
+  let { data: org } = await admin.from("organization").select("id").eq("legal_name", WIKI_ORG).maybeSingle();
+  if (!org) {
+    org = await write(`Organisation ${WIKI_ORG_NAME}`, () =>
+      admin.from("organization").insert({
+        legal_name: WIKI_ORG, communication_name: WIKI_ORG_NAME, type: "corporate",
+        website: "https://chef-treff.de", description_de: "Testorganisation für den Wiki-Filter (PART-103).",
+      }).select("id").single(),
+    );
+  }
+  if (!org) return;
+
+  let { data: oe } = await admin.from("org_edition").select("id").eq("org_id", org.id).eq("edition_id", ed.id).maybeSingle();
+  if (!oe) {
+    oe = await write("Org-Edition der zweiten Test-Organisation", () =>
+      admin.from("org_edition").insert({
+        org_id: org.id, edition_id: ed.id, onboarding_status: "invited", invoice_email: email,
+      }).select("id").single(),
+    );
+  }
+  if (!oe) return;
+
+  const { data: gebucht } = await admin.from("org_product").select("id")
+    .eq("org_edition_id", oe.id).eq("product_sku", WIKI_PRODUKT).maybeSingle();
+  if (gebucht) {
+    note(`Produkt ${WIKI_PRODUKT}`, "schon gebucht");
+  } else {
+    await write(`Produkt ${WIKI_PRODUKT} (Partner Branding) gebucht — das einzige`, () =>
+      admin.from("org_product").insert({
+        org_edition_id: oe.id, product_sku: WIKI_PRODUKT, qty: 1,
+        unit_price_cents: produkt.net_price_cents ?? 0, status: "booked",
+      }),
+    );
+  }
+  await partnerKontakt(me, ed, org.id, gueltigBis(ed));
+}
+
+/**
  * Schritt `formate` (PART-082): Side-Event und Interview Table der Test-
  * Organisation, damit `/partner/side-event` und `/partner/interview-tables` mit
  * ihren Reitern (Bewerbungen, Teilnehmende, Fragen) etwas zeigen. Je Format eine
@@ -3835,6 +3902,7 @@ const SCHRITTE = {
   produktion: produktionSchritt,
   masterclass: masterclassSchritt,
   formate: formateSchritt,
+  wiki: wikiFilterSchritt,
   ticket: speakerTicket,
   fotos: stagePhotos,
   portraet: testPortraet,
@@ -4008,6 +4076,21 @@ async function remove(me) {
     note("Partner-Organisation entfernt");
   }
 
+  // PART-103: die zweite TEST-Organisation des Wiki-Filters (ein Branding-Produkt, keine Kontingente).
+  await write("Zweite TEST-Organisation (Wiki-Filter) entfernt", async () => {
+    const { data: org2 } = await admin.from("organization").select("id").eq("legal_name", WIKI_ORG).maybeSingle();
+    if (!org2) return { data: null, error: null };
+    const { data: oes } = await admin.from("org_edition").select("id").eq("org_id", org2.id);
+    const oeIds = (oes ?? []).map((o) => o.id);
+    if (oeIds.length > 0) {
+      await admin.from("deliverable").delete().in("org_edition_id", oeIds);
+      await admin.from("org_product").delete().in("org_edition_id", oeIds);
+    }
+    await admin.from("role_assignment").delete().eq("scope_type", "org").eq("scope_id", org2.id);
+    await admin.from("org_membership").delete().eq("org_id", org2.id);
+    await admin.from("org_edition").delete().eq("org_id", org2.id);
+    return admin.from("organization").delete().eq("id", org2.id);
+  });
   await write("Schicht-Zuteilungen entfernt", () =>
     admin.from("shift_assignment").delete().eq("person_id", me.id),
   );
