@@ -1,3 +1,5 @@
+-- 0269 · Hinweismail an Teammitglieder mit bestehendem Konto (ADM-086)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008081953.
 -- 00NN · Hinweismail an Teammitglieder mit bestehendem Konto: create_team_member queued „Du bist jetzt im Team" (ADM-086)
 --
 -- Anlass: Konrad 06.10. (Paulinas Einladung) und 08.10.: „Teammitglied einladen" setzt bei einer

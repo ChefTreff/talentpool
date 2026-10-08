@@ -9,6 +9,7 @@ declare
   v_last text := nullif(btrim(coalesce(p_last_name, '')), '');
   v_email text := lower(nullif(btrim(coalesce(p_email, '')), ''));
   v_pid uuid; v_blocked timestamptz; v_neu boolean := false; v_rolle text; v_vergeben text[] := '{}';
+  v_login boolean; v_mail text := 'none'; v_mail_id bigint; v_de text; v_en text;
 begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   if not has_admin_section('access') then raise exception 'not allowed' using errcode = '42501'; end if;
@@ -48,8 +49,26 @@ begin
     v_vergeben := v_vergeben || v_rolle;
   end loop;
 
+  v_login := exists (select 1 from person p where p.id = v_pid and p.auth_user_id is not null);
+
+  -- ADM-086: Wer schon ein Konto hat, bekommt keine Einladung von Supabase und erfuhr bisher
+  -- nichts von den neuen Rollen. Eine Hinweismail über die Warteschlange sagt es ihm — nur wenn
+  -- wirklich Rollen dazukamen (ein zweiter Klick ohne Neues schickt nichts) und nur an die
+  -- Adresse aus der Datenbank. Kein Anmelde-Link in der Mail: er führt zur Anmeldeseite.
+  if v_login and cardinality(v_vergeben) > 0 then
+    select string_agg(coalesce(t.label_de, r.k), ', ' order by r.n), string_agg(coalesce(t.label_en, r.k), ', ' order by r.n)
+      into v_de, v_en
+      from unnest(v_vergeben) with ordinality as r(k, n)
+      left join vocab_term t on t.vocabulary = 'role' and t.key = r.k;
+    v_mail_id := queue_mail('team_member_added', v_pid, jsonb_build_object('roles_de', v_de, 'roles_en', v_en), 'person', null);
+    if v_mail_id is not null then
+      select ml.status into v_mail from mail_log ml where ml.id = v_mail_id;
+    end if;
+  end if;
+
+  -- Audit ohne Klartext-Adresse: die Person steht an der Person, das Protokoll überlebt sie.
   perform log_audit('access.team_member', 'person', v_pid::text, null,
-                    jsonb_build_object('email', v_email, 'roles', to_jsonb(v_vergeben), 'edition_id', p_edition_id, 'new', v_neu));
+                    jsonb_build_object('roles', to_jsonb(v_vergeben), 'edition_id', p_edition_id, 'new', v_neu, 'mail', v_mail));
   return jsonb_build_object('person_id', v_pid, 'email', v_email, 'created', v_neu, 'roles', to_jsonb(v_vergeben),
-                            'has_login', exists (select 1 from person p where p.id = v_pid and p.auth_user_id is not null));
+                            'has_login', v_login, 'mail', v_mail);
 end $$;
