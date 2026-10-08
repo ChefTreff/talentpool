@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Card } from "@/components/ui/Card";
+import { loadFristVorlagen } from "@/lib/partner/vorlagen";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ordneFristen, type Zeile } from "@/components/partner/fristen-aufgaben";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { ChecklistView, type ChecklistGroup } from "./ChecklistView";
-import { FristenListe, fristenAuswahl } from "../fristen";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +17,10 @@ export const dynamic = "force-dynamic";
  * Die Checkliste entsteht ausschließlich aus gebuchten Leistungen — die
  * Trigger hinter `org_product` legen sie an, `my_deliverables` gibt sie
  * heraus. Diese Seite gruppiert und zeigt, sie erfindet nichts dazu.
+ *
+ * **Eine Liste für Aufgaben und Fristen** (PART-099): die Frist einer Aufgabe steht an ihr, und
+ * eine Frist, an der keine Aufgabe dieses Partners hängt, steht als eigene Zeile unter den
+ * allgemeinen Aufgaben. Es gibt keinen eigenen Abschnitt „Fristen“ mehr.
  */
 export default async function PartnerChecklistPage() {
   await requireArea("partner", "/partner/checkliste");
@@ -25,7 +29,7 @@ export default async function PartnerChecklistPage() {
   if (!current) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const [{ data: rows }, { data: overviewJson }] = await Promise.all([
+  const [{ data: rows }, { data: overviewJson }, vorlagen] = await Promise.all([
     supabase.rpc("my_deliverables", {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
@@ -34,46 +38,51 @@ export default async function PartnerChecklistPage() {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
     }),
+    loadFristVorlagen(supabase),
   ]);
   const deliverables = (rows ?? []) as Deliverable[];
   const overview = (overviewJson ?? null) as PartnerOverview | null;
   if (!overview) notFound();
 
+  // Welche Aufgabe an welcher Frist hängt, und welche Fristen übrig bleiben.
+  const { fristVon, ohneAufgabe } = ordneFristen(deliverables, overview.deadlines, vorlagen);
+
   // Gruppierung nach Leistung; was an keiner hängt, steht unter „Allgemeine Aufgaben".
   const groups: ChecklistGroup[] = [];
   const bySku = new Map<string | null, ChecklistGroup>();
-  for (const d of [...deliverables].sort((a, b) => a.sort - b.sort || a.key.localeCompare(b.key))) {
-    const sku = d.product_sku;
+  const gruppe = (sku: string | null, label: string) => {
     let group = bySku.get(sku);
     if (!group) {
-      group = {
-        sku,
-        label:
-          sku === null
-            ? t.partnerChecklist.groupGeneral
-            : ((locale === "en" ? d.product_name_en : d.product_name_de) ??
-              d.product_name_de ??
-              sku),
-        items: [],
-      };
+      group = { sku, label, zeilen: [] };
       bySku.set(sku, group);
       groups.push(group);
     }
-    group.items.push(d);
+    return group;
+  };
+  for (const d of [...deliverables].sort((a, b) => a.sort - b.sort || a.key.localeCompare(b.key))) {
+    const sku = d.product_sku;
+    const group = gruppe(
+      sku,
+      sku === null
+        ? t.partnerChecklist.groupGeneral
+        : ((locale === "en" ? d.product_name_en : d.product_name_de) ?? d.product_name_de ?? sku),
+    );
+    group.zeilen.push({ art: "aufgabe", aufgabe: d });
+  }
+  // Fristen ohne Aufgabe gehören zu keiner Leistung: sie stehen hinter den allgemeinen Aufgaben,
+  // nach Datum. Gibt es keine allgemeine Aufgabe, entsteht die Gruppe für sie.
+  if (ohneAufgabe.length > 0) {
+    const allgemein = gruppe(null, t.partnerChecklist.groupGeneral);
+    allgemein.zeilen.push(...ohneAufgabe.map((frist): Zeile => ({ art: "frist", frist })));
   }
   // Allgemeines zuerst, danach die Leistungen in ihrer Reihenfolge.
   groups.sort((a, b) => (a.sku === null ? -1 : b.sku === null ? 1 : 0));
 
   const c = overview.checklist;
-  // PART-057: „Alle Fristen“ auf der Übersicht führt hierher — also stehen sie hier auch.
-  const { fristen, jetzt } = fristenAuswahl(overview.deadlines);
-  const navigation = [
-    ...(fristen.length > 0 ? [{ id: "fristen", label: t.partnerChecklist.deadlinesTitle }] : []),
-    ...groups.map((g) => ({
-      id: `g-${g.sku ?? "global"}`,
-      label: g.sku === null ? t.partnerChecklist.groupGeneral : g.label,
-    })),
-  ];
+  const navigation = groups.map((g) => ({
+    id: `g-${g.sku ?? "global"}`,
+    label: g.sku === null ? t.partnerChecklist.groupGeneral : g.label,
+  }));
 
   return (
     <>
@@ -84,28 +93,10 @@ export default async function PartnerChecklistPage() {
           .replace("{done}", String(c.done))
           .replace("{total}", String(c.total))}`}
       />
-      {/* QS-042: Fristen und Gruppen als Menü; unter zwei Einträgen zeigt es nichts. */}
+      {/* QS-042: die Gruppen als Menü; unter zwei Einträgen zeigt es nichts. */}
       <AbschnittsNavigation label={t.common.onThisPage} items={navigation} />
 
-      {fristen.length > 0 && (
-        <section id="fristen" aria-labelledby="fristen-titel" className="mb-8 scroll-mt-20">
-          <h2 id="fristen-titel" className="ct-h2 border-b pb-2 text-ink">
-            {t.partnerChecklist.deadlinesTitle}
-          </h2>
-          <p className="ct-help mt-2 mb-3">{t.partnerChecklist.deadlinesLead}</p>
-          <Card className="p-0">
-            <FristenListe
-              fristen={fristen}
-              jetzt={jetzt}
-              locale={locale}
-              dateLocale={t.meta.dateLocale}
-              overdueLabel={t.partner.deadlineOverdue}
-            />
-          </Card>
-        </section>
-      )}
-
-      {deliverables.length === 0 ? (
+      {groups.length === 0 ? (
         <EmptyState
           title={t.partnerChecklist.emptyTitle}
           description={t.partnerChecklist.emptyBody}
@@ -113,11 +104,12 @@ export default async function PartnerChecklistPage() {
       ) : (
         <>
           {/* PART-064: sonst wundert man sich, dass sich manche Punkte nicht anklicken lassen. */}
-          <p className="ct-help mb-6 max-w-text">{t.partnerChecklist.autoHint}</p>
+          {deliverables.length > 0 && <p className="ct-help mb-6 max-w-text">{t.partnerChecklist.autoHint}</p>}
           <ChecklistView
             orgId={current.org_id}
             editionId={current.edition_id}
             groups={groups}
+            fristVon={fristVon}
             booth={overview.booth}
             // Hochladen und einreichen dürfen dieselben Rollen wie die
             // Stammdatenpflege; die RPC prüft es noch einmal.
