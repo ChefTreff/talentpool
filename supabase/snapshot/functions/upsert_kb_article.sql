@@ -5,6 +5,7 @@ create or replace function upsert_kb_article(p_data jsonb)
  SET search_path TO 'public', 'extensions'
 AS $$
 declare v_id uuid; v_audience text[]; v_old text[]; v_slug text; v_a text; v_phase text;
+  v_cat text; v_formats text[]; v_f text;
 begin
   v_id := nullif(p_data->>'id', '')::uuid;
   v_audience := coalesce(
@@ -34,13 +35,34 @@ begin
     raise exception 'invalid_phase' using errcode = '22023', detail = v_phase;
   end if;
 
+  -- ADM-064: Thema des Artikels (Vokabular wiki_category). Leer = kein Thema, im Portal „Weitere“.
+  -- Nur gesetzt, wenn der Schlüssel mitkommt: ein Aufruf ohne `category` lässt das Thema stehen.
+  if p_data ? 'category' then
+    v_cat := nullif(btrim(coalesce(p_data->>'category', '')), '');
+    if v_cat is not null and not is_vocab_key('wiki_category', v_cat) then
+      raise exception 'invalid_category' using errcode = '22023', detail = v_cat;
+    end if;
+  end if;
+  -- PART-103: Produktbezug (Vokabular partner_format, wie `product.format_key`). Leer = für alle.
+  if p_data ? 'product_formats' then
+    v_formats := coalesce(
+      (select array_agg(distinct btrim(value::text)) from jsonb_array_elements_text(p_data->'product_formats') as t(value)
+        where btrim(value::text) <> ''),
+      '{}');
+    foreach v_f in array v_formats loop
+      if not is_vocab_key('partner_format', v_f) then
+        raise exception 'invalid_format' using errcode = '22023', detail = v_f;
+      end if;
+    end loop;
+  end if;
+
   if v_id is null then
     v_slug := nullif(btrim(p_data->>'slug'), '');
     if v_slug is null then
       raise exception 'invalid_slug' using errcode = '22023', detail = 'Slug fehlt';
     end if;
     insert into kb_article (slug, edition_id, language, audience, roles, phase, title, body_md,
-                            status, valid_until, owner_person_id, sort_order, updated_by)
+                            status, valid_until, owner_person_id, sort_order, updated_by, category, product_formats)
     values (v_slug, nullif(p_data->>'edition_id', '')::uuid,
             coalesce(nullif(p_data->>'language', ''), 'de'), v_audience,
             coalesce((select array_agg(value::text) from jsonb_array_elements_text(p_data->'roles') as t(value)), '{}'),
@@ -51,7 +73,7 @@ begin
             nullif(p_data->>'valid_until', '')::timestamptz,
             coalesce(nullif(p_data->>'owner_person_id', '')::uuid, current_person_id()),
             coalesce((p_data->>'sort_order')::integer, 0),
-            current_person_id())
+            current_person_id(), v_cat, coalesce(v_formats, '{}'))
     returning id into v_id;
   else
     update kb_article set
@@ -66,6 +88,8 @@ begin
       valid_until = case when p_data ? 'valid_until' then nullif(p_data->>'valid_until', '')::timestamptz else valid_until end,
       owner_person_id = coalesce(nullif(p_data->>'owner_person_id', '')::uuid, owner_person_id),
       sort_order = coalesce((p_data->>'sort_order')::integer, sort_order),
+      category = case when p_data ? 'category' then v_cat else category end,
+      product_formats = case when p_data ? 'product_formats' then coalesce(v_formats, '{}') else product_formats end,
       updated_by = current_person_id(),
       updated_at = now()
     where id = v_id;
@@ -73,7 +97,8 @@ begin
   end if;
 
   perform log_audit('kb.article_saved', 'kb_article', v_id::text, null,
-                    jsonb_build_object('slug', coalesce(v_slug, p_data->>'slug'), 'audience', v_audience));
+                    jsonb_build_object('slug', coalesce(v_slug, p_data->>'slug'), 'audience', v_audience,
+                                       'category', v_cat, 'product_formats', to_jsonb(v_formats)));
   return v_id;
 exception when unique_violation then
   raise exception 'slug_taken' using errcode = 'P0001',

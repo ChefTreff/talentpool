@@ -50,6 +50,7 @@ export type SpeakerProfile = {
   bio_long_de: string | null;
   socials: Record<string, string> | null;
   tech_rider: Record<string, unknown> | null;
+  /** Veraltet seit ADM-077: die Einladung zu einem Side Event ersetzt das Kennzeichen. Die Spalte bleibt stehen, wird aber nicht mehr gepflegt. */
   reception_eligible: boolean;
   lounge_access: boolean;
   pass_type: string;
@@ -137,8 +138,11 @@ export function safeFileName(name: string): string {
   return (cleaned || "datei").slice(-80);
 }
 
-/** Eine Reception in der Speaker-Sicht (`my_receptions`, Migration 0125). */
-export type MyReception = {
+/**
+ * Ein Side Event in der Speaker-Sicht (`my_side_events`, ADM-077): nur, wozu man eingeladen ist **und** was veröffentlicht ist — ohne Einladung
+ * gibt die Funktion nichts heraus, auch keine Meldung, die verriete, dass es Side Events gibt.
+ */
+export type MySideEvent = {
   id: string;
   title_de: string;
   title_en: string;
@@ -153,11 +157,17 @@ export type MyReception = {
   /** Freie Plätze — `null`, wenn es keine Obergrenze gibt. */
   free: number | null;
   rsvp_deadline: string | null;
+  /** Eventbeginn oder Antwortfrist liegen hinter uns: antworten geht nur noch über das Team. */
   closed: boolean;
-  my_status: string | null;
-  my_guests: number | null;
+  /** Eine Einladung hat immer einen Stand: `invited` (noch keine Antwort), `yes` oder `no`. */
+  my_status: "invited" | "yes" | "no";
+  my_guests: number;
   my_note: string | null;
+  invited_at: string;
 };
+
+/** Schlüssel der Frist, die den Platzhalter „Side Events werden am … veröffentlicht“ steuert (gepflegt unter /admin/fristen). */
+export const SIDE_EVENTS_FRIST = "side_events_publish";
 
 /**
  * Welche Aufgabe der Checkliste an welcher Frist hängt (SPK-024).

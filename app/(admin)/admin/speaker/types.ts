@@ -98,6 +98,7 @@ export type SpeakerDetail = Einordnung & {
   socials: Record<string, string> | null;
   tech_rider: Record<string, unknown> | null;
   photo_asset_id: string | null;
+  /** Veraltet seit ADM-077: die Einladung zu einem Side Event ersetzt das Kennzeichen. Die Spalte bleibt stehen, wird aber nicht mehr gepflegt. */
   reception_eligible: boolean;
   lounge_access: boolean;
   pass_type: string;

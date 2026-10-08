@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { mitBetrifftZeile } from "./betrifft";
 import { ccPersonIds } from "./cc";
 import { sendViaResend } from "./client";
+import { metaOhneGeheimnisse, ohneGeheimnisse } from "./geheimnisse";
 import { portalUrl } from "./portal-url";
 import { fillVars, markdownToHtml, markdownToText, wrapHtml, type MailVars } from "./render";
 import { loadTemplate, senderAddress, type AdminClient } from "./send";
@@ -88,7 +89,8 @@ async function deliver(
       await finish({ error: message, meta: { ...(row.meta ?? {}), attempts } });
       return "retry";
     }
-    await finish({ status: "failed", error: message, meta: { ...(row.meta ?? {}), attempts } });
+    // Endgültig gescheitert: ein Token (One-Click-Link) hat im Protokoll nichts mehr zu suchen — wer ihn braucht, lädt erneut ein.
+    await finish({ status: "failed", error: message, meta: ohneGeheimnisse({ ...(row.meta ?? {}), attempts }) });
     return "failed";
   };
 
@@ -98,7 +100,7 @@ async function deliver(
   if (supErr) return fail("Suppression-Prüfung fehlgeschlagen — nicht gesendet");
   if (suppressed) {
     const { data: hash } = await admin.rpc("email_hash", { p_email: row.to_email });
-    await finish({ status: "suppressed", to_email: `suppressed:${hash ?? "unknown"}` });
+    await finish({ status: "suppressed", to_email: `suppressed:${hash ?? "unknown"}`, ...metaOhneGeheimnisse(row.meta) });
     return "suppressed";
   }
 
@@ -140,7 +142,7 @@ async function deliver(
       provider: "dev",
       provider_id: `dev-${row.id}`,
       sent_at: new Date().toISOString(),
-      meta: { ...(row.meta ?? {}), dryRun: true },
+      meta: ohneGeheimnisse({ ...(row.meta ?? {}), dryRun: true }),
     });
     return "sent";
   }
@@ -155,6 +157,7 @@ async function deliver(
     idempotencyKey: `mail_log-${row.id}`,
   });
   if (!res.ok) return fail(res.error);
-  await finish({ status: "sent", subject, provider_id: res.providerId, sent_at: new Date().toISOString() });
+  // Nach dem Versand verschwindet ein Geheimnis aus den Variablen (der Rest bleibt für das Protokoll stehen).
+  await finish({ status: "sent", subject, provider_id: res.providerId, sent_at: new Date().toISOString(), ...metaOhneGeheimnisse(row.meta) });
   return "sent";
 }

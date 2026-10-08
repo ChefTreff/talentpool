@@ -12,13 +12,14 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { PhotoCard } from "@/components/ui/PhotoCard";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
-import { ReceptionCard } from "./ReceptionCard";
+import { SideEventCard } from "./SideEventCard";
 import { Checkliste, type Aufgabe } from "./Checkliste";
 import { Termine, type Termin } from "./Termine";
 import {
   FRIST_KEY,
+  SIDE_EVENTS_FRIST,
   STEP_HREF,
-  type MyReception,
+  type MySideEvent,
   type SpeakerProfile,
   type SpeakerTask,
 } from "./types";
@@ -93,10 +94,10 @@ export default async function SpeakerPage() {
     (k) => k.via === "speaker",
   );
 
-  // Die Reception kommt nur, wenn diese Person eingeladen ist — die RPC gibt
-  // sie sonst gar nicht heraus (SPK-003).
-  const { data: receptionRows } = await supabase.rpc("my_receptions");
-  const receptions = (receptionRows ?? []) as MyReception[];
+  // Side Events kommen nur, wenn diese Person eingeladen ist und das Event veröffentlicht ist — die RPC gibt sie sonst gar nicht heraus
+  // (ADM-077, zuvor die Reception, SPK-003).
+  const { data: sideEventRows } = await supabase.rpc("my_side_events");
+  const sideEvents = (sideEventRows ?? []) as MySideEvent[];
 
   const open = profile.next_steps?.open ?? [];
   const person = profile.person;
@@ -146,6 +147,9 @@ export default async function SpeakerPage() {
     ((fristRows ?? []) as { key: string; due_at: string }[]).map((f) => [f.key, f.due_at]),
   );
   const fristFormat = new Intl.DateTimeFormat(t.meta.dateLocale, { dateStyle: "medium" });
+  // Platzhalter, solange keine Einladung da ist: nur mit einem Datum, das noch bevorsteht.
+  const sideEventsFrist = fristen.get(SIDE_EVENTS_FRIST);
+  const sideEventsAm = sideEventsFrist && new Date(sideEventsFrist) > new Date() ? fristFormat.format(new Date(sideEventsFrist)) : null;
 
   const aufgaben: Aufgabe[] = Object.entries(STEPS).map(([key, step]) => {
     const due = fristen.get(FRIST_KEY[key] ?? "");
@@ -185,7 +189,7 @@ export default async function SpeakerPage() {
 
   // --- Termine (SPK-026) ---------------------------------------------------
   // Alles, was feststeht, in einer Liste: der Summit als Rahmen, der eigene
-  // Slot, eine zugesagte Reception. Sortiert nach Beginn, damit die Reihenfolge
+  // Slot, zugesagte Side Events. Sortiert nach Beginn, damit die Reihenfolge
   // der Wirklichkeit entspricht und nicht der Bauart dieser Datei.
   const tagFormat = new Intl.DateTimeFormat(t.meta.dateLocale, {
     dateStyle: "medium",
@@ -250,7 +254,7 @@ export default async function SpeakerPage() {
     });
   }
 
-  for (const r of receptions) {
+  for (const r of sideEvents) {
     // Nur zugesagte: ein Termin, den man abgesagt hat, gehoert in keinen
     // Kalender \u2014 dieselbe Regel wie in der Kalenderroute.
     if (r.my_status !== "yes") continue;
@@ -266,7 +270,7 @@ export default async function SpeakerPage() {
     gesammelt.push({
       start,
       termin: {
-        key: `reception-${r.id}`,
+        key: `side-event-${r.id}`,
         datum: tagFormat.format(start),
         zeit: r.ends_at
           ? formatRange(r.starts_at, r.ends_at, "Europe/Berlin")
@@ -276,7 +280,7 @@ export default async function SpeakerPage() {
         titel,
         ort,
         kalender: daten,
-        ics: `/api/speaker/kalender?reception=${r.id}`,
+        ics: `/api/speaker/kalender?side_event=${r.id}`,
       },
     });
   }
@@ -457,29 +461,41 @@ export default async function SpeakerPage() {
         )}
       </div>
 
-      {/* Die Einladung steht vor den Ansprechpersonen: sie ist das Einzige auf
-          dieser Seite, das eine Antwort verlangt. */}
-      {receptions.length > 0 && (
-        <div className="mt-8 flex flex-col gap-3">
-          {receptions.map((r) => (
-            <ReceptionCard
-              key={r.id}
-              reception={r}
-              isAssistant={profile.is_assistant}
-              locale={locale}
-              dateLocale={t.meta.dateLocale}
-              t={t.speakerReception}
-              kalender={{
-                add: t.speakerReception.calendarAdd,
-                google: t.speaker.calGoogle,
-                outlook: t.speaker.calOutlook,
-                apple: t.speaker.calApple,
-              }}
-              common={{ save: t.common.save }}
-              rpcMessages={t.rpc}
-            />
-          ))}
-        </div>
+      {/* Die Einladungen stehen vor den Ansprechpersonen: sie sind das Einzige auf dieser Seite, das eine Antwort verlangt. Gibt es noch
+          keine, aber ein Datum für die Veröffentlichung (Frist `side_events_publish`, gepflegt unter /admin/fristen), steht dieser
+          Platzhalter da — er verspricht nichts, was nicht in der Zukunft liegt. */}
+      {(sideEvents.length > 0 || sideEventsAm) && (
+        <section aria-labelledby="h-side-events" className="mt-8">
+          <h2 id="h-side-events" className="ct-h2 mb-4 text-ink">
+            {t.speakerSideEvents.sectionTitle}
+          </h2>
+          {sideEvents.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {sideEvents.map((r) => (
+                <SideEventCard
+                  key={r.id}
+                  event={r}
+                  isAssistant={profile.is_assistant}
+                  locale={locale}
+                  dateLocale={t.meta.dateLocale}
+                  t={t.speakerSideEvents}
+                  kalender={{
+                    add: t.speakerSideEvents.calendarAdd,
+                    google: t.speaker.calGoogle,
+                    outlook: t.speaker.calOutlook,
+                    apple: t.speaker.calApple,
+                  }}
+                  common={{ save: t.common.save }}
+                  rpcMessages={t.rpc}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card className="p-4">
+              <p className="ct-help">{t.speakerSideEvents.placeholder.replace("{datum}", sideEventsAm ?? "")}</p>
+            </Card>
+          )}
+        </section>
       )}
 
       {/* Wer für dich zuständig ist — mit Gesicht, Mail und Telefon. Die Karte
