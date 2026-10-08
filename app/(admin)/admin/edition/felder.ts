@@ -21,6 +21,16 @@ export function tageSpeichern(csv: string, alle: readonly string[]): string[] {
   return auswahl.length === alle.length ? [] : auswahl;
 }
 
+/**
+ * Welches Gerüst die Seite nachlädt (ADM-107): `programme_skeleton()` ohne Argument liefert die Edition selbst, Bühnen und Sperrzeiten
+ * hängen aber am Summit. `summits` ist die Wahl des Boards (`boardEvents`, auf diese Edition verengt) — der erste gilt; ist er schon die
+ * geladene Veranstaltung, oder gibt es keinen, wird nichts nachgeladen.
+ */
+export function geruestEventId(geladen: string | null, summits: readonly { id: string }[]): string | null {
+  const erster = summits[0];
+  return erster && erster.id !== geladen ? erster.id : null;
+}
+
 /** Sperrzeit im Feld `datetime-local`: die Wanduhrzeit der Event-Zone, nicht die des Browsers. */
 export function zeitFeld(iso: string, zone: string): string {
   return `${dayInZone(iso, zone)}T${formatTime(iso, zone)}`;
