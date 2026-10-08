@@ -94,6 +94,10 @@ export type AdminSectionKey =
   | "productCatalog"
   | "contacts"
   | "deadlines"
+  | "deadlinesSpeaker"
+  | "deadlinesPartner"
+  | "deadlinesVolunteers"
+  | "deadlinesSystem"
   | "wiki"
   | "videos"
   | "ui"
@@ -229,6 +233,14 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // nur Bereichsleitungen pflegen dürfen, schreibt niemand.
   { key: "contacts", path: "/admin/ansprechpartner", roles: INTERNE_ROLLEN },
   { key: "deadlines", path: "/admin/fristen", roles: INTERNE_ROLLEN },
+  // ADM-099: Fristen ändern je Bereich. `deadlines` bleibt die Übersicht (alle internen Rollen lesen); wer eine Frist **ändert**,
+  // entscheidet die Zielgruppe der Frist: Speaker, Partner, Volunteers je Bereich, alles andere (Award, „alle“) nur admin.
+  // Dieselben Rollen stehen in `admin_section_role` (Vorschlag v6_fristen_je_bereich) und werden von `can_edit_deadline()` gefragt.
+  // Die Pfade führen auf den Reiter des Bereichs in der Übersicht; ein Menüpunkt je Bereich gibt es nicht.
+  { key: "deadlinesSpeaker", path: "/admin/fristen/speaker", roles: ["area_lead_speaker", "programme_team"] },
+  { key: "deadlinesPartner", path: "/admin/fristen/partner", roles: ["area_lead_partner", "partner_team"] },
+  { key: "deadlinesVolunteers", path: "/admin/fristen/volunteers", roles: ["area_lead_volunteers", "volunteers_team"] },
+  { key: "deadlinesSystem", path: "/admin/fristen/system", roles: [] },
   { key: "wiki", path: "/admin/wiki", roles: INTERNE_ROLLEN },
   // ADM-063: Videos und Links stehen in der zentralen Medienverwaltung.
   { key: "videos", path: "/admin/medien", roles: ["marketing_team", "area_lead_speaker", "programme_team"] },
