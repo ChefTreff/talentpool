@@ -11,6 +11,8 @@ import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Badge } from "@/components/ui/Badge";
 import { Anrede } from "./Anrede";
 import { Loeschung } from "./Loeschung";
+import { StammdatenBearbeiten } from "./StammdatenBearbeiten";
+import { EmailVerwaltung, type PersonEmail } from "./EmailVerwaltung";
 import { EinwilligungsTabelle, type Einwilligung } from "../../verwaltung/einwilligungen/EinwilligungsTabelle";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
@@ -51,7 +53,7 @@ export default async function PersonDetail({
     admin.from("person").select("*").eq("id", id).maybeSingle(),
     admin
       .from("person_email")
-      .select("email, type, is_primary, verified")
+      .select("id, email, type, is_primary, verified")
       .eq("person_id", id),
     admin.from("person_interest").select("vocabulary, term_key").eq("person_id", id),
     admin.from("person_acquisition_channel").select("term_key").eq("person_id", id),
@@ -138,8 +140,36 @@ export default async function PersonDetail({
         />
 
         <Card id="stammdaten">
-          <h2 className="ct-h2 mb-3 text-ink">{d.masterData}</h2>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="ct-h2 text-ink">{d.masterData}</h2>
+            {/* ADM-092: nur wer den Abschnitt „Personen“ sieht, ist auf dieser Seite — die Funktion prüft es zusätzlich. */}
+            {!person.deleted_at && (
+            <StammdatenBearbeiten
+              personId={id}
+              start={{
+                first_name: person.first_name,
+                last_name: person.last_name,
+                title: person.title,
+                birthdate: person.birthdate,
+                gender: person.gender,
+                nationality: person.nationality,
+                country: person.country,
+                city: person.city,
+                phone: person.phone,
+                linkedin_url: person.linkedin_url,
+                preferred_language: person.preferred_language,
+              }}
+              geschlechter={Object.entries(vgroup(vocab, "gender")).map(([value, label]) => ({ value, label }))}
+              t={d as Record<string, string>}
+              common={{ save: t.common.save, cancel: t.common.cancel }}
+              rpcMessages={t.rpc as Record<string, string>}
+            />
+            )}
+          </div>
           <dl>
+            <Row label={f.firstName} value={person.first_name} />
+            <Row label={f.lastName} value={person.last_name} />
+            <Row label={d.field_title} value={person.title} />
             <Row label={f.birthdate} value={person.birthdate} />
             <Row label={f.gender} value={vlabel(vocab, "gender", person.gender)} />
             <Row label={f.nationality} value={person.nationality} />
@@ -210,19 +240,15 @@ export default async function PersonDetail({
 
         <Card id="mails">
           <h2 className="ct-h2 mb-3 text-ink">{d.emails}</h2>
-          <ul className="ct-small">
-            {(emails ?? []).map((e) => (
-              <li key={e.email} className="flex flex-wrap items-center gap-2 py-1">
-                <span>{e.email}</span>
-                {e.is_primary && <Badge tone="accent">{d.primary}</Badge>}
-                <span className="text-muted">{e.type}</span>
-                {e.verified && <Badge tone="success">{d.verified}</Badge>}
-              </li>
-            ))}
-            {(emails ?? []).length === 0 && (
-              <li className="text-muted">{t.common.none}</li>
-            )}
-          </ul>
+          <EmailVerwaltung
+            personId={id}
+            mails={(emails ?? []) as PersonEmail[]}
+            hasLogin={person.auth_user_id !== null}
+            readOnly={Boolean(person.deleted_at)}
+            t={d as Record<string, string>}
+            common={{ save: t.common.save, cancel: t.common.cancel }}
+            rpcMessages={t.rpc as Record<string, string>}
+          />
         </Card>
 
         <Card id="karriere">
