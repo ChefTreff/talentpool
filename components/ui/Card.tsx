@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn, kartenPadding, kartenRand } from "./cn";
+import { cn, kartenFlaeche, kartenPadding, kartenRand } from "./cn";
 
 /**
  * Weiße Karte auf Off-White, Innenabstand 24 (Design-Briefing §4).
@@ -7,6 +7,11 @@ import { cn, kartenPadding, kartenRand } from "./cn";
  * `className="p-0"` (Liste oder Tabelle bis zum Rand) und `p-4` (kompakt) wirken
  * wirklich (QS-055, `kartenPadding`); vorher blieb es bei 24 px. Eine randlose Karte
  * beschneidet ihren Inhalt an der Rundung (`kartenRand`).
+ *
+ * **Eine Tönung wirkt** (QS-073, `kartenFlaeche`): `className="border-accent-soft bg-accent-soft"` gibt eine
+ * Hinweisfläche, `border-warning-soft bg-warning-soft` eine Warnung. Vorher blieb die Karte bei `bg-accent-soft` weiß,
+ * weil `bg-surface` im erzeugten CSS vor ihr stand. Der Rand gehört dazu: die Tönung steht immer mit ihrer Randfarbe,
+ * und der Text darauf trägt den dunklen Ton derselben Familie (`text-accent-deep`, `text-warning-ink`; 5,1 bis 5,7:1).
  */
 export function Card({
   children,
@@ -26,7 +31,8 @@ export function Card({
     <As
       id={id}
       className={cn(
-        "rounded-ct-lg border bg-surface",
+        "rounded-ct-lg border",
+        kartenFlaeche(className),
         kartenPadding(className),
         kartenRand(className),
         id && "scroll-mt-20",

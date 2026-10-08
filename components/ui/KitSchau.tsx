@@ -99,6 +99,24 @@ export function KitSchau({
         </Card>
       </Abschnitt>
 
+      {/* QS-073: die Tönung der Karte wirkt jetzt (`kartenFlaeche`) — Hinweis und Warnung als Fläche mit Rand der Familie. */}
+      <Abschnitt titel={t.sCards}>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card>
+            <p className="ct-label text-ink">{t.cardPlain}</p>
+            <p className="ct-small mt-1 text-muted">{t.cardPlainBody}</p>
+          </Card>
+          <Card className="border-accent-soft bg-accent-soft">
+            <p className="ct-label text-accent-deep">{t.cardAccent}</p>
+            <p className="ct-small mt-1 text-accent-deep">{t.cardAccentBody}</p>
+          </Card>
+          <Card className="border-warning-soft bg-warning-soft">
+            <p className="ct-label text-warning-ink">{t.cardWarning}</p>
+            <p className="ct-small mt-1 text-warning-ink">{t.cardWarningBody}</p>
+          </Card>
+        </div>
+      </Abschnitt>
+
       <Abschnitt titel={t.sDates} quelle="Social-Post „Next up…“ · 319:692">
         <Card className="p-0">
           <DateList>
