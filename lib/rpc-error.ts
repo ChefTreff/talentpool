@@ -384,6 +384,13 @@ const BUSINESS_KEYS = new Set([
   "invalid_folder_id",
   // Sammelentscheidung (Vorschlag v6_bewerbungen_uebersicht, ADM-003)
   "too_many_applications",
+  // Personen bearbeiten (Vorschlag v6_personen_verwaltung, ADM-092); `invalid_email` und `invalid_action` stehen schon oben.
+  "invalid_person_field",
+  "person_email_taken",
+  "person_anonymized",
+  "login_email_locked",
+  "primary_email_required",
+  "email_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {
