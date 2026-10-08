@@ -20,11 +20,11 @@ export const RUNDGANG_SCHLUESSEL = "partner_3d_tour";
 export const MATTERPORT_HOST = "my.matterport.com";
 
 /**
- * Sandbox des Matterport-Rahmens. Anders als bei Loom (`EmbedGate`-Vorgabe,
- * ohne `allow-same-origin`) startet der Player so **nicht** — der Rahmen
- * bleibt schwarz (geprüft 02.10.2026). `allow-same-origin` bezieht sich hier
- * auf die Herkunft des Rahmens (my.matterport.com), nicht auf unsere; ohne
- * `allow-top-navigation` kann er die Seite nicht wegnavigieren.
+ * Sandbox des Matterport-Rahmens. Wie bei Loom (`EmbedGate`-Vorgabe `EMBED_SANDBOX`, seit K-76 mit
+ * `allow-same-origin`) braucht der Player die eigene Herkunft — ohne startet er **nicht**, der Rahmen
+ * bleibt schwarz (geprüft 02.10.2026). `allow-same-origin` bezieht sich hier auf die Herkunft des Rahmens
+ * (my.matterport.com), nicht auf unsere; ohne `allow-top-navigation` kann er die Seite nicht wegnavigieren.
+ * Darüber hinaus braucht Matterport, was Loom nicht braucht: Popups, Pointer-Lock und Formulare.
  */
 export const MATTERPORT_SANDBOX =
   "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation allow-pointer-lock allow-forms";
