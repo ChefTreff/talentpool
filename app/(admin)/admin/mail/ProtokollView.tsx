@@ -51,9 +51,13 @@ type Detail = {
   related_type: string | null;
   related_id: string | null;
   queued_at: string;
+  /** LEAD-063, PART-124: frühester Versandzeitpunkt einer verzögerten Mail; sonst leer. */
+  send_after: string | null;
   sent_at: string | null;
   attempts: number;
   resend_of: number | null;
+  /** Schlüssel, warum eine wartende Mail storniert wurde (`cancel_queued_mail`); sonst leer. */
+  cancel_reason: string | null;
   vars: Record<string, unknown>;
   resendable: boolean;
 };
@@ -63,6 +67,7 @@ const TONES: Record<string, BadgeTone> = {
   delivered: "success",
   queued: "neutral",
   suppressed: "warning",
+  cancelled: "neutral",
   bounced: "error",
   failed: "error",
 };
@@ -300,6 +305,7 @@ export function ProtokollView({
             <Eintrag label={t.detailTemplate} wert={`${detail.template_key} (${detail.locale})`} />
             <Eintrag label={t.detailStatus} wert={label(detail.status)} />
             <Eintrag label={t.detailQueued} wert={zeit.format(new Date(detail.queued_at))} />
+            {detail.send_after && <Eintrag label={t.detailSendAfter} wert={zeit.format(new Date(detail.send_after))} />}
             <Eintrag label={t.detailSent} wert={detail.sent_at ? zeit.format(new Date(detail.sent_at)) : common.none} />
             <Eintrag label={t.detailAttempts} wert={String(detail.attempts)} />
             <Eintrag label={t.detailProvider} wert={detail.provider_id ?? common.none} mono />
@@ -310,6 +316,9 @@ export function ProtokollView({
               <Eintrag label={t.detailResendOf} wert={`#${detail.resend_of}`} />
             )}
             {detail.error && <Eintrag label={t.detailError} wert={detail.error} />}
+            {detail.cancel_reason && (
+              <Eintrag label={t.detailCancelReason} wert={t[`cancelReason_${detail.cancel_reason}`] ?? detail.cancel_reason} />
+            )}
             <dt className="ct-label col-span-2 mt-4 text-muted">{t.detailVars}</dt>
             <dd className="col-span-2">
               {Object.keys(detail.vars).length === 0 ? (

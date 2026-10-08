@@ -20,16 +20,4 @@ export type AdminKontakt = {
   speakers: number;
 };
 
-/** Zeile aus `edition_infos_admin()`. */
-export type AdminInfo = {
-  id: string;
-  key: string;
-  audience: string[];
-  label_de: string | null;
-  label_en: string | null;
-  value_de: string | null;
-  value_en: string | null;
-  sort_order: number;
-};
-
 export const CONTACT_TYPES = ["partner_lead", "partner_buddy", "speaker_lead", "speaker_buddy"] as const;

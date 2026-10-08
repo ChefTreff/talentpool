@@ -48,12 +48,6 @@ export async function removeContact(id: string, reason?: "consent_withdrawn"): P
   revalidatePath(PFAD);
   return { ok: true };
 }
-export async function saveInfo(data: Record<string, unknown>): Promise<Ergebnis> {
-  return ruf("upsert_edition_info", { p_data: data });
-}
-export async function removeInfo(id: string): Promise<Ergebnis> {
-  return ruf("delete_edition_info", { p_id: id });
-}
 
 /**
  * Einen Platz im Bucket freigeben, damit der Browser das Bild **direkt** dorthin
