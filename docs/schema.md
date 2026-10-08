@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-08 14:26 UTC · 124 Tabellen · 6 Views · 743 Funktionen
+> Stand: 2026-10-08 14:31 UTC · 124 Tabellen · 6 Views · 743 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -974,6 +974,7 @@ Gebuchte Leistungen je Partner × Edition (aus HubSpot-Line-Items); steuert Chec
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `source` | text | ja | `hubspot` |  | Woher die gebuchte Leistung kommt (0116): hubspot (Deal), agreement (Vereinbarung, Preis 0), shop (Messeshop). |
+| `nachgebucht_am` | timestamp with time zone |  |  |  | PART-102: Zeitpunkt der Nachbuchung (Upsell) — leer = Erstbuchung. Gesetzt vom Ingest, wenn zur Org-Edition beim Einfügen schon ein Deal (partner_deal) existierte; vorhandene Zeilen behalten ihren Wert. |
 
 ### `org_step`
 Katalog der selbst zu meldenden Schritte je Thema (F9.8). Der Wortlaut steht in der Oberfläche, hier stehen nur Schlüssel und Reihenfolge — so ist „x von y" eine Zahl aus der Datenbank.

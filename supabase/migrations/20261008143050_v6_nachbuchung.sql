@@ -1,3 +1,5 @@
+-- 0287 · Nachbuchungen und Rechte-Fix sync_granted_roles (PART-102, PART-100)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008143050.
 -- 00NN · Nachbuchungen (Upsells): `org_product.nachgebucht_am`, Folge-Deal ohne Kontakte, `partner_overview` liefert das Feld (PART-102)
 --
 -- Anlass: PART-102 (Konrad & Leopold 05.10., Frage aus dem Sales): Leistungen lassen sich nachträglich hinzubuchen, meist über ein **zweites

@@ -35,7 +35,7 @@ begin
     'contacts_count', (select count(*) from org_membership om where om.org_id = p_org_id),
     'products', coalesce((select jsonb_agg(jsonb_build_object('sku', op.product_sku, 'name_de', pr.name_de, 'name_en', pr.name_en, 'category', pr.category,
                                                                 'type', pr.type, 'qty', op.qty, 'unit_price_cents', case when v_full then op.unit_price_cents end,
-                                                                'status', op.status, 'format_key', pr.format_key) order by pr.type, pr.name_de)
+                                                                'status', op.status, 'format_key', pr.format_key, 'nachgebucht_am', op.nachgebucht_am) order by pr.type, pr.name_de)
                           from org_product op join product pr on pr.sku = op.product_sku where op.org_edition_id = v_oe.id), '[]'::jsonb),
     'ticket_allocations', coalesce((select jsonb_agg(jsonb_build_object('id', a.id, 'pass_type', a.pass_type, 'quantity', a.quantity, 'status', a.status,
                                                                           'coupon_code', case when a.status = 'active' then a.coupon_code end,

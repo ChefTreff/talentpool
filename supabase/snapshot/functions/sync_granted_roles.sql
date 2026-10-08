@@ -25,6 +25,9 @@ begin
     update role_assignment ra set valid_to = now()
      where ra.scope_type = 'org' and ra.scope_id = p_org_id and coalesce(ra.edition_id, r.edition_id) = r.edition_id
        and ra.note in ('auto:product', 'hubspot') and (ra.valid_to is null or ra.valid_to > now()) and ra.valid_from < now()
+       -- PART-102: nur Rollen, die ein Produkt vergibt (`product.grants_role`). Der Ingest legt auch die Kontaktrolle `partner_contact` mit der Notiz
+       -- 'hubspot' an; ohne diese Zeile endete sie bei jeder Änderung an `org_product` — also bei der ersten Nachbuchung.
+       and ra.role in (select pg.grants_role from product pg where pg.grants_role is not null)
        and (not exists (select 1 from org_product op join product pr on pr.sku = op.product_sku
                          where op.org_edition_id = r.org_edition_id and op.status = 'booked' and pr.grants_role = ra.role)
             or not exists (select 1 from org_membership om where om.org_id = p_org_id and om.person_id = ra.person_id and om.roles @> '{primary_ops}'));
@@ -32,6 +35,7 @@ begin
     delete from role_assignment ra
      where ra.scope_type = 'org' and ra.scope_id = p_org_id and coalesce(ra.edition_id, r.edition_id) = r.edition_id
        and ra.note in ('auto:product', 'hubspot') and ra.valid_from >= now()
+       and ra.role in (select pg.grants_role from product pg where pg.grants_role is not null)
        and (not exists (select 1 from org_product op join product pr on pr.sku = op.product_sku
                          where op.org_edition_id = r.org_edition_id and op.status = 'booked' and pr.grants_role = ra.role)
             or not exists (select 1 from org_membership om where om.org_id = p_org_id and om.person_id = ra.person_id and om.roles @> '{primary_ops}'));
