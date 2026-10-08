@@ -8,6 +8,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { quellHash } from "@/lib/award/quelle";
 import { istToken, leseLinkAntwort } from "@/lib/side-event/link";
+import { eventBeginn } from "@/lib/side-event/zeit";
 import { AntwortKnoepfe } from "./AntwortKnoepfe";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +51,6 @@ export default async function SideEventLinkPage({ params }: { params: Promise<{ 
   }
 
   const e = antwort.event;
-  const zeit = new Intl.DateTimeFormat(t.meta.dateLocale, { dateStyle: "full", timeStyle: "short", timeZone: "Europe/Berlin", timeZoneName: "short" });
   const titel = e ? (locale === "en" ? e.title_en : e.title_de) || e.title_de : null;
   const zeigeEvent = e !== null && (antwort.state === "ok" || antwort.state === "closed");
 
@@ -69,7 +69,7 @@ export default async function SideEventLinkPage({ params }: { params: Promise<{ 
                 <dl className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <dt className="ct-help">{s.when}</dt>
-                    <dd className="ct-label mt-1 text-ink tabular-nums">{zeit.format(new Date(e.starts_at))}</dd>
+                    <dd className="ct-label mt-1 text-ink tabular-nums">{eventBeginn(t.meta.dateLocale, e.starts_at)}</dd>
                   </div>
                   <div>
                     <dt className="ct-help">{s.where}</dt>

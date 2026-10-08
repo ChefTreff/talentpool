@@ -1,13 +1,69 @@
 "use client";
 
 import { useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { Badge } from "./Badge";
+import { Checkbox } from "./Checkbox";
 import { cn } from "./cn";
 import { SuchFeld } from "./SuchFeld";
+import { gewaehlteBeschriftungen, nachListeSortiert, unbekannteWerte, type AuswahlOption } from "./auswahl";
 
-export type AuswahlOption = { value: string; label: string };
+export type { AuswahlOption };
+
+type Gemeinsam = {
+  id: string;
+  options: AuswahlOption[];
+  value: string[];
+  onChange: (next: string[]) => void;
+  disabled?: boolean;
+  /**
+   * Fehlerzustand wie bei `Input`: roter Rand. Die Fassung mit Suche setzt zusätzlich `aria-invalid`; ein Knopf
+   * kennt das Attribut nicht — dort liest man die Meldung des `Field` über `describedBy`.
+   */
+  invalid?: boolean;
+  /** Id des Hinweises oder der Meldung unter dem Feld (`Field` vergibt `<id>-hint` und `<id>-error`). */
+  describedBy?: string;
+};
+
+type MitSuche = Gemeinsam & {
+  aufklappbar?: false;
+  /** Wonach gesucht wird, z. B. „Thema suchen". */
+  placeholder?: string;
+  /** `remove` mit `{label}`, z. B. „{label} entfernen". */
+  t: { remove: string; noHits: string };
+};
+
+type Aufklappbar = Gemeinsam & {
+  aufklappbar: true;
+  /** Was zugeklappt dasteht, solange nichts gewählt ist („Offen für alle"). */
+  leer: string;
+  /** Beim Laden offen (wie bei `Block`). */
+  offen?: boolean;
+};
 
 /**
- * Mehrere Einträge aus einer langen Liste wählen — mit Suche (SPK-051).
+ * Mehrere Einträge aus einer Liste wählen. **Zwei Gestalten, die Länge der Liste entscheidet:**
+ *
+ * - **Mit Suche** (Vorgabe, SPK-051): für lange Listen, etwa ab einem Dutzend Einträgen — die Themen einer
+ *   Session, die Skills eines Wunschprofils. Was gewählt ist, steht als Marken über dem Feld; die Liste klappt
+ *   auf, wenn man ins Feld geht, und schrumpft beim Tippen auf die Treffer.
+ * - **Aufklappbar** (`aufklappbar`, PART-128): für kurze Listen, die zu *einer* Frage gehören — Status,
+ *   Berufserfahrung, Studienrichtung. Zugeklappt steht **eine Zeile** da, so hoch wie ein Eingabefeld: was
+ *   gewählt ist, in der Reihenfolge der Liste, ab zwei Einträgen mit der Zahl daneben; ist nichts gewählt,
+ *   steht der Text aus `leer` da („Offen für alle"). Ein Klick öffnet die Kästchen darunter, alle auf einmal.
+ *
+ * Warum es die zweite Gestalt gibt: die Frage „Wen wünscht ihr euch?" der Company Tour zeigte 27 Kästchen auf
+ * einmal (Status 10, Berufserfahrung 8, Studienrichtung 9) — am Handy 1064 px, mehr als einen Bildschirm, für
+ * Angaben, die man meist offen lässt (gemessen am 08.10.2026, PART-128). Eine Suche hilft bei neun Einträgen
+ * nicht. Sichtbar sein muss, **was gewählt ist**, nicht die Liste.
+ *
+ * Beschriftung wie bei jedem Feld über ihm (`Field` mit `htmlFor={id}`).
+ */
+export function MehrfachAuswahl(props: MitSuche | Aufklappbar) {
+  return props.aufklappbar === true ? <AufklappAuswahl {...props} /> : <SuchAuswahl {...props} />;
+}
+
+/**
+ * Die Fassung mit Suche (SPK-051).
  *
  * Konrad am 24.09. zu den Themen einer Session: siebzehn Kästchen auf einmal
  * „erschlagen". Hier steht deshalb nur, was gewählt ist, als Marken über dem
@@ -24,34 +80,8 @@ export type AuswahlOption = { value: string; label: string };
  * entfernt, Escape schliesst, Rücktaste im leeren Feld nimmt die letzte Marke
  * weg. Ein Klick in die Liste hält sie offen, damit man mehrere wählen kann;
  * nach dem Wählen leert sich die Suche.
- *
- * Beschriftung wie bei jedem Feld über ihm (`Field` mit `htmlFor={id}`).
  */
-export function MehrfachAuswahl({
-  id,
-  options,
-  value,
-  onChange,
-  placeholder,
-  disabled,
-  invalid,
-  describedBy,
-  t,
-}: {
-  id: string;
-  options: AuswahlOption[];
-  value: string[];
-  onChange: (next: string[]) => void;
-  /** Wonach gesucht wird, z. B. „Thema suchen". */
-  placeholder?: string;
-  disabled?: boolean;
-  /** Fehlerzustand wie bei `Input` (roter Rand, `aria-invalid`). */
-  invalid?: boolean;
-  /** Id des Hinweises unter dem Feld (`Field` vergibt `<id>-hint`). */
-  describedBy?: string;
-  /** `remove` mit `{label}`, z. B. „{label} entfernen". */
-  t: { remove: string; noHits: string };
-}) {
+function SuchAuswahl({ id, options, value, onChange, placeholder, disabled, invalid, describedBy, t }: MitSuche) {
   const listId = useId();
   const wrap = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
@@ -215,6 +245,92 @@ export function MehrfachAuswahl({
           )}
         </ul>
       )}
+    </div>
+  );
+}
+
+/**
+ * Die aufklappbare Fassung (PART-128): ein Knopf mit der Zusammenfassung, darunter — nur wenn offen — die Kästchen.
+ *
+ * **Ein Aufklapp-Feld, keine Combobox.** Der Knopf trägt `aria-expanded` und `aria-controls`, die Kästchen sind
+ * gewöhnliche `Checkbox`en in einer Gruppe, die nach dem Feld benannt ist. Es gibt kein Pfeiltasten-Modell und kein
+ * Schließen beim Verlassen des Felds: die Liste steht im Fluss der Seite, nicht über ihr, und schiebt die folgenden
+ * Felder nur nach unten. Das hat zwei Vorteile gegenüber der aufklappenden Liste der Fassung mit Suche — ein Dialog
+ * oder ein Schubfach schneidet sie nie ab, und am Handy liegt kein Scrollbereich im Scrollbereich.
+ *
+ * **Die Wahl kommt immer in der Reihenfolge der Liste zurück** (`nachListeSortiert`): wer ein Kästchen abwählt und wieder
+ * wählt, hat dieselbe Liste wie vorher, und ein Formular, das Listen vergleicht, sieht keine Änderung.
+ *
+ * Mit `disabled` bleibt der Knopf bedienbar — wer nichts ändern darf, kann trotzdem lesen, was gewählt ist; gesperrt sind
+ * die Kästchen. Nur eine Liste ohne jeden Eintrag sperrt auch den Knopf: es gäbe nichts zu öffnen. Ein gewählter Wert,
+ * den die Liste nicht (mehr) kennt, bekommt eine eigene Zeile mit seinem Schlüssel, damit er sich abwählen lässt.
+ *
+ * Die Beschriftung steht wie bei jedem Feld darüber (`Field` mit `htmlFor={id}`) und benennt den Knopf; die Zusammenfassung
+ * hängt als Beschreibung an ihm. Die Zahl neben der Zeile ist nur für Augen (`aria-hidden`): die Zeile nennt alles beim Namen.
+ * Das Zeichen dreht sich ohne Übergang (Skill-Regel 6).
+ */
+function AufklappAuswahl({ id, options, value, onChange, leer, offen = false, disabled, invalid, describedBy }: Aufklappbar) {
+  const basis = useId();
+  const listeId = `${basis}-liste`;
+  const zeileId = `${basis}-zeile`;
+  const [auf, setAuf] = useState(offen);
+
+  const beschriftungen = gewaehlteBeschriftungen(options, value);
+  const zeilen = [...options, ...unbekannteWerte(options, value).map((v) => ({ value: v, label: v }))];
+  const text = beschriftungen.join(", ");
+
+  function umschalten(v: string) {
+    onChange(nachListeSortiert(options, value.includes(v) ? value.filter((x) => x !== v) : [...value, v]));
+  }
+
+  return (
+    <div className={cn("rounded-ct-md border", invalid ? "border-error" : "border-border-strong", disabled ? "bg-surface-hover" : "bg-surface")}>
+      <button
+        type="button"
+        id={id}
+        aria-expanded={auf}
+        aria-controls={listeId}
+        aria-describedby={[zeileId, describedBy].filter(Boolean).join(" ")}
+        disabled={zeilen.length === 0}
+        onClick={() => setAuf((a) => !a)}
+        className={cn("flex h-10 w-full items-center gap-2 px-3 text-left pointer-coarse:min-h-11 hover:bg-surface-hover", auf ? "rounded-t-ct-md" : "rounded-ct-md")}
+      >
+        <span id={zeileId} className={cn("min-w-0 flex-1 truncate leading-6", text && !disabled ? "text-ink" : "text-muted")}>
+          {text || leer}
+        </span>
+        {beschriftungen.length > 1 && (
+          <span aria-hidden className="shrink-0">
+            <Badge tone="accent">{beschriftungen.length}</Badge>
+          </span>
+        )}
+        <svg
+          viewBox="0 0 12 12"
+          className={cn("h-3 w-3 shrink-0 text-muted", auf && "rotate-180")}
+          aria-hidden
+          focusable="false"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M3 4.5 6 7.5 9 4.5" />
+        </svg>
+      </button>
+      <div id={listeId} hidden={!auf}>
+        <div role="group" aria-labelledby={id} className="border-t border-border px-3 py-1 sm:columns-2 sm:gap-x-6 sm:px-4">
+          {zeilen.map((o) => (
+            <Checkbox
+              key={o.value}
+              label={o.label}
+              checked={value.includes(o.value)}
+              disabled={disabled}
+              onChange={() => umschalten(o.value)}
+              className="break-inside-avoid py-2"
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

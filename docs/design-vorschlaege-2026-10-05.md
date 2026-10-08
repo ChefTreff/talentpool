@@ -96,7 +96,7 @@ Die Bausteine in der Reihenfolge, in der sie im Code stehen (das Gerüst ist die
   - Menüeinträge: *Betreuung weitergeben …* (Team: jeder; Stage Lead nur eigene, wie heute), *Stand ändern …*, *Einladung erneut schicken* (nach der Zusage, nicht für Gäste, nur wenn schon eingeladen), Trennlinie, *Hat abgesagt …*.
   - Ein Eintrag mit „…“ öffnet ein **Aktionspanel** direkt unter der Zeile — dieselbe Fläche wie heute das Absage-Panel (`bg-canvas`, Rand): Grund der Absage wählen, Stand wählen, Person für die Übergabe wählen. Kein Dialog über dem Dialog.
   - Was eine **Mail an den Speaker** auslöst (Einladung), fragt vorher mit `ConfirmDialog` und nennt die Adresse.
-- **Stufenleiste** (`Stufenleiste`, neu): sieben gleich breite Stücke von Lead bis Teilgenommen; erledigte gefüllt, die aktuelle **dicker** und mit **fettem** Namen, die übrigen blass. Sie **liest nur** — geändert wird der Stand über die Hauptaktion und das Menü. Am Handy stehen die Namen nicht unter den Stücken, sondern eine Zeile „Bestätigt · Schritt 3 von 7“. „Abgesagt“ ist ein Ergebnis, kein Schritt: die Leiste steht still (Stücke blass), davor steht das Wort „Abgesagt“ in `error-ink`.
+- **Stufenleiste** (`Stufenleiste`, neu): sieben gleich breite Stücke von Lead bis Teilgenommen; erledigte gefüllt, die aktuelle **dicker** und mit **fettem** Namen, die übrigen blass. Sie **liest nur** — geändert wird der Stand über die Hauptaktion und das Menü. Am Handy stehen die Namen nicht unter den Stücken, sondern eine Zeile „Bestätigt · Schritt 3 von 7“. „Abgesagt“ ist ein Ergebnis, kein Schritt: die Leiste steht still (Stücke blass), davor steht das Wort „Abgesagt“ in `error-ink`; **die Zeile darunter zeigt am Handy dann ebenfalls nur dieses Wort** — „Lead · Schritt 1 von 7“ behauptete einen Stand, an dem niemand mehr steht (Nachzug 08.10.: im Entwurf ignorierte die Zeile `ende`, #359 hat das behoben).
 - **Kontextzeile:** *Betreut von* · *Als Nächstes* · *E-Mail* (oder der Satz „Kontakt nicht sichtbar“ wie heute). *Als Nächstes* ist vor der Zusage die früheste offene Aufgabe des Verlaufs (`next_task`, mit `FristMarke kompakt`), nach der Zusage der Text der ersten offenen Pflicht (`duty_*`, ohne erfundene Frist) — erst wenn keine Pflicht mehr offen ist, wieder `next_task`. Nach einer Absage steht statt dessen *Abgesagt am 03.10. · Terminkonflikt*.
 
 ### Die Hauptaktion
@@ -176,7 +176,7 @@ Ein Block, den die Rolle nicht sehen darf, steht **nicht im Baum** (auch nicht z
 
 - Name und Organisation haben die volle Breite („Schließen“ nur in der Fußleiste); die Badges brechen um.
 - Die Hauptaktion ist eine **volle Zeile** (44 px), darunter „Weitere Aktionen“. Der Text bricht nie auf zwei Zeilen.
-- Die Stufenleiste zeigt die sieben Stücke und eine Zeile „Name · Schritt n von 7“; die Namen unter den Stücken entfallen.
+- Die Stufenleiste zeigt die sieben Stücke und eine Zeile „Name · Schritt n von 7“; die Namen unter den Stücken entfallen. Nach einer Absage (`ende`) steht in der Zeile stattdessen das Wort „Abgesagt“ in `error-ink`, die Stücke stehen blass und still (Nachzug 08.10.: der Entwurf nannte die Zeile nur für laufende Stände; #359).
 - Kontextzeile: die drei Angaben untereinander; die Frist unter dem Text.
 - Pipeline: eine Spalte (Verlauf, dann Einordnung); ein Verlaufseintrag steht zweizeilig (Datum und Art, darunter der Text), eine offene Aufgabe als Kästchen und Text mit der Frist darunter.
 - Die Fußleiste klebt unten und hat zwei Knöpfe; kein Statustext.
