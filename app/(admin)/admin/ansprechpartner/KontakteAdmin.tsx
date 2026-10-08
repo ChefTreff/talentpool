@@ -14,8 +14,8 @@ import { Select } from "@/components/ui/Select";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { contactPhotoUrl } from "@/components/kontakt/photo";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { createPhotoUploadUrl, removeContact, removeInfo, saveContact, saveInfo } from "./actions";
-import { CONTACT_TYPES, type AdminInfo, type AdminKontakt } from "./types";
+import { createPhotoUploadUrl, removeContact, saveContact } from "./actions";
+import { CONTACT_TYPES, type AdminKontakt } from "./types";
 
 type Strings = Record<string, string>;
 const leer = {
@@ -40,18 +40,15 @@ function istHausadresse(mail: string): boolean {
  *     gehört vor den Klick, nicht danach.
  */
 export function KontakteAdmin({
-  kontakte, infos, types, audiences, t, common, rpcMessages,
+  kontakte, types, t, common, rpcMessages,
 }: {
   kontakte: AdminKontakt[];
-  infos: AdminInfo[];
   types: Record<string, string>;
-  audiences: Record<string, string>;
   t: Strings;
   common: Strings;
   rpcMessages: Strings;
 }) {
   const [offen, setOffen] = useState<typeof leer | null>(null);
-  const [infoOffen, setInfoOffen] = useState<AdminInfo | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [pending, start] = useTransition();
   // Eigener Zustand fürs Bild: sonst zeigt der Speichern-Knopf seinen Ladezustand,
@@ -216,44 +213,6 @@ export function KontakteAdmin({
         )}
       </section>
 
-      <section className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="ct-h2">{t.infosTitle}</h2>
-          <Button size="sm" variant="secondary" onClick={() => setInfoOffen({ id: "", key: "", audience: ["partner"], label_de: "", label_en: "", value_de: "", value_en: "", sort_order: 0 })}>
-            {t.addInfo}
-          </Button>
-        </div>
-        {infos.length === 0 ? (
-          <EmptyState title={t.emptyInfos} description={t.emptyInfosBody} />
-        ) : (
-          <Card>
-            <ul className="flex flex-col divide-y">
-              {infos.map((i) => (
-                <li key={i.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2">
-                  <span className="ct-label text-ink">{i.label_de ?? i.key}</span>
-                  <span className="ct-small text-muted">{i.value_de}</span>
-                  <span className="ml-auto flex items-center gap-2">
-                    {i.audience.map((a) => <Badge key={a}>{audiences[a] ?? a}</Badge>)}
-                    <Button size="sm" variant="ghost" onClick={() => setInfoOffen(i)}>{t.edit}</Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={pending}
-                      onClick={() => start(async () => {
-                        const res = await removeInfo(i.id);
-                        if (!res.ok) melden(res.key);
-                      })}
-                    >
-                      {common.delete ?? t.delete}
-                    </Button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        )}
-      </section>
-
       {offen && (
         <Drawer
           open
@@ -350,62 +309,6 @@ export function KontakteAdmin({
             <div className="flex gap-2">
               <Button type="submit" loading={pending} disabled={bildLaeuft}>{common.save}</Button>
               <Button type="button" variant="secondary" onClick={() => setOffen(null)}>{common.cancel}</Button>
-            </div>
-          </form>
-        </Drawer>
-      )}
-
-      {infoOffen && (
-        <Drawer
-          open
-          error={fehler}
-          onClose={() => { setFehler(null); setInfoOffen(null); }}
-          title={infoOffen.id ? t.editInfo : t.addInfo}
-        >
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setFehler(null);
-              start(async () => {
-                const res = await saveInfo({
-                  key: infoOffen.key, audience: infoOffen.audience,
-                  label_de: infoOffen.label_de, label_en: infoOffen.label_en,
-                  value_de: infoOffen.value_de, value_en: infoOffen.value_en,
-                  sort_order: Number(infoOffen.sort_order) || 0,
-                });
-                if (res.ok) setInfoOffen(null);
-                else melden(res.key);
-              });
-            }}
-          >
-            <Field label={t.fieldKey} htmlFor="i-key" hint={t.fieldKeyHint} required>
-              <Input id="i-key" value={infoOffen.key} required
-                onChange={(e) => setInfoOffen({ ...infoOffen, key: e.target.value })} />
-            </Field>
-            <Field label={t.fieldLabelDe} htmlFor="i-label" required>
-              <Input id="i-label" value={infoOffen.label_de ?? ""} required
-                onChange={(e) => setInfoOffen({ ...infoOffen, label_de: e.target.value })} />
-            </Field>
-            <Field label={t.fieldValueDe} htmlFor="i-value">
-              <Input id="i-value" value={infoOffen.value_de ?? ""}
-                onChange={(e) => setInfoOffen({ ...infoOffen, value_de: e.target.value })} />
-            </Field>
-            <Field label={t.fieldLabelEn} htmlFor="i-label-en">
-              <Input id="i-label-en" value={infoOffen.label_en ?? ""}
-                onChange={(e) => setInfoOffen({ ...infoOffen, label_en: e.target.value })} />
-            </Field>
-            <Field label={t.fieldValueEn} htmlFor="i-value-en">
-              <Input id="i-value-en" value={infoOffen.value_en ?? ""}
-                onChange={(e) => setInfoOffen({ ...infoOffen, value_en: e.target.value })} />
-            </Field>
-            <Field label={t.fieldAudience} htmlFor="i-aud" hint={t.fieldAudienceHint}>
-              <Input id="i-aud" value={infoOffen.audience.join(", ")}
-                onChange={(e) => setInfoOffen({ ...infoOffen, audience: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) })} />
-            </Field>
-            <div className="flex gap-2">
-              <Button type="submit" loading={pending} disabled={bildLaeuft}>{common.save}</Button>
-              <Button type="button" variant="secondary" onClick={() => setInfoOffen(null)}>{common.cancel}</Button>
             </div>
           </form>
         </Drawer>

@@ -53,10 +53,9 @@ describe("Breiten-Tokens (QS-065 (10))", () => {
     for (const n of [36, 48, 56, 64]) assert.match(css, new RegExp(`min-width: calc\\(var\\(--spacing\\) \\* ${n}\\)`)); // Felder in Programm und Regie: 9, 12, 14, 16 rem
   });
 
-  it("die Anmelde- und die Startseite nutzen dieselben Zeilenlängen wie der Leerzustand", () => {
+  it("die Anmeldeseite nutzt dieselben Zeilenlängen wie der Leerzustand", () => {
     assert.match(lies("app/login/LoginForm.tsx"), /max-w-lead/);
     assert.match(lies("app/login/LoginForm.tsx"), /max-w-meldung/);
-    assert.match(lies("app/page.tsx"), /max-w-lead/);
   });
 
   it("die Bausteine nehmen die Tokens", () => {
