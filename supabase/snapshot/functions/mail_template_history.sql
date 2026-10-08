@@ -5,7 +5,7 @@ create or replace function mail_template_history(p_key text, p_locale text, p_li
  SET search_path TO 'public', 'extensions'
 AS $$
 begin
-  if not has_role('admin') then raise exception 'not allowed' using errcode = '42501'; end if;
+  if not can_edit_mail_template(p_key) then raise exception 'not allowed' using errcode = '42501'; end if;
   return query
     select a.created_at,
            (select nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), '')
