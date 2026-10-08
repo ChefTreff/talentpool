@@ -1,3 +1,5 @@
+-- 0277 · Protokoll: Umschalter Personen/System, Anzeigenamen, Details (ADM-095)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008102418.
 -- 00NN · Protokoll: Umschalter „durch Personen" / „durch das System" (ADM-095 c)
 --
 -- Anlass: Konrad 08.10.2026 (Admin-Feedback Teil 1): „über 1800 Einträge, die meisten vom System“ — das Protokoll

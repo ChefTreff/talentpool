@@ -199,6 +199,9 @@
 | Welle 6 · 0272 | **Hackathon-Startseite als Event-Seite: Eckdaten, Ansprechperson, Zähler (HACK-020 für HACK-013)** (`20261008083344`, `v6_hack_eventseite`; Details im Migrationskopf) | — |
 | Welle 6 · 0273 | **Neue Speaker von Partnern: Liste, Marke und Menü-Zähler (ADM-084)** (`20261008085130`, `v6_neue_speaker`; Details im Migrationskopf) | — |
 | Welle 6 · 0274 | **Bühnen-Stammdaten: Art der Bühne, Gültigkeitstage und Sperrzeiten (ADM-085, LEAD-061, LEAD-062)** (`20261008093516`, `v6_buehnen_stammdaten`; Details im Migrationskopf) | — |
+| Welle 6 · 0275 | **Allgemeine Zeiten und Auskünfte abschaffen (ADM-100)** (`20261008101253`, `v6_auskuenfte_weg`; Details im Migrationskopf) | — |
+| Welle 6 · 0276 | **Mail-Warteschlange mit Frist, Stornieren und Änderungsmail bei veröffentlichten Slots (LEAD-063, PART-124)** (`20261008102417`, `v6_mail_verzoegert`; Details im Migrationskopf) | — |
+| Welle 6 · 0277 | **Protokoll: Umschalter Personen/System, Anzeigenamen, Details (ADM-095)** (`20261008102418`, `v6_protokoll_umschalter`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

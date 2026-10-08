@@ -1,4 +1,5 @@
--- 0276 · Mail verzögert (v6_mail_verzoegert): Warteschlange mit Frist, Stornieren und die Änderungsmail für veröffentlichte Slots.
+-- 0276 · Mail-Warteschlange mit Frist, Stornieren und Änderungsmail bei veröffentlichten Slots (LEAD-063, PART-124)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008102417.
 --
 -- Anlass: LEAD-063 (Konrad & Leopold 05.10., Durchgang Partner-Portal): „Wird ein veröffentlichter Slot verschoben oder geändert,
 -- bekommen Speaker (und ggf. Partner der Session) eine Mail mit alt/neu — mehrere Änderungen = eine Mail.“ Plan-Entscheidung 08.10.

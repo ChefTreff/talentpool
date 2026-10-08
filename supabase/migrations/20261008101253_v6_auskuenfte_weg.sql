@@ -1,3 +1,5 @@
+-- 0275 · Allgemeine Zeiten und Auskünfte abschaffen (ADM-100)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008101253.
 -- 00NN · „Allgemeine Zeiten und Auskünfte" abschaffen: Tabelle edition_info und ihre fünf Funktionen entfernen (ADM-100)
 --
 -- Anlass: Konrad 08.10.2026 (Admin-Feedback Teil 1, ADM-100): „Allgemeine Zeiten und Auskünfte — was sind das für

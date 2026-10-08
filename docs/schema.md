@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-08 09:35 UTC · 124 Tabellen · 6 Views · 723 Funktionen
+> Stand: 2026-10-08 10:46 UTC · 123 Tabellen · 6 Views · 726 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -401,23 +401,6 @@ Dateien, die einer Edition gehören und nicht einer Organisation: Hallenplan, An
 | `preview_path` | text |  |  |  | Verkleinerte WebP-Fassung für die Anzeige (ADM-042), immer <storage_path>.preview.webp. Leer = keine Vorschau, Portale zeigen das Original. |
 | `preview_width` | integer |  |  |  |  |
 | `preview_height` | integer |  |  |  |  |
-
-### `edition_info`
-Allgemeine Auskünfte je Edition (F9.1): Öffnungszeiten, Einlass, Aufbau, Adresse. Text, kein Zeitstempel — eine Auskunft, kein Termin.
-
-| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
-|---|---|---|---|---|---|
-| `id` | uuid | PK | `gen_random_uuid()` |  |  |
-| `edition_id` | uuid | ja |  | `event.id` |  |
-| `key` | text | ja |  |  |  |
-| `audience` | text[] | ja |  |  |  |
-| `label_de` | text |  |  |  |  |
-| `label_en` | text |  |  |  |  |
-| `value_de` | text |  |  |  |  |
-| `value_en` | text |  |  |  |  |
-| `sort_order` | integer | ja | `0` |  |  |
-| `created_at` | timestamp with time zone | ja | `now()` |  |  |
-| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `event`
 Format/Termin (Summit, Hackathon, Side-Event, Community). is_edition = Klammer wie FLS27-Woche; Kinder verweisen über edition_id.
@@ -879,6 +862,7 @@ Jede versendete oder unterdrückte Mail mit Zustellstatus (Resend-Webhooks aktua
 | `queued_at` | timestamp with time zone | ja | `now()` |  |  |
 | `sent_at` | timestamp with time zone |  |  |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `send_after` | timestamp with time zone |  |  |  | Frühester Versandzeitpunkt (LEAD-063, PART-124): leer = beim nächsten Lauf; sonst lädt der Versandlauf (lib/mail/queue.ts) die Zeile erst, wenn die Zeit erreicht ist. Gesetzt von queue_mail_debounced. Der Lauf kommt alle zehn Minuten, die reale Verzögerung ist also die Frist bis Frist + 10 Minuten. |
 
 ### `mail_template`
 System-Mails DE/EN. Versand über Resend (lib/mail), Rendering aus Markdown.
@@ -2389,7 +2373,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `assign_tour_stop` | p_org_id: uuid, p_stop_id: uuid |
 | `attach_session_to_slot` | p_session_id: uuid, p_slot_id: uuid |
 | `attended_event` | p_event_id: uuid |
-| `audit_log_admin` | p_action: text, p_actor: uuid, p_from: timestamp with time zone, p_limit: integer, p_object_id: text, p_object_type: text, p_offset: integer, p_to: timestamp with time zone |
+| `audit_log_admin` | p_action: text, p_actor: uuid, p_by: text, p_from: timestamp with time zone, p_limit: integer, p_object_id: text, p_object_type: text, p_offset: integer, p_to: timestamp with time zone |
 | `audit_log_filters` | args: ? |
 | `award_applications_admin` | p_edition_id: uuid |
 | `award_apply` | p_data: jsonb, p_ip_hash: text |
@@ -2417,7 +2401,6 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_confirm_consent_on_behalf` | p_profile_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
 | `can_edit_edition_contacts` | args: ? |
-| `can_edit_edition_info` | args: ? |
 | `can_edit_kb` | p_audience: text[] |
 | `can_edit_kb_all` | p_audience: text[] |
 | `can_edit_next_up` | args: ? |
@@ -2440,6 +2423,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_write_hack_submission` | p_team_id: uuid |
 | `cancel_companion_ticket` | p_ticket_id: uuid |
 | `cancel_hospitality` | p_booking_id: uuid |
+| `cancel_queued_mail` | p_person_id: uuid, p_reason: text, p_related_id: uuid, p_template_key: text |
 | `cancel_registration` | p_session_id: uuid |
 | `cancel_shuttle` | p_booking_id: uuid |
 | `catering_coverage` | p_edition_id: uuid |
@@ -2484,7 +2468,6 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_award_application` | p_application_id: uuid |
 | `delete_edition_contact` | p_id: uuid, p_reason: text |
 | `delete_edition_file` | p_id: uuid |
-| `delete_edition_info` | p_id: uuid |
 | `delete_event_day` | p_id: uuid |
 | `delete_event_photo` | p_photo_id: uuid |
 | `delete_external_ref` | p_object_id: uuid, p_object_type: text, p_system: text |
@@ -2514,8 +2497,6 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `edition_file_path_allowed` | p_name: text |
 | `edition_files` | p_audience: text, p_edition_id: uuid |
 | `edition_files_admin` | p_edition_id: uuid |
-| `edition_infos` | p_audience: text, p_edition_id: uuid |
-| `edition_infos_admin` | p_edition_id: uuid |
 | `edition_valid_to` | p_edition_id: uuid |
 | `effective_pass_type` | p_org_edition_id: uuid, p_product_pass_type: text |
 | `email_hash` | p_email: text |
@@ -2635,6 +2616,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `luma_sync_registration` | p_checked_in: boolean, p_email: text, p_first_name: text, p_guest_id: text, p_last_name: text, p_luma_event_id: text, p_registered_at: timestamp with time zone, p_status: text |
 | `mail_cc_recipients` | p_person_ids: uuid[] |
 | `mail_fmt_ts` | p_locale: text, p_ts: timestamp with time zone, p_tz: text |
+| `mail_locale_for` | p_person_id: uuid |
 | `mail_log_admin` | p_from: timestamp with time zone, p_limit: integer, p_offset: integer, p_person_id: uuid, p_query: text, p_status: text, p_template: text, p_to: timestamp with time zone |
 | `mail_log_detail` | p_id: bigint |
 | `mail_log_stats` | p_days: integer |
@@ -2779,7 +2761,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `purge_diet_data` | p_days: integer |
 | `purge_kb_questions` | p_days: integer |
 | `queue_mail` | p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
+| `queue_mail_debounced` | p_delay: interval, p_keep_prefix: text, p_person_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `queue_speaker_mail` | p_profile_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
+| `queue_speaker_mail_debounced` | p_delay: interval, p_keep_prefix: text, p_profile_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `record_shop_invoice` | p_meta: jsonb, p_order_ids: uuid[], p_org_id: uuid, p_sevdesk_contact_id: text, p_sevdesk_invoice_id: text |
 | `record_speaker_consent_on_behalf` | p_consents: jsonb, p_profile_id: uuid, p_version: text |
 | `record_sync_error` | p_job_id: bigint, p_message: text, p_object_id: text, p_object_type: text, p_payload: jsonb |
@@ -2835,6 +2819,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `send_shift_reminders` | args: ? |
 | `session_asset_path_allowed` | p_name: text, p_write: boolean |
 | `session_assets_admin` | p_event_id: uuid |
+| `session_change_lines` | p_alt: jsonb, p_locale: text, p_new: jsonb, p_tz: text |
+| `session_change_notify` | p_new: jsonb, p_old: jsonb, p_session_id: uuid |
+| `session_change_queue` | p_event: text, p_key: text, p_new: jsonb, p_old: jsonb, p_org_id: uuid, p_profile: uuid, p_session_id: uuid, p_target: uuid, p_tz: text |
+| `session_change_state` | p_slot_id: uuid, p_title_de: text, p_title_en: text |
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
 | `session_needs_release` | p_edition_id: uuid |
@@ -3032,7 +3020,6 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_deadline` | p_data: jsonb |
 | `upsert_deliverable_template` | p_data: jsonb |
 | `upsert_edition_contact` | p_data: jsonb |
-| `upsert_edition_info` | p_data: jsonb |
 | `upsert_event_day` | p_data: jsonb |
 | `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |

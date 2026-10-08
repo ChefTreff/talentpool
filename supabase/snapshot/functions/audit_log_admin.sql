@@ -1,4 +1,4 @@
-create or replace function audit_log_admin(p_action text DEFAULT NULL::text, p_object_type text DEFAULT NULL::text, p_object_id text DEFAULT NULL::text, p_actor uuid DEFAULT NULL::uuid, p_from timestamp with time zone DEFAULT NULL::timestamp with time zone, p_to timestamp with time zone DEFAULT NULL::timestamp with time zone, p_limit integer DEFAULT 50, p_offset integer DEFAULT 0)
+create or replace function audit_log_admin(p_action text DEFAULT NULL::text, p_object_type text DEFAULT NULL::text, p_object_id text DEFAULT NULL::text, p_actor uuid DEFAULT NULL::uuid, p_from timestamp with time zone DEFAULT NULL::timestamp with time zone, p_to timestamp with time zone DEFAULT NULL::timestamp with time zone, p_limit integer DEFAULT 50, p_offset integer DEFAULT 0, p_by text DEFAULT NULL::text)
  RETURNS TABLE(id bigint, created_at timestamp with time zone, action text, object_type text, object_id text, actor_person_id uuid, actor_name text, vorher jsonb, nachher jsonb, total bigint)
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
@@ -8,6 +8,11 @@ declare v_limit integer := greatest(1, least(coalesce(p_limit, 50), 200));
         v_offset integer := greatest(0, coalesce(p_offset, 0));
 begin
   if not has_admin_section('auditLog') then raise exception 'not allowed' using errcode = '42501'; end if;
+  -- ADM-095 (c): „durch Personen“ / „durch das System“. NULL = alle. Ein unbekannter Wert ist ein Fehler,
+  -- kein stiller „alle“ — sonst zeigte ein Tippfehler im Link ein falsches Bild.
+  if p_by is not null and p_by not in ('person', 'system') then
+    raise exception 'invalid_filter' using errcode = '22023', detail = p_by;
+  end if;
   return query
   with treffer as (
     select a.id, a.created_at, a.action, a.object_type, a.object_id, a.actor_person_id,
@@ -19,6 +24,7 @@ begin
        and (p_object_type is null or a.object_type = p_object_type)
        and (p_object_id is null or a.object_id = p_object_id)
        and (p_actor is null or a.actor_person_id = p_actor)
+       and (p_by is null or (p_by = 'person' and a.actor_person_id is not null) or (p_by = 'system' and a.actor_person_id is null))
        and (p_from is null or a.created_at >= p_from)
        and (p_to is null or a.created_at < p_to)
   )
