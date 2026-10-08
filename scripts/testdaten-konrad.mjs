@@ -125,6 +125,9 @@
  *                                   Zusatzzeile — und eine TEST-Ansprechperson vom Typ hackathon_lead;
  *                                   /hackathon. Die Zahl der Angenommenen erscheint erst ab 20 Bewerbungen
  *                                   und wird nicht erfunden)
+ *   … --apply --nur=weitergabe     (PART-129: Konrads Bewerbung auf „TEST — Masterclass“ steht ohne Haken zur
+ *                                   Weitergabe — unter /meine „Weitergabe freigeben“ zum Nachholen; Partner sieht
+ *                                   sie bis dahin nicht)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -3046,6 +3049,25 @@ async function hackathonEckdatenSchritt(_me, ed) {
     }));
 }
 
+/**
+ * PART-129: eine Bewerbung ohne Weitergabe — so standen die 21 Bestandsbewerbungen da. Unter /meine zeigt sie
+ * „Weitergabe freigeben“; der Partner sieht sie erst danach.
+ */
+async function weitergabeSchritt(me) {
+  const { data: sess } = await admin.from("session").select("id")
+    .eq("title_de", `${PREFIX}Masterclass`).eq("publish_status", "published").limit(1).maybeSingle();
+  if (!sess) return fail("Weitergabe", "Veröffentlichte „TEST — Masterclass“ fehlt — erst --nur=partner");
+  const { data: app } = await admin.from("application").select("id, consent_share")
+    .eq("session_id", sess.id).eq("person_id", me.id).maybeSingle();
+  if (!app) {
+    return write("Bewerbung ohne Weitergabe (zum Nachholen)", () =>
+      admin.from("application").insert({ session_id: sess.id, person_id: me.id, answers: {}, consent_share: false }));
+  }
+  if (!app.consent_share) return note("Bewerbung ohne Weitergabe", "steht schon");
+  await write("Bewerbung auf ohne Weitergabe gesetzt", () =>
+    admin.from("application").update({ consent_share: false }).eq("id", app.id));
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -3742,6 +3764,7 @@ const SCHRITTE = {
   benachrichtigungen: benachrichtigungenSchritt,
   "event-fotos": fotosSchritt,
   feedback: feedbackSchritt,
+  weitergabe: weitergabeSchritt,
   "hackathon-eckdaten": hackathonEckdatenSchritt,
   "luma-leads": lumaLeadsSchritt,
   schichtmodell: schichtmodellSchritt,
