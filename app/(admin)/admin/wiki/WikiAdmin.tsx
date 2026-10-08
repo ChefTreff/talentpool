@@ -143,6 +143,17 @@ export function WikiAdmin({
                         {a.status === "published" ? t.unpublish : t.publish}
                       </Button>
                     )}
+                    {/* ADM-104: Ein archivierter Artikel kam nicht zurück, weil hier kein Knopf stand. */}
+                    {a.status === "archived" && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={pending}
+                        onClick={() => run(publishArticle(a.id, true), t.republished)}
+                      >
+                        {t.republish}
+                      </Button>
+                    )}
                   </div>
                 </Td>
               </Tr>
