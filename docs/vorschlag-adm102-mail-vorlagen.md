@@ -4,7 +4,7 @@ Stand 08.10.2026, Admin-Chat, **zur Freigabe durch Plan**. Noch kein Bau. Anlass
 
 ## 1 · Ausgangslage
 
-- 41 Vorlagen (`mail_template`, PK `key` + `locale`), je Sprache eine Zeile; Schlüssel wie `application_accepted`.
+- 43 Vorlagen (`mail_template`, PK `key` + `locale`), je Sprache eine Zeile; Schlüssel wie `application_accepted`.
 - Vier Funktionen, alle `has_role('admin')`: `mail_templates_admin()`, `upsert_mail_template(p_data)`, `mail_template_history(key, locale, limit)`, `restore_mail_template(…)`. Ein Partner-Manager darf heute keine Vorlage lesen oder ändern.
 - Es gibt keine Kategorie und keinen Anzeigenamen; `description` ist eine interne Notiz („Intern: neue Begleitticket-Anfrage (an area_lead_speaker)“).
 - Rechte im Admin laufen über **Abschnitte** (`admin_section_role` + Ausnahmen je Rolle/Person in `admin_section_override`, ADM-053, bedienbar unter `/admin/rollen`). Der Abschnitt `mail` (Protokoll, Vorlagen, Test) ist nur für `admin`.
@@ -26,11 +26,11 @@ RLS an, **keine** Policy und kein Grant: Lesen und Schreiben nur über die Funkt
 
 **Warum keine Fremdschlüssel von `mail_template.key`:** 23 Migrationen legen Vorlagen per `insert into mail_template` an, und offene PRs anderer Chats tun es auch. Ein Fremdschlüssel ließe deren Migration nach „Migration live“ scheitern. Stattdessen: **eine Vorlage ohne Eintrag gilt als Kategorie `system`** (nur `admin` — fail closed, wie `lib/admin-sections.ts`). Ein Test findet jede in Migrationen angelegte Vorlage und prüft, dass sie in der Zuordnung steht; wer eine neue Vorlage anlegt, ergänzt die Zeile im selben PR.
 
-### 2.2 Vorschlag für die Zuordnung der 41 Schlüssel
+### 2.2 Vorschlag für die Zuordnung der 43 Schlüssel
 
 | Kategorie | Schlüssel |
 |---|---|
-| **Speaker** (15) | `assistant_invite`, `companion_ticket_confirmed`, `companion_ticket_declined`, `companion_ticket_requested`, `expense_approved`, `expense_rejected`, `expense_submitted`, `hospitality_confirmed`, `presentation_reminder`, `session_changed`, `side_event_invitation`, `speaker_invite`, `stage_photos_ready`, `ticket_final` |
+| **Speaker** (14) | `assistant_invite`, `companion_ticket_confirmed`, `companion_ticket_declined`, `companion_ticket_requested`, `expense_approved`, `expense_rejected`, `expense_submitted`, `hospitality_confirmed`, `presentation_reminder`, `session_changed`, `side_event_invitation`, `speaker_invite`, `stage_photos_ready`, `ticket_final` |
 | **Partner** (11) | `partner_contact_invite`, `partner_deliverable_received`, `partner_deliverable_rejected`, `partner_gate_failed`, `partner_reminder_digest`, `partner_speaker_contact`, `session_changed_partner`, `shop_order_completed`, `shop_order_confirmed`, `shop_request_received`, `ticket_request_received` |
 | **Teilnehmer** (7) | `application_accepted`, `application_declined`, `application_promoted`, `application_received`, `application_waitlisted`, `registration_confirmed`, `welcome`* |
 | **Volunteers** (6) | `shift_assigned`, `shift_reminder`, `volunteer_accepted`, `volunteer_applied`, `volunteer_declined`, `volunteer_ticket_reminder` |
@@ -78,7 +78,7 @@ Fehlerschlüssel: 42501 · 22023 `invalid_category`, `fields_required`, `invalid
 
 ## 3 · Reihenfolge des Baus (nach Freigabe)
 
-1. Migration `v6_mail_vorlagen_kategorie` (Tabelle, Zuordnung der 41 Schlüssel, vier Abschnitte, Funktionen) mit SQL-Test (Rechte je Kategorie mit Rollen-Probe: Partner-Team sieht und ändert nur Partner, nicht Speaker; unregistrierte Vorlage ⇒ nur `admin`; Paar-Schreiben atomar), Test „jede Migrations-Vorlage ist zugeordnet“, `lib/admin-sections.ts`.
+1. Migration `v6_mail_vorlagen_kategorie` (Tabelle, Zuordnung der 43 Schlüssel, vier Abschnitte, Funktionen) mit SQL-Test (Rechte je Kategorie mit Rollen-Probe: Partner-Team sieht und ändert nur Partner, nicht Speaker; unregistrierte Vorlage ⇒ nur `admin`; Paar-Schreiben atomar), Test „jede Migrations-Vorlage ist zugeordnet“, `lib/admin-sections.ts`.
 2. Oberfläche: Vorlagenliste als Tabelle mit Anzeigename, Kategorie, Suche, Filter, **eine Zeile je Vorlage** mit DE/EN-Umschalter im Editor.
 3. Editor (f): Platzhalter-Chips setzen an der Cursorposition ein, Formatierungsleiste (Fett, Kursiv, Link, Liste), Knopf einfügen — Muster aus dem Design-Vorschlag, abgestimmt mit dem Design-Chat.
 
