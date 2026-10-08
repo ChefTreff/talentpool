@@ -11,10 +11,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { HeroBand, BandStat } from "@/components/ui/HeroBand";
 import { PhotoCard } from "@/components/ui/PhotoCard";
-import { InfoList, type InfoEintrag } from "@/components/ui/InfoList";
 import { Fortschritt } from "@/components/ui/Fortschritt";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
-import { loadEditionInfos, loadMyContacts } from "@/components/kontakt/load";
+import { loadMyContacts } from "@/components/kontakt/load";
 import { Anfahrt } from "@/components/kontakt/Anfahrt";
 import { RUNDGANG_SCHLUESSEL, rundgangAus } from "@/components/partner/rundgang-adresse";
 import { naechsteFrist, naechsteZeilen, ordneFristen } from "@/components/partner/fristen-aufgaben";
@@ -78,7 +77,7 @@ export default async function PartnerDashboard() {
   }
 
   const supabase = await createSupabaseServerClient();
-  const [{ data: overviewJson }, { data: deliverableRows }, vorlagen, vocab, kontakte, infos, tourLink] = await Promise.all([
+  const [{ data: overviewJson }, { data: deliverableRows }, vorlagen, vocab, kontakte, tourLink] = await Promise.all([
     supabase.rpc("partner_overview", {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
@@ -92,7 +91,6 @@ export default async function PartnerDashboard() {
     loadFristVorlagen(supabase),
     loadVocabMap(supabase, locale),
     loadMyContacts(current.edition_id),
-    loadEditionInfos("partner", current.edition_id),
     // PART-093: der 3D-Rundgang aus Admin → Medien → Links; ohne Eintrag fehlt der Kasten.
     loadPortalLink(RUNDGANG_SCHLUESSEL, "partner", current.edition_id),
   ]);
@@ -123,14 +121,6 @@ export default async function PartnerDashboard() {
   const naechste = naechsteFrist(aufgaben, zuordnung, jetzt, locale);
   const productName = (p: { name_de: string | null; name_en: string | null }) =>
     (locale === "en" ? p.name_en : p.name_de) ?? p.name_de ?? p.name_en ?? "—";
-
-  const zeiten: InfoEintrag[] = infos
-    .map((i) => ({
-      key: i.key,
-      label: (locale === "en" ? i.label_en : i.label_de) ?? i.label_de ?? i.label_en ?? i.key,
-      value: (locale === "en" ? i.value_en : i.value_de) ?? i.value_de ?? i.value_en ?? "",
-    }))
-    .filter((i) => i.value !== "");
 
   const tickets = o.ticket_allocations.reduce(
     (acc, a) => ({ used: acc.used + a.used_count, total: acc.total + a.quantity }),
@@ -419,21 +409,6 @@ export default async function PartnerDashboard() {
           lead={t.partner.contactLead}
           buddy={t.partner.contactBuddy}
         />
-
-        {zeiten.length > 0 && (
-          <section className="flex flex-col gap-3">
-            <h2 className="ct-h2">{t.partner.timesTitle}</h2>
-            <Card>
-              <InfoList items={zeiten} />
-              <p className="ct-help mt-4">
-                {t.partner.timesWikiHint}{" "}
-                <Link className="ct-link" href="/partner/wiki">
-                  {t.partner.navWiki}
-                </Link>
-              </p>
-            </Card>
-          </section>
-        )}
 
         {/* PART-093: der Rundgang durch den Summit, nur wo es den Messestand gibt — dieselbe Regel wie das
             Menü (`sichtbar`): ein Knopf zu einer Seite, die der Partner nicht sieht, wäre ein Versprechen
