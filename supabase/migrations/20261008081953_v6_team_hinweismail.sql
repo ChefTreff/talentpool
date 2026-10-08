@@ -1,3 +1,37 @@
+-- 0269 · Hinweismail an Teammitglieder mit bestehendem Konto (ADM-086)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008081953.
+-- 00NN · Hinweismail an Teammitglieder mit bestehendem Konto: create_team_member queued „Du bist jetzt im Team" (ADM-086)
+--
+-- Anlass: Konrad 06.10. (Paulinas Einladung) und 08.10.: „Teammitglied einladen" setzt bei einer
+-- Person mit bestehendem Konto (z. B. Speaker aus einem früheren Test) nur die Rollen — die
+-- Person erfährt nichts, weil Supabase für vorhandene Konten keine Einladung schickt. Konrad lädt
+-- am 08.10. weitere Teammitglieder ein.
+--
+-- Umsetzung:
+--   * Vorlage `team_member_added` (DE/EN): „Du bist jetzt im Team — hier anmelden", Portal-Link
+--     (`{{portal_url}}/login`, kein Magic Link, kein Supabase-Invite), die **neu vergebenen**
+--     Rollen in Worten (`{{roles_de}}` / `{{roles_en}}` aus dem Vokabular `role`).
+--   * `create_team_member` (Live-Fassung aus dem Snapshot) queued die Mail über `queue_mail`,
+--     wenn die Person ein Login hat **und** Rollen neu dazukamen. Ein zweiter Aufruf ohne neue
+--     Rolle schickt nichts. Rückgabe zusätzlich `mail`: `queued` | `suppressed` (gesperrte
+--     Adresse, im Protokoll ohne Klartext) | `none`.
+--   * Audit `access.team_member` ohne Klartext-Adresse (nur Rollen, Edition, `new`, `mail`) —
+--     vorher stand die Adresse im Payload (Plan-Hinweis zu #297).
+-- Sprache wählt `queue_mail` (Person, sonst Deutsch). Die Adresse kommt aus der Datenbank, nie aus
+-- dem Formular. Fehlerschlüssel unverändert.
+set search_path = public, extensions;
+
+insert into mail_template (key, locale, version, subject, body_md, description, active)
+select v.key, v.locale, v.version, v.subject, v.body_md, v.description, v.active from (values
+  ('team_member_added', 'de', 1, 'Du bist jetzt im ChefTreff-Team – hier anmelden',
+   E'Hallo {{first_name}},\n\ndu bist jetzt im ChefTreff-Team für den Future Leader Summit. Im Portal sind dir diese Rollen zugewiesen: **{{roles_de}}**.\n\nDu hast schon ein Konto, ein neues brauchst du nicht. Melde dich mit dieser E-Mail-Adresse an – ohne Passwort: [Zum Portal]({{portal_url}}/login)\n\nNach der Anmeldung siehst du die Bereiche, für die du freigeschaltet bist. Fehlt etwas, sag Konrad Bescheid.\n\nViele Grüße\nChefTreff',
+   'Teammitglied mit bestehendem Konto bekommt Rollen (ADM-086)', true),
+  ('team_member_added', 'en', 1, 'You are now on the ChefTreff team – sign in here',
+   E'Hi {{first_name}},\n\nyou are now on the ChefTreff team for the Future Leader Summit. These roles have been assigned to you in the portal: **{{roles_en}}**.\n\nYou already have an account, you do not need a new one. Sign in with this email address – no password needed: [Open the portal]({{portal_url}}/login)\n\nAfter signing in you see the areas you have been given access to. If something is missing, let Konrad know.\n\nBest,\nChefTreff',
+   'Team member with an existing account is given roles (ADM-086)', true)
+) as v(key, locale, version, subject, body_md, description, active)
+where not exists (select 1 from mail_template t where t.key = v.key and t.locale = v.locale);
+
 create or replace function create_team_member(p_first_name text, p_last_name text, p_email text, p_roles text[], p_edition_id uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -72,3 +106,5 @@ begin
   return jsonb_build_object('person_id', v_pid, 'email', v_email, 'created', v_neu, 'roles', to_jsonb(v_vergeben),
                             'has_login', v_login, 'mail', v_mail);
 end $$;
+
+select harden_definer_functions();
