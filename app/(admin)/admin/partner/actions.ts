@@ -8,7 +8,8 @@ import { toRpcFailure } from "@/lib/rpc-error";
 import type { UpdateContactInput } from "@/components/partner/contacts";
 import type { GastAenderung, GastErgebnis, GastFoto, GastNeu } from "@/components/partner/gaeste";
 import { gastAendern, gastAnlegen, gastEntfernen, gastFotoRegistrieren } from "@/lib/partner/gaeste";
-import type { DryRunResult } from "./types";
+import { geschwister } from "@/components/partner/kontingent-ansicht";
+import type { AdminAllocation, DryRunResult } from "./types";
 
 /**
  * Admin-Partnerbereich. Alles über die RPCs mit dem Session-Client; sie prüfen
@@ -296,6 +297,13 @@ export async function saveTemplate(
 
 // === Kontingente ============================================================
 
+/**
+ * Ein Kontingent von Hand korrigieren. **Code und Shop-Link gelten seit PART-111 für die ganze Gruppe**
+ * (Organisation, Edition, Rabattstufe): alle Zeilen einer Gruppe teilen sich einen Coupon. Wer sie ändert,
+ * ändert sie an allen aktiven Zeilen der Gruppe — sonst hätte die Gruppe zwei Codes, und der nächste Lauf
+ * brächte sie wieder auf den des bleibenden Coupons zurück. Welche Zeilen zur Gruppe gehören, bestimmt der
+ * Server aus der Liste der Datenbank. Menge, Status und Notiz gelten nur für die eine Zeile.
+ */
 export async function saveAllocation(input: {
   id: string;
   quantity?: number | null;
@@ -314,6 +322,21 @@ export async function saveAllocation(input: {
     p_notes: input.notes ?? null,
   });
   if (error) return fail(error);
+  if (input.couponCode != null || input.undershopUrl != null) {
+    const { data: rows, error: leseFehler } = await supabase.rpc("ticket_allocations_admin");
+    if (leseFehler) return fail(leseFehler);
+    for (const z of geschwister((rows ?? []) as AdminAllocation[], input.id)) {
+      const { error: schreibFehler } = await supabase.rpc("set_ticket_allocation", {
+        p_id: z.id,
+        p_quantity: null,
+        p_coupon_code: input.couponCode ?? null,
+        p_undershop_url: input.undershopUrl ?? null,
+        p_status: null,
+        p_notes: null,
+      });
+      if (schreibFehler) return fail(schreibFehler);
+    }
+  }
   refresh("kontingente");
   return { ok: true, data: undefined };
 }
