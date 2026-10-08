@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-08 13:09 UTC · 123 Tabellen · 6 Views · 729 Funktionen
+> Stand: 2026-10-08 13:16 UTC · 123 Tabellen · 6 Views · 730 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2450,6 +2450,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `confirm_hospitality` | p_booking_id: uuid, p_note: text |
 | `confirm_shift` | p_assignment_id: uuid |
 | `confirm_shuttle` | p_booking_id: uuid |
+| `consent_overview_admin` | p_limit: integer, p_offset: integer, p_query: text, p_state: text, p_type: text |
 | `consent_records_admin` | p_limit: integer, p_offset: integer, p_person_id: uuid, p_query: text, p_state: text, p_type: text |
 | `create_hack_team` | p_edition_id: uuid, p_name: text |
 | `create_kiosk_account` | p_edition_id: uuid, p_email: text, p_label: text |

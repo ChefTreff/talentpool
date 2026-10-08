@@ -1,23 +1,3 @@
--- 00NN · Einwilligungen je Person (ADM-096)
---
--- Anlass: Konrad 08.10.2026 (Admin-Feedback Teil 1): „Einwilligungen je Person statt je Datensatz: pro Person alle
--- Einwilligungen mit Status erteilt/abgelehnt“. `consent_records_admin` liefert weiter jede Zeile des Nachweises
--- (Verlauf, bleibt für die Personenseite und die Ansicht „je Eintrag“); neu ist die Sicht **eine Zeile je Person**.
---
--- `consent_overview_admin(p_type, p_state, p_query, p_limit, p_offset)` — Abschnitt `consents`:
---   * je Person der **aktuelle Stand je Einwilligungsart** (jüngster Eintrag je Person und Art, derselbe Schnitt wie
---     die View `consent_current`: granted_at, created_at, id absteigend). Zustand: `revoked` (Eintrag widerrufen),
---     `granted` (erteilt), `declined` (abgelehnt). Arten ohne Eintrag stehen nicht in der Liste (`states`).
---   * Filter: `p_type` (nur Personen mit einem Eintrag dieser Art), `p_state` (Zustand; zusammen mit `p_type` der
---     Zustand **dieser** Art, allein der Zustand **irgendeiner** Art). Die Spalte `states` zeigt trotzdem alle Arten
---     der Person — der Filter wählt Personen aus, er verschweigt nichts.
---   * Suche: jedes Wort in Name oder E-Mail-Adresse (`%`, `_`, `\` zählen als Zeichen).
---   * Sortierung: zuletzt Geändertes zuerst (jüngster Eintrag bzw. Widerruf über alle Arten).
---   * Anonymisierte Personen fehlen (kein Name, keine Adresse); ihre Nachweiszeilen bleiben in `consent_records_admin`.
---   * Ein unbekannter Zustand ⇒ 22023 `invalid_state` (wie `consent_records_admin`).
--- Fehlerschlüssel: 28000 · 42501 · 22023 `invalid_state`.
-set search_path = public, extensions;
-
 create or replace function consent_overview_admin(p_type text DEFAULT NULL::text, p_state text DEFAULT NULL::text, p_query text DEFAULT NULL::text, p_limit integer DEFAULT 50, p_offset integer DEFAULT 0)
  RETURNS TABLE(person_id uuid, person_name text, email text, states jsonb, last_change timestamp with time zone, total bigint)
  LANGUAGE plpgsql
@@ -75,5 +55,3 @@ begin
    order by t.zuletzt desc, t.pid
    limit v_limit offset v_offset;
 end $$;
-
-select harden_definer_functions();
