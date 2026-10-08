@@ -58,3 +58,66 @@ export async function openDeletion(personId: string, note: string): Promise<Dele
   revalidatePath("/admin/loeschantraege");
   return { ok: true };
 }
+
+export type MasterDataResult = { ok: true; changed: string[] } | { ok: false; key: string; detail?: string };
+
+/** Die Felder, die `update_person_master` kennt — mehr nimmt die Funktion nicht an. */
+export type MasterDataPatch = Partial<
+  Record<
+    | "first_name" | "last_name" | "title" | "birthdate" | "gender" | "nationality" | "country" | "city"
+    | "phone" | "linkedin_url" | "preferred_language",
+    string
+  >
+>;
+
+/**
+ * Stammdaten einer Person ändern (ADM-092) — für Änderungsanfragen. Über die
+ * **Sitzung**, damit `update_person_master` den Abschnitt `persons` prüft und
+ * das Protokoll die handelnde Person trägt. Die Funktion meldet zurück, was sich
+ * tatsächlich geändert hat; ohne Änderung entsteht kein Protokolleintrag.
+ */
+export async function saveMasterData(personId: string, patch: MasterDataPatch): Promise<MasterDataResult> {
+  await requireAdminSection("persons", `/admin/personen/${personId}`);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("update_person_master", { p_person_id: personId, p_patch: patch });
+  if (error) {
+    const f = toRpcFailure(error);
+    if (f.key === "unknown") console.error("[admin/personen] update_person_master:", f.raw);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  revalidatePath(`/admin/personen/${personId}`);
+  revalidatePath("/admin/personen");
+  return { ok: true, changed: (data ?? []) as string[] };
+}
+
+export type EmailAction = "add" | "primary" | "remove" | "change";
+export type EmailResult = { ok: true } | { ok: false; key: string; detail?: string };
+
+/**
+ * E-Mail-Adressen einer Person pflegen (ADM-092): hinzufügen, primär setzen,
+ * entfernen, berichtigen. Berichtigen geht nur ohne Login (die Funktion lehnt
+ * sonst mit `login_email_locked` ab). Ins Protokoll kommt nie die Adresse.
+ */
+export async function manageEmail(
+  personId: string,
+  action: EmailAction,
+  emailId: string | null,
+  email: string | null,
+): Promise<EmailResult> {
+  await requireAdminSection("persons", `/admin/personen/${personId}`);
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("manage_person_email", {
+    p_person_id: personId,
+    p_action: action,
+    p_email_id: emailId,
+    p_email: email,
+  });
+  if (error) {
+    const f = toRpcFailure(error);
+    if (f.key === "unknown") console.error("[admin/personen] manage_person_email:", f.raw);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  revalidatePath(`/admin/personen/${personId}`);
+  revalidatePath("/admin/personen");
+  return { ok: true };
+}
