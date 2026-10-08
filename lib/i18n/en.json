@@ -3411,12 +3411,9 @@
   },
   "home": {
     "eyebrow": "ChefTreff",
-    "lead": "Profile, programme, applications, tickets — maintain them once, valid across all formats.",
-    "loggedInAs": "Signed in as",
     "loginCta": "Sign in",
-    "profileCta": "My profile",
-    "titleHighlight": "everything",
-    "titleLead": "One login for"
+    "titleHighlight": "Club",
+    "titleLead": "Welcome to the Future Leader"
   },
   "initiativeStages": {
     "abgelehnt": "Declined",

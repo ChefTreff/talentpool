@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getMyAreas, getSessionContext } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -7,12 +8,22 @@ import { landingPathFor } from "@/lib/areas";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Die Startseite ist die Seite **vor** dem Login (QS-074, Konrad 08.10.2026).
+ *
+ * Wer angemeldet ist und `/` öffnet, sieht sie nicht: er landet sofort auf der Übersichtsseite seines
+ * Portals — derselben, auf der ihn auch der Login absetzt (`landingPathFor`, Rolle → Einstieg; Admin vor
+ * Fachbereich vor Teilnehmer-Portal). Vorher stand hier für Angemeldete ein Knopf „Mein Profil“ und der
+ * Hinweis „Angemeldet als …“: ein Umweg über eine Seite, die nichts zu tun hat.
+ *
+ * Das Ziel ist nie `/`: `areasFor` führt das Teilnehmer-Portal immer mit, und ein Bereich ohne Recht
+ * antwortet mit 404, nicht mit einer Weiterleitung hierher — es gibt keine Schleife.
+ */
 export default async function Home() {
   const ctx = await getSessionContext();
+  if (ctx.user) redirect(landingPathFor(await getMyAreas()));
+
   const { t } = await getI18n();
-  // Der Knopf führt in den eigenen Bereich, nicht auf einen festen Pfad — sonst
-  // landet eine Speakerin auf dem Teilnehmer-Profil (Feedback-Runde 1, Punkt 2).
-  const target = ctx.user ? landingPathFor(await getMyAreas()) : "/login";
 
   return (
     <>
@@ -31,21 +42,9 @@ export default async function Home() {
                 {t.home.titleHighlight}
               </em>
             </h1>
-            <p className="ct-laica mt-5 max-w-lead text-on-navy-muted">
-              {t.home.lead}
-            </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            {ctx.user ? (
-              <ButtonLink href={target}>{t.home.profileCta}</ButtonLink>
-            ) : (
-              <ButtonLink href="/login">{t.home.loginCta}</ButtonLink>
-            )}
-            {ctx.user && (
-              <span className="self-center ct-small text-on-navy-muted">
-                {t.home.loggedInAs} {ctx.user.email}
-              </span>
-            )}
+            <ButtonLink href="/login">{t.home.loginCta}</ButtonLink>
           </div>
         </div>
         <div className="mx-auto w-full max-w-content px-6 pb-10">
