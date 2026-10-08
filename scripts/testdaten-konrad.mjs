@@ -121,6 +121,10 @@
  *   … --apply --nur=luma-leads     (K-34: ein TEST-Luma-Event und zwei Gäste ohne Profil —
  *                                   „angemeldet“ wird Lead mit Kanal Luma, „eingeladen“ nicht;
  *                                   Zählwerte unter /admin/community-events)
+ *   … --apply --nur=hackathon-eckdaten (HACK-020: TEST-Eckdaten an der Hackathon-Zeile — Uhrzeit, Halle,
+ *                                   Zusatzzeile — und eine TEST-Ansprechperson vom Typ hackathon_lead;
+ *                                   /hackathon. Die Zahl der Angenommenen erscheint erst ab 20 Bewerbungen
+ *                                   und wird nicht erfunden)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -3097,6 +3101,33 @@ async function schichtmodellSchritt(me, ed) {
     admin.from("shift_wish").insert({ person_id: me.id, shift_id: shift.id, rank: 1 }));
 }
 
+/**
+ * HACK-020: Eckdaten und Ansprechperson für die Startseite /hackathon. Ohne sie zeigt die Seite nur die
+ * Stand-Karte. Die Werte tragen den Präfix „TEST — “ und werden mit `--remove` wieder geleert.
+ */
+async function hackathonEckdatenSchritt(_me, ed) {
+  const { data: ev } = await admin.from("event").select("id, venue, schedule_note_en")
+    .eq("format_tag", "hackathon").eq("edition_id", ed.id).maybeSingle();
+  if (!ev) return fail("Hackathon-Eckdaten", "Hackathon-Zeile der Edition fehlt");
+  if (ev.venue || ev.schedule_note_en) note("Hackathon-Eckdaten", "stehen schon");
+  else {
+    await write("Hackathon-Eckdaten (Uhrzeit, Halle, Zusatzzeile)", () =>
+      admin.from("event").update({
+        start_time: "14:00", end_time: "18:00", venue: `${PREFIX}Halle 2`, location: "Hamburg",
+        schedule_note_de: `${PREFIX}Kick-off 14:00 · Demos am Samstag`, schedule_note_en: `${PREFIX}Kick-off 14:00 · Demos on Saturday`,
+      }).eq("id", ev.id));
+  }
+  const { data: kontakt } = await admin.from("edition_contact").select("id")
+    .eq("edition_id", ed.id).eq("type", "hackathon_lead").maybeSingle();
+  if (kontakt) return note("Hackathon-Ansprechperson", "steht schon");
+  await write("Hackathon-Ansprechperson (TEST)", () =>
+    admin.from("edition_contact").insert({
+      edition_id: ed.id, type: "hackathon_lead", display_name: `${PREFIX}Hackathon-Ansprechperson`,
+      role_label_de: "Leitung Hackathon", role_label_en: "Hackathon lead",
+      email: email.replace("@", "+zztest-hack@"), phone: "+49 40 0000000", is_default: true,
+    }));
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -3793,6 +3824,7 @@ const SCHRITTE = {
   benachrichtigungen: benachrichtigungenSchritt,
   "event-fotos": fotosSchritt,
   feedback: feedbackSchritt,
+  "hackathon-eckdaten": hackathonEckdatenSchritt,
   "luma-leads": lumaLeadsSchritt,
   schichtmodell: schichtmodellSchritt,
   gaeste: standbuehnenGast,
@@ -3869,6 +3901,13 @@ async function remove(me) {
     if (!ref) return { data: null, error: null };
     await admin.from("external_ref").delete().eq("system", "luma").eq("object_type", "event").eq("external_id", LUMA_TEST_EVENT);
     return admin.from("event").delete().eq("id", ref.object_id);
+  });
+  await write("TEST-Hackathon-Eckdaten und -Ansprechperson entfernt", async () => {
+    const k = await admin.from("edition_contact").delete().eq("type", "hackathon_lead").like("display_name", `${PREFIX}%`);
+    if (k.error) return k;
+    return admin.from("event").update({
+      start_time: null, end_time: null, venue: null, location: null, schedule_note_de: null, schedule_note_en: null,
+    }).eq("format_tag", "hackathon").like("venue", `${PREFIX}%`);
   });
   await write("TEST-Feedbacks entfernt", () =>
     admin.from("feedback_entry").delete().like("body", `${PREFIX}%`),

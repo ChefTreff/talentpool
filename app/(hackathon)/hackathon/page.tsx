@@ -3,10 +3,13 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { HeroBand } from "@/components/ui/HeroBand";
+import { Startseite } from "@/components/hackathon/Startseite";
+import { eckdatenItems } from "@/lib/hackathon/eckdaten";
+import { standKarte } from "@/lib/hackathon/stand";
 import { abgabeUrls, datasetUrl, type AbgabeZeile } from "@/lib/hackathon/datensatz-server";
 import type { AbgabeDatei } from "@/components/hackathon/AbgabeDateien";
 import { HackView } from "./HackView";
-import type { Beitrittsanfrage, HackChallenge, LeaderboardRow, MyHack, OffenesTeam, SuchendePerson } from "./types";
+import type { Beitrittsanfrage, HackChallenge, HackEventInfo, LeaderboardRow, MyHack, OffenesTeam, SuchendePerson } from "./types";
 import { Teamsuche } from "@/components/hackathon/Teamsuche";
 
 export const dynamic = "force-dynamic";
@@ -21,11 +24,13 @@ export default async function HackathonPage() {
   const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: mine }, vocab, { data: challenges }] = await Promise.all([
+  const [{ data: mine }, vocab, { data: challenges }, { data: infoData }] = await Promise.all([
     supabase.rpc("my_hack", { p_language: locale }),
     loadVocabMap(supabase, locale),
     supabase.rpc("hack_challenges", { p_language: locale }),
+    supabase.rpc("hack_event_info", { p_language: locale }),
   ]);
+  const info = (infoData ?? null) as HackEventInfo;
   const data = (mine ?? { edition_id: null, application: null, team: null, challenge: null, submission: null }) as MyHack;
 
   // Metrik-Challenge des eigenen Teams (HACK-009): Auswertungsart aus der
@@ -81,6 +86,21 @@ export default async function HackathonPage() {
     };
   }
 
+  // Startseite wie eine Event-Seite (HACK-013): Eckdaten und Stand-Karte zuerst, daneben die Seitenspalte. Fehlt eine
+  // Angabe, fehlt die Zeile — nichts Erfundenes (HACK-020).
+  const h = t.hackathon as Record<string, string>;
+  const stand = standKarte(data);
+  const frist = stand.deadline
+    ? new Intl.DateTimeFormat(t.meta.dateLocale, { dateStyle: "medium", timeStyle: "short", timeZone: info?.timezone ?? "Europe/Berlin" }).format(new Date(stand.deadline))
+    : null;
+  const standSatz =
+    stand.key === "build" ? (frist ? h.standBuild.replace("{deadline}", frist) : h.standBuildNoDeadline)
+    : stand.key === "submitted" && stand.late ? h.standSubmittedLate
+    : h[`stand${stand.key[0].toUpperCase()}${stand.key.slice(1)}`];
+  const standAktion = stand.anchor ? h[`stand${stand.key[0].toUpperCase()}${stand.key.slice(1)}Action`] : null;
+  const eckdaten = eckdatenItems(info, t.meta.dateLocale);
+  const discordUrl = process.env.HACKATHON_DISCORD_URL?.trim() || null;
+
   return (
     <>
       <HeroBand
@@ -88,20 +108,29 @@ export default async function HackathonPage() {
         title={t.hackathon.title}
         lead={t.hackathon.lead}
       />
-      <HackView
-        data={data}
-        challenges={((challenges ?? []) as HackChallenge[]).map((c) => ({ id: c.id, title: c.title }))}
-        metric={metric}
-        dataset={dataset}
-        abgabe={abgabe}
-        teamsuche={suche ? <Teamsuche {...suche} /> : null}
-        skills={vgroup(vocab, "hack_skill")}
-        tracks={vgroup(vocab, "hack_track")}
-        discordUrl={process.env.HACKATHON_DISCORD_URL?.trim() || null}
-        t={t.hackathon}
-        common={{ save: t.common.save, cancel: t.common.cancel }}
-        rpcMessages={t.rpc}
-      />
+      <Startseite
+        eckdaten={eckdaten}
+        stand={{ satz: standSatz, aktion: standAktion, anchor: stand.anchor }}
+        contact={info?.contact ?? null}
+        counts={info && info.accepted !== null && info.teams !== null ? { accepted: info.accepted, teams: info.teams } : null}
+        discordUrl={discordUrl}
+        t={h}
+      >
+        <HackView
+          data={data}
+          challenges={((challenges ?? []) as HackChallenge[]).map((c) => ({ id: c.id, title: c.title }))}
+          metric={metric}
+          dataset={dataset}
+          abgabe={abgabe}
+          teamsuche={suche ? <Teamsuche {...suche} /> : null}
+          skills={vgroup(vocab, "hack_skill")}
+          tracks={vgroup(vocab, "hack_track")}
+          discordUrl={null}
+          t={t.hackathon}
+          common={{ save: t.common.save, cancel: t.common.cancel }}
+          rpcMessages={t.rpc}
+        />
+      </Startseite>
     </>
   );
 }
