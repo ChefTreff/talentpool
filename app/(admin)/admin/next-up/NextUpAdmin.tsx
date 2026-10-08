@@ -53,6 +53,12 @@ const LEER: Entwurf = {
  * Die Liste der Hinweise für „Next Up" (TAL-006). Was hier aktiv ist und im
  * Sichtbarkeitsfenster liegt, steht auf Home bei **jeder** angemeldeten
  * Person — deshalb zeigt die Liste den Zustand als Wort, nicht nur als Farbe.
+ *
+ * Eine Karte auf Home trägt seit QS-076 nur noch den Titel; das Stichwort
+ * darüber hat kein Eingabefeld mehr. Die Spalten `word_de`/`word_en` bleiben,
+ * und das Formular schickt ihren Wert unverändert zurück — ein Hinweis, der
+ * ein Stichwort trug, verliert es beim Speichern nicht (QS-075 entscheidet, ob
+ * die Spalten gehen).
  */
 export function NextUpAdmin({
   items, now, t, common, rpcMessages,
@@ -110,7 +116,6 @@ export function NextUpAdmin({
               const z = zustand(i);
               return (
                 <li key={i.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3">
-                  {i.word_de && <span className="ct-eyebrow text-muted">{i.word_de}</span>}
                   <span className="ct-label text-ink">{i.title_de}</span>
                   {i.link_url && <span className="ct-help break-all">{i.link_url}</span>}
                   <span className="ml-auto flex flex-wrap items-center gap-2">
@@ -177,12 +182,6 @@ export function NextUpAdmin({
               </Field>
               <Field label={t.fieldTitleEn} htmlFor="n-title-en">
                 <Input id="n-title-en" value={offen.title_en ?? ""} onChange={(e) => set("title_en", e.target.value)} />
-              </Field>
-              <Field label={t.fieldWordDe} htmlFor="n-word" hint={t.fieldWordHint}>
-                <Input id="n-word" value={offen.word_de ?? ""} onChange={(e) => set("word_de", e.target.value)} />
-              </Field>
-              <Field label={t.fieldWordEn} htmlFor="n-word-en">
-                <Input id="n-word-en" value={offen.word_en ?? ""} onChange={(e) => set("word_en", e.target.value)} />
               </Field>
             </div>
             <Field label={t.fieldTeaserDe} htmlFor="n-teaser">

@@ -11,8 +11,6 @@ import type { VolunteerProfile } from "@/app/(volunteers)/volunteers/types";
 
 type NextUp = {
   id: string;
-  word_de: string | null;
-  word_en: string | null;
   title_de: string;
   title_en: string | null;
   teaser_de: string | null;
@@ -35,8 +33,10 @@ export const dynamic = "force-dynamic";
  *
  * **Next Up** (TAL-006, Konrad: „ein super Marketing-Kanal"): Hinweise auf
  * kommende Events und Programme, gepflegt im Admin unter `/admin/next-up`.
- * Ohne Einträge fällt die Sektion weg — ein leerer Kasten auf der Startseite
- * jeder Person wäre schlechter als keiner. Darunter die Kachel
+ * Eine Karte trägt **eine** Überschrift, den Titel des Hinweises (QS-076); das
+ * frühere Stichwort darüber entfällt wie bei den Einstiegen. Ohne Einträge fällt
+ * die Sektion weg — ein leerer Kasten auf der Startseite jeder Person wäre
+ * schlechter als keiner. Darunter die Kachel
  * **„Du willst dabei sein?"** zur Volunteer-Bewerbung (dieselbe Logik wie auf
  * `/meine`: nach Zusage führt sie zu den Schichten, nach Absage fehlt sie).
  *
@@ -88,8 +88,7 @@ export default async function TalentHomePage() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <PhotoCard
-          word={t.talentHome.cardSummitWord}
-          title={t.talentSummit.groupLabel}
+          word={t.talentSummit.groupLabel}
           description={t.talentHome.cardSummitBody}
           action={
             <ButtonLink href="/summit" variant="secondary" size="sm">
@@ -98,8 +97,7 @@ export default async function TalentHomePage() {
           }
         />
         <PhotoCard
-          word={t.talentStart.cardProfileWord}
-          title={t.profile.title}
+          word={t.profile.title}
           description={t.talentStart.cardProfileBody}
           action={
             <ButtonLink href="/profil" variant="secondary" size="sm">
@@ -122,8 +120,7 @@ export default async function TalentHomePage() {
               return (
                 <PhotoCard
                   key={n.id}
-                  word={pick(n.word_de, n.word_en) || t.talentHome.nextUpWord}
-                  title={pick(n.title_de, n.title_en)}
+                  word={pick(n.title_de, n.title_en)}
                   description={[datum, teaser].filter(Boolean).join(" · ")}
                   action={
                     n.link_url ? (
