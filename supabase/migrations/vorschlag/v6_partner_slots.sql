@@ -35,7 +35,7 @@
 -- `attach_session_to_slot`, die Gäste-Regel, die Änderungsmail LEAD-063 und die Slotlänge (die Datenbank kennt keine Bindung an
 -- `default_duration_min` oder `changeover_min`).
 --
--- Basis: Snapshot nach 0280 (`create_slot`, `move_slot`, `partner_window_binds`, `partner_booth_window`).
+-- Basis: Snapshot nach 0282 (`create_slot`, `move_slot`, `partner_window_binds`, `partner_booth_window`).
 set search_path = public, extensions;
 
 -- === 1 · Fenster in Zeitpunkten ================================================================================================

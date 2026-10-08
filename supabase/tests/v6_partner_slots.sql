@@ -21,6 +21,12 @@
 --   12 Regie unverändert: auf der gebrandeten Bühne keine, auf der Standbühne wie bisher.
 --   13 Gäste-Regel unverändert: ein Gast geht auf die Standbühne, nicht auf die gebrandete Bühne.
 --   15 die Rechte der Rolle `authenticated`: anlegen, verschieben, löschen laufen; `anon` darf nicht (siehe 01).
+-- Probelauf der Build-Session am 08.10.2026 gegen die Live-Datenbank nach 0282 (`sh scripts/db.sh dry-run`, alles zurückgerollt): 29 von 29
+-- Erwartungen erfüllt. Mutationsproben an der Migration (38, je Regel eine): 37 rot, die 38. ist gleichwertig — die Untergrenze `before_open` in
+-- Uhrzeiten statt in Zeitpunkten, denn der Beginn bestimmt den Tag, ein Unterschied entsteht nur am Ende. Mitlaufende Tests mit und ohne die
+-- Migration (`v6_standbuehne_oeffnungszeiten`, `v6_standbuehne_regeln`, `v6_lead_tagesrahmen`, `v6_buehnen_stammdaten`, `v6_mail_verzoegert`):
+-- gleiche Ergebnisse; `lead016_buehnen_sichtregel`, `v2_roles_programme` und `v6_standbuehnen_gaeste` brechen schon ohne die Migration am Live-Stand
+-- ab (gleiche Meldung). `fn-diff`: vier geänderte Funktionen (`partner_window_binds`, `partner_booth_window`, `create_slot`, `move_slot`) und drei neue.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 create temp table t_erw (step text, muster text) on commit drop;
@@ -31,16 +37,18 @@ insert into t_erw values
   ('04_laenge_frei', '^ok ok ok drei_inhalts_slots=true$'),
   ('04_raender', '^ok ok$'),
   ('04_vor_nach', '^P0001 outside_partner_window \| 10:00–16:00 / P0001 outside_partner_window \| 10:00–16:00$'),
+  ('04_standbuehne_fenster', '^ok P0001 outside_partner_window \| 10:00–16:00 / P0001 outside_partner_window \| 10:00–16:00$'),
   ('04_mitternacht', '^P0001 outside_partner_window \| –24:00 / ok$'),
   ('05_tagesrahmen', '^P0001 outside_partner_window \| 09:00–18:00 / ok / P0001 outside_partner_window \| 09:00–18:00$'),
   ('06_fremd_und_arten', '^brb=42501 not allowed on this stage haupt=42501 not allowed on this stage tisch=42501 not allowed on this stage stand=ok ohne_rolle=42501 not allowed on this stage partner_b_auf_a=42501 not allowed on this stage partner_b_auf_b=ok$'),
-  ('07_slot_art', '^frame=P0001 slot_type_not_allowed \| frame fixed=P0001 slot_type_not_allowed \| fixed_block placeholder=P0001 slot_type_not_allowed \| placeholder partner_block=P0001 slot_type_not_allowed \| partner_block leer=P0001 slot_type_not_allowed \| null team_frame=ok team_block=ok$'),
+  ('07_slot_art', '^frame=P0001 slot_type_not_allowed \| frame fixed=P0001 slot_type_not_allowed \| fixed_block placeholder=P0001 slot_type_not_allowed \| placeholder partner_block=P0001 slot_type_not_allowed \| partner_block leer=P0001 slot_type_not_allowed \| null stand_frame=P0001 slot_type_not_allowed \| frame team_frame=ok team_block=ok$'),
   ('08_laenge_ueberlappung', '^null=22023 end must be after start umgekehrt=22023 end must be after start ueberlappung=23P01 anschluss=ok$'),
   ('09_sperren', '^ok event=P0001 slot_blocked \| ZZ Sperre Event · 10:40–10:50 stage=P0001 slot_blocked \| ZZ Sperre Bühne · 11:00–11:10 andere_buehne=ok team=P0001 slot_blocked \| ZZ Sperre Event · 10:40–10:50 team_frame=ok$'),
   ('09_gueltig', '^ok tag2=P0001 stage_not_valid_that_day \| 17\.04\.2027 tag1=ok$'),
-  ('10_verschieben', '^ok innen=ok aussen=P0001 outside_partner_window \| 10:00–16:00 fremde_buehne=42501 not allowed on target stage eigene_standbuehne=ok fester_block=42501 fixed blocks can only be moved by the programme team$'),
+  ('10_verschieben', '^ok innen=ok aussen=P0001 outside_partner_window \| 10:00–16:00 fremde_buehne=42501 not allowed on target stage eigene_standbuehne=ok eigene_gebrandete=ok fester_block=42501 fixed blocks can only be moved by the programme team$'),
   ('10_veroeffentlicht', '^ok ohne=P0001 confirmation_required mit=ok$'),
-  ('10_stage_lead', '^ok davor=P0001 outside_stage_day \| 10:00–18:00 ueber_nacht=P0001 outside_stage_day \| 10:00–18:00 innen=ok team_davor=ok$'),
+  ('10_stage_lead', '^ok davor=P0001 outside_stage_day \| 10:00–18:00 ueber_nacht=P0001 outside_stage_day \| 10:00–18:00 innen=ok schieb_ueber_nacht=P0001 outside_stage_day \| 10:00–18:00 schieb_innen=ok team_davor=ok$'),
+  ('10_warnungen', '^ok davor=\["before_open"\] danach=\["after_close"\] ueber_nacht=\["after_close"\] innen=\[\]$'),
   ('14_aenderungsmail', '^ok mails=1 wartet=true$'),
   ('11_loeschen', '^ok slot_weg=true audit=true audit_ohne_adresse=true verlauf_vorher=true verlauf_weg=true$'),
   ('11_mit_entwurf', '^ok slot_weg=true session_bleibt=true session_ohne_slot=true$'),
@@ -87,6 +95,16 @@ exception when others then
   return sqlstate || ' ' || sqlerrm || coalesce(' | ' || nullif(v_d, ''), '');
 end $$;
 
+-- Die Warnungen eines Verschiebens als Text (`["before_open"]`); ein Fehler kommt als Text zurück.
+create function pg_temp.zz_warn(p_slot uuid, p_stage uuid, p_von timestamptz, p_bis timestamptz) returns text language plpgsql as $$
+declare v_j jsonb;
+begin
+  v_j := move_slot(p_slot, p_stage, p_von, p_bis, false);
+  return (v_j->'warnings')::text;
+exception when others then
+  return sqlstate || ' ' || sqlerrm;
+end $$;
+
 create function pg_temp.zz_weg(p_slot uuid) returns text language plpgsql as $$
 declare v_d text;
 begin
@@ -120,7 +138,7 @@ declare
   d1 date := date '2027-04-16'; d2 date := date '2027-04-17'; d3 date := date '2027-04-18';
   o_a uuid; o_b uuid;
   s_bra uuid; s_stand uuid; s_brb uuid; s_haupt uuid; s_tisch uuid; s_valid uuid;
-  sl_a uuid; sl_b uuid; sl_blk uuid; sl_frame uuid; sl_pub uuid; sl_x uuid; sl_y uuid; sl_z uuid; sl_h uuid; sl_t uuid;
+  sl_a uuid; sl_b uuid; sl_blk uuid; sl_frame uuid; sl_pub uuid; sl_x uuid; sl_y uuid; sl_z uuid; sl_h uuid; sl_t uuid; sl_s uuid;
   se_pub uuid; se_dr uuid; se_app uuid; se_stand uuid; se_bra uuid;
   p_spk uuid; p_app uuid; v_gast uuid; v_res jsonb;
   t1 timestamptz; t2 timestamptz; t3 timestamptz;
@@ -216,6 +234,10 @@ begin
   insert into t_res values ('04_vor_nach',
     pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '09:45'), pg_temp.zz_ts(d1, '10:15')) || ' / '
     || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '15:50'), pg_temp.zz_ts(d1, '16:10')));
+  -- Die Standbühne hält dasselbe Fenster (Gegenstück: die Regel gilt nicht nur für die gebrandete Bühne).
+  insert into t_res values ('04_standbuehne_fenster',
+    'ok ' || pg_temp.zz_neu(s_stand, pg_temp.zz_ts(d1, '09:30'), pg_temp.zz_ts(d1, '10:30')) || ' / '
+    || pg_temp.zz_neu(s_stand, pg_temp.zz_ts(d1, '15:30'), pg_temp.zz_ts(d1, '16:30')));
   -- Tag 2 hat weder Öffnungszeiten noch Programmzeiten: Fenster –24:00. Über Mitternacht hinaus geht nicht, bis 00:00 des Folgetags schon.
   insert into t_res values ('04_mitternacht',
     pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d2, '22:00'), pg_temp.zz_ts(d2 + 1, '01:00')) || ' / '
@@ -245,7 +267,8 @@ begin
       || ' fixed=' || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '11:00'), pg_temp.zz_ts(d1, '11:30'), 'fixed_block')
       || ' placeholder=' || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '11:00'), pg_temp.zz_ts(d1, '11:30'), 'placeholder')
       || ' partner_block=' || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '11:00'), pg_temp.zz_ts(d1, '11:30'), 'partner_block')
-      || ' leer=' || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '11:00'), pg_temp.zz_ts(d1, '11:30'), null);
+      || ' leer=' || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '11:00'), pg_temp.zz_ts(d1, '11:30'), null)
+      || ' stand_frame=' || pg_temp.zz_neu(s_stand, pg_temp.zz_ts(d1, '11:00'), pg_temp.zz_ts(d1, '11:30'), 'frame');
   perform pg_temp.zz_rolle(v_pid, 'programme_team');
   v_r := v_r || ' team_frame=' || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '16:30'), pg_temp.zz_ts(d1, '17:00'), 'frame')
       || ' team_block=' || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '17:00'), pg_temp.zz_ts(d1, '17:30'), 'fixed_block');
@@ -286,6 +309,8 @@ begin
   v_r := v_r || ' aussen=' || pg_temp.zz_schieb(sl_a, s_bra, pg_temp.zz_ts(d1, '15:55'), pg_temp.zz_ts(d1, '16:20'));
   v_r := v_r || ' fremde_buehne=' || pg_temp.zz_schieb(sl_a, s_brb, pg_temp.zz_ts(d1, '12:00'), pg_temp.zz_ts(d1, '12:07'));
   v_r := v_r || ' eigene_standbuehne=' || pg_temp.zz_schieb(sl_a, s_stand, pg_temp.zz_ts(d1, '12:00'), pg_temp.zz_ts(d1, '12:07'));
+  -- und zurück auf die eigene gebrandete Bühne: nur der neue Helfer lässt die Zielbühne zu (can_edit_stage allein sagte nein)
+  v_r := v_r || ' eigene_gebrandete=' || pg_temp.zz_schieb(sl_a, s_bra, pg_temp.zz_ts(d1, '12:00'), pg_temp.zz_ts(d1, '12:07'));
   v_r := v_r || ' fester_block=' || pg_temp.zz_schieb(sl_blk, s_bra, pg_temp.zz_ts(d1, '17:30'), pg_temp.zz_ts(d1, '18:00'));
   insert into t_res values ('10_verschieben', v_r);
 
@@ -310,9 +335,19 @@ begin
   v_r := 'ok davor=' || pg_temp.zz_neu(s_haupt, pg_temp.zz_ts(d1, '09:30'), pg_temp.zz_ts(d1, '10:30'))
       || ' ueber_nacht=' || pg_temp.zz_neu(s_haupt, pg_temp.zz_ts(d1, '17:30'), pg_temp.zz_ts(d2, '01:00'))
       || ' innen=' || pg_temp.zz_neu(s_haupt, pg_temp.zz_ts(d1, '11:00'), pg_temp.zz_ts(d1, '12:00'));
+  -- Dasselbe beim Verschieben: der Slot des Stage Leads darf nicht über Mitternacht hinaus, im Rahmen schon.
+  select id into sl_h from slot where stage_id = s_haupt and start_at = pg_temp.zz_ts(d1, '11:00');
+  v_r := v_r || ' schieb_ueber_nacht=' || pg_temp.zz_schieb(sl_h, s_haupt, pg_temp.zz_ts(d1, '17:30'), pg_temp.zz_ts(d2, '01:00'));
+  v_r := v_r || ' schieb_innen=' || pg_temp.zz_schieb(sl_h, s_haupt, pg_temp.zz_ts(d1, '12:00'), pg_temp.zz_ts(d1, '13:00'));
   perform pg_temp.zz_rolle(v_pid, 'programme_team');
   v_r := v_r || ' team_davor=' || pg_temp.zz_neu(s_haupt, pg_temp.zz_ts(d1, '09:30'), pg_temp.zz_ts(d1, '10:30'));
   insert into t_res values ('10_stage_lead', v_r);
+  -- Das Team ist nicht gebunden — die Warnungen `before_open` und `after_close` rechnen ebenfalls in Zeitpunkten (über Mitternacht: after_close).
+  v_r := 'ok davor=' || pg_temp.zz_warn(sl_h, s_haupt, pg_temp.zz_ts(d1, '08:00'), pg_temp.zz_ts(d1, '08:30'));
+  v_r := v_r || ' danach=' || pg_temp.zz_warn(sl_h, s_haupt, pg_temp.zz_ts(d1, '18:30'), pg_temp.zz_ts(d1, '19:00'));
+  v_r := v_r || ' ueber_nacht=' || pg_temp.zz_warn(sl_h, s_haupt, pg_temp.zz_ts(d1, '17:30'), pg_temp.zz_ts(d2, '00:30'));
+  v_r := v_r || ' innen=' || pg_temp.zz_warn(sl_h, s_haupt, pg_temp.zz_ts(d1, '12:00'), pg_temp.zz_ts(d1, '13:00'));
+  insert into t_res values ('10_warnungen', v_r);
 
   -- === 11 Löschen ==================================================================================================
   perform pg_temp.zz_rolle(v_pid, 'standbuehne_editor', 'org', o_a);
@@ -397,8 +432,9 @@ begin
                                    'zz.gast.' || replace(gen_random_uuid()::text, '-', '') || '@example.org', true);
   v_gast := (v_res->>'profile_id')::uuid;
   select id into sl_b from slot where stage_id = s_bra and start_at = pg_temp.zz_ts(d1, '12:07');
+  select id into sl_s from slot where stage_id = s_stand and start_at = pg_temp.zz_ts(d1, '14:00');
   insert into session (event_id, slot_id, format, title_de, title_en, description_de, host_org_id, publish_status, tags)
-    values (v_ev, sl_a, 'talk', 'ZZ Standtalk', 'ZZ stand talk', 'Beschreibung', o_a, 'draft', '{}') returning id into se_stand;
+    values (v_ev, sl_s, 'talk', 'ZZ Standtalk', 'ZZ stand talk', 'Beschreibung', o_a, 'draft', '{}') returning id into se_stand;
   insert into session (event_id, slot_id, format, title_de, title_en, description_de, host_org_id, publish_status, tags)
     values (v_ev, sl_b, 'talk', 'ZZ Bühnentalk', 'ZZ stage talk', 'Beschreibung', o_a, 'draft', '{}') returning id into se_bra;
   insert into t_res values ('13_gaeste_regel',
