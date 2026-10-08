@@ -155,4 +155,9 @@ begin
   --      Mit der Löschung gibt es keinen Rückweg mehr; die Zeile bleibt als
   --      Nachweis, dass zusammengeführt wurde.
   update person_merge_log set payload = null where surviving_person_id = p_person_id;
+
+  -- 11 · ADM-077: der Hinweis an einer Side-Event-Einladung (Unverträglichkeit, Begleitung) ist Freitext von dieser Person und
+  --      darf ihre Löschung nicht überleben; der Link aus der Einladungsmail wird tot. Stand, Zeitpunkte und Anzahl der Plätze
+  --      bleiben — das ist die Zahl, auf der die Planung stand.
+  update side_event_invite set note = null, token_hash = null where profile_id = any (v_profile);
 end $$;
