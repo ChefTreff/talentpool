@@ -44,7 +44,6 @@ export default async function AdminDashboard() {
   const vorname = firstName?.trim() || null;
   const offeneDubletten = dupes.count ?? 0;
   const nav = t.admin.nav;
-  const woerter: Record<string, string> = t.admin.words;
   const saetze: Record<string, string> = t.admin.entries;
   // Die drei Einstiege nach Rolle (QS-037) — Auswahl und Begründung in ./einstiege.ts.
   const einstiege = await einstiegeMitAusnahmen(roleNames);
@@ -83,8 +82,7 @@ export default async function AdminDashboard() {
           {einstiege.map((e) => (
             <PhotoCard
               key={e.key}
-              word={woerter[e.key]}
-              title={nav[e.nav]}
+              word={nav[e.nav]}
               description={saetze[e.key]}
               action={
                 <ButtonLink href={e.href} variant="secondary" size="sm">

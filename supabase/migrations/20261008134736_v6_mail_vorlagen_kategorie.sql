@@ -1,3 +1,5 @@
+-- 0281 · Mail-Vorlagen je Bereich: Kategorie, Anzeigenamen, Abschnitte, Paar-Funktion (ADM-102 Bau A)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008134736.
 -- 00NN · Mail-Vorlagen je Bereich: Kategorie, Anzeigename, Platzhalter, Rechte je Kategorie (ADM-102)
 --
 -- Anlass: Konrad 08.10.2026 (Admin-Feedback Teil 1): „Vorlagen unter Speaker, Partner und Teilnehmer … damit z. B. ein
