@@ -20,6 +20,11 @@ import { cn } from "./cn";
  * das ist das Muster. Ausserhalb dieser Dreiergruppe gilt weiter: ein
  * `.ct-laica` pro Screen.
  *
+ * **Die Aktion sitzt am Boden der Karte** (PART-098): steht die Karte in einer
+ * Reihe gleich hoher Karten (Grid), stehen die Knöpfe auf einer Linie, auch wenn
+ * die Texte verschieden lang sind. Vorher folgte der Knopf dem Text, und bei der
+ * Karte mit dem längsten Text saß er tiefer als die beiden anderen.
+ *
  * **Unter 640 px liegt die Karte quer:** die Bildfläche wird ein Quadrat
  * links, der Text steht daneben. Übereinander gestapelt brauchten drei Karten
  * gut tausend Pixel Höhe, bevor die Startseite zu dem kommt, was zu tun ist —
@@ -63,11 +68,12 @@ export function PhotoCard({
           />
         )}
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 flex-col">
         <p className="ct-laica text-accent-strong sm:mt-4">{word}</p>
         {title && <p className="ct-h3 mt-1 text-ink">{title}</p>}
         <p className="ct-small mt-1 text-muted">{description}</p>
-        {action && <div className="mt-3">{action}</div>}
+        {/* `mt-auto` schiebt die Aktion an den Boden, wenn die Karte höher gestreckt wird; sonst bleibt es bei 12 px Abstand. */}
+        {action && <div className="mt-auto pt-3">{action}</div>}
       </div>
     </div>
   );
