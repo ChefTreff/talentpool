@@ -1458,3 +1458,8 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 
 - Alle fünf Chats neu gestartet; Kickoffs verweisen auf die Zeilen „Pause 08.10. abends“. Reihenfolgen: Talent zuerst #367 auf main (Branch stand noch auf d9f9f99a, 0272 ist live); Design QS-076 (Home, eine Überschrift, Regel „globale Seiten überall zugleich“) vor dem Vorschlag 10-09; Admin ADM-091/092 → 094 → 096 → 102 (Datenmodell vorab) → 103 → 099; Partner PART-124 (0276 live) → PART-103 → P2/P3; Speaker Testdaten `--nur=aenderungsmail` nach Konrads Ja → ADM-106 → ADM-087 → Rest. Offen bei Konrad: K-81 bis K-84, Admin-Feedback Teil 2.
 
+## 2026-10-08 — #367 gemergt (HACK-013/020, 0272); Test PORT4b auf Schwelle 5
+
+- **#367** (Talent-Chat, main nach Merge): Hackathon-Startseite als Event-Seite (Eckdaten, Stand-Karte, Seitenspalte), Karte „Eckdaten“ in /admin/hackathon; Migration 0272 war seit dem Vormittag live, Vorschlagsdatei im Branch entfernt. Konrads Lauf `--nur=hackathon-eckdaten` (A·10) folgt.
+- **Test `tests/zugaenge.test.ts` (PORT4b):** zählte sechs Funktionen mit `role_assignment` und `person_id = current_person_id()`; mit 0275 fiel `can_edit_edition_info` weg → Schwelle auf 5 gesetzt (Plan, 4b3c7be4), die Sperrprüfung je Funktion bleibt. Befund vom Talent-Chat.
+
