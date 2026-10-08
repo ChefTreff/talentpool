@@ -359,9 +359,9 @@ export default async function SpeakerPage() {
         />
       )}
 
-      {/* Die drei Einstiege (Talent-Muster, QS-037): Bildfläche, kursives
-          Schlüsselwort, ein Satz. Dasselbe Wort steht als Kopf auf der Seite,
-          zu der die Karte führt — man erkennt sie wieder. Die Bildflächen
+      {/* Die drei Einstiege (Talent-Muster, QS-037): Bildfläche, **eine**
+          kursive Überschrift — der Name der Seite, zu der die Karte führt
+          (QS-076, wie PART-098 im Partner-Portal) —, ein Satz. Die Bildflächen
           sind der Platz für die Penno-Fotos (QS-027), bis dahin trägt sie
           die Dreiecksform.
 
@@ -371,8 +371,7 @@ export default async function SpeakerPage() {
           Fotos stehen in der Checkliste oder kommen erst nach dem Summit. */}
       <div className="mb-10 grid gap-6 sm:grid-cols-3">
         <PhotoCard
-          word={t.speaker.wordStage}
-          title={t.speaker.sessionTitle}
+          word={t.speaker.sessionTitle}
           description={t.speaker.entryStageBody}
           action={
             <ButtonLink href="/speaker/session" variant="secondary" size="sm">
@@ -381,8 +380,7 @@ export default async function SpeakerPage() {
           }
         />
         <PhotoCard
-          word={t.speaker.wordJourney}
-          title={t.speaker.travelTitle}
+          word={t.speaker.travelTitle}
           description={t.speaker.entryJourneyBody}
           action={
             <ButtonLink href="/speaker/travel" variant="secondary" size="sm">
@@ -391,8 +389,7 @@ export default async function SpeakerPage() {
           }
         />
         <PhotoCard
-          word={t.speaker.wordSpotlight}
-          title={t.speakerGraphic.title}
+          word={t.speakerGraphic.title}
           description={t.speaker.entrySpotlightBody}
           action={
             <ButtonLink href="/speaker/grafik" variant="secondary" size="sm">

@@ -1,45 +1,21 @@
-import { requireAdminSection } from "@/lib/auth";
-import { getI18n } from "@/lib/i18n";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { MailTabs } from "../MailTabs";
-import { VorlagenView, type Vorlage } from "./VorlagenView";
+import { requireAnyAdminSection } from "@/lib/auth";
+import { istMailKategorie } from "@/lib/mail/kategorien";
+import { VorlagenSeite } from "./VorlagenSeite";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Mail-Vorlagen bearbeiten.
+ * Mail-Vorlagen bearbeiten — alle Kategorien, die die Person bearbeiten darf (ADM-102).
  *
- * `mail_templates_admin()` prüft `has_role('admin')` selbst — wer den
- * Admin-Bereich über eine andere Rolle betritt, sieht hier den Leerzustand und
- * keinen Fehler.
+ * Die Tür ist **irgendein** Vorlagen-Abschnitt: `admin` (Abschnitt `mail`) sieht alles, ein Partner-Team nur
+ * Partner-Mails. Wer welche Vorlage ändern darf, entscheidet je Schlüssel die Datenbank
+ * (`can_edit_mail_template`); `?kategorie=` filtert nur die Anzeige.
  */
-export default async function MailVorlagenPage() {
-  await requireAdminSection("mail", "/admin/mail/vorlagen");
-  const { t } = await getI18n("de");
-  const supabase = await createSupabaseServerClient();
-
-  const { data, error } = await supabase.rpc("mail_templates_admin");
-
-  return (
-    <>
-      <PageHeader word={t.admin.words.mail} title={t.adminMailTemplates.title} description={t.adminMailTemplates.lead} />
-      <MailTabs label={t.adminMailTemplates.title} log={t.adminMailTemplates.tabLog} templates={t.adminMailTemplates.tabTemplates} />
-      {error ? (
-        <EmptyState
-          title={t.adminMailTemplates.noAccessTitle}
-          description={t.adminMailTemplates.noAccessBody}
-        />
-      ) : (
-        <VorlagenView
-          vorlagen={(data ?? []) as Vorlage[]}
-          dateLocale={t.meta.dateLocale}
-          t={t.adminMailTemplates}
-          common={{ cancel: t.common.cancel, save: t.common.save }}
-          rpcMessages={t.rpc}
-        />
-      )}
-    </>
+export default async function MailVorlagenPage({ searchParams }: { searchParams: Promise<{ kategorie?: string }> }) {
+  const ctx = await requireAnyAdminSection(
+    ["mail", "mailSpeaker", "mailPartner", "mailParticipants", "mailVolunteers"],
+    "/admin/mail/vorlagen",
   );
+  const { kategorie } = await searchParams;
+  return <VorlagenSeite kategorie={istMailKategorie(kategorie) ? kategorie : null} roleNames={ctx.roleNames} />;
 }

@@ -83,8 +83,7 @@ export default async function SummitStartPage() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <PhotoCard
-          word={t.talentStart.cardProgrammeWord}
-          title={t.programme.title}
+          word={t.programme.title}
           description={t.talentStart.cardProgrammeBody}
           action={
             <ButtonLink href="/programm" variant="secondary" size="sm">
@@ -93,8 +92,7 @@ export default async function SummitStartPage() {
           }
         />
         <PhotoCard
-          word={t.talentStart.cardMineWord}
-          title={t.participation.title}
+          word={t.participation.title}
           description={t.talentStart.cardMineBody}
           action={
             <ButtonLink href="/meine" variant="secondary" size="sm">
