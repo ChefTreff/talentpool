@@ -1395,4 +1395,5 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **#372** (Partner-Chat, PART-099, main a7b723d1): Fristen und Aufgaben als eine Liste auf Übersicht und Checkliste; Zuordnung Aufgabe → Frist liest `deliverable_template` (key, product_sku, due_rule) über die Policy `deliverable_template_read` (authenticated, `active or is_staff()`; live geprüft). Beobachtung → **PART-144** (Fristen mit Produktbezug auch ohne Produkt sichtbar, P3).
 - **#371** (Design, nur Doku): Stufenleiste-Handy-Zeile im Vorschlag 10-05 nachgezogen.
 - Stand früher Nachmittag: 0269–0272 live, #364–#366 und #368–#373 gemergt; offen #367 (Talent, Konflikt — Chat nicht erreichbar, Übergabe im Startpaket) und #374 (Design, PART-128 Teil 2, im Gate). Nächste freie Nummer **0273**.
+- **#374** (Design, main 9b918b85): PART-128 Teil 2 — `ProfilAuswahl` auf den aufklappbaren Baustein umgestellt (`onToggle`-Schnittstelle bleibt, Schlüssel `profileOpen` DE/EN, 15 Tests). Offen jetzt nur #367 (Talent). Admin- und Talent-Chat sind seit dem späten Vormittag nicht erreichbar; ihre Übergaben stehen in `docs/chat-startpakete.md` „Runde 08.10.“.
 
