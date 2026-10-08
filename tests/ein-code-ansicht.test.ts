@@ -153,6 +153,14 @@ describe("PART-111: Partner-Seite, Admin-Tabelle und Texte", () => {
     }
   });
 
+  it("der Kartentext der Übersicht spricht von einem Code und vom Ticketshop — nicht von Codes und dem Secret Shop (K-77)", () => {
+    for (const sprache of ["de", "en"] as const) {
+      const text = wb(sprache).partner.entryTicketsBody;
+      assert.doesNotMatch(text, /Codes|Secret Shop|\bcodes\b|secret shop/i, `${sprache}: ${text}`);
+      assert.match(text, sprache === "de" ? /Kontingente, Code und Ticketshop/ : /Allocations, code and ticket shop/, sprache);
+    }
+  });
+
   it("die Texte des Wörterbuchs tragen keine Sternchen (Wächter der Wörterbücher)", () => {
     for (const sprache of ["de", "en"] as const) {
       const t = wb(sprache).partnerTickets;
