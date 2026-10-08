@@ -1,3 +1,5 @@
+-- 0283 · Wiki: ein Artikel mit zwei Sprachfassungen (ADM-103 Bau A)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008142601.
 -- 00NN · Wiki: ein Artikel mit zwei Sprachfassungen (ADM-103 c, d)
 --
 -- Anlass: Konrad 08.10.2026 (Admin-Feedback Teil 1): „Wiki wie Mail: alle Artikel in DE und EN, im Editor Umschalter für die

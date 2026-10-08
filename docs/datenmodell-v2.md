@@ -208,6 +208,9 @@
 | Welle 6 · 0281 | **Mail-Vorlagen je Bereich: Kategorie, Anzeigenamen, Abschnitte, Paar-Funktion (ADM-102 Bau A)** (`20261008134736`, `v6_mail_vorlagen_kategorie`; Details im Migrationskopf) | — |
 | Welle 6 · 0282 | **Hauptbühnen 2027: Namen und sechste Bühne (K-80)** (`20261008134737`, `v6_hauptbuehnen_2027`; Details im Migrationskopf) | — |
 | Welle 6 · 0284 | **Weitergabe von Bewerbungsdaten an Partner, Weg B (PART-129, K-78)** (`20261008141637`, `v6_weitergabe_partner`; Details im Migrationskopf) | — |
+| Welle 6 · 0283 | **Wiki: ein Artikel mit zwei Sprachfassungen (ADM-103 Bau A)** (`20261008142601`, `v6_wiki_artikelpaar`; Details im Migrationskopf) | — |
+| Welle 6 · 0285 | **Englische Entwürfe aller Wiki-Artikel (ADM-103 Bau B)** (`20261008142621`, `v6_wiki_en_entwuerfe`; Details im Migrationskopf) | — |
+| Welle 6 · 0286 | **Fristen je Bereich: Abschnitte, eigene Fristen, sicheres Löschen (ADM-099)** (`20261008142630`, `v6_fristen_je_bereich`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-08 14:20 UTC · 124 Tabellen · 6 Views · 737 Funktionen
+> Stand: 2026-10-08 14:26 UTC · 124 Tabellen · 6 Views · 743 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -300,6 +300,7 @@ Fristen je Edition; speist Countdowns, Uploads (late-Markierung) und später Wik
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `reminder_lead_hours` | integer | ja | `48` |  | Erinnerung so viele Stunden vor der wirksamen Fälligkeit (Deadline ∧ 48 h vor Slot); 0 = zur Fälligkeit. |
+| `custom` | boolean | ja | `false` |  | ADM-099: eigene Frist eines Bereichs (Schluessel custom_<slug>, loeschbar solange ungenutzt). false = Systemfrist: Schluessel und Zielgruppe fest, Code und Vorlagen verweisen darauf. |
 
 ### `decision_release`
 Erst nach Freigabe werden Zusagen/Absagen sichtbar und Mails ausgelöst (Antwort C).
@@ -2413,6 +2414,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `booths_free` | p_edition_id: uuid |
 | `can_confirm_consent_on_behalf` | p_profile_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
+| `can_edit_deadline` | p_audience: text |
 | `can_edit_edition_contacts` | args: ? |
 | `can_edit_kb` | p_audience: text[] |
 | `can_edit_kb_all` | p_audience: text[] |
@@ -2473,6 +2475,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `current_org_edition` | p_edition_id: uuid, p_org_id: uuid |
 | `current_person_id` | args: ? |
 | `day_of_edition` | p_day_id: uuid, p_edition_id: uuid |
+| `deadline_section` | p_audience: text |
+| `deadline_usage_count` | p_edition_id: uuid, p_key: text |
+| `deadlines_overview` | p_edition: uuid |
 | `decide_application` | p_application_id: uuid, p_rank: integer, p_status: text |
 | `decide_applications` | p_application_ids: uuid[], p_status: text |
 | `decisions_released` | p_session_id: uuid |
@@ -2481,6 +2486,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `decline_shift` | p_assignment_id: uuid, p_reason: text |
 | `delete_admin_section_override` | p_id: uuid |
 | `delete_award_application` | p_application_id: uuid |
+| `delete_deadline` | p_id: uuid |
 | `delete_edition_contact` | p_id: uuid, p_reason: text |
 | `delete_edition_file` | p_id: uuid |
 | `delete_event_day` | p_id: uuid |
@@ -3047,6 +3053,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |
 | `upsert_kb_article` | p_data: jsonb |
+| `upsert_kb_article_pair` | p_de: jsonb, p_edition_id: uuid, p_en: jsonb, p_shared: jsonb, p_slug: text |
 | `upsert_mail_template` | p_data: jsonb |
 | `upsert_mail_template_pair` | p_de: jsonb, p_en: jsonb, p_key: text |
 | `upsert_next_up_item` | p_data: jsonb |
