@@ -3830,6 +3830,21 @@
     "summary": "{n} von {gesamt} druckfertig",
     "title": "Logos für die Foto-Wand"
   },
+  "logoWandEinwilligung": {
+    "badgeGranted": "Zugestimmt",
+    "badgeMissing": "Zustimmung fehlt",
+    "cancel": "Abbrechen",
+    "confirmRevoke": "Ja, zurücknehmen",
+    "consequence": "Ohne eure Zustimmung drucken wir euer Logo nicht auf die Wand. Für Website, Event-App und Programm nutzen wir es unverändert weiter.",
+    "explain": "Auf dem Summit steht eine große Wand, vor der fotografiert wird. Alle Partnerlogos stehen darauf einfarbig weiß — das ist nötig, damit die Wand als Ganzes funktioniert, verändert aber die Darstellung eurer Marke. Dafür brauchen wir eure Zustimmung.",
+    "grant": "Wir sind einverstanden",
+    "granted": "Danke — euer Logo kommt auf die Wand.",
+    "grantedOn": "Zugestimmt am {date}.",
+    "revoke": "Zustimmung zurücknehmen",
+    "revoked": "Zurückgenommen. Euer Logo kommt nicht auf die Wand.",
+    "saving": "Wird gespeichert …",
+    "title": "Logo auf der Foto-Wand"
+  },
   "mailStatus": {
     "bounced": "Unzustellbar",
     "delivered": "Zugestellt",

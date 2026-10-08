@@ -1,10 +1,10 @@
-# Team-Testleitfaden FLS27-Portale — Testrunde ab Montag, 05.10.2026 (Stand 04.10.)
+# Team-Testleitfaden FLS27-Portale — Testrunde ab Montag, 05.10.2026 (Stand 08.10.)
 
 Für alle Teammitglieder, die ab Montag Zugriff auf `portal.chef-treff.de` bekommen. Ziel der Runde: Fehler, Stolperstellen und fehlende Funktionen finden, bevor Partner, Speaker und Talents am 14.10. hineinkommen. Konrad gibt die Zugänge frei und sammelt das Feedback; die Architektur-Session verteilt es in die Backlogs (`docs/feedback/*.md`) — nichts geht verloren, jeder Punkt bekommt eine Nummer.
 
 ## 1 · Anmelden
 
-1. Du bekommst eine Einladung per E-Mail (Konrad legt dich unter Admin → Verwaltung → Zugänge → „Teammitglied anlegen“ an und vergibt deine Rollen — seit 0250 auch für Personen, die noch kein Profil haben; die Mail geht an die hinterlegte Arbeitsadresse).
+1. Du bekommst eine Einladung per E-Mail (Konrad legt dich unter Admin → Verwaltung → Zugänge → „Teammitglied anlegen“ an und vergibt deine Rollen — seit 0250 auch für Personen, die noch kein Profil haben; die Mail geht an die hinterlegte Arbeitsadresse). **Hast du schon ein Konto im Portal** (z. B. als Speaker oder aus einem früheren Test), kommt keine Einladungsmail — deine Rollen sind trotzdem gesetzt; melde dich dann direkt wie unter 2. an.
 2. Anmelden auf `portal.chef-treff.de` mit deiner Arbeitsadresse: Magic Link, kein Passwort. Der Link gilt kurz und nur einmal; neu anfordern, wenn er abgelaufen ist.
 3. Nach dem Login landest du auf dem Einstieg deiner Rolle. Teammitglieder arbeiten im **Admin** (`/admin`), dort entscheiden Rollen und Abschnitte, was du siehst. Externe Portale (Talent, Speaker, Partner, Volunteers, Hackathon, Stage Leads) siehst du nur, wenn Konrad dir zusätzlich eine solche Rolle gibt — zum Testen aus Sicht eines Partners oder Speakers bitte bei ihm melden.
 

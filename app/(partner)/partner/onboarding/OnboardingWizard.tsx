@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { StepBar } from "@/components/ui/StepBar";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { useToast } from "@/components/ui/Toast";
-import { LogoWandEinwilligung } from "@/components/partner/LogoWandEinwilligung";
+import { LogoWandEinwilligung, type LogoWandTexte } from "@/components/partner/LogoWandEinwilligung";
 import {
   BeschreibungFelder,
   KundennummerInfo,
@@ -37,6 +37,7 @@ export function OnboardingWizard({
   overview,
   logos,
   industries,
+  einwilligung,
   locale,
   dateLocale,
   t,
@@ -50,6 +51,8 @@ export function OnboardingWizard({
   logos: Deliverable[];
   /** Vokabular `industry` (0138) — dieselben Werte wie das Swapcard-Feld „Branche". */
   industries: Record<string, string>;
+  /** Texte der Einwilligung zum Weißen des Logos (Wörterbuch `logoWandEinwilligung`). */
+  einwilligung: LogoWandTexte;
   locale: Locale;
   dateLocale: string;
   t: Strings;
@@ -248,7 +251,7 @@ export function OnboardingWizard({
                   return res.ok ? { ok: true } : { ok: false, key: res.key };
                 }}
                 dateLocale={dateLocale}
-                t={t.logoWall as unknown as Record<string, string>}
+                t={einwilligung}
                 rpcMessages={rpcMessages}
               />
             </div>
