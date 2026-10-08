@@ -196,41 +196,39 @@ export default async function PartnerDashboard() {
       has_allocations: o.ticket_allocations.length > 0,
     }),
   );
+  // PART-098 (Konrad 05.10.): die Karte trägt den **Namen des Bereichs** als Überschrift — Tickets,
+  // Event-App, Messeshop — und keine zweite darunter. Vorher stand ein Stichwort darüber („Zugang“,
+  // „Sichtbarkeit“, „Ausstattung“) und der Name des Bereichs noch einmal darunter.
   const einstiege = [
     sichtbar.has("tickets")
       ? {
           href: "/partner/tickets",
-          word: t.partner.wordAccess,
-          title: t.partnerTickets.title,
+          name: t.partnerTickets.title,
           body: t.partner.entryTicketsBody,
           action: t.partner.entryTicketsAction,
         }
       : {
           href: "/partner/kontakte",
-          word: t.partner.wordTeam,
-          title: t.partnerContacts.title,
+          name: t.partnerContacts.title,
           body: t.partner.entryTeamBody,
           action: t.partner.entryTeamAction,
         },
     {
       href: "/partner/event-app",
-      word: t.partner.wordVisibility,
-      title: t.partnerEventApp.title,
+      name: t.partnerEventApp.title,
       body: t.partner.entryEventAppBody,
       action: t.partner.entryEventAppAction,
     },
     sichtbar.has("shop")
       ? {
           href: "/partner/shop",
-          word: t.partner.wordEquipment,
-          title: t.partnerShop.title,
+          name: t.partnerShop.title,
           body: t.partner.entryShopBody,
           action: t.partner.entryShopAction,
         }
       : {
           href: "/partner/wiki",
-          word: t.wiki.word,
-          title: t.partner.navWiki,
+          name: t.partner.navWiki,
           body: t.partner.entryWikiBody,
           action: t.partner.entryWikiAction,
         },
@@ -269,13 +267,13 @@ export default async function PartnerDashboard() {
       {/* Die drei Einstiege (Talent-Muster, QS-037). Welche es sind, folgt
           aus dem, was dieser Partner sieht — dieselbe Regel wie das Menü
           (`visibleNavKeys`): eine Karte zu einer Seite, die es für ihn nicht
-          gibt, wäre ein Versprechen ins Leere. */}
+          gibt, wäre ein Versprechen ins Leere. Die Knöpfe stehen auf einer
+          Linie, auch bei verschieden langen Texten (PART-098, `PhotoCard`). */}
       <div className="mb-10 grid gap-6 sm:grid-cols-3">
         {einstiege.map((e) => (
           <PhotoCard
             key={e.href}
-            word={e.word}
-            title={e.title}
+            word={e.name}
             description={e.body}
             action={
               <ButtonLink href={e.href} variant="secondary" size="sm">
