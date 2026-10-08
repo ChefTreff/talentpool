@@ -100,6 +100,10 @@ export type AdminSectionKey =
   | "vocab"
   | "questionCatalog"
   | "mail"
+  | "mailSpeaker"
+  | "mailPartner"
+  | "mailParticipants"
+  | "mailVolunteers"
   | "persons"
   | "team"
   | "roles"
@@ -235,6 +239,14 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // also wer mit Bewerbungen arbeitet (wie `applications`) und das Partner-Team.
   { key: "questionCatalog", path: "/admin/fragenkatalog", roles: ["area_lead_talent", "talent_team", "programme_team", "area_lead_partner", "partner_team"] },
   { key: "mail", path: "/admin/mail", roles: [] },
+  // ADM-102: Mail-Vorlagen je Bereich. `mail` bleibt Protokoll, Test und die Kategorie System (nur admin); die Vorlagen der
+  // Bereiche bearbeiten die Teams selbst. Die Pfade führen auf die Vorlagenseite mit der Kategorie — ein Menüpunkt je
+  // Bereich folgt mit dem Design-Vorschlag (ADM-089). Dieselben Rollen stehen in `admin_section_role`
+  // (Vorschlag v6_mail_vorlagen_kategorie) und werden von `can_edit_mail_template()` gefragt.
+  { key: "mailSpeaker", path: "/admin/mail/vorlagen/speaker", roles: ["area_lead_speaker", "programme_team"] },
+  { key: "mailPartner", path: "/admin/mail/vorlagen/partner", roles: ["area_lead_partner", "partner_team"] },
+  { key: "mailParticipants", path: "/admin/mail/vorlagen/teilnehmer", roles: ["area_lead_talent", "talent_team", "marketing_team"] },
+  { key: "mailVolunteers", path: "/admin/mail/vorlagen/volunteers", roles: ["area_lead_volunteers", "volunteers_team"] },
 
   // Verwaltung (PORT4): Personen, Zugänge, Rechte — nur Konrad
   { key: "persons", path: "/admin/personen", roles: [] },

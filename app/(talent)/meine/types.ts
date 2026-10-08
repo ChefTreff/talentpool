@@ -28,6 +28,7 @@ export type ParticipationSession = {
   event_id: string;
   title_de: string | null;
   title_en: string | null;
+  format: string | null;
   language: string | null;
   access_mode: string | null;
   ticket_required: boolean | null;

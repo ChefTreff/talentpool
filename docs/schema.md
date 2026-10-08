@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-08 13:48 UTC · 124 Tabellen · 6 Views · 734 Funktionen
+> Stand: 2026-10-08 14:16 UTC · 124 Tabellen · 6 Views · 737 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2373,7 +2373,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `applications_overview` | p_event_id: uuid |
 | `apply_hackathon` | p_data: jsonb |
 | `apply_shift_templates` | p_day_ids: uuid[], p_edition_id: uuid, p_template_ids: uuid[] |
-| `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
+| `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_consent_version: text, p_language: text, p_session_id: uuid |
 | `apply_volunteer` | p_data: jsonb |
 | `approve_expense` | p_claim_id: uuid, p_note: text |
 | `approve_session_content` | p_overrides: jsonb, p_submission_id: uuid |
@@ -2800,6 +2800,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `register_speaker_asset` | p_filename: text, p_kind: text, p_mime: text, p_profile_id: uuid, p_session_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `reject_expense` | p_claim_id: uuid, p_note: text |
 | `reject_session_content` | p_note: text, p_submission_id: uuid |
+| `release_application_share` | p_application_id: uuid, p_language: text, p_version: text |
 | `release_decisions` | p_note: text, p_session_id: uuid |
 | `release_partner_session` | p_approved: boolean, p_note: text, p_session_id: uuid |
 | `remind_volunteer_tickets` | args: ? |
@@ -2822,6 +2823,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `restore_mail_template` | p_body_md: text, p_key: text, p_locale: text, p_subject: text |
 | `resync_deliverables` | p_edition_id: uuid |
 | `review_deliverable` | p_accepted: boolean, p_deliverable_id: uuid, p_note: text |
+| `revoke_application_share` | p_application_id: uuid |
 | `revoke_role` | p_assignment_id: uuid, p_note: text |
 | `roles_of_person` | p_person_id: uuid |
 | `run_application_housekeeping` | args: ? |
@@ -2843,6 +2845,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_change_state` | p_slot_id: uuid, p_title_de: text, p_title_en: text |
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
+| `session_needs_partner_share` | p_session_id: uuid |
 | `session_needs_release` | p_edition_id: uuid |
 | `session_owner_candidates` | p_event_id: uuid |
 | `session_responsibles` | p_event_id: uuid |

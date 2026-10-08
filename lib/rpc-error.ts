@@ -124,6 +124,8 @@ const BUSINESS_KEYS = new Set([
   "feedback_limit",
   "invalid_rating",
   "missing_field",
+  // Weitergabe an Partner (PART-129)
+  "consent_share_required",
   // Hackathon-Eckdaten (HACK-020)
   "invalid_range",
   "note_too_long",
