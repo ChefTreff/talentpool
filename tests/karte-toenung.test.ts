@@ -116,7 +116,8 @@ describe("Jeder Aufrufer, der einer Karte eine Fläche mitgibt, meint eine Tönu
     const frist = lies("components/ui/DeadlineCard.tsx");
     assert.match(frist, /text-accent-deep/);
     const hinweis = lies("app/(partner)/partner/shop/PhaseBanner.tsx");
-    assert.match(hinweis, /closed \? "text-warning-ink" : "text-accent-deep"/);
+    // Überschrift und Satz: beide wechseln mit dem Zustand zwischen Warn- und Akzentton.
+    assert.equal((hinweis.match(/closed \? "text-warning-ink" : "text-accent-deep"/g) ?? []).length, 2);
   });
 
   it("die Kit-Galerie zeigt die drei Karten: weiß, Hinweis, Warnung", () => {
