@@ -204,6 +204,7 @@
 | Welle 6 · 0277 | **Protokoll: Umschalter Personen/System, Anzeigenamen, Details (ADM-095)** (`20261008102418`, `v6_protokoll_umschalter`; Details im Migrationskopf) | — |
 | Welle 6 · 0278 | **Personenverwaltung: Suche, Filter, Stammdaten und Adressen bearbeiten (ADM-091, ADM-092)** (`20261008130845`, `v6_personen_verwaltung`; Details im Migrationskopf) | — |
 | Welle 6 · 0279 | **Einwilligungen je Person im Admin (ADM-096)** (`20261008131515`, `v6_einwilligungen_je_person`; Details im Migrationskopf) | — |
+| Welle 6 · 0280 | **Zusage-Mail wartet zehn Minuten, Rücknahme stoppt sie (PART-124)** (`20261008131805`, `v6_zusage_mail_verzoegert`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
