@@ -15,6 +15,7 @@ import { StammdatenBearbeiten } from "./StammdatenBearbeiten";
 import { EmailVerwaltung, type PersonEmail } from "./EmailVerwaltung";
 import { EinwilligungsTabelle, type Einwilligung } from "../../verwaltung/einwilligungen/EinwilligungsTabelle";
 import { neuesFenster } from "@/components/ui/neues-fenster";
+import { ZUSTAND_TON, aktuellerStand } from "@/lib/einwilligungen/stand";
 
 export const dynamic = "force-dynamic";
 
@@ -357,6 +358,17 @@ export default async function PersonDetail({
         {(einwilligungen ?? []).length === 0 ? (
           <p className="ct-small text-muted">{d.consentsNone}</p>
         ) : (
+          <>
+          {/* ADM-096: erst der aktuelle Stand je Art, darunter der Verlauf Zeile für Zeile. */}
+          <h3 className="ct-label mb-2 text-ink">{(t.consentsAdmin as Record<string, string>).currentTitle}</h3>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {aktuellerStand((einwilligungen ?? []) as Einwilligung[]).map((s) => (
+              <Badge key={s.type} tone={ZUSTAND_TON[s.state]}>
+                {vgroup(vocab, "consent_type")[s.type] ?? s.type}: {(t.consentsAdmin as Record<string, string>)[`state_${s.state}`]}
+              </Badge>
+            ))}
+          </div>
+          <h3 className="ct-label mb-2 text-ink">{(t.consentsAdmin as Record<string, string>).historyTitle}</h3>
           <EinwilligungsTabelle
             zeilen={(einwilligungen ?? []) as Einwilligung[]}
             typen={vgroup(vocab, "consent_type")}
@@ -364,6 +376,7 @@ export default async function PersonDetail({
             dateLocale={t.meta.dateLocale}
             t={t.consentsAdmin as Record<string, string>}
           />
+          </>
         )}
       </Card>
 
