@@ -6,6 +6,31 @@ import type { ManagedSpeaker } from "@/app/(speaker-leads)/speaker-leads/types";
 /** Die Liste ist dieselbe wie im Lead-Portal — nur sieht das Team hier alle. */
 export type AdminSpeakerRow = ManagedSpeaker;
 
+/**
+ * Eine Zeile von `partner_created_speakers()` (ADM-084): ein von einem Partner angelegter Speaker mit Partner, Zuteilung und
+ * Programmpunkten. `is_new` sagt die Datenbank (Betreuung fehlt oder Stand noch `lead`), die Oberfläche rechnet es nicht nach.
+ * Bewusst ohne E-Mail, Telefon und Notizen — die Funktion liefert sie nicht.
+ */
+export type PartnerSpeakerRow = {
+  profile_id: string;
+  person_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  job_title: string | null;
+  organization_name: string | null;
+  partner_org_id: string;
+  partner_name: string | null;
+  pipeline_status: string;
+  owner_person_id: string | null;
+  owner_name: string | null;
+  lead_contact_id: string | null;
+  buddy_contact_id: string | null;
+  buddy_name: string | null;
+  sessions: { title_de: string | null; title_en: string | null; stage_name: string | null; start_at: string | null }[];
+  created_at: string;
+  is_new: boolean;
+};
+
 /** Ein Slot oder eine Session, an der der Speaker hängt. */
 export type DetailSession = {
   session_id: string;

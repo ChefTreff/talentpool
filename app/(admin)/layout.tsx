@@ -13,6 +13,8 @@ import {
   type FreigabeArt,
 } from "@/lib/freigaben";
 import { ladeFreigabeZaehler } from "@/lib/freigaben-server";
+import { NEUE_SPEAKER_PFAD, neueSpeakerNavigation } from "@/lib/neue-speaker";
+import { ladeNeueSpeakerZahl } from "@/lib/neue-speaker-server";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +65,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   // scheitert er, bleibt die Leiste, wie sie war. Nach einer Aktion auf der Seite aktualisiert `router.refresh()`
   // auch die Leiste (Layouts gehören zum Baum, den es neu holt).
   const zusatz: Record<string, NavZusatz> = {};
+  // ADM-084: neue Speaker von Partnern — die Zahl am Punkt „Speaker“, nur für wen den Abschnitt öffnen darf. Der Aufruf
+  // startet hier, vor dem Warten auf die Freigaben, damit die beiden Zähler nicht hintereinander laufen; er fängt seine
+  // Fehler selbst ab (fehlende Funktion, kein Recht ⇒ `null` ⇒ die Leiste bleibt, wie sie war).
+  const neueSpeaker = offen.has("speakers") ? ladeNeueSpeakerZahl() : null;
   if (FREIGABE_ABSCHNITTE.some((k) => offen.has(k))) {
     const freigaben = freigabeNavigation(await ladeFreigabeZaehler(), {
       tab: Object.fromEntries(
@@ -71,6 +77,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       offen: t.adminApprovals.openCount,
     });
     if (freigaben) zusatz[FREIGABE_PFAD] = freigaben;
+  }
+  if (neueSpeaker) {
+    const neu = neueSpeakerNavigation(await neueSpeaker, (n) => `${n} ${t.adminSpeaker.newCountLabel}`);
+    if (neu) zusatz[NEUE_SPEAKER_PFAD] = neu;
   }
 
   const groups: SidebarGroup[] = sichtbareNavigation((k) => offen.has(k), nav, zusatz);
