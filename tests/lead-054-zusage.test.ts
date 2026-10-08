@@ -117,9 +117,11 @@ describe("LEAD-054: Oberfläche", () => {
     assert.match(f, /\{nachZusage && !gast && \(\s+<Block\s+id="fenster-onboarding"/);
     assert.match(f, /\{nachZusage && !gast && \(\s+<Block\s+id="fenster-hospitality"/);
     assert.match(f, /\{nachZusage && \(\s+<Block\s+id="fenster-programm"/);
-    // die zwei Haken (Reception, Reisekosten vorgesehen) und die Team-Felder gehören zu Hospitality
+    // der Haken „Reisekosten vorgesehen“ und die Team-Felder gehören zu Hospitality; das Reception-Kennzeichen ist mit den Side Events
+    // (ADM-077) entfallen — die Einladung ersetzt es
     const hospitality = f.slice(f.indexOf('id="fenster-hospitality"'), f.indexOf('id="fenster-programm"'));
-    assert.ok(hospitality.includes("draft.reception_eligible") && hospitality.includes("draft.travel_costs_covered"));
+    assert.ok(hospitality.includes("draft.travel_costs_covered"));
+    assert.ok(!f.includes("draft.reception_eligible"), "kein Reception-Kennzeichen mehr im Fenster");
     assert.match(hospitality, /\{isTeam \? \(/);
     assert.ok(hospitality.indexOf("draft.pass_type") > hospitality.indexOf("{isTeam ? ("), "Team-Felder nur für das Team");
     // Grunddaten und Pipeline stehen immer da (kein Block vor ihnen bedingt)

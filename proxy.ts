@@ -21,7 +21,10 @@ const PUBLIC_PATHS = ["/", "/login", "/tickets/bestaetigung", "/api/csp-report",
 // ohne Ausnahme würde der Proxy beide zum Login umleiten.
 // `/api/award/`: Bewerbung und Stimme — die Routen rufen nur Server-Funktionen, die Frist, Status und
 // Ratenbegrenzung selbst prüfen (ADM-024).
-const PUBLIC_PREFIXES = ["/auth/", "/api/cron/", "/api/webhooks/", "/api/award/"];
+// `/side-event/` und `/api/side-event/`: der Link aus der Einladungsmail zu einem Side Event (ADM-077, SPK-091) — Zu- oder Absage ohne
+// Login. Der Token im Pfad ist die Berechtigung; die Seite zeigt nur an, die Route antwortet nur auf POST, und beide fragen
+// `side_event_respond_by_token` (Server-Funktion: Token, Eventbeginn, Frist, Kapazität, Ratenbegrenzung).
+const PUBLIC_PREFIXES = ["/auth/", "/api/cron/", "/api/webhooks/", "/side-event/", "/api/side-event/", "/api/award/"];
 
 function isPublic(pathname: string): boolean {
   return (
