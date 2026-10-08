@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { aufzaehlung, ticketCodes } from "@/components/partner/ticket-codes";
 import { TicketCard } from "@/components/ui/TicketCard";
 import { DeadlineCard } from "@/components/ui/DeadlineCard";
 import { Field } from "@/components/ui/Field";
@@ -15,6 +16,7 @@ import { cn } from "@/components/ui/cn";
 import { requestTicketIncrease } from "../actions";
 import { REQUEST_PASS_TYPES, type TicketAllocationRow, type TicketRequestRow } from "../types";
 import { neuesFenster } from "@/components/ui/neues-fenster";
+import { ticketHinweise } from "@/components/partner/ticket-hinweise";
 
 type Strings = Record<string, string>;
 
@@ -100,6 +102,8 @@ export function TicketView({
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
   const datum = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
   const passLabel = (key: string) => passTypes[key] ?? key;
+  // PART-111: ein Code für alle Kategorien — gezeigt wird er einmal, mit dem, was er freischaltet.
+  const codes = ticketCodes(allocations);
 
   async function onCopy(code: string) {
     try {
@@ -206,6 +210,21 @@ export function TicketView({
         </Card>
       )}
 
+      {/* PART-112 (Konrad und Leopold, 05.10.): zwei Hinweise vorab — jede Person braucht ein eigenes Ticket, und
+          mehr Tickets fürs Standpersonal gibt es über „Mehr Tickets anfragen“. Beide standen schon auf der Seite,
+          aber klein, als Aufzählung ganz unten unter der Anleitung (PART-071) und im Einleitungstext. Jetzt stehen
+          sie oben, als Hinweisfläche in der Akzentfarbe (wie `Rueckgabe` in Warnfarbe): Information, keine Aktion
+          und keine zweite Frist. Keine `Card` mit `bg-accent-soft` — `bg-surface` der Karte gewinnt im erzeugten
+          CSS, die Fläche bliebe weiß. Den zweiten Hinweis gibt es nur mit dem Knopf, auf den er zeigt (`canRequest`). */}
+      <div role="note" className="rounded-ct-lg border border-accent-soft bg-accent-soft px-6 py-4">
+        <h2 className="ct-h3 text-accent-deep">{t.hintsTitle}</h2>
+        <ul className="ct-small mt-2 flex list-disc flex-col gap-1 pl-5 leading-6 text-accent-deep">
+          {ticketHinweise(t, canRequest).map((hinweis) => (
+            <li key={hinweis}>{hinweis}</li>
+          ))}
+        </ul>
+      </div>
+
       {/* PART-066: die Frist als grosse, laufende Zahl. */}
       {dueAt && dueText && (
         <DeadlineCard
@@ -224,43 +243,69 @@ export function TicketView({
         />
       )}
 
-      {/* PART-068: Kontingente nebeneinander, bis zu vier. */}
-      <ul className={cn("grid gap-6", SPALTEN[Math.min(Math.max(allocations.length, 1), 4)])}>
-        {allocations.map((a) => (
-          <li key={a.id}>
-            <TicketCard
-              passType={t.allocationEyebrow}
-              title={passLabel(a.pass_type)}
-              count={`${a.used_count} / ${a.quantity}`}
-              countLabel={t.used}
-              status={
-                <Badge tone={TONE[a.status] ?? "neutral"}>
-                  {t[`status_${a.status}`] ?? a.status}
-                </Badge>
-              }
-              footer={
-                a.status === "active" && a.coupon_code ? (
-                  <div>
-                    <p className="ct-label text-ink">{t.code}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <code className="break-all rounded-ct-sm border bg-surface-hover px-2 py-1 ct-small">
-                        {a.coupon_code}
-                      </code>
-                      <Button size="sm" variant="secondary" onClick={() => onCopy(a.coupon_code!)}>
-                        {copied === a.coupon_code ? t.copied : t.copy}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  // `pending_vivenu` und `error` sehen für den Partner gleich
-                  // aus: die Menge steht, der Code kommt noch (Kontrakt B5).
-                  <p className="ct-help">{t.codesPending}</p>
-                )
-              }
-            />
-          </li>
-        ))}
-      </ul>
+      {/* PART-111 (Konrad 05.10.: „nur ein Code“): der Code steht einmal da, mit den Kategorien, die er
+          freischaltet, und dem Weg in den Shop direkt darunter (PART-110: „sonst sucht man ihn“). Der
+          Knopf ist hier `secondary`: der primäre sitzt oben in der Knopfreihe, und eine Seite hat eine
+          primäre Aktion. Gibt es noch keinen Code, steht an seiner Stelle der Satz, dass er kommt — nicht
+          auf jeder Karte darunter noch einmal. */}
+      {codes.length === 0 ? (
+        <Card>
+          <CardHeader ebene="h2" title={t.codeTitle} description={t.codesPending} />
+        </Card>
+      ) : (
+        codes.map((c, i) => (
+          <Card key={c.code}>
+            <CardHeader ebene="h2" title={i === 0 ? t.codeTitle : t.codeTitleMore} description={t.codeBody} />
+            <div className="flex flex-wrap items-center gap-3">
+              <code className="ct-h3 break-all rounded-ct-sm border bg-surface-hover px-3 py-2 tabular-nums">{c.code}</code>
+              <Button size="sm" variant="secondary" onClick={() => onCopy(c.code)}>
+                {copied === c.code ? t.copied : t.copy}
+              </Button>
+            </div>
+            <p className="ct-help mt-3">
+              {t.codeCovers.replace("{types}", aufzaehlung(c.passTypes.map(passLabel), dateLocale))}
+            </p>
+            {shopUrl && (
+              <div className="mt-4">
+                <ButtonLink href={shopUrl} variant="secondary" {...neuesFenster}>
+                  {t.toShop}
+                </ButtonLink>
+              </div>
+            )}
+          </Card>
+        ))
+      )}
+
+      {/* PART-068: Kontingente nebeneinander, bis zu vier — seit PART-111 die Übersicht „eingelöst von
+          Menge“ je Kategorie, ohne eigenen Code. */}
+      <section aria-labelledby="h-kontingente">
+        <h2 id="h-kontingente" className="ct-h2 mb-3 text-ink">
+          {t.allocationsTitle}
+        </h2>
+        <ul className={cn("grid gap-6", SPALTEN[Math.min(Math.max(allocations.length, 1), 4)])}>
+          {allocations.map((a) => (
+            <li key={a.id}>
+              <TicketCard
+                passType={t.allocationEyebrow}
+                title={passLabel(a.pass_type)}
+                count={`${a.used_count} / ${a.quantity}`}
+                countLabel={t.used}
+                status={
+                  <Badge tone={TONE[a.status] ?? "neutral"}>
+                    {t[`status_${a.status}`] ?? a.status}
+                  </Badge>
+                }
+                footer={
+                  // `pending_vivenu` und `error` sehen für den Partner gleich aus: die Menge steht, der
+                  // Code kommt noch (Kontrakt B5). Gibt es schon einen Code, kommt diese Kategorie unter
+                  // denselben; gibt es noch keinen, sagt es die Karte „Euer Code“ oben.
+                  a.status !== "active" && codes.length > 0 ? <p className="ct-help">{t.rowPending}</p> : undefined
+                }
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {/* PART-070: was angefragt wurde und wie es steht. Nur mit Anfragen —
           eine leere Sektion wäre eine Frage ohne Anlass. */}
@@ -311,10 +356,8 @@ export function TicketView({
             <p className="ct-small mt-1 leading-6">{t.step2Body}</p>
           </li>
         </ol>
-        <ul className="ct-small mt-4 flex list-disc flex-col gap-1 pl-5 leading-6">
-          <li>{t.ruleCodes}</li>
-          <li>{t.ruleOwnTicket}</li>
-        </ul>
+        {/* „Jede Person braucht ein eigenes Ticket“ steht seit PART-112 oben bei den Hinweisen. */}
+        <p className="ct-small mt-4 leading-6">{t.ruleCodes}</p>
       </section>
     </div>
   );

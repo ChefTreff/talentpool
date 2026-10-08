@@ -30,6 +30,8 @@
  *   … --apply --nur=tour-bewerbung (PART-046: Bewerbungen auf die TEST-Tour ohne Mail,
  *                                   Konrad zugesagt, TEST-Person ohne Einwilligung;
  *                                   PART-092: Konrads Bewerbung als Wunsch des Stopps;
+ *                                   PART-122: zweite TEST-Person mit Einwilligung und
+ *                                   vollem Profil für das Schubfach;
  *                                   braucht den Schritt tour)
  *   … --apply --nur=bewerbungen    (ADM-003: drei TEST-Masterclasses mit je 20 TEST-
  *                                   Bewerbungen ohne Mail, jede dritte ohne Einwilligung —
@@ -715,8 +717,10 @@ async function apply(me, ed) {
 }
 
 /**
- * Ein Kontingent je Pass-Typ, damit `/partner/tickets` Codes, Einlöse-Stand
- * **und** den Weg „mehr anfragen" zeigt.
+ * Ein Kontingent je Pass-Typ, damit `/partner/tickets` den Code, den Einlöse-Stand je Kategorie
+ * **und** den Weg „mehr anfragen" zeigt. **Alle Kontingente tragen denselben Code** — seit PART-111
+ * (Konrad 05.10.: „nur ein Code“) teilen sich die Kontingente einer Organisation und Rabattstufe einen
+ * Coupon, und `/partner/tickets` zeigt ihn einmal.
  *
  * Wichtig: `synced_at` wird gesetzt. `ticket_allocations_pending()` nimmt alles
  * mit, was `status in ('pending_vivenu','error')` **oder** `synced_at is null`
@@ -739,7 +743,7 @@ async function ticketAllocation(me, ed, orgId) {
       return admin.from("org_ticket_allocation").insert({
         event_id: ed.id, org_id: orgId, org_edition_id: oe?.id ?? null,
         pass_type: p.pass_type, quantity: p.quantity,
-        coupon_code: `FLS27-${PREFIX_CODE}-${p.pass_type.toUpperCase()}`,
+        coupon_code: `FLS27-${PREFIX_CODE}`,
         used_count: 0, status: "active", synced_at: new Date().toISOString(), notes: MARK,
       }).select("id").single();
     });
@@ -1799,16 +1803,18 @@ async function talkSpeaker(me, ed) {
 /**
  * Schritt `tour-bewerbung` (PART-046): zwei Bewerbungen auf die TEST-Tour, damit
  * `/partner/company-tour` → Bewerbungen und Teilnehmende etwas zeigen — Konrad
- * mit Einwilligung und zugesagt (steht unter Teilnehmende) und eine TEST-Person
- * ohne Einwilligung (Zeile ohne Namen). Dazu eine TEST-Frage der Tour-Session,
- * damit die Antwort mit Fragetext erscheint.
+ * mit Einwilligung und zugesagt (steht unter Teilnehmende), eine TEST-Person
+ * ohne Einwilligung (Zeile ohne Namen) und, seit PART-122, eine zweite TEST-Person
+ * mit Einwilligung und vollem Profil (Status, Hochschule, Fach, Ort, LinkedIn):
+ * ihr Name öffnet das Schubfach mit dem Profil. Dazu eine TEST-Frage der
+ * Tour-Session, damit die Antwort mit Fragetext erscheint.
  *
  * **Ohne Mail:** der Status `applied` löst über `trg_application_mail` die Mail
  * `application_received` aus. Deshalb `accepted` und `shortlisted` — solange die
  * Entscheidungen der Session nicht freigegeben sind, geht dabei nichts raus; sind
  * sie es, bricht der Schritt ab. Braucht den Schritt `tour`.
  */
-const tourBewerbungAdresse = () => email.replace("@", "+zztest-tour-1@");
+const tourBewerbungAdresse = (n = 1) => email.replace("@", `+zztest-tour-${n}@`);
 
 async function tourBewerbung(me, ed) {
   const { data: se } = await admin.from("session").select("id")
@@ -1823,7 +1829,7 @@ async function tourBewerbung(me, ed) {
     return;
   }
   if (mode === "dry-run") {
-    note("Tour-Bewerbungen (Konrad zugesagt mit Einwilligung, TEST-Person vorgemerkt ohne Einwilligung, TEST-Frage)");
+    note("Tour-Bewerbungen (Konrad zugesagt mit Einwilligung, TEST-Person vorgemerkt ohne Einwilligung, TEST-Person vorgemerkt mit Einwilligung und Profil, TEST-Frage)");
     return;
   }
   const frageText = `${PREFIX}Was interessiert dich an der Tour?`;
@@ -1856,6 +1862,30 @@ async function tourBewerbung(me, ed) {
     admin.from("application").upsert(
       { session_id: se.id, person_id: personId, status: "shortlisted",
         answers: { [frage.id]: "Bitte nicht weitergeben." }, consent_share: false },
+      { onConflict: "session_id,person_id" },
+    ),
+  );
+
+  // PART-122: die zweite TEST-Person — mit Einwilligung und vollem Profil, damit das Schubfach etwas zeigt:
+  // Status und Fach als Vokabel-Schlüssel (das Portal setzt die Beschriftung ein), Hochschule und Ort als Freitext,
+  // dazu eine LinkedIn-Adresse. Die Angaben stehen nur an TEST-Personen ohne Konto.
+  const { data: profilPersonId, error: ppe } = await admin.rpc("testdaten_person", {
+    p_first_name: "TEST", p_last_name: "Tourbewerbung Profil", p_email: tourBewerbungAdresse(2),
+  });
+  if (ppe || !profilPersonId) {
+    fail("Tour-Bewerbung mit Profil (TEST-Person)", ppe ?? "keine Person");
+    return;
+  }
+  await write("TEST-Angaben im Profil der Tour-Bewerberin (Status, Hochschule, Fach, Ort, LinkedIn)", () =>
+    admin.from("person").update({
+      occupation_status: "master", study_field: "business", university: `${PREFIX}Hochschule`,
+      city: `${PREFIX}Stadt`, linkedin_url: "https://www.linkedin.com/in/zztest",
+    }).eq("id", profilPersonId).eq("first_name", "TEST").is("auth_user_id", null),
+  );
+  await write("TEST-Bewerbung mit Einwilligung und Profil (vorgemerkt)", () =>
+    admin.from("application").upsert(
+      { session_id: se.id, person_id: profilPersonId, status: "shortlisted",
+        answers: { [frage.id]: "Ich möchte sehen, wie ein Stopp der Tour vorbereitet wird." }, consent_share: true },
       { onConflict: "session_id,person_id" },
     ),
   );
@@ -3917,11 +3947,12 @@ async function remove(me) {
   // PART-091: der verwaltete TEST-Speaker. Profil, Kontakt und Zuordnung hängen mit
   // ON DELETE CASCADE an der Person; Konrads Rolle `speaker_assistant` geht mit den Rollen.
   // PART-046: die TEST-Person der Tour-Bewerbung; ihre Bewerbung hängt mit ON DELETE CASCADE an ihr.
-  await write("Tour-Bewerbung ohne Einwilligung entfernt", async () => {
-    const { data: adresse } = await admin.from("person_email").select("person_id")
-      .eq("email", tourBewerbungAdresse()).maybeSingle();
-    if (!adresse) return { data: null, error: null };
-    return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
+  await write("Tour-Bewerbungen der TEST-Personen entfernt (ohne Einwilligung, mit Profil)", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", [1, 2].map((n) => tourBewerbungAdresse(n)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
   // ADM-003: die TEST-Personen der Bewerbungsliste; ihre Bewerbungen hängen mit ON DELETE CASCADE
   // an ihnen, die Sessions gehen oben mit dem Präfix.

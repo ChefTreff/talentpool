@@ -5,6 +5,7 @@ import { ButtonDownload } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApplicantList } from "@/components/partner/ApplicantList";
+import { PROFIL_VOKABULARE } from "@/components/partner/bewerbung";
 import { antwortenMitText } from "@/components/partner/fragen";
 import { decideApplication } from "./actions";
 import { ladeFragen } from "./bewerbungen";
@@ -62,6 +63,7 @@ export async function FormatBewerbungen({
   ]);
   const freigegeben = new Map(((freigabeZeilen ?? []) as PartnerSession[]).map((x) => [x.id, x.released]));
   const statusLabels = vgroup(vocab, "application_status");
+  const profilWerte = Object.fromEntries(PROFIL_VOKABULARE.map((v) => [v, vgroup(vocab, v)]));
   const ergebnisse = await Promise.all(
     sessions.map(async (x) => ({
       bewerbungen: await supabase.rpc("partner_applications", { p_session_id: x.id }),
@@ -118,6 +120,7 @@ export async function FormatBewerbungen({
               <ApplicantList
                 applications={zeilen}
                 statusLabels={statusLabels}
+                profilWerte={profilWerte}
                 decide={!nurTeilnehmende && canEdit ? decideApplication : undefined}
                 dateLocale={t.dateLocale}
                 t={t.applicants}
