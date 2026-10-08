@@ -13,8 +13,9 @@ import { ladeTeamEin } from "./actions";
 
 /**
  * Teammitglied anlegen und einladen (QS-056). Name, Arbeitsadresse, Rollen für
- * die Edition — ein Klick legt an, vergibt die Rollen und schickt den Magic
- * Link. Admin ist hier keine Wahl: das bleibt eine bewusste Entscheidung unter
+ * die Edition — ein Klick legt an, vergibt die Rollen und verschickt die Mail: neue
+ * Personen bekommen den Anmelde-Link, Personen mit Konto (ADM-086) eine
+ * Hinweismail „Du bist jetzt im Team". Admin ist hier keine Wahl: das bleibt eine bewusste Entscheidung unter
  * Verwaltung → Team. Vor dem Absenden eine Rückfrage, weil eine Mail rausgeht.
  */
 export function TeamEinladung({
@@ -48,7 +49,8 @@ export function TeamEinladung({
       setFrage(false);
       if (!r.ok) { setFehler(rpcMessages[r.key] ?? rpcMessages.unknown ?? r.key); return; }
       setFehler(null);
-      toast("success", (r.eingeladen ? t.teamInvited : t.teamRolesOnly).replace("{email}", r.email));
+      const text = r.eingeladen ? t.teamInvited : r.mail === "queued" ? t.teamMailQueued : r.mail === "suppressed" ? t.teamMailSuppressed : t.teamRolesOnly;
+      toast("success", text.replace("{email}", r.email));
       setVorname(""); setNachname(""); setEmail(""); setGewaehlt([]);
       router.refresh();
     });

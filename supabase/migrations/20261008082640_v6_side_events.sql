@@ -1,3 +1,5 @@
+-- 0270 · Side Events: aus der Reception wird eine Einladungsliste (ADM-077, SPK-091)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008082640.
 -- NNNN · Side Events: aus der Reception wird eine Einladungsliste (ADM-077, SPK-091, Konrad und Paulina 05.10.2026)
 --
 -- Anlass: Feedbackrunde 05.10. — „Reception“ wird „Side Events“: mehrere speakerrelevante Veranstaltungen je Edition, Speaker

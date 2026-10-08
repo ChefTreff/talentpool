@@ -123,8 +123,11 @@ export async function legeGeraetAn(label: string, email: string, editionId: stri
   return { ok: true, eingeladen: true, email: r.email };
 }
 
+/** `queued`: Hinweismail an eine Person mit Konto steht in der Warteschlange; `suppressed`: Adresse gesperrt; `none`: keine neue Rolle oder keine Mail nötig. */
+export type TeamMail = "queued" | "suppressed" | "none";
+
 export type TeamErgebnis =
-  | { ok: true; neu: boolean; eingeladen: boolean; email: string }
+  | { ok: true; neu: boolean; eingeladen: boolean; email: string; mail: TeamMail }
   | { ok: false; key: string; detail?: string };
 
 /**
@@ -134,6 +137,11 @@ export type TeamErgebnis =
  *    Team-Rollen ohne `admin`, legt Person und Rollen für die Edition an, Audit.
  * 2. Hat die Person noch kein Login, geht die Einladung an **die Adresse aus
  *    der Datenbank** — wie bei `ladeEin`, nie an die eingetippte.
+ * 3. Hat sie schon eines (ADM-086), schickt Supabase nichts; deshalb queued
+ *    `create_team_member` selbst die Mail „Du bist jetzt im Team" (Vorlage
+ *    `team_member_added`, nur bei neu vergebenen Rollen, Adresse aus der
+ *    Datenbank, Audit ohne Klartext-Adresse). Die Antwort sagt in `mail`, was
+ *    daraus wurde — der Hinweis im Admin nennt den Mailversand.
  */
 export async function ladeTeamEin(
   vorname: string,
@@ -152,11 +160,11 @@ export async function ladeTeamEin(
     if (f.key === "unknown") console.error("[zugaenge] create_team_member:", f.raw);
     return { ok: false, key: f.key, detail: f.detail };
   }
-  const r = data as { person_id: string; email: string; created: boolean; has_login: boolean };
+  const r = data as { person_id: string; email: string; created: boolean; has_login: boolean; mail?: TeamMail };
   revalidatePath(PFAD);
-  if (r.has_login) return { ok: true, neu: r.created, eingeladen: false, email: r.email };
+  if (r.has_login) return { ok: true, neu: r.created, eingeladen: false, email: r.email, mail: r.mail ?? "none" };
   const einladung = await ladeEin(r.person_id);
   if (!einladung.ok) return { ok: false, key: einladung.key, detail: einladung.detail };
-  return { ok: true, neu: r.created, eingeladen: true, email: r.email };
+  return { ok: true, neu: r.created, eingeladen: true, email: r.email, mail: "none" };
 }
 
