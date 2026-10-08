@@ -82,8 +82,10 @@ export default async function PartnerLayout({ children }: { children: ReactNode 
   // Zwei Gruppen für die Arbeit am Summit und an den eigenen Formaten
   // (PART-042, Konrad 17.09.). Eine Gruppe ohne Einträge wird nicht gezeigt:
   // „Eure Formate" erscheint nur bei einem Partner, der welche gebucht hat.
+  // Die erste Gruppe trägt keine Überschrift, wie in den anderen Portalen: seit
+  // QS-076 heißt ihr erster Punkt „Home“, und „Home“ über „Home“ wäre doppelt.
   const groups: SidebarGroup[] = [
-    { label: t.partner.groupOverview, items: pick(NAV_GROUPS.overview) },
+    { label: "", items: pick(NAV_GROUPS.overview) },
     { label: t.partner.groupCompany, items: pick(NAV_GROUPS.company) },
     { label: t.partner.groupSummit, items: pick(NAV_GROUPS.summit) },
     { label: t.partner.groupFormats, items: pick(NAV_GROUPS.formats) },
