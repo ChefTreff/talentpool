@@ -1438,3 +1438,9 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **ADM-100 / „Allgemeine Zeiten und Auskünfte“:** `edition_info` hat live 0 Zeilen und wurde nie genutzt → Empfehlung an Konrad: Karte und Tabelle abschaffen (Migration nach seinem Go).
 - Testdaten `--nur=sperrzeit` ist nach Konrads Ja im Speaker-Chat live gelaufen (Sperrzeit „TEST — Opening“, Bühne „TEST — Bühne nur Tag 1“).
 
+## 2026-10-08 — #377 gemergt und deployt (ein Ticket-Code je Gruppe), #382 gemergt (ADM-104), Auskünfte werden gestrichen
+
+- **#377** (Partner-Chat, PART-111, main 6c844f69, Vercel success): ein Coupon je (Organisation, Edition, Rabattstufe); Altbestand wird auf den ersten Coupon gebracht, übrige abgeschaltet („… · ersetzt“, Audit `ticket.coupon_retired`); Portal „Euer Code“ mit Kopieren und Shop-Link, Kontingente je Kategorie darunter; Admin-Tabelle je Gruppe. Erster echter Lauf über den Cron (alle 30 Minuten) führt die zwei Testorganisationen zusammen — Partner-Chat liest nach, Konrad prüft die Sicht. Texte `partnerTickets.lead`/Stat-Labels bleiben vorerst.
+- **#382** (Admin-Chat, ADM-104, main 404f42d7): „Wieder veröffentlichen“ bei archivierten Wiki-Artikeln über den bestehenden RPC `publish_kb_article` (gleiche Rechteprüfung, Audit `kb.published`); kein neuer Schreibweg. Der Admin-Chat ist seit dem späten Nachmittag wieder erreichbar und arbeitet sein Startpaket ab (PART-116 Befund, dann Runde 08.10. nachmittags).
+- **Konrad 08.10.:** „Allgemeine Zeiten und Auskünfte erstmal streichen“ → ADM-100: Migrationsvorschlag `v6_auskuenfte_weg` des Admin-Chats (Tabelle `edition_info` mit 0 Zeilen, zugehörige Funktionen, Karte, Wörterbuch; Prüfung, dass keine Portalseite mehr liest).
+
