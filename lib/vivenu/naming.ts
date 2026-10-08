@@ -30,20 +30,26 @@ export function undershopName(editionSlug: string, orgName: string): string {
   return `${editionSlug.toUpperCase()} · ${orgName}`.slice(0, 80);
 }
 
-export function couponCode(
+/**
+ * Der Code einer Kontingent-Gruppe (PART-111): **ein** Code je Organisation, Edition und Rabattstufe —
+ * nicht mehr je Kategorie. Er schaltet den Undershop des Partners frei und gilt für alle Kategorien,
+ * die die Organisation gebucht hat; wie viele es von jeder gibt, hält der Shop.
+ *
+ * Der Satz steht im Code, damit ein Mensch ihn erkennt — eindeutig ist der Code schon durch den
+ * Zufallsteil. Bei 100 % entfällt er. Codes aus der Zeit je Kategorie (`FLS27-ORG-PART-…`) bleiben
+ * gültig: der Lauf behält den vorhandenen Coupon einer Gruppe und erweitert ihn, statt einen neuen
+ * Code zu erzeugen.
+ */
+export function gruppenCode(
   editionSlug: string,
   orgSlug: string | null,
   orgName: string,
-  passType: string,
   discountPercent = 100,
 ): string {
   const org = (orgSlug ?? orgName).toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 10) || "PARTNER";
   const rnd = randomBytes(3).toString("hex").toUpperCase();
-  // Der Satz steht im Code, damit ein Mensch ihn erkennt — eindeutig ist der
-  // Code schon durch den Zufallsteil. Bei 100 % bleibt die bisherige Form, sonst
-  // aenderten sich die Codes aller bestehenden Kontingente.
   const satz = discountPercent === 100 ? "" : `-${discountPercent}`;
-  return `${editionSlug.toUpperCase()}-${org}-${passType.toUpperCase().slice(0, 4)}${satz}-${rnd}`;
+  return `${editionSlug.toUpperCase()}-${org}${satz}-${rnd}`;
 }
 
 export type UnderShopLike = { _id?: string; name?: string; url?: string; shopUrl?: string };
