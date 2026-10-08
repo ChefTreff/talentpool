@@ -3,6 +3,7 @@
 import { useState, type HTMLAttributeReferrerPolicy } from "react";
 import { Button } from "./Button";
 import { cn } from "./cn";
+import { EMBED_SANDBOX } from "./embed-sandbox";
 import { neuesFenster } from "./neues-fenster";
 
 /**
@@ -15,10 +16,12 @@ import { neuesFenster } from "./neues-fenster";
  * Der Hinweis darüber ist keine Formalie, sondern die Bedingung dafür, dass
  * der Klick eine Entscheidung ist: er sagt, an wen die Daten gehen.
  *
- * Die Vorgaben sind die enge Fassung für Loom-Videos. Ein Anbieter, der mehr
- * braucht (der Matterport-Rundgang: Speicher, Vollbild, Herkunftsangabe),
- * setzt die optionalen Eigenschaften — jede Lockerung steht dann dort, wo der
- * Anbieter eingebunden wird, mit ihrem Grund, nicht hier als neue Vorgabe.
+ * Die Vorgaben sind die enge Fassung für Loom-Videos (Sandbox: `EMBED_SANDBOX`,
+ * seit K-76 mit `allow-same-origin` — der Player startet sonst nicht). Ein
+ * Anbieter, der mehr braucht (der Matterport-Rundgang: Speicher, Vollbild,
+ * Herkunftsangabe), setzt die optionalen Eigenschaften — jede weitere Lockerung
+ * steht dann dort, wo der Anbieter eingebunden wird, mit ihrem Grund, nicht
+ * hier als neue Vorgabe.
  */
 export function EmbedGate({
   src,
@@ -28,7 +31,7 @@ export function EmbedGate({
   notice,
   openLabel,
   className,
-  sandbox = "allow-scripts allow-presentation",
+  sandbox = EMBED_SANDBOX,
   allow,
   ratio = "aspect-video",
   referrer = "no-referrer",
@@ -47,8 +50,9 @@ export function EmbedGate({
   openLabel: string;
   className?: string;
   /**
-   * Sandbox des Rahmens. Vorgabe: ohne `allow-same-origin`, damit der Rahmen
-   * von unserem Ursprung getrennt bleibt; das Video braucht es nicht.
+   * Sandbox des Rahmens. Vorgabe: `EMBED_SANDBOX` — Skripte und Vollbild-Präsentation, dazu `allow-same-origin`:
+   * der Loom-Player startet ohne es nicht (K-76, PART-115). Es meint die Herkunft des Rahmens, nicht unsere;
+   * warum das trägt und was nicht dazukommt, steht bei der Konstante.
    */
   sandbox?: string;
   /** Berechtigungen für den Rahmen (`allow`), z. B. „fullscreen; xr-spatial-tracking“. */
