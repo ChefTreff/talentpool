@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 
@@ -16,6 +16,9 @@ export type Treffer = { id: string; name: string; hint: string | null };
  * **Gewählt ist, was als Karte darüber steht**, nicht was im Feld steht: das
  * Feld ist zum Suchen da. Wer eine Auswahl ändern will, nimmt sie erst weg —
  * so wird nie aus Versehen jemand ersetzt, weil man im Feld weitertippt.
+ *
+ * `kompakt` (ADM-106) ist für Tabellenzellen und Eingabezeilen: ohne sichtbare
+ * Beschriftung und Hilfszeile, die Beschriftung steht als `aria-label` am Feld.
  */
 export function SuchAuswahl({
   id,
@@ -25,6 +28,9 @@ export function SuchAuswahl({
   disabled,
   required,
   requiredLabel,
+  kompakt = false,
+  className,
+  placeholder,
   suchen,
   onChange,
   t,
@@ -35,6 +41,12 @@ export function SuchAuswahl({
   /** Pflichtfeld-Markierung wie bei `Field` (LEAD-030, Shuttle der Leads). */
   required?: boolean;
   requiredLabel?: string;
+  /** Ohne `Field`-Hülle (kein sichtbares Label, keine Hilfszeile) — für Tabellenzellen und Eingabezeilen. */
+  kompakt?: boolean;
+  /** Breite o. ä. der kompakten Hülle (z. B. `w-40` in einer Eingabezeile). */
+  className?: string;
+  /** Platzhalter im Suchfeld (kurz — das Label steht nur als `aria-label` da). */
+  placeholder?: string;
   value: { id: string; name: string | null } | null;
   disabled?: boolean;
   suchen: (query: string) => Promise<Treffer[]>;
@@ -63,33 +75,50 @@ export function SuchAuswahl({
     return () => clearTimeout(handle);
   }, [query, suchen]);
 
-  if (value) {
-    return (
+  /** Mit `Field` (Label, Hilfszeile, Pflichtmarke) oder — kompakt — nur ein Block ohne sichtbare Beschriftung. */
+  const huelle = (inhalt: ReactNode) =>
+    kompakt ? (
+      <div className={`flex flex-col ${className ?? ""}`.trim()}>{inhalt}</div>
+    ) : (
       <Field label={label} htmlFor={id} hint={hint} required={required} requiredLabel={requiredLabel}>
-        <span className="inline-flex w-fit items-center gap-2 rounded-ct-md border bg-surface px-2.5 py-1.5 ct-small">
-          <span id={id}>{value.name ?? "—"}</span>
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={() => onChange(null)}
-            aria-label={`${t.remove}: ${value.name ?? ""}`}
-            className="text-muted hover:text-error-ink disabled:opacity-60"
-          >
-            ×
-          </button>
-        </span>
+        {inhalt}
       </Field>
+    );
+
+  if (value) {
+    return huelle(
+      <span className="inline-flex w-fit max-w-full items-center gap-2 rounded-ct-md border bg-surface px-2.5 py-1.5 ct-small">
+        {/* Kompakt (schmale Tabellenzelle): höchstens zwei Zeilen, der volle Name steht im Tooltip. */}
+        <span
+          id={id}
+          title={kompakt ? (value.name ?? undefined) : undefined}
+          className={kompakt ? "line-clamp-2 break-words" : undefined}
+        >
+          {value.name ?? "—"}
+        </span>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(null)}
+          aria-label={`${t.remove}: ${value.name ?? ""}`}
+          className={`text-muted hover:text-error-ink disabled:opacity-60${kompakt ? " -mr-1 px-1.5 py-0.5" : ""}`}
+        >
+          ×
+        </button>
+      </span>,
     );
   }
 
-  return (
-    <Field label={label} htmlFor={id} hint={hint} required={required} requiredLabel={requiredLabel}>
+  return huelle(
+    <>
       <Input
         id={id}
         value={query}
         disabled={disabled}
         onChange={(e) => setQuery(e.target.value)}
         autoComplete="off"
+        aria-label={kompakt ? label : undefined}
+        placeholder={placeholder}
       />
       {hits.length > 0 ? (
         <ul className="mt-2 flex flex-col gap-1">
@@ -116,6 +145,6 @@ export function SuchAuswahl({
         // — und genau das hiess im Board bisher „die Suche funktioniert nicht".
         gesucht && <p className="ct-help mt-2">{t.noHits}</p>
       )}
-    </Field>
+    </>,
   );
 }
