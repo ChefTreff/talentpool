@@ -157,3 +157,21 @@ export type Beitrittsanfrage = {
   created_at: string;
   mine_to_answer: boolean;
 };
+
+/** Rückgabe von `hack_event_info()` (HACK-020): Eckdaten, Ansprechperson, Zähler. */
+export type HackEventInfo = {
+  start_date: string | null;
+  end_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  timezone: string;
+  venue: string | null;
+  location: string | null;
+  note: string | null;
+  contact: { name: string; role: string | null; email: string; phone: string; photo_path: string | null } | null;
+  /** Beide `null`, solange weniger als 20 Bewerbungen angenommen sind (K-59). */
+  accepted: number | null;
+  teams: number | null;
+} | null;

@@ -34,7 +34,7 @@ Jeder Weg: öffnen, einmal den Normalfall durchspielen, einmal einen Fehlerfall 
 | Bereich | Adresse | Normalfall | Schau besonders auf |
 |---|---|---|---|
 | Übersicht und Leiste | `/admin` | Alle Punkte deiner Rolle erreichbar, Vorschau je Rolle | fehlende oder doppelte Punkte, Beschriftungen |
-| Personen und Verwaltung | `/admin/personen`, `/admin/verwaltung` | ZZTEST-Person suchen, Profil öffnen, Zugang einladen, Rolle vergeben, Sperre setzen und aufheben, Protokoll lesen | Was eine gesperrte Person noch sieht; Audit-Einträge vollständig |
+| Personen und Verwaltung | `/admin/personen`, `/admin/verwaltung` | ZZTEST-Person suchen (Name, E-Mail, Arbeitgeber; mehrere Wörter), nach Rolle, Edition und Konto filtern, Profil öffnen, Stammdaten bearbeiten (Änderungsanfrage), weitere E-Mail-Adresse hinzufügen und als primär setzen, Zugang einladen, Rolle vergeben, Sperre setzen und aufheben, Protokoll lesen | Was eine gesperrte Person noch sieht; Audit-Einträge vollständig (bei Geburtsdatum und Telefon nur der Feldname); bei einer Person mit Konto lässt sich die Anmeldeadresse nicht berichtigen |
 | Dubletten | `/admin/dubletten` | ZZTEST-Paar in der Vorschau vergleichen, zusammenführen, Rückweg | Vorschau stimmt mit Ergebnis überein; Rückweg stellt alles her |
 | Einwilligungen und Sperrliste | Verwaltung → Einwilligungen / Sperrliste | Geschichte einer ZZTEST-Person lesen, Adresse auf der Sperrliste suchen | Keine Klartextadressen in der Sperrliste |
 | Medien | `/admin/medien` | Video, Link, Datei (mit Zielgruppe), Ansprechpersonen-Foto pflegen | Zielgruppe wirkt im Portal; Foto sitzt in der Dreiecksform |

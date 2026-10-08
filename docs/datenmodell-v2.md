@@ -202,6 +202,7 @@
 | Welle 6 · 0275 | **Allgemeine Zeiten und Auskünfte abschaffen (ADM-100)** (`20261008101253`, `v6_auskuenfte_weg`; Details im Migrationskopf) | — |
 | Welle 6 · 0276 | **Mail-Warteschlange mit Frist, Stornieren und Änderungsmail bei veröffentlichten Slots (LEAD-063, PART-124)** (`20261008102417`, `v6_mail_verzoegert`; Details im Migrationskopf) | — |
 | Welle 6 · 0277 | **Protokoll: Umschalter Personen/System, Anzeigenamen, Details (ADM-095)** (`20261008102418`, `v6_protokoll_umschalter`; Details im Migrationskopf) | — |
+| Welle 6 · 0278 | **Personenverwaltung: Suche, Filter, Stammdaten und Adressen bearbeiten (ADM-091, ADM-092)** (`20261008130845`, `v6_personen_verwaltung`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

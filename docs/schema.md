@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-08 10:46 UTC · 123 Tabellen · 6 Views · 726 Funktionen
+> Stand: 2026-10-08 13:09 UTC · 123 Tabellen · 6 Views · 729 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2622,6 +2622,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `mail_log_stats` | p_days: integer |
 | `mail_template_history` | p_key: text, p_limit: integer, p_locale: text |
 | `mail_templates_admin` | args: ? |
+| `manage_person_email` | p_action: text, p_email: text, p_email_id: uuid, p_person_id: uuid |
 | `manager_shuttle_bookings` | p_edition_id: uuid |
 | `manager_speakers` | p_edition_id: uuid |
 | `mark_expense_paid` | p_claim_id: uuid, p_payment_ref: text |
@@ -2742,6 +2743,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `person_merges_admin` | p_limit: integer |
 | `person_photo_path_allowed` | p_name: text, p_write: boolean |
 | `personalize_ticket` | p_company: text, p_first_name: text, p_for_me: boolean, p_holder_email: text, p_last_name: text, p_position: text, p_ticket_id: uuid |
+| `persons_admin_list` | p_account: text, p_edition: uuid, p_limit: integer, p_offset: integer, p_query: text, p_role: text, p_sort: text |
 | `photo_removal_requests_admin` | args: ? |
 | `portal_links_admin` | args: ? |
 | `portal_links_for` | p_audience: text, p_edition_id: uuid, p_keys: text[] |
@@ -3010,6 +3012,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `update_my_volunteer_profile` | p_data: jsonb, p_edition_id: uuid |
 | `update_partner_contact` | p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_person_id: uuid, p_position: text, p_roles: text[] |
 | `update_partner_onboarding` | p_data: jsonb, p_edition_id: uuid, p_org_id: uuid |
+| `update_person_master` | p_patch: jsonb, p_person_id: uuid |
 | `update_session_tech` | p_session_id: uuid, p_tech: jsonb |
 | `update_speaker` | p_data: jsonb, p_profile_id: uuid |
 | `update_speaker_activity` | p_data: jsonb, p_id: uuid |

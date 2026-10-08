@@ -50,7 +50,9 @@ describe("PORT4b: die Sperre gilt überall", () => {
       if (liestRollen) betroffen.push(name);
     }
     // Ohne Fundstelle prüfte der Test nichts — dann stimmt das Muster nicht mehr.
-    assert.ok(betroffen.length >= 6, `zu wenige Fundstellen: ${betroffen.join(", ")}`);
+    // Schwelle 5 seit 0275 (08.10.2026): `can_edit_edition_info` ist mit den Auskünften weggefallen — die
+    // übrigen fünf (active_roles, checkin_edition, has_role, is_kiosk_only, my_roles) sind die Wächter.
+    assert.ok(betroffen.length >= 5, `zu wenige Fundstellen: ${betroffen.join(", ")}`);
     const ohne = betroffen.filter((n) => !/access_blocked_at/i.test(alle.get(n) ?? "")).sort();
     assert.deepEqual(ohne, [], "ohne Sperrprüfung");
   });

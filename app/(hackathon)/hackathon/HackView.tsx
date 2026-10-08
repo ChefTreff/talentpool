@@ -91,7 +91,7 @@ export function HackView({
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
+      <Card id="application">
         <div className="flex flex-wrap items-center gap-3">
           <Badge tone={STATUS_TONE[data.application.status] ?? "neutral"}>
             {t[`status${data.application.status[0].toUpperCase()}${data.application.status.slice(1)}`] ??
@@ -130,7 +130,7 @@ export function HackView({
       </Card>
 
       {accepted && (
-        <Card>
+        <Card id="team">
           <CardHeader ebene="h2" title={t.teamTitle} description={t.teamLead} />
           {data.team ? (
             <div className="flex flex-col gap-3">
@@ -173,7 +173,7 @@ export function HackView({
       {accepted && teamsuche}
 
       {accepted && data.team && (
-        <Card>
+        <Card id="challenge">
           <CardHeader ebene="h2" title={t.challengeTitle} description={t.challengeLead} />
           {data.challenge ? (
             <div className="flex flex-col gap-3">
@@ -290,7 +290,7 @@ function ApplyCard({
   const [behanceUrl, setBehanceUrl] = useState("");
 
   return (
-    <Card>
+    <Card id="apply">
       <CardHeader ebene="h2" title={t.applyTitle} description={t.applyLead} />
       <div className="flex flex-col gap-4">
         <fieldset>
@@ -470,7 +470,7 @@ function SubmitCard({
   const [notes, setNotes] = useState(submission?.notes ?? "");
 
   return (
-    <Card>
+    <Card id="submit">
       <CardHeader ebene="h2" title={t.submitTitle} description={t.submitLead} />
       <div className="flex flex-col gap-4">
         {/* Frist je Challenge (HACK-011): danach geht es weiter, aber „verspätet“. */}

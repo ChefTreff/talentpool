@@ -1458,3 +1458,24 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 
 - Alle fünf Chats neu gestartet; Kickoffs verweisen auf die Zeilen „Pause 08.10. abends“. Reihenfolgen: Talent zuerst #367 auf main (Branch stand noch auf d9f9f99a, 0272 ist live); Design QS-076 (Home, eine Überschrift, Regel „globale Seiten überall zugleich“) vor dem Vorschlag 10-09; Admin ADM-091/092 → 094 → 096 → 102 (Datenmodell vorab) → 103 → 099; Partner PART-124 (0276 live) → PART-103 → P2/P3; Speaker Testdaten `--nur=aenderungsmail` nach Konrads Ja → ADM-106 → ADM-087 → Rest. Offen bei Konrad: K-81 bis K-84, Admin-Feedback Teil 2.
 
+## 2026-10-08 — #367 gemergt (HACK-013/020, 0272); Test PORT4b auf Schwelle 5
+
+- **#367** (Talent-Chat, main nach Merge): Hackathon-Startseite als Event-Seite (Eckdaten, Stand-Karte, Seitenspalte), Karte „Eckdaten“ in /admin/hackathon; Migration 0272 war seit dem Vormittag live, Vorschlagsdatei im Branch entfernt. Konrads Lauf `--nur=hackathon-eckdaten` (A·10) folgt.
+- **Test `tests/zugaenge.test.ts` (PORT4b):** zählte sechs Funktionen mit `role_assignment` und `person_id = current_person_id()`; mit 0275 fiel `can_edit_edition_info` weg → Schwelle auf 5 gesetzt (Plan, 4b3c7be4), die Sperrprüfung je Funktion bleibt. Befund vom Talent-Chat.
+
+## 2026-10-08 — Konrads Antworten K-82, K-83, K-84; Hackathon-Eckdaten live
+
+- **K-82:** „Empfehlung folgen“ → Nachbuchungen als neuer Deal in derselben Pipeline und Phase; Partner-Chat baut `v6_nachbuchung` und die PART-100-Anzeige nach PART-124/PART-103.
+- **K-83:** „Behalten“ → die drei akzent-getönten Karten bleiben (QS-073 abgeschlossen).
+- **K-84:** Q1 wie empfohlen (Menü „Eure Bühne“ erst mit zugewiesener Bühne). **Q2 entgegen der Empfehlung: ja** — auf Partner-Bühnen (Standbühne und gebrandete Bühne) legt der Partner im Rahmen seiner Zeiten selbst Slots an, die Slotlänge darf von der normalen abweichen, der Partner entscheidet. Folge: Rechte-Migration durch den Speaker-Chat (`can_edit_stage` für gebrandete Bühnen der eigenen Organisation; Anlegen/Verschieben/Löschen von Inhalts-Slots für Partner auf booth/branded innerhalb von stage_day bzw. partner_booth_window, freie Länge, Sperrzeiten des Events bleiben hart, Audit, Rechte-Probe) — Vorschlag vorab; Oberfläche /partner/buehne durch den Partner-Chat nach „Migration live“. Q3: `grants_role` an den Branding-SKUs ist Datenpflege.
+- **Hackathon:** Konrad hat `--nur=hackathon-eckdaten` ausgeführt (zweimal ok); Lesekontrolle des Talent-Chats steht aus. Offen bei Konrad nur noch K-81 (SevDesk) und Admin-Feedback Teil 2.
+
+## 2026-10-08 — 0278 live, #392 gemergt (Personenverwaltung ADM-091/092)
+
+- **0278** `20261008130845_v6_personen_verwaltung` (Admin-Chat, #392): `persons_admin_list` (Suche, Filter Rolle/Edition/Konto-Status, Sortierung, Seiten bis 200), `update_person_master` (elf Stammdatenfelder mit Prüfung, Audit `person.master_updated` mit Vorher/Nachher ohne Telefon und Geburtsdatum), `manage_person_email` (anlegen, Haupt, entfernen, ändern; Anmeldeadresse bei Konto gesperrt `login_email_locked`; Audit nur email_id und Hash-Anfang); alle hinter `has_admin_section('persons')`, anonymisierte Personen gesperrt. Probelauf 18/18, fn-diff drei neue Funktionen, Gate grün. Rückfragen des Chats an Konrad als **K-85** (Status-Filter = Konto-Status; Auth-Adressänderung als eigene Funktion).
+
+## 2026-10-08 — ADM-094 Analyse Team & Zugänge (#393 gemergt): Entscheidungen 1–5
+
+- Analyse des Admin-Chats (`docs/analyse-team-zugaenge-2026-10-08.md`): Team, Zugänge und Rollen unterscheiden sich nur in der Menge; Lücken: Gesperrte im Team unsichtbar (`team_members` kennt `access_blocked_at` nicht), Zugänge zeigen Rollenschlüssel, Team-Seite über Abschnitt `team` bei Funktionsprüfung `has_role('admin')`.
+- **Plan:** (1) eine Seite „Team & Zugänge“ mit Filtern Team · Alle mit Zugang · Gesperrt · Ohne Login; (2) „Rechte“ (/admin/rollen) bleibt eigenständig; (3) Gesperrte sichtbar (Badge, Filter); (4) Abschnitt `team` entfällt zugunsten `access` — Migration überträgt `admin_section_override`-Zeilen, `lib/admin-sections.ts` im selben PR (Test hält beides gleich); (5) `team_access_list` (Abschnitt access, ohne Klartext-Adressen über den Hash hinaus wie heute) als Vorschlag vorab. Bau und Menüänderung nach Konrads Go zum Design-Vorschlag ADM-089/090.
+
