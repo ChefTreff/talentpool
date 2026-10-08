@@ -24,6 +24,8 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 **Neu zum Klicken (08.10. nachmittags, Bühnen):** /admin/edition — Bühnenformular mit Gültigkeitstagen und „gebrandet von <Partner>“, neue Karte „Sperrzeiten“; im Programm-Board einen Inhalts-Slot in eine Sperrzeit ziehen → Meldung mit Grund und Zeit (LEAD-062); Stage-Lead-Board zeigt nur noch Hauptbühnen, /admin/programm hat den Umschalter „Alle Bühnen | Hauptbühnen“. Die vier Summit-Bühnen heißen jetzt „Hauptbühne“ statt „Nebenbühne“. Den Testdaten-Schritt `--nur=sperrzeit` genehmigst du im Speaker-Chat.
 
+**Neu zum Klicken (08.10. nachmittags, Partner):** /partner/company-tour → Bewerbungen → Name klicken: Profil der Person im Schubfach (nur freigegebene Felder, LinkedIn nur als sichere Adresse); „Engere Wahl“ ist weg, Partner wählen nur Zusage, Warteliste, Absage (PART-122/123, #380; TEST-Person `+zztest-tour-2` mit Einwilligung ist angelegt). Dasselbe in Masterclass, Side-Event und Interview Tables.
+
 **Testdaten-Läufe heute nach „Migration live“ (A·10):** `--nur=side-events` genehmigst du im Speaker-Chat (er fährt ihn), `--nur=hackathon-eckdaten` nach #367 im Haupt-Checkout: `node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=hackathon-eckdaten`.
 
 **K-80 · Die sechste Hauptbühne (ADM-085/LEAD-061):** Live stehen fünf ChefTreff-Bühnen (Main Stage, Leadership & Growth, Industry, Startup, Impact & Tech); du sprachst von sechs Hauptbühnen. Welche ist die sechste, oder sind es fünf? Das Stage-Lead-Board zeigt künftig genau die Hauptbühnen (auch gebrandete), alles andere nur im Admin mit Filter.
