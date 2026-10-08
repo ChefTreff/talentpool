@@ -1,15 +1,12 @@
-import Link from "next/link";
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Button } from "@/components/ui/Button";
-import { Field } from "@/components/ui/Field";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { aenderungen, aktionsName, kurzfassung, leseVon, rpcVon } from "@/lib/audit/anzeige";
+import { ProtokollFilter } from "./ProtokollFilter";
+import { ProtokollListe, type ProtokollZeile } from "./ProtokollListe";
 
 export const dynamic = "force-dynamic";
 
@@ -24,16 +21,18 @@ type Filter = {
 };
 
 const SEITE = 50;
-const ZEIT = new Intl.DateTimeFormat("de-DE", {
-  day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit",
-});
 
 /**
- * Das Protokoll der Admin-Aktionen (PORT4a).
+ * Das Protokoll der Admin-Aktionen (PORT4a, ADM-095).
  *
  * „Audit-Log für Admin-Aktionen" steht unter „nicht verhandelbar". Geschrieben
- * wurde es seit Welle 1; **angesehen** hat es bisher niemand, ausser über die
+ * wurde es seit Welle 1; angesehen hat es bisher niemand, ausser über die
  * Datenbank — eine Zusage, die nur auf dem Papier stand.
+ *
+ * ADM-095 (Konrad, 08.10.): (a) die Auswahl gilt sofort, ohne „Filtern“-Knopf;
+ * (b) Aktionen mit **Anzeigenamen** statt Systemnamen; (c) Umschalter „durch
+ * Personen / durch das System“ — über 1800 Einträge, die meisten vom System;
+ * (d) Vorher/Nachher nicht als grosse Felder, sondern als Feldliste im Overlay.
  *
  * **Kein Export.** Die Einträge tragen Vorher- und Nachher-Stände aus dem
  * ganzen System; eine CSV davon wäre eine Kopie der Datenbank in einer Tabelle.
@@ -45,12 +44,13 @@ const ZEIT = new Intl.DateTimeFormat("de-DE", {
 export default async function ProtokollPage({
   searchParams,
 }: {
-  searchParams: Promise<{ aktion?: string; objekt?: string; person?: string; ab?: string; bis?: string; seite?: string }>;
+  searchParams: Promise<{ von?: string; aktion?: string; objekt?: string; person?: string; ab?: string; bis?: string; seite?: string }>;
 }) {
   await requireAdminSection("auditLog", "/admin/verwaltung/protokoll");
-  const { t } = await getI18n("de");
+  const { t, locale } = await getI18n();
   const q = await searchParams;
   const seite = Math.max(1, Number(q.seite ?? "1") || 1);
+  const von = leseVon(q.von);
   const supabase = await createSupabaseServerClient();
 
   const [eintraege, filter] = await Promise.all([
@@ -58,6 +58,7 @@ export default async function ProtokollPage({
       p_action: q.aktion || null,
       p_object_type: q.objekt || null,
       p_actor: q.person || null,
+      p_by: rpcVon(von),
       p_from: q.ab ? new Date(q.ab).toISOString() : null,
       p_to: q.bis ? new Date(q.bis).toISOString() : null,
       p_limit: SEITE,
@@ -70,6 +71,29 @@ export default async function ProtokollPage({
   const gesamt = zeilen[0]?.total ?? 0;
   const seiten = Math.max(1, Math.ceil(gesamt / SEITE));
 
+  const aktionen = t.auditAction as Record<string, string>;
+  const bereiche = t.auditDomain as Record<string, string>;
+  const zeit = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "de-DE", {
+    day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit",
+  });
+
+  const liste: ProtokollZeile[] = zeilen.map((z) => {
+    const rows = aenderungen(z.vorher, z.nachher);
+    const kurz = kurzfassung(rows);
+    return {
+      id: z.id,
+      zeit: zeit.format(new Date(z.created_at)),
+      aktion: aktionsName(z.action, aktionen, bereiche),
+      system: z.action,
+      objekt: z.object_type,
+      objektId: z.object_id,
+      wer: z.actor_name,
+      felder: kurz.felder,
+      weitere: kurz.weitere,
+      aenderungen: rows,
+    };
+  });
+
   const mitSeite = (n: number) => {
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries(q)) if (v && k !== "seite") p.set(k, v);
@@ -81,94 +105,28 @@ export default async function ProtokollPage({
     <>
       <PageHeader word={t.admin.words.auditLog} title={t.auditLog.title} description={t.auditLog.lead} />
 
-      <form className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5" action="/admin/verwaltung/protokoll">
-        <Field label={t.auditLog.filterAction} htmlFor="al-action">
-          <Select
-            id="al-action" name="aktion" defaultValue={q.aktion ?? ""} placeholder={t.auditLog.filterAll}
-            options={f.actions.map((a) => ({ value: a, label: a }))}
-          />
-        </Field>
-        <Field label={t.auditLog.filterObject} htmlFor="al-object">
-          <Select
-            id="al-object" name="objekt" defaultValue={q.objekt ?? ""} placeholder={t.auditLog.filterAll}
-            options={f.object_types.map((o) => ({ value: o, label: o }))}
-          />
-        </Field>
-        <Field label={t.auditLog.filterActor} htmlFor="al-actor">
-          <Select
-            id="al-actor" name="person" defaultValue={q.person ?? ""} placeholder={t.auditLog.filterAll}
-            options={f.actors.map((a) => ({ value: a.id, label: a.name }))}
-          />
-        </Field>
-        <Field label={t.auditLog.filterFrom} htmlFor="al-from">
-          <Input id="al-from" name="ab" type="date" defaultValue={q.ab ?? ""} />
-        </Field>
-        <Field label={t.auditLog.filterTo} htmlFor="al-to">
-          <Input id="al-to" name="bis" type="date" defaultValue={q.bis ?? ""} />
-        </Field>
-        <div className="flex items-end gap-2">
-          <Button type="submit" size="sm">{t.auditLog.apply}</Button>
-          <Link className="ct-link ct-small" href="/admin/verwaltung/protokoll">{t.auditLog.reset}</Link>
-        </div>
-      </form>
+      <ProtokollFilter
+        werte={{ von, aktion: q.aktion ?? "", objekt: q.objekt ?? "", person: q.person ?? "", ab: q.ab ?? "", bis: q.bis ?? "" }}
+        aktionen={f.actions
+          .map((a) => ({ value: a, label: aktionsName(a, aktionen, bereiche) }))
+          .sort((a, b) => a.label.localeCompare(b.label, locale))}
+        objekte={f.object_types.map((o) => ({ value: o, label: o }))}
+        personen={f.actors.map((a) => ({ value: a.id, label: a.name }))}
+        t={t.auditLog}
+      />
 
-      {zeilen.length === 0 ? (
+      {liste.length === 0 ? (
         <EmptyState title={t.auditLog.empty} description={t.auditLog.emptyBody} />
       ) : (
         <>
           <p className="ct-label mb-2 text-ink">{t.auditLog.count.replace("{n}", String(gesamt))}</p>
-          <Card>
-            <ul className="flex flex-col divide-y">
-              {zeilen.map((z) => (
-                <li key={z.id} className="py-3">
-                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <span className="ct-help tabular-nums">{ZEIT.format(new Date(z.created_at))}</span>
-                    <span className="ct-label text-ink">{z.action}</span>
-                    {z.object_type && (
-                      <span className="ct-help">
-                        {z.object_type}
-                        {z.object_id && ` · ${z.object_id}`}
-                      </span>
-                    )}
-                    {/* Ohne Person heisst: der Server hat es getan. Das ist eine
-                        Information, keine Lücke — deshalb ein Wort statt eines
-                        Strichs. Akzent statt Grün: Grün heisst „erledigt“, hier
-                        geht es um den Urheber (Tokens, Regel 3). */}
-                    <Badge tone={z.actor_name ? "neutral" : "accent"}>
-                      {z.actor_name ?? t.auditLog.system}
-                    </Badge>
-                  </div>
-                  {(z.vorher != null || z.nachher != null) && (
-                    <details className="group mt-2 rounded-ct-md border bg-canvas open:border-accent">
-                      <summary className="flex min-h-11 cursor-pointer list-none items-center px-3 py-2 ct-small text-muted [&::-webkit-details-marker]:hidden">
-                        {t.auditLog.detail}
-                      </summary>
-                      <div className="grid gap-3 px-3 pb-3 sm:grid-cols-2">
-                        <div>
-                          <div className="ct-label text-ink">{t.auditLog.before}</div>
-                          <pre className="ct-help overflow-x-auto whitespace-pre-wrap break-all">
-                            {z.vorher == null ? t.auditLog.nothing : JSON.stringify(z.vorher, null, 2)}
-                          </pre>
-                        </div>
-                        <div>
-                          <div className="ct-label text-ink">{t.auditLog.after}</div>
-                          <pre className="ct-help overflow-x-auto whitespace-pre-wrap break-all">
-                            {z.nachher == null ? t.auditLog.nothing : JSON.stringify(z.nachher, null, 2)}
-                          </pre>
-                        </div>
-                      </div>
-                    </details>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </Card>
+          <ProtokollListe zeilen={liste} t={t.auditLog} />
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="ct-help">
               {t.auditLog.page.replace("{seite}", String(seite)).replace("{seiten}", String(seiten))}
             </span>
-            {seite > 1 && <Link className="ct-link ct-small" href={mitSeite(seite - 1)}>{t.auditLog.prev}</Link>}
-            {seite < seiten && <Link className="ct-link ct-small" href={mitSeite(seite + 1)}>{t.auditLog.next}</Link>}
+            {seite > 1 && <ButtonLink prefetch={false} variant="secondary" size="sm" href={mitSeite(seite - 1)}>{t.auditLog.prev}</ButtonLink>}
+            {seite < seiten && <ButtonLink prefetch={false} variant="secondary" size="sm" href={mitSeite(seite + 1)}>{t.auditLog.next}</ButtonLink>}
           </div>
         </>
       )}
