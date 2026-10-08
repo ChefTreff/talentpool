@@ -34,6 +34,7 @@ begin
                         'stage_lead_name', (select nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.last_name, '')), '')
                                               from person p where p.id = st.stage_lead_person_id),
                         'sort_order', st.sort_order, 'active', st.active,
+                        'kind', st.kind, 'valid_days', st.valid_days,
                         'slots', (select count(*) from slot s where s.stage_id = st.id))
                       order by st.sort_order, st.name)
                 from stage st where st.event_id = v_ev), '[]'::jsonb),

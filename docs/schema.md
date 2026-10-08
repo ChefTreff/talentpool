@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-08 08:52 UTC · 123 Tabellen · 6 Views · 719 Funktionen
+> Stand: 2026-10-08 09:35 UTC · 124 Tabellen · 6 Views · 723 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2022,6 +2022,23 @@ Bühne oder Raum eines Events. Parameter (Wechselzeit, Standarddauer, Kontingent
 | `active` | boolean | ja | `true` |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+| `valid_days` | date[] | ja |  |  | Gültigkeitstage der Bühne (ADM-085): leer = alle Eventtage; sonst trägt die Bühne nur an diesen Tagen Slots (create_slot, move_slot und partner_create_session lehnen andere Tage mit stage_not_valid_that_day ab). Geschrieben nur über upsert_stage, das jedes Datum gegen event_day prüft. |
+| `kind` | text |  |  |  | Art der Bühne (ADM-085, LEAD-061), abgeleitet aus type und partner_org_id, nie geschrieben: main = Hauptbühne (main/side ohne Partner), branded = gebrandete Bühne (main/side mit Partner), booth = Standbühne (partner_booth), masterclass = Raum (room), interview_table, side_event = Side-Event-Ort (side_event_venue). Ein neuer Wert im Vokabular stage_type braucht eine Zeile in dieser Abbildung, sonst bleibt kind leer und die Bühne fällt aus den Filtern. |
+
+### `stage_blocked_time`
+Sperrzeiten (ADM-085, LEAD-062): in diesem Zeitraum trägt die Bühne keine Inhalts-Slots; stage_id leer = alle Bühnen des Events. Keine Grants, RLS an — gelesen und geschrieben nur über stage_blocked_times, upsert_stage_blocked_time und delete_stage_blocked_time; geprüft in create_slot und move_slot (stage_slot_check).
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `event_id` | uuid | ja |  | `event.id` |  |
+| `stage_id` | uuid |  |  | `stage.id` |  |
+| `starts_at` | timestamp with time zone | ja |  |  |  |
+| `ends_at` | timestamp with time zone | ja |  |  |  |
+| `reason` | text | ja |  |  | Grund, 1–200 Zeichen. Steht im Klartext in der Fehlermeldung slot_blocked an alle, die einen Slot setzen wollen — kein Personenbezug hineinschreiben. |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `stage_day`
 Bühne × Tag: Öffnungszeiten und Slot-Kontingent (allgemeine Slot-Logik, Antwort 74).
@@ -2484,6 +2501,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_speaker_asset` | p_id: uuid |
 | `delete_speaker_task` | p_task_id: uuid |
 | `delete_stage` | p_id: uuid |
+| `delete_stage_blocked_time` | p_id: uuid |
 | `delete_track` | p_id: uuid |
 | `delete_vocab_term` | p_key: text, p_vocabulary: text |
 | `deletion_blockers` | p_person_id: uuid |
@@ -2965,8 +2983,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_tickets_admin` | p_edition_id: uuid |
 | `speaker_travel_list` | p_edition_id: uuid |
 | `sponsoring_level_key` | p_level: text |
+| `stage_blocked_times` | p_event_id: uuid |
 | `stage_editor_orgs` | p_person_id: uuid |
 | `stage_frame_binds` | p_stage_id: uuid |
+| `stage_slot_check` | p_end: timestamp with time zone, p_slot_type: text, p_stage_id: uuid, p_start: timestamp with time zone |
 | `start_sync_job` | p_direction: text, p_job_type: text, p_system: text, p_triggered_by: text |
 | `submit_deliverable` | p_answers: jsonb, p_asset_ids: uuid[], p_deliverable_id: uuid |
 | `submit_expense` | p_claim_id: uuid |
@@ -3034,6 +3054,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_speaker_contact` | p_data: jsonb |
 | `upsert_speaker_task` | p_data: jsonb |
 | `upsert_stage` | p_data: jsonb |
+| `upsert_stage_blocked_time` | p_data: jsonb |
 | `upsert_stage_day` | p_data: jsonb |
 | `upsert_track` | p_data: jsonb |
 | `upsert_vocab_term` | p_data: jsonb |

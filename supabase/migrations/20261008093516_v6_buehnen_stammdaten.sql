@@ -1,3 +1,5 @@
+-- 0274 · Bühnen-Stammdaten: Art der Bühne, Gültigkeitstage und Sperrzeiten (ADM-085, LEAD-061, LEAD-062)
+-- Angewendet von der Architektur-Session am 08.10.2026 als 20261008093516.
 -- NNNN · Bühnen-Stammdaten: Art der Bühne, Gültigkeitstage und Sperrzeiten (ADM-085, LEAD-061, LEAD-062; Konrad & Leopold 05.10.2026)
 --
 -- Anlass: (1) Eine Bühne gilt teilweise nur an einem Tag. (2) Eine **gebrandete Bühne** (Produkt „Bühnen-Branding“: eine unserer Bühnen

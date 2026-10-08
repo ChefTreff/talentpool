@@ -22,6 +22,8 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 **Neu zum Klicken (08.10. nachmittags):** /admin/speaker?liste=neu — Reiter „Neue Speaker“ mit den von Partnern angelegten TEST-Speakern, Zähler am Menüpunkt „Speaker“ (ADM-084, 0273); Betreuung, Buddy und Stand lassen sich direkt in der Zeile setzen. **Für dein Navigations-Feedback:** `docs/design-vorschlaege-2026-10-08.md` ist die Bestandsaufnahme der Admin-Navigation (53 Menüpunkte in 9 Gruppen, je Rolle 6 bis 23, 79 Seiten) — ohne Vorschlag, als Grundlage für deine Zusammenlegung.
 
+**Neu zum Klicken (08.10. nachmittags, Bühnen):** /admin/edition — Bühnenformular mit Gültigkeitstagen und „gebrandet von <Partner>“, neue Karte „Sperrzeiten“; im Programm-Board einen Inhalts-Slot in eine Sperrzeit ziehen → Meldung mit Grund und Zeit (LEAD-062); Stage-Lead-Board zeigt nur noch Hauptbühnen, /admin/programm hat den Umschalter „Alle Bühnen | Hauptbühnen“. Die vier Summit-Bühnen heißen jetzt „Hauptbühne“ statt „Nebenbühne“. Den Testdaten-Schritt `--nur=sperrzeit` genehmigst du im Speaker-Chat.
+
 **Testdaten-Läufe heute nach „Migration live“ (A·10):** `--nur=side-events` genehmigst du im Speaker-Chat (er fährt ihn), `--nur=hackathon-eckdaten` nach #367 im Haupt-Checkout: `node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=hackathon-eckdaten`.
 
 **K-80 · Die sechste Hauptbühne (ADM-085/LEAD-061):** Live stehen fünf ChefTreff-Bühnen (Main Stage, Leadership & Growth, Industry, Startup, Impact & Tech); du sprachst von sechs Hauptbühnen. Welche ist die sechste, oder sind es fünf? Das Stage-Lead-Board zeigt künftig genau die Hauptbühnen (auch gebrandete), alles andere nur im Admin mit Filter.

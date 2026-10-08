@@ -198,6 +198,7 @@
 | Welle 6 · 0271 | **Wiki: Thema und Produktbezug am Artikel (ADM-064 + PART-103)** (`20261008083319`, `v6_wiki_thema_produktbezug`; Details im Migrationskopf) | — |
 | Welle 6 · 0272 | **Hackathon-Startseite als Event-Seite: Eckdaten, Ansprechperson, Zähler (HACK-020 für HACK-013)** (`20261008083344`, `v6_hack_eventseite`; Details im Migrationskopf) | — |
 | Welle 6 · 0273 | **Neue Speaker von Partnern: Liste, Marke und Menü-Zähler (ADM-084)** (`20261008085130`, `v6_neue_speaker`; Details im Migrationskopf) | — |
+| Welle 6 · 0274 | **Bühnen-Stammdaten: Art der Bühne, Gültigkeitstage und Sperrzeiten (ADM-085, LEAD-061, LEAD-062)** (`20261008093516`, `v6_buehnen_stammdaten`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
