@@ -16,7 +16,7 @@ Stand 08.10.2026, Admin-Chat, **zur Freigabe durch Plan**. Noch kein Bau. Anlass
 | Spalte | Typ | Bedeutung |
 |---|---|---|
 | `key` | text PK | Schlüssel der Vorlage, wie in `mail_template.key` |
-| `category` | text, `check in ('speaker','partner','participant','volunteer','system')` | Bereich |
+| `category` | text, Vokabular `mail_category` (`is_vocab_key`, kein CHECK) | Bereich; Begriffe `speaker`, `partner`, `participant` (Teilnehmer), `volunteer`, `system` mit DE/EN-Bezeichnung, pflegbar unter Vokabular |
 | `name_de`, `name_en` | text, nicht leer | **Anzeigename** (ADM-102 d), z. B. „Zusage zur Bewerbung“ / „Application accepted“ |
 | `variables` | text[] | erlaubte Platzhalter, ohne Klammern (`first_name`, `portal_url` …) — Grundlage für „Platzhalter per Klick einfügen“ (f); Startwert = die in den vorhandenen Texten benutzten |
 | `sort_order` | integer | Reihenfolge innerhalb der Kategorie |
@@ -60,7 +60,7 @@ Das ist dieselbe Aufteilung wie bei den Bereichsabschnitten (`speakers`, `partne
 
 | Funktion | Neu / geändert | Rechte |
 |---|---|---|
-| `mail_template_section(p_key text) returns text` | neu, stabil | liefert den Abschnitt der Kategorie des Schlüssels; unbekannter Schlüssel ⇒ `mail` |
+| `mail_template_section(p_key text) returns text` | neu, stabil | liefert den Abschnitt der Kategorie des Schlüssels (`case`: speaker ⇒ `mailSpeaker` …); unbekannter Schlüssel **oder eine Kategorie ohne Abschnitt** ⇒ `mail` (nur `admin`) — ein neuer Vokabularbegriff öffnet also nichts, bis jemand den Abschnitt dazu baut |
 | `can_edit_mail_template(p_key text) returns boolean` | neu, Definer | `has_admin_section(mail_template_section(p_key))` |
 | `mail_templates_admin(p_category text default null)` | geändert (Live-Fassung aus dem Snapshot) | liefert **je Schlüssel eine Zeile** mit beiden Sprachen (`de`/`en` als jsonb: Betreff, Text, `active`, `version`, geändert von/am), `category`, `name_de`, `name_en`, `variables`, `queued`, `sent_30d` — nur Schlüssel, die die Person bearbeiten darf; ohne Recht für keine Kategorie ⇒ 42501 |
 | `upsert_mail_template(p_data jsonb)` | geändert | `can_edit_mail_template(key)` statt `has_role('admin')`; Verhalten sonst unverändert (Protokoll `mail_template.upsert`) |
@@ -68,7 +68,7 @@ Das ist dieselbe Aufteilung wie bei den Bereichsabschnitten (`speakers`, `partne
 | `mail_template_history`, `restore_mail_template` | geändert | `can_edit_mail_template(key)` |
 | `set_mail_template_meta(p_key, p_category, p_name_de, p_name_en)` | neu | **nur `admin`** (Abschnitt `mail`): eine Vorlage in eine andere Kategorie zu legen verschiebt, wer sie sieht — das entscheidet Konrad, nicht der Bereich; der Anzeigename darf der Bereich ändern (Vorschlag: ja, `can_edit_mail_template`, Kategorie nur `admin`) |
 
-Fehlerschlüssel: 42501 · 22023 `invalid_category`, `fields_required`, `invalid_locale` · P0002 `template_not_found`. Protokoll: `mail_template.upsert` (unverändert, DE/EN-Anzeigename vorhanden), neu `mail_template.meta`.
+Fehlerschlüssel: 42501 · 22023 `invalid_category` (kein Vokabularbegriff), `fields_required`, `invalid_locale` · P0002 `template_not_found`. Protokoll: `mail_template.upsert` (unverändert, DE/EN-Anzeigename vorhanden), neu `mail_template.meta`.
 
 ### 2.5 Was **nicht** Teil davon ist
 
