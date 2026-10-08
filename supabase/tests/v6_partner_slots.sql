@@ -21,8 +21,8 @@
 --   12 Regie unverändert: auf der gebrandeten Bühne keine, auf der Standbühne wie bisher.
 --   13 Gäste-Regel unverändert: ein Gast geht auf die Standbühne, nicht auf die gebrandete Bühne.
 --   15 die Rechte der Rolle `authenticated`: anlegen, verschieben, löschen laufen; `anon` darf nicht (siehe 01).
--- Probelauf der Build-Session am 08.10.2026 gegen die Live-Datenbank nach 0282 (`sh scripts/db.sh dry-run`, alles zurückgerollt): 29 von 29
--- Erwartungen erfüllt. Mutationsproben an der Migration (38, je Regel eine): 37 rot, die 38. ist gleichwertig — die Untergrenze `before_open` in
+-- Probelauf der Build-Session am 08.10.2026 gegen die Live-Datenbank nach 0282 (`sh scripts/db.sh dry-run`, alles zurückgerollt): 30 von 30
+-- Erwartungen erfüllt. Mutationsproben an der Migration (39, je Regel eine): 38 rot, die 39. ist gleichwertig — die Untergrenze `before_open` in
 -- Uhrzeiten statt in Zeitpunkten, denn der Beginn bestimmt den Tag, ein Unterschied entsteht nur am Ende. Mitlaufende Tests mit und ohne die
 -- Migration (`v6_standbuehne_oeffnungszeiten`, `v6_standbuehne_regeln`, `v6_lead_tagesrahmen`, `v6_buehnen_stammdaten`, `v6_mail_verzoegert`):
 -- gleiche Ergebnisse; `lead016_buehnen_sichtregel`, `v2_roles_programme` und `v6_standbuehnen_gaeste` brechen schon ohne die Migration am Live-Stand
@@ -49,6 +49,7 @@ insert into t_erw values
   ('10_veroeffentlicht', '^ok ohne=P0001 confirmation_required mit=ok$'),
   ('10_stage_lead', '^ok davor=P0001 outside_stage_day \| 10:00–18:00 ueber_nacht=P0001 outside_stage_day \| 10:00–18:00 innen=ok schieb_ueber_nacht=P0001 outside_stage_day \| 10:00–18:00 schieb_innen=ok team_davor=ok$'),
   ('10_warnungen', '^ok davor=\["before_open"\] danach=\["after_close"\] ueber_nacht=\["after_close"\] innen=\[\]$'),
+  ('10_stage_lead_gebrandet', '^ok vor_rahmen=P0001 outside_stage_day \| 10:00–16:00 fester_block=ok frame=ok loeschen=42501 not allowed$'),
   ('14_aenderungsmail', '^ok mails=1 wartet=true$'),
   ('11_loeschen', '^ok slot_weg=true audit=true audit_ohne_adresse=true verlauf_vorher=true verlauf_weg=true$'),
   ('11_mit_entwurf', '^ok slot_weg=true session_bleibt=true session_ohne_slot=true$'),
@@ -348,6 +349,16 @@ begin
   v_r := v_r || ' ueber_nacht=' || pg_temp.zz_warn(sl_h, s_haupt, pg_temp.zz_ts(d1, '17:30'), pg_temp.zz_ts(d2, '00:30'));
   v_r := v_r || ' innen=' || pg_temp.zz_warn(sl_h, s_haupt, pg_temp.zz_ts(d1, '12:00'), pg_temp.zz_ts(d1, '13:00'));
   insert into t_res values ('10_warnungen', v_r);
+
+  -- Die Bühnenleitung einer gebrandeten Bühne ist nicht „der Partner“: sie bleibt am Tagesrahmen (`outside_stage_day`, nicht
+  -- `outside_partner_window`), legt weiter jede Slot-Art an und löscht nicht.
+  perform pg_temp.zz_rolle(v_pid, 'speaker_manager', 'stage', s_bra);
+  select id into sl_y from slot where stage_id = s_bra and start_at = pg_temp.zz_ts(d1, '15:30');
+  v_r := 'ok vor_rahmen=' || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '09:30'), pg_temp.zz_ts(d1, '09:50'));
+  v_r := v_r || ' fester_block=' || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '10:31'), pg_temp.zz_ts(d1, '10:35'), 'fixed_block');
+  v_r := v_r || ' frame=' || pg_temp.zz_neu(s_bra, pg_temp.zz_ts(d1, '10:40'), pg_temp.zz_ts(d1, '10:45'), 'frame');
+  v_r := v_r || ' loeschen=' || pg_temp.zz_weg(sl_y);
+  insert into t_res values ('10_stage_lead_gebrandet', v_r);
 
   -- === 11 Löschen ==================================================================================================
   perform pg_temp.zz_rolle(v_pid, 'standbuehne_editor', 'org', o_a);

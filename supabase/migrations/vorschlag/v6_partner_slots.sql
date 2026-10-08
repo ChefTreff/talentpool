@@ -18,7 +18,8 @@
 --   3  `partner_window_binds` und `partner_booth_window` bedienen `kind in ('booth', 'branded')` mit Partner statt nur `type = 'partner_booth'`:
 --      das Fenster der Standbühne (PART-090) gilt auch auf der gebrandeten Bühne — je Grenze die Öffnungszeit der Bühne an dem Tag, sonst der
 --      Tagesrahmen der Veranstaltung, ganz ohne Rahmen keine Grenze. Team (`admin`, `programme_team`) bindet es nicht. Interview Table, Raum und
---      Side-Event-Ort bleiben ungebunden.
+--      Side-Event-Ort bleiben ungebunden. Die Bühnenleitung (Stage Lead: `speaker_manager` im Scope Bühne, Tag oder Slot) zählt dort nicht als Partner —
+--      sie bleibt am Tagesrahmen (`outside_stage_day`) gebunden, legt weiter jede Slot-Art an und löscht nicht.
 --   4  `create_slot`: Recht über `can_edit_stage_slots`; wer als Partner gebunden ist (`partner_window_binds`), legt nur `content` an
 --      (P0001 `slot_type_not_allowed`, Befund F2); beide Fenster (Stage Lead `outside_stage_day`, Partner `outside_partner_window`) rechnen in
 --      Zeitpunkten.
@@ -91,6 +92,14 @@ AS $$
           and ra.role in ('admin', 'programme_team')
           and (ra.scope_type = 'global'
                or (ra.scope_type = 'edition' and ra.edition_id in (ev.id, ev.edition_id))))
+     -- K-84: die Bühnenleitung arbeitet auf einer gebrandeten Hauptbühne als Bühnenleitung, nicht als Partner — sie bleibt am Tagesrahmen
+     -- (`outside_stage_day`) gebunden, legt weiter jede Slot-Art an und löscht nicht.
+     and not exists (
+       select 1
+         from active_roles() ra
+        where ra.role = 'speaker_manager'
+          and ra.scope_type in ('stage', 'stage_day', 'slot')
+          and scope_stage_id(ra.scope_type, ra.scope_id) = p_stage_id)
 $$;
 
 create or replace function partner_booth_window(p_stage_id uuid, p_event_day_id uuid)

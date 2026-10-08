@@ -7,7 +7,7 @@ import { OHNE_ENDE } from "@/components/partner/standbuehne";
 
 /**
  * K-84 / LEAD-064: Partner legen auf Standbühne und gebrandeter Bühne selbst Slots an. Die Datenbank-Seite belegt
- * `supabase/tests/v6_partner_slots.sql` (echter Rollenwechsel, 29 Erwartungen, Gegenstück zu jeder Abweisung, 37 von 38 Mutationen rot);
+ * `supabase/tests/v6_partner_slots.sql` (echter Rollenwechsel, 30 Erwartungen, Gegenstück zu jeder Abweisung, Mutationsproben je Regel);
  * hier steht, was sich ohne Datenbank festhalten lässt — und ausgeführt wird, wo es geht: das Öffnungsfenster der gebrandeten Bühne im Board.
  * Der Rest sind Belege am Quelltext: Aufbau der Migration, der Löschweg im Board, die Texte, der Testdaten-Schritt und die Doku.
  */
@@ -74,6 +74,8 @@ describe("K-84: die Migration v6_partner_slots (Aufbau)", () => {
     assert.match(b, /st\.kind in \('booth', 'branded'\) and st\.partner_org_id is not null/);
     assert.match(b, /ra\.role in \('admin', 'programme_team'\)/);
     assert.doesNotMatch(b, /type = 'partner_booth'/);
+    // die Bühnenleitung (Stage Lead, alle drei Scopes) zählt nicht als Partner — sie bleibt am Tagesrahmen gebunden und legt jede Slot-Art an
+    assert.match(b, /ra\.role = 'speaker_manager'\s+and ra\.scope_type in \('stage', 'stage_day', 'slot'\)\s+and scope_stage_id\(ra\.scope_type, ra\.scope_id\) = p_stage_id\)/);
     const w = rumpf("partner_booth_window");
     assert.match(w, /where st\.id = p_stage_id and st\.kind in \('booth', 'branded'\)/);
     // je Grenze Öffnungszeit, sonst Tagesrahmen, sonst 24:00 — wie PART-090
@@ -111,10 +113,10 @@ describe("K-84: die Migration v6_partner_slots (Aufbau)", () => {
     }
   });
 
-  it("der DB-Test hat 29 Erwartungen und deckt jede Abweisung ab (Schlüssel und Fehlercodes stehen in den Mustern)", () => {
+  it("der DB-Test hat 30 Erwartungen und deckt jede Abweisung ab (Schlüssel und Fehlercodes stehen in den Mustern)", () => {
     const t = quelle("supabase/tests/v6_partner_slots.sql");
     const erwartungen = t.slice(t.indexOf("insert into t_erw values"), t.indexOf("create function pg_temp.zz_ts"));
-    assert.equal((erwartungen.match(/^  \('/gm) ?? []).length, 29);
+    assert.equal((erwartungen.match(/^  \('/gm) ?? []).length, 30);
     for (const muster of ["slot_type_not_allowed", "outside_partner_window", "outside_stage_day", "slot_blocked", "stage_not_valid_that_day",
       "unpublish_first", "slot_locked", "confirmation_required", "42501", "28000", "P0002", "23P01", "22023"]) {
       assert.ok(erwartungen.includes(muster), `Muster ${muster} fehlt im DB-Test`);
