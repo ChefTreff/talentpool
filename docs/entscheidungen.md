@@ -1474,3 +1474,8 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 
 - **0278** `20261008130845_v6_personen_verwaltung` (Admin-Chat, #392): `persons_admin_list` (Suche, Filter Rolle/Edition/Konto-Status, Sortierung, Seiten bis 200), `update_person_master` (elf Stammdatenfelder mit Prüfung, Audit `person.master_updated` mit Vorher/Nachher ohne Telefon und Geburtsdatum), `manage_person_email` (anlegen, Haupt, entfernen, ändern; Anmeldeadresse bei Konto gesperrt `login_email_locked`; Audit nur email_id und Hash-Anfang); alle hinter `has_admin_section('persons')`, anonymisierte Personen gesperrt. Probelauf 18/18, fn-diff drei neue Funktionen, Gate grün. Rückfragen des Chats an Konrad als **K-85** (Status-Filter = Konto-Status; Auth-Adressänderung als eigene Funktion).
 
+## 2026-10-08 — ADM-094 Analyse Team & Zugänge (#393 gemergt): Entscheidungen 1–5
+
+- Analyse des Admin-Chats (`docs/analyse-team-zugaenge-2026-10-08.md`): Team, Zugänge und Rollen unterscheiden sich nur in der Menge; Lücken: Gesperrte im Team unsichtbar (`team_members` kennt `access_blocked_at` nicht), Zugänge zeigen Rollenschlüssel, Team-Seite über Abschnitt `team` bei Funktionsprüfung `has_role('admin')`.
+- **Plan:** (1) eine Seite „Team & Zugänge“ mit Filtern Team · Alle mit Zugang · Gesperrt · Ohne Login; (2) „Rechte“ (/admin/rollen) bleibt eigenständig; (3) Gesperrte sichtbar (Badge, Filter); (4) Abschnitt `team` entfällt zugunsten `access` — Migration überträgt `admin_section_override`-Zeilen, `lib/admin-sections.ts` im selben PR (Test hält beides gleich); (5) `team_access_list` (Abschnitt access, ohne Klartext-Adressen über den Hash hinaus wie heute) als Vorschlag vorab. Bau und Menüänderung nach Konrads Go zum Design-Vorschlag ADM-089/090.
+
