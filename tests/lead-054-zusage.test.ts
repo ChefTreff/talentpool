@@ -119,7 +119,7 @@ describe("LEAD-054: Oberfläche", () => {
     assert.match(f, /\{nachZusage && \(\s+<Block\s+id="fenster-programm"/);
     // der Haken „Reisekosten vorgesehen“ und die Team-Felder gehören zu Hospitality; das Reception-Kennzeichen ist mit den Side Events
     // (ADM-077) entfallen — die Einladung ersetzt es
-    const hospitality = f.slice(f.indexOf('id="fenster-hospitality"'), f.indexOf('id="fenster-programm"'));
+    const hospitality = f.slice(f.indexOf('id="fenster-hospitality"'), f.indexOf('id="fenster-side-events"'));
     assert.ok(hospitality.includes("draft.travel_costs_covered"));
     assert.ok(!f.includes("draft.reception_eligible"), "kein Reception-Kennzeichen mehr im Fenster");
     assert.match(hospitality, /\{isTeam \? \(/);
