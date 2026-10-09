@@ -46,7 +46,10 @@ begin
     'person', jsonb_build_object(
        'id', v_p.id, 'first_name', v_p.first_name, 'last_name', v_p.last_name, 'title', v_p.title,
        'linkedin_url', v_p.linkedin_url,
-       'preferred_language', v_p.preferred_language, 'phone_e164', v_p.phone_e164,
+       'preferred_language', v_p.preferred_language,
+       -- SPK-093: `phone` ist die Nummer, wie die Person sie eingegeben hat - bei Altbestaenden, in denen nur `phone_e164` steht, deren Wert.
+       -- `phone_e164` bleibt im JSON, solange ein Formular vor SPK-093 es liest.
+       'phone', coalesce(v_p.phone, v_p.phone_e164), 'phone_e164', v_p.phone_e164,
        'email', (select pe.email::text from person_email pe where pe.person_id = v_p.id and pe.is_primary)),
     'photo_asset_id', v_sp.photo_asset_id,
     'consents', (select coalesce(jsonb_object_agg(c.consent_type, c.granted), '{}'::jsonb) from consent_current c

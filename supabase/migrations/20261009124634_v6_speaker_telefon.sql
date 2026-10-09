@@ -1,4 +1,5 @@
--- 02NN · Telefon im Speaker-Profil: freie Eingabe in `person.phone` (SPK-093)
+-- 0300 · Speaker-Formular schreibt das Telefon als Eingabe (phone), E.164 leitet der Trigger ab (SPK-093)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009124634.
 -- Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
 --
 -- Anlass: SPK-093 (Plan 09.10.2026, Folgepunkt aus 0292/ADM-108). Seit 0292 leitet der BEFORE-Trigger `trg_person_contact_keys` die Spalte

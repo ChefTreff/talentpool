@@ -224,6 +224,7 @@
 | Welle 6 · 0297 | **Ticket-Personalisierung im Admin: Statuszahl und Liste nicht personalisierter Tickets (TAL-019 Teil 2)** (`20261009121142`, `v6_ticket_personalisierung_admin`; Details im Migrationskopf) | — |
 | Welle 6 · 0298 | **Team & Zugänge: ein Abschnitt, eine Seite — team geht in access auf, team_members() entfällt (ADM-094)** (`20261009122723`, `v6_team_zugaenge_zusammen`; Details im Migrationskopf) | — |
 | Welle 6 · 0299 | **Shuttle-Sperre ab Beginn der Shuttle-Periode (LEAD-065, K-64)** (`20261009122829`, `v6_shuttle_sperre`; Details im Migrationskopf) | — |
+| Welle 6 · 0300 | **Speaker-Formular schreibt das Telefon als Eingabe (phone), E.164 leitet der Trigger ab (SPK-093)** (`20261009124634`, `v6_speaker_telefon`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

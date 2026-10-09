@@ -9,6 +9,7 @@ declare
   v_id uuid := nullif(p_data->>'id', '')::uuid;
   v_kontakt_vor text; v_kontakt_nach text; v_kontakt_mail text;
   v_kontakt_tel text; v_kontakt_art text; v_kontakt_ok date; v_hat_kontakt boolean;
+  v_tel_gegeben boolean; v_tel text;
 begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   -- SPK-071: ohne `id` das gewählte Profil (sonst wie bisher).
@@ -62,12 +63,20 @@ begin
     tech_rider        = case when p_data ? 'tech_rider' and jsonb_typeof(p_data->'tech_rider') = 'object' then p_data->'tech_rider' else tech_rider end
   where id = v_sp.id;
 
+  -- SPK-093: Die Nummer ist freie Eingabe in `person.phone`; `phone_e164` leitet der Trigger `trg_person_contact_keys` daraus ab (0292): lesbar => E.164,
+  -- unlesbar => null, die Eingabe bleibt in `phone`. Der Schluessel `phone_e164` der Formulare vor SPK-093 gilt als dieselbe freie Eingabe (`phone` gewinnt,
+  -- wenn beide kommen); fehlen beide, bleibt die Nummer unberuehrt.
+  v_tel_gegeben := p_data ? 'phone' or p_data ? 'phone_e164';
+  v_tel := nullif(btrim(case when p_data ? 'phone' then p_data->>'phone' else p_data->>'phone_e164' end), '');
+
   update person set
     first_name         = case when p_data ? 'first_name'         then nullif(btrim(p_data->>'first_name'), '')         else first_name end,
     last_name          = case when p_data ? 'last_name'          then nullif(btrim(p_data->>'last_name'), '')          else last_name end,
     title              = case when p_data ? 'title'              then nullif(btrim(p_data->>'title'), '')              else title end,
     linkedin_url       = case when p_data ? 'linkedin_url'       then nullif(btrim(p_data->>'linkedin_url'), '')       else linkedin_url end,
-    phone_e164         = case when p_data ? 'phone_e164'         then nullif(btrim(p_data->>'phone_e164'), '')         else phone_e164 end,
+    phone              = case when v_tel_gegeben then v_tel else phone end,
+    -- Leert die Person die Nummer, geht auch ein Altwert in `phone_e164` mit - sonst bliebe er stehen und kaeme beim naechsten Laden wieder.
+    phone_e164         = case when v_tel_gegeben and v_tel is null then null else phone_e164 end,
     preferred_language = case when p_data ? 'preferred_language' and p_data->>'preferred_language' in ('de', 'en') then p_data->>'preferred_language' else preferred_language end
   where id = v_sp.person_id;
 
