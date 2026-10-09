@@ -62,9 +62,11 @@ describe("SPK-093: die Migration `v6_speaker_telefon`", () => {
     const profilNeu = OHNE_ANZEIGE(funktion(c, "my_speaker_profile")).trimEnd();
     const profilAlt = OHNE_ANZEIGE(quelle("supabase/snapshot/functions/my_speaker_profile.sql")).replace(/end \$\$;\s*$/, "").trimEnd();
     assert.equal(profilNeu, profilAlt, "my_speaker_profile weicht vom Snapshot ab");
-    const schreibenNeu = OHNE_SCHREIBEN(funktion(c, "update_my_speaker_profile")).trimEnd();
-    const schreibenAlt = OHNE_SCHREIBEN(quelle("supabase/snapshot/functions/update_my_speaker_profile.sql")).replace(/end \$\$;\s*$/, "").trimEnd();
-    assert.equal(schreibenNeu, schreibenAlt, "update_my_speaker_profile weicht vom Snapshot ab");
+    // `update_my_speaker_profile` wird seit 0301 (SPK-094, Audit nur Feldnamen) vom Snapshot weiterentwickelt; ein
+    // Gleichheitsvergleich der Migration 0300 mit dem Live-Snapshot wäre ab da immer rot (Plan 09.10.2026: Migrationstests
+    // vergleichen nicht mit dem lebenden Snapshot, nur mit sich selbst). Die Telefon-Zeilen prüfen die folgenden Tests.
+    const schreibenNeu = OHNE_SCHREIBEN(funktion(c, "update_my_speaker_profile"));
+    assert.doesNotMatch(schreibenNeu, /v_tel_gegeben|v_tel\b/, "OHNE_SCHREIBEN lässt Telefon-Zeilen übrig");
   });
 
   it("Schreiben: `phone` ist freie Eingabe (getrimmt, leer ⇒ null), der alte Schlüssel `phone_e164` gilt als dieselbe Eingabe, `phone` gewinnt; ohne beide bleibt die Nummer", () => {
