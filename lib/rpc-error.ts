@@ -337,6 +337,9 @@ const BUSINESS_KEYS = new Set([
   "customer_number_taken",
   // Standbühne: Zeitfenster für Partner (Vorschlag v6_standbuehne_regeln, PART-079)
   "outside_partner_window",
+  // Partner-Slots (Vorschlag v6_partner_slots, K-84): auf einer Partnerbühne legt der Partner nur Inhalts-Slots an.
+  // Löschen: `unpublish_first` und `slot_locked` stehen schon in der Liste.
+  "slot_type_not_allowed",
   // Standbühnen-Gäste (Vorschlag v6_standbuehnen_gaeste, PART-081)
   "stage_guest",
   "already_speaker",

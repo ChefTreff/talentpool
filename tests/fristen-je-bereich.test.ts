@@ -17,7 +17,7 @@ import {
 } from "@/lib/fristen/anzeige";
 
 const lies = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
-type W = { admin: { deadlines: Record<string, string>; words: Record<string, string> }; rpc: Record<string, string>; auditAction: Record<string, string> };
+type W = { adminVolunteers: Record<string, string>; admin: { deadlines: Record<string, string>; words: Record<string, string> }; rpc: Record<string, string>; auditAction: Record<string, string> };
 const de = JSON.parse(lies("lib/i18n/de.json")) as W;
 const en = JSON.parse(lies("lib/i18n/en.json")) as W;
 
@@ -163,5 +163,21 @@ describe("Fristen je Bereich: Oberfläche (ADM-099)", () => {
     for (const k of ["deadlinesSpeaker", "deadlinesPartner", "deadlinesVolunteers", "deadlinesSystem"]) {
       assert.ok(de.admin.words[k] && en.admin.words[k], `Seitenkopf-Wort ${k}`);
     }
+  });
+});
+
+describe("Fristen der Volunteers im Volunteer-Admin (ADM-099)", () => {
+  it("der Reiter hängt am Rahmen, die Seite setzt den Baustein mit der Zielgruppe volunteer ein", () => {
+    const shell = lies("app/(admin)/admin/volunteers/shell.tsx");
+    assert.match(shell, /\/admin\/volunteers\/fristen/);
+    const seite = lies("app/(admin)/admin/volunteers/fristen/page.tsx");
+    assert.match(seite, /FristenVerwaltung/);
+    assert.match(seite, /NEUE_ZIELGRUPPE\.volunteers/);
+    assert.match(seite, /can_edit_deadline/);
+    assert.equal(NEUE_ZIELGRUPPE.volunteers, "volunteer");
+  });
+  it("Reiter und Titel stehen in beiden Sprachen", () => {
+    for (const w of [de, en] as unknown as { adminVolunteers: Record<string, string> }[])
+      for (const k of ["tabDeadlines", "deadlinesTitle", "deadlinesLead"]) assert.ok(w.adminVolunteers[k]?.length > 3, k);
   });
 });

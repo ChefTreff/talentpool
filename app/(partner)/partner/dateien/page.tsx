@@ -10,9 +10,6 @@ import { DateienView, type BelegZeile } from "./DateienView";
 
 export const dynamic = "force-dynamic";
 
-/** Logos zuerst: sie braucht jeder Partner, und nach ihnen fragt man zuerst. */
-const logoZuerst = (d: Deliverable) => (d.key.startsWith("logo_") ? 0 : 1);
-
 /**
  * Dateien (PART-065): feste Plätze für jede Datei, die das Portal von euch
  * braucht — die Upload-Pflichten aus `my_deliverables`, auch ohne Datei —,
@@ -21,6 +18,9 @@ const logoZuerst = (d: Deliverable) => (d.key.startsWith("logo_") ? 0 : 1);
  *
  * Vorher stand hier nur, was schon hochgeladen war; bei einem neuen Partner
  * war die Seite leer und „erfüllte keinen Nutzen“ (Konrad, 21.09.).
+ *
+ * Seit PART-109 (Konrad 08.10.2026, K-73) eine Zeile je Datei; die Reihenfolge
+ * („Offenes zuerst“) legt `dateiReihenfolge` fest, die Ansicht ruft sie auf.
  */
 export default async function PartnerFilesPage() {
   await requireArea("partner", "/partner/dateien");
@@ -38,9 +38,7 @@ export default async function PartnerFilesPage() {
   ]);
   const overview = (overviewJson ?? null) as PartnerOverview | null;
 
-  const pflichten = ((deliverableRows ?? []) as Deliverable[])
-    .filter((d) => d.type === "upload")
-    .sort((a, b) => logoZuerst(a) - logoZuerst(b) || a.sort - b.sort || a.key.localeCompare(b.key));
+  const pflichten = ((deliverableRows ?? []) as Deliverable[]).filter((d) => d.type === "upload");
   const kontext = Object.fromEntries(
     pflichten.map((d) => [
       d.id,
@@ -95,7 +93,7 @@ export default async function PartnerFilesPage() {
           overdue: t.partner.deliverable_overdue,
         }}
         t={t.partnerFiles}
-        common={{ upload: t.common.upload, chooseOtherFile: t.common.chooseOtherFile }}
+        common={{ upload: t.common.upload, chooseOtherFile: t.common.chooseOtherFile, close: t.common.close }}
         rpcMessages={t.rpc}
       />
 
