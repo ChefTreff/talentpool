@@ -5,19 +5,23 @@ import { MasterclassKopf } from "../MasterclassKopf";
 
 export const dynamic = "force-dynamic";
 
-/** Bewerbungen der Masterclass mit Entscheidungen (PART-045), zweiter Reiter. */
-export default async function PartnerMasterclassApplicationsPage() {
+/**
+ * Bewerbungen der Masterclass mit Entscheidungen (PART-045), zweiter Reiter. Bei mehreren Masterclasses (QS-079) steht nur die
+ * gewählte da (`?instanz=`): die Liste, die Entscheidungen und der CSV-Export gehören zu dieser einen Masterclass.
+ */
+export default async function PartnerMasterclassApplicationsPage({ searchParams }: { searchParams: Promise<{ instanz?: string | string[] }> }) {
   await requireArea("partner", "/partner/masterclass/bewerbungen");
-  const { supabase, locale, t, current, sessions, gebucht, canEdit } = await ladeMasterclass();
+  const { instanz } = await searchParams;
+  const { supabase, locale, t, current, sessions, gewaehlt, instanzen, gebucht, canEdit } = await ladeMasterclass(instanz);
   const s = t.partnerMasterclass;
   return (
     <>
-      <MasterclassKopf gebucht={gebucht} sessions={sessions.length} word={t.partner.wordInvitation} t={s} b={t.partnerBewerbung} />
-      {sessions.length > 0 && (
+      <MasterclassKopf gebucht={gebucht} sessions={sessions.length} instanzen={instanzen} word={t.partner.wordInvitation} t={s} b={t.partnerBewerbung} />
+      {gewaehlt && (
         <FormatBewerbungen
           supabase={supabase}
           orgId={current.org_id}
-          sessions={sessions}
+          sessions={[gewaehlt]}
           nurTeilnehmende={false}
           canEdit={canEdit}
           locale={locale}

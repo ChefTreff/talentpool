@@ -1,5 +1,5 @@
 import { strict as assert } from "node:assert";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 /**
@@ -50,10 +50,12 @@ describe("PART-136: Talk — Hierarchie", () => {
 });
 
 describe("PART-136: Talk — Speaker als Tabelle, Bearbeiten im Schubfach", () => {
-  it("die Seite benutzt die Tabelle und nicht mehr die Karte je Person; die Karte bleibt für die Masterclass", () => {
+  it("die Seite benutzt die Tabelle und nicht mehr die Karte je Person — seit PART-149 (09.10.2026) auch die Masterclass-Seite; die Karte ist weg", () => {
     assert.match(seite, /<SpeakerTabelle\s+speakers=\{dazu\}\s+canEdit=\{canEdit\}/);
     assert.doesNotMatch(seite, /SpeakerKarte/);
-    assert.match(src("app/(partner)/partner/masterclass/page.tsx"), /import \{ SpeakerKarte \} from "\.\.\/talk\/SpeakerKarte";/);
+    assert.match(src("app/(partner)/partner/masterclass/Instanz.tsx"), /<SpeakerTabelle speakers=\{speakers\} canEdit=\{canEdit\}/);
+    assert.equal(existsSync("app/(partner)/partner/talk/SpeakerKarte.tsx"), false, "die Karte je Person gibt es nicht mehr");
+    assert.doesNotMatch(src("app/(partner)/partner/masterclass/Instanz.tsx"), /SpeakerKarte/);
   });
 
   it("`Table stapeln` mit drei Spalten (Person, Stand, Aktion); eine Zeile je Person, der Knopf nur mit Recht", () => {
@@ -63,7 +65,11 @@ describe("PART-136: Talk — Speaker als Tabelle, Bearbeiten im Schubfach", () =
     assert.equal((tabelle.match(/<Td label=\{t\.colStatus\}>/g) ?? []).length, 1);
     assert.match(tabelle, /<Th aria-label=\{t\.colAction\} \/>/);
     assert.match(tabelle, /const darfPflegen = canEdit && sp\.can_edit;/);
-    assert.match(tabelle, /\{darfPflegen && \(\s*<Button size="sm" variant="secondary" onClick=\{\(\) => setOffen\(sp\.profile_id\)\}>/);
+    // Der Knopf trägt den Bezug zur Zeile (Skill-Regel 13, PART-149): „Angaben pflegen: Anna Beispiel“ — jede Zeile hat denselben Knopf.
+    assert.match(
+      tabelle,
+      /\{darfPflegen && \(\s*<Button\s+size="sm"\s+variant="secondary"\s+aria-label=\{`\$\{t\.edit\}: \$\{sp\.display_name \|\| t\.unnamed\}`\}\s+onClick=\{\(\) => setOffen\(sp\.profile_id\)\}\s*>/,
+    );
     // Position und Unternehmen kennt die RPC nur, solange der Partner pflegen darf — sonst keine Zweitzeile.
     assert.match(tabelle, /const zweitzeile = sp\.can_edit\s*\? \[sp\.job_title, sp\.organization_name\]\.filter\(Boolean\)\.join\(" · "\) \|\| t\.noRoleYet\s*: null;/);
   });
@@ -94,13 +100,32 @@ describe("PART-136: Talk — Speaker als Tabelle, Bearbeiten im Schubfach", () =
 
   it("was für alle gilt, steht einmal unter der Tabelle — nicht bei jedem Namen", () => {
     for (const alt of ["managedNote", "ownsDataBody", "managedOwnsBody"]) assert.doesNotMatch(tabelle, new RegExp(`t\\.${alt}`), alt);
-    assert.match(seite, /const kontakt = dazu\.find\(\(sp\) => sp\.mail_contact_name\)\?\.mail_contact_name \?\? null;/);
-    assert.match(seite, /const pflegtSelbst = dazu\.some\(\(sp\) => !sp\.can_edit && !sp\.mail_contact_name\);/);
-    assert.match(seite, /s\.speakersNoteOwn/);
-    assert.match(seite, /s\.speakersNoteManaged\.replace\(\/\\\{kontakt\\\}\/g, kontakt\)/);
-    // Die Sätze stehen hinter der Tabelle und vor dem Eintragen.
-    const t = seite.indexOf("<SpeakerTabelle");
-    assert.ok(t < seite.indexOf("s.speakersNoteOwn") && seite.indexOf("s.speakersNoteOwn") < seite.indexOf("<SpeakerHinzufuegen"));
+    // Die Regel steht seit PART-149 einmal in `lib/partner/speaker-notiz.ts` — Talk und Masterclass sagen denselben Satz.
+    const regel = ohneKommentare(src("lib/partner/speaker-notiz.ts"));
+    assert.match(regel, /const kontakt = speakers\.find\(\(sp\) => sp\.mail_contact_name\)\?\.mail_contact_name \?\? null;/);
+    assert.match(regel, /const pflegtSelbst = speakers\.some\(\(sp\) => !sp\.can_edit && !sp\.mail_contact_name\);/);
+    assert.match(regel, /t\.speakersNoteOwn/);
+    assert.match(regel, /t\.speakersNoteManaged\.replace\(\/\\\{kontakt\\\}\/g, kontakt\)/);
+    assert.match(seite, /const notiz = speakerNotiz\(dazu, s\);/);
+    // Der Satz steht hinter der Tabelle, in derselben Spalte.
+    assert.match(seite, /<SpeakerTabelle[\s\S]*?\/>\s*\{notiz && <p className="ct-help">\{notiz\}<\/p>\}/);
+  });
+
+  it("„Speaker eintragen“ steht in der Kopfzeile des Blocks, rechts neben „Wer spricht“ — im Leerzustand dort, wo noch niemand steht; nie unter der Tabelle (PART-149)", () => {
+    // Kopfzeile: derselbe Streifen wie die Überschrift, der Knopf nur mit Recht und erst, wenn es eine Liste gibt.
+    assert.match(
+      seite,
+      /<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">\s*<h3 className="ct-h3 text-ink">[\s\S]*?<\/h3>\s*\{canEdit && dazu\.length > 0 && \(\s*<SpeakerHinzufuegen\s+sessionId=\{x\.id\}/,
+    );
+    // Leerzustand: ein Satz und genau diese eine Aktion.
+    assert.match(
+      seite,
+      /<div className="flex flex-col items-start gap-3">\s*<p className="ct-help">\{s\.noSpeakerYet\}<\/p>\s*\{canEdit && \(\s*<SpeakerHinzufuegen\s+sessionId=\{x\.id\}/,
+    );
+    // Genau zwei Stellen, und keine hinter der Tabelle.
+    assert.equal((seite.match(/<SpeakerHinzufuegen/g) ?? []).length, 2);
+    const nachTabelle = seite.slice(seite.indexOf("<SpeakerTabelle"), seite.indexOf("{notiz &&"));
+    assert.doesNotMatch(nachTabelle, /SpeakerHinzufuegen/);
   });
 
   it("Eintragen, leerer Zustand und Programmhinweis bleiben", () => {
@@ -114,7 +139,7 @@ describe("PART-136: Texte", () => {
   it("alle benutzten Schlüssel stehen in DE und EN; die Sätze nennen die Marken beim Namen", () => {
     const benutzt = (text: string, praefix: string) =>
       [...new Set([...text.matchAll(new RegExp(`\\b${praefix}\\.([a-zA-Z]+)`, "g"))].map((m) => m[1]))];
-    const keys = [...benutzt(seite, "s"), ...benutzt(tabelle, "t")];
+    const keys = [...benutzt(seite, "s"), ...benutzt(tabelle, "t"), ...benutzt(src("lib/partner/speaker-notiz.ts"), "t")];
     for (const k of ["colPerson", "colStatus", "colAction", "editTitle", "speakersNoteOwn", "speakersNoteManaged"]) assert.ok(keys.includes(k), `benutzt: ${k}`);
     for (const sprache of ["de", "en"] as const) {
       const t = wb(sprache);
