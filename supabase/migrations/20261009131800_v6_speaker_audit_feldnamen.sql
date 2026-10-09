@@ -1,4 +1,5 @@
--- 02NN · Audit der Assistenz-Änderung nur mit Feldnamen (SPK-094)
+-- 0301 · Audit der Assistenz-Änderung nur mit Feldnamen (SPK-094)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009131800.
 -- Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
 --
 -- Anlass: Befund aus #452 (SPK-093), Plan 09.10.2026: `update_my_speaker_profile` schreibt bei einer Änderung durch die **Assistenz** den ganzen Eingabeblock
