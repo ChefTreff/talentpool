@@ -6,9 +6,9 @@ import { OHNE_ENDE, standFenster } from "@/components/partner/standbuehne";
  *
  * Quelle ist `stage_day.open_from/open_to` — dieselben Werte, gegen die
  * `create_slot` und `move_slot` prüfen: für Stage Leads hart
- * (`outside_stage_day`, LEAD-016), für Partner auf ihrer Standbühne das
- * Zeitfenster, für das Programm-Team eine Warnung. Auf der Standbühne gilt
- * die Regel aus `standFenster()` (PART-090, 0195): je Grenze die Öffnungszeit,
+ * (`outside_stage_day`, LEAD-016), für Partner auf ihrer Standbühne oder
+ * gebrandeten Bühne (K-84) das Zeitfenster, für das Programm-Team eine
+ * Warnung. Dort gilt die Regel aus `standFenster()` (PART-090, 0195): je Grenze die Öffnungszeit,
  * sonst der Programmrahmen des Tages — dieselbe `coalesce`-Folge wie
  * `partner_booth_window`. Auf den übrigen Bühnen heißt eine fehlende Grenze
  * „keine Grenze“, wie in `create_slot`.
@@ -27,14 +27,15 @@ export type BoardStageDay = {
 export type Oeffnung = { von: number | null; bis: number | null };
 
 export function oeffnung(
-  stage: { id: string; type: string | null },
+  stage: { id: string; type: string | null; kind?: string | null },
   stageDays: readonly BoardStageDay[],
   day: { programme_start: string | null; programme_end: string | null } | null,
 ): Oeffnung | null {
   const zeile = stageDays.find((r) => r.stage_id === stage.id);
   let von: number | null;
   let bis: number | null;
-  if (stage.type === "partner_booth") {
+  // K-84: die gebrandete Bühne (Haupt- oder Nebenbühne mit Partner) hat dasselbe Partner-Fenster wie die Standbühne (`partner_booth_window`).
+  if (stage.type === "partner_booth" || stage.kind === "branded") {
     const f = standFenster(
       zeile?.open_from ?? null,
       zeile?.open_to ?? null,
