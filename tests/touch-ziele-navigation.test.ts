@@ -75,7 +75,7 @@ describe("Reiter statt Knopfreihe (QS-059)", () => {
 
   for (const [datei, aktiv] of [
     ["app/(admin)/admin/medien/page.tsx", "aktiv: b === bereich"],
-    ["app/(admin)/admin/dubletten/page.tsx", "aktiv: s === status"],
+    ["app/(admin)/admin/personen/dubletten/page.tsx", "aktiv: s === status"],
   ] as const) {
     it(`${datei}: Reiter mit ${aktiv}, keine Knopfreihe`, () => {
       const q = lies(datei);

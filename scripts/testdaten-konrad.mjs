@@ -3361,7 +3361,7 @@ async function sperrlisteEintrag() {
 /**
  * ADM-036: zwei TEST-Personen ohne Konto als Dublettenpaar — gleiche
  * LinkedIn-Angabe, die zweite mit Telefon und einem Interesse mehr. Konrad
- * öffnet unter `/admin/dubletten` die Vorschau, führt zusammen und nimmt es
+ * öffnet unter `/admin/personen/dubletten` die Vorschau, führt zusammen und nimmt es
  * unter „Zusammengeführt" wieder zurück. Adressen aus seinem eigenen Postfach
  * (`+zztest-dublette-a/-b`); es entsteht kein Login und keine Mail. Nach einem
  * Zusammenführen gehört die zweite Adresse der ersten Person — dann sagt der
@@ -3378,7 +3378,7 @@ async function dublettenPaar() {
   }
   const [a, b] = ids;
   if (!a || !b) return;
-  if (a === b) return note("Dublettenpaar", "schon zusammengeführt — unter /admin/dubletten → Zusammengeführt zurücknehmen, dann erneut laufen lassen");
+  if (a === b) return note("Dublettenpaar", "schon zusammengeführt — unter /admin/personen/dubletten → Zusammengeführt zurücknehmen, dann erneut laufen lassen");
   const linkedin = "zztest-dublette-konrad";
   await write("LinkedIn-Angabe beider TEST-Personen", () =>
     admin.from("person").update({ linkedin_normalized: linkedin }).in("id", [a, b]));
@@ -3395,7 +3395,7 @@ async function dublettenPaar() {
     admin.from("potential_duplicate").upsert(
       { person_id_a: x, person_id_b: y, score: 0.9, signals: { linkedin: true } },
       { onConflict: "person_id_a,person_id_b", ignoreDuplicates: true }));
-  note("Dubletten ausprobieren", "/admin/dubletten → „Zusammenführen prüfen“ beim Paar TEST Dublette");
+  note("Dubletten ausprobieren", "/admin/personen/dubletten → „Zusammenführen prüfen“ beim Paar TEST Dublette");
 }
 
 /**

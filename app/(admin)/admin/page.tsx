@@ -35,7 +35,7 @@ export default async function AdminDashboard() {
     {
       label: t.admin.overview.openDuplicates,
       value: dupes.count ?? 0,
-      href: "/admin/dubletten",
+      href: "/admin/personen/dubletten",
     },
     { label: t.admin.overview.events, value: events.count ?? 0 },
     { label: t.admin.overview.vocabTerms, value: vocab.count ?? 0, href: "/admin/vokabular" },
@@ -65,7 +65,7 @@ export default async function AdminDashboard() {
         lead={t.admin.overview.lead}
         action={
           offeneDubletten > 0 && canEnterAdminSection("duplicates", roleNames) ? (
-            <ButtonLink href="/admin/dubletten">{t.admin.overview.bandActionDuplicates}</ButtonLink>
+            <ButtonLink href="/admin/personen/dubletten">{t.admin.overview.bandActionDuplicates}</ButtonLink>
           ) : undefined
         }
         aside={

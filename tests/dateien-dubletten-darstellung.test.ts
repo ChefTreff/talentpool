@@ -33,7 +33,7 @@ describe("Dateiliste am Handy (QS-062)", () => {
 });
 
 describe("Dubletten: Stand als Auswahl (QS-063)", () => {
-  const quelle = lies("app/(admin)/admin/dubletten/DuplicateActions.tsx");
+  const quelle = lies("app/(admin)/admin/personen/dubletten/DuplicateActions.tsx");
 
   it("setzt keinen Knopf in Primärfarbe als Zustand", () => {
     assert.doesNotMatch(quelle, /<Button\b/);
@@ -52,6 +52,6 @@ describe("Dubletten: Stand als Auswahl (QS-063)", () => {
       const d = JSON.parse(lies(`lib/i18n/${sprache}.json`)).duplicatesAdmin as Record<string, string>;
       assert.ok(d.stateLabel?.trim(), sprache);
     }
-    assert.match(lies("app/(admin)/admin/dubletten/page.tsx"), /state: d\.stateLabel/);
+    assert.match(lies("app/(admin)/admin/personen/dubletten/page.tsx"), /state: d\.stateLabel/);
   });
 });
