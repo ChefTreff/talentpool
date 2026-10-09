@@ -15,7 +15,8 @@ const code = (text: string) => text.replace(/--[^\n]*/g, "");
 /** TypeScript ohne Kommentare — damit eine Erklärung im Quelltext nicht als Treffer zählt. */
 const tscode = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-const FORMULAR = "app/(speaker)/speaker/profil/SpeakerProfileForm.tsx";
+/** Seit SPK-088 steht das Telefon im Reiter „Person“ (vorher im einen großen Formular). */
+const FORMULAR = "app/(speaker)/speaker/profil/PersonTab.tsx";
 const TYPEN = "app/(speaker)/speaker/types.ts";
 
 /** Der Text einer Funktion der Migration: von `create or replace function <name>(` bis zum nächsten `end $$;`. */
@@ -106,13 +107,13 @@ describe("SPK-093: das Formular schickt `phone`", () => {
     const f = tscode(quelle(FORMULAR));
     assert.match(f, /type Draft = \{[\s\S]*?\n  phone: string;\n[\s\S]*?\};/);
     assert.match(f, /    phone: p\.phone \?\? "",/);
-    assert.match(f, /await saveSpeakerProfile\(\{\s+id: profile\.id,\s+\.\.\.draft,/);
+    assert.match(f, /await saveSpeakerProfile\(\{ id: profile\.id, \.\.\.draft \}\)/);
     assert.doesNotMatch(f, /phone_e164/);
   });
 
   it("das Feld zeigt und ändert `draft.phone`, als Telefonfeld ohne Formatzwang", () => {
     const f = tscode(quelle(FORMULAR));
-    assert.match(f, /<Input\s+id="phone"\s+type="tel"\s+value=\{draft\.phone\}\s+onChange=\{\(e\) => set\("phone", e\.target\.value\)\}\s+\/>/);
+    assert.match(f, /<Input id="phone" type="tel" value=\{draft\.phone\} onChange=\{\(e\) => set\("phone", e\.target\.value\)\} \/>/);
     assert.doesNotMatch(f, /pattern=|inputMode=|maxLength=/, "keine Formatvorgabe am Telefonfeld");
   });
 

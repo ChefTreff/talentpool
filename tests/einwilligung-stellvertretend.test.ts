@@ -56,7 +56,7 @@ describe("SPK-074: Portal und Admin", () => {
   it("das Portal öffnet den Block stellvertretend und schickt über die RPC", () => {
     const seite = quelle("app/(speaker)/speaker/profil/page.tsx");
     assert.match(seite, /rpc\("can_confirm_consent_on_behalf", \{ p_profile_id: profile\.id \}\)/);
-    const form = quelle("app/(speaker)/speaker/profil/SpeakerProfileForm.tsx");
+    const form = quelle("app/(speaker)/speaker/profil/EinwilligungenTab.tsx");
     assert.match(form, /const readOnlyConsent = profile\.is_assistant && !consentOnBehalf;/);
     assert.match(form, /t\.consentOnBehalf\.replace\("\{name\}"/);
     const aktion = quelle("app/(speaker)/speaker/actions.ts");

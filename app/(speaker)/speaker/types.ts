@@ -1,3 +1,5 @@
+import { reiterHref } from "@/lib/speaker/profil-reiter";
+
 /**
  * Das JSON aus `my_speaker_profile()`. Die RPC entscheidet, was eine Person
  * sehen darf — die Oberfläche rechnet nichts nach, sie stellt dar.
@@ -113,9 +115,10 @@ export const SPEAKER_CONSENTS = [
  * niemand abhaken kann, ist schlimmer als gar keiner.
  */
 export const STEP_HREF: Record<string, string | null> = {
-  profile: "/speaker/profil",
-  consents: "/speaker/profil#consent",
-  photo: "/speaker/profil#foto",
+  // Das Profil hat seit SPK-088 drei Reiter; der Schritt „Profil“ führt über `profilSchrittHref` (die Übersicht) zum Reiter, in dem etwas fehlt.
+  profile: reiterHref("person"),
+  consents: `${reiterHref("einwilligungen")}#consent`,
+  photo: `${reiterHref("person")}#foto`,
   session: "/speaker/session",
   session_content: "/speaker/session",
   presentation: "/speaker/session",

@@ -17,7 +17,7 @@ const woerterbuch = (sprache: "de" | "en") =>
 
 const GATE = "app/(speaker)/EinwilligungsGate.tsx";
 const LAYOUT = "app/(speaker)/layout.tsx";
-const PROFIL = "app/(speaker)/speaker/profil/SpeakerProfileForm.tsx";
+const PROFIL = "app/(speaker)/speaker/profil/EinwilligungenTab.tsx";
 const REISE = "app/(speaker)/speaker/travel/TravelView.tsx";
 
 describe("SPK-078: die Texte", () => {
