@@ -50,7 +50,7 @@ Das Wichtigste: Nutzt den Talk, um euch gut zu positionieren, und baut eine Inte
 
 Die Event-App ist der digitale Begleiter eurer physischen Präsenz. Wir empfehlen, sie schon vor dem Summit intensiv zu nutzen.
 
-**Vor dem Summit**
+### Vor dem Summit
 
 Ihr wollt beim Summit die bestmöglichen Gespräche führen. Die Qualität erhöht ihr, indem ihr bereits vorher mit potenziell spannenden Personen interagiert:
 
@@ -62,7 +62,7 @@ Ihr wollt beim Summit die bestmöglichen Gespräche führen. Die Qualität erhö
    - Versucht als Abschluss entweder einen Termin zu buchen oder ladet die Personen an den Messestand ein. Meetings könnt ihr an einem Meeting-Spot auf der Fläche oder direkt bei euch am Stand buchen.
 4. Tragt offene Positionen und eure Produkte in der App ein, um darauf verweisen zu können.
 
-**Beim Summit: Lead-Scanning**
+### Beim Summit: Lead-Scanning
 
 Jede Person am Stand sollte die App heruntergeladen haben. Dann gilt:
 
@@ -74,7 +74,7 @@ Ihr könnt euch eine Übersicht erstellen, wer aus eurem Team mit wem interagier
 
 Natürlich könnt ihr zur Sicherheit auch ein eigenes Formular zur Datenerhebung mitbringen. Alle Daten der App stehen euch aber auch nach dem Summit zur Verfügung.
 
-**Nach dem Summit**
+### Nach dem Summit
 
 Das Wichtigste: Seid schnell. Wir wollen mit dem Summit emotionalisieren, und die Gäste gehen mit guten Erinnerungen nach Hause. Entsprechend sind sie in den Tagen danach am empfänglichsten für weitere Nachrichten. Bereitet die Nachrichten am besten vor, sodass ihr sie nur noch mit Notizen aus den Gesprächen anreichern und direkt versenden müsst.
 
