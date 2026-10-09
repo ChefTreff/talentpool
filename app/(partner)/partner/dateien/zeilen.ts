@@ -43,6 +43,14 @@ export function dateiReihenfolge<T extends Datei>(pflichten: T[]): T[] {
 export const HOCHLADBAR: ReadonlySet<Deliverable["status"]> = new Set(["open", "rejected", "overdue"]);
 
 /**
+ * Zeigt die Zeile eine Frist? **Nur dort, wo der Partner noch etwas tun kann** — offen, überfällig, zurückgewiesen. Eingereicht und
+ * angenommen verlangen nichts mehr, eine Frist dort wäre Lärm (K-90, Konrad 09.10.2026: „bei Eingereicht weg, wie bei Angenommen“).
+ * Die Zelle bleibt dann leer; gestapelt fällt mit ihr auch die Beschriftung weg. Ob die Pflicht überhaupt eine Frist hat, prüft die
+ * Ansicht (`due_at`).
+ */
+export const zeigtFrist = (status: Deliverable["status"]): boolean => HOCHLADBAR.has(status);
+
+/**
  * Das eine Format, das die Dateiregeln erlauben — sonst `null`. Erlauben die Regeln mehrere (Digital-Branding: PDF, PNG,
  * SVG, JPG, ZIP), steht keines in der Zeile: das erste zu nennen hieße, den Rest zu verschweigen. `jpg` und `jpeg`
  * zählen als ein Format.

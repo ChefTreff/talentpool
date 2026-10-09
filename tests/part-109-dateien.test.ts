@@ -7,6 +7,7 @@ import {
   dateiName,
   dateiReihenfolge,
   einzigesFormat,
+  zeigtFrist,
 } from "@/app/(partner)/partner/dateien/zeilen";
 
 /**
@@ -158,10 +159,19 @@ describe("PART-109: Dateien — eine Zeile je Datei", () => {
     assert.match(ansicht, /\{d\.status === "rejected" && d\.review_note && \(/);
   });
 
-  it("die Frist als `FristMarke kompakt`, wie bisher: nicht bei angenommenen Dateien; ohne Frist bleibt die Zelle leer", () => {
-    assert.match(ansicht, /\{d\.due_at && d\.status !== "accepted" \? \(\s*<FristMarke\s+kompakt\b/);
+  it("die Frist als `FristMarke kompakt` — nur, wo der Partner noch etwas tun kann (K-90): nicht bei eingereichten und angenommenen Dateien; ohne Frist bleibt die Zelle leer", () => {
+    assert.match(ansicht, /\{d\.due_at && zeigtFrist\(d\.status\) \? \(\s*<FristMarke\s+kompakt\b/);
+    assert.doesNotMatch(ansicht, /d\.status !== "accepted"/, "keine einzelne Ausnahme mehr: die Regel steht in `zeigtFrist`");
     assert.match(ansicht, /vorbei=\{d\.status === "overdue"\}/);
     assert.match(ansicht, /vorbei=\{d\.status === "overdue"\}\s*t=\{fristTexte\}\s*\/>\s*\) : null\}\s*<\/Td>/);
+  });
+
+  it("`zeigtFrist` (ausgeführt): offen, überfällig und zurückgewiesen zeigen die Frist, eingereicht und angenommen nicht — jeder Stand ist entschieden", () => {
+    const staende = ["open", "overdue", "rejected", "submitted", "accepted"] as const;
+    assert.deepEqual(staende.filter((s) => zeigtFrist(s)), ["open", "overdue", "rejected"]);
+    assert.deepEqual(staende.filter((s) => !zeigtFrist(s)), ["submitted", "accepted"]);
+    // Wer eine Frist sieht, kann auch hochladen — dieselben Stände.
+    assert.deepEqual(staende.filter((s) => zeigtFrist(s)).sort(), [...HOCHLADBAR].sort());
   });
 
   it("die Aktion: Hochladen (öffnet das Schubfach), wo der Partner hochladen darf; sonst Öffnen der Datei; ohne Datei nichts", () => {
