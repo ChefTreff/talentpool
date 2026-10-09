@@ -4,6 +4,7 @@
     "active": "Active",
     "add": "Add",
     "addHint": "For people who have no role and no account yet and therefore are not in the list. The person has to be in the talent pool already; “Invite a team member” creates new people. The admin role always applies to every edition.",
+    "addMember": "Add a team member",
     "addRole": "+ Role",
     "addRoleTitle": "Add a role",
     "addTitle": "Add a person from the talent pool",
@@ -12,12 +13,14 @@
     "blockTitle": "Block this access?",
     "blocked": "Blocked",
     "choose": "Please choose",
+    "clearSearch": "Clear search",
     "colAccess": "Access",
     "colAction": "Action",
     "colPerson": "Person",
     "colRoles": "Roles",
     "colSince": "Since",
     "count": "{n} people",
+    "drawerClose": "Close",
     "empty": "Nobody found",
     "emptyBody": "This lists people with an account or a valid role. Change the filter or invite someone.",
     "filterAlle": "Everyone with access",
@@ -68,6 +71,7 @@
     "searchLabel": "Find a person",
     "searchPlaceholder": "Name or email",
     "selfHint": "Nobody can block themselves.",
+    "showAll": "Show everyone with access",
     "teamConfirmBody": "{name} gets the selected roles and an email to {email}: the sign-in link if the person has no account yet, otherwise a note about the new roles.",
     "teamConfirmTitle": "Send the invitation?",
     "teamEdition": "Edition",
@@ -87,7 +91,10 @@
     "title": "Team & access",
     "unblock": "Restore access",
     "unblockBody": "The person gets back exactly the roles they had and can sign in again.",
-    "unblockTitle": "Restore this access?"
+    "unblockTitle": "Restore this access?",
+    "wayAdopt": "From the talent pool",
+    "wayInvite": "Invite someone new",
+    "wayLabel": "How the person joins the team"
   },
   "admin": {
     "applications": {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -73,6 +73,7 @@ export function ZugaengeListe({
   t,
   common,
   rpcMessages,
+  leerAktion,
 }: {
   konten: Konto[];
   /** Adresse der Seite mit Suche und Filter, ohne `seite` — die Blätterlinks hängen sie an. */
@@ -89,6 +90,8 @@ export function ZugaengeListe({
   t: Record<string, string>;
   common: { cancel: string; save: string; none: string };
   rpcMessages: Record<string, string>;
+  /** Die eine Aktion des Leerzustands: Suche zurücksetzen oder alle zeigen (Skill-Regel 9). */
+  leerAktion?: ReactNode;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -98,6 +101,9 @@ export function ZugaengeListe({
   const [neueRolle, setNeueRolle] = useState("");
   const [geltung, setGeltung] = useState("global");
   const [pending, start] = useTransition();
+  /** Scheitert eine Rückfrage oder das Fenster „Rolle ergänzen“, bleibt sie offen und sagt es dort (ADM-062, ADM-109). */
+  const [dialogFehler, setDialogFehler] = useState<string | null>(null);
+  const [rolleFehler, setRolleFehler] = useState<string | null>(null);
 
   const datum = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
   const nachricht = (key: string, detail?: string) =>
@@ -107,13 +113,9 @@ export function ZugaengeListe({
   const seiten = Math.max(1, Math.ceil(gesamt / proSeite));
   const mitSeite = (n: number) => `${basisAdresse}${n > 1 ? `${basisAdresse.includes("?") ? "&" : "?"}seite=${n}` : ""}`;
 
-  function melden(res: Ergebnis, okText: string | null) {
-    if (res.ok) {
-      if (okText) toast("success", okText);
-      router.refresh();
-      return;
-    }
-    toast("error", nachricht(res.key, res.detail));
+  function erfolg(okText: string | null) {
+    if (okText) toast("success", okText);
+    router.refresh();
   }
 
   function ausfuehren() {
@@ -131,9 +133,15 @@ export function ZugaengeListe({
       } else {
         res = await setzeZugang(aktuell.konto.person_id, aktuell.art === "sperren", notiz);
       }
+      if (!res.ok) {
+        // Die Rückfrage bleibt offen und sagt, was nicht ging — kein Toast nach dem Schließen.
+        setDialogFehler(nachricht(res.key, res.detail));
+        return;
+      }
       setFrage(null);
       setNotiz("");
-      melden(res, ok);
+      setDialogFehler(null);
+      erfolg(ok);
     });
   }
 
@@ -142,20 +150,29 @@ export function ZugaengeListe({
     const ziel = rolleFuer;
     start(async () => {
       const res = await grantTeamRole(ziel.person_id, neueRolle, geltung === "edition" ? editionId : null);
+      if (!res.ok) {
+        setRolleFehler(nachricht(res.key, res.detail));
+        return;
+      }
       setRolleFuer(null);
-      melden(res, t.granted);
+      setRolleFehler(null);
+      erfolg(t.granted);
     });
   }
 
   function rolleOeffnen(k: Konto) {
     setNeueRolle("");
     setGeltung("global");
+    setRolleFehler(null);
     setRolleFuer(k);
   }
 
-  const fragen = (art: "sperren" | "oeffnen" | "einladen", konto: Konto) => setFrage({ art, konto });
+  const fragen = (art: "sperren" | "oeffnen" | "einladen", konto: Konto) => {
+    setDialogFehler(null);
+    setFrage({ art, konto });
+  };
 
-  if (konten.length === 0) return <EmptyState title={t.empty} description={t.emptyBody} />;
+  if (konten.length === 0) return <EmptyState title={t.empty} description={t.emptyBody} action={leerAktion} />;
 
   return (
     <div className="flex flex-col gap-4">
@@ -175,7 +192,7 @@ export function ZugaengeListe({
             return (
               <Tr key={k.person_id}>
                 <Td>
-                  <Link href={`/admin/personen/${k.person_id}`} className="ct-link font-medium">
+                  <Link href={`/admin/personen/${k.person_id}`} className="ct-link inline-flex font-medium pointer-coarse:min-h-11 pointer-coarse:items-center">
                     {k.name ?? common.none}
                   </Link>
                   {k.email && <span className="ct-help block text-muted">{k.email}</span>}
@@ -189,7 +206,10 @@ export function ZugaengeListe({
                         title={t.revoke}
                         aria-label={`${t.revoke}: ${rolleNamen(r)}`}
                         disabled={pending}
-                        onClick={() => setFrage({ art: "entziehen", konto: k, rolle: r })}
+                        onClick={() => {
+                          setDialogFehler(null);
+                          setFrage({ art: "entziehen", konto: k, rolle: r });
+                        }}
                         className="rounded-ct-sm focus-visible:outline-2 pointer-coarse:min-h-11"
                       >
                         <Badge tone={r.role === "admin" ? "accent" : "neutral"}>
@@ -206,7 +226,7 @@ export function ZugaengeListe({
                     )}
                   </div>
                 </Td>
-                <Td label={t.colAccess}>
+                <Td label={t.colAccess} className="whitespace-nowrap">
                   {k.blocked_at ? (
                     <Badge tone="error">{t.blocked}</Badge>
                   ) : k.has_login ? (
@@ -217,37 +237,32 @@ export function ZugaengeListe({
                 </Td>
                 <Td label={t.colSince}>{k.since ? datum.format(new Date(k.since)) : "—"}</Td>
                 <Td>
-                  {k.blocked_at ? (
-                    <Button size="sm" variant="secondary" disabled={pending} onClick={() => fragen("oeffnen", k)}>
-                      {t.unblock}
-                    </Button>
-                  ) : !k.has_login ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      {k.email ? (
+                  {/* Eine sichtbare Aktion je Zeile, rechts; der Rest im ⋯-Menü (ADM-109, Skill-Regel 13). Die Rolle ergänzt „+ Rolle“ in der
+                      Zeile — sie steht nicht noch einmal im Menü. */}
+                  <div className="flex items-center justify-end gap-2">
+                    {k.blocked_at ? (
+                      <Button size="sm" variant="secondary" disabled={pending} onClick={() => fragen("oeffnen", k)}>
+                        {t.unblock}
+                      </Button>
+                    ) : !k.has_login ? (
+                      k.email ? (
                         <Button size="sm" variant="secondary" disabled={pending} onClick={() => fragen("einladen", k)}>
                           {t.inviteNow}
                         </Button>
                       ) : (
                         <span className="ct-help text-muted">{t.noEmail}</span>
-                      )}
-                      {/* Auch wer noch nie eingeloggt war, lässt sich sperren (alle Rollen weg, Anmeldung zu) —
-                          das konnte die alte Liste, und „nichts entfällt“ (ADM-094). Eine sichtbare Aktion je
-                          Zeile, der Rest im Menü (Design 09.10.). */}
-                      {!eigen && (
-                        <Menu label={`${t.actions}: ${k.name ?? ""}`} trigger={t.actions} ton="hell" align="end" width="w-64">
-                          <MenuItem onSelect={() => fragen("sperren", k)}>{t.block}</MenuItem>
-                        </Menu>
-                      )}
-                    </div>
-                  ) : (
-                    <Menu label={`${t.actions}: ${k.name ?? ""}`} trigger={t.actions} ton="hell" align="end" width="w-64">
-                      <MenuItem onSelect={() => rolleOeffnen(k)}>{t.addRoleTitle}</MenuItem>
-                      {k.email && <MenuItem onSelect={() => fragen("einladen", k)}>{t.reinvite}</MenuItem>}
-                      {/* Den eigenen Zugang gar nicht erst anbieten: die Datenbank weist es ab, aber ein Eintrag,
-                          der immer scheitert, ist eine Falle. */}
-                      {!eigen && <MenuItem onSelect={() => fragen("sperren", k)}>{t.block}</MenuItem>}
-                    </Menu>
-                  )}
+                      )
+                    ) : null}
+                    {/* Auch wer noch nie eingeloggt war, lässt sich sperren (alle Rollen weg, Anmeldung zu) — das konnte die alte Liste,
+                        und „nichts entfällt“ (ADM-094). Wer schon Zugang hat, bekommt hier „Einladung erneut“; den eigenen Zugang
+                        bietet die Seite gar nicht erst zum Sperren an. Ohne einen Eintrag gibt es kein Menü. */}
+                    {!k.blocked_at && (k.has_login ? Boolean(k.email) || !eigen : !eigen) && (
+                      <Menu kompakt ton="hell" label={`${t.actions}: ${k.name ?? ""}`} trigger={t.actions} align="end" width="w-64">
+                        {k.has_login && k.email && <MenuItem onSelect={() => fragen("einladen", k)}>{t.reinvite}</MenuItem>}
+                        {!eigen && <MenuItem onSelect={() => fragen("sperren", k)}>{t.block}</MenuItem>}
+                      </Menu>
+                    )}
+                  </div>
                 </Td>
               </Tr>
             );
@@ -299,13 +314,14 @@ export function ZugaengeListe({
           }
           cancelLabel={common.cancel}
           pending={pending}
-          onCancel={() => { setFrage(null); setNotiz(""); }}
+          error={dialogFehler}
+          onCancel={() => { setFrage(null); setNotiz(""); setDialogFehler(null); }}
           onConfirm={ausfuehren}
         />
       )}
 
       {rolleFuer && (
-        <Modal label={t.addRoleTitle} onCancel={() => setRolleFuer(null)}>
+        <Modal label={t.addRoleTitle} onCancel={() => { setRolleFuer(null); setRolleFehler(null); }} error={rolleFehler}>
           <h2 className="ct-h3">{t.addRoleTitle}</h2>
           <p className="ct-help mt-2">{rolleFuer.name ?? rolleFuer.email ?? common.none}</p>
           <div className="mt-4 flex flex-col gap-4">
@@ -339,7 +355,7 @@ export function ZugaengeListe({
             <Button type="button" disabled={pending || !neueRolle} loading={pending} onClick={rolleVergeben}>
               {t.grant}
             </Button>
-            <Button type="button" variant="ghost" onClick={() => setRolleFuer(null)}>
+            <Button type="button" variant="ghost" onClick={() => { setRolleFuer(null); setRolleFehler(null); }}>
               {common.cancel}
             </Button>
           </ModalFuss>
