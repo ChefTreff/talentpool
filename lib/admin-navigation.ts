@@ -107,11 +107,11 @@ export const ADMIN_NAVIGATION: NavGruppe[] = [
     gruppe: "administration",
     punkte: [
       { section: "persons", href: "/admin/personen", label: "persons" },
-      // Das Team zuerst: „wer gehört dazu" ist die Frage, mit der man herkommt.
-      { section: "team", href: "/admin/team", label: "team" },
       { section: "roles", href: "/admin/rollen", label: "roles" },
       { section: "duplicates", href: "/admin/dubletten", label: "duplicates" },
       { section: "deletions", href: "/admin/loeschantraege", label: "deletions" },
+      // ADM-094: Team und Zugänge sind eine Seite („wer hat Zugang und was darf er“). `/admin/team`
+      // leitet hierher um; der Abschnitt `team` ist in `access` aufgegangen.
       { section: "access", href: "/admin/verwaltung/zugaenge", label: "access" },
       { section: "auditLog", href: "/admin/verwaltung/protokoll", label: "auditLog" },
       { section: "consents", href: "/admin/verwaltung/einwilligungen", label: "consents" },

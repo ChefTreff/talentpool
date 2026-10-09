@@ -109,7 +109,6 @@ export type AdminSectionKey =
   | "mailParticipants"
   | "mailVolunteers"
   | "persons"
-  | "team"
   | "roles"
   | "duplicates"
   | "deletions"
@@ -262,7 +261,6 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
 
   // Verwaltung (PORT4): Personen, Zugänge, Rechte — nur Konrad
   { key: "persons", path: "/admin/personen", roles: [] },
-  { key: "team", path: "/admin/team", roles: [] },
   { key: "roles", path: "/admin/rollen", roles: [] },
   { key: "duplicates", path: "/admin/dubletten", roles: [] },
   { key: "deletions", path: "/admin/loeschantraege", roles: [] },
