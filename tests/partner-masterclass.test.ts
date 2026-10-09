@@ -58,11 +58,12 @@ describe("Masterclass: Fragen und Antworten in der Oberfläche (PART-045)", () =
   it("Seite im Menü, vier Reiter, Schreibwege über die Partner-RPCs", () => {
     assert.match(src("app/(partner)/layout.tsx"), /masterclass: \{ href: "\/partner\/masterclass"/);
     const reiter = src("app/(partner)/partner/FormatReiter.tsx");
-    for (const pfad of ["`${basis}/bewerbungen`", "`${basis}/teilnehmende`", "`${basis}/fragen`"]) assert.ok(reiter.includes(pfad), pfad);
+    // Jeder Reiter nimmt die gewählte Instanz mit (`suffix`, QS-079); ohne Umschalter ist es leer.
+    for (const pfad of ["`${basis}/bewerbungen${suffix}`", "`${basis}/teilnehmende${suffix}`", "`${basis}/fragen${suffix}`"]) assert.ok(reiter.includes(pfad), pfad);
     assert.match(src("app/(partner)/partner/masterclass/MasterclassKopf.tsx"), /basis="\/partner\/masterclass"/);
     assert.match(src("app/(partner)/partner/masterclass/daten.ts"), /p_format: "masterclass"/);
     assert.match(src("app/(partner)/partner/masterclass/MasterclassInhalt.tsx"), /updateFormatSession\(\{ sessionId: session\.id, fields \}\)/);
-    assert.match(src("app/(partner)/partner/masterclass/page.tsx"), /<SpeakerHinzufuegen/);
+    assert.match(src("app/(partner)/partner/masterclass/Instanz.tsx"), /<SpeakerHinzufuegen/);
     const actions = src("app/(partner)/partner/actions.ts");
     assert.match(actions, /rpc\("partner_set_session_questions"/);
     assert.match(actions, /rpc\("partner_request_question"/);
@@ -92,7 +93,7 @@ describe("Masterclass: Fragen und Antworten in der Oberfläche (PART-045)", () =
       [...new Set([...text.matchAll(new RegExp(`\\b${praefix}\\.([a-zA-Z_]+)`, "g"))].map((m) => m[1]))];
     // Texte der Masterclass selbst …
     const masterclass = [
-      ...["page.tsx"].flatMap((d) => benutzt(src(`app/(partner)/partner/masterclass/${d}`), "s")),
+      ...["page.tsx", "Instanz.tsx"].flatMap((d) => benutzt(src(`app/(partner)/partner/masterclass/${d}`), "s")),
       ...["MasterclassKopf.tsx", "MasterclassInhalt.tsx"].flatMap((d) => benutzt(src(`app/(partner)/partner/masterclass/${d}`), "t")),
     ];
     // … und die gemeinsamen der Bewerbungsreiter (PART-082).

@@ -5357,6 +5357,8 @@
     "goodiesTitle": "Goodies",
     "goodiesWiki": "Delivery, advance shipping & setup",
     "goodiesYes": "Yes, we’ll send goodies",
+    "instanceLabel": "Choose masterclass",
+    "instanceNumber": "Masterclass {n}",
     "language": "Language of the masterclass",
     "languageHint": "The language it is held in.",
     "lead": "Content and speakers of your masterclass, the applications and their questions.",

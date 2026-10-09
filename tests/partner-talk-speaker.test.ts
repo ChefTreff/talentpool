@@ -2,6 +2,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { migrationText } from "@/tests/migration-datei";
+import { speakerNotiz } from "@/lib/partner/speaker-notiz";
 
 const sql = () => migrationText("v6_talk_speaker_zugang");
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -69,7 +70,7 @@ describe("Speaker eines gebuchten Slots: Datenmodell (PART-091)", () => {
 describe("Talk-Seite: Speaker eintragen (PART-091, PART-089)", () => {
   const seite = () => src("app/(partner)/partner/talk/page.tsx");
   const formular = () => src("app/(partner)/partner/talk/SpeakerHinzufuegen.tsx");
-  const karte = () => src("app/(partner)/partner/talk/SpeakerKarte.tsx");
+  const tabelle = () => src("app/(partner)/partner/talk/SpeakerTabelle.tsx");
 
   it("keine Gäste mehr auf der Talk-Seite, dafür das Eintragen mit der Zugangsfrage", () => {
     assert.doesNotMatch(seite(), /Gaesteliste|TalkGaeste|partner_stage_guests/);
@@ -80,14 +81,24 @@ describe("Talk-Seite: Speaker eintragen (PART-091, PART-089)", () => {
     assert.match(formular(), /verwaltet,\n/);
     // Ohne Operations-Kontakt steht nur der eigene Zugang zur Wahl.
     assert.match(formular(), /if \(opsName !== null\) optionen\.push/);
-    // Fehler stehen im Formular, nicht im Toast.
-    assert.match(formular(), /role="alert"/);
+    // Fehler stehen im Schubfach neben dem Knopf (`Drawer error`, ADM-062), nicht im Toast hinter dem Dialog.
+    assert.match(formular(), /<Drawer[\s\S]*?error=\{fehler\}/);
+    assert.doesNotMatch(formular(), /toast\("error"/);
     assert.match(src("app/(partner)/partner/actions.ts"), /p_verwaltet: input\.verwaltet/);
   });
 
-  it("die Karte sagt beim verwalteten Speaker, über wen die Kommunikation läuft", () => {
-    assert.match(karte(), /speaker\.mail_contact_name/);
-    assert.match(karte(), /t\.managedNote\.replace\("\{kontakt\}", kontakt\)/);
+  it("unter der Liste sagt ein Satz einmal, wer sich selbst pflegt und über wen die Kommunikation der verwalteten Speaker läuft", () => {
+    const de = JSON.parse(src("lib/i18n/de.json")).partnerTalk as { speakersNoteOwn: string; speakersNoteManaged: string };
+    const verwaltet = { can_edit: true, mail_contact_name: "Maria Muster" };
+    const selbst = { can_edit: false, mail_contact_name: null };
+    assert.ok(speakerNotiz([verwaltet], de)?.includes("Maria Muster"), "der Kontakt steht im Satz");
+    assert.equal(speakerNotiz([selbst], de), de.speakersNoteOwn);
+    // Der Kontakt steht im Satz mehr als einmal (`{kontakt}` zweimal) — jeder Platzhalter wird ersetzt, keiner bleibt stehen.
+    const beide = speakerNotiz([selbst, verwaltet], de);
+    assert.equal(beide, `${de.speakersNoteOwn} ${de.speakersNoteManaged.replaceAll("{kontakt}", "Maria Muster")}`);
+    assert.ok(!beide?.includes("{kontakt}"));
+    assert.equal(speakerNotiz([{ can_edit: true, mail_contact_name: null }], de), null, "nur Speaker, die der Partner pflegt: nichts zu sagen");
+    assert.equal(speakerNotiz([], de), null);
   });
 
   it("Programmpunkte auf der Standbühne stehen nicht unter Talk (PART-089)", () => {
@@ -109,7 +120,12 @@ describe("Talk-Seite: Speaker eintragen (PART-091, PART-089)", () => {
   it("alle benutzten Texte stehen in beiden Wörterbüchern", () => {
     const benutzt = (text: string, praefix: string) =>
       [...new Set([...text.matchAll(new RegExp(`\\b${praefix}\\.([a-zA-Z]+)`, "g"))].map((m) => m[1]))];
-    const talk = [...benutzt(seite(), "s"), ...benutzt(formular(), "t"), ...benutzt(karte(), "t")];
+    const talk = [
+      ...benutzt(seite(), "s"),
+      ...benutzt(formular(), "t"),
+      ...benutzt(tabelle(), "t"),
+      ...benutzt(src("lib/partner/speaker-notiz.ts"), "t"),
+    ];
     const admin = benutzt(src("app/(admin)/admin/partner/[org]/OrgDetail.tsx"), "t").filter((k) => k.startsWith("talkSpeaker"));
     assert.ok(admin.length >= 5);
     for (const sprache of ["de", "en"]) {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireArea } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { speakerNotiz } from "@/lib/partner/speaker-notiz";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -128,9 +129,8 @@ export default async function PartnerTalkPage() {
         <div className="flex flex-col gap-4">
           {sessions.map((x) => {
             const dazu = speakers.filter((sp) => sp.session_id === x.id);
-            // PART-136: was für alle Speaker gilt, steht einmal unter der Tabelle statt bei jedem Namen.
-            const kontakt = dazu.find((sp) => sp.mail_contact_name)?.mail_contact_name ?? null;
-            const pflegtSelbst = dazu.some((sp) => !sp.can_edit && !sp.mail_contact_name);
+            // PART-136: was für alle Speaker gilt, steht einmal unter der Tabelle statt bei jedem Namen (dieselbe Regel wie auf der Masterclass-Seite).
+            const notiz = speakerNotiz(dazu, s);
             return (
               <Card key={x.id}>
                 {/* PART-136: der Session-Titel ist die Überschrift der Karte (`h2`, `ct-h2`); „Wer spricht“ ist die
@@ -178,10 +178,22 @@ export default async function PartnerTalkPage() {
                   />
                 )}
 
+                {/* PART-149 (Konrad 09.10.2026, Skill-Regel 13): „Speaker eintragen“ steht in der Kopfzeile des Blocks, rechts neben „Wer spricht“,
+                    sobald es eine Liste gibt; vorher trägt der Leerzustand die eine Aktion. Nie unter der Tabelle. Das Formular öffnet im Schubfach. */}
                 <div className="mt-5 flex flex-col gap-4 border-t border-border pt-4">
-                  <h3 className="ct-h3 text-ink">
-                    {dazu.length > 0 ? `${s.speakersLabel} (${dazu.length})` : s.speakersLabel}
-                  </h3>
+                  <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                    <h3 className="ct-h3 text-ink">
+                      {dazu.length > 0 ? `${s.speakersLabel} (${dazu.length})` : s.speakersLabel}
+                    </h3>
+                    {canEdit && dazu.length > 0 && (
+                      <SpeakerHinzufuegen
+                        sessionId={x.id}
+                        opsName={opsName}
+                        t={s as unknown as Record<string, string>}
+                        rpcMessages={t.rpc}
+                      />
+                    )}
+                  </div>
                   {dazu.length > 0 ? (
                     <>
                       <SpeakerTabelle
@@ -190,24 +202,20 @@ export default async function PartnerTalkPage() {
                         t={s as unknown as Record<string, string>}
                         rpcMessages={t.rpc}
                       />
-                      {(pflegtSelbst || kontakt) && (
-                        <p className="ct-help">
-                          {[pflegtSelbst ? s.speakersNoteOwn : null, kontakt ? s.speakersNoteManaged.replace(/\{kontakt\}/g, kontakt) : null]
-                            .filter(Boolean)
-                            .join(" ")}
-                        </p>
-                      )}
+                      {notiz && <p className="ct-help">{notiz}</p>}
                     </>
                   ) : (
-                    <p className="ct-help">{s.noSpeakerYet}</p>
-                  )}
-                  {canEdit && (
-                    <SpeakerHinzufuegen
-                      sessionId={x.id}
-                      opsName={opsName}
-                      t={s as unknown as Record<string, string>}
-                      rpcMessages={t.rpc}
-                    />
+                    <div className="flex flex-col items-start gap-3">
+                      <p className="ct-help">{s.noSpeakerYet}</p>
+                      {canEdit && (
+                        <SpeakerHinzufuegen
+                          sessionId={x.id}
+                          opsName={opsName}
+                          t={s as unknown as Record<string, string>}
+                          rpcMessages={t.rpc}
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
               </Card>

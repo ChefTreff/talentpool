@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { ChipLink } from "@/components/ui/Chip";
+import { reiterAktiv } from "./reiter-aktiv";
 
 export type SectionTab = {
   href: string;
@@ -27,16 +28,16 @@ export type SectionTab = {
   aktiv?: boolean;
 };
 
-/** Reiter innerhalb eines Admin-Bereichs. Client nur wegen `usePathname()`. */
+/**
+ * Reiter innerhalb eines Admin-Bereichs. Client nur wegen `usePathname()`; wann ein Reiter aktiv ist, regelt `reiterAktiv`
+ * (Pfad ohne Abfrage, ein Reiter nur mit Abfrage nur über `aktiv`).
+ */
 export function SectionTabs({ items, label }: { items: SectionTab[]; label: string }) {
   const pathname = usePathname();
   return (
     <nav aria-label={label} className="mb-6 flex flex-wrap gap-1 border-b pb-3">
       {items.map((item) => {
-        const active = item.aktiv !== undefined ? item.aktiv : item.exact
-          ? pathname === item.href ||
-            (item.detailPattern ? new RegExp(item.detailPattern).test(pathname) : false)
-          : pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active = reiterAktiv(item, pathname);
         return (
           // 32 px am Desktop, am Handy 44 (QS-059, Touch-Ziele wie QS-057) — beides hält `ChipLink`.
           <ChipLink key={item.href} href={item.href} aktiv={active}>

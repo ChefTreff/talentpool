@@ -70,7 +70,9 @@ describe("Reiter statt Knopfreihe (QS-059)", () => {
   it("SectionTabs kennt `aktiv` für Reiter, die über die Adresszeile wechseln", () => {
     const q = lies("components/layout/SectionTabs.tsx");
     assert.match(q, /aktiv\?: boolean/);
-    assert.match(q, /item\.aktiv !== undefined \? item\.aktiv : item\.exact/);
+    // Die Regel steht seit QS-079 in `reiter-aktiv.ts` (Verhalten: `tests/reiter-aktiv.test.ts`); `aktiv` gilt dort vor dem Pfad.
+    assert.match(q, /const active = reiterAktiv\(item, pathname\);/);
+    assert.match(lies("components/layout/reiter-aktiv.ts"), /if \(item\.aktiv !== undefined\) return item\.aktiv;/);
   });
 
   for (const [datei, aktiv] of [
