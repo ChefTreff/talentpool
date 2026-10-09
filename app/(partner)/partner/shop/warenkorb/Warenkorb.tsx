@@ -4,21 +4,26 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/shared";
-import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Button, ButtonDownload } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { cn } from "@/components/ui/cn";
 import { useToast } from "@/components/ui/Toast";
+import { ANGEBOT_NETZWERK, angebotAnfordern, anfrageMailto } from "@/lib/partner/angebot-anfordern";
 import { checkMerchValues, parseMerchSchema, type MerchField, type MerchValues } from "@/lib/partner/merch";
+import type { Verfuegbarkeit } from "@/lib/sevdesk/angebot";
 import { MerchDialog, type MerchAsset } from "../MerchDialog";
 import { MerchSummary, Totals } from "../Zusammenfassung";
 import { money } from "../format";
-import { shopCancel, shopConfirm, shopRemoveLine, shopUpsertLine } from "../../actions";
-import type { PartnerOverview, ShopOrder, ShopProduct } from "../../types";
+import { shopCancel, shopConfirm, shopQuoteWithdraw, shopRemoveLine, shopUpsertLine } from "../../actions";
+import type { PartnerOverview, ShopOrder, ShopProduct, ShopQuoteInfo } from "../../types";
 
 type Strings = Record<string, string>;
+
+const PARTNER_MAILBOX = "partner@chef-treff.de";;
 
 /**
  * Warenkorb und Kasse.
@@ -40,6 +45,10 @@ export function Warenkorb({
   closed,
   canOrder,
   merchAssets,
+  quote,
+  quoteExpired,
+  quotesMax,
+  angebot,
   locale,
   dateLocale,
   t,
@@ -53,6 +62,12 @@ export function Warenkorb({
   closed: boolean;
   canOrder: boolean;
   merchAssets: MerchAsset[];
+  /** `shop_quote_info` dieses Warenkorbs (PART-116); `null`, solange es nie ein Angebot gab. */
+  quote: ShopQuoteInfo | null;
+  quoteExpired: boolean;
+  /** Mehr Angebote je Bestellung gibt es nicht (`shop_quote_begin`). */
+  quotesMax: number;
+  angebot: Verfuegbarkeit;
   locale: Locale;
   dateLocale: string;
   t: Strings;
@@ -62,11 +77,14 @@ export function Warenkorb({
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
+  const [creating, setCreating] = useState(false);
   const [note, setNote] = useState("");
   const [po, setPo] = useState(cart.po_number ?? overview?.edition.po_number ?? "");
   const [adresseOk, setAdresseOk] = useState(false);
   const [askConfirm, setAskConfirm] = useState(false);
   const [askCancel, setAskCancel] = useState(false);
+  const [askQuote, setAskQuote] = useState(false);
+  const [askReopen, setAskReopen] = useState(false);
   const [configuring, setConfiguring] = useState<
     { sku: string; name: string; fields: MerchField[]; qty: number; initial: Record<string, unknown> | null } | null
   >(null);
@@ -109,6 +127,53 @@ export function Warenkorb({
     });
   }
 
+  // ---- Angebot (PART-116, K-81) -------------------------------------------------------------------------------------------------------
+  // `quoted` ist ein eigener Stand des Warenkorbs: die Positionen sind festgesetzt (`editable` ist dann aus), bestellt wird zu den Preisen des Angebots.
+  // Ohne `valid_until` läuft die Erstellung noch; nach Ablauf bleibt der Warenkorb festgesetzt, bis die Bereinigung ihn freigibt oder er selbst zurückgeholt wird.
+  const quoted = cart.status === "quoted";
+  const quoteBuilding = quoted && quote?.valid_until == null;
+  const quoteStanding = quoted && quote?.valid_until != null;
+  const quoteOrderable = quoteStanding && !quoteExpired;
+  const limitReached = (quote?.quotes_used ?? 0) >= quotesMax;
+  const canQuote = canOrder && cart.status === "draft" && cart.editable;
+  const checkoutOpen = canOrder && (cart.editable || quoteOrderable);
+  const quoteNumber = quote?.quote_number ?? "—";
+  const validDate = quote?.valid_until
+    ? new Intl.DateTimeFormat(dateLocale, { dateStyle: "long", timeZone: "Europe/Berlin" }).format(new Date(quote.valid_until))
+    : null;
+  // Ohne SevDesk-Beleg (Testorganisation, Probebetrieb) sagt der Dialog es vorher, damit niemand ein echtes Angebot erwartet.
+  const simuliert = angebot.ok && angebot.weg !== "sevdesk-live";
+  const warumNicht = limitReached
+    ? t.quoteLimit
+    : !angebot.ok
+      ? {
+          kundennummer: t.quoteWhyKundennummer,
+          land: t.quoteWhyLand,
+          adresse: t.quoteWhyAdresse,
+          abgeschaltet: t.quoteWhyAus,
+        }[angebot.grund]
+      : null;
+  const orgName = org?.communication_name ?? org?.legal_name ?? "";
+  const anfrage = anfrageMailto({
+    mailbox: PARTNER_MAILBOX,
+    subject: t.quoteMailSubject.replace("{org}", orgName),
+    body: t.quoteMailBody
+      .replace("{org}", orgName)
+      .replace("{customerNumber}", org?.customer_number ?? "—")
+      .replace("{positions}", String(cart.lines.length))
+      .replace("{net}", money(cart.net_cents, dateLocale)),
+  });
+
+  async function createQuote() {
+    setCreating(true);
+    const res = await angebotAnfordern(cart.id);
+    setCreating(false);
+    if (res.ok) toast("success", t.quoteCreated);
+    else toast("error", res.key === ANGEBOT_NETZWERK ? t.quoteNetwork : message(res.key));
+    // Auch nach einem Fehler neu laden: reißt die Verbindung ab, kann das Angebot trotzdem entstanden sein.
+    router.refresh();
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <p>
@@ -118,6 +183,52 @@ export function Warenkorb({
       </p>
 
       {cart.status === "editing" && <p className="ct-help">{t.cartReopened}</p>}
+
+      {/* PART-116: das Angebot steht über dem Warenkorb — Information, bestellt wird unten. Hinweisfläche in der Akzentfarbe wie auf der Ticketseite, keine `Card`
+          mit `bg-accent-soft` (`bg-surface` gewinnt im erzeugten CSS). Knöpfe auf dieser Fläche sind `onAccent`: `accent-strong` auf `accent-soft` käme nur auf 4,4:1.
+          „Warenkorb wieder bearbeiten“ steht deshalb neben „Verbindlich bestellen“ auf der weißen Karte — nur nach Ablauf, wenn es keine Kasse mehr gibt, hier. */}
+      {quoted && (
+        <div role="note" className="rounded-ct-md border border-accent-soft bg-accent-soft px-4 py-3 text-accent-deep">
+          {quoteBuilding ? (
+            <>
+              <p className="ct-label">{t.quoteBuildingTitle}</p>
+              <p className="ct-small mt-1 leading-6">{t.quoteBuildingBody}</p>
+              <div className="mt-3">
+                <Button size="sm" variant="onAccent" disabled={pending} onClick={() => router.refresh()}>
+                  {t.quoteRefresh}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="ct-label">
+                  {t.quoteTitle.replace("{number}", quoteNumber)}
+                  {" · "}
+                  {(quoteExpired ? t.quoteExpiredOn : t.quoteValidUntil).replace("{date}", validDate ?? "—")}
+                </p>
+                {quote?.probe && <Badge tone="warning">{t.quoteProbeBadge}</Badge>}
+              </div>
+              <p className="ct-small mt-1 leading-6">{quoteExpired ? t.quoteExpiredBody : t.quoteStandingBody}</p>
+              {quote?.probe && <p className="ct-help mt-1 text-accent-deep">{t.quoteProbeNote}</p>}
+              {!quote?.probe && !quoteExpired && (
+                <div className="mt-3">
+                  <ButtonDownload size="sm" variant="onAccent" href={`/api/partner/shop/angebot/${cart.id}/pdf`}>
+                    {t.quotePdf}
+                  </ButtonDownload>
+                </div>
+              )}
+              {quoteExpired && canOrder && (
+                <div className="mt-3">
+                  <Button size="sm" variant="onAccent" disabled={pending} onClick={() => setAskReopen(true)}>
+                    {t.quoteReopen}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       <section aria-labelledby="h-cart">
         <div className="mb-2 flex flex-wrap items-baseline gap-2 border-b pb-2">
@@ -218,7 +329,7 @@ export function Warenkorb({
         </Card>
       </section>
 
-      {canOrder && cart.editable && (
+      {checkoutOpen && (
         <section aria-labelledby="h-checkout">
           <div className="mb-2 border-b pb-2">
             <h2 id="h-checkout" className="ct-h2 text-ink">
@@ -308,6 +419,7 @@ export function Warenkorb({
                 <Button
                   disabled={
                     pending ||
+                    creating ||
                     cart.lines.length === 0 ||
                     closed ||
                     incomplete.length > 0 ||
@@ -317,11 +429,44 @@ export function Warenkorb({
                 >
                   {t.confirm}
                 </Button>
-                <Button variant="ghost" disabled={pending} onClick={() => setAskCancel(true)}>
+                {/* PART-116: „Angebot erstellen“ ist die zweite Möglichkeit neben dem verbindlichen Bestellen, nie die erste — wer nur ein PDF zur
+                    Freigabe im eigenen Haus braucht, legt hier eines an und bestellt später. Nur für einen offenen Entwurf (`shop_quote_begin`). */}
+                {canQuote && angebot.ok && !limitReached && (
+                  <Button
+                    variant="secondary"
+                    loading={creating}
+                    disabled={pending || cart.lines.length === 0 || closed || incomplete.length > 0}
+                    onClick={() => setAskQuote(true)}
+                  >
+                    {t.quoteCreate}
+                  </Button>
+                )}
+                {quoted && (
+                  <Button variant="ghost" disabled={pending} onClick={() => setAskReopen(true)}>
+                    {t.quoteReopen}
+                  </Button>
+                )}
+                <Button variant="ghost" disabled={pending || creating} onClick={() => setAskCancel(true)}>
                   {t.cancelOrder}
                 </Button>
               </div>
               {!adresseOk && <p className="ct-help mt-2">{t.invoiceConfirmFirst}</p>}
+              {creating && (
+                <p role="status" className="ct-help mt-2">
+                  {t.quoteCreating}
+                </p>
+              )}
+              {canQuote && angebot.ok && !limitReached && <p className="ct-help mt-3">{t.quoteHelp}</p>}
+              {/* Kein automatisches Angebot: der Grund steht da, und der Weg zum Team ist ein Klick — nie ein stummer Knopf, der fehlt. */}
+              {canQuote && warumNicht && (
+                <p className="ct-help mt-3">
+                  {warumNicht}{" "}
+                  <a className="ct-link" href={anfrage}>
+                    {t.quoteRequestTeam}
+                  </a>
+                </p>
+              )}
+              {quoted && <p className="ct-help mt-3">{t.quoteOrderHint.replace("{number}", quoteNumber)}</p>}
               <p className="ct-help mt-3">{t.invoiceHint}</p>
             </Card>
           </div>
@@ -346,6 +491,46 @@ export function Warenkorb({
             setAskConfirm(false);
             run(shopConfirm(cart.id, note, po.trim() || null), t.confirmed);
             setNote("");
+          }}
+        />
+      )}
+      {askQuote && (
+        <ConfirmDialog
+          title={t.quoteConfirmTitle}
+          body={t.quoteConfirmBody}
+          detail={
+            <>
+              <p className="ct-label">
+                {cart.lines.length} {t.positions} · {money(cart.net_cents, dateLocale)} {t.net.toLowerCase()}
+              </p>
+              {simuliert && <p className="ct-help mt-2">{t.quoteSimulatedNote}</p>}
+            </>
+          }
+          confirmLabel={t.quoteCreate}
+          cancelLabel={common.cancel}
+          pending={creating}
+          onCancel={() => setAskQuote(false)}
+          onConfirm={() => {
+            setAskQuote(false);
+            void createQuote();
+          }}
+        />
+      )}
+      {askReopen && (
+        <ConfirmDialog
+          title={t.quoteReopenTitle}
+          body={(quote && quote.quotes_used >= quotesMax ? t.quoteReopenBodyLast : t.quoteReopenBody).replace(
+            "{n}",
+            String(Math.max(0, quotesMax - (quote?.quotes_used ?? 0))),
+          )}
+          detail={<p className="ct-label">{t.quoteTitle.replace("{number}", quoteNumber)}</p>}
+          confirmLabel={t.quoteReopen}
+          cancelLabel={common.cancel}
+          pending={pending}
+          onCancel={() => setAskReopen(false)}
+          onConfirm={() => {
+            setAskReopen(false);
+            run(shopQuoteWithdraw(cart.id), t.quoteWithdrawn);
           }}
         />
       )}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getI18n } from "@/lib/i18n";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { loadShop } from "../load";
+import { ANGEBOTE_JE_BESTELLUNG, loadShop } from "../load";
 import { Warenkorb } from "./Warenkorb";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,8 @@ export const dynamic = "force-dynamic";
  */
 export default async function WarenkorbPage() {
   const { locale, t } = await getI18n("de");
-  const { orgId, phase, products, cart, overview, merchAssets, canOrder } = await loadShop();
+  const { orgId, phase, products, cart, overview, merchAssets, canOrder, quote, quoteExpired, angebot } =
+    await loadShop();
   const s = t.partnerShop;
 
   if (!cart || cart.lines.length === 0) {
@@ -41,6 +42,10 @@ export default async function WarenkorbPage() {
       closed={phase?.phase === 0}
       canOrder={canOrder}
       merchAssets={merchAssets}
+      quote={quote}
+      quoteExpired={quoteExpired}
+      quotesMax={ANGEBOTE_JE_BESTELLUNG}
+      angebot={angebot}
       locale={locale}
       dateLocale={t.meta.dateLocale}
       t={s}

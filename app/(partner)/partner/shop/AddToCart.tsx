@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n/shared";
@@ -28,6 +29,7 @@ export function AddToCart({
   product,
   inCart,
   canOrder,
+  quoted = false,
   merchAssets,
   locale,
   t,
@@ -40,6 +42,8 @@ export function AddToCart({
   /** Menge, die schon im Warenkorb liegt. `null` = nichts drin. */
   inCart: number | null;
   canOrder: boolean;
+  /** Der Warenkorb ist mit einem Angebot festgesetzt (PART-116): hineinlegen geht erst wieder, wenn das Angebot zurückgezogen ist. */
+  quoted?: boolean;
   merchAssets: MerchAsset[];
   locale: Locale;
   t: Strings;
@@ -136,6 +140,16 @@ export function AddToCart({
 
   if (!product.orderable) return <p className="ct-help">{t.notOrderable}</p>;
   if (!canOrder) return <p className="ct-help">{t.readOnly}</p>;
+  if (quoted) {
+    return (
+      <p className="ct-help">
+        {t.quoteLocked}{" "}
+        <Link className="ct-link" href="/partner/shop/warenkorb">
+          {t.quoteLockedLink}
+        </Link>
+      </p>
+    );
+  }
 
   return (
     <>

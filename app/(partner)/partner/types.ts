@@ -375,7 +375,7 @@ export type ShopOrder = {
   id: string;
   order_no: string | null;
   phase: number;
-  status: "draft" | "pending" | "editing" | "completed" | "cancelled";
+  status: "draft" | "pending" | "editing" | "quoted" | "completed" | "cancelled";
   note: string | null;
   /** Bestellnummer des Partners (F11.2, Migration 0095); Vorgabe aus „Eure Daten". */
   po_number: string | null;
@@ -418,7 +418,20 @@ export type ShopOrderLine = {
 export function cartOf(orders: readonly ShopOrder[]): ShopOrder | null {
   return (
     orders.find((o) => o.status === "draft") ??
+    // Mit einem Angebot (PART-116) ist der Warenkorb festgesetzt, aber er ist noch der Warenkorb: dort steht das Angebot, dort wird bestellt oder zurückgezogen.
+    orders.find((o) => o.status === "quoted") ??
     orders.find((o) => o.status === "editing" && o.editable) ??
     null
   );
 }
+
+/** Was `shop_quote_info` zu einer Bestellung liefert (PART-116). `valid_until` leer heißt: der Vorgang läuft noch, das Angebot ist nicht fertig. */
+export type ShopQuoteInfo = {
+  status: string;
+  active: boolean;
+  quote_number: string | null;
+  valid_until: string | null;
+  probe: boolean;
+  closed: string | null;
+  quotes_used: number;
+};

@@ -3,6 +3,8 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { angebotModus, angebotVerfuegbar, type Verfuegbarkeit } from "@/lib/sevdesk/angebot";
+import { hasSevdeskToken } from "@/lib/sevdesk/client";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { getPartnerScope } from "../org";
 import {
@@ -12,6 +14,7 @@ import {
   type ShopOrder,
   type ShopPhase,
   type ShopProduct,
+  type ShopQuoteInfo,
 } from "../types";
 import type { MerchAsset } from "./MerchDialog";
 
@@ -40,7 +43,23 @@ export type ShopData = {
    * wird nur entschieden, ob die Seite den Katalog oder eine Erklärung zeigt.
    */
   hasBooth: boolean;
+  /**
+   * `shop_quote_info` des Warenkorbs (PART-116) — `null`, solange es für ihn nie ein
+   * Angebot gab. Aus `quotes_used` folgt auch, ob das Limit von drei Angeboten je
+   * Bestellung erreicht ist.
+   */
+  quote: ShopQuoteInfo | null;
+  /** Das Angebot ist verfallen, die Bereinigung hat den Warenkorb aber noch nicht freigegeben. Auf dem Server gerechnet: die Oberfläche braucht keine Uhr. */
+  quoteExpired: boolean;
+  /**
+   * Darf dieser Warenkorb ein Angebot anlegen — und wenn nicht, warum nicht. Dieselben
+   * Regeln wie `shop_quote_begin`; die Datenbank entscheidet am Ende trotzdem selbst.
+   */
+  angebot: Verfuegbarkeit;
 };
+
+/** Mehr als drei Angebote gibt es je Bestellung nicht (`shop_quote_begin`); die Oberfläche blendet den Knopf danach aus statt ihn abweisen zu lassen. */
+export const ANGEBOTE_JE_BESTELLUNG = 3;
 
 export const loadShop = cache(async (): Promise<ShopData> => {
   const { locale } = await getI18n("de");
@@ -67,6 +86,26 @@ export const loadShop = cache(async (): Promise<ShopData> => {
 
   const orders = (orderRows ?? []) as ShopOrder[];
   const overview = (overviewJson ?? null) as PartnerOverview | null;
+  const cart = cartOf(orders);
+
+  // Das Angebot gehört zum Warenkorb; für alle anderen Bestellungen braucht es keine Abfrage.
+  // `null` heißt „nie ein Angebot“ — oder die Funktion lehnt ab, dann gilt dasselbe.
+  const { data: quoteJson } = cart
+    ? await supabase.rpc("shop_quote_info", { p_order_id: cart.id })
+    : { data: null };
+  const quote = (quoteJson ?? null) as ShopQuoteInfo | null;
+  const quoteExpired =
+    quote?.active === true && quote.valid_until != null && new Date(quote.valid_until).getTime() < Date.now();
+  const org = overview?.org;
+  const angebot = angebotVerfuegbar({
+    modus: angebotModus(process.env.SHOP_ANGEBOT_SEVDESK),
+    hatToken: hasSevdeskToken(),
+    kundennummer: org?.customer_number,
+    land: org?.address.country,
+    strasse: org?.address.street,
+    plz: org?.address.zip,
+    ort: org?.address.city,
+  });
 
   /**
    * Auswahl für ein Logo-Feld der Merch-Konfiguration (S4): nur die aktuelle
@@ -100,7 +139,7 @@ export const loadShop = cache(async (): Promise<ShopData> => {
     phase: (phaseJson ?? null) as ShopPhase | null,
     products: (productRows ?? []) as ShopProduct[],
     orders,
-    cart: cartOf(orders),
+    cart,
     overview,
     categories: vgroup(vocab, "product_category"),
     merchAssets,
@@ -114,5 +153,8 @@ export const loadShop = cache(async (): Promise<ShopData> => {
       (overview?.products ?? []).some(
         (p) => p.format_key === "booth" || p.format_key === "stage",
       ),
+    quote,
+    quoteExpired,
+    angebot,
   };
 });
