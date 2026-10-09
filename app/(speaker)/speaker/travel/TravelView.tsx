@@ -272,6 +272,7 @@ export function TravelView({
         <Card className="p-6">
           <h2 className="ct-h3 mb-2 text-ink">{t.consentNeededTitle}</h2>
           <p className="ct-help">{t.consentHospitality}</p>
+          <p className="ct-help mt-2">{t.consentHospitalityHint}</p>
           <p className="ct-help mt-3">{t.consentReadOnly}</p>
         </Card>
       )}
@@ -563,6 +564,8 @@ export function TravelView({
           detail={
             <>
               <p className="ct-label">{label(askConsent)}</p>
+              {/* SPK-078 (K-56): Zweck, Freiwilligkeit und Löschung der Ernährungsangaben stehen hier am Weg zur Einwilligung. */}
+              <p className="ct-help mt-3">{t.consentHospitalityHint}</p>
               {consentError && (
                 <p
                   role="alert"
