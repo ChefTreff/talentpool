@@ -5,7 +5,7 @@ import { requireAdminSection } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
 
-const PFAD = "/admin/verwaltung/sperrliste";
+const PFAD = "/admin/loeschantraege";
 
 export type Pruefung =
   | { ok: true; gesperrt: boolean; grund: string | null; seit: string | null }
