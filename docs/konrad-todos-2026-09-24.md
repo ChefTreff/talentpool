@@ -36,6 +36,8 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 - **K-89 · Eure Daten (#424):** (1) Wenn alles ausgefüllt ist, bleiben alle vier Abschnitte zu — soll der erste trotzdem offen stehen? (2) Reicht die Leiste am Seitenende, oder bei Ungespeichertem zusätzlich ein Hinweis oben? Empfehlung: (1) zu lassen, (2) Leiste reicht.
 - **K-90 · Dateien (#416):** (1) Soll die Frist-Spalte bei „Eingereicht“ entfallen wie bei „Angenommen“? (2) Belege am Handy sind drei hohe Karten — Datum und Größe in eine Zeile (ändert die gestapelten Tabellen im Kit für alle Seiten)? Empfehlung: (1) ja, (2) erst einmal lassen.
 
+**Aufgenommen 09.10. mittags (Partner > Masterclasses):** PART-149 (Knöpfe in die Speaker-Zeile, „Speaker eintragen“ in die Kopfzeile) und **QS-079 als globale Regel** (Umschalter statt doppelter Formulare auf Seiten mit mehreren Instanzen; Regel in den Design-Skill, Masterclass zuerst). Bild in `docs/bilder/part-149-wer-spricht.webp`.
+
 **Offen von gestern:** K-85 (Personenverwaltung: Konto-Status ok? Auth-Adressänderung nachrangig?), K-75 (Team-Zugänge), vivenu-Entwurf senden (einen der zwei Entwürfe).
 
 - **K-92 · Wiki-Darstellung (#430):** (1) Der Assistent trennt jetzt Titel und Text, am Handy deutlich — unter den Artikel oder in die Liste? (2) Teil 2 macht aus den 26 fetten Zeilen Zwischenüberschriften: Doppelpunkt am Ende weg, Nummern bleiben — passt? Empfehlung: (1) in die Liste, (2) ja. Klicken: Wiki in jedem Portal (Artikel als Seite, Linie unter `h2`, Balken in der Liste).
