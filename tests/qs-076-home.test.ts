@@ -26,6 +26,8 @@ const HOME_PUNKTE: { portal: string; layout: string; href: string }[] = [
   { portal: "Speaker-Leads (Stage Leads)", layout: "app/(speaker-leads)/layout.tsx", href: "/speaker-leads" },
   { portal: "Partner", layout: "app/(partner)/layout.tsx", href: "/partner" },
   { portal: "Hackathon", layout: "app/(hackathon)/layout.tsx", href: "/hackathon" },
+  // K-86 (Konrad 08.10. spät, „wie empfohlen“): auch die Startseite der Volunteers, vorher „Bewerbung & Profil“.
+  { portal: "Volunteers", layout: "app/(volunteers)/layout.tsx", href: "/volunteers" },
 ];
 
 describe("QS-076: die Startseite heißt in jedem Portal „Home“", () => {
@@ -52,7 +54,7 @@ describe("QS-076: die Startseite heißt in jedem Portal „Home“", () => {
   }
 
   it("kein Menüpunkt in einem Portal-Layout heißt noch „Übersicht“ oder „Overview“", () => {
-    const layouts = [...new Set([...HOME_PUNKTE.map((p) => p.layout), "app/(volunteers)/layout.tsx"])];
+    const layouts = [...new Set(HOME_PUNKTE.map((p) => p.layout))];
     for (const sprache of ["de", "en"] as const) {
       const d = woerterbuch(sprache);
       for (const layout of layouts) {
@@ -74,10 +76,11 @@ describe("QS-076: die Startseite heißt in jedem Portal „Home“", () => {
     }
   });
 
-  it("Volunteers bleibt, wie es ist: seine Startseite ist die Bewerbung samt Profil und heißt nicht „Übersicht“ (offen für Konrad)", () => {
-    const layout = lies("app/(volunteers)/layout.tsx");
-    assert.match(layout, /href: "\/volunteers", label: t\.volunteers\.navProfile/);
-    assert.equal(wert(woerterbuch("de"), "volunteers.navProfile"), "Bewerbung & Profil");
+  it("Volunteers (K-86): der alte Schlüssel `navProfile` („Bewerbung & Profil“) ist weg — der Menüpunkt heißt `navHome`", () => {
+    assert.match(lies("app/(volunteers)/layout.tsx"), /href: "\/volunteers", label: t\.volunteers\.navHome/);
+    for (const sprache of ["de", "en"] as const) {
+      assert.equal(wert(woerterbuch(sprache), "volunteers.navProfile"), undefined, sprache);
+    }
   });
 });
 

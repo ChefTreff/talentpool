@@ -22,7 +22,7 @@ export default async function VolunteersLayout({ children }: { children: ReactNo
   const { profile, leadShifts } = await getVolunteerScope();
 
   const items = [
-    { href: "/volunteers", label: t.volunteers.navProfile },
+    { href: "/volunteers", label: t.volunteers.navHome },
     { href: "/volunteers/wiki", label: t.volunteers.navWiki },
   ];
   if (canSeeShifts(profile)) {

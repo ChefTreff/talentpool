@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-08 14:31 UTC · 124 Tabellen · 6 Views · 743 Funktionen
+> Stand: 2026-10-09 07:31 UTC · 124 Tabellen · 6 Views · 747 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2425,6 +2425,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `can_edit_session` | p_session_id: uuid |
 | `can_edit_slot` | p_slot_id: uuid |
 | `can_edit_stage` | p_stage_id: uuid |
+| `can_edit_stage_slots` | p_stage_id: uuid |
 | `can_judge_hack_team` | p_team_id: uuid |
 | `can_manage_event_photos` | args: ? |
 | `can_manage_hack_dataset` | p_challenge_id: uuid |
@@ -2502,6 +2503,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_session_asset` | p_id: uuid |
 | `delete_shift_template` | p_id: uuid |
 | `delete_side_event` | p_id: uuid |
+| `delete_slot` | p_slot_id: uuid |
 | `delete_speaker_activity` | p_id: uuid |
 | `delete_speaker_asset` | p_id: uuid |
 | `delete_speaker_task` | p_task_id: uuid |
@@ -2977,6 +2979,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `slide_mirror_candidates` | p_asset_id: uuid, p_edition_id: uuid |
 | `slide_mirror_orphans` | p_limit: integer |
 | `slot_has_published_session` | p_slot_id: uuid |
+| `slot_outside_window` | p_bis: time without time zone, p_day: date, p_end: timestamp with time zone, p_start: timestamp with time zone, p_tz: text, p_von: time without time zone |
 | `slot_stage_leads` | p_slot_id: uuid |
 | `speaker_access_revoke` | p_edition_id: uuid, p_person_id: uuid |
 | `speaker_activities` | p_profile_id: uuid |
@@ -3018,6 +3021,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `sync_deliverables` | p_org_edition_id: uuid |
 | `sync_granted_roles` | p_org_id: uuid |
 | `sync_ticket_allocations` | p_org_edition_id: uuid |
+| `team_access_list` | p_filter: text, p_limit: integer, p_offset: integer, p_query: text |
 | `team_add_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_lounge: boolean, p_profile_id: uuid |
 | `team_members` | args: ? |
 | `team_role_keys` | args: ? |
