@@ -14,7 +14,7 @@ Hier findet ihr alle Informationen zu den Masterclasses: wann und wo sie stattfi
 
 Die Masterclasses gehen **60 Minuten**. Das ist eure Nettozeit im Raum, also inklusive möglicher Q&A sowie Auf- und Abbau. Damit alle die gleiche Zeit haben, sind wir hier sehr strikt.
 
-**Ablauf vor Ort:**
+### Ablauf vor Ort
 
 - **spätestens 60 Minuten vor Beginn:** Ticketabholung am Speaker-Counter
 - **15 Minuten vor Beginn:** Treffen am Masterclass-Bereich (vor Ort ausgeschildert)
@@ -60,18 +60,18 @@ Hier sind Beispiele aus den Vorjahren, die gut gelungen sind. Orientiert euch ge
 - Welches Wissen, welchen Skill oder welche Erfahrung vermittelt ihr?
 - Was erwartet die Teilnehmenden?
 
-**Beispiel 1: Wie du GenAI für den Business-Erfolg nutzt – Strategie, Use-Cases und Best Practices**
+### Beispiel 1: Wie du GenAI für den Business-Erfolg nutzt – Strategie, Use-Cases und Best Practices
 
 > In dieser Masterclass erhältst du eine Roadmap zur erfolgreichen Implementierung von Generative AI im Business-Kontext. Es werden Strategien zur Auswahl und Umsetzung von GenAI-Use-Cases im Unternehmen vorgestellt, ergänzt durch drei konkrete Erfolgsbeispiele aus der Praxis. Darüber hinaus teilen wir Best Practices, häufige Fehler und Top-Tipps, damit du GenAI erfolgreich in deinem Unternehmen einsetzen kannst.
 
-**Beispiel 2: Master your Career – Lessons Learned von zwei weiblichen C-Levels**
+### Beispiel 2: Master your Career – Lessons Learned von zwei weiblichen C-Levels
 
 > Wie gelingt der Weg ins C-Level? Welche Herausforderungen und Chancen gibt es auf dem Karriereweg? Wie könnt ihr eure Karriere aktiv mitgestalten? In dieser exklusiven Masterclass teilen eine Chief People Officer und eine Chief Product Officer ihre persönlichen Erfahrungen und Learnings. Im Fireside-Chat sprechen sie über strategische Karriereentscheidungen, Leadership und die Bedeutung von Netzwerken.
 
-**Beispiel 3: Next-Level Productivity – Mastering Automation Tools as Key Skill of the 21st Century**
+### Beispiel 3: Next-Level Productivity – Mastering Automation Tools as Key Skill of the 21st Century
 
 > Automatisierung ist längst kein „Nice to have" mehr – sie ist eine der entscheidenden Future Skills unserer Zeit. In dieser Masterclass lernst du, wie du mit No-Code-Tools eigene Workflows automatisierst, welche Prozesse sich in Studium, Job oder eigenen Projekten sofort automatisieren lassen und warum Automatisierungsverständnis in jeder Branche zur Schlüsselkompetenz wird. Du brauchst keine Programmierkenntnisse – nur Neugier.
 
-**Beispiel 4: Woher soll ich wissen, was ich will? Eine Schritt-für-Schritt-Anleitung**
+### Beispiel 4: Woher soll ich wissen, was ich will? Eine Schritt-für-Schritt-Anleitung
 
 > „Wenn ich finde, wofür ich brenne, lege ich los und gebe alles. Aber woher soll ich wissen, was ich wirklich will?" Eine Frage, die sich überraschend viele ehrgeizige, talentierte Menschen stellen. Genau hier setzt diese Masterclass an: Du bekommst eine klare, praxiserprobte Schritt-für-Schritt-Anleitung, um deine tiefsten Wünsche und echten Ziele zu erkennen – beruflich wie privat. Du lernst, verborgene Talente zu entdecken, hinderliche Glaubenssätze aufzuspüren und Entscheidungen zu treffen, die wirklich zu dir passen.
