@@ -231,11 +231,12 @@ export function ZugaengeListe({
                         <span className="ct-help text-muted">{t.noEmail}</span>
                       )}
                       {/* Auch wer noch nie eingeloggt war, lässt sich sperren (alle Rollen weg, Anmeldung zu) —
-                          das konnte die alte Liste, und „nichts entfällt“ (ADM-094). */}
+                          das konnte die alte Liste, und „nichts entfällt“ (ADM-094). Eine sichtbare Aktion je
+                          Zeile, der Rest im Menü (Design 09.10.). */}
                       {!eigen && (
-                        <Button size="sm" variant="ghost" disabled={pending} onClick={() => fragen("sperren", k)}>
-                          {t.block}
-                        </Button>
+                        <Menu label={`${t.actions}: ${k.name ?? ""}`} trigger={t.actions} ton="hell" align="end" width="w-64">
+                          <MenuItem onSelect={() => fragen("sperren", k)}>{t.block}</MenuItem>
+                        </Menu>
                       )}
                     </div>
                   ) : (

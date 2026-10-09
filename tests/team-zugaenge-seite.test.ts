@@ -49,7 +49,8 @@ describe("Team & Zugänge: nichts geht verloren (ADM-094)", () => {
   it("die Liste bietet je Zustand genau einen Handgriff und den Selbstschutz", () => {
     assert.match(liste, /k\.blocked_at \? \(\s*<Button[\s\S]*?fragen\("oeffnen"/);
     assert.match(liste, /fragen\("einladen"/);
-    assert.match(liste, /!eigen && <MenuItem onSelect=\{\(\) => fragen\("sperren"/);
+    assert.equal((liste.match(/<MenuItem onSelect=\{\(\) => fragen\("sperren"/g) ?? []).length, 2, "Sperren steht bei Aktiv und Ohne Login im Menü");
+    assert.doesNotMatch(liste, /<Button[^>]*>\s*\{t\.block\}/);
     assert.match(liste, /revokeTeamRole\(aktuell\.rolle\.id\)/);
     assert.match(liste, /konto\.admins <= 1/);
     assert.match(liste, /grantTeamRole\(ziel\.person_id, neueRolle, geltung === "edition" \? editionId : null\)/);
