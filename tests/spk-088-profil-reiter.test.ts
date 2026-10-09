@@ -243,14 +243,14 @@ describe("SPK-088: Texte und Doku", () => {
     assert.match(zeile, /ein Klick auf einen anderen Reiter mit ungespeicherten Änderungen fragt nach/);
   });
 
-  it("Backlog: SPK-088 trägt die PR-Nummer, SPK-094 (Audit nur mit Feldnamen) ist eingetragen und offen", () => {
+  it("Backlog: SPK-088 trägt die PR-Nummer; SPK-094 (Audit nur mit Feldnamen), der Befund aus diesem PR, steht genau einmal in der Liste", () => {
     const backlog = quelle("docs/feedback/speaker.md").split("\n");
     const s88 = backlog.find((l) => l.startsWith("| SPK-088 |"));
     assert.ok(s88 && /\| P1 \| (geplant|gebaut|abgenommen) #\d+/.test(s88), "SPK-088 trägt keine PR-Nummer");
     const s94 = backlog.find((l) => l.startsWith("| SPK-094 |"));
     assert.ok(s94, "SPK-094 fehlt");
     assert.match(s94, /nur die \*\*Namen der geänderten Felder\*\*/);
-    assert.match(s94, /\| P2 \| offen —/);
+    // Der Stand von SPK-094 (offen, geplant, gebaut) gehört dem PR, der es baut — hier steht er nicht, sonst bricht jede Statusänderung dieses Tests.
     assert.equal(backlog.filter((l) => l.startsWith("| SPK-094 |")).length, 1, "SPK-094 steht nur einmal");
   });
 });
