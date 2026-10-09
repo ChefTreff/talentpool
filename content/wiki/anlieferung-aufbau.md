@@ -32,14 +32,14 @@ Welcher Dienstleister das 2027 ist, welche Empfängeradresse gilt und welches in
 
 ## Wann könnt ihr anliefern und aufbauen?
 
-**Mittwoch, 14. April 2027 – nur externe Messebauer**
+### Mittwoch, 14. April 2027 – nur externe Messebauer
 - Externe Messebauer können anliefern und mit dem Standaufbau beginnen.
 
-**Donnerstag, 15. April 2027**
+### Donnerstag, 15. April 2027
 - Tagsüber: Standaufbau durch externe Messebauer
 - Ab dem Nachmittag: Partnerinnen und Partner können ihre Stände beziehen und ausstatten.
 
-**Freitag, 16. April 2027**
+### Freitag, 16. April 2027
 - Morgens: Standbestückung und finale Anlieferung für alle Partner
 - **Hinweis:** Bitte liefert alle Materialien rechtzeitig vor Einlass an, damit der Summit pünktlich starten kann.
 
@@ -63,7 +63,7 @@ Die verbindlichen Uhrzeiten stehen im Aufbauplan, sobald er vorliegt.
 - Begrenzte Standzeit in der Ladezone
 - Folgt den Anweisungen der Parkeinweiser und Sicherheitskräfte
 
-**PKW (Kleinmengen):**
+### PKW (Kleinmengen)
 - Bitte ausschließlich das Parkhaus am Radisson Blu nutzen
 - Zugang per Fahrstuhl direkt ins CCH
 - Keine Anlieferung kleiner Mengen über die Tiergartenstraße

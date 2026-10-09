@@ -12,7 +12,7 @@ pruefen: Hallenbezeichnung für 2027; Parkhaustarife
 
 Der FUTURE LEADER SUMMIT findet im **CCH – Congress Center Hamburg** statt. Das CCH liegt zentral in Hamburg, direkt am Bahnhof Dammtor und in unmittelbarer Nähe zum Park Planten un Blomen.
 
-**Adresse:**
+### Adresse
 Congress Center Hamburg (CCH)
 Congressplatz 1
 20355 Hamburg

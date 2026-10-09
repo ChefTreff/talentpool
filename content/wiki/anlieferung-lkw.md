@@ -12,10 +12,10 @@ Diese Informationen dienen der Planung von Anlieferung und Aufbau größerer Bau
 
 ## Szenarien: was müsst ihr tun?
 
-**Ihr kommt mit PKW und bringt nur kleine Mengen (Kartons, Roll-ups) oder wollt vorab etwas an die Location senden?**
+### Ihr kommt mit PKW und bringt nur kleine Mengen (Kartons, Roll-ups) oder wollt vorab etwas an die Location senden?
 → Siehe „Anlieferung (PKW), Vorabsendung & Aufbau".
 
-**Ihr kommt mit Transporter oder LKW oder habt große Mengen und Exponate?**
+### Ihr kommt mit Transporter oder LKW oder habt große Mengen und Exponate?
 - Zufahrt über Tiergartenstraße (Eingang B).
 - Pfand in bar bereithalten – die Höhe nennen wir hier, sobald sie feststeht.
 - Anmeldung über das Logistikformular. Den Link stellen wir in eurer Aufgabenliste im Portal bereit.

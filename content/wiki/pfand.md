@@ -25,11 +25,11 @@ Damit die Fläche jederzeit sauber bleibt, gibt es ein Pfandsystem. Ob es für e
 
 ## Wann ist etwas pfandpflichtig?
 
-**A) Offizielle Getränkepartner**
+### A) Offizielle Getränkepartner
 - Wenn ihr offizieller Getränkepartner mit eigener Bar seid, sind eure ausgegebenen Getränke grundsätzlich pfandpflichtig.
 - Ausnahmen, etwa mobile Sampling-Aktionen, siehe unten.
 
-**B) Getränke in unseren Mehrwegbechern und -gläsern**
+### B) Getränke in unseren Mehrwegbechern und -gläsern
 - Alles, was in **unseren Mehrwegbechern oder Mehrweggläsern** ausgegeben wird, ist pfandpflichtig.
 - Unsere Mehrwegbecher und -gläser bucht ihr über den **Messeshop**.
 - Andere Mehrweg- und Pfandsysteme verwenden wir im Eventbetrieb **nicht**. Wenn ihr einen Sonderfall habt, sprecht frühzeitig mit uns.
@@ -38,13 +38,13 @@ Damit die Fläche jederzeit sauber bleibt, gibt es ein Pfandsystem. Ob es für e
 
 ## Was ist kein Pfand?
 
-**A) Mobile Sampling-Aktionen (kleine Mengen)**
+### A) Mobile Sampling-Aktionen (kleine Mengen)
 - Getränke, die ihr in kleinen Mengen mobil verteilt, etwa aus dem Rucksack, können ohne Pfand laufen. Bitte vorab mit uns abstimmen.
 
-**B) Begrenzte Ausgabe geschlossener Gebinde (kein Bar-Setting)**
+### B) Begrenzte Ausgabe geschlossener Gebinde (kein Bar-Setting)
 - Wenn ihr kein Bar-Setup habt, sondern nur begrenzt geschlossene Getränke – Flaschen oder Dosen aus einem Kühlschrank oder kleinen Setup – ausgebt, ist das nicht pfandpflichtig.
 
-**C) Einweg**
+### C) Einweg
 - Alles, was klar Einweg ist, ist kein Pfand.
 
 ## Ablauf am Stand

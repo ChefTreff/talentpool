@@ -32,7 +32,7 @@ Deine Slides brauchen wir einige Tage vor dem Event. Die genaue Frist steht bei 
 
 ## Veranstaltungsort und Zeit
 
-**16. und 17. April 2027**
+### 16. und 17. April 2027
 CCH Congress Center Hamburg, Congressplatz 1, 20355 Hamburg
 
 Details zur Anreise stehen unter „CCH: Location & Anfahrt".
