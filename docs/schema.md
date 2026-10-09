@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-09 07:31 UTC · 124 Tabellen · 6 Views · 747 Funktionen
+> Stand: 2026-10-09 07:56 UTC · 124 Tabellen · 6 Views · 757 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -933,7 +933,6 @@ Partner-Organisation je Edition: Onboarding-Stand, Rechnungsdaten, Pass-Typ-Wahl
 | `pass_type_choice` | text |  |  |  | talent \| startup — Pass-Typ der Talente-Tickets. Beim Anlegen aus organization.partner_category vorbelegt (0105), vom Partner-Team über set_pass_type_choice() änderbar; NULL bedeutet Rückfall auf den Org-Typ (effective_pass_type). |
 | `sponsoring_level` | text |  |  |  |  |
 | `hubspot_deal_id` | text |  |  |  |  |
-| `notes_internal` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `lead_contact_id` | uuid |  |  | `edition_contact.id` |  |
@@ -1029,8 +1028,6 @@ Partner, Startups, Initiativen, Hochschulen, Agenturen. HubSpot-Company über hu
 | `id` | uuid | PK | `gen_random_uuid()` |  |  |
 | `legal_name` | text |  |  |  |  |
 | `communication_name` | text |  |  |  |  |
-| `logo_dark` | text |  |  |  |  |
-| `logo_light` | text |  |  |  |  |
 | `address_street` | text |  |  |  |  |
 | `address_zip` | text |  |  |  |  |
 | `address_city` | text |  |  |  |  |
@@ -1630,6 +1627,8 @@ Messeshop-Bestellung je Partner × Edition × Phase; MS-JJJJ-NNNN; eine aktive j
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `po_number` | text |  |  |  | Bestellnummer des Partners für diese Bestellung (F11.2). Vorgabe aus org_edition.po_number; je Auftrag überschreibbar. Wandert in den SevDesk-Entwurf. |
+| `quote_started_at` | timestamp with time zone |  |  |  | PART-116: Beginn des Angebots-Vorgangs (shop_quote_begin); leer, wenn die Bestellung kein Angebot trägt. Ohne quote_valid_until nach zehn Minuten ⇒ der Vorgang gilt als abgebrochen (Housekeeping). |
+| `quote_valid_until` | timestamp with time zone |  |  |  | PART-116: Gültig bis (heute + 30 Tage), gesetzt von record_shop_quote, wenn der SevDesk-Beleg eingetragen ist. Danach verfällt das Angebot (Housekeeping) und die Bestellung ist wieder ein Entwurf. |
 
 ### `shop_order_line`
 Bestellzeile mit Snapshot der Produktdaten zum Zeitpunkt der Bestätigung.
@@ -2705,6 +2704,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `new_speaker_count` | p_edition_id: uuid |
 | `next_up_items` | args: ? |
 | `next_up_items_admin` | args: ? |
+| `normalize_linkedin_url` | p_url: text |
+| `normalize_phone_e164` | p_raw: text |
 | `notification_reachable` | p_person_id: uuid |
 | `notification_topic_export` | p_topic: text |
 | `notification_topic_stats` | args: ? |
@@ -2792,6 +2793,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `queue_speaker_mail` | p_profile_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `queue_speaker_mail_debounced` | p_delay: interval, p_keep_prefix: text, p_profile_id: uuid, p_related_id: uuid, p_related_type: text, p_template_key: text, p_vars: jsonb |
 | `record_shop_invoice` | p_meta: jsonb, p_order_ids: uuid[], p_org_id: uuid, p_sevdesk_contact_id: text, p_sevdesk_invoice_id: text |
+| `record_shop_quote` | p_contact_id: text, p_lines_hash: text, p_net_cents: bigint, p_number: text, p_order_id: uuid, p_probe: boolean, p_sevdesk_order_id: text |
 | `record_speaker_consent_on_behalf` | p_consents: jsonb, p_profile_id: uuid, p_version: text |
 | `record_sync_error` | p_job_id: bigint, p_message: text, p_object_id: text, p_object_type: text, p_payload: jsonb |
 | `record_webhook_event` | p_event_type: text, p_external_id: text, p_headers: jsonb, p_payload: jsonb, p_signature_valid: boolean, p_source: text |
@@ -2962,6 +2964,13 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_phase` | p_edition_id: uuid |
 | `shop_phase_deadline_key` | p_phase: integer |
 | `shop_phase_info` | p_edition_id: uuid, p_org_id: uuid |
+| `shop_quote_abort` | p_order_id: uuid, p_reason: text |
+| `shop_quote_begin` | p_order_id: uuid |
+| `shop_quote_info` | p_order_id: uuid |
+| `shop_quote_lines_hash` | p_order_id: uuid |
+| `shop_quote_withdraw` | p_order_id: uuid |
+| `shop_quotes_admin` | p_edition_id: uuid |
+| `shop_quotes_housekeeping` | args: ? |
 | `shop_reconcile_ledger` | p_order_id: uuid, p_release: boolean |
 | `shop_remove_line` | p_order_id: uuid, p_sku: text |
 | `shop_report` | p_edition_id: uuid |
