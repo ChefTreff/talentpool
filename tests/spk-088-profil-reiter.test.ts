@@ -98,9 +98,10 @@ describe("SPK-088: Menü und Seite", () => {
     const bis = layout.indexOf("]}\n    >", von);
     assert.ok(von > 0 && bis > von, "die Menügruppen fehlen");
     const pfade = [...layout.slice(von, bis).matchAll(/href: "(\/speaker[^"]*)"/g)].map((m) => m[1]);
-    assert.deepEqual(pfade.slice(0, 3), ["/speaker", "/speaker/profil", "/speaker/session"]);
+    assert.deepEqual(pfade.slice(0, 2), ["/speaker", "/speaker/profil"]);
     assert.equal(pfade.filter((p) => p === "/speaker/profil").length, 1);
-    assert.deepEqual(pfade, ["/speaker", "/speaker/profil", "/speaker/session", "/speaker/travel", "/speaker/tickets", "/speaker/reisekosten", "/speaker/media", "/speaker/grafik", "/speaker/wiki"]);
+    // Die ganze Reihe (seit SPK-089 mit „Deine Kontakte“ gleich nach dem Profil).
+    assert.deepEqual(pfade, ["/speaker", "/speaker/profil", "/speaker/kontakte", "/speaker/session", "/speaker/travel", "/speaker/tickets", "/speaker/reisekosten", "/speaker/media", "/speaker/grafik", "/speaker/wiki"]);
     assert.match(layout, /\{ href: "\/speaker\/profil", label: t\.speaker\.navProfile \},/);
   });
 
@@ -214,7 +215,8 @@ describe("SPK-088: jeder Reiter hat seinen Entwurf", () => {
   it("die Karten behalten ihre Anker — die Schritte der Übersicht und alte Lesezeichen springen weiter dorthin", () => {
     const person = quelle(PERSON);
     assert.match(person, /<Card id="person"/);
-    assert.match(person, /id="kontakte"/);
+    // Die Kontakte stehen seit SPK-089 auf ihrer eigenen Seite, nicht mehr im Reiter „Person“.
+    assert.doesNotMatch(person, /KontakteCard|id="kontakte"/);
     const auftritt = quelle(AUFTRITT);
     for (const id of ["auftritt", "bio", "socials"]) assert.match(auftritt, new RegExp(`<Card id="${id}"`));
     assert.match(quelle(EINWILLIGUNGEN), /<Card id="consent"/);

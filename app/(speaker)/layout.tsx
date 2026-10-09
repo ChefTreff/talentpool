@@ -92,6 +92,8 @@ export default async function SpeakerLayout({ children }: { children: ReactNode 
             { href: "/speaker", label: t.speaker.navOverview },
             // SPK-088: das Profil gleich nach der Übersicht — wer sich zum ersten Mal anmeldet, landet auf der Übersicht und füllt als Nächstes das Profil aus.
             { href: "/speaker/profil", label: t.speaker.navProfile },
+            // SPK-089: Assistenz, Agentur und Office als eigener Punkt gleich nach dem Profil (vorher ein kleiner Abschnitt am Ende des Profils).
+            { href: "/speaker/kontakte", label: t.speaker.navContacts },
             { href: "/speaker/session", label: t.speaker.navSession },
             { href: "/speaker/travel", label: t.speaker.navTravel },
             { href: "/speaker/tickets", label: t.speaker.navTickets },

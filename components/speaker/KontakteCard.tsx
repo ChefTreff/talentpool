@@ -20,6 +20,10 @@ export type KontaktAktionen = {
 
 const ARTEN = ["agency", "office", "management", "assistant", "other"] as const;
 
+/**
+ * `has_access` ist beim Anlegen **unbeantwortet** (`null`) — die Frage „Darf sich diese Person anmelden und das Profil bearbeiten?“ ist
+ * Pflicht, ohne Antwort geht „Speichern“ nicht (SPK-089). Beim Bearbeiten steht die bisherige Antwort schon da.
+ */
 const LEER = {
   id: "",
   kind: "agency",
@@ -27,7 +31,7 @@ const LEER = {
   last_name: "",
   email: "",
   phone: "",
-  has_access: false,
+  has_access: null as boolean | null,
 };
 
 /**
@@ -37,8 +41,9 @@ const LEER = {
  * Vorher standen hier zwei Karten für dieselbe Sache: „Agentur oder Office"
  * ohne Zugang und „Assistenz" mit Zugang. Konrad, 21.09.: „Auch eine Agentur
  * füllt solche Seiten aus und braucht dann einen Zugang." Also eine Liste, in
- * der die **Art** sagt, wer es ist, und ein Häkchen, ob die Person sich
- * anmelden darf — zwei Fragen an derselben Zeile statt zwei Abschnitten.
+ * der die **Art** sagt, wer es ist, und eine Ja/Nein-Frage (Pflicht, SPK-089),
+ * ob die Person sich anmelden darf — zwei Fragen an derselben Zeile statt zwei
+ * Abschnitten.
  *
  * **Die Einwilligung ist Pflicht.** Die Daten gehören einem Menschen, der hier
  * kein Konto hat und nicht gefragt wurde; ohne die Bestätigung der Speakerin
@@ -62,6 +67,7 @@ export function KontakteCard({
   common,
   message,
   ebene = "h3",
+  ohneTitel = false,
 }: {
   id?: string;
   kontakte: SpeakerContact[];
@@ -77,6 +83,8 @@ export function KontakteCard({
    * `h3`, im Speaker-Profil stehen die Abschnitte als `h2` (Sichtprüfung 02.10.).
    */
   ebene?: "h2" | "h3";
+  /** Die Seite trägt den Titel schon (SPK-089: „Deine Kontakte“ als eigene Seite) — dann steht er nicht noch einmal über der Karte. */
+  ohneTitel?: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -116,7 +124,7 @@ export function KontakteCard({
         last_name: form.last_name,
         email: form.email,
         phone: form.phone,
-        has_access: form.has_access,
+        has_access: form.has_access === true,
         consent_at: new Date().toISOString().slice(0, 10),
       });
       if (!res.ok) {
@@ -134,7 +142,7 @@ export function KontakteCard({
   const Kopf = ebene;
   return (
     <Card id={id} className="p-6">
-      <Kopf className={`${ebene === "h2" ? "ct-h2" : "ct-h3"} mb-1 text-ink`}>{t.sectionContacts}</Kopf>
+      {!ohneTitel && <Kopf className={`${ebene === "h2" ? "ct-h2" : "ct-h3"} mb-1 text-ink`}>{t.sectionContacts}</Kopf>}
       <p className="ct-help mb-4">{t.contactsLead}</p>
 
       {kontakte.length === 0 ? (
@@ -227,7 +235,7 @@ export function KontakteCard({
             <Field
               label={t.contact_email}
               htmlFor="k_email"
-              hint={form.has_access ? t.contactEmailRequired : undefined}
+              hint={form.has_access === true ? t.contactEmailRequired : undefined}
             >
               <Input
                 id="k_email"
@@ -245,18 +253,32 @@ export function KontakteCard({
             </Field>
           </div>
 
-          <label className="mt-4 flex items-start gap-2 ct-small">
-            <input
-              type="checkbox"
-              className="mt-1 size-4"
-              checked={form.has_access}
-              onChange={(e) => setForm((f) => ({ ...f, has_access: e.target.checked }))}
-            />
-            <span>
-              {t.contactAccess}
-              <span className="ct-help block">{t.contactAccessHint}</span>
-            </span>
-          </label>
+          {/* SPK-089 (Feedbackrunde 05.10.): die Pflichtfrage — Ja oder Nein, ohne Vorgabe. Vorher ein Häkchen, das man übersah (Nein war die
+              stille Voreinstellung); „Ja“ lädt wie bisher mit der E-Mail ein. */}
+          <fieldset className="mt-4">
+            <legend className="ct-label text-ink">
+              {t.contactAccessQuestion}
+              <span aria-hidden className="ml-0.5 text-error-ink">
+                *
+              </span>
+              <span className="ml-1 ct-help font-semibold">({t.contactAccessRequired})</span>
+            </legend>
+            <p className="ct-help mt-1">{t.contactAccessHint}</p>
+            <div className="mt-2 flex flex-col gap-2">
+              {([true, false] as const).map((antwort) => (
+                <label key={String(antwort)} className="flex items-start gap-2 ct-small">
+                  <input
+                    type="radio"
+                    name="k_access"
+                    className="mt-1 size-4"
+                    checked={form.has_access === antwort}
+                    onChange={() => setForm((f) => ({ ...f, has_access: antwort }))}
+                  />
+                  <span>{antwort ? t.contactAccessYes : t.contactAccessNo}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
 
           <label className="mt-3 flex items-start gap-2 ct-small">
             <input
@@ -274,7 +296,7 @@ export function KontakteCard({
           <div className="mt-4 flex flex-wrap gap-2">
             <Button
               disabled={
-                pending || !gefuellt || !consent || (form.has_access && !form.email.trim())
+                pending || !gefuellt || !consent || form.has_access === null || (form.has_access === true && !form.email.trim())
               }
               onClick={speichern}
             >
