@@ -2,6 +2,15 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
+ * Liegt die Migration noch als Vorschlag da (`supabase/migrations/vorschlag/<name>.sql`, ohne Nummer, nicht angewendet)? Für Tests, die einen Vorschlag
+ * mit dem Snapshot vergleichen: das gilt nur, solange der Snapshot seine Basis ist — nach dem Anwenden ist er maßgeblich und kann durch spätere
+ * Migrationen weitergewandert sein (`update_my_speaker_profile`: 0300 SPK-093, 0301 SPK-094; der Vergleich von SPK-093 machte `main` rot).
+ */
+export function istVorschlag(name: string): boolean {
+  return existsSync(join("supabase", "migrations", "vorschlag", `${name}.sql`));
+}
+
+/**
  * Text einer Migration für Tests — unabhängig davon, ob sie noch als Vorschlag
  * (`supabase/migrations/vorschlag/<name>.sql`) liegt oder schon angewendet und auf
  * die Server-Version umbenannt ist (`supabase/migrations/<version>_<name>.sql`).

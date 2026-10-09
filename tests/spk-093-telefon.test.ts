@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { migrationText } from "@/tests/migration-datei";
+import { istVorschlag, migrationText } from "@/tests/migration-datei";
 
 /**
  * SPK-093 (Plan 09.10.2026, Folgepunkt aus 0292/ADM-108): das Speaker-Formular schreibt die Telefonnummer als freie Eingabe in `person.phone`;
@@ -60,7 +60,7 @@ describe("SPK-093: die Migration `v6_speaker_telefon`", () => {
   it("beide Funktionen sind bis auf die Telefon-Zeilen der Snapshot — nichts anderes ist verschwunden (solange die Migration noch Vorschlag ist)", (t) => {
     // Nach dem Anwenden ist der Snapshot maßgeblich — und kann durch spätere Migrationen weitergewandert sein: `update_my_speaker_profile` hat SPK-094
     // (0301) erneut geändert, der Vergleich mit der Fassung nach 0300 gälte dann nicht mehr. Der Vergleich schützt den Vorschlag, nicht die Geschichte.
-    if (!existsSync(new URL("../supabase/migrations/vorschlag/v6_speaker_telefon.sql", import.meta.url))) {
+    if (!istVorschlag("v6_speaker_telefon")) {
       t.skip("angewendet (0300): der Snapshot ist maßgeblich");
       return;
     }
