@@ -74,6 +74,9 @@ const PAARE = [
   ["Hilfstext auf Navy", "#A0AAB9", "#081A35", 4.5],
   ["Akzent auf Navy (nur Fläche/Linie)", "#6262DC", "#081A35", 3.0],
   ["Navy auf Highlight-Pink", "#081A35", "#FF88CF", 4.5],
+  // Favicon (QS-071, K-73 Q7): die Bildmarke in on-navy auf dem Violett der Originalmarke (`public/brand/original/`).
+  // Grafik, also 3:1 (WCAG 1.4.11); erzeugt von `scripts/icons-erzeugen.mjs`.
+  ["Favicon: Bildmarke (on-navy) auf Violett der Originalmarke", "#F5F4F2", "#5454C5", 3.0],
 ];
 
 const direkt =
