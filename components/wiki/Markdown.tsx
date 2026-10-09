@@ -15,6 +15,7 @@
  */
 import type { ReactNode } from "react";
 import { abschnitte, parseMarkdown, type Inline } from "./markdown-parse";
+import { cn } from "@/components/ui/cn";
 import { neuesFenster } from "@/components/ui/neues-fenster";
 
 function render(parts: Inline[], keyPrefix: string): ReactNode[] {
@@ -47,8 +48,21 @@ function render(parts: Inline[], keyPrefix: string): ReactNode[] {
  * `idPrefix`: Die Überschriften der zweiten Ebene bekommen eine Kennung
  * (`<prefix>/<abschnitt>`), damit „Auf diesem Artikel“ sie ansteuern kann. Ohne
  * Angabe bleibt alles wie bisher (Editor-Vorschau, Antworten des Assistenten).
+ *
+ * **Vier Ebenen, vier Größen** (PART-104, Konrad 08.10.2026, K-73): Der Artikeltitel ist die
+ * Überschrift der Seite (`h1`, steht in `WikiView`); ein Abschnitt (`##`) ist `h2` in `ct-h2`
+ * (18/24, Versalien) **mit einer Linie darüber** — der erste ohne —, ein Unterabschnitt (`###`)
+ * `h3` in `ct-h3` (16/24, halbfett). Vorher waren Abschnitt und Fließtext beide 16/24 und ein
+ * Unterabschnitt kleiner als der Text (18 → 16 → 16 → 14): ein Abschnitt unterschied sich vom
+ * Text allein durch das Gewicht, und die Linie fehlte, an der das Auge sieht, wo der nächste
+ * beginnt. Das sind keine neuen Rollen, nur eine andere Zuordnung der vorhandenen. Absätze,
+ * Listen und Hinweiskästen laufen höchstens `max-w-text` breit; Tabellen nehmen ihre Breite.
+ * Ein `#` im Text bleibt als Absicherung ein `h2` — der eine `h1` gehört dem Titel.
+ *
+ * `kompakt` ist die Fassung für den Chat des Assistenten: dort stünden Versalien mit einer Linie
+ * in einer Sprechblase. Sie behält die kleine Zuordnung von früher.
  */
-export function Markdown({ source, idPrefix }: { source: string; idPrefix?: string }) {
+export function Markdown({ source, idPrefix, kompakt = false }: { source: string; idPrefix?: string; kompakt?: boolean }) {
   const blocks = parseMarkdown(source);
 
   // Block-Index → Kennung, in derselben Reihenfolge wie `abschnitte()`.
@@ -67,22 +81,38 @@ export function Markdown({ source, idPrefix }: { source: string; idPrefix?: stri
         const key = `b-${i}`;
         switch (b.kind) {
           case "heading":
+            if (kompakt) {
+              return b.level === 1 ? (
+                <h2 key={key} className="ct-h2 mt-6">{render(b.content, key)}</h2>
+              ) : b.level === 2 ? (
+                <h3 key={key} id={kennungen.get(i)} className="ct-h3 mt-5 scroll-mt-20">{render(b.content, key)}</h3>
+              ) : (
+                <h4 key={key} className="ct-label mt-4">{render(b.content, key)}</h4>
+              );
+            }
             return b.level === 1 ? (
               <h2 key={key} className="ct-h2 mt-6">{render(b.content, key)}</h2>
             ) : b.level === 2 ? (
-              <h3 key={key} id={kennungen.get(i)} className="ct-h3 mt-5 scroll-mt-20">{render(b.content, key)}</h3>
+              // Linie darüber, 40 px Abstand (12 aus dem Spalt + `mt-7`); der erste Block der Seite trägt keine.
+              <h2
+                key={key}
+                id={kennungen.get(i)}
+                className={cn("ct-h2 scroll-mt-20", i > 0 && "mt-7 border-t pt-6")}
+              >
+                {render(b.content, key)}
+              </h2>
             ) : (
-              <h4 key={key} className="ct-label mt-4">{render(b.content, key)}</h4>
+              <h3 key={key} className="ct-h3 mt-3">{render(b.content, key)}</h3>
             );
           case "list":
             return b.ordered ? (
-              <ol key={key} className="ml-5 flex list-decimal flex-col gap-1">
+              <ol key={key} className={cn("ml-5 flex list-decimal flex-col gap-1", !kompakt && "max-w-text")}>
                 {b.items.map((item, n) => (
                   <li key={n}>{render(item, `${key}-${n}`)}</li>
                 ))}
               </ol>
             ) : (
-              <ul key={key} className="ml-5 flex list-disc flex-col gap-1">
+              <ul key={key} className={cn("ml-5 flex list-disc flex-col gap-1", !kompakt && "max-w-text")}>
                 {b.items.map((item, n) => (
                   <li key={n}>{render(item, `${key}-${n}`)}</li>
                 ))}
@@ -94,7 +124,7 @@ export function Markdown({ source, idPrefix }: { source: string; idPrefix?: stri
             return (
               <blockquote
                 key={key}
-                className="border-l-2 border-l-accent bg-accent-soft/40 py-2 pl-4"
+                className={cn("border-l-2 border-l-accent bg-accent-soft/40 py-2 pl-4", !kompakt && "max-w-text")}
               >
                 {b.rows.map((row, n) => (
                   <p key={n} className="leading-6">
@@ -135,7 +165,7 @@ export function Markdown({ source, idPrefix }: { source: string; idPrefix?: stri
             );
           default:
             return (
-              <p key={key} className="leading-6">
+              <p key={key} className={cn("leading-6", !kompakt && "max-w-text")}>
                 {render(b.content, key)}
               </p>
             );
