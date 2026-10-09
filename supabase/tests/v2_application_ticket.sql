@@ -30,14 +30,14 @@ begin
     values (v_ev, v_s3, 'Reception', 'Reception', 'x', 'reception', 'registration', 'published', 1, false) returning id into v_sess_reg;
 
   begin
-    perform apply_to_session(v_sess_app, '{}'::jsonb, false);
+    perform apply_to_session(v_sess_app, '{}'::jsonb, true);
     insert into t_res values ('01_apply_u35_no_birthdate', 'ALLOWED');
   exception when others then insert into t_res values ('01_apply_u35_no_birthdate', 'rejected ' || sqlerrm); end;
   update person set birthdate = '1998-05-05' where id = v_pid;
   v_app := apply_to_session(v_sess_app, '{"motivation":"x"}'::jsonb, true);
   insert into t_res values ('02_apply_ok', (v_app is not null)::text);
   begin
-    perform apply_to_session(v_sess_app, '{}'::jsonb, false);
+    perform apply_to_session(v_sess_app, '{}'::jsonb, true);
     insert into t_res values ('03_apply_duplicate', 'ALLOWED (BUG)');
   exception when others then insert into t_res values ('03_apply_duplicate', 'rejected ' || sqlstate); end;
   begin
@@ -60,7 +60,7 @@ begin
   insert into ticket (event_id, person_id, barcode, status, pass_type) values (v_ev, v_pid, 'TESTBARCODE1', 'valid', 'talent') returning id into v_tid;
   v_json := confirm_application(v_app);
   insert into t_res values ('10_confirm_ok', v_json::text);
-  v_app2 := apply_to_session(v_sess_app2, '{}'::jsonb, false);
+  v_app2 := apply_to_session(v_sess_app2, '{}'::jsonb, true);
   perform decide_application(v_app2, 'accepted', 1);
   perform release_decisions(v_sess_app2);
   begin

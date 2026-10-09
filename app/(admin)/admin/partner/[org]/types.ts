@@ -42,8 +42,11 @@ export type OverviewPayload = {
     sku: string;
     name_de: string | null;
     name_en: string | null;
+    category?: string | null;
     qty: number;
     status: string | null;
+    /** PART-102: Zeitpunkt der Nachbuchung (zweiter Deal); `null` = Erstbuchung. */
+    nachgebucht_am?: string | null;
   }[];
   ticket_allocations: {
     id: string;
