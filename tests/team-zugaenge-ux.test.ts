@@ -86,7 +86,9 @@ describe("Die Liste: Fehler bleiben im Dialog (Punkt 4)", () => {
 describe("Die Liste: eine Aktion je Zeile, rechts, der Rest im ⋯-Menü (Punkte 2, 7, 9, 10)", () => {
   it("beide Menüs sind `kompakt` (nur ⋯); „Rolle ergänzen“ steht nicht mehr doppelt im Menü", () => {
     assert.equal((liste.match(/<Menu kompakt ton="hell"/g) ?? []).length, 1, "ein gemeinsames Menü für Aktiv und Ohne Login");
-    assert.doesNotMatch(liste, /<MenuItem[^>]*>\{t\.addRoleTitle\}/);
+    const menue = liste.slice(liste.indexOf("<Menu kompakt"), liste.indexOf("</Menu>"));
+    assert.ok(menue.includes("fragen(\"sperren\""), "der Ausschnitt ist das Menü der Zeile");
+    assert.doesNotMatch(menue, /addRoleTitle|rolleOeffnen/, "„Rolle ergänzen“ gibt es schon in der Spalte Rollen");
     assert.match(liste, /label=\{`\$\{t\.actions\}: \$\{k\.name \?\? ""\}`\}/, "der Name der Zeile steckt im Namen des Auslösers");
   });
 
