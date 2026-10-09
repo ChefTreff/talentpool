@@ -226,6 +226,18 @@ const BUSINESS_KEYS = new Set([
   "order_not_found",
   // Merch-Konfiguration (Migration 0064)
   "merch_incomplete",
+  // Angebot aus dem Warenkorb (PART-116)
+  "order_quoted",
+  "not_quoted",
+  "quote_customer_number_required",
+  "quote_country_unsupported",
+  "quote_address_incomplete",
+  "quote_limit_reached",
+  "quote_expired",
+  "quote_in_progress",
+  "quote_hash_mismatch",
+  "quote_recorded",
+  "quote_id_required",
   // Partner-Admin B9 (Migrationen 0044-0061)
   "invalid_status",
   "invalid_quantity",
