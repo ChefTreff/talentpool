@@ -24,13 +24,16 @@ begin
   if v_late and not v_pr.late_orderable then raise exception 'late_only' using errcode = 'P0001', detail = p_sku; end if;
   if v_pr.available_until is not null and v_pr.available_until <= now() then raise exception 'not_available' using errcode = 'P0001', detail = p_sku; end if;
   if v_pr.edition_id is not null and v_pr.edition_id <> v_oe.edition_id then raise exception 'wrong_edition' using errcode = '22023', detail = p_sku; end if;
-  select * into v_o from shop_order where org_edition_id = v_oe.id and phase = v_p and status in ('draft', 'pending', 'editing') for update;
+  select * into v_o from shop_order where org_edition_id = v_oe.id and phase = v_p and status in ('draft', 'pending', 'editing', 'quoted') for update;
   if not found then
     if coalesce(p_qty, 0) <= 0 then raise exception 'empty_order' using errcode = '22023'; end if;
     insert into shop_order (org_edition_id, order_no, phase, status, created_by)
     values (v_oe.id, 'MS-' || to_char(now(), 'YYYY') || '-' || lpad(nextval('shop_order_seq')::text, 4, '0'), v_p, 'draft', v_me) returning * into v_o;
   elsif v_o.status = 'pending' then
     raise exception 'order_pending' using errcode = 'P0001', detail = v_o.id::text;
+  elsif v_o.status = 'quoted' then
+    -- PART-116: mit dem Angebot ist der Warenkorb festgesetzt; zurückziehen (shop_quote_withdraw) oder bestellen.
+    raise exception 'order_quoted' using errcode = 'P0001', detail = v_o.id::text;
   end if;
   if coalesce(p_qty, 0) > 0 and v_pr.track_stock then
     v_free := coalesce(shop_stock_available(p_sku), 0);

@@ -10,6 +10,8 @@ begin
   if p_status not in ('pending', 'editing', 'completed', 'cancelled') then raise exception 'invalid_status' using errcode = '22023', detail = p_status; end if;
   select * into v_o from shop_order where id = p_order_id for update;
   if not found then raise exception 'order_not_found' using errcode = 'P0002'; end if;
+  -- PART-116: ein Angebot wird zurückgezogen (shop_quote_withdraw) oder die Bestellung storniert, nicht auf einen anderen Stand gesetzt.
+  if v_o.status = 'quoted' and p_status <> 'cancelled' then raise exception 'order_quoted' using errcode = 'P0001', detail = v_o.id::text; end if;
   if p_status = 'cancelled' then
     perform shop_reconcile_ledger(p_order_id, true);
   elsif p_status = 'completed' then
@@ -22,7 +24,12 @@ begin
                         completed_at = case when p_status = 'completed' then coalesce(completed_at, now()) else completed_at end,
                         cancelled_at = case when p_status = 'cancelled' then now() else null end,
                         confirmed_at = case when p_status in ('pending', 'completed') then coalesce(confirmed_at, now()) else confirmed_at end,
-                        internal_note = coalesce(nullif(btrim(coalesce(p_note, '')), ''), internal_note)
+                        internal_note = coalesce(nullif(btrim(coalesce(p_note, '')), ''), internal_note),
+                        quote_started_at = null, quote_valid_until = null
    where id = p_order_id;
+  if v_o.status = 'quoted' then
+    update external_ref set meta = meta || jsonb_build_object('closed', 'cancelled', 'closed_at', now())
+     where system = 'sevdesk' and object_type = 'shop_quote' and object_id = p_order_id;
+  end if;
   perform log_audit('shop.admin_status', 'shop_order', p_order_id::text, jsonb_build_object('status', v_o.status), jsonb_build_object('status', p_status, 'note', p_note));
 end $$;

@@ -8,7 +8,7 @@ const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 const ohneKommentare = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 
 const KOMPONENTE = "components/partner/LogoWandEinwilligung.tsx";
-const WIZARD = "app/(partner)/partner/onboarding/OnboardingWizard.tsx";
+const WIZARD = "app/(partner)/partner/onboarding/EureDatenView.tsx";
 const PARTNER_SEITE = "app/(partner)/partner/onboarding/page.tsx";
 const ORG_DETAIL = "app/(admin)/admin/partner/[org]/OrgDetail.tsx";
 const ADMIN_SEITE = "app/(admin)/admin/partner/[org]/page.tsx";

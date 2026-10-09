@@ -81,6 +81,19 @@ export async function createSlot(input: {
   return { ok: true, data: { slotId: data as string } };
 }
 
+/**
+ * Slot löschen (K-84, `delete_slot`): das Programm-Team jede Art, ein Partner auf seiner eigenen Standbühne oder gebrandeten Bühne nur
+ * Inhalts-Slots. Die Datenbank entscheidet — veröffentlichte Session (`unpublish_first`), zugesagte Bewerbungen (`slot_locked`),
+ * fremde Bühne (42501). Eine unveröffentlichte Session bleibt und liegt danach wieder im Backlog.
+ */
+export async function deleteSlot(slotId: string): Promise<ActionResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("delete_slot", { p_slot_id: slotId });
+  if (error) return fail(error);
+  revalidateBoard();
+  return { ok: true, data: undefined };
+}
+
 export async function setSlotStatus(
   slotId: string,
   status: string,

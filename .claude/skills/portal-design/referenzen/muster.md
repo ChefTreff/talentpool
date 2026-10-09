@@ -57,6 +57,8 @@ Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
 
 **Tabellen mit Aktionen in der letzten Spalte stapeln am Handy** (QS-058): `<Table stapeln>` und je Zelle `<Td label="…">`. Unter 640 px werden die Zeilen zu Blöcken — Name oben ohne Beschriftung, darunter die beschrifteten Zellen, zuletzt die Aktionen —, die Kopfzeile bleibt für Vorlesegeräte. Davor lag „Bearbeiten“ bei den Kontakten 730 px, bei der Gästeliste 979 px rechts außerhalb des Bildes (gemessen bei 375 px); eine festgehaltene erste Spalte hätte daran nichts geändert. Ab 640 px bleibt es die Tabelle, gemessen unverändert. Zellen ohne `label` stehen ohne Beschriftung da (richtig für Name und Aktionen), leere Zellen entfallen. Die Regeln stehen in `globals.css` (`.ct-stapeln`) und bewusst ohne Ebene, weil sie Zeilenhöhe und Polster der Zellen schlagen müssen. Wo eine Zeile aufklappt (rohes `<tr><td colSpan>`), gilt dasselbe.
 
+**Eine Spalte ohne Überschrift (die mit den Aktionen) trägt ihren Namen am Kopf:** `<Th aria-label={t.colAction} />` (QS-077, 09.10.2026). `Th` gibt `aria-label` an die Zelle weiter; davor verwarf es ihn still, und an 18 Stellen blieb der Kopf für Vorlesesoftware leer. Wo der Name sichtbar sein soll, steht er als Text im Kopf. Ein Test hält die Weitergabe fest und die Liste der fünf Köpfe, die noch ohne Namen sind (`<Th />`, Admin: Gerüst und Leads) — ein sechster kommt nicht dazu.
+
 **Ein Editor, der unter einer Liste aufklappt, kommt beim Öffnen ins Bild** (QS-066): `useEditorImBild(entwurf, id)` aus dem Kit — `aufmachen()` vor dem Setzen des Entwurfs, `<Card id="…">` am Editor; die Seite springt (ohne Animation) und der Fokus geht ins erste Feld. Im Produktstamm und bei den Vorlagen stand der Editor hinter der Tabelle: wer in sechzig Zeilen „Bearbeiten“ drückte, sah nichts. Wo der Editor nicht die ganze Breite braucht, ist ein `Drawer` der bessere Weg (Wiki, Initiativen) — dann entfällt das Problem.
 
 **Knöpfe in Zeilen und Touch-Ziele** (QS-057): Auf groben Zeigern sind Kit-Knöpfe und -Felder 44 px hoch. Eine Zeile mit Bedienelementen ist 56 hoch und springt dadurch nicht; in einer gewöhnlichen 44-px-Zeile wüchse sie mit einem 44-px-Knopf nur um den 1 px breiten Zeilenrand (gemessen 44 → 45 px, nur am Handy). **Die Zeile erkennt ihre Bedienelemente selbst** (QS-065, 02.10.2026): `Tr` trägt eine `:has()`-Regel für Knopf, Auswahl, Textfeld, jedes Feld außer dem versteckten (auch Kontrollkästchen und Optionsfeld) und `ButtonLink`/`ButtonDownload` (die tragen `data-knopf`); ein Textlink zählt nicht. Davor galt die Regel nur dort, wo jemand `controls` setzte — 28 Zeilen mit Knopf oder Feld standen bei 44, 10 bei 56. Wer Knöpfe in Zeilen setzt, tut nichts weiter; `controls` bleibt für das, was CSS nicht sieht. **Der Name einer Zeile, der etwas öffnet, ist das Ziel der ganzen Zelle** (QS-064 (2), `.ct-ziel`): ein Textknopf von 20 px in einer 56-px-Zeile trifft man am Handy nicht. Die Zelle ist `relative` (`<Td className="relative">`), der Knopf trägt `className="ct-link ct-ziel text-left"`; eine Fläche über der Zelle (`::after`, `inset: 0`) macht sie zum Ziel, die Hover-Fläche der Zeile zeigt es an. Dasselbe in einer Liste: das `<li>` ist `relative` (am Handy mit `pointer-coarse:py-3` mindestens 44), der Name der Anker. Ohne `relative` im Elternelement deckte die Fläche die ganze Seite — ein Test zählt nach. Tabellen mit solchen Zeilen stapeln unter 640 px (`<Table stapeln>`, jede Zelle außer dem Namen mit `label`), gestapelte Zellen nehmen die volle Breite (`max-width: none`). **Ausnahme `<Tr dicht>`** nur für Arbeitstabellen, in denen die Zeile das Bearbeitungsfeld ist (Programm, Regie: sechs bis zwölf Felder je Zeile, hunderte Zeilen) — dort bleibt die Zeile bei 44. Ein Test hält die Liste der Ausnahmen fest; eine dritte entscheidet Konrad, nicht die Seite.
@@ -86,7 +88,7 @@ Vorbild: `components/ui/Table.tsx`, Einsatz in den Admin-Bereichen.
 
 ## Wizard
 
-`<StepBar steps current srLabel onSelect>` über dem Inhalt, ein Schritt pro Seite, Fortschritt sichtbar, Rücksprung erlaubt, Zwischenstand speichern. Vorbild: `/partner/onboarding` (Archetyp C).
+`<StepBar steps current srLabel onSelect>` über dem Inhalt, ein Schritt pro Seite, Fortschritt sichtbar, Rücksprung erlaubt, Zwischenstand speichern. Vorbild: der Reisekostenantrag der Speaker (Archetyp C). **Nur für echte Abläufe, in denen die Reihenfolge stimmt.** Sind die Teile unabhängig — man kann die Rechnungsdaten vor der Beschreibung ausfüllen —, ist es **kein Wizard**, sondern Abschnitte mit Stand (Archetyp C′, `/partner/onboarding`): die Linie las „Schritt 4 erledigt, Schritt 3 fehlt“ als Fehler (PART-106).
 
 Die Marker sind Sechsecke auf einer durchgehenden Linie — waagerecht ab 640 px, darunter senkrecht, genau wie die Website es mobil umbricht (Step Section `54:9522`). `<Stepper>` bleibt als Knopfreihe im Kit für enge Stellen, in denen keine Linie hinpasst; für einen Ablauf ist `StepBar` das Muster.
 
@@ -257,7 +259,10 @@ Er setzt `target="_blank"`, `rel="noopener noreferrer"` und `aria-describedby` a
 - **Am Handy Liste oder Artikel, nie übereinander.** Der Artikel ersetzt die Liste, „Alle Artikel“ führt zurück, und der **Fokus folgt** (auf den Titel, beim Zurück auf den zuletzt gelesenen Eintrag). Ab 1024 px stehen beide nebeneinander, der erste Eintrag ist offen. Ein hervorgehobener erster Eintrag in der Handyliste täuschte eine Auswahl vor und fällt dort weg.
 - **Die Adresse ist die Kennung des Artikels** (`#slug`, so verlinkt der Assistent), ein Abschnitt hängt dahinter (`#slug/abschnitt`). Nie einen Abschnitt als eigenen Anker setzen, sonst öffnet er keinen Artikel.
 - **„Auf diesem Artikel“ ab vier Abschnitten** (`##`-Überschriften, Kennungen aus `abschnitte()` — dieselbe Quelle für Übersicht und Anker). Ab 1024 px die Kit-Übersicht offen, am Handy zugeklappt: neun Fragen untereinander schöben den Text unter den Bildschirmrand.
-- **Überschriftenfolge:** Seitentitel `h1` → verborgenes `h2` „Artikel nach Thema“ → Themen `h3`; im Artikel `h2` Titel → `h3` Abschnitte. Die Trefferzahl der Suche ist eine Statusmeldung (`role="status"`).
+- **Der Artikel ist die Seite** (PART-104, 09.10.2026): sein Titel ist der Seitentitel (`h1` über Liste und Artikel, darüber das Laica-Wort „Wissen“), darunter Thema und Stand, dahinter die Marken (Phase, diese Edition, andere Sprache). „Wiki“ bleibt der Titel, solange am Handy die Liste steht. Der Titel hängt vom offenen Artikel ab — deshalb zeichnet `WikiView` den Kopf, nicht `WikiPage`; beide Köpfe stehen im Markup, einer per CSS ausgeblendet (`PageHeader` bekommt dafür `titleId`, `titleRef`, `titleLang`).
+- **Überschriftenfolge:** Seitentitel `h1` (Artikeltitel; in der Handyliste „Wiki“) → verborgenes `h2` „Artikel nach Thema“ → Themen `h3`; im Artikel **Abschnitt (`##`) = `h2` in `ct-h2`** (18/24, Versalien) **mit einer Linie darüber** (40 px Abstand, der erste Block ohne), **Unterabschnitt (`###`) = `h3` in `ct-h3`** (16/24 halbfett), „Mehr zu …“ `h2` in `ct-h3`. Vorher war der Abschnitt so groß wie der Fließtext und der Unterabschnitt kleiner als er (18 → 16 → 16 → 14). Fließtext, Listen und Hinweiskästen laufen `max-w-text` breit, Tabellen nehmen ihre Breite. Die Antworten des Assistenten (`<Markdown kompakt>`) behalten die kleine Zuordnung: Versalien mit Linie gehören nicht in eine Sprechblase.
+- **Der gewählte Artikel in der Liste** trägt einen Balken links in Akzent (`border-l-2 border-accent`, gegen den Seitengrund 4,4 : 1) auf weißer Fläche; vorher `bg-surface-hover` auf dem Seitengrund, 1,03 : 1. Die Trefferzahl der Suche ist eine Statusmeldung (`role="status"`).
+- **Ein vom Server gebautes Element (der Assistent) steht in einem eigenen Element**, nicht lose zwischen den Geschwistern in der Kindliste eines Client-Bausteins: sonst warnt React mit „unique key“.
 
 ## Sprache
 
@@ -330,9 +335,9 @@ Für das Personenfenster der Pipeline und die Admin-Detailseite eines Speakers; 
 - **Im Fenster** sind die Blöcke Abschnitte mit Trennlinie (`border-t`), **auf einer Seite** Karten (`karte`, `ebene="h2"`) — nie Karte in Karte. Unterüberschriften stehen eine Ebene unter dem Block (`ct-label`).
 - **Die eine primäre Aktion ist die Hauptaktion**; „Änderungen speichern“ ist `secondary`. Ungespeichertes in zugeklappten Blöcken ist unsichtbar — deshalb fragt Schließen mit `ConfirmDialog`.
 
-### C · Formular (umgesetzt in `/partner/onboarding`)
+### C · Formular als Ablauf (umgesetzt im Reisekostenantrag der Speaker)
 
-Für alles, was ausgefüllt wird: Onboarding, Anmeldung, Einreichung, Profil.
+Für alles, was **nacheinander** ausgefüllt wird: Anmeldung, Einreichung. Für unabhängige Teile gilt C′ darunter.
 
 ```
 ┌ Kopf: Titel · ein Satz ─────────────────────────────────────┐
@@ -352,6 +357,34 @@ Für alles, was ausgefüllt wird: Onboarding, Anmeldung, Einreichung, Profil.
 - **Zurück und Weiter unten links**, in dieser Reihenfolge. „Weiter" speichert. Ein eigener „Speichern"-Knopf steht daneben, damit man mittendrin aufhören kann.
 - **Was noch fehlt, steht am Ende der Seite** als Aufzählung, nicht als Fehlermeldung. Es ist kein Fehler, dass ein Formular noch nicht fertig ist.
 - Nach dem Abschluss wird dieselbe Seite zum **Profil**: gleiche Felder, kein Wizard, `StepBar` zeigt alles erledigt.
+
+### C′ · Formular aus unabhängigen Abschnitten (umgesetzt in `/partner/onboarding`, „Eure Daten“, PART-106)
+
+Für Daten, die in beliebiger Reihenfolge ausgefüllt werden und deren Stand aus dem **Inhalt** kommt, nicht aus der Position.
+
+```
+┌ Kopf: Titel · ein Satz ──────────────────────────────────────┐
+│ ████████░░░░░░░░  2 von 4 Bereichen ausgefüllt  [Offen]       │   ← die Zahl, immer mit Wort
+│ Ihr könnt jederzeit aufhören — … speichert ihr unten.         │
+│ Zum Abschluss fehlt noch: Logo · Rechnungs-E-Mail             │
+│ ┌ Auf dieser Seite ───────────────────────────────────────┐   │
+│ │ ↓ Unternehmen  ↓ Beschreibung  ↓ Logo  ↓ Rechnungsdaten │   │   ← Sprungmarken, ohne Unterseiten
+│ └─────────────────────────────────────────────────────────┘   │
+│ ┌ UNTERNEHMEN                                [Fertig] ⌄ ──┐   │   ← `Block karte ebene="h2"`: Stand und
+│ │ Muster · Musterstraße 1, 80331 München                  │   │     Kurzfassung in der Zeile (zu)
+│ ├ BESCHREIBUNG                               [Offen]  ⌃ ──┤   │   ← der erste, der noch etwas braucht,
+│ │ (Felder)                                                │   │     steht beim Laden offen
+│ └─────────────────────────────────────────────────────────┘   │
+│ ═══ klebt, nur bei Ungespeichertem ══════════════════════════ │
+│ Ihr habt Änderungen …           Verwerfen  [Änderungen speichern] │
+└───────────────────────────────────────────────────────────────┘
+```
+
+- **Jeder Abschnitt ist ein `Block`** (`karte`, `ebene="h2"`, `marke` Fertig/Offen/„1 von 2“, `kurz` = was drinsteht oder was fehlt): die ganze Zeile ist das Ziel, mit Pfeil — so erkennt man, **dass** sie klickbar ist. Man öffnet in jeder Reihenfolge, auch mehrere zugleich; kein „Zurück“ und „Weiter“.
+- **Der Stand wird aus dem Entwurf gelesen** (reine Funktionen in `bloecke.ts`), nicht aus dem Gespeicherten: Marken und Zahl stimmen schon beim Tippen. Welcher Abschnitt beim Laden offen steht, wird einmal festgelegt — ein Abschnitt springt nicht zu, weil er beim Tippen fertig wurde.
+- **„Auf dieser Seite“** (`AbschnittsNavigation`) springt zum Abschnitt und öffnet ihn; die Seitenleiste zeigt dieselben Abschnitte als Unterpunkte (QS-026). Es entstehen keine neuen Seiten.
+- **Gespeichert wird gesammelt:** eine klebende Leiste („Änderungen speichern“, „Verwerfen“) erscheint **nur**, wenn es Ungespeichertes gibt (`weichtAb` über die Aufbereitung zum Speichern), `useUngesichert` warnt beim Verlassen, ein Fehler steht in der Leiste statt im Toast. Was sofort wirkt (Upload, Einwilligung), steht nicht im Entwurf und sagt das.
+- **Nach dem Abschluss bleibt es dieselbe Seite** — als Profil mit allen Abschnitten zu und dem Satz „Eure Daten stehen“.
 
 ### D · Übersicht (umgesetzt in `/partner`)
 

@@ -15,7 +15,6 @@ begin
   return jsonb_build_object(
     'org', jsonb_build_object('id', v_o.id, 'legal_name', v_o.legal_name, 'communication_name', v_o.communication_name, 'type', v_o.type,
                               'website', v_o.website, 'description_de', v_o.description_de, 'description_en', v_o.description_en,
-                              'logo_dark', v_o.logo_dark, 'logo_light', v_o.logo_light,
                               'address', jsonb_build_object('street', v_o.address_street, 'zip', v_o.address_zip, 'city', v_o.address_city, 'country', v_o.address_country,
                                                          'extra', v_o.address_extra),
                               'partner_category', v_o.partner_category, 'industry', v_o.industry,
@@ -57,6 +56,7 @@ begin
     'sessions_count', (select count(*) from session se join event ev on ev.id = se.event_id
                        where se.host_org_id = p_org_id and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id) and se.publish_status <> 'cancelled'),
     'has_stage', exists (select 1 from stage st join event ev on ev.id = st.event_id
-                         where st.partner_org_id = p_org_id and st.active and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id))
+                         where st.partner_org_id = p_org_id and st.active and st.kind in ('booth', 'branded')
+                           and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id))
   );
 end $$;
