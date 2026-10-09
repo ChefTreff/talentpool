@@ -32,6 +32,8 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 **Neu zum Klicken (deine zwei Masterclass-Punkte, #453):** `/partner/masterclass` mit „TEST — Partner“ (zwei Masterclasses) → Umschalter über den Sichten, darunter Inhalt, Goodies und „Wer spricht“ genau einmal; „Speaker eintragen“ rechts in der Kopfzeile (Schubfach), „Angaben pflegen“ je Speaker in seiner Zeile; Wechsel mit ungespeichertem Titel fragt nach. Dasselbe Zeilenmuster auf `/partner/talk`. Interview Tables, Company-Tour-Stopps und Admin-Tour-Stopps folgen.
 
+**Neu zum Klicken (SPK-088, #454):** Speaker-Portal → Menü „Profil“ direkt nach „Home“ → drei Reiter (Person · Auftritt & Bio · Ernährung & Einwilligungen); in „Auftritt & Bio“ etwas ändern, ohne zu speichern, dann „Person“ anklicken → Rückfrage; auf der Startseite springen „Profil vervollständigen“ und „Einwilligungen“ in den passenden Reiter.
+
 **Neu zum Klicken (SPK-093, #452, 0300):** `/speaker/profil` mit deinem Testprofil → Telefon „0171 1234567“ → Speichern → neu laden; `/admin/personen` → deine Person → Stammdaten zeigt dieselbe Nummer (E.164 leitet der Trigger ab); Feld leeren → Speichern → im Admin leer.
 
 **Sandbox-Lauf vivenu (vor dem Einschalten des Rückschreibens):** `node --env-file=.env.local scripts/vivenu-sandbox-lauf.mjs transaktion <id>` und `… datenfelder [typ]` (nur lesend), dann `… personalisieren <vivenuTicketId> --apply` (nur Sandbox) — ich fahre ihn mit dir zusammen, wenn du eine Sandbox-Transaktion hast; bis dahin bleibt `VIVENU_WRITE_ENABLED` aus.
