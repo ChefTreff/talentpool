@@ -4720,6 +4720,7 @@
   "partnerApplicants": {
     "appliedOn": "applied on",
     "auditNotice": "Every time this list is opened it is recorded — the data belongs to the applicants.",
+    "consentNote": "Only people who have agreed to share their application with you can apply to this format.",
     "decide_accepted": "Accept",
     "decide_declined": "Decline",
     "decide_waitlisted": "Waitlist",
@@ -4730,7 +4731,7 @@
     "detailClose": "Close",
     "detailNoAnswers": "No answers given.",
     "detailNoProfile": "There are no further profile details for this person.",
-    "detailNote": "Only what this person has released to you is shown.",
+    "detailNote": "Only what this person has released to you is shown. You may contact them once about this format (invitation, dates, questions) — not for advertising, and not to add them to your own talent pools without asking again.",
     "detailProfile": "Profile",
     "detailTitle": "Profile of {name}",
     "hiddenBody": "This person did not agree to share their data. You see that they applied, but no details.",
