@@ -5301,6 +5301,8 @@
     "emptyBody": "Once you book interview tables, you plan your conversations here.",
     "emptyTitle": "No interview tables booked",
     "fromLabel": "From",
+    "instanceLabel": "Choose table",
+    "instanceNumber": "Table {n}",
     "jobTextLabel": "Description",
     "jobTitleLabel": "Position",
     "jobUrlHint": "Full address, starting with https://",

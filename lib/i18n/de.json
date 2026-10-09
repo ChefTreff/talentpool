@@ -5301,6 +5301,8 @@
     "emptyBody": "Sobald ihr Interview Tables bucht, plant ihr hier eure Gespräche.",
     "emptyTitle": "Keine Interview Tables gebucht",
     "fromLabel": "Von",
+    "instanceLabel": "Tisch wählen",
+    "instanceNumber": "Tisch {n}",
     "jobTextLabel": "Beschreibung",
     "jobTitleLabel": "Stelle",
     "jobUrlHint": "Vollständige Adresse, beginnend mit https://",

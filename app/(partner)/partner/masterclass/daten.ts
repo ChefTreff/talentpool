@@ -2,8 +2,7 @@ import "server-only";
 import { notFound } from "next/navigation";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { brauchtInhalt, instanzKennung, instanzLeiste, instanzTitel, kurzSlot, waehleInstanz } from "@/lib/partner/instanz";
-import { rueckgabeOffen } from "../Rueckgabe";
+import { instanzKennung, instanzLeiste, instanzTitel, kurzSlot, vorgabeMasterclass, waehleInstanz } from "@/lib/partner/instanz";
 import { getPartnerScope } from "../org";
 import type { PartnerFormatSession } from "../talk/types";
 import { canEditOnboarding, type PartnerOverview } from "../types";
@@ -32,7 +31,7 @@ export async function ladeMasterclass(instanz?: string | string[]) {
   ]);
   const overview = (overviewJson ?? null) as PartnerOverview | null;
   const sessions = (sessionZeilen ?? []) as PartnerFormatSession[];
-  const gewaehlt = waehleInstanz(sessions, instanzKennung(instanz), (liste) => liste.find((x) => rueckgabeOffen(x)) ?? liste.find(brauchtInhalt));
+  const gewaehlt = waehleInstanz(sessions, instanzKennung(instanz), vorgabeMasterclass);
   const titel = instanzTitel(
     sessions.map((x) => ({ titel: (locale === "en" ? x.title_en : x.title_de) ?? x.title_de, slot: kurzSlot(x.starts_at, t.meta.dateLocale) })),
     (n) => t.partnerMasterclass.instanceNumber.replace("{n}", String(n)),

@@ -39,17 +39,8 @@ export function RueckgabeHinweis({
   );
 }
 
-/**
- * Offen ist eine Rückgabe, solange die Session wieder beim Partner liegt
- * (`draft`). Der Grund bleibt bis zur Freigabe gespeichert — nach einer neuen
- * Anfrage (`review`) ist die Programmleitung wieder dran, und „reicht erneut
- * ein“ wäre dann die falsche Aufforderung.
- */
-export function rueckgabeOffen<
-  T extends { return_note: string | null; returned_at: string | null; publish_status: string | null },
->(x: T): x is T & { return_note: string; returned_at: string } {
-  return !!x.return_note && !!x.returned_at && x.publish_status === "draft";
-}
+/** Offen ist eine Rückgabe, solange die Session wieder beim Partner liegt (`draft`) — die Regel steht in `lib/partner/rueckgabe.ts`, hier nur weitergereicht. */
+export { rueckgabeOffen } from "@/lib/partner/rueckgabe";
 
 /** Das Stand-Kennzeichen einer Partner-Session: „Zurückgegeben“ schlägt „Entwurf“. */
 export function SessionStatusBadge({

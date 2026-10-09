@@ -10,6 +10,7 @@ declare
   v_kontakt_vor text; v_kontakt_nach text; v_kontakt_mail text;
   v_kontakt_tel text; v_kontakt_art text; v_kontakt_ok date; v_hat_kontakt boolean;
   v_tel_gegeben boolean; v_tel text;
+  v_alt_p person%rowtype; v_felder text[];
 begin
   if v_me is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   -- SPK-071: ohne `id` das gewählte Profil (sonst wie bisher).
@@ -69,6 +70,12 @@ begin
   v_tel_gegeben := p_data ? 'phone' or p_data ? 'phone_e164';
   v_tel := nullif(btrim(case when p_data ? 'phone' then p_data->>'phone' else p_data->>'phone_e164' end), '');
 
+  -- SPK-094: Aendert die Assistenz das Profil einer anderen Person, nennt das Protokoll nur, WELCHE Felder sich geaendert haben - nie ihre Werte
+  -- (Telefonnummer, Namen und Adressen stuenden sonst im Klartext im Audit). Dafuer der Stand der Person vor dem Schreiben.
+  if v_sp.person_id <> v_me then
+    select * into v_alt_p from person where id = v_sp.person_id;
+  end if;
+
   update person set
     first_name         = case when p_data ? 'first_name'         then nullif(btrim(p_data->>'first_name'), '')         else first_name end,
     last_name          = case when p_data ? 'last_name'          then nullif(btrim(p_data->>'last_name'), '')          else last_name end,
@@ -80,8 +87,39 @@ begin
     preferred_language = case when p_data ? 'preferred_language' and p_data->>'preferred_language' in ('de', 'en') then p_data->>'preferred_language' else preferred_language end
   where id = v_sp.person_id;
 
+  -- SPK-094: nur die Namen der geaenderten Felder (sortiert) und die Person, nie ein Wert. Eine Speicherung ohne Aenderung hinterlaesst keinen Eintrag.
   if v_sp.person_id <> v_me then
-    perform log_audit('speaker.assistant_update', 'speaker_profile', v_sp.id::text, null, p_data - 'id');
+    v_felder := array(
+      select f.name
+        from (values
+          ('first_name',         p_data ? 'first_name'         and nullif(btrim(p_data->>'first_name'), '')         is distinct from v_alt_p.first_name),
+          ('last_name',          p_data ? 'last_name'          and nullif(btrim(p_data->>'last_name'), '')          is distinct from v_alt_p.last_name),
+          ('title',              p_data ? 'title'              and nullif(btrim(p_data->>'title'), '')              is distinct from v_alt_p.title),
+          ('linkedin_url',       p_data ? 'linkedin_url'       and nullif(btrim(p_data->>'linkedin_url'), '')       is distinct from v_alt_p.linkedin_url),
+          ('phone',              v_tel_gegeben                 and v_tel                                            is distinct from v_alt_p.phone),
+          ('preferred_language', p_data ? 'preferred_language' and p_data->>'preferred_language' in ('de', 'en')    and p_data->>'preferred_language' is distinct from v_alt_p.preferred_language),
+          ('job_title',          p_data ? 'job_title'          and nullif(btrim(p_data->>'job_title'), '')          is distinct from v_sp.job_title),
+          ('organization_name',  p_data ? 'organization_name'  and nullif(btrim(p_data->>'organization_name'), '')  is distinct from v_sp.organization_name),
+          ('bio_short_en',       p_data ? 'bio_short_en'       and nullif(btrim(p_data->>'bio_short_en'), '')       is distinct from v_sp.bio_short_en),
+          ('bio_short_de',       p_data ? 'bio_short_de'       and nullif(btrim(p_data->>'bio_short_de'), '')       is distinct from v_sp.bio_short_de),
+          ('bio_long_en',        p_data ? 'bio_long_en'        and nullif(btrim(p_data->>'bio_long_en'), '')        is distinct from v_sp.bio_long_en),
+          ('bio_long_de',        p_data ? 'bio_long_de'        and nullif(btrim(p_data->>'bio_long_de'), '')        is distinct from v_sp.bio_long_de),
+          ('socials',            p_data ? 'socials'    and jsonb_typeof(p_data->'socials') = 'object'    and p_data->'socials'    is distinct from v_sp.socials),
+          ('tech_rider',         p_data ? 'tech_rider' and jsonb_typeof(p_data->'tech_rider') = 'object' and p_data->'tech_rider' is distinct from v_sp.tech_rider),
+          ('contact_first_name', v_kontakt_vor                 is distinct from v_sp.contact_first_name),
+          ('contact_last_name',  v_kontakt_nach                is distinct from v_sp.contact_last_name),
+          ('contact_email',      v_kontakt_mail::citext        is distinct from v_sp.contact_email),
+          ('contact_phone',      v_kontakt_tel                 is distinct from v_sp.contact_phone),
+          ('contact_kind',       v_kontakt_art                 is distinct from v_sp.contact_kind),
+          ('contact_consent_at', v_kontakt_ok                  is distinct from v_sp.contact_consent_at)
+        ) as f(name, geaendert)
+       where f.geaendert
+       order by f.name
+    );
+    if cardinality(v_felder) > 0 then
+      perform log_audit('speaker.assistant_update', 'speaker_profile', v_sp.id::text, null,
+                        jsonb_build_object('felder', to_jsonb(v_felder), 'person_id', v_sp.person_id));
+    end if;
   end if;
   return v_sp.id;
 end $$;

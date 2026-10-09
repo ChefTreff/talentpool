@@ -113,10 +113,8 @@ describe("Masterclass: eine Instanz, vier Sichten, die Wahl reist mit", () => {
 
   it("der Lader nimmt `?instanz` und wählt für alle Reiter nach derselben Regel: zurückgegeben, sonst ohne Inhalt, sonst die erste", () => {
     assert.match(daten, /export async function ladeMasterclass\(instanz\?: string \| string\[\]\)/);
-    assert.match(
-      daten,
-      /waehleInstanz\(sessions, instanzKennung\(instanz\), \(liste\) => liste\.find\(\(x\) => rueckgabeOffen\(x\)\) \?\? liste\.find\(brauchtInhalt\)\)/,
-    );
+    // Die Vorgabe steht als reine Funktion in `lib/partner/instanz.ts` (`vorgabeMasterclass`, geprüft unten) und gilt für alle vier Sichten gleich.
+    assert.match(daten, /waehleInstanz\(sessions, instanzKennung\(instanz\), vorgabeMasterclass\)/);
     assert.match(daten, /instanzen: instanzLeiste\(sessions\.map\(\(x, i\) => \(\{ id: x\.id, label: titel\[i\] \}\)\), gewaehlt\?\.id\),/);
     assert.match(daten, /\(n\) => t\.partnerMasterclass\.instanceNumber\.replace\("\{n\}", String\(n\)\)/);
     assert.match(daten, /return \{[\s\S]*?\bgewaehlt,/);
@@ -147,11 +145,15 @@ describe("Masterclass: eine Instanz, vier Sichten, die Wahl reist mit", () => {
 
   it("der Umschalter steht über den Sichten, nie in derselben Leiste, und nur ab zwei Masterclasses", () => {
     const k = seite("MasterclassKopf.tsx");
-    assert.match(k, /\{instanzen && \(\s*<SectionTabs\s+label=\{t\.instanceLabel\}/);
-    assert.ok(k.indexOf("<SectionTabs") < k.indexOf("<FormatReiter"), "Umschalter vor den Sichten");
-    assert.match(k, /href: instanzHref\(x\.id\), label: x\.label, aktiv: x\.id === instanzen\.gewaehlt/);
+    assert.match(k, /<InstanzWahl leiste=\{instanzen\} label=\{t\.instanceLabel\} \/>/);
+    assert.ok(k.indexOf("<InstanzWahl") < k.indexOf("<FormatReiter"), "Umschalter vor den Sichten");
     // Die Sichten nehmen die gewählte mit; ohne Umschalter bleiben ihre Adressen, wie sie waren.
-    assert.match(k, /suffix=\{instanzen \? instanzHref\(instanzen\.gewaehlt\) : ""\}/);
+    assert.match(k, /suffix=\{instanzSuffix\(instanzen\)\}/);
+    // Der Umschalter selbst: ein Reiter je Instanz, die gewählte über `aktiv`, nichts ohne Leiste (`instanzLeiste` gibt es erst ab zwei).
+    const wahl = ohneKommentare(quelle("components/layout/InstanzWahl.tsx"));
+    assert.match(wahl, /if \(!leiste\) return null;/);
+    assert.match(wahl, /href: instanzHref\(x\.id\), label: x\.label, aktiv: x\.id === leiste\.gewaehlt/);
+    assert.match(wahl, /<SectionTabs\s+label=\{label\}/);
     const reiter = ohneKommentare(quelle("app/(partner)/partner/FormatReiter.tsx"));
     assert.match(reiter, /suffix = ""/);
     assert.equal((reiter.match(/\$\{suffix\}/g) ?? []).length, 4);
