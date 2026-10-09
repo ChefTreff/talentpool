@@ -22,6 +22,16 @@ export function tageSpeichern(csv: string, alle: readonly string[]): string[] {
 }
 
 /**
+ * Welches Gerüst die Seite nachlädt (ADM-107): `programme_skeleton()` ohne Argument liefert die Edition selbst, Bühnen und Sperrzeiten
+ * hängen aber am Summit. `summits` ist die Wahl des Boards (`boardEvents`, auf diese Edition verengt) — der erste gilt; ist er schon die
+ * geladene Veranstaltung, oder gibt es keinen, wird nichts nachgeladen.
+ */
+export function geruestEventId(geladen: string | null, summits: readonly { id: string }[]): string | null {
+  const erster = summits[0];
+  return erster && erster.id !== geladen ? erster.id : null;
+}
+
+/**
  * Arten (`stage.type`), bei denen die Partner-Organisation eine **Wahl** ist (ADM-106): eine Haupt- oder Nebenbühne mit Partner gilt als
  * gebrandet (`stage.kind`, 0274). Bei Ständen, Räumen, Interview Tables und Side-Event-Orten setzen die Partner-Funktionen die Zuordnung
  * (Standbuchung, Fläche) — das Formular zeigt sie dort nur an und fasst sie nicht an.
