@@ -154,7 +154,7 @@ describe("Admin → Wiki", () => {
 
   it("zeigt das abgeleitete Thema als Spalte, mit denselben Beschriftungen wie das Portal", () => {
     assert.match(admin, /<Th>\{t\.colTopic\}<\/Th>/);
-    assert.match(admin, /t\[THEMA_TEXT\[wikiKategorie\(a\)\]\]/);
+    assert.match(admin, /t\[THEMA_TEXT\[a\.thema as WikiKategorie\]\]/);
   });
 
   it("sagt, dass das Thema abgeleitet und noch nicht bearbeitbar ist", () => {

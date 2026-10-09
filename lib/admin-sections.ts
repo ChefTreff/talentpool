@@ -94,12 +94,20 @@ export type AdminSectionKey =
   | "productCatalog"
   | "contacts"
   | "deadlines"
+  | "deadlinesSpeaker"
+  | "deadlinesPartner"
+  | "deadlinesVolunteers"
+  | "deadlinesSystem"
   | "wiki"
   | "videos"
   | "ui"
   | "vocab"
   | "questionCatalog"
   | "mail"
+  | "mailSpeaker"
+  | "mailPartner"
+  | "mailParticipants"
+  | "mailVolunteers"
   | "persons"
   | "team"
   | "roles"
@@ -225,6 +233,14 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // nur Bereichsleitungen pflegen dürfen, schreibt niemand.
   { key: "contacts", path: "/admin/ansprechpartner", roles: INTERNE_ROLLEN },
   { key: "deadlines", path: "/admin/fristen", roles: INTERNE_ROLLEN },
+  // ADM-099: Fristen ändern je Bereich. `deadlines` bleibt die Übersicht (alle internen Rollen lesen); wer eine Frist **ändert**,
+  // entscheidet die Zielgruppe der Frist: Speaker, Partner, Volunteers je Bereich, alles andere (Award, „alle“) nur admin.
+  // Dieselben Rollen stehen in `admin_section_role` (Vorschlag v6_fristen_je_bereich) und werden von `can_edit_deadline()` gefragt.
+  // Die Pfade führen auf den Reiter des Bereichs in der Übersicht; ein Menüpunkt je Bereich gibt es nicht.
+  { key: "deadlinesSpeaker", path: "/admin/fristen/speaker", roles: ["area_lead_speaker", "programme_team"] },
+  { key: "deadlinesPartner", path: "/admin/fristen/partner", roles: ["area_lead_partner", "partner_team"] },
+  { key: "deadlinesVolunteers", path: "/admin/fristen/volunteers", roles: ["area_lead_volunteers", "volunteers_team"] },
+  { key: "deadlinesSystem", path: "/admin/fristen/system", roles: [] },
   { key: "wiki", path: "/admin/wiki", roles: INTERNE_ROLLEN },
   // ADM-063: Videos und Links stehen in der zentralen Medienverwaltung.
   { key: "videos", path: "/admin/medien", roles: ["marketing_team", "area_lead_speaker", "programme_team"] },
@@ -235,6 +251,14 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   // also wer mit Bewerbungen arbeitet (wie `applications`) und das Partner-Team.
   { key: "questionCatalog", path: "/admin/fragenkatalog", roles: ["area_lead_talent", "talent_team", "programme_team", "area_lead_partner", "partner_team"] },
   { key: "mail", path: "/admin/mail", roles: [] },
+  // ADM-102: Mail-Vorlagen je Bereich. `mail` bleibt Protokoll, Test und die Kategorie System (nur admin); die Vorlagen der
+  // Bereiche bearbeiten die Teams selbst. Die Pfade führen auf die Vorlagenseite mit der Kategorie — ein Menüpunkt je
+  // Bereich folgt mit dem Design-Vorschlag (ADM-089). Dieselben Rollen stehen in `admin_section_role`
+  // (Vorschlag v6_mail_vorlagen_kategorie) und werden von `can_edit_mail_template()` gefragt.
+  { key: "mailSpeaker", path: "/admin/mail/vorlagen/speaker", roles: ["area_lead_speaker", "programme_team"] },
+  { key: "mailPartner", path: "/admin/mail/vorlagen/partner", roles: ["area_lead_partner", "partner_team"] },
+  { key: "mailParticipants", path: "/admin/mail/vorlagen/teilnehmer", roles: ["area_lead_talent", "talent_team", "marketing_team"] },
+  { key: "mailVolunteers", path: "/admin/mail/vorlagen/volunteers", roles: ["area_lead_volunteers", "volunteers_team"] },
 
   // Verwaltung (PORT4): Personen, Zugänge, Rechte — nur Konrad
   { key: "persons", path: "/admin/personen", roles: [] },

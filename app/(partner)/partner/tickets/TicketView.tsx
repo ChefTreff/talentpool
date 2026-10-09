@@ -8,6 +8,8 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { aufzaehlung, ticketCodes } from "@/components/partner/ticket-codes";
 import { TicketCard } from "@/components/ui/TicketCard";
 import { DeadlineCard } from "@/components/ui/DeadlineCard";
+import { InfoList } from "@/components/ui/InfoList";
+import { SchrittMarke } from "@/components/ui/SchrittMarke";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -276,6 +278,49 @@ export function TicketView({
         ))
       )}
 
+      {/* PART-071 → PART-113 (Konrad 08.10., K-73): die Anleitung steht **direkt unter dem Code**, um den es geht —
+          wer ihn sieht, liest als Nächstes, was er damit tut. Eine Karte, eine geordnete Liste, zwei nummerierte
+          Schritte (`SchrittMarke`), keine zweite Fläche und keine Aufzählung mehr: die Regel „ein Code für alle
+          Tickets“ steht im Schritt, den sie betrifft, und das „nicht vergessen“ ist eine Marke am Titel statt Teil
+          des Titels. Der Wortlaut ist der aus PART-071, nur aufgeteilt (nichts entfällt). Die Regel „jede Person
+          braucht ein eigenes Ticket“ steht seit PART-112 oben bei den Hinweisen. Die Akkreditierungszeiten stehen
+          bewusst **nicht** hier: sie hängen an der Edition (Wochentage wechseln) und gehören ins Wiki. */}
+      <section aria-labelledby="h-einloesen">
+        <h2 id="h-einloesen" className="ct-h2 mb-3 text-ink">
+          {t.howTitle}
+        </h2>
+        <Card>
+          <ol className="flex flex-col divide-y">
+            <li className="flex gap-4 pb-6">
+              <SchrittMarke nummer={1} zustand="aktuell" />
+              <div className="min-w-0 flex-1">
+                <h3 className="ct-h3 text-ink">{t.step1Title}</h3>
+                <p className="ct-small mt-1 leading-6">{t.step1Body}</p>
+                <p className="ct-label mt-4 text-ink">{t.ruleCodes}</p>
+                <InfoList
+                  className="mt-2"
+                  items={[
+                    { key: "partner", label: t.ruleCodesPartnerLabel, value: t.ruleCodesPartner },
+                    { key: "talent", label: t.ruleCodesTalentLabel, value: t.ruleCodesTalent },
+                  ]}
+                />
+                <p className="ct-small mt-3 leading-6">{t.ruleCodesClose}</p>
+              </div>
+            </li>
+            <li className="flex gap-4 pt-6">
+              <SchrittMarke nummer={2} zustand="aktuell" />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <h3 className="ct-h3 text-ink">{t.step2Title}</h3>
+                  <Badge tone="warning">{t.step2Flag}</Badge>
+                </div>
+                <p className="ct-small mt-1 leading-6">{t.step2Body}</p>
+              </div>
+            </li>
+          </ol>
+        </Card>
+      </section>
+
       {/* PART-068: Kontingente nebeneinander, bis zu vier — seit PART-111 die Übersicht „eingelöst von
           Menge“ je Kategorie, ohne eigenen Code. */}
       <section aria-labelledby="h-kontingente">
@@ -337,28 +382,6 @@ export function TicketView({
           </ul>
         </section>
       )}
-
-      {/* PART-071: das Wesentliche aus dem Wiki direkt hier. Der zweite Schritt
-          nach dem Kauf — die Personalisierung — sorgt jedes Jahr für
-          Verwirrung; deshalb steht er als eigener, nummerierter Schritt da
-          und nicht als Nebensatz. Die Akkreditierungszeiten stehen bewusst
-          **nicht** hier: sie hängen an der Edition (Wochentage wechseln) und
-          gehören ins Wiki. */}
-      <section>
-        <h2 className="ct-h2 text-ink">{t.howTitle}</h2>
-        <ol className="mt-3 flex flex-col gap-3">
-          <li className="rounded-ct-md border border-border bg-surface px-4 py-3">
-            <p className="ct-label text-ink">{t.step1Title}</p>
-            <p className="ct-small mt-1 leading-6">{t.step1Body}</p>
-          </li>
-          <li className="rounded-ct-md border border-border bg-surface px-4 py-3">
-            <p className="ct-label text-ink">{t.step2Title}</p>
-            <p className="ct-small mt-1 leading-6">{t.step2Body}</p>
-          </li>
-        </ol>
-        {/* „Jede Person braucht ein eigenes Ticket“ steht seit PART-112 oben bei den Hinweisen. */}
-        <p className="ct-small mt-4 leading-6">{t.ruleCodes}</p>
-      </section>
     </div>
   );
 }
