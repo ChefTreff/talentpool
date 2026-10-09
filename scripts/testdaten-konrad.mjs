@@ -179,6 +179,11 @@
  *                                   letzten Summit-Tag — Konrad ist dort Standbühnen-Editor und legt unter /partner/buehne selbst
  *                                   Slots an, verschiebt und löscht sie (/admin/programm zeigt dieselben als Team). Braucht den
  *                                   Schritt `partner`; erst nach „Migration live“ von v6_partner_slots)
+ *   … --apply --nur=angebot        (PART-116/K-81: dritte TEST-Organisation „TEST — Partner Angebot“ mit Kundennummer ZZTEST-ANGEBOT, deutscher Adresse, gebuchtem
+ *                                   Stand und einem Warenkorb als Entwurf (Tischkicker ×1, Tolix Barhocker ×2) in der laufenden Bestellphase. Konrad wechselt unter
+ *                                   /partner die Organisation, öffnet den Warenkorb und klickt „Angebot erstellen“ — solange `SHOP_ANGEBOT_SEVDESK` auf „aus“ steht (Standard),
+ *                                   ist es simuliert: Nummer AN-PROBE-…, „Probeangebot“, kein PDF, nichts in SevDesk. „Warenkorb wieder bearbeiten“ gibt ihn frei, „Verbindlich
+ *                                   bestellen“ bestellt zum Angebotspreis; /admin/partner/bestellungen zeigt „Offene Angebote“. Kein Schritt `partner` nötig, keine Migration)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -2267,6 +2272,121 @@ async function wikiFilterSchritt(me, ed) {
 }
 
 /**
+ * Schritt `angebot` (PART-116, K-81): Konrad klickt „Angebot erstellen“ im Warenkorb durch — **ohne dass irgendwo etwas in SevDesk entsteht**. Dafür gibt es eine dritte
+ * TEST-Organisation „TEST — Partner Angebot“: Kundennummer `ZZTEST-ANGEBOT` (das Präfix schickt jedes Angebot in den simulierten Ablauf, solange `SHOP_ANGEBOT_SEVDESK` auf
+ * „aus“ steht, und selbst bei „probe“ nur in einen als Probe gekennzeichneten Beleg), vollständige deutsche Rechnungsadresse, ein gebuchter Stand (sonst zeigt der Shop nur die
+ * Erklärung), Konrad als Hauptkontakt — und ein Warenkorb als Entwurf in der **laufenden** Bestellphase mit Tischkicker ×1 und Tolix Barhocker ×2.
+ *
+ * Eigene Organisation statt „TEST — Partner“: deren Bestellung der Phase 1 stammt aus Konrads Walkthrough (`pending`), und je Organisation und Phase gibt es nur eine aktive. Der Entwurf
+ * wird direkt geschrieben (keine Mail, keine Lagerbuchung) — erst „Angebot erstellen“ reserviert den Bestand, „Warenkorb wieder bearbeiten“ gibt ihn zurück.
+ *
+ * Idempotent: ein vorhandener Entwurf bekommt nur seine Mengen zurück. Steht der Warenkorb auf `quoted`, `pending` oder `editing`, bleibt er unberührt; nach dem Stornieren legt ein
+ * neuer Lauf einen frischen Entwurf an (`ZZTEST-MS-A2` …). **Nicht auf „abgeschlossen“ setzen** — `completed` nimmt der Rechnungslauf auf. `--remove` nimmt die Organisation mit
+ * Warenkörben, Lagerbuch und Angebots-Referenzen mit.
+ */
+const ANGEBOT_ORG = `${PREFIX}Partner Angebot GmbH`;
+const ANGEBOT_ORG_NAME = `${PREFIX}Partner Angebot`;
+const ANGEBOT_KUNDENNUMMER = "ZZTEST-ANGEBOT";
+const ANGEBOT_BESTELLNR = "ZZTEST-MS-A";
+const ANGEBOT_ZEILEN = [
+  { sku: "I-27094", qty: 1 }, // Tischkicker
+  { sku: "I-53563", qty: 2 }, // Tolix Barhocker
+];
+
+async function angebotSchritt(me, ed) {
+  if (mode === "dry-run") {
+    note(`Dritte TEST-Organisation „${ANGEBOT_ORG_NAME}“: Kundennummer ${ANGEBOT_KUNDENNUMMER}, Adresse in Hamburg, gebuchter Stand, Konrad als Hauptkontakt`);
+    note("TEST-Warenkorb als Entwurf in der laufenden Bestellphase: Tischkicker ×1, Tolix Barhocker ×2 — Konrad erstellt daraus das Angebot (simuliert)");
+    return;
+  }
+  const stand = PARTNER_PRODUKTE.booth;
+  const { data: produkt } = await admin.from("product").select("sku, format_key, pass_type, net_price_cents, active").eq("sku", stand).maybeSingle();
+  if (!produkt?.active || produkt.format_key !== "booth") {
+    return fail("Angebot", `${stand} ist kein aktiver Stand mehr — Auswahl im Skript anpassen`);
+  }
+  if (produkt.pass_type) {
+    return fail("Angebot", `${stand} trägt einen Pass-Typ — würde ein vivenu-Kontingent auslösen, nichts angelegt`);
+  }
+  const { data: phaseInfo, error: phaseFehler } = await admin.rpc("shop_phase", { p_edition_id: ed.id });
+  const phase = phaseFehler ? null : Number(phaseInfo?.phase ?? 0);
+  if (!phase) {
+    return fail("Angebot", phaseFehler ?? "Der Shop ist gerade geschlossen (Phase 0) — kein Warenkorb angelegt");
+  }
+
+  let { data: org } = await admin.from("organization").select("id").eq("legal_name", ANGEBOT_ORG).maybeSingle();
+  if (!org) {
+    org = await write(`Organisation ${ANGEBOT_ORG_NAME}`, () =>
+      admin.from("organization").insert({
+        legal_name: ANGEBOT_ORG, communication_name: ANGEBOT_ORG_NAME, type: "corporate",
+        website: "https://chef-treff.de", description_de: "Testorganisation für das Angebot im Messeshop (PART-116).",
+        customer_number: ANGEBOT_KUNDENNUMMER,
+        address_street: "Testweg 2", address_zip: "20095", address_city: "Hamburg", address_country: "Deutschland",
+      }).select("id").single(),
+    );
+  }
+  if (!org) return;
+
+  let { data: oe } = await admin.from("org_edition").select("id").eq("org_id", org.id).eq("edition_id", ed.id).maybeSingle();
+  if (!oe) {
+    oe = await write("Org-Edition der Angebots-Organisation", () =>
+      admin.from("org_edition").insert({
+        org_id: org.id, edition_id: ed.id, onboarding_status: "invited", invoice_email: email,
+      }).select("id").single(),
+    );
+  }
+  if (!oe) return;
+
+  const { data: gebucht } = await admin.from("org_product").select("id").eq("org_edition_id", oe.id).eq("product_sku", stand).maybeSingle();
+  if (gebucht) {
+    note(`Stand ${stand}`, "schon gebucht");
+  } else {
+    await write(`Stand ${stand} gebucht — ohne ihn zeigt der Shop nur die Erklärung`, () =>
+      admin.from("org_product").insert({
+        org_edition_id: oe.id, product_sku: stand, qty: 1, unit_price_cents: produkt.net_price_cents ?? 0, status: "booked",
+      }),
+    );
+  }
+  await partnerKontakt(me, ed, org.id, gueltigBis(ed));
+
+  // Der Warenkorb: ein Entwurf in der laufenden Phase. Eine andere aktive Bestellung dieser Phase bleibt, wie sie ist.
+  const { data: bestellungen } = await admin.from("shop_order").select("id, order_no, status, phase").eq("org_edition_id", oe.id);
+  const aktiv = (bestellungen ?? []).find((o) => o.phase === phase && ["draft", "pending", "editing", "quoted"].includes(o.status));
+  if (aktiv && aktiv.status !== "draft") {
+    log.push(
+      `  ..  TEST-Warenkorb ${aktiv.order_no} steht auf „${aktiv.status}“ — nichts verändert. Zum Wiederholen im Portal stornieren ` +
+        "(Bestellungen → Stornieren, oder unter /admin/partner/bestellungen) und den Schritt erneut laufen lassen.",
+    );
+    return;
+  }
+  let bestellung = aktiv ?? null;
+  if (!bestellung) {
+    const nummer = `${ANGEBOT_BESTELLNR}${(bestellungen ?? []).filter((o) => o.order_no?.startsWith(ANGEBOT_BESTELLNR)).length + 1}`;
+    bestellung = await write(`TEST-Warenkorb ${nummer} (Entwurf, Phase ${phase})`, () =>
+      admin.from("shop_order").insert({
+        org_edition_id: oe.id, order_no: nummer, phase, status: "draft",
+        internal_note: `${MARK} — TEST, nicht abrechnen`, created_by: me.id,
+      }).select("id").single(),
+    );
+  }
+  if (!bestellung) return;
+
+  const { data: artikel, error: artikelFehler } = await admin.from("product")
+    .select("sku, name_de, name_en, category, unit, vat_rate, net_price_cents").in("sku", ANGEBOT_ZEILEN.map((z) => z.sku));
+  if (artikelFehler || (artikel ?? []).length !== ANGEBOT_ZEILEN.length) {
+    return fail("Angebot", artikelFehler ?? "Tischkicker oder Barhocker fehlen im Produktstamm");
+  }
+  const zeilen = ANGEBOT_ZEILEN.map((z) => {
+    const p = artikel.find((x) => x.sku === z.sku);
+    return {
+      order_id: bestellung.id, product_sku: z.sku, qty: z.qty, name_de: p.name_de, name_en: p.name_en,
+      category: p.category, unit: p.unit, vat_rate: p.vat_rate ?? 7, price_net_cents: p.net_price_cents ?? 0,
+    };
+  });
+  await write("Zeilen des TEST-Warenkorbs (Tischkicker ×1, Tolix Barhocker ×2)", () =>
+    admin.from("shop_order_line").upsert(zeilen, { onConflict: "order_id,product_sku" }));
+}
+
+/**
  * Schritt `formate` (PART-082): Side-Event und Interview Table der Test-
  * Organisation, damit `/partner/side-event` und `/partner/interview-tables` mit
  * ihren Reitern (Bewerbungen, Teilnehmende, Fragen) etwas zeigen. Je Format eine
@@ -4085,6 +4205,7 @@ const SCHRITTE = {
   nachbuchung: nachbuchungSchritt,
   formate: formateSchritt,
   wiki: wikiFilterSchritt,
+  angebot: angebotSchritt,
   ticket: speakerTicket,
   fotos: stagePhotos,
   portraet: testPortraet,
@@ -4275,6 +4396,28 @@ async function remove(me) {
     await admin.from("org_membership").delete().eq("org_id", org2.id);
     await admin.from("org_edition").delete().eq("org_id", org2.id);
     return admin.from("organization").delete().eq("id", org2.id);
+  });
+  // PART-116: die dritte TEST-Organisation des Angebots-Schritts — Warenkörbe samt Lagerbuch und Angebots-Referenzen (Probe/simuliert) gehen mit.
+  await write("Dritte TEST-Organisation (Angebot) entfernt", async () => {
+    const { data: org3 } = await admin.from("organization").select("id").eq("legal_name", ANGEBOT_ORG).maybeSingle();
+    if (!org3) return { data: null, error: null };
+    const { data: oes } = await admin.from("org_edition").select("id").eq("org_id", org3.id);
+    for (const oe of oes ?? []) {
+      const { data: orders } = await admin.from("shop_order").select("id").eq("org_edition_id", oe.id);
+      const ids = (orders ?? []).map((o) => o.id);
+      if (ids.length > 0) {
+        await admin.from("stock_ledger").delete().in("order_id", ids);
+        await admin.from("external_ref").delete().eq("system", "sevdesk").eq("object_type", "shop_quote").in("object_id", ids);
+        await admin.from("shop_order_line").delete().in("order_id", ids);
+        await admin.from("shop_order").delete().in("id", ids);
+      }
+      await admin.from("deliverable").delete().eq("org_edition_id", oe.id);
+      await admin.from("org_product").delete().eq("org_edition_id", oe.id);
+    }
+    await admin.from("role_assignment").delete().eq("scope_type", "org").eq("scope_id", org3.id);
+    await admin.from("org_membership").delete().eq("org_id", org3.id);
+    await admin.from("org_edition").delete().eq("org_id", org3.id);
+    return admin.from("organization").delete().eq("id", org3.id);
   });
   await write("Schicht-Zuteilungen entfernt", () =>
     admin.from("shift_assignment").delete().eq("person_id", me.id),

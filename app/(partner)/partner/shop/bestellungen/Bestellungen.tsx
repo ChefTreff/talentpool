@@ -19,6 +19,8 @@ const STATUS_TONE: Record<string, BadgeTone> = {
   draft: "neutral",
   pending: "accent",
   editing: "warning",
+  // PART-116: ein festgesetzter Warenkorb mit Angebot — in der Liste nur, wenn er aus einer früheren Phase stammt (der aktuelle ist der Warenkorb selbst).
+  quoted: "warning",
   completed: "success",
   cancelled: "neutral",
 };

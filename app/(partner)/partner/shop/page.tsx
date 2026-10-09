@@ -129,6 +129,7 @@ export default async function ShopCataloguePage({
                   product={p}
                   inCart={inCart.get(p.sku) ?? null}
                   canOrder={canOrder}
+                  quoted={cart?.status === "quoted"}
                   merchAssets={merchAssets}
                   locale={locale}
                   t={s}

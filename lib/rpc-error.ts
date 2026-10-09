@@ -238,6 +238,11 @@ const BUSINESS_KEYS = new Set([
   "quote_hash_mismatch",
   "quote_recorded",
   "quote_id_required",
+  // Angebot aus dem Warenkorb, Route und SevDesk (PART-116 Teil 2) — Schlüssel der Route, nicht der Datenbank
+  "quote_unavailable",
+  "quote_failed",
+  "quote_record_failed",
+  "quote_contact_ambiguous",
   // Partner-Admin B9 (Migrationen 0044-0061)
   "invalid_status",
   "invalid_quantity",

@@ -121,6 +121,7 @@ export default async function ShopProductPage({
                 product={product}
                 inCart={inCart}
                 canOrder={canOrder}
+                quoted={cart?.status === "quoted"}
                 merchAssets={merchAssets}
                 locale={locale}
                 size="md"

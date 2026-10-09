@@ -164,6 +164,20 @@ export type AdminRequest = {
   answered_at: string | null;
 };
 
+/** Eine Zeile aus `shop_quotes_admin` (PART-116): ein Warenkorb mit offenem Angebot. `valid_until` leer = die Erstellung läuft noch. */
+export type AdminQuote = {
+  order_id: string;
+  order_no: string | null;
+  org_id: string;
+  org_name: string | null;
+  edition_id: string;
+  quote_number: string | null;
+  valid_until: string | null;
+  net_cents: number;
+  probe: boolean;
+  started_at: string | null;
+};
+
 export type ShopReportRow = {
   sku: string;
   name_de: string | null;

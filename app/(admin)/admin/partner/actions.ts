@@ -429,6 +429,18 @@ export async function adminSetOrderStatus(
   return { ok: true, data: undefined };
 }
 
+/**
+ * Ein offenes Angebot zurückziehen (PART-116): der Warenkorb der Organisation ist danach wieder frei. `shop_quote_withdraw` lässt das Team zu
+ * (`partner_can_edit`); die Bestellung stornieren geht über `adminSetOrderStatus(…, "cancelled")`.
+ */
+export async function adminQuoteWithdraw(orderId: string): Promise<AdminResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("shop_quote_withdraw", { p_order_id: orderId });
+  if (error) return fail(error);
+  refresh("bestellungen");
+  return { ok: true, data: undefined };
+}
+
 export async function answerRequest(
   id: string,
   answer: string,

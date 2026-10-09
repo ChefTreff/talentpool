@@ -350,6 +350,15 @@ export async function shopCancel(orderId: string): Promise<PartnerResult> {
   return { ok: true, data: undefined };
 }
 
+/** Das Angebot zurückziehen, der Warenkorb ist wieder frei (PART-116). Recht und Zustand prüft `shop_quote_withdraw`. */
+export async function shopQuoteWithdraw(orderId: string): Promise<PartnerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("shop_quote_withdraw", { p_order_id: orderId });
+  if (error) return fail(error);
+  refreshShop();
+  return { ok: true, data: undefined };
+}
+
 /** Anfrage-Produkte und Freitext — kein Kauf zu 0 €. */
 /**
  * Lunch-Paket am Checklistenpunkt bestellen (PART-049).

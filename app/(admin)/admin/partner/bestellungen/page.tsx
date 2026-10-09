@@ -3,7 +3,8 @@ import { parseMerchSchema, type MerchField } from "@/lib/partner/merch";
 import { EditionPicker } from "../EditionPicker";
 import { loadEditions, pickEdition } from "../editions";
 import { partnerAdminShell } from "../shell";
-import type { AdminOrder, AdminProduct, AdminRequest, ShopReportRow } from "../types";
+import type { AdminOrder, AdminProduct, AdminQuote, AdminRequest, ShopReportRow } from "../types";
+import { mitAblauf } from "./angebote";
 import { OrdersView } from "./OrdersView";
 
 export const dynamic = "force-dynamic";
@@ -33,12 +34,14 @@ export default async function AdminOrdersPage({
     );
   }
 
-  const [{ data: orders }, { data: requests }, { data: report }, { data: products }] =
+  const [{ data: orders }, { data: requests }, { data: report }, { data: products }, { data: quotes }] =
     await Promise.all([
       supabase.rpc("shop_orders_admin", { p_edition_id: current.id }),
       supabase.rpc("shop_requests_admin", { p_edition_id: current.id }),
       supabase.rpc("shop_report", { p_edition_id: current.id }),
       supabase.rpc("admin_products"),
+      // PART-116: Warenkörbe mit offenem Angebot — die Übersicht „Offene Angebote“.
+      supabase.rpc("shop_quotes_admin", { p_edition_id: current.id }),
     ]);
 
   // Nur die Merch-Artikel: ohne Schema gibt es an einer Zeile nichts anzuzeigen.
@@ -60,6 +63,7 @@ export default async function AdminOrdersPage({
       <OrdersView
         editionId={current.id}
         orders={(orders ?? []) as AdminOrder[]}
+        quotes={mitAblauf((quotes ?? []) as AdminQuote[])}
         requests={(requests ?? []) as AdminRequest[]}
         report={(report ?? []) as ShopReportRow[]}
         merchSchemas={merchSchemas}
