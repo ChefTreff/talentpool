@@ -18,6 +18,12 @@ begin
     raise exception 'not allowed' using errcode = '42501';
   end if;
 
+  -- LEAD-065 (K-64): ab Beginn der Shuttle-Periode keine Anfragen mehr aus dem Portal — das Speaker-Team trägt Fahrten weiter ein.
+  -- Gesperrt sind alle, die nicht zum Team gehören: Speaker, Assistenz und die Leads/Stage Leads in ihrem Portal.
+  if shuttle_locked(p_profile_id) and not coalesce(is_speaker_team(null), false) then
+    raise exception 'shuttle_locked' using errcode = 'P0001', detail = shuttle_lock_text(p_profile_id);
+  end if;
+
   v_pickup := nullif(btrim(p_data->>'pickup_at'), '')::timestamptz;
   v_latest := nullif(btrim(p_data->>'latest_arrival_at'), '')::timestamptz;
   v_pass   := coalesce(nullif(btrim(p_data->>'passengers'), '')::integer, 1);

@@ -12,6 +12,11 @@ begin
   if not coalesce(can_request_shuttle(v_b.profile_id), false) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
+  -- LEAD-065 (K-64): auch eine Stornierung ist eine Änderung — nach dem Sperrzeitpunkt nur noch über das Speaker-Team. Die Prüfung steht
+  -- vor der Abfrage „schon storniert“, damit die Sperre für jeden Aufruf gleich antwortet.
+  if shuttle_locked(v_b.profile_id) and not coalesce(is_speaker_team(null), false) then
+    raise exception 'shuttle_locked' using errcode = 'P0001', detail = shuttle_lock_text(v_b.profile_id);
+  end if;
   if v_b.status = 'cancelled' then return; end if;
 
   update shuttle_booking set status = 'cancelled', cancelled_at = now() where id = p_booking_id;

@@ -1,4 +1,5 @@
--- 00NN · Team & Zugänge: ein Abschnitt, eine Seite — `team` geht in `access` auf, `team_members()` entfällt (ADM-094)
+-- 0298 · Team & Zugänge: ein Abschnitt, eine Seite — team geht in access auf, team_members() entfällt (ADM-094)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009122723.
 --
 -- Anlass: Konrad 08.10.2026 („Team und Zugänge … der Unterschied ist nicht erkennbar“); Plan hat am 08.10. entschieden:
 -- eine Seite, der Abschnitt `team` entfällt zugunsten `access`, die Lesefunktion `team_access_list` liegt (0290).

@@ -1,4 +1,5 @@
--- 02NN · Shuttle-Sperre ab Beginn der Shuttle-Periode (LEAD-065, K-64)
+-- 0299 · Shuttle-Sperre ab Beginn der Shuttle-Periode (LEAD-065, K-64)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009122829.
 -- Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
 --
 -- Anlass: K-64 (Konrad 08.10.2026): Die finale Freigabe der Shuttle-Fahrten bleibt beim Speaker-Team (Paulina). Ab einem Zeitpunkt — dem Beginn der

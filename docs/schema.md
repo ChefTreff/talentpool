@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-09 12:12 UTC · 124 Tabellen · 6 Views · 766 Funktionen
+> Stand: 2026-10-09 12:29 UTC · 124 Tabellen · 6 Views · 769 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2986,6 +2986,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `shop_sync_fulfilled_deliverables` | p_org_edition_id: uuid |
 | `shop_upsert_line` | p_edition_id: uuid, p_merch_config: jsonb, p_org_id: uuid, p_qty: numeric, p_sku: text |
 | `shuttle_bookings_admin` | p_edition_id: uuid |
+| `shuttle_lock_at` | p_profile_id: uuid |
+| `shuttle_lock_status` | p_profile_id: uuid |
+| `shuttle_lock_text` | p_profile_id: uuid |
+| `shuttle_locked` | p_profile_id: uuid |
 | `side_event_respond_by_token` | p_ip_hash: text, p_status: text, p_token: text |
 | `side_event_taken` | p_side_event_id: uuid |
 | `side_events_admin` | p_edition_id: uuid, p_side_event_id: uuid |
@@ -3037,7 +3041,6 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `sync_ticket_allocations` | p_org_edition_id: uuid |
 | `team_access_list` | p_filter: text, p_limit: integer, p_offset: integer, p_query: text |
 | `team_add_companion_ticket` | p_email: text, p_first_name: text, p_last_name: text, p_lounge: boolean, p_profile_id: uuid |
-| `team_members` | args: ? |
 | `team_role_keys` | args: ? |
 | `template_applies` | p_org_edition_id: uuid, p_template: public.deliverable_template |
 | `testdaten_person` | p_email: text, p_first_name: text, p_last_name: text |
