@@ -322,7 +322,7 @@ describe("Admin: „Offene Angebote“ unter /admin/partner/bestellungen", () =>
     assert.match(ORDERS_VIEW, /\{o\.status === "quoted" \? \(\s*<p className="ct-help max-w-80">/);
     assert.match(ORDERS_VIEW, /disabled=\{o\.status === "quoted"\}/);
     assert.match(ORDERS_VIEW, /disabled=\{pending \|\| o\.status === "quoted"\}/);
-    assert.match(ORDERS_VIEW, /ORDER_TONE[^;]*quoted: "warning"/s);
+    assert.match(ORDERS_VIEW, /ORDER_TONE[^;]*quoted: "warning"/);
   });
 
   it("die Aktionen rufen genau die Datenbankfunktionen der Partner auf (Rechte prüft die Datenbank)", () => {

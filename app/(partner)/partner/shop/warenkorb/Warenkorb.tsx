@@ -23,7 +23,7 @@ import type { PartnerOverview, ShopOrder, ShopProduct, ShopQuoteInfo } from "../
 
 type Strings = Record<string, string>;
 
-const PARTNER_MAILBOX = "partner@chef-treff.de";;
+const PARTNER_MAILBOX = "partner@chef-treff.de";
 
 /**
  * Warenkorb und Kasse.
