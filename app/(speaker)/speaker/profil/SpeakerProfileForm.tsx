@@ -354,6 +354,8 @@ export function SpeakerProfileForm({
                 {stellvertretend
                   ? t[`${consentLabelKey(key)}OnBehalf`].replaceAll("{name}", speakerName || "—")
                   : t[consentLabelKey(key)]}
+                {/* SPK-078 (K-56): kein eigener Einwilligungstext für die Ernährung — der Hinweis sagt Zweck, Freiwilligkeit und Löschung. */}
+                {key === "hospitality_data" && <span className="mt-1 block ct-help">{t.consentHospitalityHint}</span>}
               </span>
             </label>
           ))}

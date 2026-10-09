@@ -34,8 +34,11 @@ export function EinwilligungsGate({
   t,
   rpcMessages,
 }: {
-  /** Die Einwilligungen in der Reihenfolge des Formulars, mit ihrem Text. */
-  keys: { key: string; label: string }[];
+  /**
+   * Die Einwilligungen in der Reihenfolge des Formulars, mit ihrem Text. Ein `hint` steht als Hinweis darunter — er gehört nicht zum
+   * Einwilligungstext: bei „Hotel und Shuttle“ sagt er, dass das freiwillige Ernährungsangaben einschließt (SPK-078, K-56).
+   */
+  keys: { key: string; label: string; hint?: string }[];
   t: { title: string; lead: string; freeChoice: string; submit: string };
   rpcMessages: Record<string, string>;
 }) {
@@ -62,7 +65,10 @@ export function EinwilligungsGate({
               checked={werte[k.key] === true}
               onChange={(e) => setWerte((w) => ({ ...w, [k.key]: e.target.checked }))}
             />
-            <span>{k.label}</span>
+            <span>
+              {k.label}
+              {k.hint && <span className="mt-1 block ct-help">{k.hint}</span>}
+            </span>
           </label>
         ))}
       </div>
