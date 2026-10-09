@@ -28,7 +28,7 @@ type Draft = {
   last_name: string;
   title: string;
   linkedin_url: string;
-  phone_e164: string;
+  phone: string;
   preferred_language: string;
   job_title: string;
   organization_name: string;
@@ -83,7 +83,7 @@ export function SpeakerProfileForm({
     last_name: p.last_name ?? "",
     title: p.title ?? "",
     linkedin_url: p.linkedin_url ?? "",
-    phone_e164: p.phone_e164 ?? "",
+    phone: p.phone ?? "",
     preferred_language: p.preferred_language ?? "en",
     job_title: profile.job_title ?? "",
     organization_name: profile.organization_name ?? "",
@@ -200,8 +200,8 @@ export function SpeakerProfileForm({
             <Input
               id="phone"
               type="tel"
-              value={draft.phone_e164}
-              onChange={(e) => set("phone_e164", e.target.value)}
+              value={draft.phone}
+              onChange={(e) => set("phone", e.target.value)}
             />
           </Field>
           <Field label={t.fieldLanguage} htmlFor="language">

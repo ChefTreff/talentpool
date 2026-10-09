@@ -10,7 +10,12 @@ export type SpeakerPerson = {
   photo_url: string | null;
   linkedin_url: string | null;
   preferred_language: string | null;
-  phone_e164: string | null;
+  /**
+   * Die Nummer, wie die Person sie eingegeben hat (SPK-093: freie Eingabe,
+   * ohne Formatzwang). Bei Altbeständen, in denen nur `phone_e164` stand, deren
+   * Wert — die RPC rechnet das, die Oberfläche liest nur dieses Feld.
+   */
+  phone: string | null;
   email: string | null;
 };
 
