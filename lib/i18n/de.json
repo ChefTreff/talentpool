@@ -4726,6 +4726,7 @@
   "partnerApplicants": {
     "appliedOn": "beworben am",
     "auditNotice": "Jeder Aufruf dieser Liste wird protokolliert — die Daten gehören den Bewerberinnen und Bewerbern.",
+    "consentNote": "Auf dieses Format kann sich nur bewerben, wer der Weitergabe der Bewerbung an euch zugestimmt hat.",
     "decide_accepted": "Zusagen",
     "decide_declined": "Absagen",
     "decide_waitlisted": "Warteliste",
@@ -4736,7 +4737,7 @@
     "detailClose": "Schließen",
     "detailNoAnswers": "Keine Antworten abgegeben.",
     "detailNoProfile": "Zu dieser Person liegen keine weiteren Profilangaben vor.",
-    "detailNote": "Gezeigt wird nur, was diese Person zur Weitergabe an euch freigegeben hat.",
+    "detailNote": "Gezeigt wird nur, was diese Person zur Weitergabe an euch freigegeben hat. Ihr dürft sie einmalig zu diesem Format kontaktieren (Einladung, Termine, Rückfragen) — nicht für Werbung und nicht, um sie ohne erneute Zustimmung in eigene Talentpools aufzunehmen.",
     "detailProfile": "Profil",
     "detailTitle": "Profil von {name}",
     "hiddenBody": "Diese Person hat dem Teilen ihrer Daten nicht zugestimmt. Ihr seht die Bewerbung, aber keine Angaben.",
