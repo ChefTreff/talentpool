@@ -67,13 +67,13 @@ describe("SPK-074-Nachtrag: Portal", () => {
     const typen = quelle("app/(speaker)/speaker/types.ts");
     assert.doesNotMatch(typen, /SPEAKER_CONSENTS_ON_BEHALF/);
     for (const art of Object.keys(ARTEN)) assert.match(typen, new RegExp(`"${art}"`));
-    const form = quelle("app/(speaker)/speaker/profil/SpeakerProfileForm.tsx");
+    const form = quelle("app/(speaker)/speaker/profil/EinwilligungenTab.tsx");
     assert.doesNotMatch(form, /SPEAKER_CONSENTS_ON_BEHALF|nurSelbst/);
     assert.match(form, /saveSpeakerConsentsOnBehalf\(profile\.id, consents\)/);
   });
 
   it("das Profil zeigt dem Kontakt die stellvertretende Fassung mit dem Namen der Speakerin", () => {
-    const form = quelle("app/(speaker)/speaker/profil/SpeakerProfileForm.tsx");
+    const form = quelle("app/(speaker)/speaker/profil/EinwilligungenTab.tsx");
     assert.match(form, /t\[`\$\{consentLabelKey\(key\)\}OnBehalf`\]\.replaceAll\("\{name\}", speakerName \|\| "—"\)/);
     // jede der vier Arten hat dort einen Textschlüssel
     for (const [art, schluessel] of Object.entries(ARTEN)) {

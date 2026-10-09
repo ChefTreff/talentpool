@@ -116,9 +116,10 @@ describe("Standbühne in der Oberfläche (PART-078…080)", () => {
     assert.equal(partnerStatus({ sessionId: "s", publishStatus: "review", returnNote: "Titel fehlt" }), "zur_freigabe");
     assert.equal(partnerStatus({ sessionId: "s", publishStatus: "published" }), "veroeffentlicht");
     assert.equal(partnerStatus({ sessionId: "s", publishStatus: "cancelled" }), "abgesagt");
-    const rueckgabe = src("app/(partner)/partner/Rueckgabe.tsx");
-    assert.match(rueckgabe, /x\.publish_status === "draft"/);
-    assert.match(rueckgabe, /returnNote && publishStatus === "draft"/);
+    // Die Regel „offen nur im Entwurf“ steht seit QS-079 als reine Funktion in `lib/partner/rueckgabe.ts` (Verhalten: `tests/instanz-interview-tables.test.ts`),
+    // das Kennzeichen „Zurückgegeben“ weiter in der Oberfläche.
+    assert.match(src("lib/partner/rueckgabe.ts"), /x\.publish_status === "draft"/);
+    assert.match(src("app/(partner)/partner/Rueckgabe.tsx"), /returnNote && publishStatus === "draft"/);
   });
 
   it("was für die Anfrage fehlt, prüft die Oberfläche wie partner_request_publish", () => {

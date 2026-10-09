@@ -90,6 +90,8 @@ export default async function SpeakerLayout({ children }: { children: ReactNode 
           label: "",
           items: [
             { href: "/speaker", label: t.speaker.navOverview },
+            // SPK-088: das Profil gleich nach der Übersicht — wer sich zum ersten Mal anmeldet, landet auf der Übersicht und füllt als Nächstes das Profil aus.
+            { href: "/speaker/profil", label: t.speaker.navProfile },
             { href: "/speaker/session", label: t.speaker.navSession },
             { href: "/speaker/travel", label: t.speaker.navTravel },
             { href: "/speaker/tickets", label: t.speaker.navTickets },
@@ -98,7 +100,6 @@ export default async function SpeakerLayout({ children }: { children: ReactNode 
               : []),
             { href: "/speaker/media", label: t.speaker.navMedia },
             { href: "/speaker/grafik", label: t.speaker.navGraphic },
-            { href: "/speaker/profil", label: t.speaker.navProfile },
             { href: "/speaker/wiki", label: t.speaker.navWiki },
           ],
         },

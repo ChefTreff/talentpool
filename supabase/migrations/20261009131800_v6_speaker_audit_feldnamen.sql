@@ -1,3 +1,24 @@
+-- 0301 · Audit der Assistenz-Änderung nur mit Feldnamen (SPK-094)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009131800.
+-- Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
+--
+-- Anlass: Befund aus #452 (SPK-093), Plan 09.10.2026: `update_my_speaker_profile` schreibt bei einer Änderung durch die **Assistenz** den ganzen Eingabeblock
+-- `p_data - 'id'` ins Audit (`speaker.assistant_update`) — dort stehen Telefonnummer, Namen und LinkedIn-Adresse im Klartext. Regel (wie „Audit ohne
+-- Klartext-E-Mail“, #297): ins Audit nur die **Namen der geänderten Felder** und die `person_id`, keine Werte.
+--
+-- Was die Migration tut (eine bestehende Funktion, aus dem Snapshot nach 0300; keine Tabelle, keine Spalte, keine neue Funktion)
+--   1  `update_my_speaker_profile`: vor dem Schreiben liest die Funktion — nur für die Assistenz — den Stand der Person; nach dem Schreiben vergleicht sie je Feld
+--      den Eingabewert (so, wie er geschrieben wird: getrimmt, leer ⇒ null; Sprache nur `de`/`en`; Links und Technik nur als Objekt) mit dem Stand davor und sammelt die
+--      Namen der **geänderten** Felder (sortiert). Das Protokoll bekommt `after = {"felder": [...], "person_id": <die Speakerin>}`, `before` bleibt leer. Gespeichert wird
+--      ohne Änderung nichts ⇒ **kein Eintrag** (vorher: ein Eintrag je Aufruf, auch ohne Änderung). Die Namen sind die der Eingabe (`first_name`, `phone`, `bio_short_en`,
+--      `socials`, `contact_email` …), nie ein Wert.
+--   2  Schreibt die Speakerin selbst, entsteht wie bisher kein Eintrag. Rechte, Fehlerschlüssel und alles, was die Funktion sonst tut, bleiben (der Test hält es fest).
+--   3  **Bestandseinträge bleiben, wie sie sind** — die Migration schreibt nicht an `audit_log`.
+--
+-- Rechte und Fehlerschlüssel: unverändert (die Person selbst oder ihre Assistenz; 28000 · P0002 `speaker_not_found` · 22023 `invalid_contact_kind`,
+-- `speaker_contact_consent_required`). Das Audit-Aktionswort `speaker.assistant_update` bleibt.
+set search_path = public, extensions;
+
 create or replace function update_my_speaker_profile(p_data jsonb)
  RETURNS uuid
  LANGUAGE plpgsql
@@ -123,3 +144,5 @@ begin
   end if;
   return v_sp.id;
 end $$;
+
+select harden_definer_functions();

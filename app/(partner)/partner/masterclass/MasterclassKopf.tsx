@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { SectionTabs } from "@/components/layout/SectionTabs";
-import { instanzHref, type InstanzLeiste } from "@/lib/partner/instanz";
+import { InstanzWahl } from "@/components/layout/InstanzWahl";
+import { instanzSuffix, type InstanzLeiste } from "@/lib/partner/instanz";
 import { FormatReiter } from "../FormatReiter";
 
 /**
@@ -37,16 +37,11 @@ export function MasterclassKopf({
       <PageHeader word={word} title={t.title} description={t.lead} />
       {sessions > 0 ? (
         <>
-          {instanzen && (
-            <SectionTabs
-              label={t.instanceLabel}
-              items={instanzen.items.map((x) => ({ href: instanzHref(x.id), label: x.label, aktiv: x.id === instanzen.gewaehlt }))}
-            />
-          )}
+          <InstanzWahl leiste={instanzen} label={t.instanceLabel} />
           <FormatReiter
             basis="/partner/masterclass"
             erster={t.tabContent}
-            suffix={instanzen ? instanzHref(instanzen.gewaehlt) : ""}
+            suffix={instanzSuffix(instanzen)}
             t={{ label: t.title, tabApplications: b.tabApplications, tabParticipants: b.tabParticipants, tabQuestions: b.tabQuestions }}
           />
         </>

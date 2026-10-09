@@ -1,7 +1,10 @@
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { InstanzWahl } from "@/components/layout/InstanzWahl";
+import { instanzKennung, instanzSuffix, tischWahl, type InstanzLeiste } from "@/lib/partner/instanz";
 import { zeitraum } from "./company-tour/daten";
 import { ladeEigenesFormat } from "./bewerbungen";
+import { ladeFlaechen } from "./formate";
 import { FormatBewerbungen } from "./FormatBewerbungen";
 import { FormatFragen } from "./FormatFragen";
 import { FormatReiter } from "./FormatReiter";
@@ -19,16 +22,22 @@ const FORMATE = {
  * in den Formatseiten aufgegangen). Dieselben Bausteine wie bei der
  * Masterclass; die Überschrift je Session trägt die Zeit, weil ein Partner
  * bei den Interview Tables viele gleichnamige Slots hat.
+ *
+ * **Mehrere Tische (QS-079):** `instanz` ist `searchParams.instanz`, die Fläche des Tisches. Ab zwei Tischen steht der Umschalter über den
+ * Reitern, und die Sicht zeigt nur die Gespräche des gewählten Tisches — dieselbe Wahl wie auf der Formatseite (`tischWahl`), und die Reiter nehmen
+ * sie mit. Bei einem Tisch (und beim Side-Event, ein Ort je Organisation) bleibt alles wie vorher.
  */
 export async function FormatUnterseite({
   format,
   ansicht,
+  instanz,
 }: {
   format: keyof typeof FORMATE;
   ansicht: "bewerbungen" | "teilnehmende" | "fragen";
+  instanz?: string | string[];
 }) {
   const { basis, texte, wort } = FORMATE[format];
-  const { supabase, locale, t, current, sessions, canEdit } = await ladeEigenesFormat(format);
+  const { supabase, locale, t, current, sessions: alle, canEdit } = await ladeEigenesFormat(format);
   const s = t[texte] as unknown as Record<string, string>;
   const b = t.partnerBewerbung as unknown as Record<string, string>;
   const titel = (x: PartnerFormatSession) => {
@@ -37,19 +46,35 @@ export async function FormatUnterseite({
     return wann ? `${name} · ${wann}` : name;
   };
 
+  let sessions = alle;
+  let instanzen: InstanzLeiste | null = null;
+  if (format === "interview_table") {
+    const flaechen = await ladeFlaechen(supabase, current.org_id, "interview_table");
+    const wahl = tischWahl(flaechen.stages, alle, instanzKennung(instanz), (n) => s.instanceNumber.replace("{n}", String(n)));
+    instanzen = wahl.instanzen;
+    if (instanzen && wahl.gewaehlt) {
+      const tischId = wahl.gewaehlt.id;
+      sessions = alle.filter((x) => x.stage_id === tischId);
+    }
+  }
+
   return (
     <>
       <PageHeader word={t.partner[wort]} title={s.title} description={s.lead} />
-      {sessions.length === 0 ? (
+      {alle.length === 0 ? (
         <EmptyState title={b.noSessionsTitle} description={b.noSessionsBody} />
       ) : (
         <>
+          <InstanzWahl leiste={instanzen} label={s.instanceLabel} />
           <FormatReiter
             basis={basis}
             erster={s.tabMain}
+            suffix={instanzSuffix(instanzen)}
             t={{ label: s.title, tabApplications: b.tabApplications, tabParticipants: b.tabParticipants, tabQuestions: b.tabQuestions }}
           />
-          {ansicht === "fragen" ? (
+          {sessions.length === 0 ? (
+            <EmptyState title={b.noSessionsTitle} description={b.noSessionsBody} />
+          ) : ansicht === "fragen" ? (
             <FormatFragen
               supabase={supabase}
               sessions={sessions}
