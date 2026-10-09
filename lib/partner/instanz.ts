@@ -4,8 +4,12 @@
  * Zeigt eine Seite mehrere Instanzen desselben Dings (zwei Masterclasses, mehrere Tische, Stopps), steht **ein Umschalter** oben, die gewählte Instanz
  * in der Adresse als `?instanz=<id>`, und darunter genau **eine** Instanz mit ihren Formularen (Skill `portal-design`, Regel 12; `referenzen/muster.md` →
  * „Mehrere Instanzen“). Hier steht, was ohne Bildschirm prüfbar ist: welche Instanz gewählt ist, wie ihre Adresse lautet und wie der Reiter heißt.
- * Der Baustein `InstanzWahl` entsteht nach dem dritten Einsatz; bis dahin ist der Umschalter ein `SectionTabs` mit `aktiv`.
+ * Gezeichnet wird der Umschalter von `components/layout/InstanzWahl.tsx` (eine dünne Hülle um `SectionTabs` mit `aktiv`).
  */
+import { rueckgabeOffen } from "@/lib/partner/rueckgabe";
+
+/** Was eine Session mitbringen muss, damit „von der Programmleitung zurückgegeben“ erkennbar ist (`partner_format_sessions`). */
+type Rueckgabefaehig = { return_note: string | null; returned_at: string | null; publish_status: string | null };
 
 /** Name der Abfrage; auf allen Mehrfach-Seiten derselbe (Plan 09.10.2026), damit Mails und Aufgaben mit `?instanz=` direkt in die Instanz verlinken. */
 export const INSTANZ_PARAM = "instanz";
@@ -76,4 +80,47 @@ export function kurzSlot(startsAt: string | null, dateLocale: string): string | 
 /** Fehlt der Instanz noch Inhalt, den nur die Person liefern kann? Titel und Beschreibung (deutsch) sind Pflicht, bevor die Programmleitung etwas sieht. */
 export function brauchtInhalt(x: { title_de: string | null; description_de: string | null }): boolean {
   return !(x.title_de ?? "").trim() || !(x.description_de ?? "").trim();
+}
+
+/** Der Adressanhang, den jede Sicht der Seite mitnimmt (`?instanz=<id>`), damit der Wechsel zwischen den Sichten in derselben Instanz bleibt; ohne Umschalter leer. */
+export function instanzSuffix(leiste: InstanzLeiste | null): string {
+  return leiste ? instanzHref(leiste.gewaehlt) : "";
+}
+
+/**
+ * Welche Masterclass öffnet ohne Wunsch? Die, die etwas von der Person will: von der Programmleitung zurückgegeben (der Grund steht dort und wartet),
+ * sonst eine ohne Titel oder Beschreibung. Findet sich keine, gilt die erste (`waehleInstanz`).
+ */
+export function vorgabeMasterclass<T extends Rueckgabefaehig & { title_de: string | null; description_de: string | null }>(liste: readonly T[]): T | undefined {
+  return liste.find((x) => rueckgabeOffen(x)) ?? liste.find(brauchtInhalt);
+}
+
+/**
+ * Welcher Tisch (Interview Tables) öffnet ohne Wunsch? Der mit einem von der Programmleitung zurückgegebenen Gespräch, sonst einer **ohne jedes Gespräch** —
+ * dort ist das Anlegen der Zeitfenster der nächste Schritt. Sonst gilt der erste. Die Gespräche hängen über `stage_id` am Tisch, nicht über den Namen
+ * (zwei Tische dürfen gleich heißen).
+ */
+export function vorgabeTisch<S extends { id: string }>(
+  tische: readonly S[],
+  gespraeche: readonly (Rueckgabefaehig & { stage_id: string | null })[],
+): S | undefined {
+  return (
+    tische.find((t) => gespraeche.some((g) => g.stage_id === t.id && rueckgabeOffen(g))) ??
+    tische.find((t) => !gespraeche.some((g) => g.stage_id === t.id))
+  );
+}
+
+/**
+ * Die Tischwahl der Interview Tables — für die Formatseite und für ihre Sichten (Bewerbungen, Teilnehmende, Fragen) dieselbe Regel: der gewählte Tisch
+ * und der Umschalter (ab zwei Tischen). Der Reiter trägt den Namen des Tisches; heißen zwei gleich, „Tisch 1“ und „Tisch 2“.
+ */
+export function tischWahl<T extends { id: string; name: string }>(
+  tische: readonly T[],
+  gespraeche: readonly (Rueckgabefaehig & { stage_id: string | null })[],
+  kennung: string | undefined,
+  nummer: (n: number) => string,
+): { gewaehlt: T | null; instanzen: InstanzLeiste | null } {
+  const gewaehlt = waehleInstanz(tische, kennung, (liste) => vorgabeTisch(liste, gespraeche));
+  const titel = instanzTitel(tische.map((x) => ({ titel: x.name, slot: null })), nummer);
+  return { gewaehlt, instanzen: instanzLeiste(tische.map((x, i) => ({ id: x.id, label: titel[i] })), gewaehlt?.id) };
 }
