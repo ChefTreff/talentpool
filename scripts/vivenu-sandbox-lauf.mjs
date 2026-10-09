@@ -557,7 +557,10 @@ const steps = {
       const zweiter = await vv(`/transactions/${encodeURIComponent(id)}/tickets`).catch((e) => e.message);
       console.log(`GET …/tickets: ${Array.isArray(zweiter) ? zweiter.length + " Tickets" : String(zweiter).slice(0, 200)}`);
     }
-    if (tickets?.[0]) console.log(`Felder eines Tickets: ${Object.keys(tickets[0]).sort().join(", ")} (Secret vorhanden: ${tickets[0].secret ? "ja" : "nein"})`);
+    if (tickets?.[0]) {
+      const hatCode = tickets[0].secret ? "ja" : "nein";
+      console.log(`Felder eines Tickets: ${Object.keys(tickets[0]).sort().join(", ")} (Personalisierungscode vorhanden: ${hatCode})`);
+    }
   },
 
   /**
@@ -597,7 +600,8 @@ const steps = {
     console.log(`Würde schreiben an Ticket ${id}: ${JSON.stringify(body)}`);
     if (!apply) return console.log("\n(ohne --apply nichts geschrieben)");
     const res = await vv(`/tickets/personalize/${encodeURIComponent(id)}/${encodeURIComponent(sec.secret)}`, { method: "POST", body: JSON.stringify(body) });
-    console.log("Antwort:", JSON.stringify(res).replaceAll(sec.secret, "***").slice(0, 400));
+    const antwort = JSON.stringify(res).replaceAll(sec.secret, "***").slice(0, 400);
+    console.log("Antwort:", antwort);
   },
 
   /** Das Wegwerf-Ticket wieder entwerten. */
