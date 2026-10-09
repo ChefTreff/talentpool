@@ -8,7 +8,11 @@ import { ConfirmDialog } from "@/components/ui/Modal";
 import { Drawer } from "@/components/ui/Drawer";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { Menu, MenuItem } from "@/components/ui/Menu";
 import { Select } from "@/components/ui/Select";
+import { SuchFeld } from "@/components/ui/SuchFeld";
+import { useUrlFilter } from "@/components/ui/useUrlFilter";
+import { gruppiereBegriffe } from "@/lib/vokabular/suche";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import { removeTerm, saveTerm } from "./actions";
@@ -63,19 +67,12 @@ export function VokabularView({
   const [fehler, setFehler] = useState<string | null>(null);
   const [neu, setNeu] = useState(false);
   const [frage, setFrage] = useState<VocabTerm | null>(null);
-  const [filter, setFilter] = useState("");
+  // Suche und Vokabular stehen in der Adresszeile (`?q=`, `?vokabular=`): ein Fund lässt sich weiterschicken.
+  const [f, setF] = useUrlFilter({ q: "", vokabular: "" });
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
 
-  const gruppen = useMemo(() => {
-    const out: Record<string, VocabTerm[]> = {};
-    for (const term of terms) {
-      if (filter && term.vocabulary !== filter) continue;
-      (out[term.vocabulary] ??= []).push(term);
-    }
-    return out;
-  }, [terms, filter]);
-  const namen = Object.keys(gruppen).sort();
+  const { namen, gruppen, treffer } = useMemo(() => gruppiereBegriffe(terms, f), [terms, f]);
   const alleNamen = useMemo(() => [...new Set(terms.map((x) => x.vocabulary))].sort(), [terms]);
 
   function speichern(term: VocabTerm) {
@@ -117,22 +114,27 @@ export function VokabularView({
   return (
     <>
       <div className="mb-4 flex flex-wrap items-end gap-3">
-        <div className="w-70">
+        <div className="w-full sm:w-80">
+          <Field label={t.searchLabel} htmlFor="f-q">
+            <SuchFeld id="f-q" value={f.q} placeholder={t.searchPlaceholder} onChange={(e) => setF({ q: e.target.value })} />
+          </Field>
+        </div>
+        <div className="w-full sm:w-70">
           <Field label={t.filterVocabulary} htmlFor="f-voc">
             <Select
               id="f-voc"
               placeholder={t.allVocabularies}
               options={alleNamen.map((v) => ({ value: v, label: v }))}
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              value={f.vokabular}
+              onChange={(e) => setF({ vokabular: e.target.value })}
             />
           </Field>
         </div>
-        {filter && (
+        {f.vokabular && (
           <Button
             size="sm"
             onClick={() => {
-              setOffen(leer(filter));
+              setOffen(leer(f.vokabular));
               setNeu(true);
             }}
           >
@@ -140,6 +142,8 @@ export function VokabularView({
           </Button>
         )}
       </div>
+      <p className="ct-label mb-4 text-ink">{t.hits.replace("{n}", String(treffer)).replace("{m}", String(terms.length))}</p>
+      {namen.length === 0 && <p className="ct-small text-muted">{t.noHits}</p>}
 
       <div className="flex flex-col gap-8">
         {namen.map((v) => (
@@ -163,11 +167,11 @@ export function VokabularView({
               <Tbody>
                 {gruppen[v].map((term) => (
                   <Tr key={term.key} controls>
-                    <Td className="font-mono ct-help text-muted">{term.key}</Td>
-                    <Td>{term.label_de}</Td>
-                    <Td className="text-muted">{term.label_en}</Td>
+                    <Td className="whitespace-nowrap font-mono ct-help text-muted">{term.key}</Td>
+                    <Td><span className="block max-w-64 truncate" title={term.label_de}>{term.label_de}</span></Td>
+                    <Td className="text-muted"><span className="block max-w-64 truncate" title={term.label_en}>{term.label_en}</span></Td>
                     <Td numeric className="text-muted">{term.sort_order}</Td>
-                    <Td className="ct-help text-muted">
+                    <Td className="whitespace-nowrap ct-help text-muted">
                       {term.usage === null
                         ? t.usageUnknown
                         : term.usage === 0
@@ -175,13 +179,14 @@ export function VokabularView({
                           : t.usageCount.replace("{n}", String(term.usage))}
                       {term.kinder > 0 && ` · ${t.children.replace("{n}", String(term.kinder))}`}
                     </Td>
-                    <Td>
+                    <Td className="whitespace-nowrap">
                       <Badge tone={term.active ? "success" : "neutral"}>
                         {term.active ? common.active : common.inactive}
                       </Badge>
                     </Td>
-                    <Td>
-                      <span className="flex flex-wrap gap-2">
+                    {/* Eine Zeile je Begriff (ADM-101): „Bearbeiten“ bleibt ein Knopf, alles Weitere liegt im Menü. */}
+                    <Td className="whitespace-nowrap">
+                      <span className="flex items-center gap-2">
                         <Button
                           size="sm"
                           variant="secondary"
@@ -193,28 +198,16 @@ export function VokabularView({
                         >
                           {t.edit}
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          disabled={pending}
-                          onClick={() => speichern({ ...term, active: !term.active })}
-                        >
-                          {term.active ? t.deactivate : t.activate}
-                        </Button>
-                        {/* Der Knopf erscheint nur, wenn beides stimmt: niemand
-                            benutzt den Begriff, und die Datenbank weiss das
-                            auch. Bei `usage === null` fehlt er, und daneben
-                            steht warum. */}
-                        {term.usage === 0 && term.kinder === 0 && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            disabled={pending}
-                            onClick={() => setFrage(term)}
-                          >
-                            {common.delete}
-                          </Button>
-                        )}
+                        <Menu ton="hell" label={t.moreActions} trigger={<span>{t.moreActions}</span>} align="end">
+                          <MenuItem onSelect={() => speichern({ ...term, active: !term.active })}>
+                            {term.active ? t.deactivate : t.activate}
+                          </MenuItem>
+                          {/* Der Eintrag erscheint nur, wenn beides stimmt: niemand benutzt den Begriff, und die Datenbank weiss das
+                              auch. Bei `usage === null` fehlt er, und daneben steht warum. */}
+                          {term.usage === 0 && term.kinder === 0 && (
+                            <MenuItem onSelect={() => setFrage(term)}>{common.delete}</MenuItem>
+                          )}
+                        </Menu>
                       </span>
                     </Td>
                   </Tr>
