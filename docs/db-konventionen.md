@@ -111,3 +111,6 @@ rollback;
 
 > **Rollen-Probe nach Policy- und Grant-Änderungen** (seit 25.09.2026): `sh scripts/db.sh test supabase/tests/sicherheit_rollenkonten.sql` — läuft gegen den Bestand mit echtem Rollenwechsel und muss 6/6 (Schritt 06 Stage Lead seit 0210) `ok` liefern; jede Zeile mit „LECK“ ist ein Befund für den Security-Check. Die Architektur-Session fährt sie nach jedem Anwenden einer Migration, die Policies, Grants oder `is_*`-Prüffunktionen ändert; Bau-Chats vor dem Push ihres Vorschlags (Probelauf mit `dry-run`, danach die Probe).
 
+## Nachtrag 09.10.2026 — Quelltext-Tests zu Migrationen vergleichen nicht mit dem lebenden Snapshot
+
+Ein TypeScript-Test, der eine Migrationsdatei mit `supabase/snapshot/functions/<name>.sql` auf Gleichheit „bis auf die eigenen Zeilen“ vergleicht, ist ab der nächsten Migration derselben Funktion rot — auf `main`, nicht nur im Branch (Vorfall 09.10.2026: `tests/spk-093-telefon.test.ts` nach 0301). Regel: Migrationstests prüfen die Migration selbst (Muster, Schlüssel, Härtung) oder vergleichen nur, solange die Datei unter `vorschlag/` liegt (`istVorschlag()` in `tests/migration-datei.ts`); der `fn-diff` vor dem Push ist die Prüfung „nichts verschwindet unerklärt“, kein Dauertest. Die Architektur-Session fährt nach jedem Snapshot-Commit `npm test` auf `main`, bevor sie pusht.
