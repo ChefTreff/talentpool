@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AbschnittsBalken } from "@/components/ui/AbschnittsBalken";
 import { cn } from "./cn";
 
 export type Abschnitt = { id: string; label: string };
@@ -30,18 +31,28 @@ export type Abschnitt = { id: string; label: string };
  * mit `id`). Die Ids stehen an einer Stelle und werden von beiden benutzt,
  * damit kein Anker ins Leere zeigt. Die Seitenleiste liest dieselbe Liste und
  * zeigt sie als eingerückte Unterpunkte (`SidebarNav`).
+ *
+ * **Zwei Fassungen** (ADM-093, Vorschlag 10-09 Abschnitt 4): die **Fläche** (Vorgabe, wie oben) und der **Balken** —
+ * `variante="balken"`: ein klebender Balken unter dem Seitenkopf, Text mit Unterstrich für den Abschnitt im Bild, am Handy
+ * waagerecht scrollbar (`AbschnittsBalken`). Eine Seite stellt mit einem Prop um; sie setzt den Balken **direkt** in den
+ * Inhalt (nicht in eine Rasterzelle), sonst klebt er nur so lange, wie seine Zelle reicht. Umgestellt ist noch keine Seite:
+ * das entscheidet Konrad (K-95).
  */
 export function AbschnittsNavigation({
   items,
   label,
   className,
+  variante = "flaeche",
 }: {
   items: Abschnitt[];
   /** Zugänglicher Name, z. B. „Auf dieser Seite" (`common.onThisPage`). */
   label: string;
   className?: string;
+  /** `flaeche`: die Akzent-Soft-Fläche mit Pfeil-Knöpfen (Vorgabe). `balken`: der klebende Balken. */
+  variante?: "flaeche" | "balken";
 }) {
   if (items.length < 2) return null;
+  if (variante === "balken") return <AbschnittsBalken items={items} label={label} className={className} />;
   return (
     <nav
       data-abschnitts-navigation
