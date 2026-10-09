@@ -131,7 +131,10 @@ describe("SPK-094: der DB-Test hält die Regeln fest", () => {
   it("9 Erwartungen im Muster `t_erw`; echte Claims, die Rolle `anon`, die Assistenz gegen die Speakerin selbst, ein fremdes Profil", () => {
     const t = test();
     const erw = t.slice(t.indexOf("insert into t_erw values"), t.indexOf("-- Hilfen:"));
-    assert.equal((erw.match(/^\s+\('\d\d_[a-z_]+', /gm) ?? []).length, 9);
+    assert.deepEqual(
+      [...erw.matchAll(/^\s+\('(\d\d_[a-z_]+)', /gm)].map((m) => m[1]),
+      ["00_form", "01_felder_ohne_werte", "02_ohne_aenderung", "03_alle_arten", "04_sprache", "05_speakerin_selbst", "06_schreibt_weiter", "07_abgewiesen", "08_anmeldung"],
+    );
     assert.match(t, /request\.jwt\.claims/);
     assert.match(t, /set local role anon/);
     assert.match(t, /assistant_person_id/);
