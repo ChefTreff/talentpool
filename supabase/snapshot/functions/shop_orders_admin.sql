@@ -13,5 +13,5 @@ begin
       from shop_order o join org_edition oe on oe.id = o.org_edition_id join organization org on org.id = oe.org_id
       cross join lateral shop_order_totals(o.id) t
      where p_edition_id is null or oe.edition_id = p_edition_id
-     order by case o.status when 'pending' then 0 when 'editing' then 1 when 'draft' then 2 when 'completed' then 3 else 4 end, o.updated_at desc;
+     order by case o.status when 'pending' then 0 when 'quoted' then 1 when 'editing' then 2 when 'draft' then 3 when 'completed' then 4 else 5 end, o.updated_at desc;
 end $$;

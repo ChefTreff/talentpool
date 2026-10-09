@@ -10,6 +10,7 @@ begin
   select * into v_o from shop_order where id = p_order_id for update;
   if not found then raise exception 'order_not_found' using errcode = 'P0002'; end if;
   if v_o.status = 'cancelled' then raise exception 'not_editable' using errcode = 'P0001', detail = v_o.status; end if;
+  if v_o.status = 'quoted' then raise exception 'order_quoted' using errcode = 'P0001', detail = v_o.id::text; end if;
   select * into v_pr from product where sku = p_sku;
   if not found then raise exception 'unknown_sku' using errcode = '22023', detail = p_sku; end if;
   if coalesce(p_qty, 0) <= 0 then

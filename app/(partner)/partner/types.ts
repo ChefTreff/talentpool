@@ -31,8 +31,6 @@ export type PartnerOverview = {
      */
     description_de: string | null;
     description_en: string | null;
-    logo_dark: string | null;
-    logo_light: string | null;
     address: {
       street: string | null;
       zip: string | null;
