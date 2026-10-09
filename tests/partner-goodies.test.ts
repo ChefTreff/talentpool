@@ -50,7 +50,7 @@ describe("Masterclass: Goodies (PART-054, Datenmodell)", () => {
 
 describe("Masterclass: Goodies (PART-054, Oberfläche)", () => {
   it("Portal und Admin nutzen dieselbe Maske, gespeichert über partner_update_session", () => {
-    const seite = src("app/(partner)/partner/masterclass/page.tsx");
+    const seite = src("app/(partner)/partner/masterclass/Instanz.tsx");
     assert.match(seite, /<GoodiesFrage/);
     assert.match(seite, /save=\{updateFormatDetails\.bind\(null, x\.id\)\}/);
     assert.match(seite, /const WIKI_ANLIEFERUNG = "\/partner\/wiki#anlieferung-aufbau";/);

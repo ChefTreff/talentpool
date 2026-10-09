@@ -33,10 +33,12 @@ export function SectionTabs({ items, label }: { items: SectionTab[]; label: stri
   return (
     <nav aria-label={label} className="mb-6 flex flex-wrap gap-1 border-b pb-3">
       {items.map((item) => {
+        // Eine Abfrage im Ziel (`/partner/masterclass?instanz=…`, QS-079) gehört nicht zum Pfad: verglichen wird der Pfad.
+        const pfad = item.href.split("?")[0];
         const active = item.aktiv !== undefined ? item.aktiv : item.exact
-          ? pathname === item.href ||
+          ? pathname === pfad ||
             (item.detailPattern ? new RegExp(item.detailPattern).test(pathname) : false)
-          : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          : pathname === pfad || pathname.startsWith(`${pfad}/`);
         return (
           // 32 px am Desktop, am Handy 44 (QS-059, Touch-Ziele wie QS-057) — beides hält `ChipLink`.
           <ChipLink key={item.href} href={item.href} aktiv={active}>

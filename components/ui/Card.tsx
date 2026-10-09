@@ -71,8 +71,10 @@ export function CardHeader({
 }) {
   const Kopf = ebene;
   return (
-    <div className="mb-4 flex items-start justify-between gap-4">
-      <div>
+    // `flex-wrap`: passt die Aktion neben den Titel, steht sie rechts; sonst bricht sie **unter** den Text (links) — am Handy nie rechts gequetscht,
+    // nie der Knopftext auf zwei Zeilen (Skill-Regel 13, „Liste mit Zeilenaktion“, PART-149).
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+      <div className="min-w-0">
         <Kopf className={ebene === "h2" ? "ct-h2 text-ink" : "ct-h3 text-ink"}>{title}</Kopf>
         {description && <p className="ct-help mt-1">{description}</p>}
       </div>

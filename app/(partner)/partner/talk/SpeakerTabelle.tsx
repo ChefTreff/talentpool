@@ -27,7 +27,8 @@ type Strings = Record<string, string>;
  * Angaben). Was für alle gilt — wer sich selbst pflegt, wer über den Operations-Kontakt läuft — steht **einmal**
  * unter der Tabelle (`page.tsx`), nicht bei jedem Namen.
  *
- * Die Karte `SpeakerKarte` bleibt für die Masterclass-Seite; hier ersetzt die Tabelle sie nur auf der Talk-Seite.
+ * Dieselbe Tabelle steht auf der Talk- **und** auf der Masterclass-Seite (PART-149, 09.10.2026): die Karte je Person mit dem Knopf
+ * darunter ist weg, die Aktion steht in der Zeile, rechts. „Speaker eintragen“ steht nicht hier, sondern in der Kopfzeile des Blocks.
  */
 export function SpeakerTabelle({
   speakers,
@@ -77,7 +78,13 @@ export function SpeakerTabelle({
                 </Td>
                 <Td>
                   {darfPflegen && (
-                    <Button size="sm" variant="secondary" onClick={() => setOffen(sp.profile_id)}>
+                    // Jede Zeile trägt dieselbe Aktion, also trägt der Knopf den Bezug (Skill-Regel 13): „Angaben pflegen: Anna Beispiel“.
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      aria-label={`${t.edit}: ${sp.display_name || t.unnamed}`}
+                      onClick={() => setOffen(sp.profile_id)}
+                    >
                       {t.edit}
                     </Button>
                   )}

@@ -5,19 +5,23 @@ import { MasterclassKopf } from "../MasterclassKopf";
 
 export const dynamic = "force-dynamic";
 
-/** Teilnehmende der Masterclass: zugesagt und bestätigt (PART-045), dritter Reiter. */
-export default async function PartnerMasterclassParticipantsPage() {
+/**
+ * Teilnehmende der Masterclass: zugesagt und bestätigt (PART-045), dritter Reiter. Bei mehreren Masterclasses (QS-079) steht nur
+ * die gewählte da (`?instanz=`).
+ */
+export default async function PartnerMasterclassParticipantsPage({ searchParams }: { searchParams: Promise<{ instanz?: string | string[] }> }) {
   await requireArea("partner", "/partner/masterclass/teilnehmende");
-  const { supabase, locale, t, current, sessions, gebucht, canEdit } = await ladeMasterclass();
+  const { instanz } = await searchParams;
+  const { supabase, locale, t, current, sessions, gewaehlt, instanzen, gebucht, canEdit } = await ladeMasterclass(instanz);
   const s = t.partnerMasterclass;
   return (
     <>
-      <MasterclassKopf gebucht={gebucht} sessions={sessions.length} word={t.partner.wordInvitation} t={s} b={t.partnerBewerbung} />
-      {sessions.length > 0 && (
+      <MasterclassKopf gebucht={gebucht} sessions={sessions.length} instanzen={instanzen} word={t.partner.wordInvitation} t={s} b={t.partnerBewerbung} />
+      {gewaehlt && (
         <FormatBewerbungen
           supabase={supabase}
           orgId={current.org_id}
-          sessions={sessions}
+          sessions={[gewaehlt]}
           nurTeilnehmende
           canEdit={canEdit}
           locale={locale}

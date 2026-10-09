@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { Drawer } from "@/components/ui/Drawer";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -26,6 +27,11 @@ type Weg = "eigen" | "verwaltet";
  *
  * Ohne Operations-Kontakt gibt es nur den eigenen Zugang; die Datenbank lehnt
  * den anderen Weg dann ohnehin ab (`no_ops_contact`).
+ *
+ * **Der Knopf steht dort, wo er wirkt** (PART-149, Konrad 09.10.2026, Skill-Regel 13): in der Kopfzeile des Blocks „Wer spricht“
+ * (`CardHeader action`) — oder, solange noch niemand eingetragen ist, im Leerzustand. Das Formular öffnet im Schubfach, nicht
+ * aufgeklappt unter dem Knopf: sonst springt die Kopfzeile, und die Liste rutscht weg. Ein Fehler steht im Schubfach (`Drawer error`),
+ * nicht dahinter. Wohin der Knopf kommt, entscheidet die Seite; diese Datei zeichnet Knopf und Schubfach.
  */
 export function SpeakerHinzufuegen({
   sessionId,
@@ -49,6 +55,8 @@ export function SpeakerHinzufuegen({
 
   const kontakt = (text: string) => text.replaceAll("{kontakt}", opsName ?? "");
   const verwaltet = weg === "verwaltet" && opsName !== null;
+  const bereit = draft.email.trim() !== "";
+  const formId = `speaker-eintragen-${sessionId}`;
 
   function schliessen() {
     setDraft({ email: "", firstName: "", lastName: "" });
@@ -58,6 +66,7 @@ export function SpeakerHinzufuegen({
   }
 
   function eintragen() {
+    if (!bereit) return;
     setFehler(null);
     startSaving(async () => {
       const res = await addTalkSpeaker({
@@ -77,81 +86,79 @@ export function SpeakerHinzufuegen({
     });
   }
 
-  if (!offen) {
-    return (
-      <div>
-        <Button variant="secondary" size="sm" onClick={() => setOffen(true)}>
-          {t.addSpeaker}
-        </Button>
-      </div>
-    );
-  }
-
   const optionen = [{ value: "eigen", label: t.modeOwn }];
   if (opsName !== null) optionen.push({ value: "verwaltet", label: kontakt(t.modeManaged) });
 
   return (
-    <form
-      className="flex max-w-detail flex-col gap-4"
-      onSubmit={(e) => {
-        e.preventDefault();
-        eintragen();
-      }}
-    >
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Field label={t.firstName} htmlFor={`nfn-${sessionId}`}>
-          <Input
-            id={`nfn-${sessionId}`}
-            value={draft.firstName}
-            onChange={(e) => setDraft({ ...draft, firstName: e.target.value })}
-          />
-        </Field>
-        <Field label={t.lastName} htmlFor={`nln-${sessionId}`}>
-          <Input
-            id={`nln-${sessionId}`}
-            value={draft.lastName}
-            onChange={(e) => setDraft({ ...draft, lastName: e.target.value })}
-          />
-        </Field>
-        <Field
-          label={t.email}
-          htmlFor={`nem-${sessionId}`}
-          hint={verwaltet ? kontakt(t.emailHintManaged) : t.emailHint}
+    <>
+      <Button variant="secondary" size="sm" className="whitespace-nowrap" onClick={() => setOffen(true)}>
+        {t.addSpeaker}
+      </Button>
+      {offen && (
+        <Drawer
+          open
+          onClose={schliessen}
+          title={t.addSpeaker}
+          error={fehler}
+          footer={
+            <div className="flex flex-wrap gap-2">
+              {/* Im Fuß des Schubfachs, aber Teil des Formulars: so löst auch die Eingabetaste in einem Feld es aus. */}
+              <Button type="submit" form={formId} loading={saving} disabled={!bereit}>
+                {t.addSpeaker}
+              </Button>
+              <Button variant="ghost" onClick={schliessen} disabled={saving}>
+                {t.cancel}
+              </Button>
+            </div>
+          }
         >
-          <Input
-            id={`nem-${sessionId}`}
-            type="email"
-            value={draft.email}
-            onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-          />
-        </Field>
-      </div>
-      <Field
-        label={t.modeQuestion}
-        htmlFor={`nweg-${sessionId}`}
-        hint={opsName === null ? t.modeNoOps : verwaltet ? kontakt(t.modeManagedHint) : t.modeOwnHint}
-        className="max-w-form"
-      >
-        <Select
-          id={`nweg-${sessionId}`}
-          value={verwaltet ? "verwaltet" : "eigen"}
-          options={optionen}
-          onChange={(e) => setWeg(e.target.value as Weg)}
-        />
-      </Field>
-      {fehler && (
-        <p role="alert" className="ct-small text-error-ink">
-          {fehler}
-        </p>
+          <form
+            id={formId}
+            className="flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              eintragen();
+            }}
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={t.firstName} htmlFor={`nfn-${sessionId}`}>
+                <Input
+                  id={`nfn-${sessionId}`}
+                  value={draft.firstName}
+                  onChange={(e) => setDraft({ ...draft, firstName: e.target.value })}
+                />
+              </Field>
+              <Field label={t.lastName} htmlFor={`nln-${sessionId}`}>
+                <Input
+                  id={`nln-${sessionId}`}
+                  value={draft.lastName}
+                  onChange={(e) => setDraft({ ...draft, lastName: e.target.value })}
+                />
+              </Field>
+            </div>
+            <Field label={t.email} htmlFor={`nem-${sessionId}`} hint={verwaltet ? kontakt(t.emailHintManaged) : t.emailHint}>
+              <Input
+                id={`nem-${sessionId}`}
+                type="email"
+                value={draft.email}
+                onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+              />
+            </Field>
+            <Field
+              label={t.modeQuestion}
+              htmlFor={`nweg-${sessionId}`}
+              hint={opsName === null ? t.modeNoOps : verwaltet ? kontakt(t.modeManagedHint) : t.modeOwnHint}
+            >
+              <Select
+                id={`nweg-${sessionId}`}
+                value={verwaltet ? "verwaltet" : "eigen"}
+                options={optionen}
+                onChange={(e) => setWeg(e.target.value as Weg)}
+              />
+            </Field>
+          </form>
+        </Drawer>
       )}
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit" loading={saving} disabled={draft.email.trim() === ""}>
-          {t.addSpeaker}
-        </Button>
-        <Button type="button" variant="ghost" onClick={schliessen} disabled={saving}>
-          {t.cancel}
-        </Button>
-      </div>
-    </form>
+    </>
   );
 }
