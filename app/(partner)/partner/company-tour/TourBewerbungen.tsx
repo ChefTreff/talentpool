@@ -68,7 +68,7 @@ export async function TourBewerbungen({
   return (
     <div className="flex flex-col gap-6">
       <p className="ct-help max-w-text">
-        {nurTeilnehmende ? s.participantsLead : s.applicationsLead} {t.applicants.auditNotice}
+        {nurTeilnehmende ? s.participantsLead : s.applicationsLead} {t.applicants.consentNote} {t.applicants.auditNotice}
         {!nurTeilnehmende && canEdit && ` ${t.bewerbung.exportHint}`}
       </p>
       {stopps.map((x, i) => {
