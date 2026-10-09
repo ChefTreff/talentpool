@@ -1,4 +1,5 @@
--- 00NN · „Eure Bühne“: Speaker auf der gebrandeten Bühne und der Menüpunkt nur mit Bühne (PART-138)
+-- 0293 · Eure Bühne: has_stage nur Standbühne/gebrandete Bühne, Speaker-Wege für Team-Sessions auf der gebrandeten Bühne (PART-138 Teil 1)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009075544.
 --
 -- Anlass: PART-138 (Konrad & Leopold 05.10.): Partner mit dem Produkt „Bühnen-Branding“ branden eine unserer Bühnen und geben Inhalte ein; aus „Standbühne“
 -- wird „Eure Bühne“, Speaker einer gebrandeten Bühne sind normale Speaker (PART-091), Standbühnen-Gäste bleiben Gäste (PART-081). Datenmodell: Vorschlag
