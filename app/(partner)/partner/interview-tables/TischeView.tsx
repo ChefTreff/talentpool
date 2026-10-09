@@ -9,6 +9,7 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { useUngesichert, type UngesichertTexte } from "@/components/ui/useUngesichert";
 import { ProfilAuswahl, profilUmschalten, type ProfilFeld, type Zielprofil } from "@/components/partner/ProfilAuswahl";
 import { createFormatSession, deleteFormatSession, setInterviewPosting } from "../actions";
 import { EVENT_TZ, MAX_SLOTS, rechneSlots, type PartnerDay, type PartnerStage } from "../formate";
@@ -46,6 +47,8 @@ export function TischeView({
   profilFelder,
   statusLabel,
   rueckgabe,
+  bewerbungenHref,
+  unsaved,
   locale,
   t,
   rpcMessages,
@@ -61,6 +64,10 @@ export function TischeView({
   statusLabel: Record<string, string>;
   /** PART-083: Kennzeichen und Hinweis bei einer zurückgegebenen Session. */
   rueckgabe: RueckgabeTexte;
+  /** Der Weg zu den Bewerbungen; bei mehreren Tischen mit `?instanz=<Tisch>` (QS-079), damit sie dort in demselben Tisch ankommen. */
+  bewerbungenHref: string;
+  /** Rückfrage vor dem Verlassen mit ungesicherten Eingaben (QS-051), Texte aus `common.unsaved` der Seite — auch beim Wechsel des Tisches (QS-079). */
+  unsaved: UngesichertTexte;
   locale: string;
   t: Strings;
   rpcMessages: Record<string, string>;
@@ -84,6 +91,13 @@ export function TischeView({
     interview_mode: (ersteDetails.interview_mode as string) ?? "single",
   });
   const [profil, setProfil] = useState<Zielprofil>((ersteDetails.target_profile as Zielprofil) ?? {});
+
+  // Was beim Öffnen stand oder zuletzt gespeichert wurde: nur eine Abweichung davon ist „ungesichert“. Gesichert sind die Ausschreibung und das Profil, sobald sie
+  // gespeichert oder mit neuen Gesprächen angelegt sind, das Zeitfenster, sobald daraus Gespräche entstanden sind. Wer tippt und den Tisch wechselt
+  // (QS-079, `?instanz=`) oder die Seite verlässt, wird gefragt — `useUngesichert` fängt den Link ab.
+  const [basis, setBasis] = useState({ plan, posting, profil });
+  const geaendert = JSON.stringify({ plan, posting, profil }) !== JSON.stringify(basis);
+  const warnung = useUngesichert(canEdit && geaendert, unsaved);
 
   const tag = days.find((d) => d.id === plan.dayId);
   const vorschau = tag
@@ -132,6 +146,8 @@ export function TischeView({
           ? t.createdPartly.replace("{n}", String(gebaut)).replace("{f}", String(schlecht))
           : t.createdAll.replace("{n}", String(gebaut)),
       );
+      // Zeitfenster und Ausschreibung sind jetzt Gespräche am Tisch — nichts davon ist mehr ungesichert.
+      setBasis({ plan, posting, profil });
       router.refresh();
     });
   }
@@ -169,6 +185,8 @@ export function TischeView({
           ? `${t.postingPartly.replace("{n}", String(updated)).replace("{f}", String(failed))} ${rpcMessages[firstKey ?? "unknown"] ?? ""}`.trim()
           : t.postingSaved.replace("{n}", String(updated)),
       );
+      // Nur Ausschreibung und Profil sind gesichert; ein noch nicht angelegtes Zeitfenster bleibt, was es war.
+      setBasis((b) => ({ ...b, posting, profil }));
       router.refresh();
     });
   }
@@ -397,7 +415,7 @@ export function TischeView({
         <h2 className="ct-h2 text-ink">{t.applicantsTitle}</h2>
         <p className="ct-small mt-1 leading-6">{t.applicantsLead}</p>
         <p className="mt-3">
-          <Link href="/partner/interview-tables/bewerbungen" className="ct-link">
+          <Link href={bewerbungenHref} className="ct-link">
             {t.toApplicants}
           </Link>
         </p>
@@ -419,6 +437,7 @@ export function TischeView({
           onConfirm={() => entfernen(loeschen)}
         />
       )}
+      {warnung}
     </div>
   );
 }

@@ -41,7 +41,8 @@
  *                                   Produktionsliste je Stand mit Paket, Angebot und Shop; braucht partner)
  *   … --apply --nur=formate        (PART-082: Side-Event und Interview Table der Test-
  *                                   Organisation mit Fläche, Session und Konrads
- *                                   Bewerbung ohne Mail; braucht partner)
+ *                                   Bewerbung ohne Mail; QS-079: zwei Interview Tables,
+ *                                   damit der Tisch-Umschalter zu sehen ist; braucht partner)
  *   … --apply --nur=masterclass    (PART-045: TEST-Masterclass im TEST-Raum statt auf
  *                                   der Standbühne, beantragte eigene Frage, Speakerin;
  *                                   braucht partner und talk)
@@ -2422,6 +2423,22 @@ const TEST_FORMATE = [
       format_details: {
         interview_mode: "single", job_title: "Junior Consultant (TEST)",
         job_posting_text: "Testausschreibung für die Feedback-Runden.",
+      },
+    },
+    status: "shortlisted",
+  },
+  // QS-079 (Konrad 09.10.2026): ein **zweiter** Tisch, damit `/partner/interview-tables` seinen Umschalter zeigt (ab zwei Tischen) — eine eigene Fläche mit eigenem
+  // Gespräch und anderer Stelle. Dieselbe Regel wie beim ersten: ohne Mail, `--remove` nimmt Fläche, Slot und Session über Slug und Titel mit.
+  {
+    schluessel: "interview_table",
+    buehne: { name: `${PREFIX}Interview Table 2`, slug: "zz-test-interview-table-2", type: "interview_table", capacity: 2, default_duration_min: 30 },
+    zeit: ["15:00", "15:30"],
+    session: {
+      title_de: `${PREFIX}Interview Table 2`, title_en: `${PREFIX}Interview table 2`,
+      capacity: 1,
+      format_details: {
+        interview_mode: "single", job_title: "Werkstudent Marketing (TEST)",
+        job_posting_text: "Zweite Testausschreibung für den zweiten Tisch.",
       },
     },
     status: "shortlisted",
