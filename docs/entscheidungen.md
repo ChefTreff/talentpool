@@ -1518,3 +1518,7 @@ Konrads Zielbild (15.09.): Admin-Sektion für alle Speaker-Daten (nur Konrad, He
 - **Nachtrag Pause:** **0287** `v6_nachbuchung` (Partner-Chat, #406) angewendet und gemergt — `org_product.nachgebucht_am`, Kontakte-Gate am Folge-Deal, `partner_overview` additiv, **Sicherheitsfix `sync_granted_roles`** (Entziehen nur für Rollen aus `product.grants_role`; vorher endete die hubspot-Kontaktrolle bei jeder Änderung an `org_product`). Probelauf 28/28. Testdaten `--nur=nachbuchung` nach der Pause durch den Partner-Chat. Nächste freie Nummer 0288.
 - **K-86** (Konrad 08.10. spät): „wie empfohlen“ — Volunteers-Startseite wird auch „Home“ (Design, kleiner PR nach der Pause), das kursive Stichwort über dem H1 der Unterseiten bleibt, zwei „Home“ im Talent-Menü sind in Ordnung.
 
+## 2026-10-09 — vivenu: Antworten vom 11.09. und Nachtrag vom 06.10. dokumentiert
+
+- `docs/vivenu-antworten-2026-09-11.md` fasst die Antworten des vivenu Product Experts auf Konrads acht Fragen zusammen (Inhaber-E-Mail über Extra-Feld, „Tickets nicht versenden“ + eigener Versand, Webhook-Signatur/Retries/IDs, Freitickets mit `sendMail: false`, Undershops automatisiert, `appliedDiscountInfo`, `meta` am Item, Sandbox = Prod, Retry bei 429, Kaution nur mit Erstattung bis ~6 Monate). Nachtrag 06.10.: öffentlicher Endpunkt für Datenfelder je Tickettyp → **QS-078** (Talent-Chat prüft die Umstellung). Antwortentwurf an vivenu liegt im Postfach (zwei Entwürfe, Konrad wählt).
+
