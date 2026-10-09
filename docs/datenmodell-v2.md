@@ -221,6 +221,7 @@
 | Welle 6 · 0294 | **Wiki: fette Zeilen werden Zwischenüberschriften (PART-104 Teil 2, Redaktion)** (`20261009080045`, `v6_wiki_zwischenueberschriften`; Details im Migrationskopf) | — |
 | Welle 6 · 0295 | **Side Events je Speaker lesen: speaker_side_events (ADM-087)** (`20261009080908`, `v6_speaker_side_events`; Details im Migrationskopf) | — |
 | Welle 6 · 0296 | **Ticket-Bestätigung im Portal: Tickets der Transaktion, Verknüpfung beim Login, Rückschreibe-Marke (TAL-019)** (`20261009081920`, `v6_ticket_bestaetigung`; Details im Migrationskopf) | — |
+| Welle 6 · 0297 | **Ticket-Personalisierung im Admin: Statuszahl und Liste nicht personalisierter Tickets (TAL-019 Teil 2)** (`20261009121142`, `v6_ticket_personalisierung_admin`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
