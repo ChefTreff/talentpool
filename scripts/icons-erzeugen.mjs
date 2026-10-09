@@ -6,13 +6,15 @@
  *   app/favicon.ico     16, 32 und 48 px für alles andere (ersetzt die Vorgabe von create-next-app, das Vercel-Logo)
  *   app/apple-icon.png  180 px, deckend bis an den Rand (iOS rundet selbst ab)
  *
- * Quellen: `public/brand/cheftreff-logo.svg` (Pfade der Bildmarke), `app/globals.css` (`--ct-navy`, `--ct-on-navy`).
- * Die Marke steht auf Navy in Off-White, wie in der Seitenleiste (Konrad F8.2: monochrom): Navy gegen Off-White
- * 15,8 : 1, und das Quadrat trägt auf hellen wie auf dunklen Tab-Leisten.
+ * Quellen: `public/brand/cheftreff-logo.svg` (Pfade der Bildmarke), `public/brand/original/cheftreff-logo-original.svg`
+ * (die Farbe, in der die Marke gezeichnet ist: Violett #5454C5) und `app/globals.css` (`--ct-on-navy`).
+ * Die Marke steht in Off-White auf einem Quadrat in der Originalfarbe der Marke (K-73 Q7, Konrad 08.10.: eine Variante in
+ * Violett zum Testen; erste Fassung #361: Navy wie in der Seitenleiste): Off-White gegen Violett 5,5 : 1, und das Quadrat
+ * hebt sich auf hellen wie auf dunklen Tab-Leisten ab.
  *
  * Aufruf (aus dem Repo-Ordner): node scripts/icons-erzeugen.mjs
- * Nach einer Änderung an Logo oder Tokens neu laufen lassen und die drei Dateien mit einchecken; `tests/favicon.test.ts`
- * prüft, dass die Dateien zu den Tokens passen.
+ * Nach einer Änderung an Logo, Originalfarbe oder Token neu laufen lassen und die drei Dateien mit einchecken;
+ * `tests/favicon.test.ts` prüft, dass die Dateien zu den Quellen passen.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -27,6 +29,15 @@ function token(css, name) {
   const treffer = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})\\b`).exec(css);
   if (!treffer) throw new Error(`Token --${name} steht nicht (mehr) in app/globals.css`);
   return treffer[1].toLowerCase();
+}
+
+/** Die Farbe der Originaldatei der Marke: alle Pfade tragen dieselbe. Eine zweite Farbe bricht ab, statt eine zu raten. */
+function originalfarbe(svg) {
+  const farben = new Set([...svg.matchAll(/<path\b[^>]*\bfill="(#[0-9a-fA-F]{6})"/g)].map((t) => t[1].toLowerCase()));
+  if (farben.size !== 1) {
+    throw new Error(`public/brand/original/cheftreff-logo-original.svg: erwartet eine Farbe für alle Pfade, gefunden ${farben.size}`);
+  }
+  return [...farben][0];
 }
 
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
@@ -187,8 +198,8 @@ const BILDER = {
   apple: { groesse: 180, anteil: 0.66, radius: 0 },
 };
 
-export function baueIcons(css, logoSvg) {
-  const grund = token(css, "ct-navy");
+export function baueIcons(css, logoSvg, originalSvg) {
+  const grund = originalfarbe(originalSvg);
   const zeichen = token(css, "ct-on-navy");
   const m = marke(logoSvg);
 
@@ -197,8 +208,9 @@ export function baueIcons(css, logoSvg) {
   const zahl = (n) => String(Number(n.toFixed(5)));
   const svg = [
     // In einem XML-Kommentar darf "--" nicht stehen; sonst lädt der Browser die Datei nicht als Bild.
-    `<!-- Erzeugt von scripts/icons-erzeugen.mjs aus public/brand/cheftreff-logo.svg und den Tokens ct-navy (${grund})`,
-    `     und ct-on-navy (${zeichen}) in app/globals.css. Nicht von Hand ändern, sondern das Skript neu laufen lassen. -->`,
+    `<!-- Erzeugt von scripts/icons-erzeugen.mjs aus public/brand/cheftreff-logo.svg, der Originalfarbe der Marke (${grund}) in`,
+    `     public/brand/original/ und dem Token ct-on-navy (${zeichen}) in app/globals.css. Nicht von Hand ändern, sondern das`,
+    `     Skript neu laufen lassen. -->`,
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${groesse} ${groesse}" width="${groesse}" height="${groesse}">`,
     `<rect width="${groesse}" height="${groesse}" rx="${radius}" fill="${grund}"/>`,
     `<g transform="translate(${zahl(ox)} ${zahl(oy)}) scale(${zahl(s)})" fill="${zeichen}">`,
@@ -217,7 +229,11 @@ export function baueIcons(css, logoSvg) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const dateien = baueIcons(lies("app/globals.css"), lies("public/brand/cheftreff-logo.svg"));
+  const dateien = baueIcons(
+    lies("app/globals.css"),
+    lies("public/brand/cheftreff-logo.svg"),
+    lies("public/brand/original/cheftreff-logo-original.svg"),
+  );
   for (const [pfad, inhalt] of Object.entries(dateien)) {
     writeFileSync(join(WURZEL, pfad), inhalt);
     console.log(`${pfad}  ${Buffer.byteLength(inhalt)} Byte`);

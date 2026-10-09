@@ -51,7 +51,7 @@ export function PaarFormular({ t, rpcMessages }: { t: Strings; rpcMessages: Stri
       const r = await findePaar(erste, zweite);
       if (!r.ok) { setFehler({ feld: r.feld ?? 1, text: meldung(rpcMessages, r.key) }); return; }
       setFehler(null);
-      router.push(`/admin/dubletten/zusammenfuehren?bleibt=${r.a}&geht=${r.b}`);
+      router.push(`/admin/personen/dubletten/zusammenfuehren?bleibt=${r.a}&geht=${r.b}`);
     });
   }
 
@@ -119,7 +119,7 @@ export function ZusammenfuehrenKnopf({
               setFrage(false);
               if (!r.ok) { setFehler(meldung(rpcMessages, r.key)); return; }
               toast("success", t.mergeDone);
-              router.push("/admin/dubletten");
+              router.push("/admin/personen/dubletten");
             })
           }
         />

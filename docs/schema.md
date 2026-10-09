@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-09 07:56 UTC · 124 Tabellen · 6 Views · 757 Funktionen
+> Stand: 2026-10-09 08:10 UTC · 124 Tabellen · 6 Views · 759 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -3005,6 +3005,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_mail_recipient` | p_profile_id: uuid |
 | `speaker_managers` | args: ? |
 | `speaker_next_steps` | p_profile_id: uuid |
+| `speaker_side_events` | p_profile_id: uuid |
 | `speaker_tasks_admin` | p_edition_id: uuid |
 | `speaker_ticket_create` | p_profile_id: uuid |
 | `speaker_ticket_for_issue` | p_ticket_id: uuid |
@@ -3105,6 +3106,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `volunteer_tickets_admin` | p_edition_id: uuid |
 | `volunteers_without_safety_ack` | p_edition_id: uuid |
 | `volunteers_without_wish` | p_edition_id: uuid |
+| `wiki_fette_zeilen_zu_ueberschriften` | p_md: text |
 | `wishable_shifts` | p_edition_id: uuid |
 | `withdraw_application` | p_application_id: uuid |
 | `withdraw_hack_request` | p_request_id: uuid |

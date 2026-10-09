@@ -157,7 +157,9 @@
  *                                   zwei TEST-Speaker haben zu- und abgesagt — für /admin/side-events und
  *                                   den Abschnitt „Side Events“ in /speaker. Erst nach „Migration live“ von
  *                                   v6_side_events. Den One-Click-Link probiert man mit „Erneut einladen“ an der
- *                                   eigenen Einladung: die Mail geht an Konrads Postfach)
+ *                                   eigenen Einladung: die Mail geht an Konrads Postfach. Seit ADM-087 ist Konrad auch zum
+ *                                   Entwurf eingeladen — der Block „Side Events“ unter /admin/speaker/<sein Profil> zeigt dann
+ *                                   Dinner und „Nicht veröffentlicht“; ein erneuter Lauf setzt beide Einladungen zurück)
  *   … --apply --nur=sperrzeit      (ADM-085/LEAD-062: eine TEST-Sperrzeit „Opening: bis 14:30 keine Slots“ auf der
  *                                   Stage-Lead-Testbühne am ersten Summit-Tag und eine TEST-Bühne, die nur am ersten
  *                                   Tag gilt — für /admin/edition (Karte „Sperrzeiten“, Spalte „Gilt an“) und die
@@ -3382,7 +3384,7 @@ async function sperrlisteEintrag() {
 /**
  * ADM-036: zwei TEST-Personen ohne Konto als Dublettenpaar — gleiche
  * LinkedIn-Angabe, die zweite mit Telefon und einem Interesse mehr. Konrad
- * öffnet unter `/admin/dubletten` die Vorschau, führt zusammen und nimmt es
+ * öffnet unter `/admin/personen/dubletten` die Vorschau, führt zusammen und nimmt es
  * unter „Zusammengeführt" wieder zurück. Adressen aus seinem eigenen Postfach
  * (`+zztest-dublette-a/-b`); es entsteht kein Login und keine Mail. Nach einem
  * Zusammenführen gehört die zweite Adresse der ersten Person — dann sagt der
@@ -3399,7 +3401,7 @@ async function dublettenPaar() {
   }
   const [a, b] = ids;
   if (!a || !b) return;
-  if (a === b) return note("Dublettenpaar", "schon zusammengeführt — unter /admin/dubletten → Zusammengeführt zurücknehmen, dann erneut laufen lassen");
+  if (a === b) return note("Dublettenpaar", "schon zusammengeführt — unter /admin/personen/dubletten → Zusammengeführt zurücknehmen, dann erneut laufen lassen");
   const linkedin = "zztest-dublette-konrad";
   await write("LinkedIn-Angabe beider TEST-Personen", () =>
     admin.from("person").update({ linkedin_normalized: linkedin }).in("id", [a, b]));
@@ -3416,7 +3418,7 @@ async function dublettenPaar() {
     admin.from("potential_duplicate").upsert(
       { person_id_a: x, person_id_b: y, score: 0.9, signals: { linkedin: true } },
       { onConflict: "person_id_a,person_id_b", ignoreDuplicates: true }));
-  note("Dubletten ausprobieren", "/admin/dubletten → „Zusammenführen prüfen“ beim Paar TEST Dublette");
+  note("Dubletten ausprobieren", "/admin/personen/dubletten → „Zusammenführen prüfen“ beim Paar TEST Dublette");
 }
 
 /**
@@ -3678,7 +3680,16 @@ async function sideEventsSchritt(me, ed) {
       invited_by: me.id, invited_at: jetzt, responded_at: null, token_hash: null, mailed_at: null,
     }, { onConflict: "side_event_id,profile_id" }));
 
-  note("Side Events ausprobieren", "/admin/side-events: zwei Karten (Dinner mit 2 von 10 Plätzen, Entwurf), „Einladungen“ zeigt Konrad und die zwei TEST-Gäste; /speaker: Abschnitt „Side Events“ mit der Karte „Antwort offen“");
+  // ADM-087: auch zum Entwurf eingeladen — so zeigt der Block „Side Events“ im Speaker-Detail beide Zustände: das Dinner (eingeladen,
+  // veröffentlicht, „Offen“) und die Afterparty (eingeladen, **nicht veröffentlicht** — der Speaker sieht sie im Portal nicht, das Team
+  // sieht, dass die Einladung noch steht). Eine Einladung zu einem Entwurf legt keine Funktion an, darum direkt geschrieben.
+  await write("Konrads Einladung zur TEST-Afterparty (Entwurf, nicht veröffentlicht — nur im Block „Side Events“ des Speaker-Details zu sehen)", () =>
+    admin.from("side_event_invite").upsert({
+      side_event_id: ids[SIDE_EVENT_ENTWURF], profile_id: sp.id, status: "invited", guests: 0, note: null, via: "team",
+      invited_by: me.id, invited_at: jetzt, responded_at: null, token_hash: null, mailed_at: null,
+    }, { onConflict: "side_event_id,profile_id" }));
+
+  note("Side Events ausprobieren", "/admin/side-events: zwei Karten (Dinner mit 2 von 10 Plätzen, Entwurf), „Einladungen“ zeigt Konrad und die zwei TEST-Gäste; /speaker: Abschnitt „Side Events“ mit der Karte „Antwort offen“; /admin/speaker → Konrads Testprofil → Block „Side Events“ (Dinner eingeladen · Marke „Offen“, Afterparty „Nicht veröffentlicht“; nach einer Antwort in /speaker zeigt er Stand, Begleitung und Weg)");
 }
 
 /** ADM-085: Kennzeichen der TEST-Sperrzeit und der TEST-Bühne mit Gültigkeitstagen. */
