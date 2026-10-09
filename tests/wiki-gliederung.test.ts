@@ -73,10 +73,11 @@ describe("PART-104: Wiki — die Regel für fette Überschriften (dieselben Fäl
 
   it("die Migration folgt der Konvention: Kopf, `search_path`, Hilfsfunktion nur für den Server, `harden_definer_functions` zuletzt", () => {
     const sql = migrationText("v6_wiki_zwischenueberschriften");
-    assert.match(sql, /^-- 00NN · Wiki: fette Zeilen werden Zwischenüberschriften/);
+    // Beim Anwenden setzt die Architektur-Session ihre Zeilen über den Kopf und trägt die Nummer ein: der Kopf steht nicht mehr in Zeile 1.
+    assert.match(sql, /^-- (00NN|\d{4}) · Wiki: fette Zeilen werden Zwischenüberschriften/m);
     assert.match(sql, /\nset search_path = public, extensions;\n/);
     assert.match(sql, /revoke execute on function wiki_fette_zeilen_zu_ueberschriften\(text\) from public, anon, authenticated;/);
-    assert.match(sql.trimEnd(), /select harden_definer_functions\(\);$/);
+    assert.match(sql.trimEnd(), /select harden_definer_functions\(\);(\s*--[^\n]*)*$/);
     // Idempotent und lückenlos: nur Zeilen ändern, die sich ändern, und die Zahl gegenprüfen.
     assert.match(sql, /where body_md is distinct from wiki_fette_zeilen_zu_ueberschriften\(body_md\)/);
     assert.match(sql, /if v_geaendert <> v_artikel then/);
