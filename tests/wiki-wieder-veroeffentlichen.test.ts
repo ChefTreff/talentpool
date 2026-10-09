@@ -4,19 +4,21 @@ import { describe, it } from "node:test";
 
 const lies = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
-describe("Wiki: archivierter Artikel wieder veröffentlichen (ADM-104)", () => {
+describe("Wiki: archivierter Artikel wieder veröffentlichen (ADM-104, seit ADM-103 je Sprachfassung im Artikel)", () => {
+  const form = lies("app/(admin)/admin/wiki/ArtikelFormular.tsx");
   const admin = lies("app/(admin)/admin/wiki/WikiAdmin.tsx");
 
-  it("für einen archivierten Artikel steht ein Knopf „Wieder veröffentlichen“ in der Zeile", () => {
-    assert.match(admin, /a\.status === "archived" && \(\s*<Button[^>]*onClick=\{\(\) => run\(publishArticle\(a\.id, true\), t\.republished\)\}/);
+  it("für eine archivierte Fassung steht ein Knopf „Wieder veröffentlichen“ im Artikel", () => {
+    assert.match(form, /fassung\.status === "archived" && \(\s*<Button[^>]*onClick=\{\(\) => onPublish\(fassung\.id, true, t\.republished\)\}/);
   });
 
-  it("der bisherige Knopf Veröffentlichen/Zurückziehen bleibt auf nicht archivierte Artikel beschränkt", () => {
-    assert.match(admin, /a\.status !== "archived" && \(\s*<Button/);
+  it("Veröffentlichen/Zurückziehen und Archivieren bleiben auf nicht archivierte Fassungen beschränkt", () => {
+    assert.match(form, /fassung\.status !== "archived" && \(\s*<Button/);
   });
 
-  it("der Status steht weiter als Marke in der Übersicht", () => {
-    assert.match(admin, /<Badge tone=\{STATUS_TONE\[a\.status\] \?\? "neutral"\}>/);
+  it("der Status steht je Sprache als Marke in der Übersicht, und das Veröffentlichen läuft über publish_kb_article je Zeile", () => {
+    assert.match(admin, /<Badge\s+tone=\{STATUS_TONE\[z\.status\] \?\? "neutral"\}>/);
+    assert.match(admin, /publishArticle\(id, published\)/);
   });
 
   it("die Beschriftungen stehen in DE und EN", () => {

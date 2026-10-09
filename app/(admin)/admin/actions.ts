@@ -296,16 +296,6 @@ export async function declineBooking(
   return { ok: true, data: undefined };
 }
 
-// === Fristen ================================================================
-
-export async function saveDeadline(data: Record<string, unknown>): Promise<AdminOpResult> {
-  const supabase = await client(PATHS.deadlines);
-  const { error } = await supabase.rpc("upsert_deadline", { p_data: data });
-  if (error) return fail(error, "fristen");
-  revalidatePath(PATHS.deadlines);
-  return { ok: true, data: undefined };
-}
-
 // === Technik-Check ==========================================================
 
 export async function setTechCheck(

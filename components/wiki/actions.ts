@@ -53,6 +53,44 @@ export async function saveArticle(input: ArticleInput): Promise<ActionResult<{ i
   return { ok: true, data: { id: data as string } };
 }
 
+/** Die Felder, die für beide Sprachfassungen eines Artikels gleich sind (`upsert_kb_article_pair`). */
+export type ArtikelGemeinsam = {
+  audience?: string[];
+  roles?: string[];
+  phase?: string;
+  category?: string | null;
+  product_formats?: string[];
+  valid_until?: string | null;
+  sort_order?: number;
+};
+
+/** Titel und Text einer Sprachfassung. */
+export type Sprachtext = { title: string; body_md: string };
+
+/**
+ * Einen Artikel mit **beiden** Sprachfassungen speichern (ADM-103): die gemeinsamen Felder gehen in beide Zeilen, Titel und
+ * Text je Sprache; `null` lässt eine Sprache unverändert, eine fehlende Sprache entsteht als Entwurf. Eine Transaktion.
+ */
+export async function saveArticlePair(input: {
+  slug: string;
+  edition_id: string | null;
+  shared: ArtikelGemeinsam;
+  de: Sprachtext | null;
+  en: Sprachtext | null;
+}): Promise<ActionResult<{ de?: string; en?: string }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("upsert_kb_article_pair", {
+    p_slug: input.slug,
+    p_edition_id: input.edition_id,
+    p_shared: input.shared,
+    p_de: input.de,
+    p_en: input.en,
+  });
+  if (error) return fail(error);
+  revalidateAll();
+  return { ok: true, data: (data ?? {}) as { de?: string; en?: string } };
+}
+
 export async function publishArticle(id: string, published: boolean): Promise<ActionResult> {
   const supabase = await client();
   const { error } = await supabase.rpc("publish_kb_article", { p_id: id, p_published: published });
