@@ -37,6 +37,8 @@ import { aufraeumen, blockMarken, naechstePflichten, warNachZusage, type Pflicht
 import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/Einordnung";
 import { Verlauf } from "@/components/speaker/Verlauf";
 import { PhotoUpload } from "@/components/speaker/PhotoUpload";
+import { SideEventsBlock } from "@/components/speaker/SideEventsBlock";
+import { sideEventsKurz, sideEventsMarke, type SpeakerSideEvent } from "@/lib/speaker/side-events";
 import {
   buehnenGeaendert,
   einordnungAenderungen,
@@ -77,6 +79,7 @@ export function SpeakerDetailView({
   meId,
   verlaufArten,
   verlaufStand,
+  sideEvents,
   dateLocale,
   word,
   t,
@@ -105,6 +108,8 @@ export function SpeakerDetailView({
   verlaufArten: Record<string, string>;
   /** Nächste Aufgabe und letzte Aktivität aus dem Verlauf — `speaker_detail()` liefert sie nicht, die Seite liest sie dazu. */
   verlaufStand: VerlaufStand;
+  /** Die Side-Event-Einladungen der Person (ADM-087, `speaker_side_events`); `null`, wenn sie nicht zu laden waren. */
+  sideEvents: SpeakerSideEvent[] | null;
   dateLocale: string;
   /** Das kursive Wort des Abschnitts im Seitenkopf (QS-037). */
   word: string;
@@ -329,6 +334,9 @@ export function SpeakerDetailView({
   );
   const kurzProgramm =
     sessions.length === 0 ? tl.shortNoSession : sessions.length === 1 ? tl.shortOneSession : nenne(tl.shortSessions, { n: String(sessions.length) });
+  // Side Events (ADM-087): „Offen · n“ bei unbeantworteten Einladungen zu veröffentlichten Events; konnten sie nicht geladen werden, sagt es die Zeile.
+  const markeSideEvents = sideEvents === null ? undefined : sideEventsMarke(sideEvents, tl);
+  const kurzSideEvents = sideEvents === null ? tl.sideEventsError : sideEventsKurz(sideEvents, tl);
 
   return (
     <>
@@ -353,6 +361,7 @@ export function SpeakerDetailView({
           { id: "onboarding", label: tl.blockOnboarding },
           { id: "profil", label: t.blockProfile },
           { id: "hospitality", label: tl.blockHospitality },
+          { id: "side-events", label: tl.blockSideEvents },
           { id: "programm", label: tl.blockProgramme },
         ]}
       />
@@ -792,6 +801,19 @@ export function SpeakerDetailView({
               </dl>
             </div>
           </section>
+        </Block>
+
+        {/* Side Events (ADM-087): nur lesend — eingeladen und der Stand gesetzt wird unter /admin/side-events. Der Admin sieht den Block in jedem
+            Stand wie alle anderen. */}
+        <Block id="side-events" karte ebene="h2" titel={tl.blockSideEvents} marke={markeSideEvents} kurz={kurzSideEvents}>
+          <SideEventsBlock
+            rows={sideEvents}
+            gast={gast}
+            statusLabels={labels.sideEventStatus ?? {}}
+            sprache={dateLocale}
+            locale="de"
+            t={tl}
+          />
         </Block>
 
         <Block

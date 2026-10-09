@@ -310,14 +310,14 @@ describe("LEAD-055: das Fenster (Quelltext)", () => {
     assert.match(f(), /import \{[^}]*\bConfirmDialog\b[^}]*\} from "@\/components\/ui\/Modal";/);
   });
 
-  it("fünf Blöcke in fester Reihenfolge, jeder mit Überschrift der Ebene 3 unter dem Namen", () => {
+  it("sechs Blöcke in fester Reihenfolge (Side Events zwischen Hospitality und Programm, ADM-087), jeder mit Überschrift der Ebene 3 unter dem Namen", () => {
     const text = f();
-    const ids = ["fenster-grunddaten", "fenster-pipeline", "fenster-onboarding", "fenster-hospitality", "fenster-programm"];
+    const ids = ["fenster-grunddaten", "fenster-pipeline", "fenster-onboarding", "fenster-hospitality", "fenster-side-events", "fenster-programm"];
     const stellen = ids.map((id) => text.indexOf(`id="${id}"`));
-    assert.ok(stellen.every((s) => s > 0), "alle fünf Blöcke stehen im Fenster");
+    assert.ok(stellen.every((s) => s > 0), "alle sechs Blöcke stehen im Fenster");
     assert.deepEqual([...stellen].sort((a, b) => a - b), stellen, "die Reihenfolge ist fest");
-    assert.equal((text.match(/<Block\b/g) ?? []).length, 5);
-    assert.equal((text.match(/ebene="h3"/g) ?? []).length, 5);
+    assert.equal((text.match(/<Block\b/g) ?? []).length, 6);
+    assert.equal((text.match(/ebene="h3"/g) ?? []).length, 6);
     assert.match(text, /<h2 className="ct-h3 text-ink">\{name\}<\/h2>/);
   });
 

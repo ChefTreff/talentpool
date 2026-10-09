@@ -9,6 +9,7 @@ import { aktuellesFotoAdresse } from "@/lib/speaker/foto";
 import { fotoTexte } from "@/components/speaker/foto-texte";
 import { boardEvents } from "@/components/programme/events";
 import { verlaufStandVon, type VerlaufEintrag } from "@/lib/speaker/verlauf";
+import type { SpeakerSideEvent } from "@/lib/speaker/side-events";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export default async function AdminSpeakerDetail({
   if (error || !data) notFound();
   const speaker = data as SpeakerDetail;
 
-  const [{ data: managers }, { data: contacts }, vocab, events, { data: consentRows }, fotoUrl, { data: verlaufRows }] = await Promise.all([
+  const [{ data: managers }, { data: contacts }, vocab, events, { data: consentRows }, fotoUrl, { data: verlaufRows }, sideEventsAntwort] = await Promise.all([
     supabase.rpc("speaker_managers"),
     supabase.rpc("edition_contacts_admin", { p_edition_id: speaker.edition_id }),
     loadVocabMap(supabase, locale),
@@ -48,6 +49,9 @@ export default async function AdminSpeakerDetail({
     aktuellesFotoAdresse(supabase, id),
     // LEAD-055: die nächste Aufgabe und die letzte Aktivität für den Kopf — `speaker_detail()` trägt sie nicht.
     supabase.rpc("speaker_activities", { p_profile_id: id }),
+    // ADM-087: die Side-Event-Einladungen der Person (ohne Hinweis und Token) — nur das Speaker-Team darf sie lesen, und wer diese Seite
+    // öffnen darf, ist es. Ein Fehler wird zu „nicht zu laden“ im Block, nie zu einer leeren Liste („nicht eingeladen“ wäre falsch).
+    supabase.rpc("speaker_side_events", { p_profile_id: id }),
   ]);
   const { data: stageRows } = events.length
     ? await supabase
@@ -71,6 +75,7 @@ export default async function AdminSpeakerDetail({
         speakerType: vgroup(vocab, "speaker_type"),
         hospitality: vgroup(vocab, "hospitality_status"),
         hotelTier: vgroup(vocab, "hotel_tier"),
+        sideEventStatus: vgroup(vocab, "side_event_status"),
         passType: vgroup(vocab, "ticket_type"),
         declineReason: vgroup(vocab, "speaker_decline_reason"),
         travelMode: vgroup(vocab, "travel_mode"),
@@ -91,6 +96,7 @@ export default async function AdminSpeakerDetail({
       meId={ctx.personId ?? ""}
       verlaufArten={vgroup(vocab, "speaker_activity_kind")}
       verlaufStand={verlaufStandVon((verlaufRows ?? []) as VerlaufEintrag[])}
+      sideEvents={sideEventsAntwort.error ? null : ((sideEventsAntwort.data ?? []) as SpeakerSideEvent[])}
       tv={t.speakerVerlauf}
       tg={t.speakerGast}
       dateLocale={t.meta.dateLocale}

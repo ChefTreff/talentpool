@@ -77,6 +77,7 @@ export async function PipelineSeite({ ansicht, path }: { ansicht: PipelineAnsich
             passType: vgroup(vocab, "ticket_type"),
             declineReason: vgroup(vocab, "speaker_decline_reason"),
             publishStatus: vgroup(vocab, "publish_status"),
+            sideEventStatus: vgroup(vocab, "side_event_status"),
           }}
           einordnungOptionen={{
             category: vgroup(vocab, "speaker_category"),
