@@ -1,7 +1,8 @@
 "use client";
 
-import { Fragment, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { WERKZEUGE, flach, type WerkzeugKey } from "@/lib/markdown-werkzeuge";
+import { naechsterKnopf } from "@/components/ui/format-leiste-ring";
 
 /** Zeichen und Symbole der Werkzeuge — als Zeichnung, nicht als ausgeschriebenes Wort (ADM-103 g). */
 const SYMBOL: Record<WerkzeugKey, ReactNode> = {
@@ -33,11 +34,19 @@ function Zeichnung({ children }: { children: ReactNode }) {
  * Die Formatierungsleiste (ADM-103 g, ADM-102 f), nach dem Muster des Design-Chats:
  *
  * * **Symbole statt ausgeschriebener Wörter**; der Name steht als `title` (Maus) und `aria-label` (Vorlesen) am Knopf.
- * * **Gruppen mit Trennstrich:** Verlauf | Zeichen | Listen | Einfügen.
+ * * **Gruppen mit Trennstrich:** Verlauf | Zeichen | Listen | Einfügen. **Jede Gruppe ist ein eigenes Element mit dem Strich
+ *   links** (nicht ein Strich zwischen den Knöpfen): bricht die Leiste am Handy um, bleibt kein Strich am Zeilenende
+ *   stehen (09.10.2026, Abnahme Vorschlag 10-09). Der Strich der ersten Gruppe jeder Zeile liegt außerhalb des
+ *   sichtbaren Rands (`-ml-px` im Inneren, `overflow-x-clip` außen) und fällt weg — nur in der Breite, damit die
+ *   Fokusringe oben und unten nicht abgeschnitten werden.
  * * **Größe nach Kit-Regel:** `size-8` am Desktop, `size-11` bei grobem Zeiger (Touch) — am Desktop wären 44 px je Knopf
  *   eine Leiste von 550 px.
- * * **APG-Toolbar:** ein Tab-Stopp für die ganze Leiste (Roving Tabindex), Pfeiltasten wandern, Pos1/Ende springen;
- *   `aria-controls` zeigt auf das Textfeld. Sonst wären es zwölf Tab-Stopps vor dem Text.
+ * * **APG-Toolbar:** ein Tab-Stopp für die ganze Leiste (Roving Tabindex), Pfeiltasten wandern (`naechsterKnopf`),
+ *   Pos1/Ende springen; `aria-controls` zeigt auf das Textfeld. Sonst wären es zwölf Tab-Stopps vor dem Text. **Der
+ *   Umschalter am rechten Rand (z. B. „Vorschau“) gehört zum Ring**, sonst wären es zwei Tab-Stopps und die Pfeile
+ *   erreichten ihn nicht.
+ * * **Der Name bei Tastaturfokus:** `title` zeigt ihn nur der Maus; wer mit Tab und Pfeilen kommt, sieht ihn als kleine
+ *   Zeile unter der Leiste (`:focus-visible`, nie bei der Maus). Die Zeile liegt außerhalb des geclippten Elements.
  * * Der Klick nimmt dem Textfeld den Fokus nicht (`onMouseDown`), sonst ginge die Cursorposition verloren, bevor das
  *   Werkzeug sie liest.
  */
@@ -46,7 +55,7 @@ export function FormatLeiste({
   onAnwenden,
   steuert,
   t,
-  ende,
+  umschalter,
 }: {
   gruppen: WerkzeugKey[][];
   onAnwenden: (key: WerkzeugKey) => void;
@@ -54,51 +63,84 @@ export function FormatLeiste({
   steuert: string;
   /** Beschriftungen `tool_<key>` und `toolbar`. */
   t: Record<string, string>;
-  /** Steht am rechten Rand der Leiste (z. B. „Vorschau“). */
-  ende?: ReactNode;
+  /** Ein Umschalter am rechten Rand der Leiste (z. B. „Vorschau“); er hat `aria-pressed` und gehört zum Ring der Pfeiltasten. */
+  umschalter?: { label: string; pressed: boolean; onToggle: () => void };
 }) {
   const alle = flach(gruppen);
+  const anzahl = alle.length + (umschalter ? 1 : 0);
   const [aktiv, setAktiv] = useState(0);
+  const [fokusName, setFokusName] = useState<string | null>(null);
   const knoepfe = useRef<(HTMLButtonElement | null)[]>([]);
 
   function taste(e: KeyboardEvent) {
-    const richtung = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-    if (!richtung && e.key !== "Home" && e.key !== "End") return;
+    const neu = naechsterKnopf(e.key, aktiv, anzahl);
+    if (neu === null) return;
     e.preventDefault();
-    const neu = e.key === "Home" ? 0 : e.key === "End" ? alle.length - 1 : (aktiv + richtung + alle.length) % alle.length;
     setAktiv(neu);
     knoepfe.current[neu]?.focus();
   }
 
+  function fokus(index: number, name: string, el: HTMLElement) {
+    setAktiv(index);
+    setFokusName(el.matches(":focus-visible") ? name : null);
+  }
+
   let laufend = -1;
   return (
-    <div role="toolbar" aria-label={t.toolbar} aria-controls={steuert} onKeyDown={taste} className="flex flex-wrap items-center gap-1 rounded-ct-sm border bg-canvas p-1">
-      {gruppen.map((gruppe, gi) => (
-        <Fragment key={gi}>
-          {gi > 0 && <span aria-hidden className="mx-1 h-5 w-px bg-border" />}
-          {gruppe.map((key) => {
-            const index = ++laufend;
-            const name = t[`tool_${key}`] ?? WERKZEUGE[key].key;
-            return (
+    <div className="relative">
+      <div role="toolbar" aria-label={t.toolbar} aria-controls={steuert} onKeyDown={taste} className="overflow-x-clip rounded-ct-sm border bg-canvas">
+        <div className="-ml-px flex flex-wrap items-center gap-y-1 py-1 pr-1">
+          {gruppen.map((gruppe, gi) => (
+            <div key={gi} className="flex items-center gap-1 border-l px-1">
+              {gruppe.map((key) => {
+                const index = ++laufend;
+                const name = t[`tool_${key}`] ?? WERKZEUGE[key].key;
+                return (
+                  <button
+                    key={key}
+                    ref={(el) => { knoepfe.current[index] = el; }}
+                    type="button"
+                    tabIndex={index === aktiv ? 0 : -1}
+                    onFocus={(e) => fokus(index, name, e.currentTarget)}
+                    onBlur={() => setFokusName(null)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => onAnwenden(key)}
+                    title={name}
+                    aria-label={name}
+                    className="flex size-8 items-center justify-center rounded-ct-sm ct-label text-muted transition-colors hover:bg-surface-hover hover:text-ink pointer-coarse:size-11"
+                  >
+                    {SYMBOL[key]}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+          {umschalter && (
+            <div className="ml-auto pl-1">
               <button
-                key={key}
-                ref={(el) => { knoepfe.current[index] = el; }}
+                ref={(el) => { knoepfe.current[alle.length] = el; }}
                 type="button"
-                tabIndex={index === aktiv ? 0 : -1}
-                onFocus={() => setAktiv(index)}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => onAnwenden(key)}
-                title={name}
-                aria-label={name}
-                className="flex size-8 items-center justify-center rounded-ct-sm ct-label text-muted transition-colors hover:bg-surface-hover hover:text-ink pointer-coarse:size-11"
+                tabIndex={alle.length === aktiv ? 0 : -1}
+                aria-pressed={umschalter.pressed}
+                onFocus={(e) => fokus(alle.length, umschalter.label, e.currentTarget)}
+                onBlur={() => setFokusName(null)}
+                onClick={umschalter.onToggle}
+                className={
+                  "min-h-8 rounded-ct-sm px-2.5 ct-label transition-colors pointer-coarse:min-h-11 " +
+                  (umschalter.pressed ? "bg-accent-soft text-accent-deep" : "text-muted hover:bg-surface-hover hover:text-ink")
+                }
               >
-                {SYMBOL[key]}
+                {umschalter.label}
               </button>
-            );
-          })}
-        </Fragment>
-      ))}
-      {ende && <div className="ml-auto">{ende}</div>}
+            </div>
+          )}
+        </div>
+      </div>
+      {fokusName && (
+        <p aria-hidden className="absolute left-0 top-full z-10 mt-1 rounded-ct-sm bg-shell px-2 py-1 ct-small text-on-navy">
+          {fokusName}
+        </p>
+      )}
     </div>
   );
 }
