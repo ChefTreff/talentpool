@@ -408,5 +408,7 @@ describe("ADM-087: Admin-Weg, Testdaten und Doku", () => {
     assert.match(testdaten, /`\/admin\/speaker` → Konrads Testprofil → Block „Side Events“/);
     assert.match(quelle("docs/datenschutz-verarbeitungen.md"), /seit ADM-087 auch je Speaker als Block „Side Events“/);
     assert.match(quelle("supabase/tests/README.md"), /\| `v6_speaker_side_events\.sql` \|/);
+    // die Backlog-Zeile trägt die PR-Nummer (nie „gebaut #PR“ ohne Nummer stehen lassen)
+    assert.match(quelle("docs/feedback/admin.md"), /\| ADM-087 \|[^\n]*\| P2 \| (geplant|gebaut|abgenommen) #\d+/);
   });
 });
