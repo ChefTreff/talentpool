@@ -78,9 +78,11 @@ describe("WikiView", () => {
   });
 
   it("hält die Überschriftenfolge ein: Seitentitel, verborgene Ebene, Themen, Artikel", () => {
-    // h1 (PageHeader) → h2 (nur für Vorlesesoftware) → h3 Themen; Artikel: h2 → h3 Abschnitte.
+    // h1 = Artikeltitel (PageHeader, `titleId="wiki-titel"`; am Handy in der Liste „Wiki“) → h2 (nur für Vorlesesoftware) → h3 Themen;
+    // im Artikel: h2 Abschnitte → h3 Unterabschnitte (PART-104, `Markdown`).
     assert.match(quelle, /<h2 id="wiki-liste" className="sr-only">/);
-    assert.match(quelle, /<h2 id="wiki-titel"/);
+    assert.match(quelle, /titleId="wiki-titel"/);
+    assert.doesNotMatch(quelle, /<h2 id="wiki-titel"/);
   });
 
   it("meldet die Trefferzahl als Statusmeldung", () => {
@@ -96,7 +98,9 @@ describe("WikiView", () => {
     assert.match(quelle, /lg:hidden/);
     assert.match(quelle, /fokusZiel\.current = "titel"/);
     assert.match(quelle, /fokusZiel\.current = "liste"/);
-    assert.match(quelle, /tabIndex=\{-1\}/);
+    // Der Titel trägt `tabIndex={-1}` im `PageHeader`, sobald er eine Referenz bekommt.
+    assert.match(quelle, /titleRef=\{titelRef\}/);
+    assert.match(lies("components/ui/PageHeader.tsx"), /tabIndex=\{titleRef \? -1 : undefined\}/);
   });
 
   it("markiert den Standardartikel nur, wo er zu sehen ist (nicht in der Handyliste)", () => {
