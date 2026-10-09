@@ -11,7 +11,7 @@ import { FristMarke, type FristTexte } from "@/components/ui/FristMarke";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@/components/ui/Table";
 import { aktuelleFassung, useDateiOeffnen, usePflichtUpload, useVorschau } from "../UploadKachel";
 import type { Deliverable } from "../types";
-import { HOCHLADBAR, dateiFormat, dateiName, dateiReihenfolge, einzigesFormat } from "./zeilen";
+import { HOCHLADBAR, dateiFormat, dateiName, dateiReihenfolge, einzigesFormat, zeigtFrist } from "./zeilen";
 
 type Strings = Record<string, string>;
 
@@ -159,8 +159,9 @@ export function DateienView({
                       )}
                     </Td>
                     <Td label={t.colDeadline}>
-                      {/* Ohne Frist bleibt die Zelle leer: gestapelt fällt dann auch die Beschriftung weg (`td:empty`). */}
-                      {d.due_at && d.status !== "accepted" ? (
+                      {/* Eine Frist zeigt nur, wo der Partner noch etwas tun kann; eingereicht und angenommen haben keine (K-90). Dann
+                          bleibt die Zelle leer: gestapelt fällt auch die Beschriftung weg (`td:empty`). */}
+                      {d.due_at && zeigtFrist(d.status) ? (
                         <FristMarke
                           kompakt
                           dueAt={d.due_at}
