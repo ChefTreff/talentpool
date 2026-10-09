@@ -9,16 +9,21 @@ begin
   for r in
     select o.*, oe.org_id, oe.edition_id
     from shop_order o join org_edition oe on oe.id = o.org_edition_id
-    where o.status in ('draft', 'pending', 'editing')
+    where o.status in ('draft', 'pending', 'editing', 'quoted')
       and exists (select 1 from deadline d
                    where d.edition_id = oe.edition_id
                      and d.key = shop_phase_deadline_key(o.phase)
                      and d.due_at < now())
     order by o.created_at
   loop
-    if r.status = 'draft' or not exists (select 1 from shop_order_line where order_id = r.id) then
+    -- PART-116: ein Angebot ohne Bestellung bis zum Phasenende verfällt wie ein Entwurf (Reservierung frei).
+    if r.status in ('draft', 'quoted') or not exists (select 1 from shop_order_line where order_id = r.id) then
       perform shop_reconcile_ledger(r.id, true);
-      update shop_order set status = 'cancelled', cancelled_at = now() where id = r.id;
+      update shop_order set status = 'cancelled', cancelled_at = now(), quote_started_at = null, quote_valid_until = null where id = r.id;
+      if r.status = 'quoted' then
+        update external_ref set meta = meta || jsonb_build_object('closed', 'phase_end', 'closed_at', now())
+         where system = 'sevdesk' and object_type = 'shop_quote' and object_id = r.id;
+      end if;
       v_cancelled := v_cancelled + 1;
       continue;
     end if;
