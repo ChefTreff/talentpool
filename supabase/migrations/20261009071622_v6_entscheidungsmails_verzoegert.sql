@@ -1,4 +1,5 @@
--- 00NN · Warteliste und Absage ebenso verzögern wie die Zusage (PART-146)
+-- 0288 · Warteliste und Absage verzögert wie die Zusage (PART-146)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009071622.
 --
 -- Anlass: PART-124 (0280) verzögert die Zusage-Mail um zehn Minuten; eine Rücknahme in der Zeit stoppt sie. Bleibt es dabei, geht bei **Absage und erneuter Zusage**
 -- innerhalb der Frist die Absage-Mail trotzdem raus (Frage Partner-Chat an Plan im PR #396, Entscheidung Plan 08.10.: ja, alle drei gleich — PART-146).
