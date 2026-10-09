@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { migrationText } from "@/tests/migration-datei";
+import { istVorschlag, migrationText } from "@/tests/migration-datei";
 import { sperreAusAntwort, sperrHinweis, sperrZeit, type ShuttleSperre } from "@/lib/speaker/shuttle-sperre";
 
 /**
@@ -66,7 +66,12 @@ describe("LEAD-065: die Migration `v6_shuttle_sperre`", () => {
     assert.match(funktion(c, "shuttle_lock_at"), /join deadline d on d\.edition_id = sp\.edition_id and d\.key = 'shuttle_lock_from'/);
   });
 
-  it("`request_shuttle` und `cancel_shuttle` sind bis auf den Sperrblock der Snapshot — nichts anderes ist verschwunden", () => {
+  it("`request_shuttle` und `cancel_shuttle` sind bis auf den Sperrblock der Snapshot — nichts anderes ist verschwunden (solange die Migration noch Vorschlag ist)", (t) => {
+    // db-konventionen, Nachtrag 09.10.2026: nach dem Anwenden ist der Snapshot maßgeblich und wandert mit späteren Migrationen derselben Funktionen weiter.
+    if (!istVorschlag("v6_shuttle_sperre")) {
+      t.skip("angewendet (0299): der Snapshot ist maßgeblich");
+      return;
+    }
     const c = sql();
     for (const name of ["request_shuttle", "cancel_shuttle"]) {
       const neu = OHNE_SPERRBLOCK(funktion(c, name)).trimEnd();

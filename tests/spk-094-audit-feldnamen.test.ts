@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { migrationText } from "@/tests/migration-datei";
+import { istVorschlag, migrationText } from "@/tests/migration-datei";
 
 /**
  * SPK-094 (Befund aus #452, Plan 09.10.2026): ändert die **Assistenz** ein Speaker-Profil, protokolliert `update_my_speaker_profile` nur die Namen der
@@ -49,7 +49,12 @@ describe("SPK-094: die Migration `v6_speaker_audit_feldnamen`", () => {
     assert.doesNotMatch(code(sql()), /\b(insert\s+into|update|delete\s+from|truncate)\s+audit_log\b/i);
   });
 
-  it("die Funktion ist bis auf die Audit-Zeilen der Snapshot — nichts anderes ist verschwunden (vor wie nach dem Anwenden)", () => {
+  it("die Funktion ist bis auf die Audit-Zeilen der Snapshot — nichts anderes ist verschwunden (solange die Migration noch Vorschlag ist)", (t) => {
+    // db-konventionen, Nachtrag 09.10.2026: nach dem Anwenden ist der Snapshot maßgeblich und wandert mit späteren Migrationen derselben Funktion weiter.
+    if (!istVorschlag("v6_speaker_audit_feldnamen")) {
+      t.skip("angewendet (0301): der Snapshot ist maßgeblich");
+      return;
+    }
     const neu = OHNE_SPK094(funktion(sql(), "update_my_speaker_profile")).trimEnd();
     const alt = OHNE_SPK094(quelle("supabase/snapshot/functions/update_my_speaker_profile.sql")).replace(/end \$\$;\s*$/, "").trimEnd();
     assert.equal(neu, alt, "update_my_speaker_profile weicht vom Snapshot ab");
