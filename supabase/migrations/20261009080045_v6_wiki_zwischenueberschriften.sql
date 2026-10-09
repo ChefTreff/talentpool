@@ -1,4 +1,5 @@
--- 00NN · Wiki: fette Zeilen werden Zwischenüberschriften (PART-104 Teil 2, Redaktion)
+-- 0294 · Wiki: fette Zeilen werden Zwischenüberschriften (PART-104 Teil 2, Redaktion)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009080045.
 --
 -- Anlass: Konrad & Leopold 05.10.2026 (Durchgang Partner-Portal): „unübersichtlich, Abschnitte und Überschriften nicht klar erkennbar, auch in
 -- den Texten unsaubere Überschriften“. Vorschlag `docs/design-vorschlaege-2026-10-06.md` §1 (Konrads Go 08.10., K-73), Plan 09.10.2026:
