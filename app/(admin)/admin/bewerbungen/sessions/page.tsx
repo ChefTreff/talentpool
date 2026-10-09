@@ -57,6 +57,7 @@ export default async function BewerbungenSessionsPage() {
         items={[
           { href: PFAD, label: a.tabList, exact: true },
           { href: `${PFAD}/sessions`, label: a.tabSessions },
+          { href: `${PFAD}/tickets`, label: a.tabTickets },
         ]}
       />
 
