@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/Toast";
 import { BEWERBUNG_STATUS_TON } from "@/components/partner/bewerbung";
 import { BewerbungDetails } from "@/components/partner/BewerbungDetails";
 import { ENTSCHEIDBAR, ENTSCHEIDUNGEN, SAMMEL_MAX, type Entscheidung } from "@/lib/bewerbungen/liste";
-import { mitZusageFrist } from "@/lib/mail/zusage-frist";
+import { mitEntscheidungFrist } from "@/lib/mail/entscheidung-frist";
 import { decideApplication, decideApplicationsBulk } from "./actions";
 
 type Strings = Record<string, string>;
@@ -254,8 +254,8 @@ export function BewerbungsListe({
           detail={
             freigegebenUnter > 0 ? (
               <p className="rounded-ct-md border border-warning-soft bg-warning-soft p-3 ct-small text-warning-ink">
-                {/* PART-124: nach der Freigabe wartet die Zusage-Mail zehn Minuten, alle anderen gehen sofort. */}
-                {mitZusageFrist(
+                {/* PART-124/146: nach der Freigabe wartet jede Entscheidungs-Mail (Zusage, Warteliste, Absage) zehn Minuten. */}
+                {mitEntscheidungFrist(
                   freigegebenUnter === 1
                     ? t.bulkReleasedWarningOne
                     : t.bulkReleasedWarning.replace("{n}", String(freigegebenUnter)),
