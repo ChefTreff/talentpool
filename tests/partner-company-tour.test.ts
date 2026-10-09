@@ -38,7 +38,8 @@ describe("Company Tour im Partner-Portal (PART-046)", () => {
   it("Seite im Menü, drei Reiter, Stopp und Bewerbungen über die RPCs", () => {
     assert.match(src("app/(partner)/layout.tsx"), /company_tour: \{ href: "\/partner\/company-tour"/);
     const tabs = src("app/(partner)/partner/company-tour/TourTabs.tsx");
-    for (const pfad of ["`${BASE}/bewerbungen`", "`${BASE}/teilnehmende`"]) assert.ok(tabs.includes(pfad), pfad);
+    // Seit QS-079 hängt an jedem Reiter die Wahl des Stopps (`?instanz=…`); ohne Umschalter ist `suffix` leer, die Adressen bleiben die alten.
+    for (const pfad of ["`${BASE}/bewerbungen${suffix}`", "`${BASE}/teilnehmende${suffix}`"]) assert.ok(tabs.includes(pfad), pfad);
     assert.match(src("app/(partner)/partner/company-tour/daten.ts"), /rpc\("partner_company_tour", args\)/);
     assert.match(src("app/(partner)/partner/company-tour/TourBewerbungen.tsx"), /rpc\("partner_tour_applications", \{ p_stop_id: x\.stop_id \}\)/);
     assert.match(src("app/(partner)/partner/actions.ts"), /rpc\("partner_update_tour_stop", \{ p_stop_id: stopId, p_fields: fields \}\)/);
