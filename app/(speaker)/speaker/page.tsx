@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { PhotoCard } from "@/components/ui/PhotoCard";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
+import { profilSchrittHref } from "@/lib/speaker/profil-reiter";
 import { SideEventCard } from "./SideEventCard";
 import { Checkliste, type Aufgabe } from "./Checkliste";
 import { Termine, type Termin } from "./Termine";
@@ -157,7 +158,8 @@ export default async function SpeakerPage() {
       key,
       titel: step.title,
       beschreibung: step.body,
-      href: STEP_HREF[key] ?? null,
+      // SPK-088: „Profil“ führt in den Reiter, in dem etwas fehlt (Namen ⇒ Person, sonst Auftritt & Bio).
+      href: key === "profile" ? profilSchrittHref(person) : STEP_HREF[key] ?? null,
       erledigt: !open.includes(key),
       faellig: due ? { iso: due, text: fristFormat.format(new Date(due)) } : null,
     };
