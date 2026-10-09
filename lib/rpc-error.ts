@@ -352,6 +352,8 @@ const BUSINESS_KEYS = new Set([
   // Partner-Slots (Vorschlag v6_partner_slots, K-84): auf einer Partnerbühne legt der Partner nur Inhalts-Slots an.
   // Löschen: `unpublish_first` und `slot_locked` stehen schon in der Liste.
   "slot_type_not_allowed",
+  // Shuttle-Sperre ab Beginn der Shuttle-Periode (Vorschlag v6_shuttle_sperre, LEAD-065, K-64): Anfrage und Stornierung nur noch über das Speaker-Team.
+  "shuttle_locked",
   // Standbühnen-Gäste (Vorschlag v6_standbuehnen_gaeste, PART-081)
   "stage_guest",
   "already_speaker",
