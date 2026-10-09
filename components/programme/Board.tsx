@@ -633,6 +633,10 @@ export function Board({
     !!editing?.slotId &&
     !!day &&
     (zeitSlot ? zeitSlot.can_edit && bearbeitbar(zeitSlot.stage_id) : !!editing.neu && bearbeitbar(editing.neu.stageId));
+  // K-84: „Slot löschen“ — das Programm-Team (die Sicht ohne `editableStageIds`: jede Art) und der Partner auf seiner Bühne (nur Inhalts-Slots,
+  // wie `delete_slot`); Stage Leads löschen nicht. Entschieden wird es in der Datenbank — der Knopf steht nur, wo er greifen kann.
+  const slotLoeschbar =
+    zeitAenderbar && (partner ? (zeitSlot?.slot_type ?? "content") === "content" : editableStageIds === undefined);
 
   if (days.length === 0) {
     return <EmptyState title={t.noDayTitle} description={t.noDayBody} />;
@@ -975,6 +979,7 @@ export function Board({
           canPublish={canPublish && !partner}
           hostOrgId={hostOrgId}
           partnerSicht={partner}
+          canDeleteSlot={slotLoeschbar}
           slotInfo={(() => {
             // Was der Drawer oben zeigt (LEAD-019): der Slot ist hier schon
             // geladen, ein zweiter Abruf im Drawer wäre doppelte Arbeit. Ein

@@ -35,6 +35,7 @@ export async function volunteerAdminShell(pathname: string): Promise<
     { href: "/admin/volunteers/schichten", label: t.adminVolunteers.tabShifts },
     { href: "/admin/volunteers/vorlagen", label: t.adminVolunteers.tabTemplates },
     { href: "/admin/volunteers/tickets", label: t.adminVolunteers.tabTickets },
+    { href: "/admin/volunteers/fristen", label: t.adminVolunteers.tabDeadlines },
   ];
 
   const frame = (title: string, description: string, children: ReactNode) => (
