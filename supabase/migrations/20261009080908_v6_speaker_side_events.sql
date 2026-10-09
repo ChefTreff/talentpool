@@ -1,4 +1,5 @@
--- 02NN · Side Events je Speaker lesen: speaker_side_events(profile) (ADM-087)
+-- 0295 · Side Events je Speaker lesen: speaker_side_events (ADM-087)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009080908.
 -- Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
 --
 -- Anlass: Auslegung H aus dem Review von #364 (Side Events) — der Block „Side Events“ je Speaker im Admin-Detail (`/admin/speaker/[id]`) und im
