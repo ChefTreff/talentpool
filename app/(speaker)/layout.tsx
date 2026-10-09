@@ -110,6 +110,8 @@ export default async function SpeakerLayout({ children }: { children: ReactNode 
           keys={SPEAKER_CONSENTS.map((key) => ({
             key,
             label: (t.speaker as Record<string, string>)[CONSENT_LABEL[key]] ?? key,
+            // SPK-078 (K-56): bei „Hotel und Shuttle“ der Hinweis zu Ernährung — Zweck, freiwillig, Löschung. Kein eigener Einwilligungstext.
+            hint: key === "hospitality_data" ? t.speaker.consentHospitalityHint : undefined,
           }))}
           t={{
             title: t.speaker.consentGateTitle,

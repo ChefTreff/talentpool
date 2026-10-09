@@ -3490,7 +3490,7 @@
     "choiceHint": "Danach bestellen wir die Mengen.",
     "note": "Unverträglichkeiten oder Allergien",
     "noteHint": "Wenn du magst: Unverträglichkeiten oder Allergien in einem Satz. Freiwillig, das Catering liest mit.",
-    "privacy": "Diese Angaben gehen ausschließlich als Zahl und als Hinweis an das Catering — ohne euren Namen. Sie erscheinen in keiner Teilnehmerliste.",
+    "privacy": "Diese Angaben gehen ausschließlich als Zahl und als Hinweis an das Catering — ohne euren Namen. Sie erscheinen in keiner Teilnehmerliste. Wir löschen sie 30 Tage nach dem Ende des Summits.",
     "saved": "Angabe gespeichert",
     "title": "Ernährung"
   },
@@ -6578,6 +6578,7 @@
     "consentGateTitle": "Kurz deine Einwilligungen",
     "consentGive": "Einwilligung geben",
     "consentHospitality": "Meine Daten dürfen für Hotel und Shuttle verwendet werden",
+    "consentHospitalityHint": "Das schließt Angaben zu Ernährung oder Unverträglichkeiten ein, wenn sie gemacht werden: freiwillig, nur für das Catering, gelöscht 30 Tage nach dem Ende des Summits.",
     "consentHospitalityOnBehalf": "Ich bestätige für {name}, dass die Daten für Hotel und Shuttle verwendet werden dürfen.",
     "consentNeededTitle": "Eine Einwilligung fehlt noch",
     "consentOnBehalf": "Du bestätigst stellvertretend für {name}. Wir halten fest, wer wann bestätigt hat.",

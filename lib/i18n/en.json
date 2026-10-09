@@ -3490,7 +3490,7 @@
     "choiceHint": "We order the quantities from this.",
     "note": "Intolerances or allergies",
     "noteHint": "If you like: intolerances or allergies in one sentence. Voluntary; catering reads it.",
-    "privacy": "These details go to catering only as a number and a note — without your name. They never appear in any attendee list.",
+    "privacy": "These details go to catering only as a number and a note — without your name. They never appear in any attendee list. We delete them 30 days after the end of the summit.",
     "saved": "Saved",
     "title": "Dietary requirements"
   },
@@ -6578,6 +6578,7 @@
     "consentGateTitle": "Your permissions, briefly",
     "consentGive": "Give consent",
     "consentHospitality": "My data may be used for hotel and shuttle",
+    "consentHospitalityHint": "This includes any details given about diet or intolerances: voluntary, used only for catering, deleted 30 days after the end of the summit.",
     "consentHospitalityOnBehalf": "I confirm for {name} that the data for hotel and shuttle may be used.",
     "consentNeededTitle": "One consent is still missing",
     "consentOnBehalf": "You are confirming on behalf of {name}. We record who confirmed and when.",
