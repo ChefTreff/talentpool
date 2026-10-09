@@ -85,7 +85,7 @@ export function WikiView({
    * Handy die Liste steht, und ab 1024 px über der Suche.
    */
   lead: string;
-  /** Der Assistent: steht wie bisher unter dem Seitenkopf. */
+  /** Der Assistent: steht in der Liste, unter der Suche (K-92); ohne Artikel unter dem Seitenkopf. */
   assistent?: ReactNode;
   t: Strings;
 }) {
@@ -266,10 +266,6 @@ export function WikiView({
           />
         </div>
       )}
-      {/* Dasselbe Gespräch wie in der Bubble (`useGespraech`): wer hier fragt, macht auf jeder anderen Seite des
-          Bereichs weiter. In einem eigenen Element und nicht lose zwischen den Geschwistern: ein vom Server gebautes
-          Element ohne Schlüssel in der Kindliste löste sonst die Warnung „unique key“ aus. */}
-      <div>{assistent}</div>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <aside className={cn("shrink-0 flex-col gap-4 lg:flex lg:w-72", imArtikel ? "hidden" : "flex")}>
           {/* Über der Suche: am Desktop steht der Satz hier, am Handy unter „Wiki“. */}
@@ -284,6 +280,13 @@ export function WikiView({
           <p role="status" className="ct-help min-h-5">
             {treffer}
           </p>
+
+          {/* Der Assistent steht **in der Liste** (K-92, Konrad 09.10.2026): er gehört zum Finden, nicht zum Lesen — zwischen
+              Seitentitel und Artikeltext trennte er beides, am Handy um fast 500 px. Dasselbe Gespräch wie in der Bubble
+              (`useGespraech`): wer hier fragt, macht auf jeder anderen Seite des Bereichs weiter. In einem eigenen Element und
+              nicht lose zwischen den Geschwistern: ein vom Server gebautes Element ohne Schlüssel in der Kindliste löste sonst
+              die Warnung „unique key“ aus. Am Handy steht mit dem Artikel auch die Liste nicht mehr da; die Bubble bleibt. */}
+          <div>{assistent}</div>
 
           <nav aria-labelledby="wiki-liste">
             {/* Eine Ebene zwischen Seitentitel und Themen, nur für die Gliederung. */}

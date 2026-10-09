@@ -4,12 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Markdown } from "./Markdown";
 import { useGespraech } from "./useGespraech";
 import { MAX_FRAGE_ZEICHEN, type Quelle } from "@/lib/wiki/assistent";
-import type { Zug } from "@/lib/wiki/gespraech";
+import { assistentOffen, type Zug } from "@/lib/wiki/gespraech";
 
 type Strings = Record<string, string>;
 
@@ -36,8 +35,15 @@ type Strings = Record<string, string>;
  * sie stammt, als Links ins Wiki des Bereichs. Der Hinweis „fasst zusammen, im
  * Zweifel gilt der Artikel" ist weg (Konrad 21.09.).
  *
- * `rahmen="karte"` steht über den Artikeln der Wiki-Seite, `rahmen="panel"`
- * in der Bubble. Beide teilen sich das Gespräch.
+ * `rahmen="liste"` steht in der Liste der Wiki-Seite, `rahmen="panel"` in der
+ * Bubble. Beide teilen sich das Gespräch.
+ *
+ * **In der Liste, zugeklappt** (K-92, Konrad 09.10.2026): vorher stand er als
+ * Karte über Liste und Artikel und trennte den Titel vom Text — am Handy mit
+ * 498 px, bevor Suche und Themen kamen. Jetzt gehört er zum Finden: eine Zeile
+ * „Frag Chefi“ unter der Suche, ein Tipp öffnet ihn. **Offen**, solange ein
+ * Gespräch läuft (es steht im Tab, siehe `useGespraech`); wer ihn von Hand
+ * auf- oder zuklappt, behält seine Wahl. Die Bubble bleibt auf jeder Seite.
  */
 export function Assistent({
   audience,
@@ -47,7 +53,7 @@ export function Assistent({
   vorschlaege,
   wikiHref,
   besitzer,
-  rahmen = "karte",
+  rahmen = "liste",
   sichtbar = true,
 }: {
   audience: string;
@@ -61,7 +67,7 @@ export function Assistent({
   wikiHref: string | null;
   /** Kennung des Kontos — trennt die Gespräche, wenn sich im selben Tab jemand anderes anmeldet. */
   besitzer: string;
-  rahmen?: "karte" | "panel";
+  rahmen?: "liste" | "panel";
   /** Ob die Ansicht gerade zu sehen ist — die Bubble meldet das Öffnen. */
   sichtbar?: boolean;
 }) {
@@ -72,6 +78,8 @@ export function Assistent({
     nichtsText: t.noHit,
   });
   const [eingabe, setEingabe] = useState("");
+  /** Von Hand auf- oder zugeklappt (nur `rahmen="liste"`); `null`: noch nicht angefasst, dann entscheidet das Gespräch. */
+  const [gewaehlt, setGewaehlt] = useState<boolean | null>(null);
   const feldId = useId();
   const feld = useRef<HTMLInputElement>(null);
   const verlauf = useRef<HTMLDivElement>(null);
@@ -184,12 +192,35 @@ export function Assistent({
     );
   }
 
+  // Auf dem Server ist `zuege` leer, der erste Aufbau also zugeklappt; danach zeigt ein laufendes Gespräch sich selbst.
+  const offen = assistentOffen(gewaehlt, zuege.length);
   return (
-    <Card className="mb-6">
-      <h2 className="ct-h3 text-ink">{t.title}</h2>
-      <p className="ct-help mt-1">{t.lead}</p>
-      {inhalt}
-    </Card>
+    <details
+      open={offen}
+      onToggle={(e) => setGewaehlt(e.currentTarget.open)}
+      className="group rounded-ct-lg border bg-surface"
+    >
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-ct-lg px-4 ct-label text-ink transition-colors hover:bg-surface-hover group-open:rounded-b-none [&::-webkit-details-marker]:hidden">
+        {t.title}
+        <svg
+          viewBox="0 0 16 16"
+          className="h-4 w-4 shrink-0 text-accent group-open:rotate-180"
+          aria-hidden
+          focusable="false"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m4 6 4 4 4-4" />
+        </svg>
+      </summary>
+      <div className="px-4 pb-4">
+        <p className="ct-help">{t.lead}</p>
+        {inhalt}
+      </div>
+    </details>
   );
 }
 
