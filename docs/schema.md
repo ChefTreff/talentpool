@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-09 08:20 UTC · 124 Tabellen · 6 Views · 764 Funktionen
+> Stand: 2026-10-09 12:12 UTC · 124 Tabellen · 6 Views · 766 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -3045,8 +3045,10 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `ticket_allocations_of_orgs` | p_event_id: uuid, p_org_ids: uuid[] |
 | `ticket_allocations_pending` | args: ? |
 | `ticket_final_mail` | p_t: public.ticket |
+| `ticket_personalization_overview` | p_edition_id: uuid |
 | `ticket_requests_admin` | p_edition_id: uuid |
 | `ticket_writeback_data` | p_ticket_id: uuid |
+| `tickets_unpersonalized` | p_edition_id: uuid, p_limit: integer |
 | `tickets_writeback_pending` | p_limit: integer |
 | `tour_assignment_admin` | p_edition_id: uuid |
 | `tour_wishes_for_session` | p_session_id: uuid |
