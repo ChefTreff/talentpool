@@ -67,7 +67,9 @@ describe("PART-104: Wiki — vier Ebenen, vier Größen (Markdown)", () => {
     assert.match(markdown, /<ol key=\{key\} className=\{cn\("ml-5 flex list-decimal flex-col gap-1", !kompakt && "max-w-text"\)\}>/);
     assert.match(markdown, /<ul key=\{key\} className=\{cn\("ml-5 flex list-disc flex-col gap-1", !kompakt && "max-w-text"\)\}>/);
     assert.match(markdown, /className=\{cn\("border-l-2 border-l-accent bg-accent-soft\/40 py-2 pl-4", !kompakt && "max-w-text"\)\}/);
-    const tabelle = markdown.slice(markdown.indexOf('case "table"'), markdown.indexOf("default:"));
+    const von = markdown.indexOf('case "table"');
+    const tabelle = markdown.slice(von, markdown.indexOf("default:", von));
+    assert.ok(tabelle.length > 300, "Zweig der Tabelle gefunden");
     assert.doesNotMatch(tabelle, /max-w-text/);
   });
 
