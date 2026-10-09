@@ -157,14 +157,13 @@ describe("Masterclass: eine Instanz, vier Sichten, die Wahl reist mit", () => {
     assert.equal((reiter.match(/\$\{suffix\}/g) ?? []).length, 4);
   });
 
-  it("`SectionTabs` vergleicht den Pfad, nicht die Abfrage — sonst wäre mit `?instanz=` kein Reiter mehr aktiv", () => {
+  it("`SectionTabs` fragt `reiterAktiv` — Pfad ohne Abfrage, ein Reiter nur mit Abfrage nur über `aktiv`; das Verhalten steht in `tests/reiter-aktiv.test.ts`", () => {
     const t = ohneKommentare(quelle("components/layout/SectionTabs.tsx"));
-    assert.match(t, /const pfad = item\.href\.split\("\?"\)\[0\];/);
-    assert.match(t, /pathname === pfad \|\|/);
-    assert.match(t, /pathname\.startsWith\(`\$\{pfad\}\/`\)/);
-    assert.doesNotMatch(t, /pathname === item\.href/);
+    assert.match(t, /import \{ reiterAktiv \} from "\.\/reiter-aktiv";/);
+    assert.match(t, /const active = reiterAktiv\(item, pathname\);/);
+    assert.doesNotMatch(t, /pathname === item\.href/, "kein eigener Vergleich mit der Adresse samt Abfrage mehr");
     // Die Adresszeilen-Reiter (`aktiv`) behalten Vorrang.
-    assert.match(t, /item\.aktiv !== undefined \? item\.aktiv : item\.exact/);
+    assert.match(ohneKommentare(quelle("components/layout/reiter-aktiv.ts")), /if \(item\.aktiv !== undefined\) return item\.aktiv;/);
   });
 });
 
@@ -198,9 +197,11 @@ describe("„Wer spricht“: Hinzufügen in die Kopfzeile, Bearbeiten in die Zei
     assert.match(instanz, /<section aria-label=\{titel\}/);
   });
 
-  it("am Handy bricht die Aktion der Kopfzeile unter den Text (links), statt rechts gequetscht zu stehen — und der Knopftext bricht nie um", () => {
+  it("am Handy bricht die Aktion der Kopfzeile unter den Text (links), am Desktop bleibt sie rechts — auch bei langer Beschreibung — und der Knopftext bricht nie um", () => {
     const karte = ohneKommentare(quelle("components/ui/Card.tsx"));
-    assert.match(karte, /<div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">\s*<div className="min-w-0">/);
+    // `flex-1 basis-72` am Textblock: ohne Basis rechnet der Text mit seiner vollen Länge, und die Aktion sprang schon am Desktop unter ihn
+    // (gemessen 112 statt 68 px Kopfhöhe, Design 09.10.). Mit 18 rem passt sie daneben, wo Platz ist, und bricht erst am Handy um.
+    assert.match(karte, /<div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">\s*<div className="min-w-0 flex-1 basis-72">/);
     assert.match(ohneKommentare(quelle("app/(partner)/partner/talk/SpeakerHinzufuegen.tsx")), /size="sm" className="whitespace-nowrap"/);
   });
 

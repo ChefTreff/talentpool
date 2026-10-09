@@ -71,10 +71,12 @@ export function CardHeader({
 }) {
   const Kopf = ebene;
   return (
-    // `flex-wrap`: passt die Aktion neben den Titel, steht sie rechts; sonst bricht sie **unter** den Text (links) — am Handy nie rechts gequetscht,
-    // nie der Knopftext auf zwei Zeilen (Skill-Regel 13, „Liste mit Zeilenaktion“, PART-149).
+    // `flex-wrap` und am Textblock `flex-1 basis-72`: der Text darf wachsen und schrumpfen, rechnet aber mit 18 rem — passt die Aktion daneben,
+    // steht sie rechts (auch bei langer Beschreibung am Desktop), sonst bricht sie **unter** den Text (links): am Handy nie rechts gequetscht, nie
+    // der Knopftext auf zwei Zeilen (Skill-Regel 13, „Liste mit Zeilenaktion“, PART-149). Nur `min-w-0` ließe die Aktion schon unter den Text springen,
+    // sobald die Beschreibung lang ist — gemessen 112 statt 68 px Kopfhöhe.
     <div className="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1 basis-72">
         <Kopf className={ebene === "h2" ? "ct-h2 text-ink" : "ct-h3 text-ink"}>{title}</Kopf>
         {description && <p className="ct-help mt-1">{description}</p>}
       </div>
