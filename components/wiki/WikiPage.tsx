@@ -3,7 +3,6 @@ import { getI18n } from "@/lib/i18n";
 import { vorschlaegeFuer } from "@/lib/wiki/assistent";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { Assistent } from "./Assistent";
 import { WikiView } from "./WikiView";
 import { loadMyContacts } from "@/components/kontakt/load";
@@ -45,25 +44,26 @@ export async function WikiPage({
   const phases = Object.fromEntries(KB_PHASES.map((p) => [p, vlabel(vocab, "kb_phase", p)]));
   const { user } = await getSessionContext();
 
+  // Den Seitenkopf zeichnet `WikiView`: sein Titel ist der gelesene Artikel (PART-104). Der Assistent
+  // steht trotzdem wie bisher darunter — `WikiView` bekommt ihn als fertiges Element mit.
   return (
-    <>
-      <PageHeader
-        word={t.wiki.word}
-        title={t.wiki.title}
-        description={formats ? `${t.wiki.lead} ${t.wiki.partnerFilterNote}` : t.wiki.lead}
-      />
-      {/* Dasselbe Gespräch wie in der Bubble (`useGespraech`): wer hier
-          fragt, macht auf jeder anderen Seite des Bereichs weiter. */}
-      <Assistent
-        audience={audience}
-        locale={locale}
-        kontakt={erster ? { name: erster.display_name, email: erster.email } : null}
-        t={t.wikiAssistent}
-        vorschlaege={vorschlaegeFuer(t.wikiAssistent, audience)}
-        wikiHref={null}
-        besitzer={user?.id ?? ""}
-      />
-      <WikiView articles={articles} phases={phases} locale={locale} t={t.wiki} />
-    </>
+    <WikiView
+      articles={articles}
+      phases={phases}
+      locale={locale}
+      lead={formats ? `${t.wiki.lead} ${t.wiki.partnerFilterNote}` : t.wiki.lead}
+      assistent={
+        <Assistent
+          audience={audience}
+          locale={locale}
+          kontakt={erster ? { name: erster.display_name, email: erster.email } : null}
+          t={t.wikiAssistent}
+          vorschlaege={vorschlaegeFuer(t.wikiAssistent, audience)}
+          wikiHref={null}
+          besitzer={user?.id ?? ""}
+        />
+      }
+      t={t.wiki}
+    />
   );
 }
