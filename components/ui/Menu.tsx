@@ -14,6 +14,14 @@ import { cn } from "./cn";
  *
  * Die Einträge kommen vom Aufrufer. Damit die Tastatur funktioniert, sind es
  * echte `<a>` oder `<button>` — nichts mit `role="menuitem"` nachgebaut.
+ *
+ * **Ein Aufklappen (Disclosure), kein Anwendungsmenü** (Abnahme Team & Zugänge, 09.10.2026): der Auslöser sagt über
+ * `aria-expanded` und `aria-controls`, was er tut; die Einträge erreicht man mit Tab. Früher trug der Popup `role="menu"`
+ * und die Einträge `role="menuitem"` — das kündigt Vorlesesoftware als Menü mit Pfeiltasten an, die es hier nicht gibt
+ * (gemessen: nach Enter blieb der Fokus am Auslöser, Pfeil unten tat nichts). Rolle und Verhalten gehören zusammen.
+ *
+ * **`kompakt`** ist der Auslöser für Tabellenzeilen: nur ⋯ (32 px, am Handy 44), der Name steht in `label`. Der
+ * breite Auslöser mit Wort und Pfeil füllte die Zelle und schob den zweiten Knopf der Zeile darunter.
  */
 export function Menu({
   trigger,
@@ -21,6 +29,7 @@ export function Menu({
   align = "start",
   width = "w-56",
   ton = "navy",
+  kompakt = false,
   children,
 }: {
   /** Inhalt des Auslösers (Name, Avatar, Bereichsname). */
@@ -35,6 +44,8 @@ export function Menu({
    * zweitrangiger Knopf, LEAD-055 „Weitere Aktionen“).
    */
   ton?: "navy" | "hell";
+  /** Nur ⋯ statt Wort und Pfeil — für Zeilenaktionen in Tabellen. Der Name steht in `label`, `trigger` entfällt. */
+  kompakt?: boolean;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -61,46 +72,59 @@ export function Menu({
   }, [open]);
 
   return (
-    <div className="relative" ref={wrap}>
+    <div className={cn("relative", kompakt && "inline-block")} ref={wrap}>
       <button
         ref={knopf}
         type="button"
         aria-label={label}
         aria-expanded={open}
-        aria-haspopup="menu"
         aria-controls={open ? id : undefined}
+        title={kompakt ? label : undefined}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          "flex w-full items-center gap-2 text-left transition-colors",
-          ton === "hell"
-            ? "min-h-10 rounded-ct-md border border-border-strong bg-surface px-3 ct-label text-ink hover:bg-surface-hover pointer-coarse:min-h-11"
-            : "min-h-11 rounded-ct-sm px-2 py-1.5 hover:bg-on-navy/10",
+          "flex items-center transition-colors",
+          kompakt
+            ? "size-8 justify-center rounded-ct-md border border-border-strong bg-surface text-muted hover:bg-surface-hover hover:text-ink pointer-coarse:size-11"
+            : "w-full gap-2 text-left",
+          !kompakt &&
+            (ton === "hell"
+              ? "min-h-10 rounded-ct-md border border-border-strong bg-surface px-3 ct-label text-ink hover:bg-surface-hover pointer-coarse:min-h-11"
+              : "min-h-11 rounded-ct-sm px-2 py-1.5 hover:bg-on-navy/10"),
         )}
       >
-        {trigger}
-        {ton === "hell" && (
-          // Der Pfeil sagt „hier klappt etwas auf“ — ohne ihn sah der Auslöser neben einem Hauptknopf wie ein
-          // zweiter, gleichrangiger Knopf aus (LEAD-055).
-          <svg
-            aria-hidden
-            focusable="false"
-            viewBox="0 0 12 12"
-            className={cn("h-3 w-3 shrink-0 text-accent transition-transform duration-150", open && "rotate-180")}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M3 4.5 6 7.5 9 4.5" />
+        {kompakt ? (
+          <svg aria-hidden focusable="false" viewBox="0 0 16 16" className="size-4 shrink-0" fill="currentColor">
+            <circle cx="3" cy="8" r="1.4" />
+            <circle cx="8" cy="8" r="1.4" />
+            <circle cx="13" cy="8" r="1.4" />
           </svg>
+        ) : (
+          <>
+            {trigger}
+            {ton === "hell" && (
+              // Der Pfeil sagt „hier klappt etwas auf“ — ohne ihn sah der Auslöser neben einem Hauptknopf wie ein
+              // zweiter, gleichrangiger Knopf aus (LEAD-055).
+              <svg
+                aria-hidden
+                focusable="false"
+                viewBox="0 0 12 12"
+                className={cn("h-3 w-3 shrink-0 text-accent transition-transform duration-150", open && "rotate-180")}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 4.5 6 7.5 9 4.5" />
+              </svg>
+            )}
+          </>
         )}
       </button>
 
       {open && (
         <div
           id={id}
-          role="menu"
           // Der Inhalt schliesst beim Klick: jeder Eintrag führt woandershin,
           // ein offenes Menü über der neuen Seite wäre ein Fehler.
           onClick={() => setOpen(false)}
@@ -138,14 +162,14 @@ export function MenuItem({
   );
   if (href) {
     return (
-      <a href={href} role="menuitem" aria-current={current ? "page" : undefined} className={klassen}>
+      <a href={href} aria-current={current ? "page" : undefined} className={klassen}>
         {icon}
         {children}
       </a>
     );
   }
   return (
-    <button type="button" role="menuitem" onClick={onSelect} className={klassen}>
+    <button type="button" onClick={onSelect} className={klassen}>
       {icon}
       {children}
     </button>

@@ -144,6 +144,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   pending,
+  error,
   onConfirm,
   onCancel,
 }: {
@@ -154,11 +155,17 @@ export function ConfirmDialog({
   confirmLabel: string;
   cancelLabel: string;
   pending?: boolean;
+  /**
+   * Scheitert die Aktion, **bleibt die Rückfrage offen** und sagt es hier (ADM-062, Abnahme Team & Zugänge 09.10.2026):
+   * vorher schloss die Seite den Dialog und meldete den Fehler als Toast — wer eine Sperre bestätigt hatte, sah nicht mehr,
+   * wozu die Meldung gehörte. Dieselbe Meldung wie beim `Modal` (`role="alert"`, klebt unten).
+   */
+  error?: string | null;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
   return (
-    <Modal onCancel={onCancel} label={title}>
+    <Modal onCancel={onCancel} label={title} error={error}>
       <h2 className="ct-h3">{title}</h2>
       <p className="ct-help mt-2">{body}</p>
       {detail && <div className="mt-3">{detail}</div>}
