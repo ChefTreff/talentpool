@@ -118,3 +118,12 @@ export function verlaufFuerServer(zuege: Zug[], neueFrage: string, nichtsText: s
   verlauf.push({ role: "user", content: neueFrage });
   return verlauf.slice(-MAX_ZUEGE);
 }
+
+/**
+ * Ist der Assistent in der Liste der Wiki-Seite aufgeklappt? (K-92, Konrad 09.10.2026)
+ *
+ * Zugeklappt, solange nichts läuft — dann stehen Suche und Themen am Handy im ersten Bild. **Aufgeklappt, solange ein Gespräch
+ * da ist** (es steht im Tab, `useGespraech`): wer nachgefragt hat, findet es wieder. **Hat die Person von Hand auf- oder
+ * zugeklappt (`gewaehlt`), gilt das** — auch wenn danach ein Gespräch entsteht oder endet.
+ */
+export const assistentOffen = (gewaehlt: boolean | null, zuege: number): boolean => gewaehlt ?? zuege > 0;
