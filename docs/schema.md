@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-09 12:47 UTC · 124 Tabellen · 6 Views · 769 Funktionen
+> Stand: 2026-10-09 13:43 UTC · 124 Tabellen · 6 Views · 771 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -3004,6 +3004,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_activity_edit_right` | p_id: uuid |
 | `speaker_activity_overview` | p_edition_id: uuid |
 | `speaker_asset_path_allowed` | p_name: text |
+| `speaker_audit_bereinigen` | args: ? |
+| `speaker_audit_felder` | p_after: jsonb, p_person: uuid |
 | `speaker_consent_contact` | p_person_id: uuid, p_profile_id: uuid |
 | `speaker_consents_admin` | p_profile_id: uuid |
 | `speaker_detail` | p_profile_id: uuid |

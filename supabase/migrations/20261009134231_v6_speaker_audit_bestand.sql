@@ -1,4 +1,5 @@
--- 02NN · Bestandseinträge des Audits der Assistenz-Änderung ohne Klartext (SPK-095, Folge von SPK-094)
+-- 0302 · Bestandseinträge des Assistenz-Audits ohne Klartext (SPK-095)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009134231.
 -- Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
 --
 -- Anlass: SPK-094 (0301) lässt `update_my_speaker_profile` ins Audit nur noch die Namen der geänderten Felder und die `person_id` der Speakerin schreiben.
