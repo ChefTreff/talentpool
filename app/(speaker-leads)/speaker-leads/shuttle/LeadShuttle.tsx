@@ -19,6 +19,8 @@ import {
   speakerName,
   type ShuttleAdminRow,
 } from "@/components/shuttle/types";
+import { SperreHinweis } from "@/components/shuttle/SperreHinweis";
+import { sperrHinweis, type ShuttleSperre } from "@/lib/speaker/shuttle-sperre";
 import { cancelShuttleAsLead, requestShuttleForSpeaker } from "./actions";
 
 type Strings = Record<string, string>;
@@ -56,6 +58,7 @@ const LEER: Record<string, string> = {
  */
 export function LeadShuttle({
   rows,
+  sperre,
   speakers,
   dateLocale,
   t,
@@ -63,6 +66,11 @@ export function LeadShuttle({
   rpcMessages,
 }: {
   rows: ShuttleAdminRow[];
+  /**
+   * Die Shuttle-Sperre (LEAD-065, K-64): ab dem Beginn der Shuttle-Periode legen Leads und Stage Leads hier keine Fahrten mehr an und
+   * stornieren keine — das Speaker-Team trägt sie ein (für das Team ist `locked` nie wahr). `null` = keine Sperre.
+   */
+  sperre?: ShuttleSperre | null;
   /** Die betreuten Speaker: für wen darf ich anfordern? */
   speakers: { profile_id: string; first_name: string | null; last_name: string | null }[];
   dateLocale: string;
@@ -85,6 +93,7 @@ export function LeadShuttle({
   const setNurOffen = (an: boolean) => setFilter({ nurOffen: an ? "1" : "" });
 
   const message = (key: string) => rpcMessages[key] ?? rpcMessages.unknown ?? key;
+  const gesperrt = sperre?.locked === true;
 
   // LEAD-030: bei 200 Speakern ist eine Einfachauswahl unübersichtlich — gesucht
   // wird im Browser über die betreuten Speaker, die Seite hat sie schon.
@@ -166,14 +175,17 @@ export function LeadShuttle({
           />
           {t.shuttleOnlyOpen} ({offeneAnfragen})
         </label>
-        {!offen && (
+        {!offen && !gesperrt && (
           <Button size="sm" onClick={() => setOffen(true)} disabled={speakers.length === 0}>
             {t.shuttleAdd}
           </Button>
         )}
       </div>
 
-      {offen && (
+      {/* LEAD-065 (K-64): ab dem Sperrzeitpunkt kein Formular und kein Stornieren — Anfragen laufen über das Speaker-Team. */}
+      {gesperrt && sperre && <SperreHinweis hinweis={sperrHinweis(sperre, dateLocale, t)} />}
+
+      {offen && !gesperrt && (
         <Card>
           {fehler && (
             <p
@@ -301,7 +313,7 @@ export function LeadShuttle({
                     </Badge>
                   </Td>
                   <Td>
-                    {r.status !== "cancelled" && (
+                    {r.status !== "cancelled" && !gesperrt && (
                       <Button
                         size="sm"
                         variant="ghost"

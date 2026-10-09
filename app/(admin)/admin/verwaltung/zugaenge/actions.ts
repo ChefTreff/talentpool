@@ -168,3 +168,68 @@ export async function ladeTeamEin(
   return { ok: true, neu: r.created, eingeladen: true, email: r.email, mail: "none" };
 }
 
+
+export type GefundenePerson = { id: string; display_name: string | null; email: string | null; city: string | null };
+
+/** Suche für „Person aufnehmen“. Gleiche Grenze wie die Liste: Abschnitt `access`; die Funktion filtert selbst. */
+export async function findPeople(query: string): Promise<GefundenePerson[]> {
+  await requireAdminSection("access", PFAD);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("search_people", { p_query: query, p_limit: 10 });
+  if (error) {
+    console.error("[zugaenge] search_people:", error.message);
+    return [];
+  }
+  return (data ?? []) as GefundenePerson[];
+}
+
+/**
+ * Eine Teamrolle vergeben (vorher `/admin/team`, ADM-094). Dieselbe Funktion wie `/admin/rollen`
+ * (`assign_role`, prüft `has_role('admin')` und schreibt ins Audit-Log) — die Seite ist ein zweiter Blick,
+ * kein zweiter Weg in die Tabelle.
+ *
+ * `editionId` setzt den Scope auf die Edition. Die Rolle `admin` ist ausdrücklich global: ein Admin, der nur
+ * für eine Edition gilt, wäre im nächsten Jahr lautlos keiner mehr.
+ */
+export async function grantTeamRole(personId: string, role: string, editionId?: string | null): Promise<Ergebnis> {
+  await requireAdminSection("access", PFAD);
+  const supabase = await createSupabaseServerClient();
+  const scoped = role !== "admin" && Boolean(editionId);
+  const { error } = await supabase.rpc("assign_role", {
+    p_person_id: personId,
+    p_role: role,
+    p_scope_type: scoped ? "edition" : "global",
+    p_scope_id: null,
+    p_edition_id: scoped ? editionId : null,
+    p_portal: null,
+    p_valid_from: null,
+    p_valid_to: null,
+    p_note: "Team (Admin)",
+  });
+  if (error) {
+    const f = toRpcFailure(error);
+    if (f.key === "unknown") console.error("[zugaenge] assign_role:", f.raw);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  revalidatePath(PFAD);
+  revalidatePath("/admin/rollen");
+  return { ok: true };
+}
+
+/**
+ * Eine Rolle entziehen. Setzt ein Ablaufdatum, die Historie bleibt. Den letzten globalen Admin schützt die
+ * Datenbank selbst (P0001 `last_admin`); die Oberfläche warnt vorher.
+ */
+export async function revokeTeamRole(assignmentId: string): Promise<Ergebnis> {
+  await requireAdminSection("access", PFAD);
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.rpc("revoke_role", { p_assignment_id: assignmentId, p_note: null });
+  if (error) {
+    const f = toRpcFailure(error);
+    if (f.key === "unknown") console.error("[zugaenge] revoke_role:", f.raw);
+    return { ok: false, key: f.key, detail: f.detail };
+  }
+  revalidatePath(PFAD);
+  revalidatePath("/admin/rollen");
+  return { ok: true };
+}

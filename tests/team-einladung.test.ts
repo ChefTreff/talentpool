@@ -24,6 +24,7 @@ describe("Teammitglied einladen (QS-056)", () => {
 
   it("die Seite bietet admin nicht an", () => {
     const page = readFileSync(new URL("../app/(admin)/admin/verwaltung/zugaenge/page.tsx", import.meta.url), "utf8");
-    assert.match(page, /\.filter\(\(r\) => r !== "admin"\)/);
+    assert.match(page, /alleRollen\.filter\(\(r\) => r\.value !== "admin"\)/);
+    assert.match(page, /<TeamEinladung[^>]*rollen=\{rollen\}/);
   });
 });

@@ -9,6 +9,8 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
+import { SperreHinweis } from "@/components/shuttle/SperreHinweis";
+import { sperrHinweis, type ShuttleSperre } from "@/lib/speaker/shuttle-sperre";
 import { cancelShuttle, requestShuttle } from "./actions";
 import { SHUTTLE_FIELDS, SHUTTLE_LIMIT, type ShuttleBooking } from "./types";
 
@@ -50,6 +52,7 @@ const LEER: Record<string, string> = {
 export function ShuttleView({
   profileId,
   bookings,
+  sperre,
   isAssistant,
   dateLocale,
   vorschlag,
@@ -60,6 +63,12 @@ export function ShuttleView({
 }: {
   profileId: string;
   bookings: ShuttleBooking[];
+  /**
+   * Die Shuttle-Sperre (LEAD-065, K-64): ab dem Beginn der Shuttle-Periode gehen neue Fahrten und Änderungen nicht mehr über das Portal.
+   * Dann bietet die Ansicht weder das Formular noch das Stornieren an und zeigt, wer jetzt zuständig ist. `null` = keine Sperre (oder
+   * kein Stand zu lesen — die Datenbank sperrt trotzdem und sagt es im Formular).
+   */
+  sperre?: ShuttleSperre | null;
   /** Vorbelegung einer neuen Fahrt aus der hinterlegten An- und Abreise. */
   vorschlag?: Record<string, string>;
   /**
@@ -97,6 +106,7 @@ export function ShuttleView({
     timeStyle: "short",
   });
 
+  const gesperrt = sperre?.locked === true;
   const aktiv = bookings.filter((b) => b.status !== "cancelled");
   // Ab der sechsten offenen Fahrt verlangt `request_shuttle` eine Begründung.
   const brauchtGrund = aktiv.length >= SHUTTLE_LIMIT;
@@ -170,13 +180,16 @@ export function ShuttleView({
         <h2 id="h-shuttle" className="ct-h2 text-ink">
           {t.shuttleTitle}
         </h2>
-        {!offen && (
+        {!offen && !gesperrt && (
           <Button size="sm" onClick={() => setOffen(true)} disabled={pending}>
             {t.shuttleAdd}
           </Button>
         )}
       </div>
       <p className="ct-help">{t.shuttleLead}</p>
+
+      {/* LEAD-065 (K-64): ab dem Sperrzeitpunkt gibt es hier kein Formular und kein Stornieren mehr — stattdessen steht da, wer zuständig ist. */}
+      {gesperrt && sperre && <SperreHinweis hinweis={sperrHinweis(sperre, dateLocale, t)} />}
 
       {aktiv.length > 0 && (
         <ul className="flex flex-col gap-3">
@@ -210,14 +223,16 @@ export function ShuttleView({
                     <p className="ct-help mt-2">{t.shuttlePendingHint}</p>
                   )}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={pending}
-                  onClick={() => setAskCancel(b)}
-                >
-                  {t.shuttleCancel}
-                </Button>
+                {!gesperrt && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={pending}
+                    onClick={() => setAskCancel(b)}
+                  >
+                    {t.shuttleCancel}
+                  </Button>
+                )}
               </div>
             </Card>
           ))}
@@ -230,7 +245,7 @@ export function ShuttleView({
         </Card>
       )}
 
-      {offen && (
+      {offen && !gesperrt && (
         <Card className="p-4">
           {fehler && (
             <p

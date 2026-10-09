@@ -3,6 +3,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import type { ShuttleAdminRow } from "@/components/shuttle/types";
+import { ladeShuttleSperre } from "@/lib/speaker/shuttle-sperre-server";
 import { LeadShuttle } from "./LeadShuttle";
 
 export const dynamic = "force-dynamic";
@@ -43,11 +44,18 @@ export default async function LeadsShuttlePage() {
     }))
     .filter((s) => s.profile_id !== "");
 
+  // LEAD-065 (K-64): ab Beginn der Shuttle-Periode gehen neue Fahrten und Änderungen nicht mehr über das Portal — für das Speaker-Team gilt das
+  // nicht (`locked` ist für den Aufrufer berechnet). Die Frist ist die der Edition; zum Lesen genügt ein Profil, für das man anfordern darf.
+  // Der Kontakt bleibt hier weg: er ist je Speaker zugeordnet, und diese Seite gilt für alle betreuten — sie nennt das Speaker-Team.
+  const stand = speakers[0] ? await ladeShuttleSperre(supabase, speakers[0].profile_id) : null;
+  const sperre = stand ? { ...stand, contact_name: null, contact_phone: null, contact_email: null } : null;
+
   return (
     <>
       <PageHeader word={t.leads.wordTransfer} title={t.leads.shuttleTitle} description={t.leads.shuttleLead} />
       <LeadShuttle
         rows={(rows ?? []) as ShuttleAdminRow[]}
+        sperre={sperre}
         speakers={speakers}
         dateLocale={t.meta.dateLocale}
         t={t.leads}

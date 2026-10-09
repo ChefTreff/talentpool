@@ -3,6 +3,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadActiveKeys, loadVocabMap, vgroup } from "@/lib/vocab";
 import { loadSummit } from "@/lib/event-days";
+import { ladeShuttleSperre } from "@/lib/speaker/shuttle-sperre-server";
 import { formatDay } from "@/lib/tz";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AbschnittsNavigation, Sektion } from "@/components/ui/Abschnitte";
@@ -69,6 +70,10 @@ export default async function SpeakerTravelPage() {
   const { data: stellvertretend } = profile.is_assistant
     ? await supabase.rpc("can_confirm_consent_on_behalf", { p_profile_id: profile.id })
     : { data: false };
+
+  // LEAD-065 (K-64): ab Beginn der Shuttle-Periode gehen neue Fahrten und Änderungen nicht mehr über das Portal — die Seite bietet dann weder
+  // das Formular noch das Stornieren an und zeigt, wer jetzt zuständig ist (Kontakt `speaker_lead`). Gesperrt wird in der Datenbank.
+  const sperre = await ladeShuttleSperre(supabase, profile.id);
 
   // --- Shuttle: Zeitfenster und Vorbelegung (SPK-032, SPK-034, SPK-061) -----
   // Konrad am 24.09.: Fahrten vom Anreisetag bis zum letzten Summit-Tag, am
@@ -180,6 +185,7 @@ export default async function SpeakerTravelPage() {
           vorschlag={vorschlag}
           fenster={fenster}
           bookings={(shuttleRows ?? []) as ShuttleBooking[]}
+          sperre={sperre}
           isAssistant={profile.is_assistant}
           dateLocale={t.meta.dateLocale}
           t={t.speaker}
