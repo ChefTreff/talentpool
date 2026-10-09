@@ -42,3 +42,15 @@ export function consentRowsToWrite(
       source,
     }));
 }
+
+/**
+ * Weitergabe an Partner (PART-129, K-78 Weg B): wo der Partner die Teilnehmenden auswählt, ist die Weitergabe
+ * Voraussetzung der Bewerbung. Dieselbe Regel steht in `session_needs_partner_share()` (SQL) — die Datenbank
+ * entscheidet, die Oberfläche zeigt es nur vorher an.
+ */
+export const PARTNER_SHARE_VERSION = "partner_share_2027-1";
+export const PARTNER_SHARE_FORMATS = ["company_tour", "masterclass", "side_event", "interview_table"] as const;
+
+export function needsPartnerShare(format: string | null | undefined, accessMode: string | null | undefined): boolean {
+  return accessMode === "application" && (PARTNER_SHARE_FORMATS as readonly string[]).includes(format ?? "");
+}

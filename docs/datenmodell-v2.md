@@ -205,6 +205,13 @@
 | Welle 6 · 0278 | **Personenverwaltung: Suche, Filter, Stammdaten und Adressen bearbeiten (ADM-091, ADM-092)** (`20261008130845`, `v6_personen_verwaltung`; Details im Migrationskopf) | — |
 | Welle 6 · 0279 | **Einwilligungen je Person im Admin (ADM-096)** (`20261008131515`, `v6_einwilligungen_je_person`; Details im Migrationskopf) | — |
 | Welle 6 · 0280 | **Zusage-Mail wartet zehn Minuten, Rücknahme stoppt sie (PART-124)** (`20261008131805`, `v6_zusage_mail_verzoegert`; Details im Migrationskopf) | — |
+| Welle 6 · 0281 | **Mail-Vorlagen je Bereich: Kategorie, Anzeigenamen, Abschnitte, Paar-Funktion (ADM-102 Bau A)** (`20261008134736`, `v6_mail_vorlagen_kategorie`; Details im Migrationskopf) | — |
+| Welle 6 · 0282 | **Hauptbühnen 2027: Namen und sechste Bühne (K-80)** (`20261008134737`, `v6_hauptbuehnen_2027`; Details im Migrationskopf) | — |
+| Welle 6 · 0284 | **Weitergabe von Bewerbungsdaten an Partner, Weg B (PART-129, K-78)** (`20261008141637`, `v6_weitergabe_partner`; Details im Migrationskopf) | — |
+| Welle 6 · 0283 | **Wiki: ein Artikel mit zwei Sprachfassungen (ADM-103 Bau A)** (`20261008142601`, `v6_wiki_artikelpaar`; Details im Migrationskopf) | — |
+| Welle 6 · 0285 | **Englische Entwürfe aller Wiki-Artikel (ADM-103 Bau B)** (`20261008142621`, `v6_wiki_en_entwuerfe`; Details im Migrationskopf) | — |
+| Welle 6 · 0286 | **Fristen je Bereich: Abschnitte, eigene Fristen, sicheres Löschen (ADM-099)** (`20261008142630`, `v6_fristen_je_bereich`; Details im Migrationskopf) | — |
+| Welle 6 · 0287 | **Nachbuchungen und Rechte-Fix sync_granted_roles (PART-102, PART-100)** (`20261008143050`, `v6_nachbuchung`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

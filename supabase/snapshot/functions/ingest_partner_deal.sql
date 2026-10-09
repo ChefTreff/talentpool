@@ -14,6 +14,7 @@ declare
   v_invoice text := nullif(lower(btrim(coalesce(v_co->>'invoice_email', ''))), ''); v_acc_email text;
   v_err_id bigint; v_owner_pid uuid; v_notified integer := 0; v_vars jsonb; v_valid_to timestamptz; v_grant text;
   v_cust text := nullif(btrim(coalesce(v_co->>'customer_number', '')), ''); v_cust_alt text;
+  v_has_primary boolean := false; v_nachbuchung boolean := false;
 begin
   if auth.uid() is not null then raise exception 'not allowed' using errcode = '42501'; end if;
   if v_deal_id is null then raise exception 'deal_id_required' using errcode = '22023'; end if;
@@ -47,11 +48,16 @@ begin
       if nullif(btrim(coalesce(c->>'first_name', '')), '') is null or nullif(btrim(coalesce(c->>'last_name', '')), '') is null then v_errors := array_append(v_errors, 'primary_contact_name_missing'); end if;
     end if;
   end loop;
-  if v_primaries = 0 then v_errors := array_append(v_errors, 'primary_contact_missing');
-  elsif v_primaries > 1 then v_errors := array_append(v_errors, 'primary_contact_multiple'); end if;
   if v_company_id is not null then
     select o.id, o.customer_number into v_org_id, v_cust_alt from organization o where o.hubspot_id = v_company_id;
   end if;
+  -- PART-102 (Nachbuchung, K-82: ein neuer Deal in derselben Pipeline): Hat die Organisation schon einen Hauptkontakt, braucht der Folge-Deal
+  -- keinen eigenen — `primary_contact_missing` entfällt. `primary_contact_multiple` und `primary_conflict` (anderer Hauptkontakt) bleiben.
+  -- Die Suche nach der Organisation steht dafür vor der Prüfung (vorher kam sie danach; dazwischen liest nichts `v_org_id`).
+  v_has_primary := v_org_id is not null and exists (select 1 from org_membership om where om.org_id = v_org_id and om.roles @> '{primary_ops}');
+  if v_primaries = 0 then
+    if not v_has_primary then v_errors := array_append(v_errors, 'primary_contact_missing'); end if;
+  elsif v_primaries > 1 then v_errors := array_append(v_errors, 'primary_contact_multiple'); end if;
   -- ADM-057 Kundennummer (HubSpot `company_id`, Konrad 24.09.2026): sie ist ueber
   -- alle Organisationen eindeutig (Teilindex `organization_customer_number_key`).
   -- Haengt sie schon an einer **anderen** Firma, ist das kein technischer Fehler,
@@ -68,6 +74,12 @@ begin
     if v_existing_primary is not null and v_existing_primary <> v_primary_email then v_errors := array_append(v_errors, 'primary_conflict'); end if;
   end if;
   v_invoice := coalesce(v_invoice, v_acc_email);
+  -- PART-102: Ein Folge-Deal ohne Buchhaltungskontakt braucht keine eigene Rechnungs-E-Mail, wenn die Organisation für diese Edition schon
+  -- eine hat — sie gewinnt ohnehin (`coalesce(org_edition.invoice_email, …)` beim Schreiben). Ohne diese Zeile fiele ein Folge-Deal
+  -- ohne Kontakte an der Rechnungs-E-Mail durch, obwohl der Hauptkontakt-Test ihn durchlässt.
+  if v_invoice is null and v_org_id is not null and v_ed.id is not null then
+    select oe.invoice_email::text into v_invoice from org_edition oe where oe.org_id = v_org_id and oe.edition_id = v_ed.id;
+  end if;
   if v_invoice is null then v_errors := array_append(v_errors, 'invoice_email_missing');
   elsif v_invoice !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then v_errors := array_append(v_errors, 'invoice_email_invalid'); end if;
   if jsonb_array_length(v_items) = 0 then v_errors := array_append(v_errors, 'line_items_missing'); end if;
@@ -139,13 +151,18 @@ begin
     po_number = coalesce(org_edition.po_number, excluded.po_number), sponsoring_level = coalesce(org_edition.sponsoring_level, excluded.sponsoring_level)
   returning id into v_oe_id;
 
+  -- PART-102: Gibt es zu dieser Org-Edition schon einen Deal, ist dieser eine Nachbuchung (Upsell); seine neuen Leistungen tragen `nachgebucht_am`.
+  -- Vor dem Eintrag des eigenen Deals gelesen, sonst wäre jeder Deal sein eigener Vorgänger.
+  v_nachbuchung := exists (select 1 from partner_deal pd where pd.org_edition_id = v_oe_id);
   insert into partner_deal (hubspot_deal_id, org_edition_id, deal_name, payload)
   values (v_deal_id, v_oe_id, v_deal->>'name', jsonb_build_object('deal', v_deal - 'owner_email' - 'owner_name', 'line_items', v_items, 'company_id', v_company_id));
 
   for li in select * from jsonb_array_elements(v_items) loop
     if coalesce((li->>'qty')::numeric, 1) <= 0 then continue; end if;
-    insert into org_product (org_edition_id, product_sku, qty, unit_price_cents, hubspot_line_item_id, status)
-    values (v_oe_id, li->>'sku', coalesce((li->>'qty')::numeric, 1), (li->>'unit_price_cents')::integer, nullif(li->>'id', ''), 'booked')
+    -- `nachgebucht_am` nur beim Anlegen: trifft die Zeile auf eine vorhandene (gleiche Line-Item-Id), bleibt der Wert, wie er war.
+    insert into org_product (org_edition_id, product_sku, qty, unit_price_cents, hubspot_line_item_id, status, nachgebucht_am)
+    values (v_oe_id, li->>'sku', coalesce((li->>'qty')::numeric, 1), (li->>'unit_price_cents')::integer, nullif(li->>'id', ''), 'booked',
+            case when v_nachbuchung then now() end)
     on conflict (org_edition_id, product_sku, hubspot_line_item_id) do update set qty = excluded.qty, unit_price_cents = excluded.unit_price_cents, status = 'booked';
     v_n_products := v_n_products + 1;
   end loop;
@@ -173,10 +190,10 @@ begin
 
   perform log_audit('partner.ingest', 'organization', v_org_id::text, null,
                     jsonb_build_object('deal_id', v_deal_id, 'org_edition_id', v_oe_id, 'new_org', v_new_org, 'contacts', v_n_contacts, 'products', v_n_products, 'allocations', v_n_alloc, 'roles', v_n_roles,
-                                       'customer_number', coalesce(v_cust_alt, v_cust),
+                                       'customer_number', coalesce(v_cust_alt, v_cust), 'nachbuchung', v_nachbuchung,
                                        -- Behalten heisst nicht verschweigen: weicht HubSpot von
                                        -- unserer Nummer ab, steht das hier und nicht nur im Kopf.
                                        'customer_number_conflict', v_cust_alt is not null and v_cust is not null and v_cust_alt <> v_cust));
   return jsonb_build_object('ok', true, 'already', false, 'org_id', v_org_id, 'org_edition_id', v_oe_id, 'new_org', v_new_org, 'contacts', v_n_contacts, 'products', v_n_products,
-                            'allocations', v_n_alloc, 'roles', v_n_roles, 'deliverables', (select count(*) from deliverable d where d.org_edition_id = v_oe_id and d.status <> 'not_required'));
+                            'allocations', v_n_alloc, 'roles', v_n_roles, 'nachbuchung', v_nachbuchung, 'deliverables', (select count(*) from deliverable d where d.org_edition_id = v_oe_id and d.status <> 'not_required'));
 end $$;

@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-08 13:29 UTC · 123 Tabellen · 6 Views · 730 Funktionen
+> Stand: 2026-10-08 14:31 UTC · 124 Tabellen · 6 Views · 743 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -300,6 +300,7 @@ Fristen je Edition; speist Countdowns, Uploads (late-Markierung) und später Wik
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `reminder_lead_hours` | integer | ja | `48` |  | Erinnerung so viele Stunden vor der wirksamen Fälligkeit (Deadline ∧ 48 h vor Slot); 0 = zur Fälligkeit. |
+| `custom` | boolean | ja | `false` |  | ADM-099: eigene Frist eines Bereichs (Schluessel custom_<slug>, loeschbar solange ungenutzt). false = Systemfrist: Schluessel und Zielgruppe fest, Code und Vorlagen verweisen darauf. |
 
 ### `decision_release`
 Erst nach Freigabe werden Zusagen/Absagen sichtbar und Mails ausgelöst (Antwort C).
@@ -880,6 +881,19 @@ System-Mails DE/EN. Versand über Resend (lib/mail), Rendering aus Markdown.
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_by` | uuid |  |  | `person.id` | Wer die Vorlage zuletzt geaendert hat (0112). Der volle Vorher-/Nachhertext steht im Audit-Log. |
 
+### `mail_template_key`
+ADM-102: je Mail-Vorlage (nicht je Sprache) Kategorie, Anzeigename und erlaubte Platzhalter. Kein Fremdschluessel von mail_template.key: eine Vorlage ohne Zeile gilt als Kategorie system (nur admin).
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `key` | text | PK |  |  |  |
+| `category` | text | ja |  |  | Vokabular mail_category. |
+| `name_de` | text | ja |  |  |  |
+| `name_en` | text | ja |  |  |  |
+| `variables` | text[] | ja |  |  | Erlaubte Platzhalter ohne Klammern ({{first_name}} ⇒ first_name); Grundlage für „Platzhalter einfügen“ im Editor. |
+| `sort_order` | integer | ja | `0` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `next_up_item`
 Hinweise „Next Up" auf Home im Teilnehmer-Portal (TAL-006): Events und Programme, im Admin gepflegt. Keine Personendaten.
 
@@ -960,6 +974,7 @@ Gebuchte Leistungen je Partner × Edition (aus HubSpot-Line-Items); steuert Chec
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 | `source` | text | ja | `hubspot` |  | Woher die gebuchte Leistung kommt (0116): hubspot (Deal), agreement (Vereinbarung, Preis 0), shop (Messeshop). |
+| `nachgebucht_am` | timestamp with time zone |  |  |  | PART-102: Zeitpunkt der Nachbuchung (Upsell) — leer = Erstbuchung. Gesetzt vom Ingest, wenn zur Org-Edition beim Einfügen schon ein Deal (partner_deal) existierte; vorhandene Zeilen behalten ihren Wert. |
 
 ### `org_step`
 Katalog der selbst zu meldenden Schritte je Thema (F9.8). Der Wortlaut steht in der Oberfläche, hier stehen nur Schlüssel und Reihenfolge — so ist „x von y" eine Zahl aus der Datenbank.
@@ -2360,7 +2375,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `applications_overview` | p_event_id: uuid |
 | `apply_hackathon` | p_data: jsonb |
 | `apply_shift_templates` | p_day_ids: uuid[], p_edition_id: uuid, p_template_ids: uuid[] |
-| `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_session_id: uuid |
+| `apply_to_session` | p_answers: jsonb, p_consent_share: boolean, p_consent_version: text, p_language: text, p_session_id: uuid |
 | `apply_volunteer` | p_data: jsonb |
 | `approve_expense` | p_claim_id: uuid, p_note: text |
 | `approve_session_content` | p_overrides: jsonb, p_submission_id: uuid |
@@ -2400,9 +2415,11 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `booths_free` | p_edition_id: uuid |
 | `can_confirm_consent_on_behalf` | p_profile_id: uuid |
 | `can_decide_session` | p_session_id: uuid |
+| `can_edit_deadline` | p_audience: text |
 | `can_edit_edition_contacts` | args: ? |
 | `can_edit_kb` | p_audience: text[] |
 | `can_edit_kb_all` | p_audience: text[] |
+| `can_edit_mail_template` | p_key: text |
 | `can_edit_next_up` | args: ? |
 | `can_edit_regie` | p_stage_id: uuid |
 | `can_edit_session` | p_session_id: uuid |
@@ -2459,6 +2476,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `current_org_edition` | p_edition_id: uuid, p_org_id: uuid |
 | `current_person_id` | args: ? |
 | `day_of_edition` | p_day_id: uuid, p_edition_id: uuid |
+| `deadline_section` | p_audience: text |
+| `deadline_usage_count` | p_edition_id: uuid, p_key: text |
+| `deadlines_overview` | p_edition: uuid |
 | `decide_application` | p_application_id: uuid, p_rank: integer, p_status: text |
 | `decide_applications` | p_application_ids: uuid[], p_status: text |
 | `decisions_released` | p_session_id: uuid |
@@ -2467,6 +2487,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `decline_shift` | p_assignment_id: uuid, p_reason: text |
 | `delete_admin_section_override` | p_id: uuid |
 | `delete_award_application` | p_application_id: uuid |
+| `delete_deadline` | p_id: uuid |
 | `delete_edition_contact` | p_id: uuid, p_reason: text |
 | `delete_edition_file` | p_id: uuid |
 | `delete_event_day` | p_id: uuid |
@@ -2622,7 +2643,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `mail_log_detail` | p_id: bigint |
 | `mail_log_stats` | p_days: integer |
 | `mail_template_history` | p_key: text, p_limit: integer, p_locale: text |
-| `mail_templates_admin` | args: ? |
+| `mail_template_section` | p_key: text |
+| `mail_templates_admin` | p_category: text |
 | `manage_person_email` | p_action: text, p_email: text, p_email_id: uuid, p_person_id: uuid |
 | `manager_shuttle_bookings` | p_edition_id: uuid |
 | `manager_speakers` | p_edition_id: uuid |
@@ -2785,6 +2807,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `register_speaker_asset` | p_filename: text, p_kind: text, p_mime: text, p_profile_id: uuid, p_session_id: uuid, p_size_bytes: bigint, p_storage_path: text |
 | `reject_expense` | p_claim_id: uuid, p_note: text |
 | `reject_session_content` | p_note: text, p_submission_id: uuid |
+| `release_application_share` | p_application_id: uuid, p_language: text, p_version: text |
 | `release_decisions` | p_note: text, p_session_id: uuid |
 | `release_partner_session` | p_approved: boolean, p_note: text, p_session_id: uuid |
 | `remind_volunteer_tickets` | args: ? |
@@ -2807,6 +2830,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `restore_mail_template` | p_body_md: text, p_key: text, p_locale: text, p_subject: text |
 | `resync_deliverables` | p_edition_id: uuid |
 | `review_deliverable` | p_accepted: boolean, p_deliverable_id: uuid, p_note: text |
+| `revoke_application_share` | p_application_id: uuid |
 | `revoke_role` | p_assignment_id: uuid, p_note: text |
 | `roles_of_person` | p_person_id: uuid |
 | `run_application_housekeeping` | args: ? |
@@ -2828,6 +2852,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_change_state` | p_slot_id: uuid, p_title_de: text, p_title_en: text |
 | `session_context` | args: ? |
 | `session_mail_vars` | p_locale: text, p_session_id: uuid |
+| `session_needs_partner_share` | p_session_id: uuid |
 | `session_needs_release` | p_edition_id: uuid |
 | `session_owner_candidates` | p_event_id: uuid |
 | `session_responsibles` | p_event_id: uuid |
@@ -2872,6 +2897,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_initiative_stage` | p_note: text, p_org_edition_id: uuid, p_stage: text |
 | `set_logo_category` | p_category: text, p_org_edition_id: uuid |
 | `set_logo_whitening_consent` | p_edition_id: uuid, p_granted: boolean, p_org_id: uuid |
+| `set_mail_template_meta` | p_category: text, p_key: text, p_name_de: text, p_name_en: text, p_variables: text[] |
 | `set_my_cv` | p_path: text |
 | `set_my_photo` | p_path: text |
 | `set_my_shift_wishes` | p_edition_id: uuid, p_shift_ids: uuid[] |
@@ -3028,7 +3054,9 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `upsert_expense_claim` | p_data: jsonb |
 | `upsert_hospitality_quota` | p_data: jsonb |
 | `upsert_kb_article` | p_data: jsonb |
+| `upsert_kb_article_pair` | p_de: jsonb, p_edition_id: uuid, p_en: jsonb, p_shared: jsonb, p_slug: text |
 | `upsert_mail_template` | p_data: jsonb |
+| `upsert_mail_template_pair` | p_de: jsonb, p_en: jsonb, p_key: text |
 | `upsert_next_up_item` | p_data: jsonb |
 | `upsert_partner_contact` | p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_position: text, p_roles: text[] |
 | `upsert_portal_link` | p_data: jsonb |
