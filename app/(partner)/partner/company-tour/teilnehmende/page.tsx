@@ -5,17 +5,18 @@ import { TourKopf } from "../TourKopf";
 
 export const dynamic = "force-dynamic";
 
-/** Teilnehmende der Company Tour (PART-046): zugesagt und bestätigt, dritter Reiter. */
-export default async function PartnerCompanyTourParticipantsPage() {
+/** Teilnehmende der Company Tour (PART-046): zugesagt und bestätigt, dritter Reiter. Bei mehreren Stopps (QS-079) die des gewählten (`?instanz=`). */
+export default async function PartnerCompanyTourParticipantsPage({ searchParams }: { searchParams: Promise<{ instanz?: string | string[] }> }) {
   await requireArea("partner", "/partner/company-tour/teilnehmende");
-  const { supabase, locale, t, stopps, gebucht, canEdit } = await ladeTour();
+  const { instanz } = await searchParams;
+  const { supabase, locale, t, stopps, gewaehlt, instanzen, gebucht, canEdit } = await ladeTour(instanz);
   return (
     <>
-      <TourKopf gebucht={gebucht} stopps={stopps.length} word={t.partner.wordInvitation} t={t.partnerTour} />
-      {stopps.length > 0 && (
+      <TourKopf gebucht={gebucht} stopps={stopps.length} instanzen={instanzen} word={t.partner.wordInvitation} t={t.partnerTour} />
+      {gewaehlt && (
         <TourBewerbungen
           supabase={supabase}
-          stopps={stopps}
+          stopps={[gewaehlt]}
           canEdit={canEdit}
           nurTeilnehmende
           locale={locale}

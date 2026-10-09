@@ -111,6 +111,35 @@ export function vorgabeTisch<S extends { id: string }>(
 }
 
 /**
+ * Welcher Stopp (Company Tour) öffnet ohne Wunsch? Der, zu dem die Person noch nichts gespeichert hat (`filled_at` leer) — dort warten die Fragen —,
+ * sonst keiner (dann gilt der erste, `waehleInstanz`).
+ */
+export function vorgabeStopp<T extends { filled_at: string | null }>(liste: readonly T[]): T | undefined {
+  return liste.find((x) => x.filled_at == null);
+}
+
+/**
+ * Die Stoppwahl der Company Tour — für die Stoppseite und ihre Sichten (Bewerbungen, Teilnehmende) dieselbe Regel: der gewählte Stopp und der Umschalter
+ * (ab zwei Stopps). Die Kennung ist die des Stopps (`stop_id`); der Reiter trägt `titel(x)` („Stopp 1 · Tour A“), und fehlt er oder ist er doppelt,
+ * „Stopp 1“ und „Stopp 2“ in der Reihenfolge der Liste.
+ */
+export function stoppWahl<T extends { stop_id: string; filled_at: string | null }>(
+  stopps: readonly T[],
+  kennung: string | undefined,
+  titel: (x: T) => string,
+  nummer: (n: number) => string,
+): { gewaehlt: T | null; instanzen: InstanzLeiste | null } {
+  const mitId = stopps.map((x) => ({ id: x.stop_id, stopp: x }));
+  const vorgabe = vorgabeStopp(stopps);
+  const gewaehlt = waehleInstanz(mitId, kennung, (liste) => liste.find((e) => e.stopp === vorgabe));
+  const namen = instanzTitel(stopps.map((x) => ({ titel: titel(x), slot: null })), nummer);
+  return {
+    gewaehlt: gewaehlt?.stopp ?? null,
+    instanzen: instanzLeiste(mitId.map((e, i) => ({ id: e.id, label: namen[i] })), gewaehlt?.id),
+  };
+}
+
+/**
  * Die Tischwahl der Interview Tables — für die Formatseite und für ihre Sichten (Bewerbungen, Teilnehmende, Fragen) dieselbe Regel: der gewählte Tisch
  * und der Umschalter (ab zwei Tischen). Der Reiter trägt den Namen des Tisches; heißen zwei gleich, „Tisch 1“ und „Tisch 2“.
  */

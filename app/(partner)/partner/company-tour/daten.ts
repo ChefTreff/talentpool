@@ -2,6 +2,7 @@ import "server-only";
 import { notFound } from "next/navigation";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { instanzKennung, stoppWahl } from "@/lib/partner/instanz";
 import type { TourStopp } from "@/components/partner/tour";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type PartnerOverview } from "../types";
@@ -11,8 +12,13 @@ import { canEditOnboarding, type PartnerOverview } from "../types";
  * Organisation (`partner_company_tour`), ob das Format gebucht ist, und ob die
  * Person pflegen darf. Die Stopps setzt das Team (Admin → Company Tours); ohne
  * Stopp gibt es nur den Hinweis, dass die Zuordnung noch kommt.
+ *
+ * **Mehrere Stopps (QS-079):** `instanz` ist `searchParams.instanz`, die Kennung des Stopps. Der gewählte Stopp (`gewaehlt`) ist der gewünschte,
+ * sonst der, zu dem noch nichts gespeichert ist, sonst der erste; eine unbekannte Kennung ist kein Fehler. `instanzen` ist der Umschalter und gibt es
+ * erst ab zwei Stopps (je Tour besetzt ein Partner höchstens einen, mehrere heißt also mehrere Touren). Alle drei Reiter rufen das mit derselben Regel auf,
+ * damit der Wechsel zwischen ihnen den Stopp nicht ändert.
  */
-export async function ladeTour() {
+export async function ladeTour(instanz?: string | string[]) {
   const { locale, t } = await getI18n("de");
   const { current } = await getPartnerScope();
   if (!current) notFound();
@@ -23,11 +29,21 @@ export async function ladeTour() {
     supabase.rpc("partner_company_tour", args),
   ]);
   const overview = (overviewJson ?? null) as PartnerOverview | null;
+  const stopps = (stoppZeilen ?? []) as TourStopp[];
+  const s = t.partnerTour;
+  const { gewaehlt, instanzen } = stoppWahl(
+    stopps,
+    instanzKennung(instanz),
+    (x) => s.instanceStop.replace("{n}", String(x.sort_order)).replace("{tour}", x.tour_name),
+    (n) => s.instanceNumber.replace("{n}", String(n)),
+  );
   return {
     supabase,
     locale,
     t,
-    stopps: (stoppZeilen ?? []) as TourStopp[],
+    stopps,
+    gewaehlt,
+    instanzen,
     gebucht: (overview?.products ?? []).some((p) => p.format_key === "company_tour"),
     canEdit: overview ? canEditOnboarding(overview.roles, overview.team) : false,
   };

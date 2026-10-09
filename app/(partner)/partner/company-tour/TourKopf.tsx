@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { InstanzWahl } from "@/components/layout/InstanzWahl";
+import { instanzSuffix, type InstanzLeiste } from "@/lib/partner/instanz";
 import { TourTabs } from "./TourTabs";
 
 /**
@@ -8,15 +10,21 @@ import { TourTabs } from "./TourTabs";
  * Leerzustände — „nichts gebucht“ und „wir ordnen euch noch zu“ sind zwei
  * verschiedene Nachrichten, und nur bei der ersten kann der Partner selbst
  * etwas tun (wie beim Side-Event).
+ *
+ * **Ab zwei Stopps (QS-079)** steht darüber der Umschalter: ein Reiter je Stopp („Stopp 1 · Tour A“), der gewählte im `?instanz=` der Adresse. Er steht
+ * **über** den drei Sichten und gibt seine Wahl an jede weiter.
  */
 export function TourKopf({
   gebucht,
   stopps,
+  instanzen,
   word,
   t,
 }: {
   gebucht: boolean;
   stopps: number;
+  /** Der Umschalter; `null` bei einem Stopp (die Seite ist dann wie vorher). */
+  instanzen: InstanzLeiste | null;
   word: string;
   t: Record<string, string>;
 }) {
@@ -24,7 +32,13 @@ export function TourKopf({
     <>
       <PageHeader word={word} title={t.title} description={t.lead} />
       {stopps > 0 ? (
-        <TourTabs t={{ label: t.title, stop: t.tabStop, applications: t.tabApplications, participants: t.tabParticipants }} />
+        <>
+          <InstanzWahl leiste={instanzen} label={t.instanceLabel} />
+          <TourTabs
+            suffix={instanzSuffix(instanzen)}
+            t={{ label: t.title, stop: t.tabStop, applications: t.tabApplications, participants: t.tabParticipants }}
+          />
+        </>
       ) : gebucht ? (
         <EmptyState title={t.noStopTitle} description={t.noStopBody} />
       ) : (
