@@ -1,4 +1,5 @@
--- 0000 · Admin-Sicht „Teilnehmer-Tickets“: Statuszahl und Liste „nicht personalisiert“ (TAL-019, zweiter Teil)
+-- 0297 · Ticket-Personalisierung im Admin: Statuszahl und Liste nicht personalisierter Tickets (TAL-019 Teil 2)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009121142.
 -- Anlass: docs/vorschlag-tal019-ticket-bestaetigung.md, Abschnitt Admin-Weg. Das Team soll vor dem Summit nachfassen können,
 -- wer sein Ticket noch nicht personalisiert hat. Nur Lesen, keine neuen Tabellen oder Spalten.
 --   1 Kein neuer Admin-Abschnitt (Plan 09.10.): Gate ist der bestehende Abschnitt `applications` (admin, area_lead_talent, talent_team);
