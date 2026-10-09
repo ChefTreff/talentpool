@@ -1,3 +1,5 @@
+-- 0289 · Partner legen auf Standbühne und gebrandeter Bühne selbst Slots an (LEAD-064, K-84)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009072529.
 -- 02NN · Partner-Slots: Partner legen auf Standbühne und gebrandeter Bühne selbst Slots an (K-84, LEAD-064)
 -- Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
 --
