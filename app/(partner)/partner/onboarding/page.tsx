@@ -7,13 +7,14 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
-import { OnboardingWizard } from "./OnboardingWizard";
+import { EureDatenView } from "./EureDatenView";
 
 export const dynamic = "force-dynamic";
 
 
 /**
- * Onboarding als Wizard, danach dieselbe Seite als Profil.
+ * „Eure Daten“: vier Abschnitte einer Seite mit Stand und Zahl (PART-106) — vorher ein Wizard, jetzt von Anfang an
+ * dieselbe Seite wie später als Profil.
  *
  * Das Logo ist keine eigene Mechanik, sondern die Pflicht `logo_vector` aus
  * `my_deliverables` — Upload, Registrierung und Einreichung laufen wie bei
@@ -66,7 +67,7 @@ export default async function PartnerOnboardingPage() {
   return (
     <>
       <PageHeader word={t.partner.wordCompany} title={t.partner.onboardingTitle} description={t.partner.onboardingLead} />
-      <OnboardingWizard
+      <EureDatenView
         orgId={current.org_id}
         editionId={current.edition_id}
         overview={overview}
@@ -77,14 +78,12 @@ export default async function PartnerOnboardingPage() {
         dateLocale={t.meta.dateLocale}
         t={t.partner}
         common={{
-          save: t.common.save,
-          cancel: t.common.cancel,
           none: t.common.none,
-          back: t.common.back,
-          next: t.common.next,
-                  upload: t.common.upload,
+          upload: t.common.upload,
           chooseOtherFile: t.common.chooseOtherFile,
+          onThisPage: t.common.onThisPage,
         }}
+        unsaved={t.common.unsaved}
         rpcMessages={t.rpc}
       />
     </>

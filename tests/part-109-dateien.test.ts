@@ -183,7 +183,7 @@ describe("PART-109: Dateien — eine Zeile je Datei", () => {
     assert.doesNotMatch(ansicht, /import \{[^}]*\bUploadKachel\b[^}]*\}/);
     assert.doesNotMatch(ansicht, /md:grid-cols-[23]/);
     assert.doesNotMatch(ansicht, /border-dashed/);
-    assert.match(src("app/(partner)/partner/onboarding/OnboardingWizard.tsx"), /<UploadKachel\b/);
+    assert.match(src("app/(partner)/partner/onboarding/EureDatenView.tsx"), /<UploadKachel\b/);
   });
 });
 
@@ -233,7 +233,7 @@ describe("PART-109: Dateien — Beschreibung, Vorschau und Upload im Schubfach",
     const hochladen = kachel.slice(kachel.indexOf("async function hochladen"), kachel.indexOf("return { laedt, hochladen };"));
     assert.ok(hochladen.length > 200, "Rumpf von hochladen gefunden");
     assert.doesNotMatch(hochladen, /toast\(/);
-    for (const stelle of ["checkliste/ChecklistView.tsx", "onboarding/OnboardingWizard.tsx"]) {
+    for (const stelle of ["checkliste/ChecklistView.tsx", "onboarding/EureDatenView.tsx"]) {
       const q = ohneKommentare(src(`app/(partner)/partner/${stelle}`));
       const aufruf = /usePflichtUpload\(\{[\s\S]*?\}\);/.exec(q);
       assert.ok(aufruf, stelle);
