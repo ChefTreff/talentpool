@@ -1,6 +1,7 @@
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ButtonLink } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ZugaengeListe, type Konto } from "./ZugaengeListe";
 import { ZugaengeKopf, type ZugaengeFilter } from "./ZugaengeKopf";
@@ -71,6 +72,15 @@ export default async function ZugaengePage({
   const rpcMessages = t.rpc as Record<string, string>;
   const editionListe = (editionen ?? []) as { id: string; name: string }[];
 
+  // Der Leerzustand trägt genau eine Aktion (Skill-Regel 9): bei einer Suche sie zurücksetzen, sonst alle zeigen. Zweitrangig: die eine
+  // Hauptaktion der Seite ist „Teammitglied hinzufügen“ (Regel 1); ein Knopf, kein Textlink — der hat am Finger keine 44 px.
+  const leerAktion =
+    suche || filter !== "alle" ? (
+      <ButtonLink variant="secondary" href={suche ? (filter === "team" ? "/admin/verwaltung/zugaenge" : `/admin/verwaltung/zugaenge?filter=${filter}`) : "/admin/verwaltung/zugaenge?filter=alle"}>
+        {suche ? strings.clearSearch : strings.showAll}
+      </ButtonLink>
+    ) : undefined;
+
   const basis = (() => {
     const p = new URLSearchParams();
     if (filter !== "team") p.set("filter", filter);
@@ -90,6 +100,16 @@ export default async function ZugaengePage({
           einladung={
             <TeamEinladung editionen={editionListe} rollen={rollen} t={strings} common={common} rpcMessages={rpcMessages} />
           }
+          aufnehmen={
+            <PersonAufnehmen
+              rollen={alleRollen}
+              editionId={laufende?.id ?? null}
+              editionName={laufende?.name ?? null}
+              t={strings}
+              common={common}
+              rpcMessages={rpcMessages}
+            />
+          }
           geraet={<Geraetekonto editionen={editionListe} t={strings} common={common} rpcMessages={rpcMessages} />}
         />
         <ZugaengeListe
@@ -107,20 +127,8 @@ export default async function ZugaengePage({
           t={strings}
           common={common}
           rpcMessages={rpcMessages}
+          leerAktion={leerAktion}
         />
-        <details className="rounded-ct-lg border bg-surface">
-          <summary className="min-h-11 cursor-pointer px-4 py-3 ct-label text-ink">{strings.addTitle}</summary>
-          <div className="p-4 pt-0">
-            <PersonAufnehmen
-              rollen={alleRollen}
-              editionId={laufende?.id ?? null}
-              editionName={laufende?.name ?? null}
-              t={strings}
-              common={common}
-              rpcMessages={rpcMessages}
-            />
-          </div>
-        </details>
       </div>
     </>
   );
