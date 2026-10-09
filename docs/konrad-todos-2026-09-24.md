@@ -30,6 +30,10 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 **Offen von gestern:** K-85 (Personenverwaltung: Konto-Status ok? Auth-Adressänderung nachrangig?), K-75 (Team-Zugänge), vivenu-Entwurf senden (einen der zwei Entwürfe).
 
+- **K-91 · Empfehlungs-/Botschafterfelder streichen?** (QS-075-Befund #429): `person.invite_code`, `referred_by_person_id`, `is_ambassador`, `engagement_score` sind leer, die Logik dazu wurde nie gebaut und steht nicht im Masterplan. Empfehlung: streichen, der Altdaten-Import nimmt `invite_code` nicht mit. Zwei sofort streichbare Spalten (`organization.logo_dark/logo_light`, `org_edition.notes_internal`) habe ich schon freigegeben.
+
+**Talent-Chat neu starten:** er war um 09:50 nicht mehr erreichbar; Start-Nachricht steht oben in `docs/chat-startpakete.md` („Runde 09.10. vormittags“). Inhalt: **TAL-019 Ticket-Bestätigung** — die Seite nach dem vivenu-Redirect (Welle 1 B4) wurde nie gebaut, nur die Datenbankseite; erst Bestandsaufnahme und Vorschlag, Bau nach meinem Go. Das betrifft den Ticketverkauf ab Prozessstart.
+
 ### A0 · Gestern, 08.10.: Freigaben und Team-Zugänge
 
 **K-74 · ~~Push-Freigabe Side Events (Speaker-Chat)~~ — erledigt 08.10. vormittags:** Push freigegeben, #364 gemergt, 0270 live, Testdaten-Lauf `--nur=side-events` ist gegen live gelaufen (zwei TEST-Events, drei Einladungen). **Dein Walkthrough:** /admin/side-events (zwei Karten, Dinner 2 von 10 Plätzen; „Einladungen“ zeigt dich und zwei Gäste), /speaker Abschnitt „Side Events“ mit Karte „Antwort offen“; „Erneut einladen“ an deiner Zeile schickt die Mail an dein Postfach — der Link funktioniert seit dem Hotfix #373 (Produktionsprobe 200). Frist `side_events_publish` unter /admin/fristen anlegen (du oder Paulina). Ursprünglicher Text: Der Speaker-Chat fragt dich nach der Freigabe für `git push` auf `speaker/adm-077-side-events` (Berechtigungsprüfung des Chats, 05.10. verweigert) → danach PR, Review durch mich, Migration 0269 live, dann der Testdaten-Schritt `--nur=side-events` (im Speaker-Chat genehmigen oder selbst: `node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=side-events` im Haupt-Checkout) → Klickweg steht in der PR-Beschreibung. Die Platzhalterfrist `side_events_publish` legst du oder Paulina unter /admin/fristen an.
@@ -362,6 +366,7 @@ Datenschutz und Sicherheit macht Konrad in den nächsten Tagen; vorab entschiede
 | K-88 | **ADM-086-Ergebnis:** Team-Hinweismail am Testalias angekommen? | — | Admin-Chat (#365, 0269) |
 | K-89 | **Eure Daten (PART-106, #424):** alle Abschnitte zu, wenn vollständig? Hinweis oben bei Ungespeichertem? | Empfehlung: zu lassen; Leiste reicht | Design-Chat 09.10. |
 | K-90 | **Dateien (PART-109, #416):** Frist bei „Eingereicht“ weg? Belege am Handy in eine Zeile (Kit-Änderung)? | Empfehlung: ja; erst einmal lassen | Design-Chat 09.10. |
+| K-91 | **Empfehlungs-/Botschafterfelder (QS-075, #429):** `invite_code`, `referred_by_person_id`, `is_ambassador`, `engagement_score` streichen? | Empfehlung: streichen (nie gebaut, nicht im Masterplan) | Admin-Chat 09.10. (Befund) |
 ## Antworten Konrad (24.09., Nacht)
 - **ADM-057 / #164:** Kundennummer = HubSpot-Eigenschaft `company_id` („Übergreifende Kundennummer (Company ID)“) → Übernahme in den Ingest beim Admin-Chat.
 - **SPK-068 vorziehen (P1 sofort):** Speaker-Ticket ausstellen — Konrad will es testen; Kette vivenu → Portal → Swapcard muss funktionieren.
