@@ -1,4 +1,5 @@
--- 00NN · Angebot aus dem Messeshop-Warenkorb: Zustand `quoted`, Funktionen, Housekeeping (PART-116)
+-- 0291 · Angebot aus dem Messeshop-Warenkorb: Zustand quoted, Funktionen, Housekeeping (PART-116 Teil 1, K-81)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009074831.
 --
 -- Anlass: PART-116 (Konrad & Leopold 05.10.): Kunden brauchen für eine PO oft ein Angebot — „Angebot erstellen“ neben „Verbindlich bestellen“. K-81 (Konrad
 -- 08.10.): sofort verbindlich mit Angebotsnummer (SevDesk `AN-####`), **die Bestellung wird mit dem Angebot vorläufig festgesetzt** (Warenkorb gesperrt, bis die
