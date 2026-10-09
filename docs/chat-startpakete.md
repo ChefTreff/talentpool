@@ -8,7 +8,7 @@
 
 ## Pause 09.10. mittags (5-Stunden-Fenster, mit Vorlauf) — Stand und Fortsetzung je Chat
 
-Konrad 09.10. mittags: Fenster bald erreicht; alle Chats schliessen laufende PRs ab, Plan merged, alle dokumentieren, Konrad komprimiert. Stand Plan beim Schreiben: 0288–0295 live, #407–#439 gemergt; #440 (TAL-019, 0296) und #441 (Admin-Doku) gemergt; #442 (Speaker-Doku) im Gate. Regel unverändert: Migrationen wendet Plan unmittelbar vor dem Merge an; jeder Chat holt vor „PR fertig“ main (README-Zeilen kaskadieren).
+Konrad 09.10. mittags: Fenster bald erreicht; alle Chats schliessen laufende PRs ab, Plan merged, alle dokumentieren, Konrad komprimiert. Stand Plan beim Schreiben: 0288–0295 live, #407–#439 gemergt; #440 (TAL-019, 0296) und #441 (Admin-Doku) gemergt; **#442 (Speaker-Doku) offen: Konflikt in docs/feedback/admin.md nach #441 — Speaker-Chat holt nach der Pause main, Plan gatet neu.** Partner- und Design-Zeile kommen nach der Pause von den Chats (Plans Kurzfassung steht schon drin). Regel unverändert: Migrationen wendet Plan unmittelbar vor dem Merge an; jeder Chat holt vor „PR fertig“ main (README-Zeilen kaskadieren).
 
 | Chat | Stand (gemergt / offen) | Nächster Schritt nach der Pause |
 |---|---|---|
