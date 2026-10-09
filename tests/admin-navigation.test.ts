@@ -16,12 +16,16 @@ const de = JSON.parse(readFileSync("lib/i18n/de.json", "utf8"));
 const en = JSON.parse(readFileSync("lib/i18n/en.json", "utf8"));
 
 /**
- * Abschnitte, die **bewusst** noch keinen Menüpunkt haben: die Mail-Vorlagen je Bereich (ADM-102). Sie öffnen unter
- * `/admin/mail/vorlagen/<bereich>`; ein Punkt je Bereich im Menü ist eine Navigationsänderung und kommt mit dem
- * Design-Vorschlag (ADM-089) nach Konrads Go. Die Liste ist eine Ausnahme mit Ablaufdatum, kein Freibrief: wer hier
+ * Abschnitte, die **bewusst** noch keinen Menüpunkt haben: die Mail-Vorlagen je Bereich (ADM-102, `/admin/mail/vorlagen/<bereich>`)
+ * und das Ändern der Fristen je Bereich (ADM-099, Reiter unter `/admin/fristen`). Ein Punkt je Bereich im Menü ist eine
+ * Navigationsänderung und kommt mit dem Design-Vorschlag (ADM-089) nach Konrads Go. Die Liste ist eine Ausnahme mit Ablaufdatum, kein Freibrief: wer hier
  * etwas ergänzt, nennt den Grund.
  */
-const OHNE_PUNKT: readonly AdminSectionKey[] = ["mailSpeaker", "mailPartner", "mailParticipants", "mailVolunteers"];
+const OHNE_PUNKT: readonly AdminSectionKey[] = [
+  "mailSpeaker", "mailPartner", "mailParticipants", "mailVolunteers",
+  // ADM-099: Fristen je Bereich — Reiter in `/admin/fristen`, in den Bereichsseiten eingebettet, kein Menüpunkt.
+  "deadlinesSpeaker", "deadlinesPartner", "deadlinesVolunteers", "deadlinesSystem",
+];
 
 test("jeder Abschnitt hat einen Punkt in der Leiste", () => {
   const inLeiste = new Set(PUNKTE.map((p) => p.section));

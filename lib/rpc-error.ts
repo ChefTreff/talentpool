@@ -124,6 +124,8 @@ const BUSINESS_KEYS = new Set([
   "feedback_limit",
   "invalid_rating",
   "missing_field",
+  // Weitergabe an Partner (PART-129)
+  "consent_share_required",
   // Hackathon-Eckdaten (HACK-020)
   "invalid_range",
   "note_too_long",
@@ -394,6 +396,11 @@ const BUSINESS_KEYS = new Set([
   "login_email_locked",
   "primary_email_required",
   "email_not_found",
+  // Fristen je Bereich (Vorschlag v6_fristen_je_bereich, ADM-099); `edition_not_found` steht schon oben.
+  "deadline_in_use",
+  "deadline_is_system",
+  "deadline_not_found",
+  "invalid_reminder",
 ]);
 
 const BY_CODE: Record<string, string> = {

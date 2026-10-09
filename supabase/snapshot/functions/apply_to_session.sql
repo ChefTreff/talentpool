@@ -1,4 +1,4 @@
-create or replace function apply_to_session(p_session_id uuid, p_answers jsonb DEFAULT '{}'::jsonb, p_consent_share boolean DEFAULT false)
+create or replace function apply_to_session(p_session_id uuid, p_answers jsonb DEFAULT '{}'::jsonb, p_consent_share boolean DEFAULT false, p_consent_version text DEFAULT 'partner_share_2027-1'::text, p_language text DEFAULT NULL::text)
  RETURNS uuid
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -10,6 +10,7 @@ declare
   v_p    person%rowtype;
   v_rule jsonb;
   v_id   uuid;
+  v_version text := coalesce(nullif(btrim(p_consent_version), ''), 'partner_share_2027-1');
 begin
   if v_pid is null then
     raise exception 'not authenticated' using errcode = '28000';
@@ -40,6 +41,13 @@ begin
   ) then
     raise exception 'missing_required_answers' using errcode = 'P0001';
   end if;
+  -- PART-129 (K-78, Weg B): wo der Partner auswählt, ist die Weitergabe Voraussetzung der Bewerbung.
+  if session_needs_partner_share(p_session_id) and not coalesce(p_consent_share, false) then
+    raise exception 'consent_share_required' using errcode = 'P0001';
+  end if;
+  if coalesce(p_consent_share, false) and v_version !~ '^partner_share_[0-9]{4}-[0-9]+$' then
+    raise exception 'invalid_vocab_value' using errcode = '22023', detail = 'consent_version';
+  end if;
   insert into application (session_id, person_id, answers, consent_share)
     values (p_session_id, v_pid, coalesce(p_answers, '{}'::jsonb), p_consent_share)
   on conflict (session_id, person_id) do update
@@ -49,6 +57,11 @@ begin
   returning id into v_id;
   if v_id is null then
     raise exception 'already_applied' using errcode = '23505';
+  end if;
+  if coalesce(p_consent_share, false) then
+    insert into consent_record (person_id, consent_type, version, granted, source, meta)
+    values (v_pid, 'share_with_partner', v_version, true, 'portal',
+            jsonb_build_object('application_id', v_id, 'session_id', p_session_id, 'language', p_language, 'form', 'application'));
   end if;
   return v_id;
 end $$;

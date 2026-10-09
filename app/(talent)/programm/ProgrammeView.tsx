@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { neuesFenster } from "@/components/ui/neues-fenster";
+import { needsPartnerShare } from "@/lib/consent";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatDay, formatRange, formatTime } from "@/lib/tz";
@@ -429,6 +432,7 @@ export function ProgrammeView({
                 applyFor.session_id,
                 answers,
                 consentShare,
+                locale,
               );
               if (res.ok) {
                 setApplyFor(null);
@@ -562,6 +566,8 @@ function ApplyDialog({
 }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [consentShare, setConsentShare] = useState(false);
+  // PART-129 (K-78, Weg B): wo der Partner auswählt, ist die Weitergabe Voraussetzung — Pflichthaken, nie vorangekreuzt.
+  const pflicht = needsPartnerShare(session.format, session.access_mode);
 
   const missing = questions.filter((q) => q.required && !(answers[q.key] ?? "").trim());
 
@@ -636,13 +642,23 @@ function ApplyDialog({
             onChange={(e) => setConsentShare(e.target.checked)}
             className="mt-1 size-4"
           />
-          <span>{t.consentShare}</span>
+          <span>
+            {pflicht ? t.consentSharePflicht : t.consentShare}
+            {pflicht && (
+              <>
+                {" "}
+                <Link href="/weitergabe" className="ct-link" {...neuesFenster}>
+                  {t.consentShareLink}
+                </Link>
+              </>
+            )}
+          </span>
         </label>
       </div>
 
       <div className="mt-6 flex gap-2">
         <Button
-          disabled={pending || missing.length > 0}
+          disabled={pending || missing.length > 0 || (pflicht && !consentShare)}
           onClick={() => onSubmit(answers, consentShare)}
         >
           {t.submitApplication}
