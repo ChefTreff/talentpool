@@ -131,6 +131,8 @@
  *   … --apply --nur=weitergabe     (PART-129: Konrads Bewerbung auf „TEST — Masterclass“ steht ohne Haken zur
  *                                   Weitergabe — unter /meine „Weitergabe freigeben“ zum Nachholen; Partner sieht
  *                                   sie bis dahin nicht)
+ *   … --apply --nur=ticket-bestaetigung (TAL-019: drei TEST-Tickets einer TEST-Transaktion auf deiner Adresse —
+ *                                   offen, teilweise, vollständig; /tickets/bestaetigung?transactionId=zztest-tx-bestaetigung)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -3288,6 +3290,27 @@ async function weitergabeSchritt(me) {
     admin.from("application").update({ consent_share: false }).eq("id", app.id));
 }
 
+/**
+ * TAL-019: drei Tickets **einer** TEST-Transaktion auf Konrads Adresse — offen, teilweise, vollständig. Link:
+ * /tickets/bestaetigung?transactionId=zztest-tx-bestaetigung. Es entsteht keine vivenu-Transaktion; ohne vivenu-Ticket-Id
+ * und Secret kann auch das Rückschreiben nichts senden (die Marke bleibt, der Sweep meldet es).
+ */
+async function ticketBestaetigungSchritt(me, ed) {
+  const TX = "zztest-tx-bestaetigung";
+  const { data: ev } = await admin.from("event").select("id").eq("edition_id", ed.id).eq("format_tag", "summit").limit(1).maybeSingle();
+  if (!ev) return fail("Ticket-Bestätigung", "Summit-Event der Edition fehlt");
+  const { data: vorhanden } = await admin.from("ticket").select("id").eq("vivenu_transaction_id", TX);
+  if ((vorhanden ?? []).length > 0) return note("Ticket-Bestätigung", `steht schon — /tickets/bestaetigung?transactionId=${TX}`);
+  const basis = { event_id: ev.id, vivenu_transaction_id: TX, buyer_email: email, status: "valid", source: "vivenu" };
+  await write("3 TEST-Tickets einer Transaktion (offen / teilweise / vollständig)", () =>
+    admin.from("ticket").insert([
+      { ...basis, personalization_status: "pending" },
+      { ...basis, personalization_status: "partial", holder_first_name: "TEST", holder_last_name: "Teilweise", person_id: me.id, holder_email: email },
+      { ...basis, personalization_status: "complete", holder_first_name: "TEST", holder_last_name: "Vollständig", holder_company: "ZZTEST GmbH", holder_position: "Tester", person_id: me.id, holder_email: email },
+    ]));
+  note("Ticket-Bestätigung ansehen", `/tickets/bestaetigung?transactionId=${TX}`);
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -4048,6 +4071,7 @@ const SCHRITTE = {
   "event-fotos": fotosSchritt,
   feedback: feedbackSchritt,
   weitergabe: weitergabeSchritt,
+  "ticket-bestaetigung": ticketBestaetigungSchritt,
   "hackathon-eckdaten": hackathonEckdatenSchritt,
   "luma-leads": lumaLeadsSchritt,
   schichtmodell: schichtmodellSchritt,
