@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatRange } from "@/lib/tz";
-import { mitZusageFrist } from "@/lib/mail/zusage-frist";
+import { mitEntscheidungFrist } from "@/lib/mail/entscheidung-frist";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -177,9 +177,9 @@ export function QueueView({
         {!session.released && (
           <p className="ct-help mt-3">{t.notReleasedHint}</p>
         )}
-        {/* PART-124: nach der Freigabe wartet die Zusage-Mail zehn Minuten (dieselbe Regel wie im Partner-Portal; Admin-Weg). */}
+        {/* PART-124/146: nach der Freigabe wartet jede Entscheidungs-Mail zehn Minuten (dieselbe Regel wie im Partner-Portal; Admin-Weg). */}
         {session.released && (
-          <p className="ct-help mt-3">{mitZusageFrist(t.releasedMailHint)}</p>
+          <p className="ct-help mt-3">{mitEntscheidungFrist(t.releasedMailHint)}</p>
         )}
       </Card>
 

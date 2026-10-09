@@ -8,9 +8,9 @@
 --      Freigabe-Trigger bleibt bei `queue_mail`.
 --   02 Zusage (Partner, Sitzung freigegeben): eine wartende Zeile mit `send_after = jetzt + 10 Minuten`, Bezug, Variablen, Sprache.
 --   03 Vor der Freigabe schickt die Zusage nichts (Gegenstück zu 02).
---   04 Rücknahme: Zusage storniert (`accept_revoked`), Absage ohne Frist, andere Zusagen bleiben wartend.
+--   04 Rücknahme: Zusage storniert (`accept_revoked`), Absage mit Frist (PART-146: seit `v6_entscheidungsmails_verzoegert` wartet auch sie), andere Zusagen bleiben wartend.
 --   05 Wieder zusagen: neue wartende Zeile, die stornierte bleibt. 06 Doppelklick ändert nichts.
---   07 Warteliste statt Absage storniert ebenso, Warteliste ohne Frist. 08 Schon versendete Zusage bleibt (`sent`).
+--   07 Warteliste statt Absage storniert ebenso, Warteliste mit Frist (PART-146). 08 Schon versendete Zusage bleibt (`sent`).
 --   09 Bestätigt die Person vor dem Versand, entfällt die Mail (`accept_confirmed`).
 --   10 Sammelentscheidung des Teams verzögert jede Zusage. 11 Freigabe schickt wie bisher ohne Frist; Rücknahme danach storniert auch diese Mail.
 --   12 Fremde Sitzung: Entscheidung abgewiesen, nichts verschickt, die Hilfsfunktionen sind für Aufrufer gesperrt.
@@ -28,10 +28,10 @@ insert into t_erw values
   ('02_zusage_wartet', '^ok zeilen=1 status=queued send_after_exakt=true bezug=true application_id=true confirm_by=true first_name=true$'),
   ('02_englisch', '^ok locale=en frist=true$'),
   ('03_vor_freigabe_keine_mail', '^ok mails=0 status=accepted$'),
-  ('04_ruecknahme', '^ok zusage_storniert=true grund=accept_revoked zeit_gesetzt=true zusage_wartend=0 absage_wartend=true absage_ohne_frist=true andere_wartet=true$'),
+  ('04_ruecknahme', '^ok zusage_storniert=true grund=accept_revoked zeit_gesetzt=true zusage_wartend=0 absage_wartend=true absage_mit_frist=true andere_wartet=true$'),
   ('05_wieder_zusagen', '^ok wartend=1 storniert=1 frist=true$'),
   ('06_doppelklick', '^ok zeilen=2 wartend=1$'),
-  ('07_warteliste', '^ok zusage_storniert=true grund=accept_revoked warteliste_wartend=true warteliste_ohne_frist=true$'),
+  ('07_warteliste', '^ok zusage_storniert=true grund=accept_revoked warteliste_wartend=true warteliste_mit_frist=true$'),
   ('08_schon_versendet', '^ok zusage=sent storniert=0 absage_wartend=true$'),
   ('09_bestaetigt', '^ok zusage_storniert=true grund=accept_confirmed wartend=0 weitere_mails=0$'),
   ('10_team_sammel', '^ok entschieden=2 beide_wartend=true frist=true$'),
@@ -168,7 +168,7 @@ begin
     || ' zeit_gesetzt=' || ((v_m->'meta'->>'cancelled_at') is not null)::text
     || ' zusage_wartend=' || pg_temp.zz_n(ap1, 'application_accepted', 'queued')::text
     || ' absage_wartend=' || ((v_m2->>'status') = 'queued')::text
-    || ' absage_ohne_frist=' || ((v_m2->>'send_after') is null)::text
+    || ' absage_mit_frist=' || ((v_m2->>'send_after')::timestamptz = v_t0 + interval '10 minutes')::text
     || ' andere_wartet=' || (pg_temp.zz_n(ap2, 'application_accepted', 'queued') = 1)::text);
 
   -- === 05 Wieder zusagen: neue wartende Zeile, die stornierte bleibt ================================================
@@ -195,7 +195,7 @@ begin
   select to_jsonb(m) into v_m2 from mail_log m where m.related_id = ap2 and m.template_key = 'application_waitlisted';
   insert into t_res values ('07_warteliste',
     'ok zusage_storniert=' || ((v_m->>'status') = 'cancelled')::text || ' grund=' || (v_m->'meta'->>'cancel_reason')
-    || ' warteliste_wartend=' || ((v_m2->>'status') = 'queued')::text || ' warteliste_ohne_frist=' || ((v_m2->>'send_after') is null)::text);
+    || ' warteliste_wartend=' || ((v_m2->>'status') = 'queued')::text || ' warteliste_mit_frist=' || ((v_m2->>'send_after')::timestamptz = v_t0 + interval '10 minutes')::text);
 
   -- === 08 Eine schon versendete Zusage lässt sich nicht zurückholen ================================================
   execute 'set local role authenticated';

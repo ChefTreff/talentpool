@@ -26,23 +26,36 @@ function safeHref(url: string): string | null {
   return /^(https?:\/\/|mailto:)/i.test(trimmed) ? trimmed : null;
 }
 
+/**
+ * Ein Link, mit oder ohne CommonMark-Titel. Der Text steht beim Aufruf schon **HTML-escaped** da (`"` ⇒ `&quot;`), deshalb
+ * sucht das Muster `&quot;…&quot;`. Nur der Titel „knopf“ macht einen Knopf daraus (Muster Design-Chat, ADM-102 f); jeder
+ * andere Titel wird ignoriert, der Link bleibt ein Link — und in jedem anderen Renderer (Wiki, Textfassung der Mail) ist
+ * auch der Knopf ein gewöhnlicher Link.
+ */
+const LINK = /\[([^\]]+)\]\(([^)\s]+)(?:\s+&quot;([^&]*)&quot;)?\)/g;
+
+const KNOPF_STIL =
+  "display:inline-block;padding:12px 20px;background:#5B5BD9;color:#FFFFFF;border-radius:8px;text-decoration:none;font-weight:600";
+
 function inline(text: string): string {
   let out = escapeHtml(text);
-  // [Label](url)
-  out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, label: string, url: string) => {
+  // [Label](url) und [Label](url "knopf")
+  out = out.replace(LINK, (m, label: string, url: string, titel: string | undefined) => {
     const href = safeHref(url.replace(/&amp;/g, "&"));
-    return href
-      ? `<a href="${escapeHtml(href)}" style="color:#5B5BD9">${label}</a>`
-      : label;
+    if (!href) return label;
+    const stil = titel?.trim().toLowerCase() === "knopf" ? KNOPF_STIL : "color:#5B5BD9";
+    return `<a href="${escapeHtml(href)}" style="${stil}">${label}</a>`;
   });
   out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  // *kursiv* — nach „fett“, damit `**` nicht als zwei Sterne gilt; ein einzelner Stern ohne Gegenstück bleibt stehen.
+  out = out.replace(/(^|[^*])\*([^*\s][^*\n]*)\*(?!\*)/g, "$1<em>$2</em>");
   return out;
 }
 
 /**
  * Sehr kleine Markdown-Teilmenge → HTML: `## Überschrift`, Absätze,
- * `- Liste`, `**fett**`, `[Label](url)`. Mehr braucht eine Transaktionsmail nicht,
- * und weniger Freiheit heißt weniger, was in Clients kaputtgeht.
+ * `- Liste`, `**fett**`, `*kursiv*`, `[Label](url)` und der Knopf `[Label](url "knopf")`.
+ * Mehr braucht eine Transaktionsmail nicht, und weniger Freiheit heißt weniger, was in Clients kaputtgeht.
  */
 export function markdownToHtml(md: string): string {
   const blocks = md.trim().split(/\n{2,}/);
@@ -73,11 +86,12 @@ export function markdownToHtml(md: string): string {
   return parts.join("\n");
 }
 
-/** Plain-Text-Variante: Clients ohne HTML bekommen den Markdown-Text roh. */
+/** Plain-Text-Variante: Clients ohne HTML bekommen den Markdown-Text roh. Ein Knopf wird zu „Beschriftung: Adresse“ wie jeder Link. */
 export function markdownToText(md: string): string {
   return md
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, "$1: $2")
+    .replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, "$1: $2")
     .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/(^|[^*])\*([^*\s][^*\n]*)\*(?!\*)/g, "$1$2")
     .replace(/^#{1,3}\s+/gm, "")
     .trim();
 }

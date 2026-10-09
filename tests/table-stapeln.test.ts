@@ -72,6 +72,7 @@ describe("Tabellen, die stapeln", () => {
     ["components/partner/ContactList.tsx", 4], // E-Mail, Rollen, Zugang, Zusatzspalte
     ["components/partner/Gaesteliste.tsx", 2], // Rolle, Sessions
     ["app/(partner)/partner/dateien/FileList.tsx", 3], // Für, Status, Hochgeladen
+    ["app/(partner)/partner/dateien/DateienView.tsx", 4], // Stand, Frist (Uploads), Datum, Größe (Belege)
     ["app/(partner)/partner/buehne/StandTabelle.tsx", 4], // Zeit, Titel DE, Titel EN, Status
   ];
   for (const [datei, labels] of ERWARTET) {
