@@ -31,6 +31,7 @@ async function client() {
 function refresh() {
   revalidatePath(PATH);
   revalidatePath(`${PATH}/profil`);
+  revalidatePath(`${PATH}/kontakte`);
 }
 
 /**
