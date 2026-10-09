@@ -7,15 +7,36 @@ import { inflateSync } from "node:zlib";
 /**
  * QS-071 (Konrad & Leopold 05.10.): in der Browser-Leiste stand noch das Vercel-Logo, die Vorgabe von create-next-app.
  * Jetzt trägt jede Seite das ChefTreff-Logo als Icon: `app/icon.svg`, `app/favicon.ico` und `app/apple-icon.png` legt
- * Next selbst als <link> an (Dateikonvention). Erzeugt werden sie von `scripts/icons-erzeugen.mjs` aus der Bildmarke
- * und den Farb-Tokens; hier steht, was an den Dateien feststehen muss — vor allem, dass sie echte Bilder sind.
+ * Next selbst als <link> an (Dateikonvention). Erzeugt werden sie von `scripts/icons-erzeugen.mjs` aus der Bildmarke,
+ * der Originalfarbe der Marke und dem Token der Zeichenfarbe; hier steht, was an den Dateien feststehen muss — vor
+ * allem, dass sie echte Bilder sind. Seit K-73 Q7 (Konrad, 08.10.) steht die Marke auf Violett statt auf Navy.
  */
 
 const lies = (pfad: string) => readFileSync(pfad, "utf8");
 const css = lies("app/globals.css");
 const token = (name: string) => new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})\\b`).exec(css)?.[1].toLowerCase() ?? "";
-const NAVY = token("ct-navy");
-const AUF_NAVY = token("ct-on-navy");
+/** Die Farbe der Originalmarke: alle Pfade der Originaldatei tragen dieselbe (das Skript bricht sonst ab). */
+const FARBEN_ORIGINAL = [
+  ...new Set(
+    [...lies("public/brand/original/cheftreff-logo-original.svg").matchAll(/<path\b[^>]*\bfill="(#[0-9a-fA-F]{6})"/g)].map((t) =>
+      t[1].toLowerCase(),
+    ),
+  ),
+];
+const GRUND = FARBEN_ORIGINAL.length === 1 ? FARBEN_ORIGINAL[0] : "";
+const ZEICHEN = token("ct-on-navy");
+
+/** WCAG 2.1: Kontrastverhältnis zweier Hex-Farben. */
+const leuchtdichte = (farbe: string) => {
+  const [r, g, b] = [1, 3, 5]
+    .map((i) => parseInt(farbe.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const kontrast = (a: string, b: string) => {
+  const [hell, dunkel] = [leuchtdichte(a), leuchtdichte(b)].sort((m, n) => n - m);
+  return (hell + 0.05) / (dunkel + 0.05);
+};
 
 /** Liest ein PNG (8 Bit RGBA, Filter 0 je Zeile, wie das Skript es schreibt) zu Pixeln. */
 function dekodiere(png: Buffer) {
@@ -54,6 +75,18 @@ function dekodiere(png: Buffer) {
 
 const hex = (farbe: number[]) => `#${farbe.slice(0, 3).map((v) => v.toString(16).padStart(2, "0")).join("")}`;
 
+describe("Farben: Violett aus der Originaldatei der Marke, Off-White aus dem Token (K-73 Q7)", () => {
+  it("alle drei Pfade der Originaldatei tragen dieselbe Farbe: Violett #5454c5", () => {
+    assert.equal(FARBEN_ORIGINAL.length, 1);
+    assert.equal(GRUND, "#5454c5");
+  });
+
+  it("die Marke trägt auf dem Grund: mindestens 3 : 1 (WCAG 1.4.11, Grafik), gemessen 5,5 : 1", () => {
+    assert.match(ZEICHEN, /^#[0-9a-f]{6}$/);
+    assert.ok(kontrast(ZEICHEN, GRUND) >= 3, `Kontrast ${kontrast(ZEICHEN, GRUND).toFixed(2)} : 1`);
+  });
+});
+
 describe("Das Vercel-Logo ist weg (QS-071)", () => {
   it("`app/favicon.ico` ist nicht mehr die Vorgabe von create-next-app", () => {
     const hash = createHash("sha256").update(readFileSync("app/favicon.ico")).digest("hex");
@@ -75,7 +108,7 @@ describe("favicon.ico: 16, 32 und 48 px, echte Bilder", () => {
   });
 
   for (const [nr, groesse] of [[0, 16], [1, 32], [2, 48]] as const) {
-    it(`Bild ${groesse} px: Verzeichnis und PNG stimmen überein, Mitte ist die Marke, Rand ist Navy oder abgerundet`, () => {
+    it(`Bild ${groesse} px: Verzeichnis und PNG stimmen überein, Mitte ist die Marke, Rand ist der Grund oder abgerundet`, () => {
       const eintrag = 6 + nr * 16;
       assert.equal(ico[eintrag], groesse);
       assert.equal(ico[eintrag + 1], groesse);
@@ -85,11 +118,11 @@ describe("favicon.ico: 16, 32 und 48 px, echte Bilder", () => {
       assert.equal(bild.breite, groesse);
       assert.equal(bild.hoehe, groesse);
       // Die Mitte liegt im mittleren Sechseck der Marke.
-      assert.equal(hex(bild.an(groesse / 2, groesse / 2)), AUF_NAVY);
+      assert.equal(hex(bild.an(groesse / 2, groesse / 2)), ZEICHEN);
       assert.equal(bild.an(groesse / 2, groesse / 2)[3], 255);
-      // Die Ecke ist abgerundet, also (fast) durchsichtig; die Mitte der obersten Reihe liegt im Quadrat und ist Navy.
+      // Die Ecke ist abgerundet, also (fast) durchsichtig; die Mitte der obersten Reihe liegt im Quadrat und ist der Grund.
       assert.ok(bild.an(0, 0)[3] < 40, "Ecke durchsichtig");
-      assert.equal(hex(bild.an(groesse / 2, 1)), NAVY);
+      assert.equal(hex(bild.an(groesse / 2, 1)), GRUND);
     });
   }
 });
@@ -102,19 +135,19 @@ describe("apple-icon.png: 180 px, deckend bis an den Rand", () => {
     assert.equal(bild.hoehe, 180);
   });
 
-  it("alle vier Ecken sind Navy und undurchsichtig (iOS rundet selbst ab, Durchsichtiges würde schwarz)", () => {
+  it("alle vier Ecken sind der Grund und undurchsichtig (iOS rundet selbst ab, Durchsichtiges würde schwarz)", () => {
     for (const [x, y] of [[0, 0], [179, 0], [0, 179], [179, 179]]) {
-      assert.equal(hex(bild.an(x, y)), NAVY);
+      assert.equal(hex(bild.an(x, y)), GRUND);
       assert.equal(bild.an(x, y)[3], 255);
     }
   });
 
-  it("die Mitte ist die Marke in der Textfarbe auf Navy", () => {
-    assert.equal(hex(bild.an(90, 90)), AUF_NAVY);
+  it("die Mitte ist die Marke in der Zeichenfarbe auf dem Grund", () => {
+    assert.equal(hex(bild.an(90, 90)), ZEICHEN);
   });
 });
 
-describe("icon.svg: die echte Bildmarke in den Farben der Tokens", () => {
+describe("icon.svg: die echte Bildmarke in den Farben der Marke", () => {
   const svg = lies("app/icon.svg");
   const logo = lies("public/brand/cheftreff-logo.svg");
   const pfade = (quelle: string) => [...quelle.matchAll(/<path\s+d="([^"]+)"/g)].map((t) => t[1]);
@@ -124,11 +157,11 @@ describe("icon.svg: die echte Bildmarke in den Farben der Tokens", () => {
     assert.deepEqual(pfade(svg), pfade(logo));
   });
 
-  it("Grund und Marke tragen die Werte von `--ct-navy` und `--ct-on-navy` (ändert sich ein Token: Skript neu laufen lassen)", () => {
-    assert.match(NAVY, /^#[0-9a-f]{6}$/);
-    assert.match(AUF_NAVY, /^#[0-9a-f]{6}$/);
-    assert.match(svg, new RegExp(`<rect [^>]*fill="${NAVY}"`));
-    assert.match(svg, new RegExp(`<g [^>]*fill="${AUF_NAVY}"`));
+  it("der Grund trägt die Originalfarbe der Marke, die Marke den Wert von `--ct-on-navy` (ändert sich eine Quelle: Skript neu laufen lassen)", () => {
+    assert.match(GRUND, /^#[0-9a-f]{6}$/);
+    assert.match(ZEICHEN, /^#[0-9a-f]{6}$/);
+    assert.match(svg, new RegExp(`<rect [^>]*fill="${GRUND}"`));
+    assert.match(svg, new RegExp(`<g [^>]*fill="${ZEICHEN}"`));
   });
 
   it("ein Quadrat mit abgerundeten Ecken, 64 × 64", () => {

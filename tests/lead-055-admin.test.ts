@@ -103,20 +103,20 @@ describe("LEAD-055 Teil 2: die Seite (Quelltext)", () => {
     assert.match(s, /await requireAdminSection\("speakers", `\/admin\/speaker\/\$\{id\}`\)/);
   });
 
-  it("sechs Blöcke als Karten in fester Reihenfolge: Grunddaten, Pipeline, Onboarding, Profil, Hospitality, Programm", () => {
+  it("sieben Blöcke als Karten in fester Reihenfolge: Grunddaten, Pipeline, Onboarding, Profil, Hospitality, Side Events (ADM-087), Programm", () => {
     const text = d();
-    const ids = ["grunddaten", "pipeline", "onboarding", "profil", "hospitality", "programm"];
+    const ids = ["grunddaten", "pipeline", "onboarding", "profil", "hospitality", "side-events", "programm"];
     const stellen = ids.map((id) => text.indexOf(`<Block id="${id}"`) >= 0 ? text.indexOf(`<Block id="${id}"`) : text.indexOf(`id="${id}"\n`));
-    assert.ok(stellen.every((s) => s > 0), "alle sechs Blöcke stehen auf der Seite");
+    assert.ok(stellen.every((s) => s > 0), "alle sieben Blöcke stehen auf der Seite");
     assert.deepEqual([...stellen].sort((a, b) => a - b), stellen, "die Reihenfolge ist fest");
-    assert.equal((text.match(/<Block\b/g) ?? []).length, 6);
-    assert.equal((text.match(/\bkarte\b\s+ebene="h2"/g) ?? []).length, 6, "Karten mit Überschrift der Ebene 2");
+    assert.equal((text.match(/<Block\b/g) ?? []).length, 7);
+    assert.equal((text.match(/\bkarte\b\s+ebene="h2"/g) ?? []).length, 7, "Karten mit Überschrift der Ebene 2");
   });
 
-  it("„Auf dieser Seite“ nennt dieselben sechs Blöcke — Anker und Block-Ids stehen an einer Stelle", () => {
+  it("„Auf dieser Seite“ nennt dieselben sieben Blöcke — Anker und Block-Ids stehen an einer Stelle", () => {
     const text = d();
     const nav = text.slice(text.indexOf("<AbschnittsNavigation"), text.indexOf("</AbschnittsNavigation>") > 0 ? text.indexOf("</AbschnittsNavigation>") : text.indexOf("/>", text.indexOf("<AbschnittsNavigation")));
-    for (const id of ["grunddaten", "pipeline", "onboarding", "profil", "hospitality", "programm"]) {
+    for (const id of ["grunddaten", "pipeline", "onboarding", "profil", "hospitality", "side-events", "programm"]) {
       assert.match(nav, new RegExp(`\\{ id: "${id}", label:`), id);
     }
   });

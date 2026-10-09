@@ -144,6 +144,39 @@ export function parseMarkdown(source: string): Block[] {
   return blocks;
 }
 
+/**
+ * Eine Zeile, die **nur** aus einem fetten Stück besteht und wie eine Überschrift gemeint ist („**Schritt 1: Code eingeben**“,
+ * „**A) Offizielle Getränkepartner**“, „**Adresse:**“): ihr Text als Überschrift — sonst `null` (PART-104 Teil 2).
+ *
+ * Die Regel steht hier **und** in der Hilfsfunktion `wiki_fette_zeilen_zu_ueberschriften` der Migration, die die Artikel in der
+ * Datenbank umgestellt hat; ein Test hält beide gleich. Sie gilt je **Zeile**, so wie der Parser sie liest:
+ * - ein **Doppelpunkt am Ende** fällt weg, innerhalb oder hinter dem Fett (eine Überschrift endet nicht mit „:“); Doppelpunkte im Text
+ *   und Nummern bleiben;
+ * - ein **fetter Satz mit Punkt oder Ausrufezeichen am Ende** ist ein Hinweis und keine Überschrift; Fragen mit „?“ sind Überschriften;
+ * - was nach dem Entfetten leer wäre, ist keine;
+ * - Fett mitten im Text, zwei Fettstücke in einer Zeile, Listen, Zitate, Tabellenzeilen und eingerückte Zeilen sind es nie.
+ */
+export function fetteUeberschrift(zeile: string): string | null {
+  const treffer = /^\*\*([^*]+)\*\*:?[ \t\r]*$/.exec(zeile);
+  if (!treffer) return null;
+  const text = treffer[1].trim().replace(/:+$/, "").trim();
+  if (text === "" || /[.!]$/.test(text)) return null;
+  return text;
+}
+
+/** Alle fetten Zeilen eines Textes, die eine Überschrift sein sollten — mit ihrer Zeilennummer (ab 1). Der Editor weist darauf hin. */
+export function fetteUeberschriften(source: string): { zeile: number; text: string }[] {
+  const aus: { zeile: number; text: string }[] = [];
+  source
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .forEach((z, i) => {
+      const text = fetteUeberschrift(z);
+      if (text !== null) aus.push({ zeile: i + 1, text });
+    });
+  return aus;
+}
+
 /** Klartext eines Inline-Stücks — für Beschriftungen und Kennungen. */
 export function inlineText(parts: Inline[]): string {
   return parts.map((p) => p.text).join("");

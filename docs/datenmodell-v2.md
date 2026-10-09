@@ -217,6 +217,10 @@
 | Welle 6 · 0290 | **Team & Zugänge: eine Liste — Lesefunktion team_access_list (ADM-094)** (`20261009073016`, `v6_team_access_list`; Details im Migrationskopf) | — |
 | Welle 6 · 0291 | **Angebot aus dem Messeshop-Warenkorb: Zustand quoted, Funktionen, Housekeeping (PART-116 Teil 1, K-81)** (`20261009074831`, `v6_shop_angebot`; Details im Migrationskopf) | — |
 | Welle 6 · 0292 | **Spalten aufräumen und Kontaktschlüssel ableiten (QS-075, ADM-108)** (`20261009075127`, `v6_spalten_kontaktschluessel`; Details im Migrationskopf) | — |
+| Welle 6 · 0293 | **Eure Bühne: has_stage nur Standbühne/gebrandete Bühne, Speaker-Wege für Team-Sessions auf der gebrandeten Bühne (PART-138 Teil 1)** (`20261009075544`, `v6_eure_buehne`; Details im Migrationskopf) | — |
+| Welle 6 · 0294 | **Wiki: fette Zeilen werden Zwischenüberschriften (PART-104 Teil 2, Redaktion)** (`20261009080045`, `v6_wiki_zwischenueberschriften`; Details im Migrationskopf) | — |
+| Welle 6 · 0295 | **Side Events je Speaker lesen: speaker_side_events (ADM-087)** (`20261009080908`, `v6_speaker_side_events`; Details im Migrationskopf) | — |
+| Welle 6 · 0296 | **Ticket-Bestätigung im Portal: Tickets der Transaktion, Verknüpfung beim Login, Rückschreibe-Marke (TAL-019)** (`20261009081920`, `v6_ticket_bestaetigung`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

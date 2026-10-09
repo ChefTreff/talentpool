@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-09 07:51 UTC · 124 Tabellen · 6 Views · 757 Funktionen
+> Stand: 2026-10-09 08:20 UTC · 124 Tabellen · 6 Views · 764 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2131,6 +2131,7 @@ Ticket aus vivenu (Barcode = QR) oder Freiticket (Crew/Speaker). Badge-Felder we
 | `vivenu_updated_at` | timestamp with time zone |  |  |  | Stand des Tickets bei vivenu (updatedAt). Ältere Webhooks werden dagegen verworfen. |
 | `vivenu_ticket_type_id` | text |  |  |  | Tickettyp bei vivenu. Grundlage für den Nachtrag des Pass-Typs, wenn ticket_type_map später gefüllt wird. |
 | `vivenu_undershop_id` | text |  |  |  | Undershop, aus dem das Ticket kam (vivenu `underShopId`) — Schlüssel auf das Partner-Kontingent. |
+| `vivenu_writeback_pending` | boolean | ja | `false` |  | TAL-019: Die Badge-Angaben stehen im Portal, der Rückschreibe-Aufruf nach vivenu ist offen (Fehler oder Schalter VIVENU_WRITE_ENABLED aus). Der Sweep holt es nach und setzt die Marke zurück. |
 
 ### `ticket_secret`
 vivenu-Ticket-Secrets für die Personalisierung. Keine Grants, keine Policy — nur service_role.
@@ -2630,6 +2631,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `kb_ts_config` | p_language: text |
 | `lead_regie_slots` | args: ? |
 | `leave_hack_team` | p_edition_id: uuid |
+| `link_tickets_to_person` | p_email: extensions.citext, p_person_id: uuid |
 | `list_external_refs` | p_object_type: text, p_system: text |
 | `log_access_invite` | p_person_id: uuid |
 | `log_audit` | p_action: text, p_after: jsonb, p_before: jsonb, p_object_id: text, p_object_type: text |
@@ -2651,6 +2653,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `manager_speakers` | p_edition_id: uuid |
 | `mark_expense_paid` | p_claim_id: uuid, p_payment_ref: text |
 | `mark_overdue_deliverables` | args: ? |
+| `mark_ticket_writeback` | p_pending: boolean, p_ticket_id: uuid |
 | `mark_volunteer_coupon_revoked` | p_error: text, p_id: bigint |
 | `merch_fields` | p_config: jsonb |
 | `merch_problem` | p_qty: numeric, p_schema: jsonb, p_values: jsonb |
@@ -2699,6 +2702,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_ticket_requests` | p_edition_id: uuid, p_org_id: uuid |
 | `my_ticket_wallet_link` | p_ticket_id: uuid |
 | `my_tickets` | args: ? |
+| `my_transaction_tickets` | p_transaction_id: text |
 | `my_volunteer_profile` | p_edition_id: uuid |
 | `my_volunteer_safety` | p_edition_id: uuid |
 | `new_speaker_count` | p_edition_id: uuid |
@@ -3005,6 +3009,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `speaker_mail_recipient` | p_profile_id: uuid |
 | `speaker_managers` | args: ? |
 | `speaker_next_steps` | p_profile_id: uuid |
+| `speaker_side_events` | p_profile_id: uuid |
 | `speaker_tasks_admin` | p_edition_id: uuid |
 | `speaker_ticket_create` | p_profile_id: uuid |
 | `speaker_ticket_for_issue` | p_ticket_id: uuid |
@@ -3041,6 +3046,8 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `ticket_allocations_pending` | args: ? |
 | `ticket_final_mail` | p_t: public.ticket |
 | `ticket_requests_admin` | p_edition_id: uuid |
+| `ticket_writeback_data` | p_ticket_id: uuid |
+| `tickets_writeback_pending` | p_limit: integer |
 | `tour_assignment_admin` | p_edition_id: uuid |
 | `tour_wishes_for_session` | p_session_id: uuid |
 | `transfer_primary_contact` | p_org_id: uuid, p_person_id: uuid |
@@ -3105,6 +3112,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `volunteer_tickets_admin` | p_edition_id: uuid |
 | `volunteers_without_safety_ack` | p_edition_id: uuid |
 | `volunteers_without_wish` | p_edition_id: uuid |
+| `wiki_fette_zeilen_zu_ueberschriften` | p_md: text |
 | `wishable_shifts` | p_edition_id: uuid |
 | `withdraw_application` | p_application_id: uuid |
 | `withdraw_hack_request` | p_request_id: uuid |

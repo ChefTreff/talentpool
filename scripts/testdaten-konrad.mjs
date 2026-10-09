@@ -131,6 +131,8 @@
  *   … --apply --nur=weitergabe     (PART-129: Konrads Bewerbung auf „TEST — Masterclass“ steht ohne Haken zur
  *                                   Weitergabe — unter /meine „Weitergabe freigeben“ zum Nachholen; Partner sieht
  *                                   sie bis dahin nicht)
+ *   … --apply --nur=ticket-bestaetigung (TAL-019: drei TEST-Tickets einer TEST-Transaktion auf deiner Adresse —
+ *                                   offen, teilweise, vollständig; /tickets/bestaetigung?transactionId=zztest-tx-bestaetigung)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -155,7 +157,9 @@
  *                                   zwei TEST-Speaker haben zu- und abgesagt — für /admin/side-events und
  *                                   den Abschnitt „Side Events“ in /speaker. Erst nach „Migration live“ von
  *                                   v6_side_events. Den One-Click-Link probiert man mit „Erneut einladen“ an der
- *                                   eigenen Einladung: die Mail geht an Konrads Postfach)
+ *                                   eigenen Einladung: die Mail geht an Konrads Postfach. Seit ADM-087 ist Konrad auch zum
+ *                                   Entwurf eingeladen — der Block „Side Events“ unter /admin/speaker/<sein Profil> zeigt dann
+ *                                   Dinner und „Nicht veröffentlicht“; ein erneuter Lauf setzt beide Einladungen zurück)
  *   … --apply --nur=sperrzeit      (ADM-085/LEAD-062: eine TEST-Sperrzeit „Opening: bis 14:30 keine Slots“ auf der
  *                                   Stage-Lead-Testbühne am ersten Summit-Tag und eine TEST-Bühne, die nur am ersten
  *                                   Tag gilt — für /admin/edition (Karte „Sperrzeiten“, Spalte „Gilt an“) und die
@@ -3406,6 +3410,27 @@ async function weitergabeSchritt(me) {
     admin.from("application").update({ consent_share: false }).eq("id", app.id));
 }
 
+/**
+ * TAL-019: drei Tickets **einer** TEST-Transaktion auf Konrads Adresse — offen, teilweise, vollständig. Link:
+ * /tickets/bestaetigung?transactionId=zztest-tx-bestaetigung. Es entsteht keine vivenu-Transaktion; ohne vivenu-Ticket-Id
+ * und Secret kann auch das Rückschreiben nichts senden (die Marke bleibt, der Sweep meldet es).
+ */
+async function ticketBestaetigungSchritt(me, ed) {
+  const TX = "zztest-tx-bestaetigung";
+  const { data: ev } = await admin.from("event").select("id").eq("edition_id", ed.id).eq("format_tag", "summit").limit(1).maybeSingle();
+  if (!ev) return fail("Ticket-Bestätigung", "Summit-Event der Edition fehlt");
+  const { data: vorhanden } = await admin.from("ticket").select("id").eq("vivenu_transaction_id", TX);
+  if ((vorhanden ?? []).length > 0) return note("Ticket-Bestätigung", `steht schon — /tickets/bestaetigung?transactionId=${TX}`);
+  const basis = { event_id: ev.id, vivenu_transaction_id: TX, buyer_email: email, status: "valid", source: "vivenu" };
+  await write("3 TEST-Tickets einer Transaktion (offen / teilweise / vollständig)", () =>
+    admin.from("ticket").insert([
+      { ...basis, personalization_status: "pending" },
+      { ...basis, personalization_status: "partial", holder_first_name: "TEST", holder_last_name: "Teilweise", person_id: me.id, holder_email: email },
+      { ...basis, personalization_status: "complete", holder_first_name: "TEST", holder_last_name: "Vollständig", holder_company: "ZZTEST GmbH", holder_position: "Tester", person_id: me.id, holder_email: email },
+    ]));
+  note("Ticket-Bestätigung ansehen", `/tickets/bestaetigung?transactionId=${TX}`);
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -3479,7 +3504,7 @@ async function sperrlisteEintrag() {
 /**
  * ADM-036: zwei TEST-Personen ohne Konto als Dublettenpaar — gleiche
  * LinkedIn-Angabe, die zweite mit Telefon und einem Interesse mehr. Konrad
- * öffnet unter `/admin/dubletten` die Vorschau, führt zusammen und nimmt es
+ * öffnet unter `/admin/personen/dubletten` die Vorschau, führt zusammen und nimmt es
  * unter „Zusammengeführt" wieder zurück. Adressen aus seinem eigenen Postfach
  * (`+zztest-dublette-a/-b`); es entsteht kein Login und keine Mail. Nach einem
  * Zusammenführen gehört die zweite Adresse der ersten Person — dann sagt der
@@ -3496,7 +3521,7 @@ async function dublettenPaar() {
   }
   const [a, b] = ids;
   if (!a || !b) return;
-  if (a === b) return note("Dublettenpaar", "schon zusammengeführt — unter /admin/dubletten → Zusammengeführt zurücknehmen, dann erneut laufen lassen");
+  if (a === b) return note("Dublettenpaar", "schon zusammengeführt — unter /admin/personen/dubletten → Zusammengeführt zurücknehmen, dann erneut laufen lassen");
   const linkedin = "zztest-dublette-konrad";
   await write("LinkedIn-Angabe beider TEST-Personen", () =>
     admin.from("person").update({ linkedin_normalized: linkedin }).in("id", [a, b]));
@@ -3513,7 +3538,7 @@ async function dublettenPaar() {
     admin.from("potential_duplicate").upsert(
       { person_id_a: x, person_id_b: y, score: 0.9, signals: { linkedin: true } },
       { onConflict: "person_id_a,person_id_b", ignoreDuplicates: true }));
-  note("Dubletten ausprobieren", "/admin/dubletten → „Zusammenführen prüfen“ beim Paar TEST Dublette");
+  note("Dubletten ausprobieren", "/admin/personen/dubletten → „Zusammenführen prüfen“ beim Paar TEST Dublette");
 }
 
 /**
@@ -3775,7 +3800,16 @@ async function sideEventsSchritt(me, ed) {
       invited_by: me.id, invited_at: jetzt, responded_at: null, token_hash: null, mailed_at: null,
     }, { onConflict: "side_event_id,profile_id" }));
 
-  note("Side Events ausprobieren", "/admin/side-events: zwei Karten (Dinner mit 2 von 10 Plätzen, Entwurf), „Einladungen“ zeigt Konrad und die zwei TEST-Gäste; /speaker: Abschnitt „Side Events“ mit der Karte „Antwort offen“");
+  // ADM-087: auch zum Entwurf eingeladen — so zeigt der Block „Side Events“ im Speaker-Detail beide Zustände: das Dinner (eingeladen,
+  // veröffentlicht, „Offen“) und die Afterparty (eingeladen, **nicht veröffentlicht** — der Speaker sieht sie im Portal nicht, das Team
+  // sieht, dass die Einladung noch steht). Eine Einladung zu einem Entwurf legt keine Funktion an, darum direkt geschrieben.
+  await write("Konrads Einladung zur TEST-Afterparty (Entwurf, nicht veröffentlicht — nur im Block „Side Events“ des Speaker-Details zu sehen)", () =>
+    admin.from("side_event_invite").upsert({
+      side_event_id: ids[SIDE_EVENT_ENTWURF], profile_id: sp.id, status: "invited", guests: 0, note: null, via: "team",
+      invited_by: me.id, invited_at: jetzt, responded_at: null, token_hash: null, mailed_at: null,
+    }, { onConflict: "side_event_id,profile_id" }));
+
+  note("Side Events ausprobieren", "/admin/side-events: zwei Karten (Dinner mit 2 von 10 Plätzen, Entwurf), „Einladungen“ zeigt Konrad und die zwei TEST-Gäste; /speaker: Abschnitt „Side Events“ mit der Karte „Antwort offen“; /admin/speaker → Konrads Testprofil → Block „Side Events“ (Dinner eingeladen · Marke „Offen“, Afterparty „Nicht veröffentlicht“; nach einer Antwort in /speaker zeigt er Stand, Begleitung und Weg)");
 }
 
 /** ADM-085: Kennzeichen der TEST-Sperrzeit und der TEST-Bühne mit Gültigkeitstagen. */
@@ -4157,6 +4191,7 @@ const SCHRITTE = {
   "event-fotos": fotosSchritt,
   feedback: feedbackSchritt,
   weitergabe: weitergabeSchritt,
+  "ticket-bestaetigung": ticketBestaetigungSchritt,
   "hackathon-eckdaten": hackathonEckdatenSchritt,
   "luma-leads": lumaLeadsSchritt,
   schichtmodell: schichtmodellSchritt,

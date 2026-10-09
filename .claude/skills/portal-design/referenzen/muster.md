@@ -262,7 +262,88 @@ Er setzt `target="_blank"`, `rel="noopener noreferrer"` und `aria-describedby` a
 - **Der Artikel ist die Seite** (PART-104, 09.10.2026): sein Titel ist der Seitentitel (`h1` über Liste und Artikel, darüber das Laica-Wort „Wissen“), darunter Thema und Stand, dahinter die Marken (Phase, diese Edition, andere Sprache). „Wiki“ bleibt der Titel, solange am Handy die Liste steht. Der Titel hängt vom offenen Artikel ab — deshalb zeichnet `WikiView` den Kopf, nicht `WikiPage`; beide Köpfe stehen im Markup, einer per CSS ausgeblendet (`PageHeader` bekommt dafür `titleId`, `titleRef`, `titleLang`).
 - **Überschriftenfolge:** Seitentitel `h1` (Artikeltitel; in der Handyliste „Wiki“) → verborgenes `h2` „Artikel nach Thema“ → Themen `h3`; im Artikel **Abschnitt (`##`) = `h2` in `ct-h2`** (18/24, Versalien) **mit einer Linie darüber** (40 px Abstand, der erste Block ohne), **Unterabschnitt (`###`) = `h3` in `ct-h3`** (16/24 halbfett), „Mehr zu …“ `h2` in `ct-h3`. Vorher war der Abschnitt so groß wie der Fließtext und der Unterabschnitt kleiner als er (18 → 16 → 16 → 14). Fließtext, Listen und Hinweiskästen laufen `max-w-text` breit, Tabellen nehmen ihre Breite. Die Antworten des Assistenten (`<Markdown kompakt>`) behalten die kleine Zuordnung: Versalien mit Linie gehören nicht in eine Sprechblase.
 - **Der gewählte Artikel in der Liste** trägt einen Balken links in Akzent (`border-l-2 border-accent`, gegen den Seitengrund 4,4 : 1) auf weißer Fläche; vorher `bg-surface-hover` auf dem Seitengrund, 1,03 : 1. Die Trefferzahl der Suche ist eine Statusmeldung (`role="status"`).
+- **Die Gliederung steht im Text als Gliederung, nicht als Fettdruck** (PART-104 Teil 2): `##` ist ein Abschnitt, `###` ein Unterabschnitt, tiefer nicht; die Überschrift ist eine Frage, wenn der Abschnitt eine beantwortet, sonst ein Substantiv oder eine kurze Wortgruppe — ohne Doppelpunkt am Ende, ohne Klammer, ohne Nummer in neuen Texten. Eine Zeile, die nur aus `**…**` besteht, sieht aus wie Betonung und gliedert nichts; der Editor weist darauf hin („Fette Zeile als Überschrift gemeint?“), `fetteUeberschrift()` in `markdown-parse.ts` ist die Regel (ein fetter Satz mit Punkt bleibt ein Hinweis), `tests/wiki-gliederung.test.ts` wacht über `content/wiki/*.md`, und die Hilfsfunktion `wiki_fette_zeilen_zu_ueberschriften` hat die Artikel in der Datenbank umgestellt.
 - **Ein vom Server gebautes Element (der Assistent) steht in einem eigenen Element**, nicht lose zwischen den Geschwistern in der Kindliste eines Client-Bausteins: sonst warnt React mit „unique key“.
+
+## Mehrere Instanzen: ein Umschalter, die Formulare einmal (QS-079, ab 09.10.2026)
+
+Konrad 09.10.2026 (Partner › Masterclasses): „bitte global immer so handhaben“. Heute zeigt `/partner/masterclass` für jede der zwei Sessions vier Karten untereinander (Session, Inhalt, Goodies, Sprecher): jedes Formular doppelt, die Seite zwei Bildschirme lang, und der Titel der Session, in die man gerade tippt, steht weit oben.
+
+**Wann.** Eine Seite zeigt zwei oder mehr Instanzen desselben Dings, und jede trägt dieselben Abschnitte: Masterclass-Sessions einer Organisation, Interview Tables, Company-Tour-Stopps, die Bühnen von „Eure Bühne“. **Nicht,** wenn die Instanzen verglichen werden sollen (dann eine Tabelle, eine Zeile je Instanz, Bearbeiten im Schubfach), und nicht bei **einer** Instanz (dann kein Umschalter, die Seite ist wie vorher).
+
+**Bausteine, alle vorhanden:** `SectionTabs` (`components/layout/SectionTabs`) mit `aktiv` und einer Adresse mit Query; darunter die gewählte Instanz als Kopfkarte (`Card`, Titel `h2`, Stand, Slot) und die Abschnitte als `Card` mit `CardHeader ebene="h3"` — **genau einmal**. Ein eigener Baustein (`InstanzWahl`: Reiter, am Handy ab vier Einträgen eine Auswahl, optionales `marke` je Eintrag) entsteht erst **nach dem dritten Einsatz**.
+
+```tsx
+export default async function Seite({ searchParams }: { searchParams: Promise<{ instanz?: string }> }) {
+  const { instanz } = await searchParams;
+  const liste = await ladeInstanzen(); // schon auf die eigene Organisation gefiltert
+  const gewaehlt = liste.find((x) => x.id === instanz) ?? vorgabe(liste);
+
+  return (
+    <>
+      <PageHeader … />
+      {liste.length > 1 && (
+        <SectionTabs
+          label={t.instanzWaehlen} // „Masterclass wählen“
+          items={liste.map((x) => ({ href: `?instanz=${x.id}`, aktiv: x.id === gewaehlt.id, label: kurztitel(x) }))}
+        />
+      )}
+      <Instanz key={gewaehlt.id} x={gewaehlt} /> {/* Kopfkarte und Abschnitte, einmal */}
+    </>
+  );
+}
+```
+
+`key={gewaehlt.id}` setzt die Formulare beim Wechsel zurück — sonst bliebe der Entwurf der einen Instanz im Feld der anderen stehen.
+
+- **Vorgabe:** die Instanz, die etwas von der Person will (offene Aufgabe, nächste Frist), sonst die erste. Ohne `?instanz` oder mit unbekannter Kennung kommt immer dieselbe — kein 404.
+- **Kurztitel:** der Titel der Instanz; sind sie gleich oder leer, Nummer und Slot („Masterclass 1 · Fr 10:00“). Was etwas verlangt, steht im Kopf der Instanz **in Worten** („Titel fehlt“), nicht nur in einer Farbe.
+- **Die Adresse ist der Zustand:** `aria-current="page"` am Reiter, die Rückwärtstaste geht zur vorigen Instanz, Mails und Aufgaben verlinken mit `?instanz=` direkt in die Instanz. Nach dem Speichern bleibt die Seite in der Instanz (`router.refresh()` behält die Adresse).
+- **Ungespeichertes:** ein Klick auf einen anderen Reiter fragt von selbst nach — `useUngesichert` fängt Link-Klicks ab (Muster „Formular“). Keine eigene Abfrage bauen.
+- **Überschriften:** `h1` der Seitentitel, die gewählte Instanz `h2`, ihre Abschnitte `h3`.
+- **Nur die gewählte Instanz laden und zeichnen:** kürzere Seite, kleineres DOM, ein Satz Formulare.
+- **Handy:** bis drei Instanzen Reiter (sie brechen um, 44 px je Reiter); ab vier oder bei langen Titeln eine **Auswahl** (`Select`, Beschriftung „Masterclass“, wechselt die Adresse) — den Baustein gibt es mit dem dritten Einsatz, bis dahin bleiben es Reiter.
+- **Prüfen vor dem PR:** ein Formular je Abschnitt im DOM, der Wechsel setzt den Entwurf zurück, Aufruf mit `?instanz=` und mit falscher Kennung, 375 px.
+
+Zuerst umgesetzt: `/partner/masterclass` (Partner-Chat). Danach prüfen: Interview Tables, Company-Tour-Stopps, „Eure Bühne“ (PART-138).
+
+## Liste mit Zeilenaktion (PART-149, ab 09.10.2026)
+
+Konrad 09.10.2026 (Bild `docs/bilder/part-149-wer-spricht.webp`): im Block „Wer spricht“ der Masterclass stehen „Angaben pflegen“ unter jedem Speaker und „Speaker eintragen“ unter der Liste — der Block besteht aus gestapelten Knöpfen. Regel (Skill 13): **Aktionen stehen dort, wo sie wirken.**
+
+- **Hinzufügen → Kopfzeile des Blocks,** rechts neben dem Titel: `CardHeader` hat den Platz (`action`), `Button size="sm" variant="secondary"` (die primäre Aktion der Seite bleibt eine andere). **Leere Liste:** der Leerzustand trägt dieselbe eine Aktion (Regel 9); die Kopfzeile zeigt sie dann **nicht** zusätzlich.
+- **Bearbeiten → in der Zeile,** rechts, auf Höhe der ersten Zeile: `Button size="sm" variant="secondary"`. Mehr als eine Zeilenaktion: die wichtigste sichtbar, der Rest im `Menu` („Weitere Aktionen“); Löschen nie als zweiter Knopf neben „Bearbeiten“.
+- **Öffnet die Aktion ein Formular,** steht es im Schubfach (`Drawer`) oder Fenster, nicht aufgeklappt unter dem Knopf — sonst springt die Kopfzeile, und die Liste rutscht weg. Meldungen der Aktion bleiben dort (ADM-062).
+- **Wenige Angaben je Zeile** (Name und eine Zeile): die Zeilenliste unten. **Drei oder mehr Angaben:** `Table stapeln` mit Aktionsspalte (wie Talk, PART-136), die Aktion in der letzten Spalte.
+- **Zustand in Worten:** die zweite Zeile sagt, was fehlt („Position und Unternehmen fehlen noch“), die Aktion dazu steht rechts.
+- **Vorlesen:** jede Zeile trägt dieselbe Aktion, also trägt der Knopf den Bezug: `aria-label="Angaben pflegen: {Name}"`.
+- **Handy:** Text und Aktion stehen in einer Zeile, solange sie passen; sonst bricht die Aktion **unter** den Text (links, 44 px) — nie rechts gequetscht, nie der Knopftext auf zwei Zeilen.
+
+```tsx
+<CardHeader
+  ebene="h3"
+  title={t.wer}
+  description={t.werHinweis}
+  action={canEdit && speakers.length > 0 && <Button size="sm" variant="secondary" onClick={oeffneEintragen}>{t.eintragen}</Button>}
+/>
+<ul className="flex flex-col divide-y">
+  {speakers.map((s) => (
+    <li key={s.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3 first:pt-0 last:pb-0">
+      <div className="min-w-0">
+        <p className="ct-label text-ink">{s.name}</p>
+        <p className="ct-small text-muted">{s.position ?? t.angabenFehlen}</p>
+      </div>
+      {canEdit && (
+        <Button size="sm" variant="secondary" aria-label={`${t.angabenPflegen}: ${s.name}`} onClick={() => oeffnePflegen(s)}>
+          {t.angabenPflegen}
+        </Button>
+      )}
+    </li>
+  ))}
+</ul>
+```
+
+Zuerst umgesetzt: `/partner/masterclass` („Wer spricht“, Partner-Chat); danach `/partner/talk` (die Tabelle hat die Aktion schon in der Spalte, „Speaker eintragen“ wandert in die Kopfzeile) und weitere Listen mit Zeilenaktion. Ein Baustein `Zeilenliste` entsteht nach dem dritten Einsatz — das Speaker-Fenster hat die Zeile (Titel, Zeit und Ort, Marken, Angabenzeile) für Side Events lokal gebaut (`components/speaker/SideEventsBlock.tsx`).
 
 ## Sprache
 

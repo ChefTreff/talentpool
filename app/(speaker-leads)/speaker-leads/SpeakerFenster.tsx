@@ -18,6 +18,8 @@ import { EinordnungFelder, type EinordnungOptionen } from "@/components/speaker/
 import { Verlauf } from "@/components/speaker/Verlauf";
 import { PhotoUpload } from "@/components/speaker/PhotoUpload";
 import { SpeakerKopf, type KopfErgebnis } from "@/components/speaker/SpeakerKopf";
+import { SideEventsBlock } from "@/components/speaker/SideEventsBlock";
+import { sideEventsKurz, sideEventsMarke, type SpeakerSideEvent } from "@/lib/speaker/side-events";
 import {
   buehnenGeaendert,
   einordnungAenderungen,
@@ -31,6 +33,7 @@ import {
   registerSpeakerPhotoAsLead,
   setPipeline,
   speakerFoto,
+  speakerSideEvents,
   setStageCandidates,
   updateSpeaker,
 } from "./actions";
@@ -167,6 +170,22 @@ export function SpeakerFenster({
   const haengt = aufraeumen(speaker);
   const aktion = hauptaktion(speaker, isTeam);
 
+  // ADM-087: die Side-Event-Einladungen — nur das Team liest sie (`speaker_side_events` antwortet Stage Leads mit 42501, darum fragt das
+  // Fenster sie dort gar nicht erst), nur nach der Zusage und nie für Gäste von Partnern (sie werden nicht eingeladen). `undefined` heißt
+  // „lädt“, `null` „nicht zu lesen“.
+  const zeigeSideEvents = isTeam && nachZusage && !gast;
+  const [sideEvents, setSideEvents] = useState<SpeakerSideEvent[] | null | undefined>(undefined);
+  useEffect(() => {
+    if (!zeigeSideEvents) return;
+    let aktuell = true;
+    void speakerSideEvents(speaker.id).then((rows) => {
+      if (aktuell) setSideEvents(rows);
+    });
+    return () => {
+      aktuell = false;
+    };
+  }, [speaker.id, zeigeSideEvents]);
+
   function report(res: KopfErgebnis, okText: string): boolean {
     if (res.ok) {
       setFehler(null);
@@ -281,6 +300,9 @@ export function SpeakerFenster({
   );
   const kurzProgramm =
     sessions.length === 0 ? t.shortNoSession : sessions.length === 1 ? t.shortOneSession : nenne(t.shortSessions, { n: String(sessions.length) });
+  // Side Events: „Offen · n“ bei unbeantworteten Einladungen zu veröffentlichten Events; solange sie laden, steht keine Zeile da.
+  const markeSideEvents = sideEvents ? sideEventsMarke(sideEvents, t) : undefined;
+  const kurzSideEvents = sideEvents === undefined ? undefined : sideEvents === null ? t.sideEventsError : sideEventsKurz(sideEvents, t);
 
   return (
     <>
@@ -568,6 +590,20 @@ export function SpeakerFenster({
                   </Button>
                 </div>
               )}
+            </Block>
+          )}
+
+          {/* Side Events (ADM-087): nur das Team, nur nach der Zusage, nie für Gäste — nur lesend, eingeladen wird unter /admin/side-events. */}
+          {zeigeSideEvents && (
+            <Block id="fenster-side-events" ebene="h3" titel={t.blockSideEvents} marke={markeSideEvents} kurz={kurzSideEvents}>
+              <SideEventsBlock
+                rows={sideEvents}
+                gast={gast}
+                statusLabels={labels.sideEventStatus ?? {}}
+                sprache={dateLocale}
+                locale={locale}
+                t={t}
+              />
             </Block>
           )}
 

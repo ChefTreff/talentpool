@@ -4,7 +4,7 @@ create or replace function partner_add_speaker(p_session_id uuid, p_email text, 
  SECURITY DEFINER
  SET search_path TO 'public', 'extensions'
 AS $$
-declare v_se session; v_oe org_edition; v_person uuid; v_prof uuid; v_email citext; v_n integer; v_owner uuid;
+declare v_se session; v_org uuid; v_oe org_edition; v_person uuid; v_prof uuid; v_email citext; v_n integer; v_owner uuid;
         v_neu boolean := false;
         -- PART-091: Verwaltet-Fall (Operations-Kontakt statt eigenem Zugang).
         v_prof_neu boolean := false; v_ops uuid; v_kontakt uuid; v_ed uuid;
@@ -12,7 +12,14 @@ begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_se from session where id = p_session_id;
   if not found then raise exception 'session_not_found' using errcode = 'P0002'; end if;
-  if v_se.partner_org_id is null or not partner_can_edit(v_se.partner_org_id) then
+  -- PART-138: die Organisation, für die der Partner hier eintragen darf — die der Session; hat die Session keine (das Team hat sie auf einer gebrandeten Bühne
+  -- angelegt), die Organisation, die diese Bühne gebrandet hat. Eine Session mit eigener Organisation bleibt bei dieser.
+  v_org := v_se.partner_org_id;
+  if v_org is null then
+    select st.partner_org_id into v_org from slot sl join stage st on st.id = sl.stage_id
+     where sl.id = v_se.slot_id and st.kind = 'branded';
+  end if;
+  if v_org is null or not partner_can_edit(v_org) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
   if v_se.format not in ('keynote', 'panel', 'talk', 'impulse', 'fireside_chat', 'masterclass') then
@@ -38,7 +45,7 @@ begin
     v_neu := true;
   end if;
 
-  select oe.* into v_oe from org_edition oe where oe.org_id = v_se.partner_org_id
+  select oe.* into v_oe from org_edition oe where oe.org_id = v_org
      and oe.edition_id in (select coalesce(ev.edition_id, ev.id) from event ev where ev.id = v_se.event_id)
    limit 1;
 
@@ -60,12 +67,12 @@ begin
     -- Wer schon Speaker der Edition ist, hat seinen eigenen Zugang — dessen Kommunikation leitet kein
     -- Partner um. Nur ein Profil, das derselbe Partner schon verwaltet angelegt hat, darf weitere Slots bekommen.
     if v_prof is not null and not exists (select 1 from speaker_profile sp where sp.id = v_prof
-                                            and sp.created_by_org_id = v_se.partner_org_id
+                                            and sp.created_by_org_id = v_org
                                             and sp.mail_via_contact_id is not null) then
       raise exception 'speaker_has_access' using errcode = 'P0001';
     end if;
     select om.person_id into v_ops from org_membership om join person p on p.id = om.person_id
-     where om.org_id = v_se.partner_org_id and om.roles @> '{primary_ops}' and p.deleted_at is null
+     where om.org_id = v_org and om.roles @> '{primary_ops}' and p.deleted_at is null
      limit 1;
     if v_ops is null then raise exception 'no_ops_contact' using errcode = 'P0001'; end if;
     if v_ops = v_person then raise exception 'contact_is_speaker' using errcode = '23514'; end if;
@@ -83,7 +90,7 @@ begin
     insert into speaker_profile (person_id, edition_id, pipeline_status, owner_person_id,
                                  created_by_org_id, partner_editable_until_login)
     values (v_person, coalesce(v_oe.edition_id, v_se.event_id), 'lead', v_owner,
-            v_se.partner_org_id, v_neu)
+            v_org, v_neu)
     returning id into v_prof;
     v_prof_neu := true;
   end if;
@@ -121,7 +128,7 @@ begin
   -- `claimed` im Audit, damit im Nachhinein erkennbar ist, welcher Partner eine bestehende
   -- Person nur zugeordnet und welche er selbst angelegt hat.
   perform log_audit('partner.add_speaker', 'session', p_session_id::text, null,
-                    jsonb_build_object('org_id', v_se.partner_org_id, 'person_id', v_person,
+                    jsonb_build_object('org_id', v_org, 'person_id', v_person,
                                        'profile_id', v_prof, 'claimed', not v_neu,
                                        'verwaltet', coalesce(p_verwaltet, false), 'contact_id', v_kontakt));
   return v_prof;
