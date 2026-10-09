@@ -360,6 +360,16 @@ Konrad 09.10.2026 (Bild `docs/bilder/part-149-wer-spricht.webp`): im Block „We
 
 Zuerst umgesetzt: `/partner/masterclass` („Wer spricht“, Partner-Chat); danach `/partner/talk` (die Tabelle hat die Aktion schon in der Spalte, „Speaker eintragen“ wandert in die Kopfzeile) und weitere Listen mit Zeilenaktion. Ein Baustein `Zeilenliste` entsteht nach dem dritten Einsatz — das Speaker-Fenster hat die Zeile (Titel, Zeit und Ort, Marken, Angabenzeile) für Side Events lokal gebaut (`components/speaker/SideEventsBlock.tsx`).
 
+## „Auf dieser Seite“: Fläche oder Balken (ADM-093, Kit seit 09.10.2026)
+
+`AbschnittsNavigation` hat zwei Fassungen. **`variante="flaeche"`** (Vorgabe) ist die Akzent-Soft-Fläche mit Pfeil-Knöpfen, die heute auf fünf Seiten steht. **`variante="balken"`** ist der Vorschlag aus dem Dokument 10-09 (Abschnitt 4, Konrads Antwort auf K-95 steht aus): ein **klebender Balken** unter dem Seitenkopf — Text mit Unterstrich, der Abschnitt im Bild in Akzent mit `aria-current="location"`. **Noch keine Seite ist umgestellt**; ein Test hält das fest.
+
+- **Stellen:** der Balken steht **direkt im Inhalt** unter dem Seitenkopf, nicht in einer Rasterzelle — ein klebendes Element klebt nur, solange sein Elternelement reicht. Dafür wandern bei der Umstellung die Stammdaten (heute neben der Fläche) nach oben links.
+- **Ziele:** `Sektion`, `Block` und `Card` mit `id` tragen `scroll-mt-20` (80 px), mehr als der Balken (45 px) braucht. **Keine zweite Regel** an `html` (`scroll-padding-top`): sie verdoppelte den Abstand (gemessen 152 px).
+- **Welcher Abschnitt im Bild ist,** entscheidet `aktiverAbschnitt` (der letzte, den die Linie bei 96 px erreicht hat; am Seitenende der unterste). Ein Klick gilt, bis die Person selbst scrollt oder 1,5 s um sind — sonst überstimmte „am Ende gilt der letzte“ den Sprung zum vorletzten Abschnitt.
+- **Handy:** der Balken scrollt waagerecht, der Abschnitt im Bild rutscht in die Mitte (ohne Animation bei `prefers-reduced-motion`), 44 px je Eintrag, der Fokusring liegt innen. Die Seitenleiste liest den Balken weiter (`data-abschnitts-navigation`), solange sie die Abschnitte als Unterpunkte zeigt (QS-026).
+- **Nicht in Chip-Form:** Chips und `SectionTabs` wechseln die Seite oder die Instanz; der Balken springt nur innerhalb der Seite.
+
 ## Sprache
 
 Du/ihr. Buttons benennen das Ergebnis. Fehler nennen den nächsten Schritt („Frist abgelaufen — melde dich bei …" statt „Ungültige Eingabe"). Jeder Begriff, den Nutzer sehen, kommt aus `vocab_term` bzw. `getI18n`, DE und EN gleichwertig.
