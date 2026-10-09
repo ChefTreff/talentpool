@@ -212,6 +212,9 @@
 | Welle 6 · 0285 | **Englische Entwürfe aller Wiki-Artikel (ADM-103 Bau B)** (`20261008142621`, `v6_wiki_en_entwuerfe`; Details im Migrationskopf) | — |
 | Welle 6 · 0286 | **Fristen je Bereich: Abschnitte, eigene Fristen, sicheres Löschen (ADM-099)** (`20261008142630`, `v6_fristen_je_bereich`; Details im Migrationskopf) | — |
 | Welle 6 · 0287 | **Nachbuchungen und Rechte-Fix sync_granted_roles (PART-102, PART-100)** (`20261008143050`, `v6_nachbuchung`; Details im Migrationskopf) | — |
+| Welle 6 · 0288 | **Warteliste und Absage verzögert wie die Zusage (PART-146)** (`20261009071622`, `v6_entscheidungsmails_verzoegert`; Details im Migrationskopf) | — |
+| Welle 6 · 0289 | **Partner legen auf Standbühne und gebrandeter Bühne selbst Slots an (LEAD-064, K-84)** (`20261009072529`, `v6_partner_slots`; Details im Migrationskopf) | — |
+| Welle 6 · 0290 | **Team & Zugänge: eine Liste — Lesefunktion team_access_list (ADM-094)** (`20261009073016`, `v6_team_access_list`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
