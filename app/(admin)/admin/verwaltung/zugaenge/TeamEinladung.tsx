@@ -3,13 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Card, CardHeader } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { ladeTeamEin } from "./actions";
+import { useSchubfachSchliessen } from "./ZugaengeKopf";
 
 /**
  * Teammitglied anlegen und einladen (QS-056). Name, Arbeitsadresse, Rollen für
@@ -17,6 +17,9 @@ import { ladeTeamEin } from "./actions";
  * Personen bekommen den Anmelde-Link, Personen mit Konto (ADM-086) eine
  * Hinweismail „Du bist jetzt im Team". Admin ist hier keine Wahl: das bleibt eine bewusste Entscheidung unter
  * Verwaltung → Team. Vor dem Absenden eine Rückfrage, weil eine Mail rausgeht.
+ *
+ * **Steht im Schubfach „Teammitglied hinzufügen“** (ADM-109), erster der zwei Wege: ohne eigene Karte, eine Spalte; nach dem Erfolg
+ * schließt es das Schubfach (`useSchubfachSchliessen`). Ein Fehler steht unter dem Knopf, nicht als Toast.
  */
 export function TeamEinladung({
   editionen,
@@ -33,6 +36,7 @@ export function TeamEinladung({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const schliessen = useSchubfachSchliessen();
   const [pending, start] = useTransition();
   const [vorname, setVorname] = useState("");
   const [nachname, setNachname] = useState("");
@@ -53,16 +57,17 @@ export function TeamEinladung({
       toast("success", text.replace("{email}", r.email));
       setVorname(""); setNachname(""); setEmail(""); setGewaehlt([]);
       router.refresh();
+      schliessen();
     });
   }
 
   if (editionen.length === 0) return null;
 
   return (
-    <Card className="mb-6">
-      <CardHeader ebene="h2" title={t.teamTitle} description={t.teamLead} />
-      <p className="mb-4 rounded-ct-md border border-warning-soft bg-warning-soft p-3 ct-small text-warning-ink">{t.teamTestHint}</p>
-      <div className="grid gap-4 md:grid-cols-3">
+    <div className="flex flex-col gap-4">
+      <p className="ct-help">{t.teamLead}</p>
+      <p className="rounded-ct-md border border-warning-soft bg-warning-soft p-3 ct-small text-warning-ink">{t.teamTestHint}</p>
+      <div className="grid gap-4">
         <Field label={t.teamFirstName} htmlFor="tm-vor" required requiredLabel={common.required}>
           <Input id="tm-vor" value={vorname} onChange={(e) => setVorname(e.target.value)} />
         </Field>
@@ -73,13 +78,13 @@ export function TeamEinladung({
           <Input id="tm-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
       </div>
-      <fieldset className="mt-4">
+      <fieldset>
         <legend className="ct-label text-ink">
           {t.teamRoles}
           <span aria-hidden className="ml-0.5 text-error-ink">*</span>
           <span className="ml-1 ct-help font-semibold">({common.required})</span>
         </legend>
-        <div className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-2">
           {rollen.map((r) => (
             <label key={r.value} className="flex min-h-11 items-center gap-2 ct-small">
               <input
@@ -94,12 +99,12 @@ export function TeamEinladung({
         </div>
       </fieldset>
       {editionen.length > 1 && (
-        <Field label={t.teamEdition} htmlFor="tm-ed" className="mt-4 max-w-xs">
+        <Field label={t.teamEdition} htmlFor="tm-ed" className="max-w-xs">
           <Select id="tm-ed" value={edition} options={editionen.map((e) => ({ value: e.id, label: e.name }))} onChange={(e) => setEdition(e.target.value)} />
         </Field>
       )}
-      {fehler && <p className="ct-small mt-3 text-error-ink" role="alert">{fehler}</p>}
-      <div className="mt-4">
+      {fehler && <p className="ct-small text-error-ink" role="alert">{fehler}</p>}
+      <div>
         <Button disabled={!bereit || pending} loading={pending} onClick={() => setFrage(true)}>{t.teamSubmit}</Button>
       </div>
       {frage && (
@@ -113,6 +118,6 @@ export function TeamEinladung({
           onConfirm={absenden}
         />
       )}
-    </Card>
+    </div>
   );
 }

@@ -49,7 +49,7 @@ describe("Team & Zugänge: nichts geht verloren (ADM-094)", () => {
   it("die Liste bietet je Zustand genau einen Handgriff und den Selbstschutz", () => {
     assert.match(liste, /k\.blocked_at \? \(\s*<Button[\s\S]*?fragen\("oeffnen"/);
     assert.match(liste, /fragen\("einladen"/);
-    assert.equal((liste.match(/<MenuItem onSelect=\{\(\) => fragen\("sperren"/g) ?? []).length, 2, "Sperren steht bei Aktiv und Ohne Login im Menü");
+    assert.equal((liste.match(/<MenuItem onSelect=\{\(\) => fragen\("sperren"/g) ?? []).length, 1, "Sperren steht bei Aktiv und Ohne Login im selben ⋯-Menü (ADM-109)");
     assert.doesNotMatch(liste, /<Button[^>]*>\s*\{t\.block\}/);
     assert.match(liste, /revokeTeamRole\(aktuell\.rolle\.id\)/);
     assert.match(liste, /konto\.admins <= 1/);
@@ -59,7 +59,7 @@ describe("Team & Zugänge: nichts geht verloren (ADM-094)", () => {
 
   it("die Kopfleiste hat vier Filter als Links mit Zahl, Einladen und Gerät anlegen", () => {
     assert.match(kopf, /ChipLink/);
-    for (const f of ["filterTeam", "filterAlle", "filterGesperrt", "filterOhneLogin", "teamTitle", "openDevice"]) assert.match(kopf, new RegExp(f), f);
+    for (const f of ["filterTeam", "filterAlle", "filterGesperrt", "filterOhneLogin", "addMember", "openDevice"]) assert.match(kopf, new RegExp(f), f);
   });
 
   it("neun Protokollaktionen werden weiter geschrieben (an den Funktionen, die die Seite aufruft)", () => {

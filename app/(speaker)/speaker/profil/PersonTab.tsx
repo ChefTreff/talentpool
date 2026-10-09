@@ -7,8 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { KontakteCard } from "@/components/speaker/KontakteCard";
-import { removeSpeakerContact, saveSpeakerContact, saveSpeakerProfile } from "../actions";
+import { saveSpeakerProfile } from "../actions";
 import type { SpeakerProfile } from "../types";
 import { useProfilSpeichern } from "./useProfilSpeichern";
 
@@ -27,8 +26,8 @@ type Draft = {
 };
 
 /**
- * Reiter „Person“: Name, Titel, Telefon, Sprache — und darunter die Kontakte (Assistenz, Agentur, Office), die für sich speichern.
- * Das Foto steht über dem Reiter-Inhalt (die Seite baut es, es speichert sofort).
+ * Reiter „Person“: Name, Titel, Telefon, Sprache. Das Foto steht über dem Reiter-Inhalt (die Seite baut es, es speichert sofort). Die Kontakte
+ * (Assistenz, Agentur, Office) stehen seit SPK-089 auf ihrer eigenen Seite `/speaker/kontakte`.
  *
  * Der Entwurf gehört diesem Reiter: wer mit Ungespeichertem zu einem anderen Reiter klickt, wird gefragt (`useUngesichert`);
  * bleibt er, geht nichts verloren, geht er, beginnt der andere Reiter mit dem gespeicherten Stand.
@@ -42,15 +41,13 @@ export function PersonTab({
   profile: SpeakerProfile;
   t: Strings;
   common: {
-    cancel: string;
-    none: string;
     save: string;
     /** Rückfrage vor dem Verlassen mit ungesicherten Änderungen (QS-051). */
     unsaved: UngesichertTexte;
   };
   rpcMessages: Record<string, string>;
 }) {
-  const { pending, startTransition, message, report } = useProfilSpeichern(rpcMessages);
+  const { pending, startTransition, report } = useProfilSpeichern(rpcMessages);
 
   const p = profile.person;
   const [draft, setDraft] = useState<Draft>({
@@ -112,20 +109,6 @@ export function PersonTab({
           </Button>
         </div>
       </Card>
-
-      {/* Ein Abschnitt für Assistenz, Agentur und Office (SPK-040, 0148).
-          Vorher waren es zwei Karten für dieselbe Sache — die Art sagt, wer es
-          ist, das Häkchen, ob die Person sich anmelden darf. */}
-      <KontakteCard
-        id="kontakte"
-        kontakte={profile.contacts ?? []}
-        readOnly={profile.is_assistant}
-        aktionen={{ save: saveSpeakerContact, remove: removeSpeakerContact }}
-        t={t}
-        common={common}
-        message={message}
-        ebene="h2"
-      />
     </div>
   );
 }

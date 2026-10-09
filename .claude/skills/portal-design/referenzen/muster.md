@@ -360,6 +360,18 @@ Konrad 09.10.2026 (Bild `docs/bilder/part-149-wer-spricht.webp`): im Block „We
 
 Zuerst umgesetzt: `/partner/masterclass` („Wer spricht“, Partner-Chat); danach `/partner/talk` (die Tabelle hat die Aktion schon in der Spalte, „Speaker eintragen“ wandert in die Kopfzeile) und weitere Listen mit Zeilenaktion. Ein Baustein `Zeilenliste` entsteht nach dem dritten Einsatz — das Speaker-Fenster hat die Zeile (Titel, Zeit und Ort, Marken, Angabenzeile) für Side Events lokal gebaut (`components/speaker/SideEventsBlock.tsx`).
 
+### Tabelle mit Aktionen in der Zeile, zwei Wege im Schubfach (Team & Zugänge, ADM-109, 09.10.2026)
+
+Am Vorbild `/admin/verwaltung/zugaenge` gemessen (Desktop 1440, Tablet 768, Handy 375 mit grobem Zeiger):
+
+- **Eine sichtbare Aktion je Zeile, der Rest in `<Menu kompakt>`** (nur ⋯: 32 px, am Finger 44). Der Auslöser trägt den Namen der Zeile im `label` („Aktionen: {Name}“); beide stehen rechts in einer Zeile (`flex items-center justify-end gap-2`). Das breite Menü mit Wort und Pfeil füllte die Zelle und schob den zweiten Knopf darunter. Was die Zeile schon an anderer Stelle bietet („+ Rolle“), steht nicht noch einmal im Menü; gibt es keinen Eintrag, gibt es kein Menü.
+- **Fehler bleiben im Dialog** (`ConfirmDialog error`, `Modal error`, im Schubfach eine Meldung mit `role="alert"` über dem Knopf): geschlossen wird nur bei Erfolg, der Toast gehört dem Erfolg.
+- **Zwei Wege zum selben Ziel** („Neu einladen“ · „Aus dem Talentpool“): ein Schubfach, oben zwei `Chip` in einer Gruppe (`role="group"` mit Namen). **Beide Formulare bleiben eingehängt**, eines `hidden` — Eingetipptes geht beim Umschalten und beim Schließen nicht verloren. Die Formulare haben keine eigene Karte (Karte in Karte) und schließen das Schubfach nach dem Erfolg selbst; der Server reicht die Funktion per Kontext durch, weil eine Funktion nicht über die Grenze geht.
+- **Leerzustand:** die eine Aktion ist ein zweitrangiger `ButtonLink` (die Hauptaktion der Seite bleibt die Kopfzeile), kein Textlink — der hat am Finger keine 44 px.
+- **Kopfzeile am Handy:** zwei Knöpfe stehen **untereinander** in voller Breite, nicht in zwei Spalten. Der Knopf hat eine feste Höhe: „Teammitglied hinzufügen“ bricht in 168 px um, und zwei Zeilen quetschen sich in 44 px.
+- **Textlinks und Marken in Zellen:** ein Namen-Link bekommt am Finger 44 px (`inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center`), ein `Badge` oder ein Kurztext in der Aktionsspalte steht `whitespace-nowrap` — sonst bricht „Ohne Login“ oder „Keine Adresse“ in zwei Zeilen.
+- **Das Schubfach selbst:** die Schließen-Taste ist am Finger 44 px hoch (Kit, `Drawer`); sie war 28.
+
 ## „Auf dieser Seite“: Fläche oder Balken (ADM-093, Kit seit 09.10.2026)
 
 `AbschnittsNavigation` hat zwei Fassungen. **`variante="flaeche"`** (Vorgabe) ist die Akzent-Soft-Fläche mit Pfeil-Knöpfen, die heute auf fünf Seiten steht. **`variante="balken"`** ist der Vorschlag aus dem Dokument 10-09 (Abschnitt 4, Konrads Antwort auf K-95 steht aus): ein **klebender Balken** unter dem Seitenkopf — Text mit Unterstrich, der Abschnitt im Bild in Akzent mit `aria-current="location"`. **Noch keine Seite ist umgestellt**; ein Test hält das fest.
