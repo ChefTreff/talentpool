@@ -14,6 +14,7 @@ import { useToast } from "@/components/ui/Toast";
 import { StatusMarke, StatusMuster } from "@/components/programme/StatusMarke";
 import {
   attachSession,
+  deleteSlot,
   detachSession,
   loadQuestionCatalog,
   loadSession,
@@ -179,6 +180,7 @@ export function SessionDrawer({
   hostOrgId,
   partnerSicht,
   slotInfo,
+  canDeleteSlot = false,
   stageOptions,
   onChangeStage,
   onChangeTime,
@@ -207,6 +209,11 @@ export function SessionDrawer({
   partnerSicht?: PartnerSicht;
   /** Bühne, Zeit und Status des Slots — oben sichtbar statt versteckt (LEAD-019). */
   slotInfo?: SlotInfo | null;
+  /**
+   * „Slot löschen“ anbieten (K-84)? Nur, wo diese Sicht den Slot ändern darf und das Löschen zur Rolle passt: das Programm-Team (jede Art)
+   * und der Partner auf seiner Bühne (nur Inhalts-Slots). Entschieden wird es in `delete_slot`; der Knopf steht nur, wo er greifen kann.
+   */
+  canDeleteSlot?: boolean;
   /**
    * Bühnen, zwischen denen der Slot hier getauscht werden darf (LEAD-044) —
    * nur im Admin. Bei Stage Leads und Partnern bleibt die Bühne gesetzt und
@@ -263,6 +270,8 @@ export function SessionDrawer({
   const [publishLokal, setPublishLokal] = useState<string | null>(null);
   const [anfrageOffen, setAnfrageOffen] = useState(false);
   const [fehltFreigabe, setFehltFreigabe] = useState<FehlendesFeld[]>([]);
+  // K-84: die Rückfrage vor „Slot löschen“.
+  const [loeschenOffen, setLoeschenOffen] = useState(false);
 
   const message = (key: string) => rpcMessages[key] ?? key;
 
@@ -290,6 +299,16 @@ export function SessionDrawer({
     }
     toast("error", fehlerText(message, res));
     return false;
+  }
+
+  /** K-84: den Slot löschen. Veröffentlicht oder zugesagt weist `delete_slot` ab (Meldung wie überall); sonst schließt das Schubfach. */
+  function slotLoeschen() {
+    if (!slotId) return;
+    startTransition(async () => {
+      const res = await deleteSlot(slotId);
+      setLoeschenOffen(false);
+      if (report(res, t.slotDeleted)) onClose();
+    });
   }
 
   useEffect(() => {
@@ -719,6 +738,14 @@ export function SessionDrawer({
               </span>
             </Field>
             )}
+            {/* K-84: Slot löschen — Team und Partner auf der eigenen Bühne; `delete_slot` prüft Recht, Veröffentlichung und Zusagen. */}
+            {canDeleteSlot && (
+              <div className="sm:col-span-2">
+                <Button variant="ghost" size="sm" disabled={pending} onClick={() => setLoeschenOffen(true)}>
+                  {t.deleteSlot}
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -1106,6 +1133,17 @@ export function SessionDrawer({
         )}
 
       </div>
+      {loeschenOffen && slotId && (
+        <ConfirmDialog
+          title={t.deleteSlotTitle}
+          body={id ? t.deleteSlotBodySession : t.deleteSlotBody}
+          confirmLabel={t.deleteSlot}
+          cancelLabel={t.cancel}
+          pending={pending}
+          onConfirm={slotLoeschen}
+          onCancel={() => setLoeschenOffen(false)}
+        />
+      )}
       {anfrageOffen && partnerSicht && (
         <ConfirmDialog
           title={partnerSicht.t.publishConfirmTitle}

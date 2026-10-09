@@ -64,17 +64,26 @@ export function Th({
    * darin: `aria-sort` ist nur für `columnheader` definiert.
    */
   sort,
+  /**
+   * Name einer Spalte ohne sichtbare Überschrift (die Spalte mit den Aktionen):
+   * `<Th aria-label={t.colAction} />`. **Wird an die Zelle weitergegeben** (QS-077) —
+   * vorher verwarf `Th` ihn still, und an 18 Stellen blieb der Kopf für
+   * Vorlesesoftware leer.
+   */
+  "aria-label": ariaLabel,
   className,
 }: {
   children?: ReactNode;
   numeric?: boolean;
   sort?: "ascending" | "descending" | "none";
+  "aria-label"?: string;
   className?: string;
 }) {
   return (
     <th
       scope="col"
       aria-sort={sort}
+      aria-label={ariaLabel}
       className={cn(
         "ct-eyebrow px-4 py-3 text-muted",
         numeric && "text-right",

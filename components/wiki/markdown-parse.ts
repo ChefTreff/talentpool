@@ -26,7 +26,7 @@ export type Block =
 
 /** Reihenfolge: Link, Code, fett, kursiv. `**` vor `*`, sonst frisst kursiv beides. */
 const INLINE =
-  /(\[([^\]]+)\]\((https?:\/\/[^\s)]+)\))|(`([^`]+)`)|(\*\*([^*]+)\*\*)|(\*([^*]+)\*)/g;
+  /(\[([^\]]+)\]\((https?:\/\/[^\s)]+)(?:\s+"[^"]*")?\))|(`([^`]+)`)|(\*\*([^*]+)\*\*)|(\*([^*]+)\*)/g;
 
 export function parseInline(text: string): Inline[] {
   const out: Inline[] = [];
