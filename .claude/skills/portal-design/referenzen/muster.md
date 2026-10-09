@@ -305,6 +305,21 @@ export default async function Seite({ searchParams }: { searchParams: Promise<{ 
 - **Handy:** bis drei Instanzen Reiter (sie brechen um, 44 px je Reiter); ab vier oder bei langen Titeln eine **Auswahl** (`Select`, Beschriftung „Masterclass“, wechselt die Adresse) — den Baustein gibt es mit dem dritten Einsatz, bis dahin bleiben es Reiter.
 - **Prüfen vor dem PR:** ein Formular je Abschnitt im DOM, der Wechsel setzt den Entwurf zurück, Aufruf mit `?instanz=` und mit falscher Kennung, 375 px.
 
+### Wo das Muster gilt (Stand 09.10.2026, am Quelltext gelesen, nicht im Browser)
+
+| Seite | Instanzen | heute | Muster |
+|---|---|---|---|
+| `/partner/masterclass` | Sessions der Organisation (meist zwei) | je Session vier Karten untereinander: Session, Inhalt, Goodies, Sprecher | **Umschalter** (Reiter, `?instanz=`); zuerst, Partner-Chat |
+| `/partner/company-tour` | Stopps (je Stopp eine Tour) | je Stopp Kopfkarte, Tour Lead und das Formular `TourStopp` | **Umschalter**, Reiter „Stopp 1 · Tour A“ (Nummer und Tour stehen schon im Titel) |
+| `/partner/interview-tables` | Tische der Organisation | je Tisch eine `TischeView` mit Tagen und Gesprächen, der Tischname als `h2` erst ab zwei Tischen | **Umschalter** ab zwei Tischen, der Tischname als Reiter; bei einem Tisch bleibt die Seite wie heute |
+| `/partner/talk` | Talks (meist einer) | je Session eine Karte mit Sprechern | ab zwei Talks **Umschalter**; die Zeilenaktion (Skill 13) gilt immer |
+| `/admin/partner/[org]` | Tour-Stopps der Organisation (die Maske ist dieselbe wie beim Partner) | je Stopp eine Karte mit `TourStopp`; je Masterclass nur die Goodies-Frage in einer Liste | **Umschalter für die Stopps** (folgt der Partner-Seite, Admin-Vollständigkeit); die Goodies-Liste bleibt, sie ist kurz |
+| `/partner/buehne` | eigene Standbühne | drei **Sichten** als Reiter (Kalender · Tabelle · Gäste), keine Formulare je Bühne | **kein Befund.** Reiter sind Sichten, keine Instanzen — nie beides in eine Leiste mischen; kämen mehrere Bühnen dazu, steht die Bühne als **Auswahl über** den Reitern |
+| `/admin/edition` (Gerüst) | Tage und Bühnen | **eine Tabelle, Felder je Zeile** | **kein Befund:** Instanzen, die man vergleicht und in Serie pflegt, gehören in eine Tabelle (siehe „Wann“) |
+| `/admin/company-tours` | Touren | Liste, Aktionen rechts in der Zeile, „Begleitung hinzufügen“ in der Kopfzeile des Abschnitts | **Vorbild** für „Liste mit Zeilenaktion“ (unten) |
+
+Nicht geprüft: `/partner/side-event` (ein Side Event je Organisation), die Admin-Seiten `/admin/speaker/[id]`, `/admin/side-events`, `/admin/volunteers` (Listen mit Detail je Eintrag, keine Formulare je Instanz auf einmal erkennbar). Wer eine Mehrfach-Seite findet, die hier fehlt, trägt sie in die Tabelle ein.
+
 Zuerst umgesetzt: `/partner/masterclass` (Partner-Chat). Danach prüfen: Interview Tables, Company-Tour-Stopps, „Eure Bühne“ (PART-138).
 
 ## Liste mit Zeilenaktion (PART-149, ab 09.10.2026)
@@ -344,6 +359,16 @@ Konrad 09.10.2026 (Bild `docs/bilder/part-149-wer-spricht.webp`): im Block „We
 ```
 
 Zuerst umgesetzt: `/partner/masterclass` („Wer spricht“, Partner-Chat); danach `/partner/talk` (die Tabelle hat die Aktion schon in der Spalte, „Speaker eintragen“ wandert in die Kopfzeile) und weitere Listen mit Zeilenaktion. Ein Baustein `Zeilenliste` entsteht nach dem dritten Einsatz — das Speaker-Fenster hat die Zeile (Titel, Zeit und Ort, Marken, Angabenzeile) für Side Events lokal gebaut (`components/speaker/SideEventsBlock.tsx`).
+
+## „Auf dieser Seite“: Fläche oder Balken (ADM-093, Kit seit 09.10.2026)
+
+`AbschnittsNavigation` hat zwei Fassungen. **`variante="flaeche"`** (Vorgabe) ist die Akzent-Soft-Fläche mit Pfeil-Knöpfen, die heute auf fünf Seiten steht. **`variante="balken"`** ist der Vorschlag aus dem Dokument 10-09 (Abschnitt 4, Konrads Antwort auf K-95 steht aus): ein **klebender Balken** unter dem Seitenkopf — Text mit Unterstrich, der Abschnitt im Bild in Akzent mit `aria-current="location"`. **Noch keine Seite ist umgestellt**; ein Test hält das fest.
+
+- **Stellen:** der Balken steht **direkt im Inhalt** unter dem Seitenkopf, nicht in einer Rasterzelle — ein klebendes Element klebt nur, solange sein Elternelement reicht. Dafür wandern bei der Umstellung die Stammdaten (heute neben der Fläche) nach oben links.
+- **Ziele:** `Sektion`, `Block` und `Card` mit `id` tragen `scroll-mt-20` (80 px), mehr als der Balken (45 px) braucht. **Keine zweite Regel** an `html` (`scroll-padding-top`): sie verdoppelte den Abstand (gemessen 152 px).
+- **Welcher Abschnitt im Bild ist,** entscheidet `aktiverAbschnitt` (der letzte, den die Linie bei 96 px erreicht hat; am Seitenende der unterste). Ein Klick gilt, bis die Person selbst scrollt oder 1,5 s um sind — sonst überstimmte „am Ende gilt der letzte“ den Sprung zum vorletzten Abschnitt.
+- **Handy:** der Balken scrollt waagerecht, der Abschnitt im Bild rutscht in die Mitte (ohne Animation bei `prefers-reduced-motion`), 44 px je Eintrag, der Fokusring liegt innen. Die Seitenleiste liest den Balken weiter (`data-abschnitts-navigation`), solange sie die Abschnitte als Unterpunkte zeigt (QS-026).
+- **Nicht in Chip-Form:** Chips und `SectionTabs` wechseln die Seite oder die Instanz; der Balken springt nur innerhalb der Seite.
 
 ## Sprache
 

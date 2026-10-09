@@ -152,7 +152,7 @@ describe("Formatierungsleiste (ADM-103 g, ADM-102 f)", () => {
     assert.match(leiste, /size-8[^"]*pointer-coarse:size-11/, "Größe nach Kit-Regel");
     assert.match(leiste, /tabIndex=\{index === aktiv \? 0 : -1\}/, "Roving Tabindex");
     assert.match(leiste, /aria-controls=\{steuert\}/);
-    assert.match(leiste, /aria-hidden className="mx-1 h-5 w-px bg-border"/, "Trennstrich zwischen den Gruppen");
+    assert.match(leiste, /className="flex items-center gap-1 border-l px-1 /, "Trennstrich: jede Gruppe ein Element mit dem Strich links");
     const editor = lies("components/wiki/Editor.tsx");
     assert.match(editor, /<FormatLeiste/);
     assert.ok(!/WERKZEUGE\.map\(\(w\)/.test(editor), "die ausgeschriebene Leiste ist weg");

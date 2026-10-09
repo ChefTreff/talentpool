@@ -40,7 +40,9 @@ export async function sd<T>(path: string, init?: RequestInit): Promise<T> {
     const detail = (await res.text().catch(() => "")).slice(0, 500);
     throw new SevdeskError(res.status, path.split("?")[0], detail);
   }
-  return (await res.json()) as T;
+  // Eine leere Antwort (etwa nach einem `DELETE`) ist kein Fehler.
+  const text = await res.text();
+  return (text.trim() ? JSON.parse(text) : {}) as T;
 }
 
 type Objects<T> = { objects?: T };
@@ -116,4 +118,52 @@ export async function saveInvoiceDraft(payload: unknown): Promise<{ id: string; 
   const id = res.objects?.invoice?.id;
   if (!id) throw new Error("SevDesk: saveInvoice ohne invoice.id");
   return { id: String(id), invoiceNumber: res.objects?.invoice?.invoiceNumber ?? null };
+}
+
+// ---- Angebote (PART-116) ------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Die Kontakte zu einer Kundennummer — **nur lesend**, höchstens zwei Treffer: mehr braucht es nicht, um „mehrdeutig“ zu erkennen. Der Aufrufer entscheidet,
+ * was null, eins und zwei Treffer bedeuten (`lib/sevdesk/angebot.ts`); `findContactByCustomerNumber` in `documents.ts` gibt bei Mehrdeutigkeit nichts zurück,
+ * das genügt dort, wo nur gelesen wird, aber nicht hier, wo ein dritter Kontakt entstehen könnte.
+ */
+export async function findContactIdsByCustomerNumber(nummer: string): Promise<string[]> {
+  const wert = nummer.trim();
+  if (!wert) return [];
+  const res = await sd<Objects<{ id: string }[]>>(`/Contact?customerNumber=${encodeURIComponent(wert)}&limit=2`);
+  return (res.objects ?? []).map((c) => String(c.id));
+}
+
+/**
+ * Die nächste freie Angebotsnummer (`AN-####`). Ohne `useNextNumber` verbraucht der Aufruf keine Nummer (Befund 08.10.2026,
+ * `docs/befund-part116-sevdesk-angebot-2026-10-08.md`); die Nummer gehört erst dem Angebot, das mit ihr gespeichert wird.
+ */
+export async function getNextQuoteNumber(): Promise<string> {
+  const res = await sd<{ objects?: string | { orderNumber?: string } }>("/Order/Factory/getNextOrderNumber?orderType=AN");
+  const roh = res.objects;
+  const nummer = (typeof roh === "string" ? roh : roh?.orderNumber ?? "").trim();
+  if (!nummer) throw new Error("SevDesk: keine Angebotsnummer");
+  return nummer;
+}
+
+/**
+ * Ein Angebot als Entwurf (Status 100) anlegen — `POST /Order/Factory/saveOrder`. Festgeschrieben wird es erst mit dem ersten `getPdf` (`documents.ts`);
+ * bis dahin lässt es sich mit `deleteOrderDraft` wieder entfernen.
+ */
+export async function saveOrderDraft(payload: unknown): Promise<{ id: string; orderNumber: string | null }> {
+  const res = await sd<Objects<{ order?: { id?: string; orderNumber?: string | null } }>>("/Order/Factory/saveOrder", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  const id = res.objects?.order?.id;
+  if (!id) throw new Error("SevDesk: saveOrder ohne order.id");
+  return { id: String(id), orderNumber: res.objects?.order?.orderNumber ?? null };
+}
+
+/**
+ * Einen Entwurf löschen — **nur** für den Probebetrieb und zum Aufräumen eines Entwurfs, der nicht festgeschrieben wurde. Ein festgeschriebener Beleg lässt
+ * sich so nicht löschen (SevDesk lehnt es ab), und das ist gewollt.
+ */
+export async function deleteOrderDraft(id: string): Promise<void> {
+  await sd(`/Order/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

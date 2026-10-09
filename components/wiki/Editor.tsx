@@ -66,19 +66,7 @@ export function Editor({
         steuert={id}
         onAnwenden={anwenden}
         t={t}
-        ende={
-          <button
-            type="button"
-            aria-pressed={vorschau}
-            onClick={() => setVorschau((v) => !v)}
-            className={
-              "min-h-11 rounded-ct-sm px-2.5 ct-label transition-colors " +
-              (vorschau ? "bg-accent-soft text-accent-deep" : "text-muted hover:bg-surface-hover hover:text-ink")
-            }
-          >
-            {t.preview}
-          </button>
-        }
+        umschalter={{ label: t.preview, pressed: vorschau, onToggle: () => setVorschau((v) => !v) }}
       />
 
       <div className={vorschau ? "grid gap-3 lg:grid-cols-2" : ""}>
