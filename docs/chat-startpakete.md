@@ -8,7 +8,7 @@
 
 ## Pause 09.10. abends (Sitzungslimit) — Stand und Fortsetzung je Chat
 
-Konrad 09.10. abends: Sitzungslimit, alle Chats schliessen ab, dokumentieren, warten; Konrad komprimiert. Stand Plan: **0288–0302 live** (fünfzehn Migrationen heute), #407–#462 gemergt, #464 (Design-Backlog, nur Doku) im Gate; main grün (npm test nach jedem Snapshot-Commit). Regel neu: Migrationstests vergleichen nicht mit dem lebenden Snapshot (`docs/db-konventionen.md`, Nachtrag 09.10.); Apply und Merge nie in einer Befehlskette.
+Konrad 09.10. abends: Sitzungslimit, alle Chats schliessen ab, dokumentieren, warten; Konrad komprimiert. Stand Plan: **0288–0302 live** (fünfzehn Migrationen heute), #407–#462 gemergt; **#464 (Design-Backlog, nur Doku) im Gate — Plan merged nach der Pause**; Speaker- und Partner-Zeile kommen nach der Pause von den Chats (Plans Kurzfassung steht schon drin); main grün (npm test nach jedem Snapshot-Commit). Regel neu: Migrationstests vergleichen nicht mit dem lebenden Snapshot (`docs/db-konventionen.md`, Nachtrag 09.10.); Apply und Merge nie in einer Befehlskette.
 
 | Chat | Stand (gemergt / offen) | Nächster Schritt nach der Pause |
 |---|---|---|
