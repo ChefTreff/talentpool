@@ -1,4 +1,4 @@
-# Konrads offene Entscheidungen und Aufgaben — Stand 08.10.2026 (spät, zweite Pause wegen Sitzungslimit; finale Liste oben, Archiv darunter)
+# Konrads offene Entscheidungen und Aufgaben — Stand 09.10.2026 (vormittags, nach der Pause; finale Liste oben, Archiv darunter)
 
 Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Security-Check, Datenschutz-Checkliste und Abschluss-Checkliste. Antworten bitte gesammelt mit der Kennung (z. B. „K-01: Seitengruppe“). Erledigtes streiche ich nach deiner Antwort hier und im jeweiligen Dokument.
 
@@ -6,7 +6,31 @@ Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Secu
 
 Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Seit Freitagabend gemergt: #330 (K-47 Archiv-Karte), #331 (ADM-066 Zuschnitt-Dialog), #332 (QS-065 Admin-Teil); dazu #333 (Tabellenzeilen 56 px, K-57), #334 PART-096 „Meet us at“-Grafik, #335 (Kontrollkästchen 44 px am Handy), #336 PART-097 (Admin-Weg zur Grafik), #337 (Chip-Baustein, Reiter 44 px am Handy), #338/#339 (Speaker-Maske auf dem gemeinsamen Zuschnitt-Kern, Porträt lädt sofort) und #340 (Stage-Lead-Pipeline am Handy: Name als Ziel der Zelle, Tabellen stapeln, Kacheln zweispaltig). Admin-Chat ist fertig und geschlossen, Design und Partner laufen.
 
-### A0 · Heute, 08.10.: Freigaben und Team-Zugänge
+### A00 · 09.10. vormittags: nach der Pause gemergt — Klicks und Freigaben
+
+**Stand:** alle Chats laufen wieder; gemergt #407, #408, #409, #412, #414–#422, #424, #425; live **0288** (Warteliste/Absage mit Frist, PART-146), **0289** (Partner-Slots, LEAD-064/K-84), **0290** (Lesefunktion Team & Zugänge, ADM-094). In der Pipeline: #423 (ADM-087 Side-Events-Block, 0291) und #426 (PART-116 Teil 1 Angebot, 0292). Vercel grün.
+
+**Neu zum Klicken (09.10.):**
+1. `/admin/edition` — die Karte „Bühnen“ zeigt jetzt die Bühnen des Summit, darunter deine sechs Hauptbühnen (ADM-107, #409); Namen und „gebrandet von <Partner>“ pflegst du dort (K-80).
+2. Admin → **Wiki**: Filter „Englisch fehlt“ ist leer; Artikel öffnen → Reiter **Englisch** → lesen, ändern, **Veröffentlichen** (ADM-103 Bau B, #407, 32 Entwürfe).
+3. Admin → **Vokabular**: Suche, eine Zeile je Begriff (#414). Admin → **Mail → Vorlagen** → Vorlage öffnen: Text markieren, Fett/Kursiv/Link/Knopf, Platzhalter-Chip, **Strg+Z** (#415).
+4. `/partner/dateien` in „TEST — Partner“: eine Zeile je Datei, Upload im Schubfach, Belege als Tabelle (#416). `/partner/onboarding`: „Eure Daten“ als vier Abschnitte mit Stand und Zahl oben — bitte **„Änderungen speichern“ und „Verwerfen“ wirklich drücken** (#424, Vorschau lief ohne Login).
+5. `/partner/masterclass/bewerbungen` → bei „TEST Zusage 01“ **Absagen** → `/admin/mail`: die Absage steht auf „Wartet“ (zehn Minuten, PART-146, 0288).
+6. `/admin/volunteers` → Reiter **Fristen** → „Frist anlegen“ (#418). `/volunteers`: Menüpunkt heisst „Home“ (#421).
+7. `/partner` mit der Test-Organisation → „Gebuchte Leistungen“: zwei Nachbuchungen mit Zeitpunkt; `/admin/partner/<Test-Organisation>` → Karte „Gebucht“ (0287, Lauf durch den Partner-Chat).
+8. `/admin/programm`: im Slot-Schubfach **„Slot löschen“** mit Rückfrage (LEAD-064, 0289); die Partner-Sicht (`/partner/buehne` auf der gebrandeten TEST-Bühne) siehst du erst nach K-87a.
+
+**Freigaben (je ein Ja reicht, gern „K-87: ja“ für alle drei):**
+- **K-87 · Testdaten-Läufe** (A·10, je idempotent, nur ZZTEST): (a) `--nur=partnerslots` — Speaker-Chat, legt die gebrandete TEST-Bühne „TEST — Eure Bühne (gebrandet)“ mit Öffnungszeiten an; (b) `--nur=side-events` zweiter Lauf nach 0291 — Speaker-Chat, lädt dich auch zum Entwurfs-Event ein; (c) `--nur=weitergabe` — Talent-Chat (PART-129, seit 0284 offen).
+- **K-88 · ADM-086-Ergebnis:** Kam die Team-Hinweismail an deinem Testalias an (#365, 0269)? Ja/nein und ggf. was fehlte — der Admin-Chat wartet darauf.
+
+**Zwei kleine Design-Fragen (Partner-Portal):**
+- **K-89 · Eure Daten (#424):** (1) Wenn alles ausgefüllt ist, bleiben alle vier Abschnitte zu — soll der erste trotzdem offen stehen? (2) Reicht die Leiste am Seitenende, oder bei Ungespeichertem zusätzlich ein Hinweis oben? Empfehlung: (1) zu lassen, (2) Leiste reicht.
+- **K-90 · Dateien (#416):** (1) Soll die Frist-Spalte bei „Eingereicht“ entfallen wie bei „Angenommen“? (2) Belege am Handy sind drei hohe Karten — Datum und Größe in eine Zeile (ändert die gestapelten Tabellen im Kit für alle Seiten)? Empfehlung: (1) ja, (2) erst einmal lassen.
+
+**Offen von gestern:** K-85 (Personenverwaltung: Konto-Status ok? Auth-Adressänderung nachrangig?), K-75 (Team-Zugänge), vivenu-Entwurf senden (einen der zwei Entwürfe).
+
+### A0 · Gestern, 08.10.: Freigaben und Team-Zugänge
 
 **K-74 · ~~Push-Freigabe Side Events (Speaker-Chat)~~ — erledigt 08.10. vormittags:** Push freigegeben, #364 gemergt, 0270 live, Testdaten-Lauf `--nur=side-events` ist gegen live gelaufen (zwei TEST-Events, drei Einladungen). **Dein Walkthrough:** /admin/side-events (zwei Karten, Dinner 2 von 10 Plätzen; „Einladungen“ zeigt dich und zwei Gäste), /speaker Abschnitt „Side Events“ mit Karte „Antwort offen“; „Erneut einladen“ an deiner Zeile schickt die Mail an dein Postfach — der Link funktioniert seit dem Hotfix #373 (Produktionsprobe 200). Frist `side_events_publish` unter /admin/fristen anlegen (du oder Paulina). Ursprünglicher Text: Der Speaker-Chat fragt dich nach der Freigabe für `git push` auf `speaker/adm-077-side-events` (Berechtigungsprüfung des Chats, 05.10. verweigert) → danach PR, Review durch mich, Migration 0269 live, dann der Testdaten-Schritt `--nur=side-events` (im Speaker-Chat genehmigen oder selbst: `node --env-file=.env.local scripts/testdaten-konrad.mjs --apply --nur=side-events` im Haupt-Checkout) → Klickweg steht in der PR-Beschreibung. Die Platzhalterfrist `side_events_publish` legst du oder Paulina unter /admin/fristen an.
 
@@ -334,6 +358,10 @@ Datenschutz und Sicherheit macht Konrad in den nächsten Tagen; vorab entschiede
 | K-84 | **Eure Bühne (PART-138, #389):** Q1 Menü erst mit zugewiesener Bühne? Q2 neue Slots durch den Partner? | **beantwortet 08.10.: Q1 ja; Q2 ja — Partner legt Slots selbst an (freie Länge, im Zeitfenster)** — Empfehlung Q1 ja (erst mit Zuweisung), Q2 nein; `grants_role` an den Branding-SKUs als Datenpflege | Partner-Chat 08.10. (#389) |
 | K-85 | **Personenverwaltung (ADM-091/092, #392):** Filter „Status“ = Konto-Status ok? Anmeldeadresse bei Konto ändern als eigene Funktion mit Auth-Änderung? | Empfehlung: Konto-Status ok; Auth-Adressänderung nachrangig (P3) | Admin-Chat 08.10. (#392) |
 | K-86 | **Home-Umbau (QS-076, #394):** Volunteers-Start auch „Home“? Kursives Stichwort über dem H1 der Unterseiten bleibt? Zwei „Home“ im Talent-Menü ok? | **beantwortet 08.10.: wie empfohlen** — Empfehlung ja / bleibt / ja | Design-Chat 08.10. (#394) |
+| K-87 | **Testdaten-Läufe (A·10):** (a) `--nur=partnerslots` (0289), (b) `--nur=side-events` zweiter Lauf (nach 0291), (c) `--nur=weitergabe` (0284) | Empfehlung: ja für alle drei (idempotent, nur ZZTEST) | Plan 09.10. |
+| K-88 | **ADM-086-Ergebnis:** Team-Hinweismail am Testalias angekommen? | — | Admin-Chat (#365, 0269) |
+| K-89 | **Eure Daten (PART-106, #424):** alle Abschnitte zu, wenn vollständig? Hinweis oben bei Ungespeichertem? | Empfehlung: zu lassen; Leiste reicht | Design-Chat 09.10. |
+| K-90 | **Dateien (PART-109, #416):** Frist bei „Eingereicht“ weg? Belege am Handy in eine Zeile (Kit-Änderung)? | Empfehlung: ja; erst einmal lassen | Design-Chat 09.10. |
 ## Antworten Konrad (24.09., Nacht)
 - **ADM-057 / #164:** Kundennummer = HubSpot-Eigenschaft `company_id` („Übergreifende Kundennummer (Company ID)“) → Übernahme in den Ingest beim Admin-Chat.
 - **SPK-068 vorziehen (P1 sofort):** Speaker-Ticket ausstellen — Konrad will es testen; Kette vivenu → Portal → Swapcard muss funktionieren.
