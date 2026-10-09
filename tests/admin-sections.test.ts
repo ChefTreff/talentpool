@@ -134,9 +134,9 @@ describe("Admin-Abschnitte: Rollen", () => {
   });
 
   it("die Verwaltung bleibt bei admin — auch für Bereichsleads", () => {
-    // PORT4: Personen, Team, Rollen, Dubletten, Löschanträge. Ein Bereichslead
+    // PORT4: Personen, Team & Zugänge (`access`), Rollen, Dubletten, Löschanträge. Ein Bereichslead
     // führt seine Domäne, er vergibt keine Rechte.
-    const verwaltung: AdminSectionKey[] = ["persons", "team", "roles", "duplicates", "deletions"];
+    const verwaltung: AdminSectionKey[] = ["persons", "access", "roles", "duplicates", "deletions"];
     for (const key of verwaltung) {
       for (const rolle of TEAM_ROLES.filter((r) => r !== "admin")) {
         assert.equal(canEnterAdminSection(key, [rolle]), false, `${key} / ${rolle}`);
