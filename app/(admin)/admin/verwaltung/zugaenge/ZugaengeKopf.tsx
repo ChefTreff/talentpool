@@ -27,7 +27,9 @@ export const useSchubfachSchliessen = () => useContext(SchubfachKontext);
  * Liste aus dem Bild. Das Schubfach des Hinzufügens hat **zwei Wege** — „Neu einladen“ und „Aus dem Talentpool“ —, statt dass der
  * zweite zugeklappt am Seitenende versteckt war. Die Formulare selbst kommen als Bausteine vom Server.
  *
- * **Am Handy** stehen die beiden Aktionen gleich breit nebeneinander (vorher rechtsbündig mit ungleichem Rand), ab 640 px rechts.
+ * **Am Handy** stehen die beiden Aktionen untereinander in voller Breite, ab 640 px rechts nebeneinander (vorher rechtsbündig mit
+ * ungleichem Rand). Zwei Spalten gingen nicht: „Teammitglied hinzufügen“ bricht in 168 px um, und der Knopf hat eine feste Höhe —
+ * zwei Zeilen quetschen sich in 44 px.
  */
 export function ZugaengeKopf({
   suche,
@@ -80,7 +82,7 @@ export function ZugaengeKopf({
             </ChipLink>
           ))}
         </nav>
-        <div className="grid w-full grid-cols-2 gap-2 sm:ml-auto sm:flex sm:w-auto">
+        <div className="grid w-full gap-2 sm:ml-auto sm:flex sm:w-auto">
           <Button variant="secondary" aria-haspopup="dialog" onClick={() => setOffen("geraet")}>
             {t.openDevice}
           </Button>

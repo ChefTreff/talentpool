@@ -250,7 +250,7 @@ export function ZugaengeListe({
                           {t.inviteNow}
                         </Button>
                       ) : (
-                        <span className="ct-help text-muted">{t.noEmail}</span>
+                        <span className="ct-help text-muted whitespace-nowrap">{t.noEmail}</span>
                       )
                     ) : null}
                     {/* Auch wer noch nie eingeloggt war, lässt sich sperren (alle Rollen weg, Anmeldung zu) — das konnte die alte Liste,

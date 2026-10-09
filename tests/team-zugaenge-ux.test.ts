@@ -19,6 +19,7 @@ const seite = lies("page.tsx");
 const einladung = lies("TeamEinladung.tsx");
 const geraet = lies("Geraetekonto.tsx");
 const aufnehmen = lies("PersonAufnehmen.tsx");
+const drawer = ohneKommentare(readFileSync("components/ui/Drawer.tsx", "utf8"));
 const de = JSON.parse(readFileSync("lib/i18n/de.json", "utf8")).accessAdmin as Record<string, string>;
 const en = JSON.parse(readFileSync("lib/i18n/en.json", "utf8")).accessAdmin as Record<string, string>;
 
@@ -102,8 +103,9 @@ describe("Die Liste: eine Aktion je Zeile, rechts, der Rest im ⋯-Menü (Punkte
     assert.match(liste, /\{!k\.blocked_at && \(k\.has_login \? Boolean\(k\.email\) \|\| !eigen : !eigen\) && \(/);
   });
 
-  it("das Badge „Ohne Login“ bricht nicht mehr um; die Namen-Links haben am groben Zeiger 44 px", () => {
+  it("das Badge „Ohne Login“ und „Keine Adresse“ brechen nicht mehr um; die Namen-Links haben am groben Zeiger 44 px", () => {
     assert.match(liste, /<Td label=\{t\.colAccess\} className="whitespace-nowrap">/);
+    assert.match(liste, /<span className="ct-help text-muted whitespace-nowrap">\{t\.noEmail\}<\/span>/, "„Keine Adresse“ steht in einer Zeile, auch in der schmalen Spalte");
     assert.match(liste, /className="ct-link inline-flex font-medium pointer-coarse:min-h-11 pointer-coarse:items-center"/);
   });
 
@@ -115,13 +117,16 @@ describe("Die Liste: eine Aktion je Zeile, rechts, der Rest im ⋯-Menü (Punkte
 });
 
 describe("Die Leiste am Handy und der Leerzustand (Punkte 8 und 11)", () => {
-  it("die zwei Aktionen stehen am Handy gleich breit nebeneinander, ab 640 px rechts (nicht mit ungleichem Rand rechtsbündig)", () => {
-    assert.match(kopf, /<div className="grid w-full grid-cols-2 gap-2 sm:ml-auto sm:flex sm:w-auto">/);
+  it("die zwei Aktionen stehen am Handy untereinander in voller Breite (zwei Spalten brächen „Teammitglied hinzufügen“ in die feste Knopfhöhe um), ab 640 px rechts nebeneinander", () => {
+    assert.match(kopf, /<div className="grid w-full gap-2 sm:ml-auto sm:flex sm:w-auto">/);
+    assert.doesNotMatch(kopf, /grid-cols-2/);
   });
 
   it("der Leerzustand trägt genau eine Aktion: bei einer Suche sie zurücksetzen, sonst alle zeigen", () => {
     assert.match(liste, /<EmptyState title=\{t\.empty\} description=\{t\.emptyBody\} action=\{leerAktion\} \/>/);
     assert.match(seite, /suche \? strings\.clearSearch : strings\.showAll/);
+    assert.match(seite, /<ButtonLink variant="secondary" href=\{/, "ein zweitrangiger Knopf (die Hauptaktion ist „Teammitglied hinzufügen“), kein Textlink ohne 44 px am Finger");
+    assert.doesNotMatch(seite, /className="ct-link"/);
     assert.match(seite, /leerAktion=\{leerAktion\}/);
   });
 
@@ -131,5 +136,15 @@ describe("Die Leiste am Handy und der Leerzustand (Punkte 8 und 11)", () => {
       assert.ok(en[k]?.trim(), `en.${k}`);
       assert.notEqual(de[k], en[k], `${k} ist übersetzt`);
     }
+  });
+});
+
+describe("Kit: die Schließen-Taste des Schubfachs hat am Handy 44 px", () => {
+  it("`pointer-coarse:min-h-11` (28 px am Finger waren zu wenig — am Handy gemessen, als die Formulare ins Schubfach zogen)", () => {
+    assert.match(drawer, /<button\s+type="button"\s+onClick=\{onClose\}\s+className="[^"]*pointer-coarse:min-h-11/);
+  });
+
+  it("der Desktop bleibt, wie er war (Polster und Größe der Taste ändern sich nur am groben Zeiger)", () => {
+    assert.match(drawer, /className="rounded-ct-sm px-2 py-1 ct-label text-muted hover:bg-surface-hover hover:text-ink pointer-coarse:min-h-11 pointer-coarse:px-3"/);
   });
 });

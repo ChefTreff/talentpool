@@ -62,7 +62,8 @@ export function Drawer({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-ct-sm px-2 py-1 ct-label text-muted hover:bg-surface-hover hover:text-ink"
+          // 28 px hoch am Finger waren zu wenig (ADM-109, am Handy gemessen): die Taste, mit der man jedes Schubfach verlässt.
+          className="rounded-ct-sm px-2 py-1 ct-label text-muted hover:bg-surface-hover hover:text-ink pointer-coarse:min-h-11 pointer-coarse:px-3"
         >
           {closeLabel}
         </button>
