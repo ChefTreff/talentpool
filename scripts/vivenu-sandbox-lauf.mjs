@@ -10,6 +10,9 @@
  *   …                                                          freiticket   # anlegen, Id merken
  *   …                                                          kette        # SPK-068: ganze Kette an Konrads Freiticket
  *   …                                                          kontingent-probe  # PART-111: hält der Shop die Menge je Kategorie? (nur Sandbox)
+ *   …                                                          transaktion <transactionId>  # TAL-019: Käufer-Adresse und Tickets lesen
+ *   …                                                          datenfelder [ticketTypeId]   # TAL-019: data-fields/resolve, Slugs company/position?
+ *   …                                                          personalisieren <ticketId>   # TAL-019: Probe-Rückschreiben (nur mit --apply)
  *   …                                                          storno <ticketId>
  *
  * Regeln für das Dev-Event (Konrads Vorgabe): **nichts löschen, was Konrad
@@ -534,6 +537,67 @@ const steps = {
         : "Die Zeilengrenze je Kategorie wird durchgesetzt: NEIN oder nicht belegt — die Menge je Kategorie müsste am Coupon je Kategorie hängen.",
     );
     if (passt !== ergebnisse.length) process.exitCode = 2;
+  },
+
+  /**
+   * TAL-019: Was liefert `GET /transactions/{id}`? Prüft, ob die Käufer-Adresse in einem der Felder steht, die
+   * `kaeuferAdresse()` liest (email, customer.email, buyer.email), und wie viele Tickets die Transaktion trägt.
+   * Nur lesen; gibt weder Adressen noch Ticket-Secrets aus.
+   */
+  async transaktion() {
+    const id = args[1];
+    if (!id) throw new Error("Transaktions-Id angeben: … transaktion <transactionId>");
+    const tx = await vv(`/transactions/${encodeURIComponent(id)}`);
+    console.log(`Felder: ${Object.keys(tx).sort().join(", ")}`);
+    const adresse = (o) => (typeof o?.email === "string" && o.email.includes("@") ? "ja" : "nein");
+    console.log(`Adresse in email: ${adresse(tx)} · customer.email: ${adresse(tx.customer)} · buyer.email: ${adresse(tx.buyer)}`);
+    const tickets = Array.isArray(tx.tickets) ? tx.tickets : null;
+    console.log(`Tickets in der Transaktion: ${tickets ? tickets.length : "kein Feld tickets"}`);
+    if (!tickets) {
+      const zweiter = await vv(`/transactions/${encodeURIComponent(id)}/tickets`).catch((e) => e.message);
+      console.log(`GET …/tickets: ${Array.isArray(zweiter) ? zweiter.length + " Tickets" : String(zweiter).slice(0, 200)}`);
+    }
+    if (tickets?.[0]) console.log(`Felder eines Tickets: ${Object.keys(tickets[0]).sort().join(", ")} (Secret vorhanden: ${tickets[0].secret ? "ja" : "nein"})`);
+  },
+
+  /**
+   * TAL-019: Welche Extrafelder je Tickettyp? Prüft, ob die Slugs `company` und `position` vorkommen
+   * (`BADGE_SLUGS` in lib/vivenu/bestaetigung.ts) und woher die sellerId kommt (Event).
+   */
+  async datenfelder() {
+    const ed = await edition();
+    const ev = await vv(`/events/${encodeURIComponent(ed.vivenu_event_id)}`);
+    const sellerId = typeof ev.sellerId === "string" ? ev.sellerId : null;
+    console.log(`sellerId am Event: ${sellerId ? "ja" : "NEIN — das Rückschreiben ließe Firma und Position weg"}`);
+    if (!sellerId) return;
+    const typ = args[1] ?? (ev.tickets ?? ev.ticketTypes ?? [])[0]?._id;
+    const q = new URLSearchParams({ sellerId, scope: "TICKET", eventId: ed.vivenu_event_id });
+    if (typ) q.set("ticketTypeId", typ);
+    const res = await vv(`/data-fields/resolve?${q}`);
+    const felder = Array.isArray(res) ? res : (res.docs ?? []);
+    console.log(`Antwort: ${Array.isArray(res) ? "Liste" : "Objekt mit " + Object.keys(res).join(", ")} · ${felder.length} Felder`);
+    for (const f of felder) console.log(`  slug=${JSON.stringify(f.slug)} name=${JSON.stringify(f.name ?? f.label ?? null)} pflicht=${f.required ?? "-"}`);
+    const slugs = new Set(felder.map((f) => f.slug));
+    for (const s of ["company", "position"]) console.log(`Slug ${s}: ${slugs.has(s) ? "vorhanden" : "FEHLT"}`);
+  },
+
+  /**
+   * TAL-019: Probe-Rückschreiben an EIN Wegwerf-Ticket (Sandbox, `ZZTEST`-Angaben). Das Secret kommt aus
+   * `ticket_secret` und wird nie ausgegeben. Ohne `--apply` nur die Vorschau.
+   */
+  async personalisieren() {
+    if (!sandbox) throw new Error("Nur in der Sandbox (VIVENU_SANDBOX nicht auf false setzen).");
+    const id = args[1];
+    if (!id) throw new Error("vivenu-Ticket-Id angeben: … personalisieren <vivenuTicketId>");
+    const { data: t } = await admin.from("ticket").select("id").eq("vivenu_ticket_id", id).maybeSingle();
+    if (!t) throw new Error("Ticket ist im Portal nicht bekannt (erst Webhook oder Sweep abwarten).");
+    const { data: sec } = await admin.from("ticket_secret").select("secret").eq("ticket_id", t.id).maybeSingle();
+    if (!sec?.secret) throw new Error("Kein Secret gespeichert.");
+    const body = { firstname: `${MARK}Vorname`, lastname: `${MARK}Nachname`, extraFields: { company: `${MARK} GmbH`, position: `${MARK} Lead` } };
+    console.log(`Würde schreiben an Ticket ${id}: ${JSON.stringify(body)}`);
+    if (!apply) return console.log("\n(ohne --apply nichts geschrieben)");
+    const res = await vv(`/tickets/personalize/${encodeURIComponent(id)}/${encodeURIComponent(sec.secret)}`, { method: "POST", body: JSON.stringify(body) });
+    console.log("Antwort:", JSON.stringify(res).replaceAll(sec.secret, "***").slice(0, 400));
   },
 
   /** Das Wegwerf-Ticket wieder entwerten. */
