@@ -1,4 +1,5 @@
--- 0000 · Ticket-Bestätigung und Personalisierung im Portal (TAL-019, Welle 1 B4/A2/A3)
+-- 0296 · Ticket-Bestätigung im Portal: Tickets der Transaktion, Verknüpfung beim Login, Rückschreibe-Marke (TAL-019)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009081920.
 -- Anlass: docs/vorschlag-tal019-ticket-bestaetigung.md (Go von Plan 09.10.2026). Die Seite `/tickets/bestaetigung` lädt die Tickets
 -- einer vivenu-Transaktion für den angemeldeten Käufer; `personalize_ticket` (unverändert) speichert das Badge-Minimum; ein Server-Weg
 -- schreibt danach nach vivenu zurück.
