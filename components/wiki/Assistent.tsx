@@ -227,7 +227,7 @@ function ZugAnsicht({
   return (
     <div className="mr-8 self-start rounded-ct-md border border-accent-soft bg-accent-soft p-3 ct-small text-ink [&_.ct-link]:text-accent-deep">
       <span className="sr-only">{t.assistant}: </span>
-      {zug.art === "antwort" && <Markdown source={zug.text} />}
+      {zug.art === "antwort" && <Markdown source={zug.text} kompakt />}
       {zug.art === "abschnitte" && <p>{t.foundOnly}</p>}
       {zug.art === "nichts" && (
         <>

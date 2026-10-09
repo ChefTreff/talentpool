@@ -83,7 +83,8 @@ describe("PART-103: wo der Filter greift (Quelltext-Prüfung — kein Render, JS
   });
 
   it("der Satz zum Filter steht nur, wo gefiltert wird", () => {
-    assert.match(wiki, /description=\{formats \? `\$\{t\.wiki\.lead\} \$\{t\.wiki\.partnerFilterNote\}` : t\.wiki\.lead\}/);
+    // Den Seitenkopf zeichnet seit PART-104 `WikiView`; der Satz geht als `lead` dorthin.
+    assert.match(wiki, /lead=\{formats \? `\$\{t\.wiki\.lead\} \$\{t\.wiki\.partnerFilterNote\}` : t\.wiki\.lead\}/);
   });
 
   it("kein anderer Bereich übergibt Formate (sie sehen jeden Artikel ihrer Zielgruppe)", () => {
