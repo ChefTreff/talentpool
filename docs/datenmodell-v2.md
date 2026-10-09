@@ -217,6 +217,7 @@
 | Welle 6 · 0290 | **Team & Zugänge: eine Liste — Lesefunktion team_access_list (ADM-094)** (`20261009073016`, `v6_team_access_list`; Details im Migrationskopf) | — |
 | Welle 6 · 0291 | **Angebot aus dem Messeshop-Warenkorb: Zustand quoted, Funktionen, Housekeeping (PART-116 Teil 1, K-81)** (`20261009074831`, `v6_shop_angebot`; Details im Migrationskopf) | — |
 | Welle 6 · 0292 | **Spalten aufräumen und Kontaktschlüssel ableiten (QS-075, ADM-108)** (`20261009075127`, `v6_spalten_kontaktschluessel`; Details im Migrationskopf) | — |
+| Welle 6 · 0293 | **Eure Bühne: has_stage nur Standbühne/gebrandete Bühne, Speaker-Wege für Team-Sessions auf der gebrandeten Bühne (PART-138 Teil 1)** (`20261009075544`, `v6_eure_buehne`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

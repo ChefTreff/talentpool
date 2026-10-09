@@ -56,6 +56,7 @@ begin
     'sessions_count', (select count(*) from session se join event ev on ev.id = se.event_id
                        where se.host_org_id = p_org_id and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id) and se.publish_status <> 'cancelled'),
     'has_stage', exists (select 1 from stage st join event ev on ev.id = st.event_id
-                         where st.partner_org_id = p_org_id and st.active and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id))
+                         where st.partner_org_id = p_org_id and st.active and st.kind in ('booth', 'branded')
+                           and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id))
   );
 end $$;

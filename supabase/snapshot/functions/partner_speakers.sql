@@ -36,7 +36,12 @@ begin
       from speaker_profile sp
       join person pe on pe.id = sp.person_id
       left join session_speaker ss on ss.person_id = sp.person_id
-      left join session se on se.id = ss.session_id and se.partner_org_id = p_org_id
+      -- PART-138: auch eine Session ohne Organisation auf einer Bühne, die diese Organisation gebrandet hat (das Team legt sie dort an)
+      left join session se on se.id = ss.session_id
+                          and (se.partner_org_id = p_org_id
+                               or (se.partner_org_id is null
+                                   and exists (select 1 from slot sl join stage st on st.id = sl.stage_id
+                                                where sl.id = se.slot_id and st.kind = 'branded' and st.partner_org_id = p_org_id)))
      where sp.created_by_org_id = p_org_id
        and sp.edition_id = v_oe.edition_id
        -- PART-081: Gäste der Standbühne stehen in ihrer eigenen Liste (partner_stage_guests).
