@@ -33,7 +33,9 @@ describe("Die Formulare stehen im Schubfach, nicht als Karte unter der Leiste (P
   it("das Schubfach des Hinzufügens hat **zwei Wege** als Auswahlknöpfe — der zweite ist nicht mehr am Seitenende versteckt", () => {
     assert.match(kopf, /<Chip aktiv=\{weg === "einladen"\}/);
     assert.match(kopf, /<Chip aktiv=\{weg === "aufnehmen"\}/);
-    assert.match(kopf, /\{weg === "einladen" \? einladung : aufnehmen\}/);
+    // Beide bleiben eingehängt (nur verborgen): Eingetipptes geht beim Umschalten nicht verloren.
+    assert.match(kopf, /<div hidden=\{weg !== "einladen"\}>\{einladung\}<\/div>/);
+    assert.match(kopf, /<div hidden=\{weg !== "aufnehmen"\}>\{aufnehmen\}<\/div>/);
     assert.match(kopf, /role="group" aria-label=\{t\.wayLabel\}/);
     assert.doesNotMatch(seite, /<details/, "das zugeklappte Feld ganz unten ist weg");
     assert.match(seite, /aufnehmen=\{\s*<PersonAufnehmen/);

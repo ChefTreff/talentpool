@@ -101,7 +101,10 @@ export function ZugaengeKopf({
                 {t.wayAdopt}
               </Chip>
             </div>
-            {weg === "einladen" ? einladung : aufnehmen}
+            {/* Beide Formulare bleiben eingehängt, nur eines ist sichtbar: was jemand getippt hat, geht beim Umschalten und beim
+                Schließen des Schubfachs nicht verloren (ein verborgenes Element liest Vorlesesoftware nicht vor, Tab überspringt es). */}
+            <div hidden={weg !== "einladen"}>{einladung}</div>
+            <div hidden={weg !== "aufnehmen"}>{aufnehmen}</div>
           </div>
         </Drawer>
         <Drawer open={offen === "geraet"} onClose={zu} title={t.openDevice} closeLabel={t.drawerClose}>
