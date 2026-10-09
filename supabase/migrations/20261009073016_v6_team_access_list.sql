@@ -1,4 +1,5 @@
--- 00NN · Team & Zugänge: eine Liste (ADM-094, Lesefunktion)
+-- 0290 · Team & Zugänge: eine Liste — Lesefunktion team_access_list (ADM-094)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009073016.
 --
 -- Anlass: Konrad 08.10.2026: „Team und Zugänge sind inhaltlich fast identisch, der Unterschied ist nicht erkennbar.“
 -- Analyse und Funktionsmatrix: docs/analyse-team-zugaenge-2026-10-08.md (Plan hat die Lesefunktion am 08.10. freigegeben).
