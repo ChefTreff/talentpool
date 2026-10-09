@@ -226,6 +226,16 @@ describe("Warenkorb: „Angebot erstellen“ steht dort, wo es durchgeht — und
     assert.match(WARENKORB, /\{quoteExpired && canOrder && \(/);
   });
 
+  it("wer nicht bestellen darf (Leserolle), sieht keine Kasse — sein Hinweis schickt ihn nicht „nach unten“ und fordert nichts, was er nicht tun kann", () => {
+    assert.match(
+      WARENKORB,
+      /const quoteBody = quoteExpired\s*\?\s*canOrder\s*\?\s*t\.quoteExpiredBody\s*:\s*t\.quoteExpiredBodyReadonly\s*:\s*canOrder\s*\?\s*t\.quoteStandingBody\s*:\s*t\.quoteStandingBodyReadonly;/,
+    );
+    assert.match(WARENKORB, /<p className="ct-small mt-1 leading-6">\{quoteBody\}<\/p>/);
+    const de = woerterbuch("de").partnerShop;
+    for (const k of ["quoteStandingBodyReadonly", "quoteExpiredBodyReadonly"]) assert.ok(!/\bunten\b|\bGebt\b|\bBestellt\b/.test(de[k]), `${k} richtet sich nicht an Personen mit Kasse`);
+  });
+
   it("kein Angebot möglich: der Grund steht da, mit dem Weg zum Team als Mailto — nie ein Knopf, der stumm fehlt", () => {
     assert.match(WARENKORB, /\{canQuote && warumNicht && \(/);
     assert.match(WARENKORB, /href=\{anfrage\}/);

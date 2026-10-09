@@ -137,6 +137,14 @@ export function Warenkorb({
   const limitReached = (quote?.quotes_used ?? 0) >= quotesMax;
   const canQuote = canOrder && cart.status === "draft" && cart.editable;
   const checkoutOpen = canOrder && (cart.editable || quoteOrderable);
+  // Wer nicht bestellen darf (Leserolle), sieht keine Kasse — der Hinweis schickt ihn nicht „nach unten“, sondern zu den Personen, die bestellen.
+  const quoteBody = quoteExpired
+    ? canOrder
+      ? t.quoteExpiredBody
+      : t.quoteExpiredBodyReadonly
+    : canOrder
+      ? t.quoteStandingBody
+      : t.quoteStandingBodyReadonly;
   const quoteNumber = quote?.quote_number ?? "—";
   const validDate = quote?.valid_until
     ? new Intl.DateTimeFormat(dateLocale, { dateStyle: "long", timeZone: "Europe/Berlin" }).format(new Date(quote.valid_until))
@@ -209,7 +217,7 @@ export function Warenkorb({
                 </p>
                 {quote?.probe && <Badge tone="warning">{t.quoteProbeBadge}</Badge>}
               </div>
-              <p className="ct-small mt-1 leading-6">{quoteExpired ? t.quoteExpiredBody : t.quoteStandingBody}</p>
+              <p className="ct-small mt-1 leading-6">{quoteBody}</p>
               {quote?.probe && <p className="ct-help mt-1 text-accent-deep">{t.quoteProbeNote}</p>}
               {!quote?.probe && !quoteExpired && (
                 <div className="mt-3">
