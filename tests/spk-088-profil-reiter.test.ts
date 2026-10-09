@@ -197,8 +197,18 @@ describe("SPK-088: jeder Reiter hat seinen Entwurf", () => {
     assert.match(f, /const warnung = useUngesichert\(JSON\.stringify\(consents\) !== basis, common\.unsaved\);/);
     assert.match(f, /saveSpeakerConsentsOnBehalf\(profile\.id, consents\)/);
     assert.match(f, /saveSpeakerConsents\(consents\)/);
+    assert.ok(f.includes("{ernaehrung}"), "die Ernährungskarte wird gezeigt");
     assert.ok(f.indexOf("{ernaehrung}") < f.indexOf('<Card id="consent"'), "die Ernährung steht über den Einwilligungen");
     assert.match(f, /const readOnlyConsent = profile\.is_assistant && !consentOnBehalf;/);
+  });
+
+  it("der gemeinsame Haken tut, was das alte Formular tat: Erfolg als Hinweis und Neuladen, Fehler mit Schlüsseltext und Detail", () => {
+    const h = tscode(quelle("app/(speaker)/speaker/profil/useProfilSpeichern.ts"));
+    assert.match(h, /const message = \(key: string\) => rpcMessages\[key\] \?\? rpcMessages\.unknown \?\? key;/);
+    assert.match(h, /toast\("success", okText\);\s+router\.refresh\(\);\s+return true;/);
+    assert.match(h, /toast\("error", message\(res\.key\) \+ \(res\.detail \? ` \(\$\{res\.detail\}\)` : ""\)\);\s+return false;/);
+    // alle drei Reiter nehmen ihn
+    for (const datei of [PERSON, AUFTRITT, EINWILLIGUNGEN]) assert.match(quelle(datei), /useProfilSpeichern\(rpcMessages\)/, datei);
   });
 
   it("die Karten behalten ihre Anker — die Schritte der Übersicht und alte Lesezeichen springen weiter dorthin", () => {
