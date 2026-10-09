@@ -305,6 +305,21 @@ export default async function Seite({ searchParams }: { searchParams: Promise<{ 
 - **Handy:** bis drei Instanzen Reiter (sie brechen um, 44 px je Reiter); ab vier oder bei langen Titeln eine **Auswahl** (`Select`, Beschriftung „Masterclass“, wechselt die Adresse) — den Baustein gibt es mit dem dritten Einsatz, bis dahin bleiben es Reiter.
 - **Prüfen vor dem PR:** ein Formular je Abschnitt im DOM, der Wechsel setzt den Entwurf zurück, Aufruf mit `?instanz=` und mit falscher Kennung, 375 px.
 
+### Wo das Muster gilt (Stand 09.10.2026, am Quelltext gelesen, nicht im Browser)
+
+| Seite | Instanzen | heute | Muster |
+|---|---|---|---|
+| `/partner/masterclass` | Sessions der Organisation (meist zwei) | je Session vier Karten untereinander: Session, Inhalt, Goodies, Sprecher | **Umschalter** (Reiter, `?instanz=`); zuerst, Partner-Chat |
+| `/partner/company-tour` | Stopps (je Stopp eine Tour) | je Stopp Kopfkarte, Tour Lead und das Formular `TourStopp` | **Umschalter**, Reiter „Stopp 1 · Tour A“ (Nummer und Tour stehen schon im Titel) |
+| `/partner/interview-tables` | Tische der Organisation | je Tisch eine `TischeView` mit Tagen und Gesprächen, der Tischname als `h2` erst ab zwei Tischen | **Umschalter** ab zwei Tischen, der Tischname als Reiter; bei einem Tisch bleibt die Seite wie heute |
+| `/partner/talk` | Talks (meist einer) | je Session eine Karte mit Sprechern | ab zwei Talks **Umschalter**; die Zeilenaktion (Skill 13) gilt immer |
+| `/admin/partner/[org]` | Tour-Stopps der Organisation (die Maske ist dieselbe wie beim Partner) | je Stopp eine Karte mit `TourStopp`; je Masterclass nur die Goodies-Frage in einer Liste | **Umschalter für die Stopps** (folgt der Partner-Seite, Admin-Vollständigkeit); die Goodies-Liste bleibt, sie ist kurz |
+| `/partner/buehne` | eigene Standbühne | drei **Sichten** als Reiter (Kalender · Tabelle · Gäste), keine Formulare je Bühne | **kein Befund.** Reiter sind Sichten, keine Instanzen — nie beides in eine Leiste mischen; kämen mehrere Bühnen dazu, steht die Bühne als **Auswahl über** den Reitern |
+| `/admin/edition` (Gerüst) | Tage und Bühnen | **eine Tabelle, Felder je Zeile** | **kein Befund:** Instanzen, die man vergleicht und in Serie pflegt, gehören in eine Tabelle (siehe „Wann“) |
+| `/admin/company-tours` | Touren | Liste, Aktionen rechts in der Zeile, „Begleitung hinzufügen“ in der Kopfzeile des Abschnitts | **Vorbild** für „Liste mit Zeilenaktion“ (unten) |
+
+Nicht geprüft: `/partner/side-event` (ein Side Event je Organisation), die Admin-Seiten `/admin/speaker/[id]`, `/admin/side-events`, `/admin/volunteers` (Listen mit Detail je Eintrag, keine Formulare je Instanz auf einmal erkennbar). Wer eine Mehrfach-Seite findet, die hier fehlt, trägt sie in die Tabelle ein.
+
 Zuerst umgesetzt: `/partner/masterclass` (Partner-Chat). Danach prüfen: Interview Tables, Company-Tour-Stopps, „Eure Bühne“ (PART-138).
 
 ## Liste mit Zeilenaktion (PART-149, ab 09.10.2026)
