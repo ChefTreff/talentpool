@@ -78,21 +78,30 @@ export type UploadTexte = {
  * `uploadDeliverableFile` (`upload.ts`: privater Bucket, `register_partner_asset`
  * — prüft Pfad, Objekt und Regeln noch einmal, darauf allein ist Verlass —,
  * `submit_deliverable`). Diese Hülle hält nur Zustand und Meldungen.
+ *
+ * **Meldungen** gehen standardmäßig als Toast hinaus. Steht der Upload in einem Schubfach (PART-109), übergibt der
+ * Aufrufer `meldung` — dann stehen Fehler und Erfolg dort, neben dem Knopf (`Drawer error`, ADM-062), statt in
+ * einem Toast, den man übersieht.
  */
 export function usePflichtUpload({
   orgId,
   editionId,
   texte,
   rpcMessages,
+  meldung,
 }: {
   orgId: string;
   editionId: string;
   texte: UploadTexte;
   rpcMessages: Record<string, string>;
+  /** Wohin Fehler und Erfolg gehen, wenn nicht in einen Toast. */
+  meldung?: { fehler: (text: string) => void; erfolg: (text: string) => void };
 }) {
   const router = useRouter();
   const toast = useToast();
   const [laedt, setLaedt] = useState<string | null>(null);
+  const fehler = (text: string) => (meldung ? meldung.fehler(text) : toast("error", text));
+  const erfolg = (text: string) => (meldung ? meldung.erfolg(text) : toast("success", text));
   const message = (key: string, detail?: string) =>
     (rpcMessages[key] ?? rpcMessages.unknown ?? key) + (detail ? ` (${detail})` : "");
 
@@ -101,8 +110,7 @@ export function usePflichtUpload({
     const bad = checkFileRules(file, rules);
     if (bad) {
       const allowed = (rules?.ext ?? []).map((e) => `.${e}`).join(", ");
-      toast(
-        "error",
+      fehler(
         bad.reason === "size"
           ? texte.tooBig.replace("{max}", bad.detail)
           : texte.wrongType.replace("{allowed}", allowed).replace("{got}", bad.detail),
@@ -124,10 +132,10 @@ export function usePflichtUpload({
       if (!res.ok) {
         // Scheitert die RPC, bleibt die Datei verwaist im Bucket; sie hier zu
         // löschen wäre der zweite Fehlerfall. Lieber melden und aufräumen lassen.
-        toast("error", res.stage === "storage" ? `${texte.failed} (${res.message})` : message(res.key, res.detail));
+        fehler(res.stage === "storage" ? `${texte.failed} (${res.message})` : message(res.key, res.detail));
         return;
       }
-      toast("success", texte.done.replace("{v}", String(res.version)));
+      erfolg(texte.done.replace("{v}", String(res.version)));
       router.refresh();
     } finally {
       setLaedt(null);

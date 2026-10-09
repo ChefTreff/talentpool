@@ -8,10 +8,14 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { FormatLeiste } from "@/components/ui/FormatLeiste";
 import { SuchFeld } from "@/components/ui/SuchFeld";
+import { ersetzeAlsEingabe, verlaufBefehl } from "@/components/ui/textfeld-bearbeiten";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/components/ui/cn";
 import type { MailKategorie } from "@/lib/mail/kategorien";
+import { knopfProbleme } from "@/lib/mail/knoepfe";
+import { MAIL_LEISTE, WERKZEUGE, wendeAn, type WerkzeugKey } from "@/lib/markdown-werkzeuge";
 import {
   SPRACHEN,
   einsetzen,
@@ -121,6 +125,10 @@ export function VorlagenView({
   const unbekannte =
     aktuell && text ? unbekanntePlatzhalter(`${text[sprache].subject} ${text[sprache].body_md}`, aktuell.variables) : [];
 
+  /** Knöpfe ohne brauchbare Adresse je Sprache — Speichern und Vorschau melden sie, statt einen toten Klick zu verschicken. */
+  const knopfFehler = text ? SPRACHEN.filter((s) => knopfProbleme(text[s].body_md).length > 0) : [];
+  const knopfFehlerHier = Boolean(text) && knopfProbleme(text![sprache].body_md).length > 0;
+
   function setzeFeld(feld: "subject" | "body_md", wert: string) {
     if (!grund) return;
     const alt = entwurf ?? grund;
@@ -136,10 +144,28 @@ export function VorlagenView({
     const von = feld.selectionStart ?? feld.value.length;
     const bis = feld.selectionEnd ?? von;
     const neu = einsetzen(feld.value, von, bis, marke);
-    setzeFeld(art === "subject" ? "subject" : "body_md", neu.text);
+    // Als Eingabe ins Feld schreiben, damit Strg+Z weiter geht; nur wenn der Browser das ablehnt, den Zustand setzen.
+    if (!ersetzeAlsEingabe(feld, neu.text)) setzeFeld(art === "subject" ? "subject" : "body_md", neu.text);
     requestAnimationFrame(() => {
       feld.focus();
       feld.setSelectionRange(neu.cursor, neu.cursor);
+    });
+  }
+
+  /** Ein Werkzeug der Leiste auf den Text anwenden (ADM-102 f): Fett, Kursiv, Link, Liste, Überschrift, Knopf, Rückgängig/Wiederholen. */
+  function formatieren(key: WerkzeugKey) {
+    const feld = textRef.current;
+    if (!feld) return;
+    const w = WERKZEUGE[key];
+    if (w.kind === "befehl") {
+      verlaufBefehl(feld, w.befehl);
+      return;
+    }
+    const neu = wendeAn(w, feld.value, feld.selectionStart, feld.selectionEnd, t.sampleText);
+    if (!ersetzeAlsEingabe(feld, neu.text)) setzeFeld("body_md", neu.text);
+    requestAnimationFrame(() => {
+      feld.focus();
+      feld.setSelectionRange(neu.start, neu.end);
     });
   }
 
@@ -280,16 +306,24 @@ export function VorlagenView({
                 />
               </Field>
               <Field label={t.body} htmlFor="body" hint={t.bodyHint}>
-                <Textarea
-                  id="body"
-                  ref={textRef}
-                  rows={16}
-                  className="font-mono"
-                  value={text[sprache].body_md}
-                  onFocus={() => { fokus.current = "body"; }}
-                  onChange={(e) => setzeFeld("body_md", e.target.value)}
-                />
+                <div className="flex flex-col gap-2">
+                  <FormatLeiste gruppen={MAIL_LEISTE} steuert="body" onAnwenden={formatieren} t={t} />
+                  <Textarea
+                    id="body"
+                    ref={textRef}
+                    rows={16}
+                    className="font-mono"
+                    value={text[sprache].body_md}
+                    onFocus={() => { fokus.current = "body"; }}
+                    onChange={(e) => setzeFeld("body_md", e.target.value)}
+                  />
+                </div>
               </Field>
+              {knopfFehler.length > 0 && (
+                <p role="alert" className="ct-small rounded-ct-md border border-error-soft bg-error-soft p-3 text-error-ink">
+                  {t.buttonNeedsUrl.replace("{sprachen}", knopfFehler.map((s) => (s === "de" ? t.languageDe : t.languageEn)).join(", "))}
+                </p>
+              )}
 
               <div className="flex flex-col gap-2">
                 <span className="ct-eyebrow text-muted">{t.placeholders}</span>
@@ -322,12 +356,12 @@ export function VorlagenView({
             </div>
 
             <div className="mt-6 flex flex-wrap gap-2 border-t pt-4">
-              <Button disabled={pending || !irgendwasGeaendert} onClick={speichern}>
+              <Button disabled={pending || !irgendwasGeaendert || knopfFehler.length > 0} onClick={speichern}>
                 {common.save}
               </Button>
               <Button
                 variant="secondary"
-                disabled={pending}
+                disabled={pending || knopfFehlerHier}
                 onClick={() =>
                   startTransition(async () => {
                     const res = await previewTemplate(
