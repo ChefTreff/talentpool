@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { hasVivenuKey, listTickets } from "@/lib/vivenu/client";
 import { isIngestable, toIngestPayload } from "@/lib/vivenu/tickets";
+import { schreibeZurueck } from "@/lib/vivenu/transaktion";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -22,6 +23,8 @@ function authorized(request: Request): boolean {
  * vivenu gibt nach sieben vergeblichen Versuchen auf; was dabei verloren geht,
  * holt dieser Lauf. Er ist idempotent: `ingest_vivenu_ticket` schreibt je
  * vivenu-Ticket-Id und zählt Coupon-Einlösungen neu.
+ *
+ * Danach holt er das Rückschreiben der Badge-Angaben nach (TAL-019, `tickets_writeback_pending`).
  *
  * `?edition=<slug|uuid>` grenzt ein, `?since=<ISO>` holt nur Geändertes,
  * `?limit=` begrenzt den Lauf. Ohne `VIVENU_API_KEY` Trockenlauf.
@@ -58,7 +61,7 @@ export async function GET(request: Request) {
   });
   const job = (jobId as number | null) ?? null;
 
-  const stats = { editions: 0, tickets: 0, created: 0, updated: 0, stale: 0, unknown_event: 0, backfilled: 0, errors: 0 };
+  const stats = { editions: 0, tickets: 0, created: 0, updated: 0, stale: 0, unknown_event: 0, backfilled: 0, errors: 0, writeback_ok: 0, writeback_open: 0 };
   const unknownTypes = new Set<string>();
   try {
     for (const edition of targets) {
@@ -102,6 +105,15 @@ export async function GET(request: Request) {
     // Was inzwischen zugeordnet wurde, jetzt nachtragen.
     const { data: filled } = await admin.rpc("backfill_ticket_pass_types");
     stats.backfilled = Number(filled ?? 0);
+
+    // TAL-019: Badge-Angaben, die im Portal stehen und bei vivenu noch fehlen (Fehler oder Schalter aus). Ohne
+    // `VIVENU_WRITE_ENABLED` bleibt die Marke stehen — `schreibeZurueck` setzt sie dann erneut.
+    const { data: offen } = await admin.rpc("tickets_writeback_pending", { p_limit: 50 });
+    for (const row of (offen ?? []) as { ticket_id: string }[]) {
+      const r = await schreibeZurueck(admin, row.ticket_id);
+      if (r === "ok") stats.writeback_ok += 1;
+      else stats.writeback_open += 1;
+    }
 
     if (job) {
       await admin.rpc("finish_sync_job", {

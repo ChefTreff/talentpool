@@ -13,12 +13,16 @@ begin
   if v_uid is null then
     raise exception 'not authenticated' using errcode = '28000';
   end if;
-  select id into v_pid from person where auth_user_id = v_uid;
-  if found then
-    return v_pid;
-  end if;
   select (email_confirmed_at is not null) into v_verified
     from auth.users where id = v_uid;
+  select id into v_pid from person where auth_user_id = v_uid;
+  if found then
+    -- TAL-019 (A3): auch eine bestehende Person bekommt Tickets, die inzwischen gekauft wurden.
+    if v_email is not null and coalesce(v_verified, false) then
+      perform link_tickets_to_person(v_pid, v_email);
+    end if;
+    return v_pid;
+  end if;
   if v_email is not null and coalesce(v_verified, false) then
     select pe.person_id into v_pid
       from person_email pe
@@ -29,6 +33,7 @@ begin
       update person set auth_user_id = v_uid where id = v_pid;
       update person_email set verified = true
         where person_id = v_pid and email = v_email;
+      perform link_tickets_to_person(v_pid, v_email);
       return v_pid;
     end if;
   end if;
@@ -39,5 +44,8 @@ begin
     returning id into v_pid;
   insert into person_email (person_id, email, is_primary, verified)
     values (v_pid, v_email, true, coalesce(v_verified, false));
+  if coalesce(v_verified, false) then
+    perform link_tickets_to_person(v_pid, v_email);
+  end if;
   return v_pid;
 end $$;
