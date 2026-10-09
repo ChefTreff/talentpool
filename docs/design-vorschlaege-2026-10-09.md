@@ -1,10 +1,8 @@
 # Design-Vorschläge · 09.10.2026
 
-> **Stand 09.10. mittags: Entwurf auf dem Branch `design/vorschlaege-1009` — Lesedurchgang, Gate und PR stehen aus (Sitzungslimit).**
-
 Konrads Admin-Feedback, Teil 1 (ADM-088 bis ADM-105): Der Design-Chat liefert einen **Vorschlag** zur Struktur des Admin-Bereichs — Seitenleiste, Gliederung, „Auf dieser Seite“, Team & Zugänge, Ansprechpartner — und prüft die Editoren; der Admin-Chat baut nach Konrads Go. Grundlage ist die Bestandsaufnahme vom 08.10. (`docs/design-vorschlaege-2026-10-08.md`, #376: 53 Menüpunkte, 79 Seiten). **Nur Vorschlag: an Shell und Navigation ändert sich nichts vor Konrads Go.** Offen für Konrads Teil 2 (Speaker, Teilnehmende, Partner, Volunteers, Abschnitt 9).
 
-**Was seit der Bestandsaufnahme gebaut wurde** (Stand `main` b4996fa7, 09.10.): Personenliste mit Suche und Filter und Stammdaten bearbeiten (ADM-091/092, #392), Protokoll (ADM-095, #391), Einwilligungen je Person (ADM-096, #395), Löschanträge und Sperrliste auf einer Seite (ADM-097, #434), Dubletten unter Personen (ADM-098, #435), Fristen je Bereich (ADM-099, #411), Vokabular mit Suche (ADM-101, #414), Mail-Vorlagen mit Editor (ADM-102, #401, #415), Wiki-Liste und Editor (ADM-103, #402, #407), Ansprechpartner ohne „Zeiten“ (ADM-100, #386). **Das Menü ist dabei gleich geblieben: 53 Punkte** (nur „Übersicht“ heißt jetzt „Home“ und „Ansprechpartner & Zeiten“ „Ansprechpartner“; mit dem Skript der Bestandsaufnahme nachgezählt). Deshalb sind die Editoren und die Datenschutz- und Personenseiten hier eine **Abnahme** (Abschnitte 7 und 8); neu vorgeschlagen wird, was noch aussteht.
+**Was seit der Bestandsaufnahme gebaut wurde** (Stand 09.10. mittags): Personenliste mit Suche und Filter und Stammdaten bearbeiten (ADM-091/092, #392), Protokoll (ADM-095, #391), Einwilligungen je Person (ADM-096, #395), Löschanträge und Sperrliste auf einer Seite (ADM-097, #434), Dubletten unter Personen (ADM-098, #435), Fristen je Bereich (ADM-099, #411), Vokabular mit Suche (ADM-101, #414), Mail-Vorlagen mit Editor (ADM-102, #401, #415), Wiki-Liste und Editor (ADM-103, #402, #407), Ansprechpartner ohne „Zeiten“ (ADM-100, #386). **Das Menü ist dabei gleich geblieben: 53 Punkte** (nur „Übersicht“ heißt jetzt „Home“ und „Ansprechpartner & Zeiten“ „Ansprechpartner“; mit dem Skript der Bestandsaufnahme nachgezählt). Deshalb sind die Editoren und die Datenschutz- und Personenseiten hier eine **Abnahme** (Abschnitte 7 und 8); neu vorgeschlagen wird, was noch aussteht.
 
 | Punkt | Wo | baut | Kern |
 |---|---|---|---|
@@ -45,7 +43,7 @@ Gemessen mit der echten `SidebarShell` und den echten Punkten in einer lokalen V
 - **Bei Konrad** beginnen die Gruppen bei 185 px (Teilnehmende), 478 (Speaker & Programm), 1009 (Partner), 1268 (Volunteers), 1391 (Produktion), 1616 (Übergreifend), **1705 (Verwaltung)** und 2066 px (System): die Verwaltung liegt 1,9 Bildschirme unter dem Fensterrand.
 - **Die Trennung heute:** Gruppenkopf `ct-eyebrow` 12 px in `accent-soft` auf `accent-deep` (5,65 : 1), darüber eine Linie in 15 % Weiß und 16 px Abstand; die Punkte stehen eingerückt. Bei 53 Punkten sieht man eine lange Liste mit dünnen Linien.
 - **Am Handy** (Punkt 44 px) steht die Leiste **über** dem Inhalt, ohne Menü-Knopf: Konrads Leiste ist 3032 px hoch (Liste 2876 px), der Inhalt beginnt bei 3126 px.
-- **Die Gruppen sind kein Ordnungsprinzip der Rollen:** die 13 Teamrollen sehen zwischen 6 und 23 Punkte, 11 Punkte öffnet nur Admin (Bestandsaufnahme, Abschnitt 3). Wer nur wenige Punkte sieht, braucht die Trennung kaum; wer alle sieht — Konrad —, braucht sie am dringendsten.
+- **Je nach Rolle sieht man unterschiedlich viel:** die 13 Teamrollen sehen zwischen 6 und 23 Punkte, 11 Punkte öffnet nur Admin (Bestandsaufnahme, Abschnitt 3). Wer nur wenige Punkte sieht, braucht die Trennung kaum; wer alle sieht — Konrad —, braucht sie am dringendsten.
 
 ## 2 · ADM-088 Menügruppen klar trennen
 
@@ -65,9 +63,9 @@ Gemessen mit der echten `SidebarShell` und den echten Punkten in einer lokalen V
 **Empfehlung: A am Desktop (ab 1024 px), B darunter — in allen Portalen zugleich.** Gründe:
 
 - **A erfüllt ADM-089 („direkt auffindbar“) und ADM-088 zugleich:** nichts wird versteckt, die Gruppen trennt eine Fläche statt einer Linie, der Kopf bleibt über 4,5 : 1. Die Höhe sinkt nicht (−56 px) — A löst die Trennung, nicht die Länge; die Länge löst die neue Gliederung (Abschnitt 3: 2240 → 2002 px).
-- **B ist am Handy keine Frage der Auffindbarkeit, sondern des Zugangs zum Inhalt:** 3,8 Bildschirme Menü vor der ersten Zeile Inhalt sind für Check-in und Produktion, die am Handy arbeiten, ein Fehler, kein Geschmack.
+- **B ist am Handy keine Frage der Auffindbarkeit, sondern des Zugangs zum Inhalt:** 3,8 Bildschirme Menü vor der ersten Zeile Inhalt sind dort, wo am Handy gearbeitet wird (zum Beispiel beim Check-in vor Ort), ein Fehler, kein Geschmack.
 - **C nicht:** die Reiterleiste ist ein Eingriff in die Shell aller Portale, am Handy braucht sie ein eigenes Muster, und sie legt **zwei Reiterleisten** auf eine Seite (Bereiche oben, Seitenreiter darunter) — Reiter wechseln die Seite, mehr als eine Ebene verwirrt.
-- **Skill-Regel 11:** strukturelle Änderungen an globalen Seiten gelten in **allen** Portalen zugleich, nie nur im Admin. A und B stehen in `SidebarNav`/`SidebarShell`, die alle Portale tragen.
+- **Skill-Regel 11:** strukturelle Änderungen an globalen Seiten gelten in **allen** Portalen zugleich, nie nur im Admin. A und B gelten in `SidebarNav`/`SidebarShell`, die alle Portale tragen.
 - Offen (Frage 9): eine **Menü-Suche** („Funktion tippen, springen“) als Zugabe — gerade bei 46 Punkten.
 
 Umsetzung (nach Go, Design, ein PR): `SidebarNav` bekommt die Fläche je Gruppe (Klassen aus vorhandenen Tokens, kein neuer Wert) und unter `lg` die zuklappbare Fassung (`<details>`-artig, Zähler und Pfeil im Kopf, `aria-expanded`, 44 px); Tests über alle Bereiche, Gegenproben, Messung 1440 und 375 px.
@@ -292,7 +290,7 @@ Summe neu: 1 + 7 + 14 + 6 + 2 + 5 + 3 (Übergreifend) + 3 (Personenverwaltung) +
 
 ## Anhang B · Quellen und Messung
 
-- **Bestandsaufnahme:** `docs/design-vorschlaege-2026-10-08.md` (#376), Skript im Scratchpad der Sitzung, gegen `main` b4996fa7 nachgezählt (53 Punkte, zwei Beschriftungen geändert).
+- **Bestandsaufnahme:** `docs/design-vorschlaege-2026-10-08.md` (#376), Skript im Scratchpad der Sitzung, am 09.10. gegen `main` nachgezählt (53 Punkte, zwei Beschriftungen geändert).
 - **Leiste, Höhen, Handy:** echte `SidebarShell` mit `sichtbareNavigation` je Rolle in einer lokalen Vorschauseite (`app/auth/vorschau-adm/[v]`, nicht eingecheckt), Chrome ohne Fenster 1440 × 900 und 2400 hoch, Handy im Browser-Pane (Touch, 375 × 812); Formel an vier Rollen bestätigt.
 - **Editoren:** `components/ui/FormatLeiste.tsx`, `lib/markdown-werkzeuge.ts`, `components/wiki/Editor.tsx`, `app/(admin)/admin/mail/vorlagen/VorlagenView.tsx`; Tastaturprobe und Messung im Browser mit Beispieldaten (Pfeile, Pos1, Ende, Tab-Stopps, `aria`-Attribute, Größen bei 375 px).
 - **Muster der Toolbar:** W3C APG „Toolbar“ (`https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/`) und „Text Formatting“-Beispiel; Platzhalter-Knopf und Merge-Tags: TinyMCE (`https://www.tiny.cloud/docs/tinymce/latest/mergetags/`), Mailchimp (`https://templates.mailchimp.com/getting-started/merge-tags/`); Carbon „Text toolbar“ (`https://carbondesignsystem.com/patterns/text-toolbar-pattern`). Nicht gefunden: wie Mailchimp, Postmark und SendGrid ihre Einfüge-Knöpfe genau zeichnen.
