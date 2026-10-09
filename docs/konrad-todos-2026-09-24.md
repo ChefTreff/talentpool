@@ -28,6 +28,10 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 
 **Neu zum Klicken (09.10. später Vormittag):** Wiki in jedem Portal — Artikel als Seite, Zwischenüberschriften statt fetter Zeilen (Tickets & Akkreditierung, Pfand, Anlieferung und Aufbau; #430/#433, 0294); `/admin/loeschantraege` — zwei Reiter Löschanträge und Sperrliste, `/admin/verwaltung/sperrliste` leitet um (#434); `/partner/masterclass/bewerbungen` und Company Tour — Satz über der Liste und Hinweis im Schubfach zur Weitergabe (K-78/K-72, #427).
 
+**K-94 · Matching-Konzept (QS-070, `docs/konzept-qs070-matching.md`):** sechs Fragen in §7 des Konzepts, Empfehlung jeweils dahinter — ein „K-94: wie empfohlen“ reicht: (1) eigene Einwilligung „Matching“ als Opt-in, (2) anonyme Karten beim Partner bis Bewerbung/Freigabe, (3) Einladung durch den Partner über uns, (4) Kategorien = `career_opportunities`, Fachbereiche = `function_area` (fehlt etwas?), (5) Schwelle „zwei Felder oder Kategorie + Fachbereich“, (6) Stufe 1 (Vokabular) sofort, PART-107 danach, Einwilligung/Treffer/Oberfläche nach dem Go-live.
+
+**Favicon:** ~~K-73 Q7~~ — erledigt 09.10. („Favicon bitte in Violett“, #438 gemergt): Browser-Reiter zeigt die Marke Off-White auf Violett, Vergleich in `docs/bilder/qs-071-favicon-navy-violett.png`. **Neu zum Klicken:** `/admin/personen/dubletten` — Dubletten als Unterseite, alte Pfade leiten um (#435).
+
 **Zwei kleine Design-Fragen (Partner-Portal):**
 - **K-89 · Eure Daten (#424):** (1) Wenn alles ausgefüllt ist, bleiben alle vier Abschnitte zu — soll der erste trotzdem offen stehen? (2) Reicht die Leiste am Seitenende, oder bei Ungespeichertem zusätzlich ein Hinweis oben? Empfehlung: (1) zu lassen, (2) Leiste reicht.
 - **K-90 · Dateien (#416):** (1) Soll die Frist-Spalte bei „Eingereicht“ entfallen wie bei „Angenommen“? (2) Belege am Handy sind drei hohe Karten — Datum und Größe in eine Zeile (ändert die gestapelten Tabellen im Kit für alle Seiten)? Empfehlung: (1) ja, (2) erst einmal lassen.
@@ -373,6 +377,7 @@ Datenschutz und Sicherheit macht Konrad in den nächsten Tagen; vorab entschiede
 | K-90 | **Dateien (PART-109, #416):** Frist bei „Eingereicht“ weg? Belege am Handy in eine Zeile (Kit-Änderung)? | Empfehlung: ja; erst einmal lassen | Design-Chat 09.10. |
 | K-91 | **Empfehlungs-/Botschafterfelder (QS-075, #429):** `invite_code`, `referred_by_person_id`, `is_ambassador`, `engagement_score` streichen? | Empfehlung: streichen (nie gebaut, nicht im Masterplan) | Admin-Chat 09.10. (Befund) |
 | K-92 | **Wiki-Darstellung (PART-104, #430/#433):** (1) Assistent unter den Artikel oder in die Liste? (2) Redaktion: fette Zeilen sind jetzt `###` (Doppelpunkt am Ende weg, Nummern bleiben; fette Sätze mit Punkt/Ausrufezeichen bleiben fett; EN-Entwürfe mitgezogen) — Widerspruch? | Empfehlung: (1) in die Liste; (2) so lassen (0294 live) | Design-Chat 09.10. |
+| K-94 | **Matching-Konzept (QS-070):** Opt-in „Matching“? anonyme Karten? Einladung über uns? Vokabulare reichen? Schwelle? Stufen 3/4 nach Go-live? | Empfehlung: sechsmal ja | Plan 09.10. (`docs/konzept-qs070-matching.md`) |
 | K-93 | **Ticket-Bestätigung (TAL-019, #436):** (1) Versand durch vivenu oder uns? (2) Extra-Felder `company`/`position` je Tickettyp in vivenu? (3) Überspringen mit Erinnerung nach 7 Tagen? (4) Andere Person: erster Login reicht? (5) Redirect-URL je Event — du nach Sandbox-Probe? (6) Add-ons nur Anzeige? | Empfehlung: (1) vivenu; (2) ja; (3) ja; (4) ja; (5) ja; (6) ja | Talent-Chat 09.10. (Vorschlag) |
 ## Antworten Konrad (24.09., Nacht)
 - **ADM-057 / #164:** Kundennummer = HubSpot-Eigenschaft `company_id` („Übergreifende Kundennummer (Company ID)“) → Übernahme in den Ingest beim Admin-Chat.
