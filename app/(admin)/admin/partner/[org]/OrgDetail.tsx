@@ -21,6 +21,7 @@ import type { ProfilFeld, ProfilOption } from "@/components/partner/ProfilAuswah
 import type { TourStopp as TourStoppZeile } from "@/components/partner/tour";
 import { TourStopp } from "@/components/partner/TourStopp";
 import { GoodiesFrage } from "@/components/partner/GoodiesFrage";
+import { leistungenZusammenfassen, nachbuchungsText } from "@/components/partner/leistungen";
 import { FragenFreigabe, type OffeneFragen } from "./FragenFreigabe";
 import {
   BeschreibungFelder,
@@ -181,6 +182,9 @@ export function OrgDetail({
   });
   const label = (d: AdminDeliverable) =>
     (locale === "en" ? d.label_en : d.label_de) ?? d.label_de ?? d.key;
+  // PART-102: je Leistung eine Zeile; Nachbuchungen (zweiter Deal) mit Datum. Der Admin sieht auch stornierte Leistungen, mit ihrem Stand.
+  const leistungen = leistungenZusammenfassen(overview.products);
+  const nachbuchungsTag = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium", timeZone: "Europe/Berlin" });
 
   /**
    * Bühnen-Editor je Kontakt (nur Admins vergeben Rollen). Der Hauptkontakt
@@ -704,7 +708,7 @@ export function OrgDetail({
 
       <Card id="gebucht">
         <CardHeader ebene="h2" title={t.bookedTitle} description={t.bookedLead} />
-        {overview.products.length === 0 ? (
+        {leistungen.length === 0 ? (
           <p className="ct-help">{t.bookedEmpty}</p>
         ) : (
           <Table>
@@ -714,16 +718,24 @@ export function OrgDetail({
               <Th>{t.colStatus}</Th>
             </Thead>
             <Tbody>
-              {overview.products.map((p) => (
-                <Tr key={p.sku}>
-                  <Td>
-                    {(locale === "en" ? p.name_en : p.name_de) ?? p.name_de ?? p.sku}
-                    <div className="ct-help">{p.sku}</div>
-                  </Td>
-                  <Td numeric>{p.qty}</Td>
-                  <Td className="text-muted">{p.status ?? "—"}</Td>
-                </Tr>
-              ))}
+              {leistungen.map((z) => {
+                const nachgebucht = nachbuchungsText(
+                  z,
+                  { davon: t.bookedRebooked, ganz: t.bookedRebookedAll },
+                  (iso) => nachbuchungsTag.format(new Date(iso)),
+                );
+                return (
+                  <Tr key={z.sku}>
+                    <Td>
+                      {(locale === "en" ? z.name_en : z.name_de) ?? z.name_de ?? z.sku}
+                      <div className="ct-help">{z.sku}</div>
+                      {nachgebucht && <div className="ct-help">{nachgebucht}</div>}
+                    </Td>
+                    <Td numeric>{z.qty}</Td>
+                    <Td className="text-muted">{z.storniert ? "cancelled" : "booked"}</Td>
+                  </Tr>
+                );
+              })}
             </Tbody>
           </Table>
         )}

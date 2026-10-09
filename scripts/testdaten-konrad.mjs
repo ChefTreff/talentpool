@@ -105,6 +105,9 @@
  *   … --apply --nur=hackathon-team (HACK-009/012: Konrad ins TEST-Team „Queue Crushers“ —
  *                                   nur wenn er sich unter /hackathon schon beworben hat;
  *                                   dann sieht er Datensatz-Download und Metrik-Eingabe)
+ *   … --apply --nur=nachbuchung    (PART-102: zweiter Test-Deal mit zwei Nachbuchungs-Leistungen — „Partner Branding × 3, davon 2 nachgebucht am …“
+ *                                   und „Digital Branding, nachgebucht am …“ in /partner und in der Karte „Gebucht“ unter /admin/partner/<Org>;
+ *                                   braucht `partner` und die Migration v6_nachbuchung)
  *   … --apply --nur=benachrichtigungen (TAL-009: zwei TEST-Personen ohne Konto mit Themen,
  *                                   eine mit Newsletter-Einwilligung (anschreibbar), eine
  *                                   ohne — Zähler und Export in /admin/benachrichtigungen)
@@ -125,6 +128,9 @@
  *                                   Zusatzzeile — und eine TEST-Ansprechperson vom Typ hackathon_lead;
  *                                   /hackathon. Die Zahl der Angenommenen erscheint erst ab 20 Bewerbungen
  *                                   und wird nicht erfunden)
+ *   … --apply --nur=weitergabe     (PART-129: Konrads Bewerbung auf „TEST — Masterclass“ steht ohne Haken zur
+ *                                   Weitergabe — unter /meine „Weitergabe freigeben“ zum Nachholen; Partner sieht
+ *                                   sie bis dahin nicht)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -141,6 +147,9 @@
  *                                   ohne Mail. Erst nach „Migration live“ von
  *                                   v6_speaker_tickets_final. ACHTUNG: „Ausstellen“ legt ein echtes
  *                                   vivenu-Freiticket an — zum Ausprobieren Stornieren nehmen)
+ *   … --apply --nur=wiki           (PART-103: zweite TEST-Organisation „TEST — Partner nur Branding“ mit genau einem Produkt
+ *                                   (Partner Branding, ohne Pass-Typ), Konrad als Hauptkontakt — im Partner-Portal die Organisation
+ *                                   wechseln und /partner/wiki öffnen: Artikel zu nicht gebuchten Leistungen fehlen)
  *   … --apply --nur=side-events    (ADM-077/SPK-091: ein veröffentlichtes TEST-Side-Event mit Obergrenze 10 und
  *                                   ein Entwurf; Konrads Testprofil ist eingeladen (Stand „eingeladen“, ohne Mail),
  *                                   zwei TEST-Speaker haben zu- und abgesagt — für /admin/side-events und
@@ -157,6 +166,11 @@
  *                                   verschiebt, sieht unter /admin/mail eine wartende Mail an Konrads Postfach. Braucht den Schritt
  *                                   `buehne` und Konrads Speaker-Profil; erst nach „Migration live“ von v6_mail_verzoegert.
  *                                   **Die Session steht bis `--remove` im veröffentlichten Programm**)
+ *   … --apply --nur=zusage-mail   (PART-124: eine freigegebene TEST-Masterclass der Test-Organisation mit drei TEST-Bewerbungen
+ *                                   „Engere Wahl“ — Konrad sagt im Partner-Portal zu (Masterclass → Bewerbungen), /admin/mail zeigt
+ *                                   die Zusage-Mail als „Wartet“ (Versand frühestens in zehn Minuten), eine andere Entscheidung bis
+ *                                   dahin storniert sie. Braucht den Schritt `partner`; die Frist sieht man erst nach „Migration
+ *                                   live“ von v6_zusage_mail_verzoegert)
  *   … --apply --nur=partnerslots   (K-84/LEAD-064: eine gebrandete TEST-Bühne der Test-Organisation mit Öffnungszeiten am ersten und
  *                                   letzten Summit-Tag — Konrad ist dort Standbühnen-Editor und legt unter /partner/buehne selbst
  *                                   Slots an, verschiebt und löscht sie (/admin/programm zeigt dieselben als Team). Braucht den
@@ -303,7 +317,8 @@ async function partnerOrg(ed) {
         communication_name: `${PREFIX}Partner`,
         type: "corporate",
         website: "https://chef-treff.de",
-        description: "Testorganisation für die Feedback-Runden.",
+        // Die Spalte heißt `description_de`; `description` gibt es nicht mehr — ein frischer Lauf scheiterte hier (08.10.2026, beim Wiki-Schritt gefunden).
+        description_de: "Testorganisation für die Feedback-Runden.",
       })
       .select("id")
       .single();
@@ -335,7 +350,6 @@ async function partnerOrg(ed) {
           org_id: orgId,
           edition_id: ed.id,
           onboarding_status: "invited",
-          description_de: "Testorganisation für die Feedback-Runden.",
           invoice_email: email,
           sponsoring_level: "premium",
         })
@@ -2021,6 +2035,83 @@ async function bewerbungenSchritt(me, ed) {
 }
 
 /**
+ * Schritt `zusage-mail` (PART-124): eine TEST-Masterclass der Test-Organisation, deren **Entscheidungen freigegeben** sind, mit drei
+ * TEST-Bewerbungen im Stand „Engere Wahl“. So kann Konrad im Partner-Portal selbst zusagen und sieht, was die Mail macht:
+ * Masterclass → Bewerbungen → „Zusagen“ bei einer TEST-Person; unter /admin/mail steht die Zusage-Mail auf „Wartet“ mit „Versand
+ * frühestens“ in zehn Minuten. Dann bei derselben Person „Absagen“ oder „Warteliste“: die Zusage-Mail steht auf „Storniert“ (Grund:
+ * Zusage zurückgenommen), die Mail zur neuen Entscheidung wartet. Wer nichts tut, bekommt die Zusage-Mail nach zehn bis zwanzig
+ * Minuten an sein Postfach (Plus-Adressen `+zztest-zusage-NN`).
+ *
+ * **Ohne Mail beim Anlegen:** „Engere Wahl“ löst weder bei der Bewerbung noch bei der Freigabe eine Mail aus — der Trigger kennt nur
+ * Eingang, Zusage, Nachrücken, Warteliste und Absage. Die Freigabe trägt der Schritt direkt ein (`decision_release`); der Freigabe-
+ * Trigger findet keine entschiedene Bewerbung. Ein zweiter Lauf setzt die Stände zurück (nach „Engere Wahl“) und storniert dabei eine
+ * wartende Zusage-Mail. Die Session bleibt Entwurf ohne Slot und erscheint im Programm nirgends. Braucht den Schritt `partner`
+ * (Test-Organisation mit Konrad als Hauptkontakt); die Frist sieht man erst nach „Migration live“ von v6_zusage_mail_verzoegert.
+ */
+const ZUSAGE_SESSION = `${PREFIX}Masterclass Zusage-Mail`;
+const ZUSAGE_PERSONEN = 3;
+const zusageAdresse = (i) => email.replace("@", `+zztest-zusage-${zweistellig(i)}@`);
+
+async function zusageMailSchritt(me, ed) {
+  const eventId = (await summit(ed))?.id ?? ed.id;
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) return fail("Zusage-Mail", "Test-Organisation fehlt — zuerst --nur=partner");
+  if (mode === "dry-run") {
+    note(`TEST-Masterclass „${ZUSAGE_SESSION}“ der Test-Organisation, Entscheidungen freigegeben, ` +
+      `${ZUSAGE_PERSONEN} TEST-Bewerbungen „Engere Wahl“ (ohne Mail)`);
+    return;
+  }
+
+  let { data: se } = await admin.from("session").select("id")
+    .eq("event_id", eventId).eq("title_de", ZUSAGE_SESSION).maybeSingle();
+  if (!se) {
+    se = await write(`Session ${ZUSAGE_SESSION} (Entwurf, Partner = Test-Organisation)`, () =>
+      admin.from("session").insert({
+        event_id: eventId, format: "masterclass", host_org_id: org.id, partner_org_id: org.id,
+        title_de: ZUSAGE_SESSION, title_en: `${PREFIX}Masterclass acceptance email`,
+        description_de: "Testformat für die verzögerte Zusage-Mail (PART-124).",
+        description_en: "Test format for the delayed acceptance email (PART-124).",
+        language: "de", access_mode: "application", publish_status: "draft", capacity: 12,
+        application_deadline: new Date(Date.now() + 30 * 86400000).toISOString(),
+      }).select("id").single(),
+    );
+  }
+  if (!se) return;
+
+  const personen = [];
+  for (let i = 1; i <= ZUSAGE_PERSONEN; i++) {
+    const { data: personId, error } = await admin.rpc("testdaten_person", {
+      p_first_name: "TEST", p_last_name: `Zusage ${zweistellig(i)}`, p_email: zusageAdresse(i),
+    });
+    if (error || !personId) return fail(`TEST-Person Zusage ${zweistellig(i)}`, error ?? "keine Person");
+    personen.push(personId);
+  }
+  note(`${personen.length} TEST-Personen (${zusageAdresse(1)} … ${zusageAdresse(ZUSAGE_PERSONEN)})`);
+
+  const jetzt = new Date().toISOString();
+  await write(`${ZUSAGE_SESSION}: ${personen.length} TEST-Bewerbungen „Engere Wahl“ (ohne Mail, Stände zurückgesetzt)`, () =>
+    admin.from("application").upsert(
+      personen.map((personId) => ({
+        session_id: se.id, person_id: personId, status: "shortlisted", rank: null,
+        decided_at: jetzt, confirm_by: null, consent_share: true, answers: {},
+      })),
+      { onConflict: "session_id,person_id" },
+    ),
+  );
+
+  // Die Freigabe zuletzt: ohne entschiedene Bewerbung (alle „Engere Wahl“) schickt der Freigabe-Trigger nichts.
+  const { data: frei } = await admin.from("decision_release").select("id").eq("session_id", se.id).maybeSingle();
+  if (frei) {
+    note("Entscheidungen der Session", "schon freigegeben");
+  } else {
+    await write("Entscheidungen der Session freigegeben (damit Zusagen die Mail auslösen)", () =>
+      admin.from("decision_release").insert({ session_id: se.id, released_by: me.id, note: `${MARK} — Zusage-Mail` }),
+    );
+  }
+}
+
+/**
  * Schritt `produktion` (PROD-004/005): eine TEST-Shop-Bestellung der Test-Organisation,
  * damit die Produktionsliste je Stand (`/admin/produktion/staende`) und die Bestellliste
  * (`/admin/produktion/bestellungen`) alle drei Quellen zeigen: die Paketausstattung kommt aus
@@ -2105,6 +2196,70 @@ async function produktionSchritt(me, ed) {
   });
   await write("Zeilen der TEST-Shop-Bestellung (Tischkicker ×1, Barhocker ×4)", () =>
     admin.from("shop_order_line").upsert(zeilen, { onConflict: "order_id,product_sku" }));
+}
+
+/**
+ * Schritt `wiki` (PART-103): eine zweite TEST-Organisation, die **nur** ein Branding-Produkt gebucht hat — damit Konrad sieht, was der
+ * Filter im Partner-Wiki tut. Seine erste Test-Organisation führt alle Produkte und sieht deshalb jeden Artikel; erst die zweite zeigt, dass
+ * Artikel zu Leistungen, die nicht gebucht sind, fehlen (heute „Masterclasses“ und „Sponsored Talk“). Konrad wechselt unter `/partner` in der
+ * Seitenleiste die Organisation („TEST — Partner nur Branding“) und öffnet `/partner/wiki`; zurück auf „TEST — Partner“ stehen alle Artikel
+ * wieder da. Die erste Organisation bleibt die Vorgabe (Sortierung nach Kommunikationsname: der kürzere Name zuerst).
+ *
+ * Gebucht wird `I-21634` „Partner Branding“ (Format `branding`, **ohne Pass-Typ und ohne Rolle** — ein Pass-Typ legte ein vivenu-Kontingent an
+ * und der Cron daraus einen echten Coupon, siehe `partnerProdukte`). Konrad ist Hauptkontakt. Idempotent; `--remove` nimmt die Organisation mit.
+ */
+const WIKI_ORG = `${PREFIX}Partner nur Branding GmbH`;
+const WIKI_ORG_NAME = `${PREFIX}Partner nur Branding`;
+const WIKI_PRODUKT = "I-21634";
+
+async function wikiFilterSchritt(me, ed) {
+  if (mode === "dry-run") {
+    note(`Zweite TEST-Organisation „${WIKI_ORG_NAME}“ mit nur einem Branding-Produkt (${WIKI_PRODUKT}), Konrad als Hauptkontakt`);
+    return;
+  }
+  const { data: produkt } = await admin.from("product").select("sku, format_key, pass_type, net_price_cents, active")
+    .eq("sku", WIKI_PRODUKT).maybeSingle();
+  if (!produkt?.active || produkt.format_key !== "branding") {
+    return fail("Wiki-Filter", `${WIKI_PRODUKT} ist kein aktives Branding-Produkt mehr — Auswahl im Skript anpassen`);
+  }
+  if (produkt.pass_type) {
+    return fail("Wiki-Filter", `${WIKI_PRODUKT} trägt einen Pass-Typ — würde ein vivenu-Kontingent auslösen, nichts angelegt`);
+  }
+
+  let { data: org } = await admin.from("organization").select("id").eq("legal_name", WIKI_ORG).maybeSingle();
+  if (!org) {
+    org = await write(`Organisation ${WIKI_ORG_NAME}`, () =>
+      admin.from("organization").insert({
+        legal_name: WIKI_ORG, communication_name: WIKI_ORG_NAME, type: "corporate",
+        website: "https://chef-treff.de", description_de: "Testorganisation für den Wiki-Filter (PART-103).",
+      }).select("id").single(),
+    );
+  }
+  if (!org) return;
+
+  let { data: oe } = await admin.from("org_edition").select("id").eq("org_id", org.id).eq("edition_id", ed.id).maybeSingle();
+  if (!oe) {
+    oe = await write("Org-Edition der zweiten Test-Organisation", () =>
+      admin.from("org_edition").insert({
+        org_id: org.id, edition_id: ed.id, onboarding_status: "invited", invoice_email: email,
+      }).select("id").single(),
+    );
+  }
+  if (!oe) return;
+
+  const { data: gebucht } = await admin.from("org_product").select("id")
+    .eq("org_edition_id", oe.id).eq("product_sku", WIKI_PRODUKT).maybeSingle();
+  if (gebucht) {
+    note(`Produkt ${WIKI_PRODUKT}`, "schon gebucht");
+  } else {
+    await write(`Produkt ${WIKI_PRODUKT} (Partner Branding) gebucht — das einzige`, () =>
+      admin.from("org_product").insert({
+        org_edition_id: oe.id, product_sku: WIKI_PRODUKT, qty: 1,
+        unit_price_cents: produkt.net_price_cents ?? 0, status: "booked",
+      }),
+    );
+  }
+  await partnerKontakt(me, ed, org.id, gueltigBis(ed));
 }
 
 /**
@@ -2209,6 +2364,68 @@ async function formateSchritt(me, ed) {
       ),
     );
   }
+}
+
+/**
+ * Schritt `nachbuchung` (PART-102, K-82: Nachbuchung = neuer Deal in derselben Pipeline): die Test-Organisation bekommt einen zweiten Deal mit
+ * zwei Folge-Leistungen und ihrem Zeitpunkt `nachgebucht_am` — **2 × „Partner Branding“** (die SKU ist schon gebucht, die Liste zeigt „× 3 ·
+ * davon 2 nachgebucht am …“) und **1 × „Digital Branding“** (neu, „nachgebucht am …“). Direkt geschrieben, ohne HubSpot: zwei Zeilen in
+ * `partner_deal` (`ZZTEST-DEAL-1` als erster, `ZZTEST-DEAL-2` als zweiter Deal) und zwei in `org_product` mit eigener Line-Item-Id. Konrad klickt:
+ * `/partner` — „Gebuchte Leistungen“ (eine Zeile je Leistung, mit Trennlinien), im Admin `/admin/partner/<Test-Organisation>` — „Gebucht“ und „Deals“.
+ *
+ * Nur Produkte **ohne Pass-Typ** (ein Pass-Typ legte ein vivenu-Kontingent an, siehe `partnerProdukte`) und ohne Rolle. Ein zweiter Lauf lässt Deals,
+ * Zeilen und den Zeitpunkt stehen (`ignoreDuplicates`). `--remove` nimmt die Deals und — mit der Organisation — die Zeilen mit. Braucht den Schritt `partner`
+ * und die Migration `v6_nachbuchung` (die Spalte); vorher meldet der Schritt, dass sie fehlt.
+ */
+const NACHBUCHUNG_DEAL_1 = "ZZTEST-DEAL-1";
+const NACHBUCHUNG_DEAL = "ZZTEST-DEAL-2";
+const NACHBUCHUNG_ZEILEN = [
+  { sku: "I-21634", qty: 2, lineItem: "ZZTEST-LI-2a" }, // Partner Branding — die SKU steht schon in PARTNER_PRODUKTE (× 1)
+  { sku: "I-95690", qty: 1, lineItem: "ZZTEST-LI-2b" }, // Digital Branding — neu
+];
+
+async function nachbuchungSchritt(me, ed) {
+  const { data: org } = await admin.from("organization").select("id")
+    .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  const { data: oe } = org
+    ? await admin.from("org_edition").select("id").eq("org_id", org.id).eq("edition_id", ed.id).maybeSingle()
+    : { data: null };
+  if (!oe) return fail("Nachbuchung", "Test-Organisation fehlt — zuerst --nur=partner");
+  if (mode === "dry-run") {
+    note(`Zweiter Deal ${NACHBUCHUNG_DEAL} der Test-Organisation mit zwei Nachbuchungs-Leistungen (Partner Branding × 2, Digital Branding × 1)`);
+    return;
+  }
+
+  const { data: produkte, error: pe } = await admin.from("product").select("sku, pass_type, net_price_cents, active, grants_role")
+    .in("sku", NACHBUCHUNG_ZEILEN.map((z) => z.sku));
+  if (pe || (produkte ?? []).length !== NACHBUCHUNG_ZEILEN.length || produkte.some((p) => !p.active)) {
+    return fail("Nachbuchung", pe ?? "Partner Branding oder Digital Branding fehlt im Produktstamm oder ist nicht aktiv");
+  }
+  const mitPass = produkte.find((p) => p.pass_type || p.grants_role);
+  if (mitPass) {
+    return fail("Nachbuchung", `${mitPass.sku} trägt einen Pass-Typ — würde ein vivenu-Kontingent auslösen (oder eine Rolle vergeben), nichts angelegt`);
+  }
+
+  await write(`Deals ${NACHBUCHUNG_DEAL_1} (erster) und ${NACHBUCHUNG_DEAL} (zweiter) der Test-Organisation`, () =>
+    admin.from("partner_deal").upsert(
+      [
+        { hubspot_deal_id: NACHBUCHUNG_DEAL_1, org_edition_id: oe.id, deal_name: `${PREFIX}Erstbuchung`, payload: { marker: MARK } },
+        { hubspot_deal_id: NACHBUCHUNG_DEAL, org_edition_id: oe.id, deal_name: `${PREFIX}Nachbuchung`, payload: { marker: MARK } },
+      ],
+      { onConflict: "hubspot_deal_id", ignoreDuplicates: true },
+    ),
+  );
+  const jetzt = new Date().toISOString();
+  await write("Zwei Nachbuchungs-Leistungen mit Zeitpunkt (Partner Branding × 2, Digital Branding × 1)", () =>
+    admin.from("org_product").upsert(
+      NACHBUCHUNG_ZEILEN.map((z) => ({
+        org_edition_id: oe.id, product_sku: z.sku, qty: z.qty, hubspot_line_item_id: z.lineItem, status: "booked",
+        unit_price_cents: produkte.find((p) => p.sku === z.sku).net_price_cents ?? 0,
+        nachgebucht_am: jetzt,
+      })),
+      { onConflict: "org_edition_id,product_sku,hubspot_line_item_id", ignoreDuplicates: true },
+    ),
+  );
 }
 
 /**
@@ -3050,6 +3267,25 @@ async function hackathonEckdatenSchritt(_me, ed) {
     }));
 }
 
+/**
+ * PART-129: eine Bewerbung ohne Weitergabe — so standen die 21 Bestandsbewerbungen da. Unter /meine zeigt sie
+ * „Weitergabe freigeben“; der Partner sieht sie erst danach.
+ */
+async function weitergabeSchritt(me) {
+  const { data: sess } = await admin.from("session").select("id")
+    .eq("title_de", `${PREFIX}Masterclass`).eq("publish_status", "published").limit(1).maybeSingle();
+  if (!sess) return fail("Weitergabe", "Veröffentlichte „TEST — Masterclass“ fehlt — erst --nur=partner");
+  const { data: app } = await admin.from("application").select("id, consent_share")
+    .eq("session_id", sess.id).eq("person_id", me.id).maybeSingle();
+  if (!app) {
+    return write("Bewerbung ohne Weitergabe (zum Nachholen)", () =>
+      admin.from("application").insert({ session_id: sess.id, person_id: me.id, answers: {}, consent_share: false }));
+  }
+  if (!app.consent_share) return note("Bewerbung ohne Weitergabe", "steht schon");
+  await write("Bewerbung auf ohne Weitergabe gesetzt", () =>
+    admin.from("application").update({ consent_share: false }).eq("id", app.id));
+}
+
 async function logoEinwilligung(me, ed) {
   const { data: org } = await admin.from("organization").select("id")
     .eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
@@ -3800,6 +4036,7 @@ const SCHRITTE = {
   benachrichtigungen: benachrichtigungenSchritt,
   "event-fotos": fotosSchritt,
   feedback: feedbackSchritt,
+  weitergabe: weitergabeSchritt,
   "hackathon-eckdaten": hackathonEckdatenSchritt,
   "luma-leads": lumaLeadsSchritt,
   schichtmodell: schichtmodellSchritt,
@@ -3807,9 +4044,12 @@ const SCHRITTE = {
   talk: talkSpeaker,
   "tour-bewerbung": tourBewerbung,
   bewerbungen: bewerbungenSchritt,
+  "zusage-mail": zusageMailSchritt,
   produktion: produktionSchritt,
   masterclass: masterclassSchritt,
+  nachbuchung: nachbuchungSchritt,
   formate: formateSchritt,
+  wiki: wikiFilterSchritt,
   ticket: speakerTicket,
   fotos: stagePhotos,
   portraet: testPortraet,
@@ -3852,6 +4092,8 @@ async function teilschritte(me, ed, namen) {
 }
 
 async function remove(me) {
+  // PART-102: die Test-Deals der Nachbuchung (die Leistungen gehen mit den Zeilen der Org-Edition; bleibt die Organisation stehen, bleiben die Deals sonst liegen).
+  await write("TEST-Deals der Nachbuchung entfernt", () => admin.from("partner_deal").delete().like("hubspot_deal_id", "ZZTEST-DEAL-%"));
   await write("TEST-Sperrlisten-Eintrag entfernt", async () => {
     const { data: hash, error } = await admin.rpc("email_hash", { p_email: sperrAdresse() });
     if (error) return { data: null, error };
@@ -3984,6 +4226,21 @@ async function remove(me) {
     note("Partner-Organisation entfernt");
   }
 
+  // PART-103: die zweite TEST-Organisation des Wiki-Filters (ein Branding-Produkt, keine Kontingente).
+  await write("Zweite TEST-Organisation (Wiki-Filter) entfernt", async () => {
+    const { data: org2 } = await admin.from("organization").select("id").eq("legal_name", WIKI_ORG).maybeSingle();
+    if (!org2) return { data: null, error: null };
+    const { data: oes } = await admin.from("org_edition").select("id").eq("org_id", org2.id);
+    const oeIds = (oes ?? []).map((o) => o.id);
+    if (oeIds.length > 0) {
+      await admin.from("deliverable").delete().in("org_edition_id", oeIds);
+      await admin.from("org_product").delete().in("org_edition_id", oeIds);
+    }
+    await admin.from("role_assignment").delete().eq("scope_type", "org").eq("scope_id", org2.id);
+    await admin.from("org_membership").delete().eq("org_id", org2.id);
+    await admin.from("org_edition").delete().eq("org_id", org2.id);
+    return admin.from("organization").delete().eq("id", org2.id);
+  });
   await write("Schicht-Zuteilungen entfernt", () =>
     admin.from("shift_assignment").delete().eq("person_id", me.id),
   );
@@ -4057,6 +4314,15 @@ async function remove(me) {
   await write("TEST-Personen der Bewerbungsliste entfernt", async () => {
     const { data: adressen } = await admin.from("person_email").select("person_id")
       .in("email", Array.from({ length: BEWERBUNG_PERSONEN }, (_, i) => bewerbungAdresse(i + 1)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  // PART-124: die TEST-Personen der Zusage-Mail; ihre Bewerbungen hängen mit ON DELETE CASCADE an ihnen, die Session geht oben mit
+  // dem Präfix, die Freigabe hängt mit ON DELETE CASCADE an der Session.
+  await write("TEST-Personen der Zusage-Mail entfernt", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", Array.from({ length: ZUSAGE_PERSONEN }, (_, i) => zusageAdresse(i + 1)));
     const ids = (adressen ?? []).map((a) => a.person_id);
     if (ids.length === 0) return { data: null, error: null };
     return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
