@@ -171,6 +171,10 @@
  *                                   die Zusage-Mail als „Wartet“ (Versand frühestens in zehn Minuten), eine andere Entscheidung bis
  *                                   dahin storniert sie. Braucht den Schritt `partner`; die Frist sieht man erst nach „Migration
  *                                   live“ von v6_zusage_mail_verzoegert)
+ *   … --apply --nur=partnerslots   (K-84/LEAD-064: eine gebrandete TEST-Bühne der Test-Organisation mit Öffnungszeiten am ersten und
+ *                                   letzten Summit-Tag — Konrad ist dort Standbühnen-Editor und legt unter /partner/buehne selbst
+ *                                   Slots an, verschiebt und löscht sie (/admin/programm zeigt dieselben als Team). Braucht den
+ *                                   Schritt `partner`; erst nach „Migration live“ von v6_partner_slots)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -3770,6 +3774,60 @@ async function aenderungsmailSchritt(me, ed) {
   note("Änderungsmail ausprobieren", "/admin/programm: den Slot der TEST-Session am letzten Tag auf der Stage-Lead-Testbühne verschieben und bestätigen; /admin/mail: wartende Zeile mit „Versand frühestens“; zurückschieben storniert sie");
 }
 
+/** K-84/LEAD-064: Slug der gebrandeten TEST-Bühne (`--remove` räumt sie samt Slots ab). */
+const GEBRANDET_SLUG = "zz-test-gebrandet";
+
+/**
+ * K-84/LEAD-064: damit Konrad sehen kann, was ein Partner auf seiner **gebrandeten Bühne** darf — eine TEST-Bühne `TEST — Eure Bühne (gebrandet)`
+ * (Typ Hauptbühne, Partner = die Test-Organisation `TEST — Partner`, also `kind = branded`) mit Öffnungszeiten am ersten (14:00–18:00) und am
+ * letzten Summit-Tag (13:00–17:00). Konrad ist dort über den Schritt `partner` Standbühnen-Editor der Organisation.
+ *
+ * Konrad klickt: `/partner/buehne` — die Bühne steht neben der Teststandbühne; ein Doppelklick legt einen Slot an (auch 7 Minuten oder drei
+ * Stunden), vor 14:00 oder nach 18:00 meldet „Außerhalb der Öffnungszeiten eurer Bühne“, im Schubfach löscht „Slot löschen“ den Slot.
+ * `/admin/programm` — dieselbe Bühne als Team: dort geht auch außerhalb der Öffnungszeiten, und „Slot löschen“ gilt für jede Art.
+ * Als Hauptbühne mit Partner (`kind = branded`) zählt die TEST-Bühne im Stage-Lead-Board und im Filter „Hauptbühnen“ mit — beim Abgleich der
+ * sechs echten Hauptbühnen (K-80) die Zeilen mit „TEST —“ weglassen.
+ *
+ * Direkt geschrieben. **Erst nach „Migration live“** von `v6_partner_slots` (sonst meldet der Schritt, dass `delete_slot` fehlt). Ein zweiter
+ * Lauf lässt Vorhandenes stehen. `--remove` löscht die Bühne; ihre Slots und Öffnungszeiten gehen mit, eine Session an einem Slot bleibt
+ * (dann ohne Slot).
+ */
+async function partnerslotsSchritt(me, ed) {
+  const sum = await summit(ed);
+  const tage = sum?.tage ?? [];
+  if (!sum || tage.length === 0) return fail("Partner-Slots", "kein Summit mit Tagen");
+  // Migration live? Der Service-Schlüssel ist keine Person: `delete_slot` antwortet mit 28000 „not authenticated“ — wirft aber nichts weg.
+  // PGRST202 heißt: die Funktion gibt es noch nicht.
+  const { error: probe } = await admin.rpc("delete_slot", { p_slot_id: "00000000-0000-0000-0000-000000000000" });
+  if (probe?.code === "PGRST202") return fail("Partner-Slots", "delete_slot fehlt — Migration v6_partner_slots noch nicht live");
+  const { data: org } = await admin.from("organization").select("id").eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) return fail("Partner-Slots", "keine Test-Organisation — zuerst --nur=partner");
+
+  const stageId = await write("Gebrandete TEST-Bühne der Test-Organisation (Hauptbühne mit Partner)", async () => {
+    const { data: da } = await admin.from("stage").select("id").eq("event_id", sum.id).eq("slug", GEBRANDET_SLUG).maybeSingle();
+    if (da) return { data: da.id, error: null };
+    const { data, error } = await admin.from("stage").insert({
+      event_id: sum.id, name: `${PREFIX}Eure Bühne (gebrandet)`, slug: GEBRANDET_SLUG, type: "main", partner_org_id: org.id,
+      capacity: 120, default_duration_min: 30, sort_order: 93, active: true,
+    }).select("id").single();
+    return { data: data?.id ?? null, error };
+  });
+  if (mode === "dry-run" || !stageId) return;
+  const oeffnungen = [
+    { tag: tage[0], von: "14:00", bis: "18:00" },
+    { tag: tage[tage.length - 1], von: "13:00", bis: "17:00" },
+  ];
+  for (const o of oeffnungen) {
+    await write(`Öffnungszeit der gebrandeten TEST-Bühne ${o.tag.day_date} ${o.von}–${o.bis}`, () =>
+      admin.from("stage_day").upsert(
+        { stage_id: stageId, event_day_id: o.tag.id, open_from: o.von, open_to: o.bis, notes: MARK },
+        { onConflict: "stage_id,event_day_id" },
+      ),
+    );
+  }
+  note("Partner-Slots ausprobieren", "/partner/buehne: Bühne „TEST — Eure Bühne (gebrandet)“ — Doppelklick legt einen Slot an (frei lang, im Fenster); /admin/programm: dieselbe Bühne als Team");
+}
+
 /** ADM-072: so erkennt man im Admin und beim Aufräumen die drei wartenden TEST-Freigaben. */
 const FREIGABE_HINWEIS = `${PREFIX}nur zum Ausprobieren der Freigabe`;
 /**
@@ -4002,6 +4060,7 @@ const SCHRITTE = {
   "side-events": sideEventsSchritt,
   sperrzeit: sperrzeitSchritt,
   aenderungsmail: aenderungsmailSchritt,
+  partnerslots: partnerslotsSchritt,
   buehne: stageLeadBuehne,
   standstatus: standStatus,
   verwaltet: verwalteterSpeaker,
@@ -4336,6 +4395,10 @@ async function remove(me) {
   });
   await write("Stage-Lead-Bühne entfernt (Slots und Cues gehen mit)", () =>
     admin.from("stage").delete().eq("slug", "zz-test-stagelead"),
+  );
+  // K-84: die gebrandete TEST-Bühne mit den Slots, die Konrad dort angelegt hat (Öffnungszeiten und Slots gehen mit; eine Session bleibt, dann ohne Slot).
+  await write("Gebrandete TEST-Bühne entfernt (Slots und Öffnungszeiten gehen mit)", () =>
+    admin.from("stage").delete().eq("slug", GEBRANDET_SLUG),
   );
   // PART-045: der TEST-Raum der Masterclass; die Sessions sind oben schon weg.
   // PART-082: die Flächen von Side-Event und Interview Table; die Sessions sind oben schon weg.
