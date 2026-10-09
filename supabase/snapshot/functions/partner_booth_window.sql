@@ -9,5 +9,5 @@ AS $$
     from stage st
     left join stage_day sd on sd.stage_id = st.id and sd.event_day_id = p_event_day_id
     left join event_day ed on ed.id = p_event_day_id and ed.event_id = st.event_id
-   where st.id = p_stage_id and st.type = 'partner_booth'
+   where st.id = p_stage_id and st.kind in ('booth', 'branded')
 $$;
