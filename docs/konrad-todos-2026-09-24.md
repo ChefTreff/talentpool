@@ -1,4 +1,4 @@
-# Konrads offene Entscheidungen und Aufgaben — Stand 09.10.2026 (vormittags, nach der Pause; finale Liste oben, Archiv darunter)
+# Konrads offene Entscheidungen und Aufgaben — Stand 09.10.2026 (abends, Pause wegen Sitzungslimit; finale Liste oben, Archiv darunter)
 
 Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Security-Check, Datenschutz-Checkliste und Abschluss-Checkliste. Antworten bitte gesammelt mit der Kennung (z. B. „K-01: Seitengruppe“). Erledigtes streiche ich nach deiner Antwort hier und im jeweiligen Dokument.
 
