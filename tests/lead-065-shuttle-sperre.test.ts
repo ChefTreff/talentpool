@@ -123,6 +123,7 @@ describe("LEAD-065: der DB-Test hält die Regeln fest", () => {
     assert.match(t, /frist_jetzt_gesperrt=true/);
     assert.match(t, /\\\| 2026-01-15 09:00 storno=P0001 shuttle_locked \\\| 2026-01-15 09:00/);
     assert.match(t, /sommer=2026-07-01 09:00/);
+    assert.match(t, /\|\| ' sommer=' \|\| substr\(v_sommer, length\('P0001 shuttle_locked \| '\) \+ 1\)/, "der Sommertext wird gerechnet, nicht nur erwartet");
     assert.match(t, /storno_schon_storniert=P0001 shuttle_locked/);
     assert.match(t, /'09_andere_edition'/);
     assert.match(t, /'07_team_frei', '\^ok admin=ok area_lead_speaker=ok programme_team=ok/);
@@ -150,6 +151,7 @@ describe("LEAD-065: Auswertung, Zeit und Hinweistext (ausgeführt)", () => {
   it("die Zeit läuft (kein TypeError) und zeigt die Zeit der Veranstaltung — Sommer und Winter, deutsch und englisch; ein unlesbares Datum ergibt nichts", () => {
     assert.equal(sperrZeit("de-DE", "2027-04-01T07:00:00Z"), "01.04.2027, 09:00");
     assert.equal(sperrZeit("de-DE", "2027-01-15T08:00:00Z"), "15.01.2027, 09:00");
+    assert.equal(sperrZeit("de-DE", "2027-03-31T22:30:00Z"), "01.04.2027, 00:30", "22:30 UTC ist in Berlin schon der nächste Tag — auch das Datum folgt der Zone");
     assert.equal(sperrZeit("en-GB", "2027-04-01T07:00:00Z"), "1 Apr 2027, 09:00");
     assert.equal(sperrZeit("de-DE", "kein Datum"), "");
   });
