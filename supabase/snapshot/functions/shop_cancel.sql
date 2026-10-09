@@ -9,10 +9,14 @@ begin
   select * into v_o from shop_order where id = p_order_id for update;
   if not found then raise exception 'order_not_found' using errcode = 'P0002'; end if;
   if not partner_can_edit(shop_order_org(p_order_id)) then raise exception 'not allowed' using errcode = '42501'; end if;
-  if v_o.status not in ('draft', 'pending', 'editing') then raise exception 'not_cancellable' using errcode = 'P0001', detail = v_o.status; end if;
+  if v_o.status not in ('draft', 'pending', 'editing', 'quoted') then raise exception 'not_cancellable' using errcode = 'P0001', detail = v_o.status; end if;
   select * into v_oe from org_edition where id = v_o.org_edition_id;
   if (shop_phase(v_oe.edition_id)->>'phase')::integer <> v_o.phase then raise exception 'phase_closed' using errcode = 'P0001'; end if;
   perform shop_reconcile_ledger(p_order_id, true);
-  update shop_order set status = 'cancelled', cancelled_at = now() where id = p_order_id;
+  update shop_order set status = 'cancelled', cancelled_at = now(), quote_started_at = null, quote_valid_until = null where id = p_order_id;
+  if v_o.status = 'quoted' then
+    update external_ref set meta = meta || jsonb_build_object('closed', 'cancelled', 'closed_at', now())
+     where system = 'sevdesk' and object_type = 'shop_quote' and object_id = p_order_id;
+  end if;
   perform log_audit('shop.cancel', 'shop_order', p_order_id::text, jsonb_build_object('status', v_o.status), null);
 end $$;

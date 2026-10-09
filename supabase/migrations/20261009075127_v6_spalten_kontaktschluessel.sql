@@ -1,4 +1,5 @@
--- 00NN · Spalten aufräumen und Kontaktschlüssel ableiten (QS-075, ADM-108)
+-- 0292 · Spalten aufräumen und Kontaktschlüssel ableiten (QS-075, ADM-108)
+-- Angewendet von der Architektur-Session am 09.10.2026 als 20261009075127.
 --
 -- Anlass: Befund QS-075 (docs/befund-qs075-spalten-2026-10-09.md), Plan-Entscheidungen vom 09.10.2026 (1) und (3).
 --
