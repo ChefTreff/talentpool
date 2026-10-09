@@ -27,11 +27,11 @@ Den Link zum Einlösen findet ihr ebenfalls im Partner-Portal. Zur Freischaltung
 
 ## Anleitung zur Einlösung (zwei Schritte)
 
-**Schritt 1: Code eingeben und Ticket einlösen**
+### Schritt 1: Code eingeben und Ticket einlösen
 
 Tragt euren Partner-Code im Fenster nach dem Klick auf „Ticket kaufen" ein. So erhaltet ihr Zugang zum Shop. Der Partner-Code erlaubt euch, „Partner"-Tickets einzulösen; der Talent-Code erlaubt die Einlösung von „Talent"- und „Student"-Pässen.
 
-**Schritt 2: Personalisierung der Tickets**
+### Schritt 2: Personalisierung der Tickets
 
 Nach dem Ticketkauf müssen die Tickets personalisiert werden. Ihr könnt sie so direkt verteilen. Gebt dabei unbedingt für jede Person eine eigene E-Mail-Adresse an, sonst erhält sie keinen Zugang zur Event-App.
 

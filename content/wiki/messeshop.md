@@ -14,12 +14,12 @@ Hier findet ihr eine Schritt-für-Schritt-Anleitung, wie ihr eure Standausstattu
 
 Es gibt zwei Bestellphasen mit unterschiedlichen Fristen und Auswahlmöglichkeiten:
 
-**1. Hauptbestellung – volle Auswahl**
+### 1. Hauptbestellung – volle Auswahl
 - Zugriff auf das gesamte Sortiment
 - Bestellung beliebig oft ändern, Produkte hinzufügen oder entfernen
 - Erst nach der Frist wird die Bestellung verbindlich
 
-**2. Nachbestellung – begrenzte Auswahl**
+### 2. Nachbestellung – begrenzte Auswahl
 - Eine zweite Bestellung ist möglich, aber nur mit begrenzter Produktauswahl
 - Auch hier könnt ihr bis zur Frist Änderungen vornehmen
 - Die erste Bestellung lässt sich dann **nicht** mehr bearbeiten

@@ -1,7 +1,8 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { Markdown } from "./Markdown";
+import { fetteUeberschriften } from "./markdown-parse";
 import { FormatLeiste } from "@/components/ui/FormatLeiste";
 import { ersetzeAlsEingabe, verlaufBefehl } from "@/components/ui/textfeld-bearbeiten";
 import { WERKZEUGE, WIKI_LEISTE, wendeAn, type WerkzeugKey } from "@/lib/markdown-werkzeuge";
@@ -37,6 +38,8 @@ export function Editor({
   const id = useId();
   const ref = useRef<HTMLTextAreaElement>(null);
   const [vorschau, setVorschau] = useState(false);
+  // Eine Zeile nur aus **…** sieht aus wie Betonung, nicht wie Überschrift, und die Seite gliedert sie nicht (PART-104 Teil 2).
+  const fette = useMemo(() => fetteUeberschriften(value), [value]);
 
   function anwenden(key: WerkzeugKey) {
     const el = ref.current;
@@ -98,6 +101,13 @@ export function Editor({
           </div>
         )}
       </div>
+
+      {fette.length > 0 && (
+        <p className="ct-small text-warning-ink">
+          {t.boldHeadingHint.replace("{text}", fette[0].text).replace("{zeile}", String(fette[0].zeile))}
+          {fette.length > 1 && ` ${t.boldHeadingMore.replace("{n}", String(fette.length - 1))}`}
+        </p>
+      )}
 
       <p className="ct-help">{t.editorHint}</p>
     </div>
