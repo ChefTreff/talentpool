@@ -12,20 +12,16 @@ export const dynamic = "force-dynamic";
 /**
  * Der Wiki-Editor. Das Gate lässt das Admin-Team herein; **welche** Artikel
  * jemand sieht und ändern darf, entscheidet `can_edit_kb()` je Zielgruppe —
- * die Bereichsleitung Volunteers sieht nur Volunteer-Artikel.
+ * die Bereichsleitung Volunteers sieht nur Volunteer-Artikel. Suche und Filter (auch
+ * `?zielgruppe=`) laufen in der Liste selbst und stehen in der Adresszeile (ADM-103).
  */
-export default async function AdminWikiPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ zielgruppe?: string }>;
-}) {
+export default async function AdminWikiPage() {
   await requireAdminSection("wiki", "/admin/wiki");
   const { locale, t } = await getI18n();
-  const { zielgruppe } = await searchParams;
   const supabase = await createSupabaseServerClient();
 
   const [articles, vocab, { data: editionRows }] = await Promise.all([
-    loadAdminArticles(zielgruppe),
+    loadAdminArticles(),
     loadVocabMap(supabase, locale),
     supabase.from("event").select("id, slug, name").eq("is_edition", true).order("start_date", { ascending: false }),
   ]);

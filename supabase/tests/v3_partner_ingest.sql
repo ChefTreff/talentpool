@@ -119,7 +119,8 @@ begin
   -- Bühnen-Editor: Bühne mit partner_org_id = Org ⇒ editierbar, fremde Bühne nicht (Testperson ist primary_ops mit standbuehne_editor Scope org)
   select e.id into v_event from event e where e.edition_id = v_ed and not e.is_edition and exists (select 1 from stage s where s.event_id = e.id) limit 1;
   select s.type into v_stage_type from stage s where s.event_id = v_event limit 1;
-  insert into stage (event_id, name, slug, type, sort_order, active, partner_org_id) values (v_event, 'Standbühne Erfolg', 'standbuehne-erfolg-test', v_stage_type, 99, true, v_org) returning id into v_stage;
+  -- Seit 0155 gilt der Org-Scope nur für Standbühnen (`partner_booth`); mit dem Typ einer beliebigen vorhandenen Bühne lieferte Schritt 25 `own=false` (Test, nicht Funktion).
+  insert into stage (event_id, name, slug, type, sort_order, active, partner_org_id) values (v_event, 'Standbühne Erfolg', 'standbuehne-erfolg-test', 'partner_booth', 99, true, v_org) returning id into v_stage;
   select s.id into v_stage2 from stage s where s.event_id = v_event and s.id <> v_stage limit 1;
   insert into t_res values ('25_stage_editor', 'own=' || can_edit_stage(v_stage)::text || ' foreign=' || can_edit_stage(v_stage2)::text);
   -- Portal-Kontakt (upsert_partner_contact) bekommt ebenfalls valid_to bis Editionsende

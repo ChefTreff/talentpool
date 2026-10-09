@@ -2,28 +2,11 @@
 
 import { useId, useRef, useState } from "react";
 import { Markdown } from "./Markdown";
+import { FormatLeiste } from "@/components/ui/FormatLeiste";
+import { ersetzeAlsEingabe, verlaufBefehl } from "@/components/ui/textfeld-bearbeiten";
+import { WERKZEUGE, WIKI_LEISTE, wendeAn, type WerkzeugKey } from "@/lib/markdown-werkzeuge";
 
 type Strings = Record<string, string>;
-
-/** Eine Schaltfläche der Leiste: Präfix je Zeile oder Klammer um die Auswahl. */
-type Werkzeug =
-  | { key: string; kind: "prefix"; value: string }
-  | { key: string; kind: "wrap"; value: string }
-  | { key: string; kind: "block"; value: string };
-
-const WERKZEUGE: Werkzeug[] = [
-  { key: "h2", kind: "prefix", value: "## " },
-  { key: "h3", kind: "prefix", value: "### " },
-  { key: "bold", kind: "wrap", value: "**" },
-  { key: "italic", kind: "wrap", value: "*" },
-  { key: "code", kind: "wrap", value: "`" },
-  { key: "ul", kind: "prefix", value: "- " },
-  { key: "ol", kind: "prefix", value: "1. " },
-  { key: "quote", kind: "prefix", value: "> " },
-  { key: "link", kind: "block", value: "[Text](https://)" },
-  { key: "table", kind: "block", value: "| Spalte | Spalte |\n| --- | --- |\n|  |  |" },
-  { key: "rule", kind: "block", value: "---" },
-];
 
 /**
  * Der Redaktionseditor für Wiki-Artikel (F9.7).
@@ -55,77 +38,45 @@ export function Editor({
   const ref = useRef<HTMLTextAreaElement>(null);
   const [vorschau, setVorschau] = useState(false);
 
-  function anwenden(w: Werkzeug) {
+  function anwenden(key: WerkzeugKey) {
     const el = ref.current;
     if (!el) return;
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-    const vor = value.slice(0, start);
-    const auswahl = value.slice(start, end);
-    const nach = value.slice(end);
-
-    let neu = value;
-    let cursor = end;
-
-    if (w.kind === "wrap") {
-      const inhalt = auswahl || t.sampleText;
-      neu = `${vor}${w.value}${inhalt}${w.value}${nach}`;
-      cursor = start + w.value.length + inhalt.length + w.value.length;
-    } else if (w.kind === "prefix") {
-      // Auf ganze Zeilen anwenden: eine Überschrift mitten im Wort wäre keine.
-      const zeilenAnfang = vor.lastIndexOf("\n") + 1;
-      const kopf = value.slice(0, zeilenAnfang);
-      const rest = value.slice(zeilenAnfang);
-      const grenze = rest.indexOf("\n", end - zeilenAnfang);
-      const bereich = grenze === -1 ? rest : rest.slice(0, grenze);
-      const schwanz = grenze === -1 ? "" : rest.slice(grenze);
-      const bearbeitet = bereich
-        .split("\n")
-        .map((z) => (z.startsWith(w.value) ? z.slice(w.value.length) : w.value + z))
-        .join("\n");
-      neu = kopf + bearbeitet + schwanz;
-      cursor = kopf.length + bearbeitet.length;
-    } else {
-      // Ein Block braucht eine eigene Zeile, sonst steht die Tabelle im Satz.
-      const trenner = vor === "" || vor.endsWith("\n") ? "" : "\n";
-      neu = `${vor}${trenner}${w.value}\n${nach}`;
-      cursor = vor.length + trenner.length + w.value.length + 1;
+    const w = WERKZEUGE[key];
+    if (w.kind === "befehl") {
+      verlaufBefehl(el, w.befehl);
+      return;
     }
-
-    onChange(neu);
-    // Nach dem Neurendern den Cursor zurücksetzen, sonst springt er ans Ende.
+    const neu = wendeAn(w, value, el.selectionStart, el.selectionEnd, t.sampleText);
+    // Als Eingabe ins Feld schreiben, damit Strg+Z weiter geht; nur wenn der Browser das ablehnt, den Zustand setzen.
+    if (!ersetzeAlsEingabe(el, neu.text)) onChange(neu.text);
+    // Nach dem Neurendern die Auswahl zurücksetzen, sonst springt der Cursor ans Ende.
     requestAnimationFrame(() => {
       el.focus();
-      el.setSelectionRange(cursor, cursor);
+      el.setSelectionRange(neu.start, neu.end);
     });
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-1 rounded-ct-sm border bg-canvas p-1">
-        {WERKZEUGE.map((w) => (
+      <FormatLeiste
+        gruppen={WIKI_LEISTE}
+        steuert={id}
+        onAnwenden={anwenden}
+        t={t}
+        ende={
           <button
-            key={w.key}
             type="button"
-            onClick={() => anwenden(w)}
-            title={t[`tool_${w.key}`] ?? w.key}
-            className="min-h-11 rounded-ct-sm px-2.5 ct-label text-muted transition-colors hover:bg-surface-hover hover:text-ink"
+            aria-pressed={vorschau}
+            onClick={() => setVorschau((v) => !v)}
+            className={
+              "min-h-11 rounded-ct-sm px-2.5 ct-label transition-colors " +
+              (vorschau ? "bg-accent-soft text-accent-deep" : "text-muted hover:bg-surface-hover hover:text-ink")
+            }
           >
-            {t[`tool_${w.key}`] ?? w.key}
+            {t.preview}
           </button>
-        ))}
-        <button
-          type="button"
-          aria-pressed={vorschau}
-          onClick={() => setVorschau((v) => !v)}
-          className={
-            "ml-auto min-h-11 rounded-ct-sm px-2.5 ct-label transition-colors " +
-            (vorschau ? "bg-accent-soft text-accent-deep" : "text-muted hover:bg-surface-hover hover:text-ink")
-          }
-        >
-          {t.preview}
-        </button>
-      </div>
+        }
+      />
 
       <div className={vorschau ? "grid gap-3 lg:grid-cols-2" : ""}>
         <textarea
