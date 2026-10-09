@@ -1154,6 +1154,7 @@
   "adminDeletions": {
     "actionDelete": "Delete profile",
     "actionReject": "Reject",
+    "areasLabel": "Sections",
     "colBlockers": "Still open",
     "colHandled": "Handled",
     "colOpenedBy": "Opened",
@@ -1173,12 +1174,16 @@
     "noAccessTitle": "No access to the deletion requests",
     "openedBySelf": "by the person in the portal",
     "openedByTeam": "by the team ({name})",
+    "pageLead": "Privacy tasks in one place: Art. 17 GDPR requests where something is still attached to the profile, and the list of addresses that receive nothing any more.",
+    "pageTitle": "Deletion requests and suppression list",
     "resolvedDeleted": "Profile deleted",
     "resolvedRejected": "Request rejected, the reply is on its way",
     "statusAll": "All",
     "statusDone": "Deleted",
     "statusPending": "Open",
     "statusRejected": "Rejected",
+    "tabRequests": "Deletion requests",
+    "tabSuppression": "Suppression list",
     "title": "Deletion requests"
   },
   "adminEdition": {
