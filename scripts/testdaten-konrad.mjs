@@ -155,7 +155,9 @@
  *                                   zwei TEST-Speaker haben zu- und abgesagt — für /admin/side-events und
  *                                   den Abschnitt „Side Events“ in /speaker. Erst nach „Migration live“ von
  *                                   v6_side_events. Den One-Click-Link probiert man mit „Erneut einladen“ an der
- *                                   eigenen Einladung: die Mail geht an Konrads Postfach)
+ *                                   eigenen Einladung: die Mail geht an Konrads Postfach. Seit ADM-087 ist Konrad auch zum
+ *                                   Entwurf eingeladen — der Block „Side Events“ unter /admin/speaker/<sein Profil> zeigt dann
+ *                                   Dinner und „Nicht veröffentlicht“; ein erneuter Lauf setzt beide Einladungen zurück)
  *   … --apply --nur=sperrzeit      (ADM-085/LEAD-062: eine TEST-Sperrzeit „Opening: bis 14:30 keine Slots“ auf der
  *                                   Stage-Lead-Testbühne am ersten Summit-Tag und eine TEST-Bühne, die nur am ersten
  *                                   Tag gilt — für /admin/edition (Karte „Sperrzeiten“, Spalte „Gilt an“) und die
@@ -3651,7 +3653,16 @@ async function sideEventsSchritt(me, ed) {
       invited_by: me.id, invited_at: jetzt, responded_at: null, token_hash: null, mailed_at: null,
     }, { onConflict: "side_event_id,profile_id" }));
 
-  note("Side Events ausprobieren", "/admin/side-events: zwei Karten (Dinner mit 2 von 10 Plätzen, Entwurf), „Einladungen“ zeigt Konrad und die zwei TEST-Gäste; /speaker: Abschnitt „Side Events“ mit der Karte „Antwort offen“");
+  // ADM-087: auch zum Entwurf eingeladen — so zeigt der Block „Side Events“ im Speaker-Detail beide Zustände: das Dinner (eingeladen,
+  // veröffentlicht, „Offen“) und die Afterparty (eingeladen, **nicht veröffentlicht** — der Speaker sieht sie im Portal nicht, das Team
+  // sieht, dass die Einladung noch steht). Eine Einladung zu einem Entwurf legt keine Funktion an, darum direkt geschrieben.
+  await write("Konrads Einladung zur TEST-Afterparty (Entwurf, nicht veröffentlicht — nur im Block „Side Events“ des Speaker-Details zu sehen)", () =>
+    admin.from("side_event_invite").upsert({
+      side_event_id: ids[SIDE_EVENT_ENTWURF], profile_id: sp.id, status: "invited", guests: 0, note: null, via: "team",
+      invited_by: me.id, invited_at: jetzt, responded_at: null, token_hash: null, mailed_at: null,
+    }, { onConflict: "side_event_id,profile_id" }));
+
+  note("Side Events ausprobieren", "/admin/side-events: zwei Karten (Dinner mit 2 von 10 Plätzen, Entwurf), „Einladungen“ zeigt Konrad und die zwei TEST-Gäste; /speaker: Abschnitt „Side Events“ mit der Karte „Antwort offen“; /admin/speaker → Konrads Testprofil → Block „Side Events“ (Dinner eingeladen · Marke „Offen“, Afterparty „Nicht veröffentlicht“; nach einer Antwort in /speaker zeigt er Stand, Begleitung und Weg)");
 }
 
 /** ADM-085: Kennzeichen der TEST-Sperrzeit und der TEST-Bühne mit Gültigkeitstagen. */

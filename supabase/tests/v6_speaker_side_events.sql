@@ -14,6 +14,12 @@
 --      42501; unbekannte Profil-Id ohne Recht ebenfalls 42501 (kein Hinweis, ob es sie gibt), für das Team P0002 `speaker_not_found`; ohne Anmeldung 28000.
 --   07 Die Rechte der Rolle `authenticated` (läuft) und `anon` (42501) unter `set local role`.
 --   08 Nur lesend: kein Audit-Eintrag, die Einladungen bleiben, wie sie waren.
+-- Probelauf der Build-Session am 09.10.2026 gegen die Live-Datenbank nach 0287 (`sh scripts/db.sh dry-run`, alles zurückgerollt): 20 von 20 Erwartungen
+-- erfüllt. Mutationsproben an der Migration (31, je Regel eine — Recht, Reihenfolge der Prüfungen, Filter, Sortierung, Spaltenliste und -zuordnung,
+-- Eigenschaften der Funktion, Grants, Schreibwirkung): 30 rot, die 24. (`search_path` ungepinnt) ist gleichwertig — `harden_definer_functions()` am Ende
+-- der Migration pinnt ihn ohnehin; ohne das Härten (Mutation 31) wird sie rot. Die erste Runde fand eine Lücke: die Sortierung nach Anlage überlebte, solange
+-- alle Fixtures in einer Transaktion dasselbe `created_at` trugen (jetzt gesetzt, dazu feste Ids für die Sortierung nach Id). `fn-diff`: eine neue Funktion,
+-- keine geänderte.
 begin;
 create temp table t_res (step text, result text) on commit drop;
 create temp table t_erw (step text, muster text) on commit drop;
@@ -105,13 +111,18 @@ begin
   v_s1 := pg_temp.neuer_speaker(v_ed, v_pid, 'Eins');
   v_s2 := pg_temp.neuer_speaker(v_ed, v_pid, 'Zwei');
   v_s3 := pg_temp.neuer_speaker(v_ed, v_pid, 'Drei');
-  -- Angelegt in anderer Reihenfolge als der Beginn: Dinner, Brunch, Empfang — sortiert wird nach Beginn.
-  insert into side_event (edition_id, title_de, title_en, location, starts_at, ends_at, published, created_by)
-    values (v_ed, 'ZZ Dinner', 'ZZ Dinner EN', 'ZZ Hafenbar', v_base + interval '21 days', v_base + interval '21 days 2 hours', true, v_pid) returning id into v_e1;
-  insert into side_event (edition_id, title_de, title_en, location, starts_at, ends_at, published, created_by)
-    values (v_ed, 'ZZ Brunch', 'ZZ Brunch EN', 'ZZ Speicherstadt', v_base + interval '22 days', null, false, v_pid) returning id into v_e2;
-  insert into side_event (edition_id, title_de, title_en, location, starts_at, ends_at, published, created_by)
-    values (v_ed, 'ZZ Empfang', 'ZZ Empfang EN', 'ZZ Rathaus', v_base + interval '20 days', v_base + interval '20 days 90 minutes', true, v_pid) returning id into v_e3;
+  -- Die Reihenfolge nach Beginn (Empfang, Dinner, Brunch) weicht von jeder anderen ab, nach der man versehentlich sortieren könnte: Anlage
+  -- (Dinner, Brunch, Empfang — `created_at` ist gesetzt, sonst wären alle in einer Transaktion gleich), Id (Brunch, Dinner, Empfang — feste Ids)
+  -- und Titel (Brunch, Dinner, Empfang).
+  insert into side_event (id, edition_id, title_de, title_en, location, starts_at, ends_at, published, created_by, created_at)
+    values ('a0870000-0000-4000-8000-000000000002', v_ed, 'ZZ Dinner', 'ZZ Dinner EN', 'ZZ Hafenbar', v_base + interval '21 days', v_base + interval '21 days 2 hours', true, v_pid,
+            v_base - interval '3 days') returning id into v_e1;
+  insert into side_event (id, edition_id, title_de, title_en, location, starts_at, ends_at, published, created_by, created_at)
+    values ('a0870000-0000-4000-8000-000000000001', v_ed, 'ZZ Brunch', 'ZZ Brunch EN', 'ZZ Speicherstadt', v_base + interval '22 days', null, false, v_pid,
+            v_base - interval '2 days') returning id into v_e2;
+  insert into side_event (id, edition_id, title_de, title_en, location, starts_at, ends_at, published, created_by, created_at)
+    values ('a0870000-0000-4000-8000-000000000003', v_ed, 'ZZ Empfang', 'ZZ Empfang EN', 'ZZ Rathaus', v_base + interval '20 days', v_base + interval '20 days 90 minutes', true, v_pid,
+            v_base - interval '1 day') returning id into v_e3;
   insert into event (name, format_tag, slug, is_edition, timezone)
     values ('ZZ Edition 2', 'summit', 'zz-adm087-' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 8), true, 'Europe/Berlin') returning id into v_ed2;
   insert into side_event (edition_id, title_de, title_en, location, starts_at, published, created_by)

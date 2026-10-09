@@ -7,6 +7,7 @@ import { spiegelePraesentation } from "@/lib/drive/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { registrierePraesentation, type PraesentationsEingang } from "@/lib/speaker/praesentationen";
 import { fotoFuerProfil, registriereFoto, type FotoEingang } from "@/lib/speaker/foto";
+import type { SpeakerSideEvent } from "@/lib/speaker/side-events";
 import { toRpcFailure } from "@/lib/rpc-error";
 
 /**
@@ -169,6 +170,21 @@ export async function registerPresentationAsLead(
 export async function speakerFoto(profileId: string): Promise<{ url: string | null; editionId: string | null }> {
   const supabase = await client();
   return fotoFuerProfil(supabase, profileId);
+}
+
+/**
+ * ADM-087: die Side-Event-Einladungen eines Speakers für das Team-Fenster, nur lesend. `speaker_side_events` gehört dem Speaker-Team;
+ * wer es nicht ist (ein Stage Lead), bekommt 42501 — das Fenster fragt dort gar nicht erst, und kommt die Frage doch an, antwortet die
+ * Aktion `null` („nicht zu lesen“) und nie eine leere Liste („nicht eingeladen“).
+ */
+export async function speakerSideEvents(profileId: string): Promise<SpeakerSideEvent[] | null> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("speaker_side_events", { p_profile_id: profileId });
+  if (error) {
+    if (error.code !== "42501") console.error("[speaker-leads] speaker_side_events:", error.message);
+    return null;
+  }
+  return (data ?? []) as SpeakerSideEvent[];
 }
 
 export async function registerSpeakerPhotoAsLead(input: FotoEingang): Promise<LeadResult> {
