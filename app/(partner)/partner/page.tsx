@@ -17,6 +17,7 @@ import { loadMyContacts } from "@/components/kontakt/load";
 import { Anfahrt } from "@/components/kontakt/Anfahrt";
 import { RUNDGANG_SCHLUESSEL, rundgangAus } from "@/components/partner/rundgang-adresse";
 import { naechsteFrist, naechsteZeilen, ordneFristen } from "@/components/partner/fristen-aufgaben";
+import { leistungenZusammenfassen, nachbuchungsText } from "@/components/partner/leistungen";
 import { loadPortalLink } from "@/lib/portal-link/load";
 import { loadFristVorlagen } from "@/lib/partner/vorlagen";
 import { OnboardingNudge } from "./OnboardingNudge";
@@ -121,6 +122,10 @@ export default async function PartnerDashboard() {
   const naechste = naechsteFrist(aufgaben, zuordnung, jetzt, locale);
   const productName = (p: { name_de: string | null; name_en: string | null }) =>
     (locale === "en" ? p.name_en : p.name_de) ?? p.name_de ?? p.name_en ?? "—";
+  // PART-100/PART-102: je Leistung ein Eintrag (zwei Deals mit derselben SKU stehen nicht doppelt da); Nachbuchungen nennen ihr Datum.
+  // Stornierte Leistungen gehören nicht in die Liste und nicht in die Zahl.
+  const leistungen = leistungenZusammenfassen(o.products).filter((z) => !z.storniert);
+  const nachbuchungsTag = new Intl.DateTimeFormat(t.meta.dateLocale, { dateStyle: "medium", timeZone: "Europe/Berlin" });
 
   const tickets = o.ticket_allocations.reduce(
     (acc, a) => ({ used: acc.used + a.used_count, total: acc.total + a.quantity }),
@@ -297,7 +302,7 @@ export default async function PartnerDashboard() {
                   : t.partner.statTicketsHint
           }
         />
-        <StatCard label={t.partner.statProducts} value={o.products.length} />
+        <StatCard label={t.partner.statProducts} value={leistungen.length} />
         <StatCard label={t.partner.statContacts} value={o.contacts_count} />
       </div>
 
@@ -377,14 +382,23 @@ export default async function PartnerDashboard() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <h2 className="ct-h2 text-ink">{t.partner.productsTitle}</h2>
-          <ul className="mt-2 flex flex-col gap-1">
-            {o.products.map((p) => (
-              <li key={p.sku} className="flex flex-wrap items-baseline gap-2">
-                <span className="ct-label text-ink">{productName(p)}</span>
-                {p.qty > 1 && <span className="ct-help tabular-nums">× {p.qty}</span>}
-                {p.category && <Badge>{categories[p.category] ?? p.category}</Badge>}
-              </li>
-            ))}
+          {/* PART-100: Trennlinien zwischen den Zeilen; PART-102: „davon 2 nachgebucht am …“ unter der Leistung. */}
+          <ul className="mt-2 flex flex-col divide-y divide-border">
+            {leistungen.map((z) => {
+              const nachgebucht = nachbuchungsText(
+                z,
+                { davon: t.partner.productsRebooked, ganz: t.partner.productsRebookedAll },
+                (iso) => nachbuchungsTag.format(new Date(iso)),
+              );
+              return (
+                <li key={z.sku} className="flex flex-wrap items-baseline gap-x-2 gap-y-1 py-2 first:pt-0 last:pb-0">
+                  <span className="ct-label text-ink">{productName(z)}</span>
+                  {z.qty > 1 && <span className="ct-help tabular-nums">× {z.qty}</span>}
+                  {z.category && <Badge>{categories[z.category] ?? z.category}</Badge>}
+                  {nachgebucht && <span className="ct-help w-full">{nachgebucht}</span>}
+                </li>
+              );
+            })}
           </ul>
           <p className="ct-help mt-3">{t.partner.productsHint}</p>
         </Card>

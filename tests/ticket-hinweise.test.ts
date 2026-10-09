@@ -64,10 +64,10 @@ describe("PART-112: Hinweise oben auf der Ticketseite", () => {
     assert.match(seite, /ticketHinweise\(t, canRequest\)/);
   });
 
-  it("Quelltext: die Regel steht nicht zweimal auf der Seite — unten bleibt nur, welcher Code für wen ist", () => {
+  it("Quelltext: die Regel steht nicht zweimal auf der Seite — die Anleitung nennt nur, welcher Code für wen ist (PART-113)", () => {
     const seite = src("app/(partner)/partner/tickets/TicketView.tsx");
     assert.doesNotMatch(seite, /t\.ruleOwnTicket/);
-    assert.match(seite, /<p className="ct-small mt-4 leading-6">\{t\.ruleCodes\}<\/p>/);
+    assert.match(seite, /<p className="ct-label mt-4 text-ink">\{t\.ruleCodes\}<\/p>/);
     assert.doesNotMatch(seite, /<li>\{t\.ruleCodes\}<\/li>/);
   });
 });

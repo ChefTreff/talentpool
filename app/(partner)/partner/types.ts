@@ -123,6 +123,8 @@ export type PartnerProduct = {
    * Mobiliar und Technik gehören in den Shop, nicht ins Menü.
    */
   format_key: string | null;
+  /** PART-102: Zeitpunkt der Nachbuchung (zweiter Deal); `null` = Erstbuchung. */
+  nachgebucht_am?: string | null;
 };
 
 export type PartnerDeadline = {
