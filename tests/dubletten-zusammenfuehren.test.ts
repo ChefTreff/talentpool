@@ -69,7 +69,7 @@ describe("Dubletten zusammenführen (ADM-036)", () => {
   });
 
   it("die Seiten rufen die Sitzung, nicht die Service-Rolle, für Zusammenführen und Rückweg", () => {
-    const actions = readFileSync(new URL("../app/(admin)/admin/dubletten/actions.ts", import.meta.url), "utf8");
+    const actions = readFileSync(new URL("../app/(admin)/admin/personen/dubletten/actions.ts", import.meta.url), "utf8");
     for (const rpc of ["merge_persons", "unmerge_persons", "duplicate_scan"]) {
       const i = actions.indexOf(`rpc("${rpc}"`);
       assert.ok(i >= 0, rpc);
