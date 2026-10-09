@@ -52,7 +52,7 @@ describe("Der Ring der Pfeiltasten (naechsterKnopf)", () => {
 
 describe("1 · Trennstrich: jede Gruppe ein Element mit dem Strich links", () => {
   it("die Gruppe trägt `border-l`, und es gibt keinen Strich-Span zwischen den Knöpfen mehr", () => {
-    assert.match(leiste, /<div key=\{gi\} className="flex items-center gap-1 border-l px-1">/);
+    assert.match(leiste, /<div key=\{gi\} className="flex items-center gap-1 border-l px-1 pointer-coarse:gap-0.5 pointer-coarse:px-0.5">/);
     assert.doesNotMatch(leiste, /h-5 w-px/, "der alte Strich zwischen den Gruppen ist weg");
     assert.doesNotMatch(leiste, /Fragment/, "kein Fragment mehr, das den Strich zwischen die Gruppen setzt");
   });

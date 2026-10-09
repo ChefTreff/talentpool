@@ -41,6 +41,8 @@ function Zeichnung({ children }: { children: ReactNode }) {
  *   Fokusringe oben und unten nicht abgeschnitten werden.
  * * **Größe nach Kit-Regel:** `size-8` am Desktop, `size-11` bei grobem Zeiger (Touch) — am Desktop wären 44 px je Knopf
  *   eine Leiste von 550 px.
+ *   Bei grobem Zeiger sitzen die Knöpfe enger (2 statt 4 px Abstand): Gruppen brechen als Ganzes um, und mit 4 px passten am Handy
+ *   (343 px) die Gruppen „Verlauf“ und „Zeichen“ um 3 px nicht in eine Zeile — die Wiki-Leiste wurde eine Zeile länger (gemessen).
  * * **APG-Toolbar:** ein Tab-Stopp für die ganze Leiste (Roving Tabindex), Pfeiltasten wandern (`naechsterKnopf`),
  *   Pos1/Ende springen; `aria-controls` zeigt auf das Textfeld. Sonst wären es zwölf Tab-Stopps vor dem Text. **Der
  *   Umschalter am rechten Rand (z. B. „Vorschau“) gehört zum Ring**, sonst wären es zwei Tab-Stopps und die Pfeile
@@ -91,7 +93,7 @@ export function FormatLeiste({
       <div role="toolbar" aria-label={t.toolbar} aria-controls={steuert} onKeyDown={taste} className="overflow-x-clip rounded-ct-sm border bg-canvas">
         <div className="-ml-px flex flex-wrap items-center gap-y-1 py-1 pr-1">
           {gruppen.map((gruppe, gi) => (
-            <div key={gi} className="flex items-center gap-1 border-l px-1">
+            <div key={gi} className="flex items-center gap-1 border-l px-1 pointer-coarse:gap-0.5 pointer-coarse:px-0.5">
               {gruppe.map((key) => {
                 const index = ++laufend;
                 const name = t[`tool_${key}`] ?? WERKZEUGE[key].key;
