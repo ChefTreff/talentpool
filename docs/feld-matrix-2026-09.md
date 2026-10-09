@@ -18,12 +18,12 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Direkte Schreibzugriffe (kein RPC, `.from().insert/update/upsert/delete()` im Client-Code):** /onboarding, /profil, lib
 
-**Seiten (lesen/schreiben):** /admin, /admin/dubletten, /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /partner, /partner/buehne/gaeste, /profil, /speaker, /speaker-leads, /start, /summit, /volunteers, Cron: /api/cron/luma-sync, lib
+**Seiten (lesen/schreiben):** /admin, /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/personen/dubletten, /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /partner, /partner/buehne/gaeste, /profil, /speaker, /speaker-leads, /start, /summit, /tickets/bestaetigung, /volunteers, Cron: /api/cron/luma-sync, lib
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
 | `id` | uuid | technisch |  |  | |
-| `auth_user_id` | uuid | technisch | anonymize_person(), claim_or_create_person(), person_merge_core(), unmerge_persons() | /admin/dubletten, /onboarding, /profil, /start, /summit | |
+| `auth_user_id` | uuid | technisch | anonymize_person(), claim_or_create_person(), person_merge_core(), unmerge_persons() | /admin/personen/dubletten, /onboarding, /profil, /start, /summit | |
 | `first_name` | text | fachlich | anonymize_person(), create_kiosk_account(), create_team_member(), invite_assistant(), luma_sync_registration(), partner_add_speaker(), partner_add_stage_guest(), partner_contact_upsert_internal(), partner_update_speaker(), partner_update_stage_guest(), testdaten_person(), update_my_speaker_profile(), update_partner_contact(), update_person_master(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/speaker, /admin/verwaltung/zugaenge, /events, /partner, /partner/buehne/gaeste, /speaker, /speaker-leads | |
 | `last_name` | text | fachlich | anonymize_person(), create_kiosk_account(), create_team_member(), invite_assistant(), luma_sync_registration(), partner_add_speaker(), partner_add_stage_guest(), partner_contact_upsert_internal(), partner_update_speaker(), partner_update_stage_guest(), testdaten_person(), update_my_speaker_profile(), update_partner_contact(), update_person_master(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/speaker, /admin/verwaltung/zugaenge, /events, /partner, /partner/buehne/gaeste, /speaker, /speaker-leads | |
 | `birthdate` | date | fachlich | anonymize_person(), apply_volunteer(), update_person_master() | /admin/personen/[id], /volunteers | |
@@ -54,7 +54,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 | `updated_at` | timestamp with time zone | technisch | set_updated_at() [Trigger trg_person_updated] |  | |
 | `title` | text | fachlich | anonymize_person(), partner_update_speaker(), update_my_speaker_profile(), update_person_master(), upsert_speaker() | /admin/personen/[id], /partner, /speaker, /speaker-leads | |
 | `city` | text | fachlich | anonymize_person(), update_person_master() | /admin/personen/[id] | |
-| `tier` | text | fachlich | Migration/Seed (20260908141744_v2_identity_roles.sql), invite_assistant(), luma_sync_registration(), partner_contact_upsert_internal(), person_tier_on_claim() [Trigger trg_person_tier], unmerge_persons(), upsert_speaker(), upsert_speaker_contact() | /admin/dubletten, /admin/speaker, /events, /speaker, /speaker-leads | |
+| `tier` | text | fachlich | Migration/Seed (20260908141744_v2_identity_roles.sql), invite_assistant(), luma_sync_registration(), partner_contact_upsert_internal(), person_tier_on_claim() [Trigger trg_person_tier], unmerge_persons(), upsert_speaker(), upsert_speaker_contact() | /admin/personen/dubletten, /admin/speaker, /events, /speaker, /speaker-leads | |
 | `deleted_at` | timestamp with time zone | technisch | anonymize_person() |  | |
 | `diet` | text | fachlich | anonymize_person(), purge_diet_data(), set_diet() |  | |
 | `diet_note` | text | fachlich | anonymize_person(), purge_diet_data() |  | |
@@ -81,15 +81,15 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_person_email_updated → set_updated_at()
 
-**Seiten (lesen/schreiben):** /admin/dubletten, /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /partner, /partner/buehne/gaeste, /profil, /speaker, /speaker-leads, /start, /summit, Cron: /api/cron/luma-sync, lib
+**Seiten (lesen/schreiben):** /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/personen/dubletten, /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /partner, /partner/buehne/gaeste, /profil, /speaker, /speaker-leads, /start, /summit, Cron: /api/cron/luma-sync, lib
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
 | `id` | uuid | technisch |  |  | |
-| `person_id` | uuid | technisch | claim_or_create_person(), create_kiosk_account(), create_team_member(), invite_assistant(), luma_sync_registration(), manage_person_email(), partner_add_speaker(), partner_add_stage_guest(), partner_contact_upsert_internal(), partner_update_stage_guest(), person_merge_core(), testdaten_person(), unmerge_persons(), update_partner_contact(), upsert_speaker(), upsert_speaker_contact() | /admin/dubletten, /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /partner, /partner/buehne/gaeste, /profil, /speaker, /speaker-leads, /start, /summit | |
+| `person_id` | uuid | technisch | claim_or_create_person(), create_kiosk_account(), create_team_member(), invite_assistant(), luma_sync_registration(), manage_person_email(), partner_add_speaker(), partner_add_stage_guest(), partner_contact_upsert_internal(), partner_update_stage_guest(), person_merge_core(), testdaten_person(), unmerge_persons(), update_partner_contact(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/personen/dubletten, /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /partner, /partner/buehne/gaeste, /profil, /speaker, /speaker-leads, /start, /summit | |
 | `email` | extensions.citext | fachlich | anonymize_person(), claim_or_create_person(), create_kiosk_account(), create_team_member(), invite_assistant(), luma_sync_registration(), manage_person_email(), partner_add_speaker(), partner_add_stage_guest(), partner_contact_upsert_internal(), partner_update_stage_guest(), testdaten_person(), update_partner_contact(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /partner, /partner/buehne/gaeste, /profil, /speaker, /speaker-leads, /start, /summit | |
 | `type` | text | fachlich | manage_person_email() | /admin/personen/[id] | |
-| `is_primary` | boolean | fachlich | claim_or_create_person(), create_kiosk_account(), create_team_member(), invite_assistant(), luma_sync_registration(), manage_person_email(), partner_add_speaker(), partner_add_stage_guest(), partner_contact_upsert_internal(), partner_update_stage_guest(), person_merge_core(), set_primary_email(), testdaten_person(), unmerge_persons(), update_partner_contact(), upsert_speaker(), upsert_speaker_contact() | /admin/dubletten, /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /partner, /partner/buehne/gaeste, /profil, /speaker, /speaker-leads, /start, /summit | |
+| `is_primary` | boolean | fachlich | claim_or_create_person(), create_kiosk_account(), create_team_member(), invite_assistant(), luma_sync_registration(), manage_person_email(), partner_add_speaker(), partner_add_stage_guest(), partner_contact_upsert_internal(), partner_update_stage_guest(), person_merge_core(), set_primary_email(), testdaten_person(), unmerge_persons(), update_partner_contact(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/personen/dubletten, /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /partner, /partner/buehne/gaeste, /profil, /speaker, /speaker-leads, /start, /summit | |
 | `verified` | boolean | fachlich | anonymize_person(), claim_or_create_person(), create_kiosk_account(), create_team_member(), invite_assistant(), luma_sync_registration(), manage_person_email(), partner_add_stage_guest(), partner_contact_upsert_internal(), partner_update_stage_guest(), testdaten_person(), update_partner_contact(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/partner/[org], /admin/personen/[id], /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /partner, /partner/buehne/gaeste, /profil, /speaker, /speaker-leads, /start, /summit | |
 | `created_at` | timestamp with time zone | technisch |  |  | |
 | `updated_at` | timestamp with time zone | technisch | set_updated_at() [Trigger trg_person_email_updated] |  | |
@@ -155,18 +155,18 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Schreibwege (Funktionen/Trigger):** anonymize_person(), merge_persons(), unmerge_persons()
 
-**Seiten (lesen/schreiben):** /admin/dubletten
+**Seiten (lesen/schreiben):** /admin/personen/dubletten
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
 | `id` | uuid | technisch |  |  | |
-| `surviving_person_id` | uuid | technisch | merge_persons() | /admin/dubletten | |
-| `merged_person_id` | uuid | technisch | merge_persons() | /admin/dubletten | |
+| `surviving_person_id` | uuid | technisch | merge_persons() | /admin/personen/dubletten | |
+| `merged_person_id` | uuid | technisch | merge_persons() | /admin/personen/dubletten | |
 | `merged_at` | timestamp with time zone | technisch |  |  | |
-| `actor` | text | fachlich | merge_persons() | /admin/dubletten | |
-| `payload` | jsonb | fachlich | anonymize_person(), merge_persons() | /admin/dubletten | |
-| `undone_at` | timestamp with time zone | technisch | unmerge_persons() | /admin/dubletten | |
-| `undone_by` | uuid | technisch | unmerge_persons() | /admin/dubletten | |
+| `actor` | text | fachlich | merge_persons() | /admin/personen/dubletten | |
+| `payload` | jsonb | fachlich | anonymize_person(), merge_persons() | /admin/personen/dubletten | |
+| `undone_at` | timestamp with time zone | technisch | unmerge_persons() | /admin/personen/dubletten | |
+| `undone_by` | uuid | technisch | unmerge_persons() | /admin/personen/dubletten | |
 
 ### `potential_duplicate`
 
@@ -178,17 +178,17 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_potential_duplicate_updated → set_updated_at()
 
-**Direkte Schreibzugriffe (kein RPC, `.from().insert/update/upsert/delete()` im Client-Code):** /admin/dubletten
+**Direkte Schreibzugriffe (kein RPC, `.from().insert/update/upsert/delete()` im Client-Code):** /admin/personen/dubletten
 
-**Seiten (lesen/schreiben):** /admin, /admin/dubletten
+**Seiten (lesen/schreiben):** /admin, /admin/personen/dubletten
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
 | `id` | uuid | technisch |  |  | |
-| `person_id_a` | uuid | fachlich | duplicate_scan() | /admin/dubletten | |
-| `person_id_b` | uuid | fachlich | duplicate_scan() | /admin/dubletten | |
-| `score` | numeric | fachlich | duplicate_scan() | /admin/dubletten | |
-| `signals` | jsonb | fachlich | duplicate_scan() | /admin/dubletten | |
+| `person_id_a` | uuid | fachlich | duplicate_scan() | /admin/personen/dubletten | |
+| `person_id_b` | uuid | fachlich | duplicate_scan() | /admin/personen/dubletten | |
+| `score` | numeric | fachlich | duplicate_scan() | /admin/personen/dubletten | |
+| `signals` | jsonb | fachlich | duplicate_scan() | /admin/personen/dubletten | |
 | `status` | text | fachlich |  |  | |
 | `reviewed_by` | uuid | technisch |  |  | |
 | `reviewed_at` | timestamp with time zone | technisch |  |  | |
@@ -231,12 +231,12 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Schreibwege (Funktionen/Trigger):** add_suppression(), anonymize_person()
 
-**Seiten (lesen/schreiben):** /admin/verwaltung/sperrliste
+**Seiten (lesen/schreiben):** lib
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
-| `email_hash` | text | fachlich | add_suppression(), anonymize_person() | /admin/verwaltung/sperrliste | |
-| `reason` | text | fachlich | add_suppression(), anonymize_person() | /admin/verwaltung/sperrliste | |
+| `email_hash` | text | fachlich | add_suppression(), anonymize_person() |  | |
+| `reason` | text | fachlich | add_suppression(), anonymize_person() |  | |
 | `created_at` | timestamp with time zone | technisch |  |  | |
 
 ### `registration`
@@ -303,9 +303,9 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Schreibwege (Funktionen/Trigger):** log_audit(), run_application_housekeeping(), run_shop_finalization(), send_partner_reminders(), send_presentation_reminders(), set_expense_integration(), shop_quotes_housekeeping()
 
-**Direkte Schreibzugriffe (kein RPC, `.from().insert/update/upsert/delete()` im Client-Code):** /admin/dubletten, /admin/mail, API-Route: /api/admin/hubspot/archive-products, API-Route: /api/admin/partner/documents/sync, API-Route: /api/admin/products/sync, API-Route: /api/admin/swapcard/sponsors
+**Direkte Schreibzugriffe (kein RPC, `.from().insert/update/upsert/delete()` im Client-Code):** /admin/mail, /admin/personen/dubletten, API-Route: /api/admin/hubspot/archive-products, API-Route: /api/admin/partner/documents/sync, API-Route: /api/admin/products/sync, API-Route: /api/admin/swapcard/sponsors
 
-**Seiten (lesen/schreiben):** /admin, /admin/dubletten, /admin/mail, API-Route: /api/admin/hubspot/archive-products, API-Route: /api/admin/partner/documents/sync, API-Route: /api/admin/products/sync, API-Route: /api/admin/swapcard/sponsors, Cron: /api/cron/mail, lib
+**Seiten (lesen/schreiben):** /admin, /admin/mail, /admin/personen/dubletten, API-Route: /api/admin/hubspot/archive-products, API-Route: /api/admin/partner/documents/sync, API-Route: /api/admin/products/sync, API-Route: /api/admin/swapcard/sponsors, Cron: /api/cron/mail, lib
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
@@ -1063,14 +1063,14 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_org_membership_updated → set_updated_at(), trg_org_membership_roles → trg_org_membership_roles()
 
-**Seiten (lesen/schreiben):** /admin/dubletten, /admin/partner, /partner
+**Seiten (lesen/schreiben):** /admin/partner, /admin/personen/dubletten, /partner
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
 | `id` | uuid | technisch |  |  | |
 | `person_id` | uuid | technisch | partner_contact_upsert_internal() |  | |
 | `org_id` | uuid | technisch | partner_contact_upsert_internal() |  | |
-| `roles` | text[] | fachlich | partner_contact_upsert_internal(), person_merge_core(), set_contact_roles(), transfer_primary_contact(), unmerge_persons() | /admin/dubletten, /admin/partner, /partner | |
+| `roles` | text[] | fachlich | partner_contact_upsert_internal(), person_merge_core(), set_contact_roles(), transfer_primary_contact(), unmerge_persons() | /admin/partner, /admin/personen/dubletten, /partner | |
 | `created_at` | timestamp with time zone | technisch |  |  | |
 | `updated_at` | timestamp with time zone | technisch | set_updated_at() [Trigger trg_org_membership_updated] |  | |
 | `contact_position` | text | fachlich | partner_contact_upsert_internal(), update_partner_contact() | /admin/partner, /partner | |
@@ -1586,52 +1586,53 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Datenschutz-Klasse (Vorschlag):** personenbezogen
 
-**Schreibwege (Funktionen/Trigger):** anonymize_person(), backfill_ticket_pass_types(), cancel_companion_ticket(), checkin_scan(), confirm_companion_ticket(), decline_companion_ticket(), ingest_vivenu_ticket(), personalize_ticket(), request_companion_ticket(), set_ticket_issued(), set_ticket_lounge(), set_updated_at() [Trigger trg_ticket_updated], speaker_profile_tickets_sync(), speaker_ticket_create(), team_add_companion_ticket(), trg_ticket_volunteer_redeem() [Trigger ticket_volunteer_redeem]
+**Schreibwege (Funktionen/Trigger):** anonymize_person(), backfill_ticket_pass_types(), cancel_companion_ticket(), checkin_scan(), confirm_companion_ticket(), decline_companion_ticket(), ingest_vivenu_ticket(), link_tickets_to_person(), mark_ticket_writeback(), personalize_ticket(), request_companion_ticket(), set_ticket_issued(), set_ticket_lounge(), set_updated_at() [Trigger trg_ticket_updated], speaker_profile_tickets_sync(), speaker_ticket_create(), team_add_companion_ticket(), trg_ticket_volunteer_redeem() [Trigger ticket_volunteer_redeem]
 
 **Trigger auf dieser Tabelle:** trg_ticket_updated → set_updated_at(), ticket_volunteer_redeem → trg_ticket_volunteer_redeem()
 
-**Seiten (lesen/schreiben):** /admin, /admin/speaker-tickets, /checkin, /meine, /speaker/tickets, Cron: /api/cron/vivenu-tickets, Webhook: /api/webhooks/vivenu
+**Seiten (lesen/schreiben):** /admin, /admin/speaker-tickets, /checkin, /meine, /speaker/tickets, /tickets/bestaetigung, Cron: /api/cron/vivenu-tickets, Webhook: /api/webhooks/vivenu
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
 | `id` | uuid | technisch |  |  | |
-| `event_id` | uuid | technisch | ingest_vivenu_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
-| `person_id` | uuid | technisch | ingest_vivenu_ticket(), personalize_ticket(), speaker_ticket_create() |  | |
-| `ticket_type_map_id` | uuid | technisch | backfill_ticket_pass_types(), ingest_vivenu_ticket(), set_ticket_issued() | /admin/speaker-tickets | |
-| `pass_type` | text | fachlich | backfill_ticket_pass_types(), ingest_vivenu_ticket(), request_companion_ticket(), speaker_profile_tickets_sync(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
-| `barcode` | text | fachlich | ingest_vivenu_ticket(), set_ticket_issued() | /admin/speaker-tickets | |
-| `vivenu_ticket_id` | text | technisch | ingest_vivenu_ticket(), set_ticket_issued() | /admin/speaker-tickets | |
-| `vivenu_transaction_id` | text | technisch | ingest_vivenu_ticket(), set_ticket_issued() | /admin/speaker-tickets | |
-| `vivenu_customer_id` | text | technisch | ingest_vivenu_ticket() |  | |
-| `buyer_email` | extensions.citext | fachlich | anonymize_person(), ingest_vivenu_ticket() |  | |
-| `holder_email` | extensions.citext | fachlich | anonymize_person(), ingest_vivenu_ticket(), personalize_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
-| `holder_first_name` | text | fachlich | anonymize_person(), ingest_vivenu_ticket(), personalize_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
-| `holder_last_name` | text | fachlich | anonymize_person(), ingest_vivenu_ticket(), personalize_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
-| `holder_company` | text | fachlich | anonymize_person(), ingest_vivenu_ticket(), personalize_ticket(), speaker_ticket_create() |  | |
-| `holder_position` | text | fachlich | anonymize_person(), personalize_ticket(), speaker_ticket_create() |  | |
-| `status` | text | fachlich | cancel_companion_ticket(), confirm_companion_ticket(), decline_companion_ticket(), ingest_vivenu_ticket(), request_companion_ticket(), set_ticket_issued(), speaker_profile_tickets_sync(), speaker_ticket_create(), team_add_companion_ticket(), trg_ticket_volunteer_redeem() [Trigger ticket_volunteer_redeem] | /admin, /admin/speaker-tickets, /speaker/tickets | |
-| `personalization_status` | text | fachlich | ingest_vivenu_ticket(), personalize_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
-| `addons` | jsonb | fachlich | ingest_vivenu_ticket() |  | |
-| `price_cents` | integer | fachlich | ingest_vivenu_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
-| `currency` | text | fachlich | ingest_vivenu_ticket() |  | |
-| `source` | text | fachlich | ingest_vivenu_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
-| `purchased_at` | timestamp with time zone | technisch | ingest_vivenu_ticket(), set_ticket_issued() | /admin/speaker-tickets | |
-| `personalized_at` | timestamp with time zone | technisch | personalize_ticket() |  | |
+| `event_id` | uuid | technisch | ingest_vivenu_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets, /tickets/bestaetigung | |
+| `person_id` | uuid | technisch | ingest_vivenu_ticket(), link_tickets_to_person(), personalize_ticket(), speaker_ticket_create() | /tickets/bestaetigung | |
+| `ticket_type_map_id` | uuid | technisch | backfill_ticket_pass_types(), ingest_vivenu_ticket(), set_ticket_issued() | /admin/speaker-tickets, /tickets/bestaetigung | |
+| `pass_type` | text | fachlich | backfill_ticket_pass_types(), ingest_vivenu_ticket(), request_companion_ticket(), speaker_profile_tickets_sync(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets, /tickets/bestaetigung | |
+| `barcode` | text | fachlich | ingest_vivenu_ticket(), set_ticket_issued() | /admin/speaker-tickets, /tickets/bestaetigung | |
+| `vivenu_ticket_id` | text | technisch | ingest_vivenu_ticket(), set_ticket_issued() | /admin/speaker-tickets, /tickets/bestaetigung | |
+| `vivenu_transaction_id` | text | technisch | ingest_vivenu_ticket(), set_ticket_issued() | /admin/speaker-tickets, /tickets/bestaetigung | |
+| `vivenu_customer_id` | text | technisch | ingest_vivenu_ticket() | /tickets/bestaetigung | |
+| `buyer_email` | extensions.citext | fachlich | anonymize_person(), ingest_vivenu_ticket() | /tickets/bestaetigung | |
+| `holder_email` | extensions.citext | fachlich | anonymize_person(), ingest_vivenu_ticket(), personalize_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets, /tickets/bestaetigung | |
+| `holder_first_name` | text | fachlich | anonymize_person(), ingest_vivenu_ticket(), personalize_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets, /tickets/bestaetigung | |
+| `holder_last_name` | text | fachlich | anonymize_person(), ingest_vivenu_ticket(), personalize_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets, /tickets/bestaetigung | |
+| `holder_company` | text | fachlich | anonymize_person(), ingest_vivenu_ticket(), personalize_ticket(), speaker_ticket_create() | /tickets/bestaetigung | |
+| `holder_position` | text | fachlich | anonymize_person(), personalize_ticket(), speaker_ticket_create() | /tickets/bestaetigung | |
+| `status` | text | fachlich | cancel_companion_ticket(), confirm_companion_ticket(), decline_companion_ticket(), ingest_vivenu_ticket(), request_companion_ticket(), set_ticket_issued(), speaker_profile_tickets_sync(), speaker_ticket_create(), team_add_companion_ticket(), trg_ticket_volunteer_redeem() [Trigger ticket_volunteer_redeem] | /admin, /admin/speaker-tickets, /speaker/tickets, /tickets/bestaetigung | |
+| `personalization_status` | text | fachlich | ingest_vivenu_ticket(), personalize_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets, /tickets/bestaetigung | |
+| `addons` | jsonb | fachlich | ingest_vivenu_ticket() | /tickets/bestaetigung | |
+| `price_cents` | integer | fachlich | ingest_vivenu_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets, /tickets/bestaetigung | |
+| `currency` | text | fachlich | ingest_vivenu_ticket() | /tickets/bestaetigung | |
+| `source` | text | fachlich | ingest_vivenu_ticket(), request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets, /tickets/bestaetigung | |
+| `purchased_at` | timestamp with time zone | technisch | ingest_vivenu_ticket(), set_ticket_issued() | /admin/speaker-tickets, /tickets/bestaetigung | |
+| `personalized_at` | timestamp with time zone | technisch | personalize_ticket() | /tickets/bestaetigung | |
 | `checked_in_at` | timestamp with time zone | technisch | checkin_scan() | /checkin | |
 | `created_at` | timestamp with time zone | technisch |  |  | |
-| `updated_at` | timestamp with time zone | technisch | backfill_ticket_pass_types(), ingest_vivenu_ticket(), set_updated_at() [Trigger trg_ticket_updated] |  | |
+| `updated_at` | timestamp with time zone | technisch | backfill_ticket_pass_types(), ingest_vivenu_ticket(), link_tickets_to_person(), mark_ticket_writeback(), set_updated_at() [Trigger trg_ticket_updated] | /tickets/bestaetigung | |
 | `speaker_profile_id` | uuid | technisch | request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
 | `lounge_access` | boolean | fachlich | request_companion_ticket(), set_ticket_lounge(), speaker_profile_tickets_sync(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
 | `team_note` | text | fachlich | anonymize_person(), confirm_companion_ticket(), decline_companion_ticket(), speaker_profile_tickets_sync() | /admin | |
 | `requested_by` | uuid | technisch | request_companion_ticket(), speaker_ticket_create(), team_add_companion_ticket() | /admin/speaker-tickets, /speaker/tickets | |
 | `approved_by` | uuid | technisch | confirm_companion_ticket(), decline_companion_ticket(), team_add_companion_ticket() | /admin, /admin/speaker-tickets | |
 | `approved_at` | timestamp with time zone | technisch | confirm_companion_ticket(), decline_companion_ticket(), team_add_companion_ticket() | /admin, /admin/speaker-tickets | |
-| `meta` | jsonb | fachlich | ingest_vivenu_ticket() |  | |
-| `extra_fields` | jsonb | fachlich | anonymize_person(), ingest_vivenu_ticket() |  | |
-| `vivenu_discount_id` | text | technisch | ingest_vivenu_ticket() |  | |
-| `vivenu_updated_at` | timestamp with time zone | technisch | ingest_vivenu_ticket() |  | |
-| `vivenu_ticket_type_id` | text | technisch | ingest_vivenu_ticket() |  | |
-| `vivenu_undershop_id` | text | technisch | ingest_vivenu_ticket() |  | |
+| `meta` | jsonb | fachlich | ingest_vivenu_ticket() | /tickets/bestaetigung | |
+| `extra_fields` | jsonb | fachlich | anonymize_person(), ingest_vivenu_ticket() | /tickets/bestaetigung | |
+| `vivenu_discount_id` | text | technisch | ingest_vivenu_ticket() | /tickets/bestaetigung | |
+| `vivenu_updated_at` | timestamp with time zone | technisch | ingest_vivenu_ticket() | /tickets/bestaetigung | |
+| `vivenu_ticket_type_id` | text | technisch | ingest_vivenu_ticket() | /tickets/bestaetigung | |
+| `vivenu_undershop_id` | text | technisch | ingest_vivenu_ticket() | /tickets/bestaetigung | |
+| `vivenu_writeback_pending` | boolean | fachlich | mark_ticket_writeback() | /tickets/bestaetigung | |
 
 ### `ticket_secret`
 
@@ -1989,7 +1990,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Datenschutz-Klasse (Vorschlag):** keine
 
-**Schreibwege (Funktionen/Trigger):** Migration/Seed (20260915114852_v5_wiki_inhalte.sql), Migration/Seed (20260921110522_v6_wiki_hackathon.sql), Migration/Seed (20261008083319_v6_wiki_thema_produktbezug.sql), Migration/Seed (20261008142621_v6_wiki_en_entwuerfe.sql), delete_kb_article(), publish_kb_article(), upsert_kb_article()
+**Schreibwege (Funktionen/Trigger):** Migration/Seed (20260915114852_v5_wiki_inhalte.sql), Migration/Seed (20260921110522_v6_wiki_hackathon.sql), Migration/Seed (20261008083319_v6_wiki_thema_produktbezug.sql), Migration/Seed (20261008142621_v6_wiki_en_entwuerfe.sql), Migration/Seed (20261009080045_v6_wiki_zwischenueberschriften.sql), delete_kb_article(), publish_kb_article(), upsert_kb_article()
 
 **Trigger auf dieser Tabelle:** trg_kb_article_chunks → trg_kb_article_chunks()
 
@@ -2005,7 +2006,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 | `roles` | text[] | fachlich | Migration/Seed (20260921110522_v6_wiki_hackathon.sql), Migration/Seed (20261008142621_v6_wiki_en_entwuerfe.sql), upsert_kb_article() | /admin/wiki | |
 | `phase` | text | fachlich | Migration/Seed (20260915114852_v5_wiki_inhalte.sql), Migration/Seed (20260921110522_v6_wiki_hackathon.sql), Migration/Seed (20261008142621_v6_wiki_en_entwuerfe.sql), upsert_kb_article() | /admin/wiki | |
 | `title` | text | fachlich | Migration/Seed (20260915114852_v5_wiki_inhalte.sql), Migration/Seed (20260921110522_v6_wiki_hackathon.sql), Migration/Seed (20261008142621_v6_wiki_en_entwuerfe.sql), upsert_kb_article() | /admin/wiki | |
-| `body_md` | text | fachlich | Migration/Seed (20260915114852_v5_wiki_inhalte.sql), Migration/Seed (20260921110522_v6_wiki_hackathon.sql), Migration/Seed (20261008142621_v6_wiki_en_entwuerfe.sql), upsert_kb_article() | /admin/wiki | |
+| `body_md` | text | fachlich | Migration/Seed (20260915114852_v5_wiki_inhalte.sql), Migration/Seed (20260921110522_v6_wiki_hackathon.sql), Migration/Seed (20261008142621_v6_wiki_en_entwuerfe.sql), Migration/Seed (20261009080045_v6_wiki_zwischenueberschriften.sql), upsert_kb_article() | /admin/wiki | |
 | `status` | text | fachlich | Migration/Seed (20260915114852_v5_wiki_inhalte.sql), Migration/Seed (20260921110522_v6_wiki_hackathon.sql), Migration/Seed (20261008142621_v6_wiki_en_entwuerfe.sql), delete_kb_article(), publish_kb_article(), upsert_kb_article() | /admin/wiki | |
 | `valid_until` | timestamp with time zone | fachlich | Migration/Seed (20261008142621_v6_wiki_en_entwuerfe.sql), upsert_kb_article() | /admin/wiki | |
 | `owner_person_id` | uuid | technisch | Migration/Seed (20261008142621_v6_wiki_en_entwuerfe.sql), upsert_kb_article() | /admin/wiki | |
@@ -2168,7 +2169,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_vocab_term_updated → set_updated_at()
 
-**Seiten (lesen/schreiben):** /admin, /admin/anreise, /admin/ansprechpartner, /admin/benachrichtigungen, /admin/bewerbungen, /admin/bewerbungen/[id], /admin/bewerbungen/sessions, /admin/catering, /admin/community-events/[id], /admin/company-tours/zuordnung, /admin/einreichungen, /admin/feedback, /admin/hackathon, /admin/hospitality, /admin/initiativen/award, /admin/mail/vorlagen, /admin/medien, /admin/partner/[org], /admin/partner/integrationen, /admin/partner/kontingente, /admin/partner/logos, /admin/partner/produkte, /admin/personen, /admin/personen/[id], /admin/produktion/dateien, /admin/produktion/produkte, /admin/reisekosten, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/speaker-tickets, /admin/speaker/[id], /admin/speaker/verlauf, /admin/team, /admin/verwaltung/einwilligungen, /admin/verwaltung/zugaenge, /admin/vokabular, /admin/volunteers, /admin/volunteers/schichten, /admin/volunteers/vorlagen, /admin/wiki, /award, /award/bewerben, /benachrichtigungen, /checkin, /feedback, /hackathon, /hackathon/challenges, /hackathon/schedule, /hackathon/teams, /meine, /onboarding, /partner, /partner/company-tour, /partner/hackathon, /partner/interview-tables, /partner/kontakte, /partner/masterclass, /partner/onboarding, /partner/shop, /partner/side-event, /partner/talk, /partner/tickets, /profil, /programm, /speaker-leads, /speaker-leads/anreise, /speaker/profil, /speaker/reisekosten, /speaker/session, /speaker/tickets, /speaker/travel, /tickets, /volunteers, /volunteers/schichten, /volunteers/team, API-Route: /api/admin/swapcard/sponsors
+**Seiten (lesen/schreiben):** /admin, /admin/anreise, /admin/ansprechpartner, /admin/benachrichtigungen, /admin/bewerbungen, /admin/bewerbungen/[id], /admin/bewerbungen/sessions, /admin/catering, /admin/community-events/[id], /admin/company-tours/zuordnung, /admin/einreichungen, /admin/feedback, /admin/hackathon, /admin/hospitality, /admin/initiativen/award, /admin/mail/vorlagen, /admin/medien, /admin/partner/[org], /admin/partner/integrationen, /admin/partner/kontingente, /admin/partner/logos, /admin/partner/produkte, /admin/personen, /admin/personen/[id], /admin/produktion/dateien, /admin/produktion/produkte, /admin/reisekosten, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/speaker-tickets, /admin/speaker/[id], /admin/speaker/verlauf, /admin/team, /admin/verwaltung/einwilligungen, /admin/verwaltung/zugaenge, /admin/vokabular, /admin/volunteers, /admin/volunteers/schichten, /admin/volunteers/vorlagen, /admin/wiki, /award, /award/bewerben, /benachrichtigungen, /checkin, /feedback, /hackathon, /hackathon/challenges, /hackathon/schedule, /hackathon/teams, /meine, /onboarding, /partner, /partner/company-tour, /partner/hackathon, /partner/interview-tables, /partner/kontakte, /partner/masterclass, /partner/onboarding, /partner/shop, /partner/side-event, /partner/talk, /partner/tickets, /profil, /programm, /speaker-leads, /speaker-leads/anreise, /speaker/profil, /speaker/reisekosten, /speaker/session, /speaker/tickets, /speaker/travel, /tickets, /tickets/bestaetigung, /volunteers, /volunteers/schichten, /volunteers/team, API-Route: /api/admin/swapcard/sponsors
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|

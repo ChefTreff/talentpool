@@ -220,6 +220,7 @@
 | Welle 6 · 0293 | **Eure Bühne: has_stage nur Standbühne/gebrandete Bühne, Speaker-Wege für Team-Sessions auf der gebrandeten Bühne (PART-138 Teil 1)** (`20261009075544`, `v6_eure_buehne`; Details im Migrationskopf) | — |
 | Welle 6 · 0294 | **Wiki: fette Zeilen werden Zwischenüberschriften (PART-104 Teil 2, Redaktion)** (`20261009080045`, `v6_wiki_zwischenueberschriften`; Details im Migrationskopf) | — |
 | Welle 6 · 0295 | **Side Events je Speaker lesen: speaker_side_events (ADM-087)** (`20261009080908`, `v6_speaker_side_events`; Details im Migrationskopf) | — |
+| Welle 6 · 0296 | **Ticket-Bestätigung im Portal: Tickets der Transaktion, Verknüpfung beim Login, Rückschreibe-Marke (TAL-019)** (`20261009081920`, `v6_ticket_bestaetigung`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.
