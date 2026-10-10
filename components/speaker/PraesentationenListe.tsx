@@ -149,7 +149,9 @@ export function PraesentationenListe({
         const { data, error } = await supabase.storage.from(SPEAKER_BUCKET).createSignedUrl(pfad, 60, optionen);
         return { url: error ? null : (data?.signedUrl ?? null) };
       },
-      fensterOeffnen: () => window.open("", "_blank"),
+      oeffnen: (url) => {
+        window.open(url, "_blank", "noopener");
+      },
       herunterladen: (url, dateiname) => {
         const a = document.createElement("a");
         a.href = url;
@@ -160,7 +162,6 @@ export function PraesentationenListe({
       },
     });
     if (ergebnis === "fehler") setFehler((e) => ({ ...e, [key]: t.openFailed }));
-    if (ergebnis === "blockiert") setFehler((e) => ({ ...e, [key]: t.openBlocked }));
   }
 
   /** „Ansehen“ (nur PDF) und „Herunterladen“ für eine Fassung. */

@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { baueZeilen, istPdf, type AssetZeile, type BoardZeile } from "@/components/speaker/praesentationen";
-import { holeFassung, type FensterGriff, type HolenAbhaengigkeiten } from "@/components/speaker/praesentation-holen";
+import { holeFassung, type HolenAbhaengigkeiten } from "@/components/speaker/praesentation-holen";
 
 /**
  * LEAD-060 (Feedbackrunde Konrad und Paulina 05.10.2026): in der Präsentationsliste (Stage Leads unter `/speaker-leads/praesentationen`, Admin unter
@@ -86,50 +86,36 @@ describe("LEAD-060: „Ansehen“ nur für PDF (ausgeführt)", () => {
 });
 
 describe("LEAD-060: der Ablauf beim Klick (ausgeführt, mit Attrappen)", () => {
-  function attrappe(opts: { url?: string | null; wirft?: boolean; blockiert?: boolean } = {}) {
+  function attrappe(opts: { url?: string | null; wirft?: boolean } = {}) {
     const log: string[] = [];
-    const fenster: FensterGriff = { opener: "Seite", location: { href: "" }, close: () => void log.push("close") };
     const d: HolenAbhaengigkeiten = {
       signieren: async (pfad, optionen) => {
         log.push(`signieren ${pfad} ${optionen ? `download=${optionen.download}` : "ansehen"}`);
         if (opts.wirft) throw new Error("kein Netz");
         return { url: opts.url === undefined ? "https://x.test/signed" : opts.url };
       },
-      fensterOeffnen: () => {
-        log.push("fenster");
-        return opts.blockiert ? null : fenster;
-      },
+      oeffnen: (url) => void log.push(`oeffnen ${url}`),
       herunterladen: (url, name) => void log.push(`laden ${url} ${name}`),
     };
-    return { d, log, fenster };
+    return { d, log };
   }
   const datei = { storage_path: "ed/pr1/presentation/c.pdf", filename: "c.pdf" };
 
-  it("Ansehen: das Fenster öffnet **vor** dem Signieren (Popup-Blocker), die Adresse kommt danach hinein, der Opener ist gekappt", async () => {
-    const { d, log, fenster } = attrappe();
+  it("Ansehen: signiert ohne Dateinamen (die Adresse zeigt die Datei, sie lädt sie nicht als Anhang) und öffnet sie im neuen Fenster", async () => {
+    const { d, log } = attrappe();
     assert.equal(await holeFassung("ansehen", datei, d), "ok");
-    assert.deepEqual(log, ["fenster", "signieren ed/pr1/presentation/c.pdf ansehen"]);
-    assert.equal(fenster.location.href, "https://x.test/signed");
-    assert.equal(fenster.opener, null);
+    assert.deepEqual(log, ["signieren ed/pr1/presentation/c.pdf ansehen", "oeffnen https://x.test/signed"]);
   });
 
-  it("Ansehen: schlägt das Signieren fehl (kein Recht, Datei weg, kein Netz), schließt das leere Fenster wieder", async () => {
+  it("Ansehen: ohne Link (kein Recht, Datei weg, kein Netz) bleibt es beim Fehler — es öffnet nichts", async () => {
     for (const opts of [{ url: null }, { wirft: true }]) {
-      const { d, log, fenster } = attrappe(opts);
+      const { d, log } = attrappe(opts);
       assert.equal(await holeFassung("ansehen", datei, d), "fehler");
-      assert.ok(log.includes("close"));
-      assert.equal(fenster.location.href, "");
-      assert.equal(fenster.opener, "Seite", "ohne Link bleibt es, wie es war");
+      assert.ok(!log.some((z) => z.startsWith("oeffnen ") || z.startsWith("laden ")), JSON.stringify(opts));
     }
   });
 
-  it("Ansehen: blockiert der Browser das Fenster, wird gar nicht erst signiert", async () => {
-    const { d, log } = attrappe({ blockiert: true });
-    assert.equal(await holeFassung("ansehen", datei, d), "blockiert");
-    assert.deepEqual(log, ["fenster"]);
-  });
-
-  it("Herunterladen: ohne Fenster, die Adresse trägt den Dateinamen (Anhang), ein Anker löst den Download aus", async () => {
+  it("Herunterladen: die Adresse trägt den Dateinamen (Anhang), ein Anker löst den Download aus — nichts wird geöffnet", async () => {
     const { d, log } = attrappe();
     assert.equal(await holeFassung("laden", datei, d), "ok");
     assert.deepEqual(log, ["signieren ed/pr1/presentation/c.pdf download=c.pdf", "laden https://x.test/signed c.pdf"]);
@@ -139,17 +125,17 @@ describe("LEAD-060: der Ablauf beim Klick (ausgeführt, mit Attrappen)", () => {
     for (const opts of [{ url: null }, { wirft: true }]) {
       const { d, log } = attrappe(opts);
       assert.equal(await holeFassung("laden", datei, d), "fehler");
-      assert.ok(!log.some((z) => z.startsWith("laden ") || z === "fenster"));
+      assert.ok(!log.some((z) => z.startsWith("laden ") || z.startsWith("oeffnen ")), JSON.stringify(opts));
     }
   });
 });
 
 describe("LEAD-060: die Liste (Stage Lead und Admin teilen sie)", () => {
-  it("der Klick geht über `holeFassung`: signiert mit der Sitzung im Bucket `speaker-assets` (60 s), Fenster im Klick, Anker für den Download", () => {
+  it("der Klick geht über `holeFassung`: signiert mit der Sitzung im Bucket `speaker-assets` (60 s), Ansehen im neuen Fenster mit `noopener` (QS-034), Anker für den Download", () => {
     const q = quelle(LISTE);
     assert.match(q, /import \{ holeFassung, type HolenModus \} from "\.\/praesentation-holen";/);
     assert.match(q, /supabase\.storage\.from\(SPEAKER_BUCKET\)\.createSignedUrl\(pfad, 60, optionen\)/);
-    assert.match(q, /fensterOeffnen: \(\) => window\.open\("", "_blank"\),/);
+    assert.match(q, /oeffnen: \(url\) => \{\s*window\.open\(url, "_blank", "noopener"\);\s*\},/);
     assert.match(q, /a\.href = url;\s*a\.download = dateiname;/);
     assert.doesNotMatch(q, /createSupabaseAdminClient|service_role/, "der Browser signiert mit der Sitzung des Nutzers");
   });
@@ -169,10 +155,9 @@ describe("LEAD-060: die Liste (Stage Lead und Admin teilen sie)", () => {
     assert.match(q, /\{aktionen\(key, f\)\}/);
   });
 
-  it("Fehler stehen an der Zeile (`role=\"alert\"`), nicht als Toast — auch beim Öffnen und bei blockiertem Fenster", () => {
+  it("Fehler stehen an der Zeile (`role=\"alert\"`), nicht als Toast — auch beim Öffnen", () => {
     const q = quelle(LISTE);
     assert.match(q, /if \(ergebnis === "fehler"\) setFehler\(\(e\) => \(\{ \.\.\.e, \[key\]: t\.openFailed \}\)\);/);
-    assert.match(q, /if \(ergebnis === "blockiert"\) setFehler\(\(e\) => \(\{ \.\.\.e, \[key\]: t\.openBlocked \}\)\);/);
     assert.doesNotMatch(q, /toast\("error"/);
     assert.match(q, /role="alert"/);
   });
@@ -197,7 +182,7 @@ describe("LEAD-060: Texte DE und EN", () => {
 
   it("alle neuen Schlüssel haben in beiden Sprachen einen Text", () => {
     for (const w of [de, en]) {
-      for (const k of ["view", "download", "viewFile", "downloadFile", "earlier", "openFailed", "openBlocked", "rules"]) {
+      for (const k of ["view", "download", "viewFile", "downloadFile", "earlier", "openFailed", "rules"]) {
         assert.ok(w.presentationsList[k]?.trim(), `presentationsList.${k}`);
       }
     }
@@ -238,7 +223,7 @@ describe("LEAD-060: DB-Test, Doku", () => {
     assert.ok(lead && admin, "Zeilen fehlen");
     assert.match(lead, /\*\*Jede Präsentation lässt sich ansehen und herunterladen \(LEAD-060\):\*\*/);
     assert.match(lead, /„Frühere Fassungen \(n\)“/);
-    assert.match(lead, /„Das Fenster wurde blockiert …“/);
+    assert.match(lead, /„Die Datei ließ sich nicht öffnen …“/);
     assert.match(admin, /„Ansehen“ \(PDF\) und „Herunterladen“ und aufklappbar die früheren Fassungen \(LEAD-060/);
   });
 
