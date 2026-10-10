@@ -1,6 +1,7 @@
 import { strict as assert } from "node:assert";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { describe, it } from "node:test";
+import { scrolltNachRueckfrage } from "@/components/ui/ungesichert";
 import * as instanz from "@/lib/partner/instanz";
 
 /**
@@ -80,11 +81,24 @@ describe("Skill „Mehrere Instanzen“: was er nennt, gibt es", () => {
       ["/partner/masterclass", "#453"],
       ["/partner/interview-tables", "#457"],
       ["/partner/company-tour", "#463"],
+      ["/admin/partner/[org]", "#468"],
     ]) {
       const zeile = tabelle.split("\n").find((z) => z.startsWith(`| \`${seite}\``)) ?? "";
       assert.ok(zeile, `${seite} fehlt in der Tabelle`);
       assert.ok(zeile.includes(`**gebaut ${pr}**`), `${seite}: „gebaut ${pr}“ fehlt`);
     }
+  });
+});
+
+describe("Umschalter mitten auf einer langen Seite: `scroll={false}` (#468) und die Rückfrage vor dem Verlassen", () => {
+  it("der Skill nennt `scroll={false}` und `scrolltNachRueckfrage`; `InstanzWahl` und `SectionTabs` nehmen `scroll`, die Rückfrage-Regel gibt es", () => {
+    assert.ok(abschnitt.includes("scroll={false}"), "muster.md nennt scroll={false} nicht mehr");
+    assert.ok(abschnitt.includes("scrolltNachRueckfrage"), "muster.md nennt scrolltNachRueckfrage nicht mehr");
+    assert.match(ohneKommentare(quelle("components/layout/InstanzWahl.tsx")), /scroll\?: boolean/);
+    const tabs = ohneKommentare(quelle("components/layout/SectionTabs.tsx"));
+    assert.match(tabs, /scroll\?: boolean/);
+    assert.match(tabs, /scroll=\{item\.scroll\}/);
+    assert.equal(typeof scrolltNachRueckfrage, "function");
   });
 });
 

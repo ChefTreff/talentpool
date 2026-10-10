@@ -22,3 +22,14 @@ export function zielBeiKlick(link: LinkAngaben, ort: Ort, taste: Taste): string 
   if (url.pathname === ort.pathname && url.search === ort.search) return null;
   return `${url.pathname}${url.search}${url.hash}`;
 }
+
+/**
+ * Scrollt der Router nach „Seite verlassen“ an den Anfang? Ein Wechsel **auf derselben Seite** — gleicher Pfad, andere Abfrage (ein Umschalter wie
+ * `InstanzWahl`, ein Reiter über die Adresszeile) — ist der Zustand der Seite, kein Seitenwechsel: sie bleibt, wo sie ist. Ohne diese Regel sprang sie
+ * nach der Rückfrage nach oben, obwohl der Reiter `scroll={false}` trug (Design 10.10.2026, #468: 3186 → 0 gemessen; der Klick selbst ließ sie stehen,
+ * aber `router.push(ziel)` kennt den Link nicht mehr). Ein Anker im Ziel (`#abschnitt`) und jede andere Seite behalten den Standard von Next.
+ */
+export function scrolltNachRueckfrage(ziel: string, ort: Pick<Ort, "origin" | "pathname">): boolean {
+  const url = new URL(ziel, ort.origin);
+  return !(url.pathname === ort.pathname && url.hash === "");
+}
