@@ -113,10 +113,7 @@ export function TourStopp({
       <Field label={t.address} htmlFor={id("address")} hint={t.addressHint} className="max-w-form">
         <Input id={id("address")} value={entwurf.address} disabled={!canEdit} onChange={(e) => set("address", e.target.value)} />
       </Field>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Field label={t.timeNote} htmlFor={id("zeit")} hint={t.timeNoteHint}>
-          <Input id={id("zeit")} value={entwurf.time_note} disabled={!canEdit} onChange={(e) => set("time_note", e.target.value)} />
-        </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t.snacks} htmlFor={id("snacks")}>
           <Select
             id={id("snacks")}

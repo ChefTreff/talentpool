@@ -30,13 +30,15 @@ export type TourStopp = {
   lead_photo_path: string | null;
 };
 
-/** Was `partner_update_tour_stop` annimmt — dieselbe Liste wie die Whitelist der RPC. */
+/**
+ * Was die Maske des Stopps anbietet — ein Teil der Whitelist von `partner_update_tour_stop`. `time_note` nimmt die RPC weiter an, die Maske fragt es seit PART-127 nicht mehr:
+ * die Zeiten gibt ChefTreff vor (Tour-Zeiten aus der Zuordnung), der Partner nennt keinen eigenen Zeitslot.
+ */
 export type TourStoppFelder = {
   address: string;
   contact_name: string;
   contact_email: string;
   contact_phone: string;
-  time_note: string;
   snacks: boolean | null;
   notes_public: string;
   target_profile: Zielprofil;
@@ -55,7 +57,6 @@ export function tourEntwurf(x: TourStopp): TourStoppFelder {
     contact_name: x.contact_name ?? "",
     contact_email: x.contact_email ?? "",
     contact_phone: x.contact_phone ?? "",
-    time_note: x.time_note ?? "",
     snacks: x.snacks,
     notes_public: x.notes_public ?? "",
     target_profile: x.target_profile ?? {},
@@ -71,7 +72,7 @@ export function tourEntwurf(x: TourStopp): TourStoppFelder {
  */
 export function tourAenderungen(vorher: TourStoppFelder, jetzt: TourStoppFelder): Record<string, unknown> {
   const felder: Record<string, unknown> = {};
-  for (const k of ["address", "contact_name", "contact_email", "contact_phone", "time_note", "notes_public"] as const) {
+  for (const k of ["address", "contact_name", "contact_email", "contact_phone", "notes_public"] as const) {
     if (jetzt[k].trim() !== vorher[k].trim()) felder[k] = jetzt[k].trim();
   }
   for (const k of ["snacks", "photos_allowed"] as const) {
