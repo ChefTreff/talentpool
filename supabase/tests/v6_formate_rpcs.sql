@@ -137,7 +137,7 @@ begin
   exception when others then insert into t_res values ('08_url_form', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
   begin
     perform partner_update_session(v_t1, jsonb_build_object('format_details',
-      jsonb_build_object('target_profile', jsonb_build_object('career_level', jsonb_build_array('gibt_es_nicht')))));
+      jsonb_build_object('target_profile', jsonb_build_object('skill', jsonb_build_array('gibt_es_nicht')))));
     insert into t_res values ('08b_vokabular', 'ERLAUBT (BUG)');
   exception when others then insert into t_res values ('08b_vokabular', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
 
