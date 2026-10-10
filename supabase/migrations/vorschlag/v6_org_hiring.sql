@@ -14,7 +14,7 @@
 --      Lesefunktion für Teilnehmende dazu, nie ein Tabellenrecht.
 --   2  `partner_org_hiring(p_org_id, p_edition_id)` — die Einträge einer Organisation; Partner der Organisation (jede Rolle) oder Team. `stable`, kein Schreibzugriff.
 --   3  `set_org_hiring(p_org_id, p_id, …Felder…, p_edition_id)` — anlegen (`p_id` leer) oder ändern; Recht `partner_can_edit` (primary_ops, additional, signing, oder Team). Werte über `is_vocab_key`;
---      `nicht-interessiert` ist wie im Wunschprofil (0305) gesperrt; höchstens zehn Einträge je Organisation und Edition. Ein fremder Eintrag wird abgewiesen, bevor etwas geändert wird.
+--      `nicht-interessiert` ist wie im Wunschprofil (Vorschlag `v6_matching_vokabular`, #480) gesperrt; höchstens zehn Einträge je Organisation und Edition. Ein fremder Eintrag wird abgewiesen, bevor etwas geändert wird.
 --   4  `delete_org_hiring(p_id)` — Eintrag entfernen; Recht wie oben an der Organisation des Eintrags.
 --
 -- Audit (db-konventionen §2): `partner.org_hiring` und `partner.org_hiring_remove`, Objekt `org_edition`, nur `org_id`, `hiring_id`, die Schlüsselwerte von Kategorie und Fachbereich, `published` und die
