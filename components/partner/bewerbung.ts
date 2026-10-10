@@ -89,6 +89,22 @@ export function linkedinUrl(profile: Record<string, unknown> | null | undefined)
   }
 }
 
+/**
+ * Die E-Mail-Adresse einer Bewerbung (PART-147), wenn sie eine ist. Die Datenbank liefert sie im `profile` nur mit Weitergabe
+ * (`consent_share`) und nur die primäre Adresse; hier wird sie zusätzlich geprüft, bevor sie als `mailto:`-Link in die Seite kommt —
+ * sie steht in einem Feld, das jemand anderes ausgefüllt hat. Erlaubt sind Buchstaben und Ziffern (auch mit Umlauten), `.`, `_`, `+`, `-`
+ * und `'` vor dem `@`; **kein** `?`, `&`, `#`, `%`, `/`, Leerzeichen oder Komma: ein `mailto:` mit `?cc=` oder `&bcc=` hängte sonst
+ * Empfänger an, die die Person nie genannt hat.
+ */
+const EMAIL_MUSTER = /^[\p{L}\p{N}._+'-]+@[\p{L}\p{N}-]+(\.[\p{L}\p{N}-]+)*\.\p{L}{2,}$/u;
+
+export function profilEmail(profile: Record<string, unknown> | null | undefined): string | null {
+  const roh = profile?.email;
+  if (typeof roh !== "string") return null;
+  const adresse = roh.trim();
+  return adresse.length <= 254 && EMAIL_MUSTER.test(adresse) ? adresse : null;
+}
+
 /** Was die Details einer Bewerbung brauchen — Partner- und Admin-Zeilen liefern es gleich. */
 export type BewerbungFuerDetails = {
   display_name: string | null;
