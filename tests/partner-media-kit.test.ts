@@ -97,7 +97,9 @@ describe("Media Kit (PART-041/ADM-023, Oberfläche)", () => {
     assert.match(kit, /await requireAdminSection\("graphics", "\/admin\/grafiken"\);/);
     assert.ok(kit.indexOf('rpc("is_marketing_team")') < kit.indexOf("createSupabaseAdminClient().storage"), "erst die Rolle, dann service_role");
     assert.match(kit, /kind: ART,/);
-    assert.match(kit, /audience: \["partner"\]/);
+    // SPK-090: die Zielgruppe kommt aus der Anfrage (Partner, Speaker oder beide), nicht mehr fest `["partner"]`.
+    assert.doesNotMatch(kit, /audience: \["partner"\]/);
+    assert.match(kit, /mediaKitZielgruppen\(body\.audience\)/);
     const grafik = src("app/api/admin/partnergrafik/route.ts");
     assert.match(grafik, /await requireAdminSection\("graphics", "\/admin\/grafiken"\);/);
     assert.doesNotMatch(grafik, /createSupabaseAdminClient/, "signiert mit der Sitzung, die Policy entscheidet");

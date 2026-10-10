@@ -48,6 +48,8 @@
  *                                   braucht partner und talk)
  *   … --apply --nur=media          (PART-041: TEST-Partnergrafik der Test-Organisation und
  *                                   eine TEST-Datei im Media Kit, echte Dateien im Speicher;
+ *                                   SPK-090: die TEST-Datei gilt für Partner **und** Speaker —
+ *                                   auch eine schon vorhandene bekommt „Speaker“ dazu;
  *                                   braucht v6_media_kit und den Schritt partner)
  *   … --apply --nur=buehne         (Test-Bühne, auf der Konrad Stage Lead ist,
  *                                   mit Öffnungszeiten für die Markierung — LEAD-033)
@@ -3024,7 +3026,10 @@ async function checkinScans(me, ed) {
  * Schritt `media` (PART-041, ADM-023): eine TEST-Partnergrafik der Test-
  * Organisation und eine TEST-Datei im Media Kit, damit Konrad `/partner/media`
  * mit Vorschau und Downloads sieht und unter `/admin/grafiken` beide Listen
- * gefüllt sind.
+ * gefüllt sind. **SPK-090:** die TEST-Datei gilt für Partner **und** Speaker
+ * (`audience`), damit sie auch unter `/speaker/media` in der Karte „ChefTreff-
+ * Logos und Media Kit“ steht; eine schon vorhandene Zeile (nur Partner) bekommt
+ * „Speaker“ dazu.
  *
  * **Echte Dateien**, keine leeren Einträge (siehe Einwilligung zum Weissen): ein
  * kleines PNG, hier erzeugt, geht in beide Buckets; erst danach entstehen die
@@ -3103,10 +3108,18 @@ async function mediaSchritt(me, ed) {
 
   // Media Kit
   const kitPfad = `${ed.id}/media_kit/${TEST_MEDIAKIT_NAME}`;
-  const { data: kit } = await admin.from("edition_file").select("id")
+  const { data: kit } = await admin.from("edition_file").select("id, audience")
     .eq("edition_id", ed.id).eq("storage_path", kitPfad).maybeSingle();
   if (kit) {
-    note("TEST-Datei im Media Kit", "steht schon");
+    if ((kit.audience ?? []).includes("speaker")) {
+      note("TEST-Datei im Media Kit", "steht schon (Partner und Speaker)");
+    } else {
+      await write("TEST-Datei im Media Kit: Zielgruppe Speaker dazu (SPK-090)", () =>
+        admin.from("edition_file")
+          .update({ audience: [...new Set([...(kit.audience ?? []), "partner", "speaker"])] })
+          .eq("id", kit.id),
+      );
+    }
   } else if (mode === "dry-run") {
     note("TEST-Datei im Media Kit (PNG in edition-files, Art media_kit)");
   } else {
@@ -3117,7 +3130,7 @@ async function mediaSchritt(me, ed) {
       admin.from("edition_file").insert({
         edition_id: ed.id, kind: "media_kit", storage_path: kitPfad, filename: TEST_MEDIAKIT_NAME,
         mime: "image/png", size_bytes: png.length, label_de: `${PREFIX}Vorlage Social Post`,
-        label_en: "TEST — Social post template", audience: ["partner"], sort_order: 99, uploaded_by: me.id,
+        label_en: "TEST — Social post template", audience: ["partner", "speaker"], sort_order: 99, uploaded_by: me.id,
       }),
     );
   }
