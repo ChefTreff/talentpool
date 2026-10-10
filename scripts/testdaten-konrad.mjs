@@ -91,9 +91,12 @@
  *                                   „Neu" — nicht öffentlich, bis Konrad sie annimmt)
  *   … --apply --nur=tourzuordnung  (ADM-045: zweiter, freier Stopp an der TEST-Company-Tour —
  *                                   zum Ausprobieren von Zuordnen und Tauschen)
- *   … --apply --nur=hackathon      (HACK-008: zwei freigegebene TEST-Challenges der
- *                                   Test-Organisation in zwei Tracks — Filter auf
- *                                   /hackathon/challenges, Track-Liste in /admin/hackathon;
+ *   … --apply --nur=hackathon      (HACK-008: zwei freigegebene TEST-Challenges in zwei
+ *                                   Tracks — Filter auf /hackathon/challenges, Track-Liste in
+ *                                   /admin/hackathon; PART-142: nur „Predict the queue“ gehört
+ *                                   Konrads Test-Organisation, „Pitch the canteen of 2030“ der
+ *                                   eigenen TEST-Organisation „TEST — Challenge-Partner“ — ein
+ *                                   Partner hat eine Challenge;
  *                                   HACK-009: „Predict the queue“ als Metrik-Challenge mit
  *                                   TEST-Team und unbestätigtem Wert zum Bestätigen;
  *                                   HACK-010: zwei TEST-Bewerbungen mit Track-Wunsch und
@@ -3208,10 +3211,17 @@ async function mediaSchritt(me, ed) {
  * Formular dahinter (deliverable_id leer) — Konrads eigenes Challenge-Formular
  * bleibt offen, damit er den Partner-Weg selbst gehen kann.
  */
+/**
+ * PART-142 (Konrad & Leopold 05.10.): **nur eine Challenge je Partner.** Die zweite TEST-Challenge (zweiter Track für den Filter) gehört einer eigenen TEST-Organisation (`eigeneOrg`),
+ * nicht Konrads Test-Organisation — dort stünden sonst zwei Challenges mit je eigenem Wunschprofil, und das kommt nicht vor. Die Organisation hat weder Edition noch Mitglieder:
+ * die Challenge braucht nur ihren Namen in `/hackathon/challenges` und `/admin/hackathon`.
+ */
+const CHALLENGE_ORG = `${PREFIX}Challenge-Partner GmbH`;
+const CHALLENGE_ORG_NAME = `${PREFIX}Challenge-Partner`;
 const TEST_CHALLENGES = [
   { title_en: `${PREFIX}Predict the queue`, track: "data_science", description_en: "Predict waiting times at the summit entrance from last year's check-in data.",
     judging: { judging_mode: "metric", metric_label: "MAE (minutes)", metric_higher_better: false } },
-  { title_en: `${PREFIX}Pitch the canteen of 2030`, track: "concept", description_en: "Design a concept for a zero-waste canteen and pitch it in five minutes." },
+  { title_en: `${PREFIX}Pitch the canteen of 2030`, track: "concept", description_en: "Design a concept for a zero-waste canteen and pitch it in five minutes.", eigeneOrg: true },
 ];
 
 /** HACK-010: Bewerbungen ohne Konto (+zztest-hack-N), Track-Wunsch und Profil. */
@@ -3229,20 +3239,38 @@ async function hackathonChallenges() {
   if (!org) return fail("Hackathon-Challenges", "Test-Organisation fehlt — erst --nur=partner");
   const { data: hackEd, error: he } = await admin.rpc("hack_edition", { p_edition_id: null });
   if (he || !hackEd) return fail("Hackathon-Edition", he ?? "keine");
+  // PART-142: die Inhaberin der zweiten Challenge — eine eigene TEST-Organisation (ohne Edition, ohne Mitglieder).
+  let fremdOrg = null;
+  if (TEST_CHALLENGES.some((c) => c.eigeneOrg)) {
+    const { data: vorhanden } = await admin.from("organization").select("id").eq("legal_name", CHALLENGE_ORG).maybeSingle();
+    fremdOrg = vorhanden ?? await write(`Organisation ${CHALLENGE_ORG_NAME} (Inhaberin der zweiten TEST-Challenge)`, () =>
+      admin.from("organization").insert({
+        legal_name: CHALLENGE_ORG, communication_name: CHALLENGE_ORG_NAME, type: "corporate",
+        website: "https://chef-treff.de", description_de: "Testorganisation für die zweite Hackathon-Challenge (PART-142).",
+      }).select("id").single(),
+    );
+  }
   for (const [i, c] of TEST_CHALLENGES.entries()) {
-    const { data: da } = await admin.from("hack_challenge").select("id, track, judging_mode")
+    const inhaber = c.eigeneOrg ? fremdOrg : org;
+    if (!inhaber && mode !== "dry-run") { fail(c.title_en, "Inhaber-Organisation fehlt"); continue; }
+    const { data: da } = await admin.from("hack_challenge").select("id, track, judging_mode, org_id")
       .eq("edition_id", hackEd).eq("title_en", c.title_en).maybeSingle();
     if (da) {
       const soll = c.judging?.judging_mode ?? "jury";
-      if (da.track !== c.track || da.judging_mode !== soll) {
-        await write(`${c.title_en}: Track ${c.track}, Auswertung ${soll}`, () =>
-          admin.from("hack_challenge").update({ track: c.track, ...(c.judging ?? {}) }).eq("id", da.id));
+      const patch = {};
+      if (da.track !== c.track || da.judging_mode !== soll) Object.assign(patch, { track: c.track, ...(c.judging ?? {}) });
+      // Im Probelauf gibt es die eigene TEST-Organisation noch nicht: „falsch“ ist dann, was heute bei Konrads Test-Organisation steht.
+      const orgFalsch = inhaber ? da.org_id !== inhaber.id : Boolean(c.eigeneOrg) && da.org_id === org.id;
+      if (inhaber && orgFalsch) patch.org_id = inhaber.id;
+      if (Object.keys(patch).length > 0 || orgFalsch) {
+        await write(`${c.title_en}: Track ${c.track}, Auswertung ${soll}, Inhaberin ${c.eigeneOrg ? CHALLENGE_ORG_NAME : "Test-Organisation"}`, () =>
+          admin.from("hack_challenge").update(patch).eq("id", da.id));
       } else note(c.title_en, "steht schon");
       continue;
     }
     await write(`${c.title_en} (${c.track})`, () =>
       admin.from("hack_challenge").insert({
-        edition_id: hackEd, org_id: org.id, title_en: c.title_en, description_en: c.description_en,
+        edition_id: hackEd, org_id: inhaber.id, title_en: c.title_en, description_en: c.description_en,
         track: c.track, status: "published", sort_order: 900 + i, mentors: [],
         criteria: [{ key: "c1", label: "Impact", weight: 100 }], ...(c.judging ?? {}),
       }),
@@ -4813,6 +4841,14 @@ async function remove(me) {
     await admin.from("org_membership").delete().eq("org_id", org3.id);
     await admin.from("org_edition").delete().eq("org_id", org3.id);
     return admin.from("organization").delete().eq("id", org3.id);
+  });
+  // PART-142: die TEST-Organisation der zweiten Hackathon-Challenge (die Challenge ist oben schon weg).
+  await write("Vierte TEST-Organisation (Hackathon-Challenge) entfernt", async () => {
+    const { data: org4 } = await admin.from("organization").select("id").eq("legal_name", CHALLENGE_ORG).maybeSingle();
+    if (!org4) return { data: null, error: null };
+    await admin.from("org_membership").delete().eq("org_id", org4.id);
+    await admin.from("org_edition").delete().eq("org_id", org4.id);
+    return admin.from("organization").delete().eq("id", org4.id);
   });
   await write("Schicht-Zuteilungen entfernt", () =>
     admin.from("shift_assignment").delete().eq("person_id", me.id),
