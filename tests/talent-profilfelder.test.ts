@@ -9,12 +9,11 @@ import {
   REQUIRED_CONSENTS,
 } from "@/app/(talent)/profil/felder";
 
-const migration = migrationText("v6_profilfelder");
-
 describe("Profilfelder (TAL-013)", () => {
   it("pflegt genau die Listen, die person_interest erlaubt", () => {
-    const check = migration.match(/check \(vocabulary in \(([^)]+)\)\)/)?.[1] ?? "";
-    const erlaubt = [...check.matchAll(/'([a-z_]+)'/g)].map((m) => m[1]).sort();
+    // Der letzte Prüfsatz steht in der Migration zu den Fachbereichen (K-94); `notification_topic` pflegt das Profil nicht über diese Liste (TAL-009).
+    const check = migrationText("v6_profil_function_area_liste").match(/check \(vocabulary in \(([^)]+)\)\)/)?.[1] ?? "";
+    const erlaubt = [...check.matchAll(/'([a-z_]+)'/g)].map((m) => m[1]).filter((v) => v !== "notification_topic").sort();
     assert.deepEqual([...PROFILE_MULTI_VOCABS].sort(), erlaubt);
   });
 

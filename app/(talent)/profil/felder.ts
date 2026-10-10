@@ -12,6 +12,7 @@ export const PROFILE_MULTI_VOCABS = [
   "summit_goal",
   "skill",
   "work_mode",
+  "function_area",
 ] as const;
 export type ProfileMultiVocab = (typeof PROFILE_MULTI_VOCABS)[number];
 
@@ -26,7 +27,6 @@ export type ExtendedProfile = {
   job_title: string;
   study_program_label: string;
   job_openness: string;
-  function_area: string;
   graduation_year: string; // "" | "2027"
   availability: string;
   mobility: string;
