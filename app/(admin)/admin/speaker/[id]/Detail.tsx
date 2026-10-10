@@ -349,6 +349,12 @@ export function SpeakerDetailView({
             {t.backToList}
           </Link>
         }
+        // ADM-067: die Aufgaben der Checkliste gelten für alle Speaker der Edition, nicht für diesen — der Link führt zur Pflege, nicht in einen Block dieser Seite.
+        actions={
+          <ButtonLink href="/admin/speaker/aufgaben" variant="ghost" size="sm">
+            {t.tasksLink}
+          </ButtonLink>
+        }
       />
 
       {/* Die Seite ist die laengste der Anwendung (QS-026) — jetzt sechs Blöcke statt zehn Karten. Die Abschnitte stehen hier
