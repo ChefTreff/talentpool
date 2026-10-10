@@ -1,12 +1,12 @@
 import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { instanzSuffix, stoppWahl, vorgabeStopp } from "@/lib/partner/instanz";
+import { instanzSuffix, stoppWahl, stoppWahlMitTexten, vorgabeStopp } from "@/lib/partner/instanz";
 
 /**
  * QS-079, dritter Einsatz (Company Tour): ab zwei Stopps wählt der Umschalter (`?instanz=<Stopp>`) den Stopp, darunter steht genau einer mit Kopfkarte, Tour Lead
  * und dem Formular, und Bewerbungen und Teilnehmende zeigen nur den gewählten. Die Regeln als Verhalten, die Verdrahtung am Quelltext — Komponenten lädt der
- * Testlader nicht.
+ * Testlader nicht. Dazu der Admin-Weg: `/admin/partner/[org]` führt dieselbe Leiste.
  */
 const quelle = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const ohneKommentare = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
@@ -69,15 +69,28 @@ describe("Stoppwahl: gewählter Stopp und Umschalter", () => {
     assert.equal(instanzSuffix(stoppWahl(zwei, "b", titel, nummer).instanzen), "?instanz=b");
     assert.equal(instanzSuffix(stoppWahl(zwei.slice(0, 1), undefined, titel, nummer).instanzen), "");
   });
+
+  it("mit den Texten des Wörterbuchs: die Zahl im Reiter ist die Reihenfolge in der Tour, bei gleichen Titeln die Stelle in der Leiste", () => {
+    const texte = { instanceStop: "Stopp {n} · {tour}", instanceNumber: "Stopp {n}" };
+    // Die Zahl ist `sort_order` und nicht die Stelle in der Leiste: hier steht der Stopp 2 der ersten Tour vor dem Stopp 1 der zweiten.
+    const w = stoppWahlMitTexten([stopp("a", 2, "Tour A"), stopp("b", 1, "Tour B")], "b", texte);
+    assert.equal(w.gewaehlt?.stop_id, "b");
+    assert.deepEqual(w.instanzen?.items.map((x) => x.label), ["Stopp 2 · Tour A", "Stopp 1 · Tour B"]);
+    // Gleiche Titel: „Stopp 1“ und „Stopp 2“ nach der Stelle in der Liste, nicht nach `sort_order` (beide Stopps haben hier 3).
+    const gleich = stoppWahlMitTexten([stopp("a", 3, "Tour"), stopp("b", 3, "Tour")], undefined, texte);
+    assert.deepEqual(gleich.instanzen?.items.map((x) => x.label), ["Stopp 1", "Stopp 2"]);
+    // Sonst keine eigene Regel: Wahl, Vorgabe und Umschalter wie bei `stoppWahl` mit denselben beiden Beschriftungen.
+    assert.deepEqual(stoppWahlMitTexten(zwei, "b", texte), stoppWahl(zwei, "b", titel, nummer));
+    assert.equal(stoppWahlMitTexten([stopp("a", 1, "Tour A"), stopp("b", 1, "Tour B", null)], undefined, texte).gewaehlt?.stop_id, "b");
+    assert.equal(stoppWahlMitTexten([stopp("a", 1, "Tour A")], undefined, texte).instanzen, null);
+  });
 });
 
 describe("Company Tour: ein Stopp, drei Sichten, die Wahl reist mit", () => {
   it("der Lader nimmt `?instanz`, wählt für alle Reiter nach derselben Regel und liefert den Umschalter", () => {
     const d = tour("daten.ts");
     assert.match(d, /export async function ladeTour\(instanz\?: string \| string\[\]\)/);
-    assert.match(d, /stoppWahl\(\s*stopps,\s*instanzKennung\(instanz\),/);
-    assert.match(d, /s\.instanceStop\.replace\("\{n\}", String\(x\.sort_order\)\)\.replace\("\{tour\}", x\.tour_name\)/);
-    assert.match(d, /s\.instanceNumber\.replace\("\{n\}", String\(n\)\)/);
+    assert.match(d, /stoppWahlMitTexten\(stopps, instanzKennung\(instanz\), t\.partnerTour\)/);
     assert.match(d, /return \{[\s\S]*?\bgewaehlt,\s*instanzen,/);
   });
 
@@ -119,6 +132,46 @@ describe("Company Tour: ein Stopp, drei Sichten, die Wahl reist mit", () => {
       assert.match(s, teilnehmende ? /\bnurTeilnehmende\b(?!=)/ : /nurTeilnehmende=\{false\}/);
     });
   }
+});
+
+describe("Admin: /admin/partner/[org] führt dieselbe Leiste", () => {
+  const seite = ohneKommentare(quelle("app/(admin)/admin/partner/[org]/page.tsx"));
+  const detail = ohneKommentare(quelle("app/(admin)/admin/partner/[org]/OrgDetail.tsx"));
+
+  it("die Seite liest `?instanz`, wählt nach derselben Regel wie das Partnerportal und reicht nur den gewählten Stopp samt Leiste weiter", () => {
+    assert.match(seite, /searchParams: Promise<\{ instanz\?: string \| string\[\] \}>;/);
+    assert.match(seite, /const \{ instanz \} = await searchParams;/);
+    assert.match(seite, /stoppWahlMitTexten\(\(tourZeilen \?\? \[\]\) as TourStopp\[\], instanzKennung\(instanz\), t\.partnerTour\)/);
+    assert.match(seite, /tourStopp=\{tour\.gewaehlt\}\s+tourInstanzen=\{tour\.instanzen\}/);
+    assert.doesNotMatch(seite, /tourStopps/, "nicht mehr alle Stopps");
+    // Dieselbe RPC wie das Partnerportal, ohne Umweg.
+    assert.match(seite, /rpc\("partner_company_tour", \{ p_org_id: org \}\)/);
+  });
+
+  it("unter der Organisation steht genau ein Stopp mit `key` und der Maske des Portals; die Leiste steht darüber und lässt die Seite, wo sie ist", () => {
+    assert.match(detail, /\{tourStopp && \(\s*<div id="tour">/);
+    assert.match(detail, /<InstanzWahl leiste=\{tourInstanzen\} label=\{tourTexts\.instanceLabel\} scroll=\{false\} \/>/);
+    assert.match(detail, /<Card key=\{tourStopp\.stop_id\}>/);
+    assert.match(detail, /<TourStopp\s+stopp=\{tourStopp\}\s+felder=\{tourFelder\}\s+canEdit\s+save=\{adminUpdateTourStop\}/);
+    assert.equal((detail.match(/<TourStopp\b/g) ?? []).length, 1);
+    assert.doesNotMatch(detail, /tourStopps/, "keine Schleife über alle Stopps");
+    assert.ok(detail.indexOf("<InstanzWahl") !== -1 && detail.indexOf("<InstanzWahl") < detail.indexOf("<TourStopp"), "Leiste vor der Maske");
+    // Der Kopf der Karte nennt den gewählten Stopp mit der Zahl in der Tour, wie der Reiter.
+    assert.match(detail, /title=\{tourTexts\.stopTitle\.replace\("\{n\}", String\(tourStopp\.sort_order\)\)\.replace\("\{tour\}", tourStopp\.tour_name\)\}/);
+    // Die Karte ist jetzt ein Abschnitt der Seite (`h2`), kein Eintrag einer Liste mehr — `cardheader-ebene.test.ts` kennt keine Ausnahme mehr dafür.
+    assert.match(detail, /<Card key=\{tourStopp\.stop_id\}>\s*<CardHeader\s+ebene="h2"/);
+  });
+
+  it("`scroll` geht von der Seite über `InstanzWahl` und `SectionTabs` bis an den Link; ohne Angabe bleibt der Standard", () => {
+    const wahl = ohneKommentare(quelle("components/layout/InstanzWahl.tsx"));
+    assert.match(wahl, /\{ leiste, label, scroll \}: \{ leiste: InstanzLeiste \| null; label: string; scroll\?: boolean \}/);
+    assert.match(wahl, /aktiv: x\.id === leiste\.gewaehlt, scroll \}/);
+    const reiter = ohneKommentare(quelle("components/layout/SectionTabs.tsx"));
+    assert.match(reiter, /\n\s+scroll\?: boolean;/);
+    assert.match(reiter, /<ChipLink key=\{item\.href\} href=\{item\.href\} aktiv=\{active\} scroll=\{item\.scroll\}>/);
+    // Die Leiste der Partnerseite steht oben und braucht es nicht.
+    assert.doesNotMatch(tour("TourKopf.tsx"), /scroll=/);
+  });
 });
 
 describe("Testdaten: Konrads Konto sieht den Umschalter", () => {

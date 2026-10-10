@@ -2,7 +2,7 @@ import "server-only";
 import { notFound } from "next/navigation";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { instanzKennung, stoppWahl } from "@/lib/partner/instanz";
+import { instanzKennung, stoppWahlMitTexten } from "@/lib/partner/instanz";
 import type { TourStopp } from "@/components/partner/tour";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type PartnerOverview } from "../types";
@@ -30,13 +30,7 @@ export async function ladeTour(instanz?: string | string[]) {
   ]);
   const overview = (overviewJson ?? null) as PartnerOverview | null;
   const stopps = (stoppZeilen ?? []) as TourStopp[];
-  const s = t.partnerTour;
-  const { gewaehlt, instanzen } = stoppWahl(
-    stopps,
-    instanzKennung(instanz),
-    (x) => s.instanceStop.replace("{n}", String(x.sort_order)).replace("{tour}", x.tour_name),
-    (n) => s.instanceNumber.replace("{n}", String(n)),
-  );
+  const { gewaehlt, instanzen } = stoppWahlMitTexten(stopps, instanzKennung(instanz), t.partnerTour);
   return {
     supabase,
     locale,

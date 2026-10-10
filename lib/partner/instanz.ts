@@ -140,6 +140,24 @@ export function stoppWahl<T extends { stop_id: string; filled_at: string | null 
 }
 
 /**
+ * `stoppWahl` mit den Texten des Wörterbuchs (`partnerTour.instanceStop` „Stopp {n} · {tour}“ und `instanceNumber` „Stopp {n}“): für die Stoppseite des
+ * Partners und für die Organisation im Admin (`/admin/partner/[org]`) dieselbe Beschriftung des Reiters. `{n}` ist die Reihenfolge **in der Tour**
+ * (`sort_order`), nicht die Zahl in der Leiste — zwei Stopps auf verschiedenen Touren heißen beide „Stopp 1 · …“.
+ */
+export function stoppWahlMitTexten<T extends { stop_id: string; filled_at: string | null; sort_order: number; tour_name: string }>(
+  stopps: readonly T[],
+  kennung: string | undefined,
+  texte: { instanceStop: string; instanceNumber: string },
+): { gewaehlt: T | null; instanzen: InstanzLeiste | null } {
+  return stoppWahl(
+    stopps,
+    kennung,
+    (x) => texte.instanceStop.replace("{n}", String(x.sort_order)).replace("{tour}", x.tour_name),
+    (n) => texte.instanceNumber.replace("{n}", String(n)),
+  );
+}
+
+/**
  * Die Tischwahl der Interview Tables — für die Formatseite und für ihre Sichten (Bewerbungen, Teilnehmende, Fragen) dieselbe Regel: der gewählte Tisch
  * und der Umschalter (ab zwei Tischen). Der Reiter trägt den Namen des Tisches; heißen zwei gleich, „Tisch 1“ und „Tisch 2“.
  */
