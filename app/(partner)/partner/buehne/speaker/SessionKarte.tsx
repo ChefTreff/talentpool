@@ -87,7 +87,8 @@ export function SessionKarte({
         ebene="h2"
         title={titel}
         action={
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          // Ohne `justify-end`: bricht die Aktion am Handy in eine zweite Zeile, steht sie links wie die Überschrift; am Desktop sitzt der Block rechts (`CardHeader`).
+          <div className="flex flex-wrap items-center gap-2">
             <Badge>{formatLabel[x.format] ?? x.format}</Badge>
             <SessionStatusBadge publishStatus={status} returnNote={rueckgabeZeile?.return_note ?? null} statusLabel={statusLabel} t={rueckgabe} />
             {canEdit && detail && (
