@@ -29,6 +29,10 @@
       "schedule": "30 3 * * *"
     },
     {
+      "path": "/api/cron/ticket-erinnerung",
+      "schedule": "10,40 * * * *"
+    },
+    {
       "path": "/api/cron/activecampaign-sync",
       "schedule": "5,20,35,50 * * * *"
     }

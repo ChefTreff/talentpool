@@ -13,6 +13,7 @@
  *   …                                                          transaktion <transactionId>  # TAL-019: Käufer-Adresse und Tickets lesen
  *   …                                                          datenfelder [ticketTypeId]   # TAL-019: data-fields/resolve, Slugs company/position?
  *   …                                                          personalisieren <ticketId>   # TAL-019: Probe-Rückschreiben (nur mit --apply)
+ *   …                                                          versand <ticketId> <E-Mail>  # TAL-019 Teil 3: Ticketmail an eine Adresse (nur mit --apply)
  *   …                                                          storno <ticketId>
  *
  * Regeln für das Dev-Event (Konrads Vorgabe): **nichts löschen, was Konrad
@@ -602,6 +603,26 @@ const steps = {
     const res = await vv(`/tickets/personalize/${encodeURIComponent(id)}/${encodeURIComponent(sec.secret)}`, { method: "POST", body: JSON.stringify(body) });
     const antwort = JSON.stringify(res).replaceAll(sec.secret, "***").slice(0, 400);
     console.log("Antwort:", antwort);
+  },
+
+  /**
+   * TAL-019 Teil 3: „send ticket per mail“ an EINE frei vorgegebene Adresse (Sandbox). Probe, ob `POST /tickets/{id}/mail` mit `{ email }` so antwortet,
+   * wie `versendeTicketMail` es erwartet (HTTP 2xx, Antwort leer oder JSON). Ohne `--apply` nur die Vorschau.
+   */
+  async versand() {
+    if (!sandbox) throw new Error("Nur in der Sandbox (VIVENU_SANDBOX nicht auf false setzen).");
+    const id = args[1];
+    const adresse = args[2];
+    if (!id || !adresse) throw new Error("Aufruf: … versand <vivenuTicketId> <E-Mail-Adresse>");
+    console.log(`Würde die Ticketmail für ${id} an ${adresse} auslösen.`);
+    if (!apply) return console.log("\n(ohne --apply nichts gesendet)");
+    try {
+      const res = await vv(`/tickets/${encodeURIComponent(id)}/mail`, { method: "POST", body: JSON.stringify({ email: adresse }) });
+      console.log("Antwort:", JSON.stringify(res).slice(0, 400));
+    } catch (e) {
+      if (e instanceof SyntaxError) return console.log("Antwort: leer (HTTP 2xx ohne JSON) — das behandelt versendeTicketMail als Erfolg.");
+      throw e;
+    }
   },
 
   /** Das Wegwerf-Ticket wieder entwerten. */

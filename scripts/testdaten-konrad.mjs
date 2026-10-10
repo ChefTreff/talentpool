@@ -134,6 +134,8 @@
  *                                   sie bis dahin nicht)
  *   … --apply --nur=ticket-bestaetigung (TAL-019: drei TEST-Tickets einer TEST-Transaktion auf deiner Adresse —
  *                                   offen, teilweise, vollständig; /tickets/bestaetigung?transactionId=zztest-tx-bestaetigung)
+ *   … --apply --nur=ticket-erinnerung (TAL-019 Teil 3: das offene TEST-Ticket gilt als acht Tage alt — der nächste Lauf der
+ *                                   Erinnerung schickt dir die Mail „Noch ein Schritt …“; Admin → Mail-Protokoll)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
  *                                   Speaker-Profil, angefragt und bestätigt — für
  *                                   die Abzeichen in der Anreise; ohne Mail)
@@ -4322,6 +4324,22 @@ async function freigabenSchritt(me, ed) {
   });
 }
 
+/**
+ * TAL-019 Teil 3: die Erinnerung an offene Ticket-Angaben zum Ansehen. Das offene TEST-Ticket der Transaktion `zztest-tx-bestaetigung` gilt als vor acht Tagen
+ * gekauft und noch nicht erinnert — der nächste Lauf von `/api/cron/ticket-erinnerung` (alle 30 Minuten) reiht dann die Mail „Noch ein Schritt: Trag ein, wer
+ * zum Summit kommt“ an deine Adresse ein (Admin → Mail-Protokoll). Erst `--nur=ticket-bestaetigung`, dann dieser Schritt; idempotent, wieder holbar.
+ */
+async function ticketErinnerungSchritt() {
+  const TX = "zztest-tx-bestaetigung";
+  const { data: offen } = await admin.from("ticket").select("id").eq("vivenu_transaction_id", TX).eq("personalization_status", "pending");
+  if (!offen || offen.length === 0) return fail("Ticket-Erinnerung", "kein offenes TEST-Ticket — erst --nur=ticket-bestaetigung");
+  await write("Offenes TEST-Ticket auf „vor acht Tagen gekauft, nicht erinnert“ gesetzt", () =>
+    admin.from("ticket")
+      .update({ purchased_at: new Date(Date.now() - 8 * 86400000).toISOString(), personalization_reminded_at: null })
+      .in("id", offen.map((t) => t.id)));
+  note("Erinnerung ansehen", "Admin → Mail-Protokoll, Vorlage „Erinnerung: Ticket-Angaben fehlen“ (nach dem nächsten Lauf, höchstens 30 Minuten)");
+}
+
 /** Die Schritte, die `--nur` kennt. */
 const SCHRITTE = {
   partner: partnerSchritt,
@@ -4332,6 +4350,7 @@ const SCHRITTE = {
   feedback: feedbackSchritt,
   weitergabe: weitergabeSchritt,
   "ticket-bestaetigung": ticketBestaetigungSchritt,
+  "ticket-erinnerung": ticketErinnerungSchritt,
   "hackathon-eckdaten": hackathonEckdatenSchritt,
   "luma-leads": lumaLeadsSchritt,
   schichtmodell: schichtmodellSchritt,
