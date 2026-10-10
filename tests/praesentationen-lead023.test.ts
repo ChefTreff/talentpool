@@ -16,8 +16,8 @@ const slot = (z: Partial<BoardZeile>): BoardZeile => ({
   end_at: "2027-04-16T13:30:00Z", title_de: "Talk", title_en: "Talk EN", can_edit: true, speakers: [], ...z,
 });
 const asset = (z: Partial<AssetZeile>): AssetZeile => ({
-  id: "a", profile_id: "pr1", session_id: "se", kind: "presentation", filename: "folien.pdf", version: 1,
-  is_current: true, late: false, tech_check_status: "pending", created_at: "2027-04-01T10:00:00Z", ...z,
+  id: "a", profile_id: "pr1", session_id: "se", kind: "presentation", storage_path: "ed/pr1/presentation/folien.pdf", filename: "folien.pdf",
+  mime: "application/pdf", version: 1, is_current: true, late: false, tech_check_status: "pending", created_at: "2027-04-01T10:00:00Z", ...z,
 });
 
 describe("LEAD-023: Zusammensetzung", () => {
