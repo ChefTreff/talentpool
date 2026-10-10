@@ -2,6 +2,7 @@ import { neuesFenster } from "@/components/ui/neues-fenster";
 import {
   antwortZeilen,
   linkedinUrl,
+  profilEmail,
   profilFelder,
   type BewerbungFuerDetails,
   type ProfilWerte,
@@ -14,7 +15,9 @@ type Strings = Record<string, string>;
  * Profilansicht, nur die Felder, die die Person zur Weitergabe freigegeben hat“).
  *
  * Gezeigt wird genau das, was `applications_for_session` mit Einwilligung der Person liefert: sechs
- * Profilfelder, die LinkedIn-Adresse und die Antworten auf die Fragen der Session. Ohne Einwilligung
+ * Profilfelder, die LinkedIn-Adresse, die **E-Mail-Adresse** (PART-147: der Pflichthaken der Bewerbung nennt sie ausdrücklich,
+ * der Partner darf die Person einmalig zu diesem Format kontaktieren — der Hinweis darunter sagt, wie weit das reicht) und
+ * die Antworten auf die Fragen der Session. Ohne Einwilligung
  * liefert die Funktion nichts davon, und die Liste öffnet das Schubfach gar nicht erst (die Person ist
  * dort nicht anklickbar). Mehr Profilfelder — Skills, Interessen — gibt es erst, wenn die Weitergabe
  * geklärt ist (K-72, K-78) und die Funktion mehr liefert.
@@ -36,12 +39,13 @@ export function BewerbungProfil({
 }) {
   const felder = profilFelder(a.profile, werte);
   const link = linkedinUrl(a.profile);
+  const email = profilEmail(a.profile);
   const antworten = antwortZeilen(a.answers);
   return (
     <div className="flex flex-col gap-6">
       <section>
         <h3 className="ct-eyebrow text-muted">{t.detailProfile}</h3>
-        {felder.length === 0 && !link ? (
+        {felder.length === 0 && !link && !email ? (
           <p className="ct-help mt-2">{t.detailNoProfile}</p>
         ) : (
           <>
@@ -52,6 +56,16 @@ export function BewerbungProfil({
                   <dd className="ct-small text-ink">{value}</dd>
                 </div>
               ))}
+              {email && (
+                <div className="col-span-2 grid grid-cols-subgrid">
+                  <dt className="ct-help">{t.profile_email}</dt>
+                  <dd className="ct-small text-ink">
+                    <a className="ct-link inline-flex items-center break-all pointer-coarse:min-h-11" href={`mailto:${email}`}>
+                      {email}
+                    </a>
+                  </dd>
+                </div>
+              )}
             </dl>
             {link && (
               <a className="ct-link mt-3 inline-flex items-center pointer-coarse:min-h-11" href={link} {...neuesFenster}>
