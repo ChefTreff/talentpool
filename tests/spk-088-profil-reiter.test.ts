@@ -84,7 +84,7 @@ describe("SPK-088: die Reiter (reine Hilfen, ausgeführt)", () => {
     assert.equal(STEP_HREF.consents, "/speaker/profil?reiter=einwilligungen#consent");
     assert.equal(STEP_HREF.photo, "/speaker/profil#foto");
     assert.equal(STEP_HREF.profile, "/speaker/profil");
-    assert.match(tscode(quelle(UEBERSICHT)), /href: key === "profile" \? profilSchrittHref\(person\) : STEP_HREF\[key\] \?\? null,/);
+    assert.match(tscode(quelle(UEBERSICHT)), /href: s\.key === "profile" \? profilSchrittHref\(person\) : STEP_HREF\[s\.key\] \?\? null,/);
     // die übrigen Schritte bleiben, wie sie waren
     assert.equal(STEP_HREF.session, "/speaker/session");
     assert.equal(STEP_HREF.ticket, "/speaker/tickets");

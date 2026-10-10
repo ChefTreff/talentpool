@@ -303,6 +303,6 @@ describe("SPK-082: Doku", () => {
     const zeile = quelle("docs/feedback/speaker.md").split("\n").find((l) => l.startsWith("| SPK-082 |"));
     assert.ok(zeile && /\| P1 \| (geplant|gebaut|abgenommen) #\d+/.test(zeile), "SPK-082 trägt keine PR-Nummer");
     assert.match(zeile, /Migration enthalten/);
-    assert.match(zeile, /is_speaker_assistant/);
+    assert.match(zeile, /`my_speaker_tasks` und `set_speaker_task_tick` prüfen `is_speaker_assistant` statt `assistant_person_id`/);
   });
 });
