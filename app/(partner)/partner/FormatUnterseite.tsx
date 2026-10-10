@@ -8,6 +8,7 @@ import { ladeFlaechen } from "./formate";
 import { FormatBewerbungen } from "./FormatBewerbungen";
 import { FormatFragen } from "./FormatFragen";
 import { FormatReiter } from "./FormatReiter";
+import { TischFragen } from "./TischFragen";
 import type { PartnerFormatSession } from "./talk/types";
 
 /** Die eigenen Formate mit Bewerbung, die ihre Reiter hier bekommen (PART-082). */
@@ -74,6 +75,16 @@ export async function FormatUnterseite({
           />
           {sessions.length === 0 ? (
             <EmptyState title={b.noSessionsTitle} description={b.noSessionsBody} />
+          ) : ansicht === "fragen" && format === "interview_table" && sessions.length >= 2 ? (
+            // PART-150: ab zwei Gesprächen an einem Tisch die Tischvorgabe statt je Gespräch eine Karte.
+            <TischFragen
+              supabase={supabase}
+              sessions={sessions}
+              canEdit={canEdit}
+              locale={locale}
+              titel={titel}
+              t={{ tisch: s, bewerbung: b, rpc: t.rpc, cancel: t.partnerTalk.cancel }}
+            />
           ) : ansicht === "fragen" ? (
             <FormatFragen
               supabase={supabase}

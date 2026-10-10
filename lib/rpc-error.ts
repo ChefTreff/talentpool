@@ -426,6 +426,9 @@ const BUSINESS_KEYS = new Set([
   // Checkliste der Speaker: abgeleitet erledigte Punkte wieder öffnen (Vorschlag v6_speaker_checkliste, SPK-082)
   "invalid_step",
   "step_not_done",
+  // Tischvorgabe der Bewerbungsfragen (Vorschlag v6_tisch_fragen_uebernahme, PART-150): ein Ziel gehört nicht zum Tisch der Quelle (`detail` = das Gespräch);
+  // `too_many_questions` und `session_not_found` stehen schon oben.
+  "not_same_table",
 ]);
 
 const BY_CODE: Record<string, string> = {

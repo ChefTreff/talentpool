@@ -55,23 +55,7 @@ export function FragenAuswahl({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-2">
-        {waehlbar.map((q) => {
-          const an = auswahl.includes(q.id);
-          return (
-            <label
-              key={q.id}
-              className={cn(
-                "ct-small inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-ct-sm border px-3 py-2 text-ink",
-                an ? "border-border-strong bg-canvas" : "border-border",
-              )}
-            >
-              <input type="checkbox" className="size-4" checked={an} disabled={!canEdit} onChange={() => umschalten(q.id)} />
-              {q.label}
-            </label>
-          );
-        })}
-      </div>
+      <FragenKaesten waehlbar={waehlbar} auswahl={auswahl} canEdit={canEdit} onUmschalten={umschalten} />
       {fehler && (
         <p role="alert" className="ct-small text-error-ink">
           {fehler}
@@ -84,6 +68,42 @@ export function FragenAuswahl({
           </Button>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Die Kästchen der wählbaren Katalogfragen — ohne eigenen Zustand und ohne Speichern, damit `FragenAuswahl` (je Gespräch) und die Tischvorgabe
+ * (PART-150, `TischVorgabe`) dieselbe Auswahl zeigen.
+ */
+export function FragenKaesten({
+  waehlbar,
+  auswahl,
+  canEdit,
+  onUmschalten,
+}: {
+  waehlbar: { id: string; label: string }[];
+  auswahl: string[];
+  canEdit: boolean;
+  onUmschalten: (id: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {waehlbar.map((q) => {
+        const an = auswahl.includes(q.id);
+        return (
+          <label
+            key={q.id}
+            className={cn(
+              "ct-small inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-ct-sm border px-3 py-2 text-ink",
+              an ? "border-border-strong bg-canvas" : "border-border",
+            )}
+          >
+            <input type="checkbox" className="size-4" checked={an} disabled={!canEdit} onChange={() => onUmschalten(q.id)} />
+            {q.label}
+          </label>
+        );
+      })}
     </div>
   );
 }
