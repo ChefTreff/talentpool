@@ -68,7 +68,7 @@ export default async function AdminTicketsPage() {
             {a.ticketsCountsTitle}
           </h2>
           {zeilen.length === 0 ? (
-            <EmptyState title={a.ticketsNoData} description={a.ticketsEmptyBody} />
+            <EmptyState title={a.ticketsNoData} description={a.ticketsNoDataBody} />
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -91,7 +91,7 @@ export default async function AdminTicketsPage() {
                   ))}
                   {zeilen.length > 1 && (
                     <Tr>
-                      <Td className="font-semibold">Σ</Td>
+                      <Td className="font-semibold">{a.ticketsTotal}</Td>
                       <Td className="tabular-nums font-semibold" numeric>{zahl.format(summe.pending)}</Td>
                       <Td className="tabular-nums font-semibold" numeric>{zahl.format(summe.partial)}</Td>
                       <Td className="tabular-nums font-semibold" numeric>{zahl.format(summe.complete)}</Td>

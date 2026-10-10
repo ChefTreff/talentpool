@@ -1,11 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
+import { loginUrl } from "@/lib/areas";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toRpcFailure } from "@/lib/rpc-error";
-import { pruefeEingabe } from "@/lib/vivenu/bestaetigung";
+import { gueltigeTransaktion, pruefeEingabe } from "@/lib/vivenu/bestaetigung";
 import { schreibeZurueck, type RueckErgebnis } from "@/lib/vivenu/transaktion";
 
 export type PersonalisierenErgebnis =
@@ -62,4 +64,17 @@ export async function personalisiereTicket(eingabe: {
   revalidatePath("/tickets/bestaetigung");
   revalidatePath("/tickets");
   return { ok: true, rueck };
+}
+
+/**
+ * Mit einer anderen E-Mail-Adresse anmelden (TAL-020, B6): wer mit der Firmenadresse angemeldet ist und mit der privaten gekauft hat, sah „Noch keine Tickets zu
+ * sehen“ und hatte keinen Weg. Die Aktion meldet die Sitzung ab und führt zur Anmeldung zurück **zu derselben Bestellung** (`?next=`) — die Transaktions-Id geht
+ * dabei nicht verloren. Sie liest und schreibt nichts außer der Sitzung; die Kennung wird geprüft (`gueltigeTransaktion`), der Rücksprung läuft über `loginUrl`
+ * (`safeNextPath`).
+ */
+export async function anderesKonto(transaktion: string) {
+  const tx = gueltigeTransaktion(transaktion);
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.signOut();
+  redirect(loginUrl(tx ? `/tickets/bestaetigung?transactionId=${encodeURIComponent(tx)}` : null));
 }

@@ -13,8 +13,11 @@ import { AREAS, type AreaKey } from "@/lib/areas";
  * Seitenleiste, die Portalauswahl im Menü darunter und das Konto oben rechts
  * (Feedback-Runde 2, F8.1–F8.5). Die Bereichsliste, die hier früher stand,
  * gibt es deshalb nicht mehr: es gäbe sie sonst zweimal an zwei Orten.
+ *
+ * `loginHref`: wohin „Anmelden“ führt, wenn die Seite ein Rücksprungziel hat (`loginUrl(ziel)`) — die Ticket-Bestätigung (TAL-020, B6): ohne das landete, wer
+ * den Link der Kopfzeile statt des Knopfes auf der Seite nahm, nach der Anmeldung nicht mehr bei der Bestellung. Ohne Angabe `/login`.
  */
-export async function AppHeader({ current }: { current?: AreaKey }) {
+export async function AppHeader({ current, loginHref }: { current?: AreaKey; loginHref?: string }) {
   const ctx = await getSessionContext();
   const { locale, t } = await getI18n();
 
@@ -46,7 +49,7 @@ export async function AppHeader({ current }: { current?: AreaKey }) {
             </form>
           ) : (
             <Link
-              href="/login"
+              href={loginHref ?? "/login"}
               className="inline-flex items-center rounded-ct-sm px-2.5 py-1.5 ct-label text-on-navy-muted transition-colors hover:bg-on-navy/10 hover:text-on-navy pointer-coarse:min-h-11"
             >
               {t.nav.login}
