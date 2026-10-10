@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Field } from "@/components/ui/Field";
@@ -12,7 +13,14 @@ import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { postJson } from "@/lib/fetch-json";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { dateiGroesse, MEDIA_KIT_ERLAUBT, MEDIA_KIT_MAX_BYTES } from "@/components/partner/media-kit";
+import {
+  dateiGroesse,
+  MEDIA_KIT_ERLAUBT,
+  MEDIA_KIT_MAX_BYTES,
+  MEDIA_KIT_ZIELGRUPPEN,
+  zielgruppeUmschalten,
+  type MediaKitZielgruppe,
+} from "@/components/partner/media-kit";
 
 /** Eine Datei des Media Kits aus `edition_files_admin`. */
 export type MediaKitDatei = {
@@ -23,16 +31,29 @@ export type MediaKitDatei = {
   label_de: string | null;
   label_en: string | null;
   created_at: string;
+  /** Wer die Datei sieht (`kb_audience`) — das Media Kit kennt Partner und Speaker. */
+  audience: string[];
 };
 
 type Strings = Record<string, string>;
 
+/** Die Zielgruppen des Media Kits, die an der Datei stehen, in fester Reihenfolge — andere Einträge von `audience` zählen hier nicht. */
+function angehakt(datei: MediaKitDatei): MediaKitZielgruppe[] {
+  return MEDIA_KIT_ZIELGRUPPEN.filter((z) => datei.audience.includes(z));
+}
+
 /**
  * Das Media Kit pflegen (PART-041, ADM-023): Dateien, die jeder Partner unter
- * „Media Kit“ herunterlädt — Logos, Vorlagen, Textbausteine. Hochladen geht wie
- * bei Hallenplan und Anfahrt in zwei Schritten direkt zu Supabase
- * (`/api/admin/media-kit`); die Route prüft die Rolle, `set_edition_file` noch
- * einmal. Fehler stehen im Toast, weil sie keinem Formularfeld gehören.
+ * „Media Kit“ und jeder Speaker unter „Deine Bilder“ herunterlädt — Logos,
+ * Vorlagen, Textbausteine. Hochladen geht wie bei Hallenplan und Anfahrt in zwei
+ * Schritten direkt zu Supabase (`/api/admin/media-kit`); die Route prüft die
+ * Rolle, `set_edition_file` noch einmal. Fehler stehen im Toast, weil sie keinem
+ * Formularfeld gehören.
+ *
+ * **Für wen eine Datei gilt** (SPK-090): zwei Kästchen, Partner und Speaker —
+ * beim Hochladen beide angehakt, je Datei danach umschaltbar. Die **letzte**
+ * angehakte Zielgruppe bleibt (eine Datei ohne Zielgruppe sähe niemand); das
+ * erzwingt auch die Route.
  *
  * **Auswählen ist zweitrangig, „Hochladen“ die Hauptaktion der Karte** (ADM-075): `FileButton variant="secondary"`
  * für den ersten Schritt; der Knopf danach (mit dem Dateinamen daneben) ist der primäre.
@@ -55,6 +76,7 @@ export function MediaKitAdmin({
   const [pending, startTransition] = useTransition();
   const [labelDe, setLabelDe] = useState("");
   const [labelEn, setLabelEn] = useState("");
+  const [zielgruppen, setZielgruppen] = useState<MediaKitZielgruppe[]>([...MEDIA_KIT_ZIELGRUPPEN]);
   const [busy, setBusy] = useState(false);
   const [loeschen, setLoeschen] = useState<MediaKitDatei | null>(null);
   const datum = new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" });
@@ -90,6 +112,7 @@ export function MediaKitAdmin({
         size_bytes: file.size,
         label_de: labelDe.trim(),
         label_en: labelEn.trim(),
+        audience: zielgruppen,
       });
       if (!zeile.ok) return melden(zeile.key);
       toast("success", t.uploaded);
@@ -116,6 +139,23 @@ export function MediaKitAdmin({
     });
   }
 
+  /** Die Zielgruppen einer vorhandenen Datei umschalten (SPK-090). */
+  function zielgruppeAendern(datei: MediaKitDatei, z: MediaKitZielgruppe) {
+    const neu = zielgruppeUmschalten(angehakt(datei), z);
+    startTransition(async () => {
+      const res = await postJson<{ ok: boolean }>("/api/admin/media-kit?step=audience", {
+        id: datei.id,
+        audience: neu,
+      });
+      if (!res.ok) {
+        toast("error", res.key === "not_allowed" ? t.uploadNotAllowed : t.audienceFailed);
+        return;
+      }
+      toast("success", t.audienceSaved);
+      router.refresh();
+    });
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <Card>
@@ -129,6 +169,21 @@ export function MediaKitAdmin({
             <Input id="mk-label-en" value={labelEn} onChange={(e) => setLabelEn(e.target.value)} maxLength={120} />
           </Field>
         </div>
+        <fieldset className="mt-4 min-w-0">
+          <legend className="ct-label text-ink">{t.audience}</legend>
+          <p className="ct-help">{t.audienceHint}</p>
+          <div className="mt-1 flex flex-wrap gap-x-6">
+            {MEDIA_KIT_ZIELGRUPPEN.map((z) => (
+              <Checkbox
+                key={z}
+                label={t[`audience_${z}`]}
+                checked={zielgruppen.includes(z)}
+                disabled={busy || (zielgruppen.length === 1 && zielgruppen.includes(z))}
+                onChange={() => setZielgruppen(zielgruppeUmschalten(zielgruppen, z))}
+              />
+            ))}
+          </div>
+        </fieldset>
         <div className="mt-4">
           <FileButton
             label={t.choose}
@@ -151,7 +206,8 @@ export function MediaKitAdmin({
           <ul className="flex flex-col">
             {files.map((f) => (
               <li key={f.id} className="flex flex-wrap items-center gap-3 border-b px-4 py-2.5 last:border-b-0">
-                <span className="ct-small min-w-0 flex-1 text-ink">
+                {/* `basis-48`: ohne Mindestbreite bekäme der Titel am Handy, was neben den Kästchen und dem Knopf übrig bleibt (Basis 0 wickelt die Zeile nie um). */}
+                <span className="ct-small min-w-0 flex-1 basis-48 text-ink">
                   {f.label_de ?? f.filename}
                   <span className="ct-help block">
                     {[f.filename, dateiGroesse(f.size_bytes, dateLocale), datum.format(new Date(f.created_at))]
@@ -159,6 +215,22 @@ export function MediaKitAdmin({
                       .join(" · ")}
                   </span>
                 </span>
+                {/* Wer die Datei sieht (SPK-090). Die letzte angehakte Zielgruppe ist gesperrt. */}
+                <fieldset className="flex min-w-0 flex-wrap items-center gap-x-4" disabled={pending}>
+                  <legend className="sr-only">{t.audience}</legend>
+                  {MEDIA_KIT_ZIELGRUPPEN.map((z) => {
+                    const gewaehlt = angehakt(f);
+                    return (
+                      <Checkbox
+                        key={z}
+                        label={t[`audience_${z}`]}
+                        checked={gewaehlt.includes(z)}
+                        disabled={gewaehlt.length === 1 && gewaehlt.includes(z)}
+                        onChange={() => zielgruppeAendern(f, z)}
+                      />
+                    );
+                  })}
+                </fieldset>
                 <Button size="sm" variant="ghost" disabled={pending} onClick={() => setLoeschen(f)}>
                   {common.delete}
                 </Button>

@@ -115,6 +115,12 @@ export default async function AdminGrafikenPage() {
               t={{
                 addTitle: g.mediaKitAddTitle,
                 addBody: g.mediaKitAddBody,
+                audience: g.mediaKitAudience,
+                audienceHint: g.mediaKitAudienceHint,
+                audience_partner: g.mediaKitAudiencePartner,
+                audience_speaker: g.mediaKitAudienceSpeaker,
+                audienceSaved: g.mediaKitAudienceSaved,
+                audienceFailed: g.mediaKitAudienceFailed,
                 labelDe: g.mediaKitLabelDe,
                 labelEn: g.mediaKitLabelEn,
                 labelHint: g.mediaKitLabelHint,
