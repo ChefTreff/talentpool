@@ -7,10 +7,11 @@
 --   02 Helferwerte: eigene Organisation bleibt bei ihr (auch auf der Bühne einer anderen); ohne Organisation an einer gebrandeten Bühne ⇒ die Organisation der Bühne; Hauptbühne, Standbühne,
 --      Interview Table, Raum (Masterclass), ohne Slot, unbekannte Session ⇒ NULL; ohne Slot mit eigener Organisation ⇒ diese.
 --   03 Liste: Organisation A sieht genau ihre vier (Team-Session auf der gebrandeten Bühne, eigene, veröffentlichte, eigene ohne Slot) — nicht die von B, nicht die auf Bühnen anderer, nicht die
---      ohne Organisation auf Hauptbühne, Standbühne, Tisch, Raum oder ohne Slot; Organisation C (nur Leser) sieht ihre Team-Session; B (fremd) ⇒ 42501, als Team ⇒ B sieht zwei.
+--      ohne Organisation auf Hauptbühne, Standbühne, Tisch, Raum oder ohne Slot, nicht die abgesagte Team-Session; Organisation C (nur Leser) sieht ihre Team-Session; B (fremd) ⇒ 42501, als Team ⇒ B sieht zwei.
 --   04 Texte pflegen: die Team-Session der gebrandeten Bühne (Schreibweg, nichts bei der Session gespeichert, Audit), die eigene Session, eine **veröffentlichte** (zurück in die Prüfung,
 --      Slot wieder „angefragt“), als Team an der Bühne von B; abgewiesen: Session von B auf der Bühne von A, Bühne von B, Leser in C, Hauptbühne, Standbühne, Tisch, Raum, ohne Slot (42501),
---      unbekannte Session (P0002); die abgewiesenen Aufrufe ändern nichts.
+--      **auch als Team** an einer Session ohne Organisation außerhalb der gebrandeten Bühne (`partner_can_edit(NULL)` ist für das Team wahr — die Prüfung auf NULL trägt), unbekannte Session
+--      (P0002); die abgewiesenen Aufrufe ändern nichts.
 --   05 Speaker (Regression zu 0293): eintragen in die Team-Session ok, in die Session von B und auf die Bühne von B 42501; `partner_speakers` zeigt den Speaker mit seiner Session.
 --   06 Nichts gespeichert: keine der Sessions ohne Organisation hat danach eine.
 begin;
@@ -21,7 +22,7 @@ insert into t_erw values
   ('01_form', '^ok helfer_authenticated=false helfer_anon=false definer=true stable=true benutzt=4$'),
   ('02_helfer', '^ok team_a=true eigene_a=true fremd_b=true team_b=true team_c=true haupt=null stand=null tisch=null raum=null ohne_slot=null ohne_slot_org=true unbekannt=null$'),
   ('03a_liste_a', '^ok$'),
-  ('03_liste_a', '^ok zeilen=4 team_a=true eigene_a=true pub=true org_ohne_slot=true fremd_b=false team_b=false team_c=false haupt=false stand=false tisch=false raum=false ohne_slot=false$'),
+  ('03_liste_a', '^ok zeilen=4 team_a=true eigene_a=true pub=true org_ohne_slot=true fremd_b=false team_b=false team_c=false haupt=false stand=false tisch=false raum=false ohne_slot=false abgesagt=false$'),
   ('03b_liste_c', '^ok$'),
   ('03_liste_c', '^ok zeilen=1 team_c=true$'),
   ('03c_liste_b_partner', '^rejected 42501 not allowed$'),
@@ -43,6 +44,8 @@ insert into t_erw values
   ('04l_text_team', '^ok$'),
   ('04_team', '^ok titel=true$'),
   ('04m_text_unbekannt', '^rejected P0002 session_not_found$'),
+  ('04n_text_team_ohne_org', '^rejected 42501 not allowed$'),
+  ('04n_unveraendert', '^ok titel=true$'),
   ('04z_nichts_geaendert', '^ok geaendert=0$'),
   ('05a_speaker_team_session', '^ok$'),
   ('05_speaker', '^ok verknuepft=true profil_org=true$'),
@@ -127,7 +130,7 @@ declare
   v_pid uuid; v_uid uuid; v_email text; v_claims text; v_ed uuid; v_vorlage uuid; v_ev uuid; v_tag uuid; p_lead uuid; p_x uuid;
   o_a uuid; o_b uuid; o_c uuid;
   s_bra_a uuid; s_bra_b uuid; s_bra_c uuid; s_haupt uuid; s_stand_a uuid; s_tisch_a uuid; s_raum_a uuid;
-  se_team_a uuid; se_eigene_a uuid; se_fremd_b uuid; se_team_b uuid; se_team_c uuid; se_haupt uuid; se_stand uuid; se_tisch uuid; se_raum uuid; se_ohne_slot uuid; se_ohne_slot_org uuid; se_pub uuid;
+  se_team_a uuid; se_eigene_a uuid; se_fremd_b uuid; se_team_b uuid; se_team_c uuid; se_haupt uuid; se_stand uuid; se_tisch uuid; se_raum uuid; se_ohne_slot uuid; se_ohne_slot_org uuid; se_pub uuid; se_abgesagt uuid;
   sl_pub uuid; v_prof uuid; v_json jsonb; v_n integer; v_fremd_vorher text;
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
@@ -183,6 +186,8 @@ begin
   se_pub := pg_temp.zz_session(v_ev, sl_pub, null, 'ZZ Veröffentlichte Team-Session A');
   update session set publish_status = 'published' where id = se_pub;
   update slot set status = 'final' where id = sl_pub;
+  se_abgesagt := pg_temp.zz_session(v_ev, pg_temp.zz_slot(s_bra_a, v_tag, 4), null, 'ZZ Abgesagte Team-Session A');
+  update session set publish_status = 'cancelled' where id = se_abgesagt;
 
   -- === 01 Form =====================================================================================================
   insert into t_res values ('01_form',
@@ -226,7 +231,8 @@ begin
     || ' stand=' || exists (select 1 from jsonb_array_elements(v_json) e where (e->>'id')::uuid = se_stand)::text
     || ' tisch=' || exists (select 1 from jsonb_array_elements(v_json) e where (e->>'id')::uuid = se_tisch)::text
     || ' raum=' || exists (select 1 from jsonb_array_elements(v_json) e where (e->>'id')::uuid = se_raum)::text
-    || ' ohne_slot=' || exists (select 1 from jsonb_array_elements(v_json) e where (e->>'id')::uuid = se_ohne_slot)::text);
+    || ' ohne_slot=' || exists (select 1 from jsonb_array_elements(v_json) e where (e->>'id')::uuid = se_ohne_slot)::text
+    || ' abgesagt=' || exists (select 1 from jsonb_array_elements(v_json) e where (e->>'id')::uuid = se_abgesagt)::text);
   -- C: die Person ist nur Leser — die Liste darf sie lesen
   perform pg_temp.zz_r('03b_liste_c', format('select 1 from partner_format_sessions(%L)', o_c), 'authenticated');
   v_json := pg_temp.zz_j(format('select jsonb_agg(to_jsonb(s)) from partner_format_sessions(%L) s', o_c), 'authenticated');
@@ -275,6 +281,9 @@ begin
   perform pg_temp.zz_r('04l_text_team', pg_temp.zz_upd(se_team_b, 'ZZ Team-Session B neu'), 'authenticated');
   insert into t_res values ('04_team', 'ok titel=' || (select (title_de = 'ZZ Team-Session B neu')::text from session where id = se_team_b));
   perform pg_temp.zz_r('04m_text_unbekannt', pg_temp.zz_upd(gen_random_uuid(), 'ZZ Nichts'), 'authenticated');
+  -- das Team darf über diese Funktion nicht an Sessions ohne Organisation (partner_can_edit(NULL) ist für das Team wahr — die Prüfung auf NULL hält)
+  perform pg_temp.zz_r('04n_text_team_ohne_org', pg_temp.zz_upd(se_haupt, 'ZZ Haupt vom Team'), 'authenticated');
+  insert into t_res values ('04n_unveraendert', 'ok titel=' || (select (title_de = 'ZZ Session Hauptbühne')::text from session where id = se_haupt));
 
   -- === 05 Speaker (Regression zu 0293) =============================================================================
   perform pg_temp.zz_als('partner');

@@ -78,7 +78,7 @@ begin
        and se.publish_status <> 'cancelled'
        and (p_format is null or se.format = p_format)
      order by sl.start_at nulls last, se.title_de;
-end $$;;
+end $$;
 
 -- ---------------------------------------------------------------- Texte pflegen
 
@@ -148,7 +148,7 @@ begin
                     jsonb_build_object('fields', (select array_agg(k) from jsonb_object_keys(p_fields) k),
                                        'back_to_review', v_zurueck));
   return v_zurueck;
-end $$;;
+end $$;
 
 -- ---------------------------------------------------------------- Speaker eintragen
 
@@ -282,7 +282,7 @@ begin
                                        'profile_id', v_prof, 'claimed', not v_neu,
                                        'verwaltet', coalesce(p_verwaltet, false), 'contact_id', v_kontakt));
   return v_prof;
-end $$;;
+end $$;
 
 -- ---------------------------------------------------------------- Speaker der Organisation
 
@@ -331,6 +331,6 @@ begin
        -- PART-081: Gäste der Standbühne stehen in ihrer eigenen Liste (partner_stage_guests).
        and not sp.stage_guest
      order by se.title_de nulls last, pe.last_name, pe.first_name;
-end $$;;
+end $$;
 
 select harden_definer_functions();
