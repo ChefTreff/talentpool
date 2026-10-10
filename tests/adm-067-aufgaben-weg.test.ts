@@ -22,9 +22,9 @@ describe("ADM-067: der Weg zu den Aufgaben der Checkliste", () => {
     const aufgaben = q.indexOf('href="/admin/speaker/aufgaben"');
     assert.ok(verlauf > 0 && website > verlauf && aufgaben > website, "Reihenfolge Verlauf, Website, Aufgaben");
     assert.match(q, /<ButtonLink href="\/admin\/speaker\/aufgaben" variant="ghost" size="sm">\s+\{ta\.tasksLink\}\s+<\/ButtonLink>/);
-    // alle drei stehen in derselben Aktionsgruppe des Seitenkopfs
+    // alle stehen in derselben Aktionsgruppe des Seitenkopfs: die drei Wege (Verlauf, Website, Aufgaben) und seit ADM-078 „Berichte und Export“
     const gruppe = q.slice(q.indexOf("actions={"), q.indexOf("      />", q.indexOf("actions={")));
-    assert.equal((gruppe.match(/<ButtonLink /g) ?? []).length, 3);
+    assert.equal((gruppe.match(/<ButtonLink /g) ?? []).length, 4);
   });
 
   it("das Speaker-Detail trägt denselben Link im Seitenkopf, mit dem Text aus `adminSpeaker`", () => {
