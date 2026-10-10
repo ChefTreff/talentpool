@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import { hiringOptionen, type HiringEintrag } from "@/components/partner/hiring";
 import type { GastRow } from "@/components/partner/gaeste";
 import type { TourStopp } from "@/components/partner/tour";
 import { profilFelderAus } from "@/components/partner/profil";
@@ -62,6 +63,8 @@ export default async function AdminPartnerOrgPage({
   ]);
   // PART-046: Stopps der Company Tour mit den Angaben des Partners — dieselbe RPC wie unter /partner/company-tour.
   const { data: tourZeilen } = await supabase.rpc("partner_company_tour", { p_org_id: org });
+  // K-94 Stufe 2a (PART-107): „Wen sucht ihr?“ der Organisation — dieselbe RPC wie unter „Eure Daten“; das Team darf alles (`partner_can_edit`).
+  const { data: hiringZeilen } = await supabase.rpc("partner_org_hiring", { p_org_id: org });
   // QS-079: bei mehreren Stopps wählt der Umschalter einen — dieselbe Regel und dieselbe Beschriftung wie im Partnerportal (`stoppWahlMitTexten`).
   const tour = stoppWahlMitTexten((tourZeilen ?? []) as TourStopp[], instanzKennung(instanz), t.partnerTour);
   // PART-045: eigene Bewerbungsfragen des Partners, die noch auf die Freigabe warten.
@@ -184,6 +187,11 @@ export default async function AdminPartnerOrgPage({
       contactTexts={{ ...t.partnerContacts, ownLoginHint: t.adminPartner.contactsHint }}
       dataTexts={t.partner}
       industries={vgroup(vocab, "industry")}
+      hiring={{
+        eintraege: (hiringZeilen ?? []) as HiringEintrag[],
+        optionen: hiringOptionen((name) => vgroup(vocab, name)),
+        texts: t.partnerHiring,
+      }}
       einwilligung={t.logoWandEinwilligung}
       common={{
         cancel: t.common.cancel,

@@ -8,6 +8,8 @@ import { toRpcFailure } from "@/lib/rpc-error";
 import type { UpdateContactInput } from "@/components/partner/contacts";
 import type { GastAenderung, GastErgebnis, GastFoto, GastNeu } from "@/components/partner/gaeste";
 import { gastAendern, gastAnlegen, gastEntfernen, gastFotoRegistrieren, gastZuordnen } from "@/lib/partner/gaeste";
+import { hiringEntfernen, hiringSpeichern } from "@/lib/partner/hiring";
+import type { HiringSpeichern } from "@/components/partner/hiring";
 import { ORG_COOKIE } from "./org";
 import { istPartnerEntscheidung } from "./types";
 
@@ -754,5 +756,20 @@ export async function registerStageGuestPhoto(input: GastFoto): Promise<GastErge
 export async function assignStageGuest(sessionId: string, profileId: string, assign: boolean): Promise<GastErgebnis> {
   const res = await gastZuordnen(await client(), sessionId, profileId, assign);
   if (res.ok) refreshGaeste();
+  return res;
+}
+
+// ---------------------------------------------------------------------------
+// „Wen sucht ihr?“ (K-94 Stufe 2a, PART-107). Jeder Eintrag speichert für sich, sofort; Pflicht, Vokabular, Limit und Recht prüft die Datenbank (`set_org_hiring`).
+
+export async function saveOrgHiring(input: HiringSpeichern): Promise<PartnerResult<{ id: string }>> {
+  const res = await hiringSpeichern(await client(), input);
+  if (res.ok) revalidatePath(`${PATH}/onboarding`);
+  return res;
+}
+
+export async function deleteOrgHiring(id: string): Promise<PartnerResult> {
+  const res = await hiringEntfernen(await client(), id);
+  if (res.ok) revalidatePath(`${PATH}/onboarding`);
   return res;
 }

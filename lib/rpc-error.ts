@@ -203,6 +203,11 @@ const BUSINESS_KEYS = new Set([
   "answers_required",
   "deliverable_not_found",
   "org_edition_not_found",
+  // „Wen sucht ihr?“ (Vorschlag v6_org_hiring, K-94 Stufe 2a, PART-107): ein Pflichtfeld fehlt oder ist zu lang (`detail` = das Feld), das Limit je Organisation und Edition (`detail` 10),
+  // ein Eintrag gibt es nicht; `invalid_vocab` und `org_edition_not_found` stehen schon oben.
+  "invalid_hiring",
+  "too_many_hiring",
+  "hiring_not_found",
   // Rabattstufen (Migration 0123)
   "invalid_discount",
   "derived_allocation",

@@ -201,6 +201,8 @@
  *   … --apply --nur=tischvorgabe   (PART-150: am ersten TEST-Tisch der Interview Tables drei Gespräche — Tischvorgabe mit freigegebener eigener Frage, ein Gespräch
  *                                   wie die Vorgabe, eines abweichend —, damit der Reiter „Fragen“ die Karte „Tischvorgabe“ und die Gesprächsliste zeigt;
  *                                   braucht partner und formate)
+ *   … --apply --nur=hiring         (K-94 Stufe 2a/PART-107: drei TEST-Einträge unter „Wen sucht ihr?“ der Test-Organisation — einer mit Skills und Studienfeld, freigegeben,
+ *                                   zwei ohne Freigabe. Werte aus dem Vokabular. Braucht `partner`; **erst nach „Migration live“** von v6_org_hiring)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -4498,8 +4500,70 @@ async function ticketErinnerungSchritt() {
 }
 
 /** Die Schritte, die `--nur` kennt. */
+/**
+ * K-94 Stufe 2a / PART-107: drei TEST-Einträge unter „Wen sucht ihr?“ der Test-Organisation, damit Konrad die Maske mit Inhalt sieht (Partnerportal: Eure Daten, ganz unten; Admin:
+ * `/admin/partner/<Organisation>`, Abschnitt „Wen sucht ihr?“). Die Werte kommen aus dem Vokabular (je Gruppe die ersten aktiven Einträge, die Kategorie ohne „nicht-interessiert“).
+ *
+ * - `ZZTEST — Werkstudent Data Engineering`: erste Kategorie, erster Fachbereich, zwei Skills, ein Studienfeld, **freigegeben** („Für Teilnehmende freigegeben“)
+ * - `ZZTEST — Praktikum Marketing`: zweite Kategorie, zweiter Fachbereich, ohne Skills und Studienfelder, nicht freigegeben
+ * - `ZZTEST — Abschlussarbeit Nachhaltigkeit`: dritte Kategorie (sonst die erste), erster Fachbereich, ein Skill, zwei Studienfelder, nicht freigegeben
+ *
+ * Direkt geschrieben (Service-Schlüssel), nicht über `set_org_hiring`: so entsteht kein Audit-Eintrag, und die Einträge tragen `created_by` = Konrad. **Erst nach „Migration live“** von
+ * `v6_org_hiring` (sonst meldet der Schritt, dass die Tabelle fehlt). Ein zweiter Lauf lässt Vorhandenes stehen (Erkennung über den Freitext der Rolle). `--remove` löscht die Einträge
+ * (und mit der Test-Organisation gehen sie per Kaskade ohnehin).
+ *
+ * Konrad klickt: `/partner/onboarding` ganz unten „Wen sucht ihr?“ — drei Zeilen mit Marke „Für Teilnehmende freigegeben“ bzw. „Nur intern sichtbar“; **Bearbeiten** öffnet das Schubfach,
+ * „Eintrag hinzufügen“ in der Kopfzeile legt einen an (Kategorie und Bereich sind Pflicht; „Ich bin aktuell nicht interessiert an Jobangeboten“ steht nicht zur Wahl); bei zehn Einträgen
+ * verschwindet der Knopf. `/admin/partner/<Test-Organisation>` zeigt dieselbe Liste als Team (Abschnitt „Wen sucht ihr?“ in „Auf dieser Seite“).
+ */
+const HIRING_EINTRAEGE = [
+  { rolle: `ZZTEST — Werkstudent Data Engineering`, kat: 0, bereich: 0, skills: [0, 1], faecher: [0], frei: true },
+  { rolle: `ZZTEST — Praktikum Marketing`, kat: 1, bereich: 1, skills: [], faecher: [], frei: false },
+  { rolle: `ZZTEST — Abschlussarbeit Nachhaltigkeit`, kat: 2, bereich: 0, skills: [1], faecher: [0, 1], frei: false },
+];
+
+async function hiringSchritt(me, ed) {
+  const { data: org } = await admin.from("organization").select("id").eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) return fail("Wen sucht ihr?", "keine Test-Organisation — zuerst --nur=partner");
+  const { data: oe } = await admin.from("org_edition").select("id").eq("org_id", org.id).eq("edition_id", ed.id).maybeSingle();
+  if (!oe) return fail("Wen sucht ihr?", "keine Org-Edition der Test-Organisation — zuerst --nur=partner");
+  // Migration live? Ohne die Tabelle antwortet PostgREST mit PGRST205 (nicht im Schema-Cache) bzw. 42P01.
+  const { error: probe } = await admin.from("org_hiring").select("id").limit(1);
+  if (probe && (probe.code === "PGRST205" || probe.code === "42P01")) return fail("Wen sucht ihr?", "Tabelle org_hiring fehlt — Migration v6_org_hiring noch nicht live");
+  if (probe) return fail("Wen sucht ihr?", probe);
+
+  const werte = async (gruppe, ohne = []) => {
+    const { data } = await admin.from("vocab_term").select("key").eq("vocabulary", gruppe).eq("active", true).order("key");
+    return (data ?? []).map((x) => x.key).filter((k) => !ohne.includes(k));
+  };
+  const kat = await werte("career_opportunities", ["nicht-interessiert"]);
+  const bereich = await werte("function_area");
+  const skill = await werte("skill");
+  const fach = await werte("study_field");
+  if (kat.length < 2 || bereich.length < 2 || skill.length < 2 || fach.length < 2) return fail("Wen sucht ihr?", "Vokabular zu klein für die Testeinträge");
+
+  for (const e of HIRING_EINTRAEGE) {
+    const { data: da } = await admin.from("org_hiring").select("id").eq("org_edition_id", oe.id).eq("role_text", e.rolle).maybeSingle();
+    if (da) { note(e.rolle, "steht schon"); continue; }
+    await write(`Eintrag „${e.rolle}“`, () =>
+      admin.from("org_hiring").insert({
+        org_edition_id: oe.id,
+        career_opportunity: kat[e.kat] ?? kat[0],
+        function_area: bereich[e.bereich],
+        role_text: e.rolle,
+        skills: e.skills.map((i) => skill[i]).sort(),
+        study_fields: e.faecher.map((i) => fach[i]).sort(),
+        published: e.frei,
+        created_by: me.id,
+      }),
+    );
+  }
+  note("Wen sucht ihr? ausprobieren", "/partner/onboarding ganz unten; /admin/partner/<Test-Organisation> als Team");
+}
+
 const SCHRITTE = {
   partner: partnerSchritt,
+  hiring: hiringSchritt,
   hackathon: hackathonChallenges,
   "hackathon-team": hackathonTeam,
   benachrichtigungen: benachrichtigungenSchritt,
@@ -4568,6 +4632,12 @@ async function teilschritte(me, ed, namen) {
 }
 
 async function remove(me) {
+  // K-94 Stufe 2a: die TEST-Einträge von „Wen sucht ihr?“ — fehlt die Tabelle (Migration noch nicht live), ist das kein Fehler; mit der Org-Edition gehen sie sonst per Kaskade.
+  await write("TEST-Einträge „Wen sucht ihr?“ entfernt", async () => {
+    const r = await admin.from("org_hiring").delete().like("role_text", "ZZTEST — %");
+    if (r.error && (r.error.code === "PGRST205" || r.error.code === "42P01")) return { data: null, error: null };
+    return r;
+  });
   // PART-102: die Test-Deals der Nachbuchung (die Leistungen gehen mit den Zeilen der Org-Edition; bleibt die Organisation stehen, bleiben die Deals sonst liegen).
   await write("TEST-Deals der Nachbuchung entfernt", () => admin.from("partner_deal").delete().like("hubspot_deal_id", "ZZTEST-DEAL-%"));
   await write("TEST-Sperrlisten-Eintrag entfernt", async () => {
