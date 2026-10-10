@@ -34,6 +34,8 @@ describe("TAL-020 B4: welche Karte kommt als Nächste?", () => {
   it("nach einem Ticket das nächste unvollständige dahinter — ein teilweise gespeichertes zählt als offen", () => {
     assert.equal(naechstesOffene(drei, { a: "complete", b: "partial", c: "pending" }, "a"), "b");
     assert.equal(naechstesOffene(drei, { a: "complete", b: "complete", c: "pending" }, "a"), "c");
+    assert.equal(naechstesOffene(drei, { a: "pending", b: "pending", c: "pending" }, "a"), "b", "es zählt, was hinter dem Ticket kommt, nicht das erste offene überhaupt");
+    assert.equal(naechstesOffene(drei, { a: "pending", b: "pending", c: "pending" }, "b"), "c");
   });
 
   it("es wird nicht von vorn weitergesucht: wer das letzte Ticket überspringt, kommt nicht im Kreis zum ersten zurück", () => {
