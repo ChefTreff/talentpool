@@ -97,6 +97,7 @@ export default async function PartnerOnboardingPage() {
       {/* K-94 Stufe 2a (PART-107): „Wen sucht ihr?“ — jeder Eintrag speichert für sich, nicht mit der Leiste der Abschnitte oben. */}
       <div className="mt-10">
         <WenSuchtIhr
+          id="hiring"
           orgId={current.org_id}
           editionId={current.edition_id}
           eintraege={(hiringRows ?? []) as HiringEintrag[]}

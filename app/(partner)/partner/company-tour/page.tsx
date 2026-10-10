@@ -5,6 +5,7 @@ import { ContactCard } from "@/components/ui/ContactCard";
 import { contactPhotoUrl } from "@/components/kontakt/photo";
 import { TourStopp } from "@/components/partner/TourStopp";
 import { profilFelderAus } from "@/components/partner/profil";
+import { ladeHiring } from "@/lib/partner/hiring-laden";
 import { updateTourStop } from "../actions";
 import { ladeTour, zeitraum } from "./daten";
 import { TourKopf } from "./TourKopf";
@@ -30,9 +31,10 @@ export const dynamic = "force-dynamic";
 export default async function PartnerCompanyTourPage({ searchParams }: { searchParams: Promise<{ instanz?: string | string[] }> }) {
   await requireArea("partner", "/partner/company-tour");
   const { instanz } = await searchParams;
-  const { supabase, locale, t, stopps, gewaehlt, instanzen, gebucht, canEdit } = await ladeTour(instanz);
+  const { supabase, locale, t, current, stopps, gewaehlt, instanzen, gebucht, canEdit } = await ladeTour(instanz);
   const s = t.partnerTour;
-  const vocab = await loadVocabMap(supabase, locale);
+  // K-94 Stufe 2b (PART-140): die Einträge von „Wen sucht ihr?“ für „Aus ‚Wen sucht ihr?‘ übernehmen“ im Wunschprofil des Stopps.
+  const [vocab, hiring] = await Promise.all([loadVocabMap(supabase, locale), ladeHiring(supabase, current.org_id, current.edition_id)]);
   // K-94: die fünf Felder des Wunschprofils aus den Vokabulargruppen (ohne „nicht interessiert“, das beschreibt eine Person).
   const felder = profilFelderAus((name) => vgroup(vocab, name));
 
@@ -90,6 +92,7 @@ export default async function PartnerCompanyTourPage({ searchParams }: { searchP
             <TourStopp
               stopp={gewaehlt}
               felder={felder}
+              hiring={{ eintraege: hiring, t: t.partnerHiring, leerHref: "/partner/onboarding#hiring" }}
               canEdit={canEdit}
               save={updateTourStop}
               dateLocale={t.meta.dateLocale}

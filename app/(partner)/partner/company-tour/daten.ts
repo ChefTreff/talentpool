@@ -35,6 +35,7 @@ export async function ladeTour(instanz?: string | string[]) {
     supabase,
     locale,
     t,
+    current,
     stopps,
     gewaehlt,
     instanzen,

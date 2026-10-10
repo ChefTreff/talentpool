@@ -10,6 +10,8 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { useUngesichert, type UngesichertTexte } from "@/components/ui/useUngesichert";
+import { HiringUebernehmen, type HiringVorbelegung } from "@/components/partner/HiringUebernehmen";
+import { profilMitEintrag } from "@/components/partner/hiring-uebernehmen";
 import { ProfilAuswahl, profilUmschalten, type ProfilFeld, type ProfilOption, type Zielprofil } from "@/components/partner/ProfilAuswahl";
 import { createFormatSession, deleteFormatSession, setInterviewPosting } from "../actions";
 import { EVENT_TZ, MAX_SLOTS, rechneSlots, type PartnerDay, type PartnerStage } from "../formate";
@@ -44,6 +46,7 @@ export function TischeView({
   days,
   canEdit,
   profilFelder,
+  hiring,
   statusLabel,
   rueckgabe,
   bewerbungenHref,
@@ -60,6 +63,8 @@ export function TischeView({
   canEdit: boolean;
   /** Dieselben Auswahlfelder wie im Teilnehmerprofil (D1). */
   profilFelder: Record<ProfilFeld, ProfilOption[]>;
+  /** K-94 Stufe 2b: die Einträge von „Wen sucht ihr?“ der Organisation — „Aus ‚Wen sucht ihr?‘ übernehmen“ füllt das Profil des Entwurfs vor. */
+  hiring?: HiringVorbelegung;
   statusLabel: Record<string, string>;
   /** PART-083: Kennzeichen und Hinweis bei einer zurückgegebenen Session. */
   rueckgabe: RueckgabeTexte;
@@ -390,6 +395,11 @@ export function TischeView({
             onToggle={toggleProfil}
             disabled={!canEdit}
             t={t}
+            vorbelegung={
+              canEdit && hiring ? (
+                <HiringUebernehmen vorbelegung={hiring} felder={profilFelder} onUebernehmen={(e) => setProfil((p) => profilMitEintrag(p, e))} />
+              ) : undefined
+            }
           />
 
           {canEdit && (
