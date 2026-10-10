@@ -229,7 +229,8 @@ describe("Export in Portal und Admin (PART-051)", () => {
       "app/(admin)/admin/bewerbungen/[id]/page.tsx",
     ]) {
       const s = src(p);
-      assert.match(s, /<ButtonDownload href=\{`\/(partner|admin)\/(export|bewerbungen)\//, p);
+      // Mit oder ohne den Filter der Teilnehmerliste (PART-130: `exportAdresse(…, nurTeilnehmende)`) — ein echter Download bleibt es.
+      assert.match(s, /<ButtonDownload href=\{(?:exportAdresse\()?`\/(partner|admin)\/(export|bewerbungen)\//, p);
       assert.doesNotMatch(s, /<(ButtonLink|Link)[^>]*export/, p);
     }
   });

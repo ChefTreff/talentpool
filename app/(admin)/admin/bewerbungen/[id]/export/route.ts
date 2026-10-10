@@ -3,6 +3,7 @@ import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ExportZeile } from "@/lib/partner/bewerbungen-csv";
 import { exportAntwort, exportFehler } from "@/lib/partner/export-antwort";
+import { willTeilnehmende } from "@/lib/partner/teilnehmende";
 import type { OverviewRow } from "../../types";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +14,10 @@ export const dynamic = "force-dynamic";
  * Einwilligung, Datenschutzhinweis zuerst, jeder Export im Audit. Das Recht
  * prüft `export_session_applications` (`can_decide_session`: Team, Programm,
  * Talent-Leitung). Bei einer Company Tour ist es die ganze Tour-Session, ohne
- * die Wünsche einzelner Stopps; die stehen in der Entscheidungssicht.
+ * die Wünsche einzelner Stopps; die stehen in der Entscheidungssicht. Mit `?nur=teilnehmende` die Teilnehmerliste (PART-130): dieselbe Datei,
+ * nur die Zeilen, mit denen jemand teilnimmt.
  */
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await requireAdminSection("applications", `/admin/bewerbungen/${id}`);
   const { locale, t } = await getI18n();
@@ -54,6 +56,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     fragen: new Map(fragen.map((f) => [f.key, f.text])),
     fragenReihenfolge: fragen.map((f) => f.key),
     titel: kopf ? (locale === "en" ? kopf.title_en ?? kopf.title_de : kopf.title_de) : null,
+    teilnehmende: willTeilnehmende(request.url),
     locale,
     t,
   });

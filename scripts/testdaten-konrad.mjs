@@ -176,6 +176,10 @@
  *                                   die Zusage-Mail als „Wartet“ (Versand frühestens in zehn Minuten), eine andere Entscheidung bis
  *                                   dahin storniert sie. Braucht den Schritt `partner`; die Frist sieht man erst nach „Migration
  *                                   live“ von v6_zusage_mail_verzoegert)
+ *   … --apply --nur=teilnehmende   (PART-130: je eine zugesagte TEST-Person MIT Einwilligung an der veröffentlichten TEST-Masterclass und am
+ *                                   TEST-Interview-Table — damit zeigt „Teilnehmerliste als CSV exportieren“ unter /partner/masterclass/teilnehmende
+ *                                   und /partner/interview-tables/teilnehmende etwas; an Tour und Side-Event gibt es sie schon. Braucht die
+ *                                   Schritte `partner`, `masterclass` und `formate`)
  *   … --apply --nur=partnerslots   (K-84/LEAD-064: eine gebrandete TEST-Bühne der Test-Organisation mit Öffnungszeiten am ersten und
  *                                   letzten Summit-Tag — Konrad ist dort Standbühnen-Editor und legt unter /partner/buehne selbst
  *                                   Slots an, verschiebt und löscht sie (/admin/programm zeigt dieselben als Team). Braucht den
@@ -2122,6 +2126,62 @@ async function zusageMailSchritt(me, ed) {
   } else {
     await write("Entscheidungen der Session freigegeben (damit Zusagen die Mail auslösen)", () =>
       admin.from("decision_release").insert({ session_id: se.id, released_by: me.id, note: `${MARK} — Zusage-Mail` }),
+    );
+  }
+}
+
+/**
+ * Schritt `teilnehmende` (PART-130, Konrad & Leopold 05.10.2026): die Teilnehmerliste als CSV braucht Teilnehmende **mit Einwilligung zur Weitergabe** — die Datei enthält
+ * nur diese. An der Company Tour und am Side-Event gibt es sie schon (Schritte `tour-bewerbung`, `formate`); an der veröffentlichten TEST-Masterclass steht nur Konrads
+ * eigene Bewerbung (ohne Weitergabe, Schritt `weitergabe`), am TEST-Interview-Table nur eine Engere Wahl. Der Schritt legt je eine TEST-Person (Plus-Adresse
+ * `+zztest-teiln-N`) mit einer **zugesagten** Bewerbung **mit Einwilligung** an, mit einem Profilwert (Hochschule bzw. Arbeitgeber) für die Spalten der Datei.
+ * Klickweg: `/partner/masterclass/teilnehmende` bzw. `/partner/interview-tables/teilnehmende` → „Teilnehmerliste als CSV exportieren“ (oben in der Karte); dieselbe Datei
+ * liefert im Admin `/admin/bewerbungen/<Session>` → „Teilnehmerliste als CSV exportieren“.
+ *
+ * **Ohne Mail:** eine Zusage löst die Mail nur aus, wenn die Entscheidungen der Session freigegeben sind; solche Sessions lässt der Schritt aus (`decisions_released`).
+ * Direkt geschrieben, ein zweiter Lauf legt nichts doppelt an (Person über die Adresse, Bewerbung über Session und Person). `--remove` löscht die Personen; ihre Bewerbungen
+ * hängen mit ON DELETE CASCADE an ihnen. Braucht die Schritte `partner`, `masterclass` und `formate` (die Sessions).
+ */
+const TEILNEHMENDE_ZIELE = [
+  { titel: `${PREFIX}Masterclass`, name: "Teilnehmende 1", adresse: 1, hochschule: `${PREFIX}Hochschule Teilnehmende 1`, arbeitgeber: null },
+  { titel: `${PREFIX}Interview Table`, name: "Teilnehmende 2", adresse: 2, hochschule: null, arbeitgeber: `${PREFIX}Arbeitgeber Teilnehmende 2` },
+];
+const teilnehmendeAdresse = (n) => email.replace("@", `+zztest-teiln-${n}@`);
+
+async function teilnehmendeSchritt(_me, ed) {
+  const eventId = (await summit(ed))?.id ?? ed.id;
+  if (mode === "dry-run") {
+    for (const z of TEILNEHMENDE_ZIELE) note(`${z.titel}: TEST-Person ${teilnehmendeAdresse(z.adresse)}, zugesagt, mit Einwilligung (ohne Mail)`);
+    return;
+  }
+  for (const z of TEILNEHMENDE_ZIELE) {
+    const { data: se } = await admin.from("session").select("id").eq("event_id", eventId).eq("title_de", z.titel).maybeSingle();
+    if (!se) {
+      fail(z.titel, "Session fehlt — zuerst --nur=partner,masterclass,formate");
+      continue;
+    }
+    const { data: freigegeben, error: fe } = await admin.rpc("decisions_released", { p_session_id: se.id });
+    if (fe || freigegeben) {
+      fail(z.titel, fe ?? "Entscheidungen freigegeben — eine Zusage würde eine Mail auslösen");
+      continue;
+    }
+    const { data: personId, error } = await admin.rpc("testdaten_person", {
+      p_first_name: "TEST", p_last_name: z.name, p_email: teilnehmendeAdresse(z.adresse),
+    });
+    if (error || !personId) {
+      fail(`TEST-Person ${z.name}`, error ?? "keine Person");
+      continue;
+    }
+    // Profilwert für die Spalten der Datei — nur an TEST-Personen ohne Konto.
+    await write(`TEST-Angabe im Profil (${z.name})`, () =>
+      admin.from("person").update({ university: z.hochschule, employer_name: z.arbeitgeber })
+        .eq("id", personId).eq("first_name", "TEST").is("auth_user_id", null),
+    );
+    await write(`${z.titel}: ${z.name} zugesagt, mit Einwilligung (ohne Mail)`, () =>
+      admin.from("application").upsert(
+        { session_id: se.id, person_id: personId, status: "accepted", consent_share: true, decided_at: new Date().toISOString(), confirm_by: null, answers: {} },
+        { onConflict: "session_id,person_id" },
+      ),
     );
   }
 }
@@ -4340,6 +4400,7 @@ const SCHRITTE = {
   "tour-bewerbung": tourBewerbung,
   bewerbungen: bewerbungenSchritt,
   "zusage-mail": zusageMailSchritt,
+  teilnehmende: teilnehmendeSchritt,
   produktion: produktionSchritt,
   masterclass: masterclassSchritt,
   nachbuchung: nachbuchungSchritt,
@@ -4643,6 +4704,14 @@ async function remove(me) {
   await write("TEST-Personen der Zusage-Mail entfernt", async () => {
     const { data: adressen } = await admin.from("person_email").select("person_id")
       .in("email", Array.from({ length: ZUSAGE_PERSONEN }, (_, i) => zusageAdresse(i + 1)));
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  // PART-130: die TEST-Teilnehmenden an Masterclass und Interview Table; ihre Bewerbungen hängen mit ON DELETE CASCADE an ihnen.
+  await write("TEST-Teilnehmende der Teilnehmerliste entfernt", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", TEILNEHMENDE_ZIELE.map((z) => teilnehmendeAdresse(z.adresse)));
     const ids = (adressen ?? []).map((a) => a.person_id);
     if (ids.length === 0) return { data: null, error: null };
     return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);

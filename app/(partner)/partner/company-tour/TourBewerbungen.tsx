@@ -6,12 +6,10 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApplicantList } from "@/components/partner/ApplicantList";
 import { PROFIL_VOKABULARE } from "@/components/partner/bewerbung";
+import { exportAdresse, nimmtTeil } from "@/lib/partner/teilnehmende";
 import type { TourStopp } from "@/components/partner/tour";
 import { setTourWish } from "../actions";
 import type { PartnerApplication } from "../types";
-
-/** Status, mit denen jemand mit der Tour kommt. */
-const DABEI = new Set(["accepted", "promoted", "confirmed"]);
 
 /** Höchstens so viele Wünsche je Stopp (PART-092, K-41) — dieselbe Zahl wie in `partner_set_tour_wish`. */
 export const MAX_WUENSCHE = 5;
@@ -33,7 +31,8 @@ type TourBewerbung = Omit<PartnerApplication, "answers"> & {
  * die Auswahl trifft weiter das Team, das die Wünsche in seiner
  * Entscheidungssicht sieht. Im selben Reiter lädt er die Bewerbungen je Stopp
  * als CSV (PART-051, `/partner/export/tour/<Stopp>`): nur mit Einwilligung,
- * mit seinen Wünschen und dem Datenschutzhinweis, jeder Export im Audit.
+ * mit seinen Wünschen und dem Datenschutzhinweis, jeder Export im Audit. Im Reiter Teilnehmende lädt er dieselbe Datei nur mit denen, die mit
+ * der Tour kommen (PART-130, `?nur=teilnehmende`).
  */
 export async function TourBewerbungen({
   supabase,
@@ -69,7 +68,7 @@ export async function TourBewerbungen({
     <div className="flex flex-col gap-6">
       <p className="ct-help max-w-text">
         {nurTeilnehmende ? s.participantsLead : s.applicationsLead} {t.applicants.consentNote} {t.applicants.auditNotice}
-        {!nurTeilnehmende && canEdit && ` ${t.bewerbung.exportHint}`}
+        {canEdit && ` ${nurTeilnehmende ? t.bewerbung.exportParticipantsHint : t.bewerbung.exportHint}`}
       </p>
       {stopps.map((x, i) => {
         const { data, error } = ergebnisse[i];
@@ -86,7 +85,7 @@ export async function TourBewerbungen({
         const roh = (data ?? []) as TourBewerbung[];
         const gewuenscht = roh.filter((a) => a.wished).map((a) => a.id);
         const zeilen: PartnerApplication[] = roh
-          .filter((a) => !nurTeilnehmende || DABEI.has(a.status))
+          .filter((a) => !nurTeilnehmende || nimmtTeil(a.status))
           .map((a) => ({
             ...a,
             answers: a.answers
@@ -105,10 +104,10 @@ export async function TourBewerbungen({
               </p>
             )}
             {/* Eigene Zeile statt im Kartenkopf: auf 375 px bliebe dem Titel sonst nur eine schmale Spalte. */}
-            {!nurTeilnehmende && canEdit && roh.some((a) => a.consent_share) && (
+            {canEdit && zeilen.some((a) => a.consent_share) && (
               <div className="mb-4">
-                <ButtonDownload href={`/partner/export/tour/${x.stop_id}`}>
-                  {t.bewerbung.exportCsv}
+                <ButtonDownload href={exportAdresse(`/partner/export/tour/${x.stop_id}`, nurTeilnehmende)}>
+                  {nurTeilnehmende ? t.bewerbung.exportParticipantsCsv : t.bewerbung.exportCsv}
                 </ButtonDownload>
               </div>
             )}

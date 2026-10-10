@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { ButtonDownload, ButtonLink } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { exportAdresse } from "@/lib/partner/teilnehmende";
 import { QueueView } from "./QueueView";
 import type { OverviewRow, QueueRow } from "../types";
 
@@ -103,6 +104,10 @@ export default async function QueuePage({
             {/* PART-051: dieselbe Datei, die der Partner lädt — nur mit Einwilligung, im Audit. */}
             <ButtonDownload href={`/admin/bewerbungen/${id}/export`} size="sm" title={t.admin.applications.exportHint}>
               {t.admin.applications.exportCsv}
+            </ButtonDownload>
+            {/* PART-130: dieselbe Datei nur mit denen, die teilnehmen (zugesagt, nachgerückt, bestätigt) — der Admin-Weg zur Teilnehmerliste des Partners. */}
+            <ButtonDownload href={exportAdresse(`/admin/bewerbungen/${id}/export`, true)} size="sm" title={t.admin.applications.exportParticipantsHint}>
+              {t.admin.applications.exportParticipantsCsv}
             </ButtonDownload>
           </>
         }
