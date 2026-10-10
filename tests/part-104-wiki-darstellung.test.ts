@@ -135,10 +135,12 @@ describe("PART-104: Wiki — der Artikel ist die Seite (WikiView, WikiPage, Page
     assert.doesNotMatch(ansicht, /<h3 id="wiki-verwandt"/);
   });
 
-  it("der Assistent kommt als fertiges Element und steht wie bisher unter dem Kopf, vor Liste und Artikel — in einem eigenen Element", () => {
-    const assistent = ansicht.indexOf("<div>{assistent}</div>");
+  it("der Assistent kommt als fertiges Element und steht in der Liste (K-92), unter Suche und Trefferzahl, vor den Themen — in einem eigenen Element", () => {
     const spalten = ansicht.indexOf('<div className="flex flex-col gap-6 lg:flex-row lg:items-start">');
-    assert.ok(assistent > 0 && spalten > assistent);
+    const status = ansicht.indexOf('<p role="status"');
+    const assistent = ansicht.indexOf("<div>{assistent}</div>");
+    const themen = ansicht.indexOf('<nav aria-labelledby="wiki-liste">');
+    assert.ok(spalten > 0 && status > spalten && assistent > status && themen > assistent);
     assert.match(ansicht, /assistent\?: ReactNode;/);
     // Auch im leeren Zustand gibt es Kopf, Assistent und Hinweis.
     assert.match(ansicht, /<PageHeader word=\{t\.word\} title=\{t\.title\} description=\{lead\} \/>\s*\{assistent\}\s*<EmptyState/);

@@ -7,15 +7,23 @@ const BASE = "/partner/company-tour";
  * Angaben, die Bewerbungen auf die Tour und die Teilnehmenden. Eigene Pfade
  * statt eines Parameters — wie bei der Standbühne, damit jede Sicht ein
  * Lesezeichen verträgt.
+ *
+ * Hat die Seite mehrere Stopps (QS-079), nimmt `suffix` (`?instanz=<Stopp>`) die gewählte Instanz in jeden Reiter mit; ohne Umschalter ist es leer.
  */
-export function TourTabs({ t }: { t: { label: string; stop: string; applications: string; participants: string } }) {
+export function TourTabs({
+  suffix = "",
+  t,
+}: {
+  suffix?: string;
+  t: { label: string; stop: string; applications: string; participants: string };
+}) {
   return (
     <SectionTabs
       label={t.label}
       items={[
-        { href: BASE, label: t.stop, exact: true },
-        { href: `${BASE}/bewerbungen`, label: t.applications },
-        { href: `${BASE}/teilnehmende`, label: t.participants },
+        { href: `${BASE}${suffix}`, label: t.stop, exact: true },
+        { href: `${BASE}/bewerbungen${suffix}`, label: t.applications },
+        { href: `${BASE}/teilnehmende${suffix}`, label: t.participants },
       ]}
     />
   );

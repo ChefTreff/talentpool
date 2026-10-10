@@ -185,6 +185,8 @@
  *                                   /partner die Organisation, öffnet den Warenkorb und klickt „Angebot erstellen“ — solange `SHOP_ANGEBOT_SEVDESK` auf „aus“ steht (Standard),
  *                                   ist es simuliert: Nummer AN-PROBE-…, „Probeangebot“, kein PDF, nichts in SevDesk. „Warenkorb wieder bearbeiten“ gibt ihn frei, „Verbindlich
  *                                   bestellen“ bestellt zum Angebotspreis; /admin/partner/bestellungen zeigt „Offene Angebote“. Kein Schritt `partner` nötig, keine Migration)
+ *   … --apply --nur=tourstopp      (QS-079: ein zweiter Stopp der Test-Organisation auf einer zweiten TEST-Tour, damit /partner/company-tour den Stopp-Umschalter
+ *                                   zeigt; braucht partner und tour)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -3605,6 +3607,52 @@ async function tourZuordnung(me, ed) {
 }
 
 /**
+ * Schritt `tourstopp` (QS-079, Konrad 09.10.2026): ein **zweiter Stopp der Test-Organisation**, damit `/partner/company-tour` seinen Umschalter zeigt (ab zwei
+ * Stopps) — Reiter „Stopp 1 · TEST — Company Tour“ und „Stopp 1 · TEST — Company Tour B“. Je Tour besetzt ein Partner höchstens einen Stopp
+ * (`company_tour_stop_org_idx`), deshalb eine **zweite Tour** `TEST — Company Tour B` mit nur diesem Stopp: ohne Session, ohne Begleitung, nichts gespeichert
+ * (`filled_at` leer — dort öffnet die Seite ohne Wunsch zuerst, weil dort noch Fragen warten). Den freien Stopp 2 der ersten Tour (Schritt `tourzuordnung`,
+ * ADM-045) lässt der Schritt in Ruhe: Konrad ordnet ihn im Admin selbst zu. Braucht den Schritt `partner` und die Tour des Schritts `tour`; idempotent über den
+ * Namen. `--remove` löscht die zweite Tour, ihr Stopp geht mit.
+ */
+const TOUR_B = `${PREFIX}Company Tour B`;
+async function tourStoppZwei(me, ed) {
+  if (mode === "dry-run") {
+    note(`Zweite Tour „${TOUR_B}“ mit einem Stopp der Test-Organisation (ohne Session, ohne Begleitung) — damit der Stopp-Umschalter unter /partner/company-tour zu sehen ist`);
+    return;
+  }
+  const { data: org } = await admin.from("organization").select("id").eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  if (!org) return fail("Zweiter Stopp der Test-Organisation", "Test-Organisation fehlt — zuerst --nur=partner");
+  let { data: tour } = await admin.from("company_tour").select("id").eq("edition_id", ed.id).eq("name", TOUR_B).maybeSingle();
+  if (!tour) {
+    tour = await write(`Zweite Company Tour ${TOUR_B}`, () =>
+      admin.from("company_tour").insert({
+        edition_id: ed.id, name: TOUR_B, track: "ZZTEST-B",
+        starts_at: ed.start_date ? `${ed.start_date}T13:00:00+02:00` : null,
+        ends_at: ed.start_date ? `${ed.start_date}T16:00:00+02:00` : null,
+        capacity: 12, notes: "Zweite Testtour für den Stopp-Umschalter (QS-079).",
+      }).select("id").single(),
+    );
+  } else {
+    note("Zweite Company Tour", "steht schon");
+  }
+  if (!tour) return;
+  const { data: stopp } = await admin.from("company_tour_stop").select("id").eq("tour_id", tour.id).eq("host_org_id", org.id).maybeSingle();
+  if (!stopp) {
+    await write("Stopp der Test-Organisation an der zweiten Tour", () =>
+      admin.from("company_tour_stop").insert({
+        tour_id: tour.id, sort_order: 1, host_org_id: org.id, address: "Testweg 3, 20095 Hamburg",
+        arrival_at: ed.start_date ? `${ed.start_date}T13:30:00+02:00` : null,
+        departure_at: ed.start_date ? `${ed.start_date}T14:30:00+02:00` : null,
+        target_profile: {},
+      }),
+    );
+  } else {
+    note("Stopp an der zweiten Tour", "steht schon");
+  }
+  note("Stopp-Umschalter ausprobieren", "/partner/company-tour → zwei Reiter „Stopp 1 · TEST — Company Tour“ und „… Tour B“; der zweite Stopp ist noch leer");
+}
+
+/**
  * SPK-069: zwei TEST-Shuttle-Fahrten an Konrads eigenem Speaker-Profil — eine
  * angefragt (Anreise am ersten Summit-Tag), eine bestätigt (Abreise am letzten).
  * Erst damit zeigen `/admin/anreise` und `/speaker-leads/anreise` die Abzeichen
@@ -4252,6 +4300,7 @@ const SCHRITTE = {
   dubletten: dublettenPaar,
   award: awardBewerbung,
   tourzuordnung: tourZuordnung,
+  tourstopp: tourStoppZwei,
 };
 
 async function teilschritte(me, ed, namen) {
@@ -4603,6 +4652,8 @@ async function remove(me) {
     for (const st of flaechen ?? []) await admin.from("slot").delete().eq("stage_id", st.id);
     return admin.from("stage").delete().in("slug", slugs);
   });
+  // QS-079: die zweite TEST-Company-Tour; ihr Stopp geht mit (ON DELETE CASCADE). Die erste Tour bleibt wie bisher stehen.
+  await write("Zweite TEST-Company-Tour entfernt (Stopp geht mit)", () => admin.from("company_tour").delete().eq("name", TOUR_B));
   await write("TEST-Raum der Masterclass entfernt", async () => {
     const { data: raeume } = await admin.from("stage").select("id").eq("slug", "zz-test-masterclass-raum");
     for (const st of raeume ?? []) await admin.from("slot").delete().eq("stage_id", st.id);
