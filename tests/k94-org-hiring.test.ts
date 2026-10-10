@@ -165,8 +165,10 @@ describe("K-94 Stufe 2a: Migration v6_org_hiring (Quelltext-Prüfung)", () => {
     assert.ok(s.indexOf("v_row.org_edition_id <> v_oe.id") > 0 && s.indexOf("v_row.org_edition_id <> v_oe.id") < s.indexOf("invalid_hiring"), "fremder Eintrag vor jeder Wertprüfung");
     assert.match(funktion(sql, "partner_org_hiring"), /is_partner_of\(p_org_id\) or is_partner_team\(\)/);
     assert.match(funktion(sql, "delete_org_hiring"), /not partner_can_edit\(v_org\)/);
-    // Das Limit wird unter der Sperre der Org-Edition gezählt.
-    assert.ok(s.indexOf("for update;") < s.indexOf("count(*)::integer into v_n"), "erst sperren, dann zählen");
+    // Das Limit wird unter der Sperre der Org-Edition gezählt — nicht unter der des Eintrags beim Ändern (`for update` weiter oben), die über das Zählen nichts sagt.
+    const sperre = s.search(/perform 1 from org_edition where id = v_oe\.id for update;/);
+    assert.ok(sperre > 0, "die Org-Edition wird gesperrt");
+    assert.ok(sperre < s.indexOf("count(*)::integer into v_n"), "erst sperren, dann zählen");
   });
 
   it("das Audit trägt keinen Freitext und keine Person: weder die Rolle noch `created_by`, nur Schlüssel und Zahlen", () => {
