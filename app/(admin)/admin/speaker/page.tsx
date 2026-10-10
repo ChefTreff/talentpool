@@ -86,6 +86,10 @@ export default async function AdminSpeakerPage({ searchParams }: { searchParams:
             <ButtonLink href="/admin/speaker/aufgaben" variant="ghost" size="sm">
               {ta.tasksLink}
             </ButtonLink>
+            {/* ADM-078: Berichte zusammenstellen, ansehen und als Excel oder CSV laden — kein eigener Menüpunkt vor K-95. */}
+            <ButtonLink href="/admin/speaker/export" variant="ghost" size="sm">
+              {ta.exportLink}
+            </ButtonLink>
           </div>
         }
       />
