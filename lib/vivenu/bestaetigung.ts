@@ -121,6 +121,24 @@ export function pruefeEingabe(e: { fuerMich: boolean; first_name: string; last_n
   return null;
 }
 
+/** Die Zustände aller Tickets der Bestellung nach Kennung — der Stand, den die Ansicht beim Laden kennt und beim Speichern nachführt. */
+export function zustaendeVon(tickets: readonly { ticket_id: string; personalization_status: string }[]): Record<string, Zustand> {
+  return Object.fromEntries(tickets.map((t) => [t.ticket_id, zustandVon(t.personalization_status)]));
+}
+
+/**
+ * Welches Ticket kommt als Nächstes (TAL-020, B4)? Das erste **nach** `nach`, das noch nicht vollständig ist; ohne `nach` das erste der Bestellung. Es wird nicht
+ * von vorn weitergesucht: wer ein Ticket überspringt, kommt nicht im Kreis zu ihm zurück. Gibt die Kennung oder `null` zurück.
+ */
+export function naechstesOffene(
+  tickets: readonly { ticket_id: string }[],
+  zustaende: Readonly<Record<string, Zustand>>,
+  nach: string | null,
+): string | null {
+  const start = nach === null ? 0 : tickets.findIndex((t) => t.ticket_id === nach) + 1;
+  return tickets.slice(start).find((t) => zustaende[t.ticket_id] !== "complete")?.ticket_id ?? null;
+}
+
 /** Die vier Angaben, die auf das Namensschild kommen. */
 export type Felder = { first_name: string; last_name: string; company: string; job_position: string };
 export const LEERE_FELDER: Felder = { first_name: "", last_name: "", company: "", job_position: "" };
