@@ -5,8 +5,9 @@
  *
  * - **Standbühne** (`booth`, 18 qm auf der Messe): Kalender, Tabelle (PART-078; dort geht „Veröffentlichen“ als Anfrage an die Programmleitung) und Gäste (PART-081).
  * - **Gebrandete Bühne** (`branded`, eine unserer Bühnen mit Partner): Kalender und Speaker. Ihre Speaker sind reguläre Speaker (PART-091, Konrad 25.09.) mit Zugang,
- *   Pipeline und Onboarding wie bei jedem Partner-Speaker — deshalb **keine Gäste** (`partner_assign_stage_guest` lässt sie dort ohnehin nicht zu). Die Tabelle bleibt
- *   der Standbühne: „Veröffentlichen anfragen“ (`partner_request_publish`) kennt nur sie; ob die gebrandete Bühne es bekommt, klärt PART-148.
+ *   Pipeline und Onboarding wie bei jedem Partner-Speaker — deshalb **keine Gäste** (`partner_assign_stage_guest` lässt sie dort ohnehin nicht zu). „Veröffentlichen anfragen“
+ *   (`partner_request_publish`) gilt an beiden Bühnen (`kind in ('booth', 'branded')`, PART-148 c); die Tabelle bleibt der Standbühne, an der gebrandeten Bühne steht der Knopf in der
+ *   Karte des Reiters „Speaker“ und im Kalender — die Organisation der Session wird dort **abgeleitet** (`session_partner_org`), nicht gespeichert.
  */
 
 export const BUEHNE_STAND = "booth";

@@ -190,7 +190,9 @@
  *                                   Schritt `partner`; erst nach „Migration live“ von v6_partner_slots)
  *   … --apply --nur=eurebuehne     (PART-138 Teil 2: zwei TEST-Programmpunkte ohne Organisation auf der gebrandeten TEST-Bühne, am ersten Summit-Tag in den
  *                                   Öffnungszeiten — Konrad sieht unter /partner/buehne den Reiter „Speaker“ mit „Speaker eintragen“ und der Zeile „Außerdem vom
- *                                   Team eingetragen“. Braucht `partner` und `partnerslots`; 0293 ist live)
+ *                                   Team eingetragen“; PART-148 c: dort auch „Veröffentlichen“ (Anfrage an die Programmleitung, Rückgabe mit Grund, Freigabe unter
+ *                                   /admin/einreichungen, Reiter Slots) — jeder Lauf setzt beide Programmpunkte auf Entwurf zurück. Braucht `partner` und `partnerslots`; 0293 ist
+ *                                   live, „Veröffentlichen“ erst nach „Migration live“ von v6_partner_publish_gebrandet)
  *   … --apply --nur=angebot        (PART-116/K-81: dritte TEST-Organisation „TEST — Partner Angebot“ mit Kundennummer ZZTEST-ANGEBOT, deutscher Adresse, gebuchtem
  *                                   Stand und einem Warenkorb als Entwurf (Tischkicker ×1, Tolix Barhocker ×2) in der laufenden Bestellphase. Konrad wechselt unter
  *                                   /partner die Organisation, öffnet den Warenkorb und klickt „Angebot erstellen“ — solange `SHOP_ANGEBOT_SEVDESK` auf „aus“ steht (Standard),
@@ -4221,6 +4223,7 @@ const eureBuehneTeamAdresse = () => email.replace("@", "+zztest-eurebuehne-team@
 const eureBuehneEintragAdresse = () => email.replace("@", "+zztest-eurebuehne-1@");
 
 /** PART-138 Teil 2: die zwei Programmpunkte — `teamSpeaker` trägt die TEST-Person ein (unbestätigt, sonst sperrt `partner_add_speaker` mit `slot_locked`). */
+const EURE_BUEHNE_BESCHREIBUNG = "Testprogrammpunkt für „Eure Bühne“ (PART-138).";
 const EURE_BUEHNE_PUNKTE = [
   { titel: `${PREFIX}Eure Bühne: Programmpunkt mit Team-Speaker`, von: "14:30", bis: "15:00", teamSpeaker: true },
   { titel: `${PREFIX}Eure Bühne: Programmpunkt ohne Speaker`, von: "15:30", bis: "16:00", teamSpeaker: false },
@@ -4237,7 +4240,13 @@ const EURE_BUEHNE_PUNKTE = [
  * eintragen“ → Vorname TEST, Nachname Eintrag, E-Mail wie unten, „Eigener Zugang“ → die Zeile steht in der Tabelle des Programmpunkts. `/partner/talk` zeigt die beiden
  * Programmpunkte nicht (sie gehören zu „Eure Bühne“).
  *
- * Direkt geschrieben, ohne Mail. Ein zweiter Lauf lässt Vorhandenes stehen. `--remove` nimmt die Sessions (Slots gehen mit der Bühne) und beide TEST-Personen mit
+ * **PART-148 c — Veröffentlichen:** beide Karten tragen oben rechts „Veröffentlichen“ (Anfrage an die Programmleitung; bei fehlendem englischem Titel oder fehlender Beschreibung ist der Knopf
+ * aus und die Karte nennt den Grund mit dem Weg in den Kalender). Nach „Veröffentlichen“ → „Zur Freigabe“ (Knopf „Zurücknehmen“); unter `/admin/einreichungen` steht die Anfrage mit der
+ * Test-Organisation (Reiter Slots, Abschnitt „Partnerbühnen“), dort freigeben oder mit Grund zurückgeben — die Karte zeigt dann „Zurückgegeben“ mit dem Grund beziehungsweise „Veröffentlicht“. Die Organisation wird dabei **nicht**
+ * an der Session gespeichert (sie bleibt ohne), und es kommt keine Änderungsmail. Jeder Lauf des Schritts setzt beide Programmpunkte auf Entwurf zurück (ohne Rückgabe, ohne gespeicherte
+ * Organisation, Slot wie am Anfang; fehlende Titel- und Beschreibungsfelder werden ergänzt), damit sich der Weg wiederholen lässt.
+ *
+ * Direkt geschrieben, ohne Mail. Ein zweiter Lauf lässt sonst Vorhandenes stehen. `--remove` nimmt die Sessions (Slots gehen mit der Bühne) und beide TEST-Personen mit
  * ihren Profilen weg — auch die, die Konrad über „Speaker eintragen“ mit `+zztest-eurebuehne-1` angelegt hat.
  */
 async function eureBuehneSchritt(me, ed) {
@@ -4267,7 +4276,7 @@ async function eureBuehneSchritt(me, ed) {
       if (da) return { data: da.id, error: null };
       const { data, error } = await admin.from("session").insert({
         event_id: sum.id, slot_id: slotId, format: "talk", title_de: p.titel, title_en: p.titel,
-        description_de: "Testprogrammpunkt für „Eure Bühne“ (PART-138).", language: "de", access_mode: "open", publish_status: "draft",
+        description_de: EURE_BUEHNE_BESCHREIBUNG, language: "de", access_mode: "open", publish_status: "draft",
       }).select("id").single();
       return { data: data?.id ?? null, error };
     });
@@ -4279,8 +4288,33 @@ async function eureBuehneSchritt(me, ed) {
         ),
       );
     }
+    if (sessionId) {
+      // PART-148 c: „Veröffentlichen“ lässt sich wieder ausprobieren — Entwurf, ohne Rückgabe, ohne gespeicherte Organisation, Slot wie am Anfang.
+      await write(`${p.titel}: Veröffentlichung zurückgesetzt (Entwurf, ohne Rückgabe, ohne gespeicherte Organisation)`, async () => {
+        const { data: se, error: e1 } = await admin
+          .from("session")
+          .select("id, slot_id, title_de, title_en, description_de, description_en, publish_status, partner_org_id")
+          .eq("id", sessionId)
+          .single();
+        if (e1) return { data: null, error: e1 };
+        const patch = {};
+        if (se.publish_status !== "draft") patch.publish_status = "draft";
+        if (se.partner_org_id !== null) patch.partner_org_id = null;
+        if (!se.title_en?.trim()) patch.title_en = se.title_de?.trim() || p.titel;
+        if (!se.description_de?.trim() && !se.description_en?.trim()) patch.description_de = EURE_BUEHNE_BESCHREIBUNG;
+        if (Object.keys(patch).length > 0) {
+          const { error } = await admin.from("session").update(patch).eq("id", sessionId);
+          if (error) return { data: null, error };
+        }
+        const { error: e2 } = await admin.from("partner_session_return").delete().eq("session_id", sessionId);
+        if (e2) return { data: null, error: e2 };
+        const { error: e3 } = await admin.from("slot").update({ status: "confirmed_title_open" }).eq("id", se.slot_id).neq("status", "confirmed_title_open");
+        return { data: sessionId, error: e3 };
+      });
+    }
   }
   note("Eure Bühne ausprobieren", `/partner/buehne → Reiter „Speaker“: zweiter Programmpunkt → „Speaker eintragen“ → Vorname TEST, Nachname Eintrag, E-Mail ${eureBuehneEintragAdresse()}`);
+  note("Veröffentlichen ausprobieren (PART-148 c)", "/partner/buehne → Reiter „Speaker“: „Veröffentlichen“ → Rückfrage → „Zur Freigabe“; /admin/einreichungen (Reiter Slots, „Partnerbühnen“): freigeben oder mit Grund zurückgeben; zurück in der Karte „Zurückgegeben“ mit Grund, „Zurücknehmen“ bei „Zur Freigabe“");
 }
 
 /** ADM-072: so erkennt man im Admin und beim Aufräumen die drei wartenden TEST-Freigaben. */

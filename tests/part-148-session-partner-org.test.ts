@@ -29,6 +29,9 @@ function funktionen(sql: string): Map<string, string> {
 }
 
 const SNAPSHOT = "supabase/snapshot/functions";
+/** Zusätzlich zu `partner_*`: die Freigabe der Programmleitung zu den Anfragen — sie leitet die Organisation seit PART-148 (c) ebenfalls ab. */
+const WAECHTER_DATEI = /^(partner_.*|release_partner_session)\.sql$/;
+const WAECHTER_NAME = (n: string) => n.startsWith("partner_") || n === "release_partner_session";
 const snapshotText = (name: string) => readFileSync(`${SNAPSHOT}/${name}.sql`, "utf8");
 const VIER = ["partner_format_sessions", "partner_update_session", "partner_add_speaker", "partner_speakers"] as const;
 
@@ -119,8 +122,9 @@ describe("PART-148 B: die Migration", () => {
 });
 
 /**
- * Jede `partner_*`-Funktion, die `partner_org_id` liest, aber den Helfer nicht nimmt, steht hier — mit dem Grund. Neue Funktionen müssen sich entscheiden: Helfer nehmen oder
- * hier eintragen (und begründen). PART-148 (c) holt `partner_request_publish` und `partner_withdraw_publish` aus dieser Liste.
+ * Jede `partner_*`-Funktion (und `release_partner_session`, die Freigabe dazu), die `partner_org_id` liest, aber den Helfer nicht nimmt, steht hier — mit dem Grund. Neue Funktionen müssen
+ * sich entscheiden: Helfer nehmen oder hier eintragen (und begründen). PART-148 (c) hat `partner_request_publish`, `partner_withdraw_publish` und `partner_sessions_pending` aus dieser
+ * Liste geholt (sie leiten die Organisation ab) und `release_partner_session` in den Wächter aufgenommen.
  */
 const AUSNAHMEN: Record<string, string> = {
   partner_assign_stage_guest: "Gäste der Standbühne (PART-081): vergleicht Bühne, Gastgeber und Session bewusst mit der Organisation des Gastes",
@@ -132,26 +136,24 @@ const AUSNAHMEN: Record<string, string> = {
   partner_overview: "Bühnenbesitz (`stage.partner_org_id`), keine Session",
   partner_remove_stage_guest: "Gäste der Standbühne, wie partner_assign_stage_guest",
   partner_request_question: "eigene Fragen an Format-Sessions des Partners (Masterclass, Interview Table, Side-Event); an der gebrandeten Bühne gibt es keine Bewerbungsfragen",
-  partner_request_publish: "PART-148 (c): `kind in ('booth','branded')` mit dem Helfer folgt in einem eigenen PR",
-  partner_sessions_pending: "Liste der Freigabeanfragen für das Team: nur Sessions mit eigener Organisation fragen an",
   partner_set_session_questions: "Katalogfragen der Format-Sessions des Partners, wie partner_request_question",
   partner_stage_guests: "Gäste der Standbühne (PART-081)",
   partner_window_binds: "Bühnenbesitz (`stage.partner_org_id`), keine Session",
-  partner_withdraw_publish: "PART-148 (c), wie partner_request_publish",
 };
 
 /** Die Fassung, die gilt: die Live-Fassung im Snapshot, überdeckt von den Funktionen der Migration (solange sie ein Vorschlag ist; danach steht sie im Snapshot). */
 function geltende(): Map<string, string> {
   const m = new Map<string, string>();
   for (const datei of readdirSync(SNAPSHOT)) {
-    if (!/^partner_.*\.sql$/.test(datei)) continue;
+    if (!WAECHTER_DATEI.test(datei)) continue;
     m.set(datei.replace(/\.sql$/, ""), readFileSync(`${SNAPSHOT}/${datei}`, "utf8"));
   }
-  for (const [n, t] of funktionen(migration())) if (n.startsWith("partner_")) m.set(n, t);
+  for (const [n, t] of funktionen(migration())) if (WAECHTER_NAME(n)) m.set(n, t);
+  for (const [n, t] of funktionen(migrationText("v6_partner_publish_gebrandet"))) if (WAECHTER_NAME(n)) m.set(n, t);
   return m;
 }
 
-describe("PART-148 B: Wächter über alle partner_*-Funktionen", () => {
+describe("PART-148 B: Wächter über alle partner_*-Funktionen und die Freigabe", () => {
   it("wer `partner_org_id` liest, nimmt den Helfer (und liest die der Session nicht selbst) oder steht mit Grund in der Ausnahmeliste", () => {
     const f = geltende();
     assert.ok(f.size > 40, `zu wenige partner_*-Funktionen gefunden (${f.size})`);
