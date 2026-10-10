@@ -272,7 +272,7 @@ describe("Verdrahtung: Aktion, Lader, Seite", () => {
     assert.match(speichern, /if \(geaendert\) \{\s+const res = await setSessionQuestions/);
     assert.match(speichern, /if \(mitUebernahme\) \{\s+const res = await copyTableQuestions/);
     // Der Hauptknopf trägt keine Variante (primär); der zweite ist `secondary` und nur bei einer Änderung bedienbar.
-    assert.match(k, /<Button loading=\{pending && aktion === "alle"\} disabled=\{pending && aktion !== "alle"\} onClick=\{\(\) => speichern\(true\)\}>\s*\{t\.vorgabeSaveAll\.replace\("\{n\}", String\(anzahl\)\)\}/);
+    assert.match(k, /<Button loading=\{pending && aktion === "alle"\} disabled=\{pending && aktion !== "alle"\} onClick=\{\(\) => speichern\(true\)\}>\s*(?:\{\}\s*)?<span className="sm:hidden">\{t\.vorgabeSaveAllShort\}<\/span>\s*<span className="max-sm:hidden">\{t\.vorgabeSaveAll\.replace\("\{n\}", String\(anzahl\)\)\}<\/span>\s*<\/Button>/);
     assert.match(k, /variant="secondary"\s+loading=\{pending && aktion === "nur"\}\s+disabled=\{!geaendert \|\| \(pending && aktion !== "nur"\)\}\s+onClick=\{\(\) => speichern\(false\)\}/);
     // Ein Fehler steht neben den Knöpfen und nennt das Gespräch.
     assert.equal((k.match(/setFehler\(uebernahmeFehler\(res, rpcMessages, titelJe, t\.vorgabeErrorAt\)\)/g) ?? []).length, 2, "beim Speichern wie beim Übernehmen");

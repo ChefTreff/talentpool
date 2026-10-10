@@ -5374,6 +5374,7 @@
     "vorgabeLead": "Diese Fragen gelten für alle {n} Gespräche dieses Tisches. Ihr pflegt sie einmal — am ersten Gespräch ({gespraech}) — und übernehmt sie mit einem Klick auf die anderen.",
     "vorgabeSame": "Alle Gespräche hatten die Vorgabe schon.",
     "vorgabeSaveAll": "Speichern und auf alle {n} Gespräche übernehmen",
+    "vorgabeSaveAllShort": "Speichern und übernehmen",
     "vorgabeSaveOnly": "Nur die Vorgabe speichern",
     "vorgabeSaved": "Vorgabe gespeichert. Die anderen Gespräche bleiben, wie sie sind.",
     "vorgabeTitle": "Tischvorgabe"

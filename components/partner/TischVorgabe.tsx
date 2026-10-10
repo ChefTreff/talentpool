@@ -117,7 +117,10 @@ export function TischVorgabe({
       {canEdit && (
         <div className="flex flex-wrap items-center gap-3">
           <Button loading={pending && aktion === "alle"} disabled={pending && aktion !== "alle"} onClick={() => speichern(true)}>
-            {t.vorgabeSaveAll.replace("{n}", String(anzahl))}
+            {/* Unter 640 px die Kurzform (Design 10.10.2026, Sichtprüfung PART-150): „Speichern und auf alle 6 Gespräche übernehmen“ bricht bei 375 px in zwei Zeilen,
+                und ein Kit-Knopf hat feste Höhe — der Text stand mit 39 px in 44. Die Zahl steht im Satz darüber („für alle {n} Gespräche“) und in der Meldung danach. */}
+            <span className="sm:hidden">{t.vorgabeSaveAllShort}</span>
+            <span className="max-sm:hidden">{t.vorgabeSaveAll.replace("{n}", String(anzahl))}</span>
           </Button>
           <Button
             variant="secondary"
