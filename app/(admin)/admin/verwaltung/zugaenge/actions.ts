@@ -183,37 +183,35 @@ export async function findPeople(query: string): Promise<GefundenePerson[]> {
   return (data ?? []) as GefundenePerson[];
 }
 
+export type RollenErgebnis = { ok: true; neu: boolean; mail: TeamMail } | { ok: false; key: string; detail?: string };
+
 /**
- * Eine Teamrolle vergeben (vorher `/admin/team`, ADM-094). Dieselbe Funktion wie `/admin/rollen`
- * (`assign_role`, prüft `has_role('admin')` und schreibt ins Audit-Log) — die Seite ist ein zweiter Blick,
- * kein zweiter Weg in die Tabelle.
+ * Eine Teamrolle vergeben (vorher `/admin/team`, ADM-094) — „+ Rolle“ in der Liste und „Aus dem Talentpool“.
  *
- * `editionId` setzt den Scope auf die Edition. Die Rolle `admin` ist ausdrücklich global: ein Admin, der nur
- * für eine Edition gilt, wäre im nächsten Jahr lautlos keiner mehr.
+ * Über `grant_team_role` (Abschnitt `access`, ruft `assign_role`, schreibt das Audit): dieselbe Regel wie „Neu einladen“ (ADM-086) — hat die Person
+ * schon ein Konto und ist die Rolle neu, reiht die Datenbank die Hinweismail „Du bist jetzt im Team“ ein (Adresse aus der Datenbank, nie aus dem
+ * Formular). Die Antwort sagt in `mail`, was daraus wurde, und in `neu`, ob die Rolle überhaupt dazukam.
+ *
+ * `editionId` setzt die Geltung auf die Edition. Die Rolle `admin` ist ausdrücklich global: ein Admin, der nur für eine Edition gilt, wäre im
+ * nächsten Jahr lautlos keiner mehr — die Datenbank erzwingt das, die Oberfläche bietet es gar nicht erst an.
  */
-export async function grantTeamRole(personId: string, role: string, editionId?: string | null): Promise<Ergebnis> {
+export async function grantTeamRole(personId: string, role: string, editionId?: string | null): Promise<RollenErgebnis> {
   await requireAdminSection("access", PFAD);
   const supabase = await createSupabaseServerClient();
-  const scoped = role !== "admin" && Boolean(editionId);
-  const { error } = await supabase.rpc("assign_role", {
+  const { data, error } = await supabase.rpc("grant_team_role", {
     p_person_id: personId,
     p_role: role,
-    p_scope_type: scoped ? "edition" : "global",
-    p_scope_id: null,
-    p_edition_id: scoped ? editionId : null,
-    p_portal: null,
-    p_valid_from: null,
-    p_valid_to: null,
-    p_note: "Team (Admin)",
+    p_edition_id: role !== "admin" && editionId ? editionId : null,
   });
   if (error) {
     const f = toRpcFailure(error);
-    if (f.key === "unknown") console.error("[zugaenge] assign_role:", f.raw);
+    if (f.key === "unknown") console.error("[zugaenge] grant_team_role:", f.raw);
     return { ok: false, key: f.key, detail: f.detail };
   }
+  const r = data as { granted: boolean; mail?: TeamMail };
   revalidatePath(PFAD);
   revalidatePath("/admin/rollen");
-  return { ok: true };
+  return { ok: true, neu: r.granted, mail: r.mail ?? "none" };
 }
 
 /**
