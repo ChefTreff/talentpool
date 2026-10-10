@@ -104,6 +104,14 @@ export function summeOffen(zaehler: FreigabeZaehler): number {
   return FREIGABE_ARTEN.reduce((n, a) => n + (zaehler[a] ?? 0), 0);
 }
 
+/**
+ * Beschriftung eines Reiters mit der Zahl der wartenden Einträge: „Freigabe (3)“ — wie die Arten auf der Freigabe-Seite (ADM-072). Ohne bekannte Zahl (die Person darf
+ * die Art nicht entscheiden, oder der Zähler war nicht zu laden) bleibt es der bloße Name: ein Reiter ohne Zahl ist besser als einer mit falscher.
+ */
+export function reiterMitZahl(text: string, n: number | undefined): string {
+  return typeof n === "number" && Number.isInteger(n) && n >= 0 ? `${text} (${n})` : text;
+}
+
 /** Adresse der zentralen Freigabe-Übersicht — der Menüpunkt und die Unterpunkte zeigen dorthin. */
 export const FREIGABE_PFAD = "/admin/einreichungen";
 
