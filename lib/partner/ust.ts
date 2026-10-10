@@ -19,5 +19,5 @@ export function ustSaetze(
   ].sort((a, b) => a - b);
   if (saetze.length === 0) return null;
   const zahl = new Intl.NumberFormat(dateLocale, { maximumFractionDigits: 2 });
-  return saetze.map((r) => `${zahl.format(r)} %`).join(" · ");
+  return saetze.map((r) => `${zahl.format(r)}\u00a0%`).join(" · ");
 }

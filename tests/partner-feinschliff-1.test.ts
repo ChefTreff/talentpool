@@ -37,6 +37,9 @@ describe("PART-117: Umsatzsteuersätze einer Bestellung", () => {
 
   it("numeric kommt auch als Text an („19“) und Nachkommastellen folgen der Sprache", () => {
     assert.equal(ustSaetze([{ vat_rate: "19" }, { vat_rate: 19 }], "de-DE"), `19${NBSP}%`);
+    // Nur Text, keine Zahl daneben: ohne Wandlung bliebe der Satz weg.
+    assert.equal(ustSaetze([{ vat_rate: "7" }], "de-DE"), `7${NBSP}%`);
+    assert.equal(ustSaetze([{ vat_rate: "19" }, { vat_rate: "7" }], "de-DE"), `7${NBSP}% · 19${NBSP}%`);
     assert.equal(ustSaetze([{ vat_rate: 5.5 }], "de-DE"), `5,5${NBSP}%`);
     assert.equal(ustSaetze([{ vat_rate: 5.5 }], "en-GB"), `5.5${NBSP}%`);
   });
