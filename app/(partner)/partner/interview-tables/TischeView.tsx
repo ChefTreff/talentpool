@@ -10,14 +10,13 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { useUngesichert, type UngesichertTexte } from "@/components/ui/useUngesichert";
-import { ProfilAuswahl, profilUmschalten, type ProfilFeld, type Zielprofil } from "@/components/partner/ProfilAuswahl";
+import { ProfilAuswahl, profilUmschalten, type ProfilFeld, type ProfilOption, type Zielprofil } from "@/components/partner/ProfilAuswahl";
 import { createFormatSession, deleteFormatSession, setInterviewPosting } from "../actions";
 import { EVENT_TZ, MAX_SLOTS, rechneSlots, type PartnerDay, type PartnerStage } from "../formate";
 import type { PartnerFormatSession } from "../talk/types";
 import { RueckgabeHinweis, SessionStatusBadge, rueckgabeOffen, type RueckgabeTexte } from "../Rueckgabe";
 
 type Strings = Record<string, string>;
-type VokabularOption = { key: string; label: string };
 
 /**
  * Interview Tables (PART-048, ehem. Speed-Dating).
@@ -60,7 +59,7 @@ export function TischeView({
   days: PartnerDay[];
   canEdit: boolean;
   /** Dieselben Auswahlfelder wie im Teilnehmerprofil (D1). */
-  profilFelder: Record<"occupation_status" | "career_level" | "study_field", VokabularOption[]>;
+  profilFelder: Record<ProfilFeld, ProfilOption[]>;
   statusLabel: Record<string, string>;
   /** PART-083: Kennzeichen und Hinweis bei einer zurückgegebenen Session. */
   rueckgabe: RueckgabeTexte;

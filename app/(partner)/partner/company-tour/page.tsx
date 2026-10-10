@@ -4,6 +4,7 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { ContactCard } from "@/components/ui/ContactCard";
 import { contactPhotoUrl } from "@/components/kontakt/photo";
 import { TourStopp } from "@/components/partner/TourStopp";
+import { profilFelderAus } from "@/components/partner/profil";
 import { updateTourStop } from "../actions";
 import { ladeTour, zeitraum } from "./daten";
 import { TourKopf } from "./TourKopf";
@@ -32,12 +33,8 @@ export default async function PartnerCompanyTourPage({ searchParams }: { searchP
   const { supabase, locale, t, stopps, gewaehlt, instanzen, gebucht, canEdit } = await ladeTour(instanz);
   const s = t.partnerTour;
   const vocab = await loadVocabMap(supabase, locale);
-  const alsListe = (m: Record<string, string>) => Object.entries(m).map(([key, label]) => ({ key, label }));
-  const felder = {
-    occupation_status: alsListe(vgroup(vocab, "occupation_status")),
-    career_level: alsListe(vgroup(vocab, "career_level")),
-    study_field: alsListe(vgroup(vocab, "study_field")),
-  };
+  // K-94: die fünf Felder des Wunschprofils aus den Vokabulargruppen (ohne „nicht interessiert“, das beschreibt eine Person).
+  const felder = profilFelderAus((name) => vgroup(vocab, name));
 
   return (
     <>

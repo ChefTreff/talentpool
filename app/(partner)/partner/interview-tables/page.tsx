@@ -7,6 +7,7 @@ import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { InstanzWahl } from "@/components/layout/InstanzWahl";
+import { profilFelderAus } from "@/components/partner/profil";
 import { instanzKennung, instanzSuffix, tischWahl } from "@/lib/partner/instanz";
 import { getPartnerScope } from "../org";
 import { ladeFlaechen } from "../formate";
@@ -62,14 +63,9 @@ export default async function PartnerInterviewTablesPage({ searchParams }: { sea
   const { gewaehlt, instanzen } = tischWahl(flaechen.stages, sessions, instanzKennung(instanz), (n) => s.instanceNumber.replace("{n}", String(n)));
 
   // Dieselben Auswahlfelder wie im Teilnehmerprofil (Konrad, D1): der Partner
-  // soll nach denselben Merkmalen suchen, nach denen sich Talente beschreiben.
-  const profilFelder = {
-    occupation_status: vgroup(vocab, "occupation_status"),
-    career_level: vgroup(vocab, "career_level"),
-    study_field: vgroup(vocab, "study_field"),
-  };
-  const alsListe = (m: Record<string, string>) =>
-    Object.entries(m).map(([key, label]) => ({ key, label }));
+  // soll nach denselben Merkmalen suchen, nach denen sich Talente beschreiben —
+  // seit K-94 Status, Studienfeld, Skills, Fachbereich und Kategorie.
+  const profilFelder = profilFelderAus((name) => vgroup(vocab, name));
 
   return (
     <>
@@ -111,11 +107,7 @@ export default async function PartnerInterviewTablesPage({ searchParams }: { sea
             sessions={sessions.filter((x) => x.stage_id === gewaehlt.id)}
             days={flaechen.days.filter((d) => d.event_id === gewaehlt.event_id)}
             canEdit={canEdit}
-            profilFelder={{
-              occupation_status: alsListe(profilFelder.occupation_status),
-              career_level: alsListe(profilFelder.career_level),
-              study_field: alsListe(profilFelder.study_field),
-            }}
+            profilFelder={profilFelder}
             statusLabel={vgroup(vocab, "publish_status")}
             rueckgabe={{
               badge: t.partner.returnedBadge,

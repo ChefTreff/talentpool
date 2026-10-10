@@ -3,6 +3,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import type { GastRow } from "@/components/partner/gaeste";
 import type { TourStopp } from "@/components/partner/tour";
+import { profilFelderAus } from "@/components/partner/profil";
 import type { OffeneFragen } from "./FragenFreigabe";
 import { gastFotoAdressen } from "@/lib/partner/gaeste";
 import { instanzKennung, stoppWahlMitTexten } from "@/lib/partner/instanz";
@@ -105,7 +106,6 @@ export default async function AdminPartnerOrgPage({
         .map((f) => ({ id: f.id, label_de: f.label_de ?? "—", label_en: f.label_en, type: f.type, options: f.options ?? null, purpose: f.purpose })),
     }))
     .filter((x) => x.fragen.length > 0);
-  const alsListe = (m: Record<string, string>) => Object.entries(m).map(([key, label]) => ({ key, label }));
 
   const contactRows = (contacts ?? []) as AdminContact[];
 
@@ -152,11 +152,7 @@ export default async function AdminPartnerOrgPage({
       talkSpeakers={((speakerZeilen ?? []) as AdminTalkSpeaker[]).filter((sp) => sp.session_id)}
       tourStopp={tour.gewaehlt}
       tourInstanzen={tour.instanzen}
-      tourFelder={{
-        occupation_status: alsListe(vgroup(vocab, "occupation_status")),
-        career_level: alsListe(vgroup(vocab, "career_level")),
-        study_field: alsListe(vgroup(vocab, "study_field")),
-      }}
+      tourFelder={profilFelderAus((name) => vgroup(vocab, name))}
       tourTexts={t.partnerTour}
       // PART-054: ob der Partner Goodies zur Masterclass einsendet — dieselbe Maske wie im Portal.
       masterclasses={formate.filter((x) => x.format === "masterclass")}

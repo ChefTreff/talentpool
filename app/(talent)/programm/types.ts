@@ -1,3 +1,5 @@
+import { PROFIL_FELDER } from "@/components/partner/profil";
+
 /** Zeile aus der View `programme_public` (nur veröffentlichte Sessions). */
 export type ProgrammeSession = {
   session_id: string;
@@ -126,14 +128,17 @@ export type FormatDetails = {
   } | null;
 };
 
-/** Gesuchte Profile → Beschriftungen, in fester Reihenfolge der drei Merkmale. */
+/**
+ * Gesuchte Profile → Beschriftungen, in fester Reihenfolge der fünf Merkmale (K-94: Status, Studienfeld, Skills, Fachbereich, Kategorie — dieselbe Liste wie
+ * `PROFIL_FELDER` der Partnerseite). `career_level` gehört nicht mehr dazu: die Datenbank nimmt es nicht mehr an, und es ist Selbstauskunft am Profil.
+ */
 export function targetProfileLabels(
   tp: Record<string, string[]> | null | undefined,
   label: (vocabulary: string, key: string) => string,
 ): string[] {
   if (!tp || typeof tp !== "object") return [];
   const out: string[] = [];
-  for (const v of ["occupation_status", "career_level", "study_field"]) {
+  for (const v of PROFIL_FELDER) {
     for (const k of Array.isArray(tp[v]) ? tp[v] : []) out.push(label(v, k));
   }
   return out;

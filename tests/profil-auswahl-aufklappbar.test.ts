@@ -45,9 +45,9 @@ describe("Von der neuen Liste zum einen umgeschalteten Schlüssel", () => {
   });
 
   it("die letzte Wahl entfernt das Feld ganz (nichts Leeres wird gespeichert)", () => {
-    let profil: Zielprofil = { career_level: ["junior"], study_field: ["bwl"] };
+    let profil: Zielprofil = { skill: ["programming"], study_field: ["bwl"] };
     for (const key of geaenderteSchluessel(["bwl"], [])) profil = profilUmschalten(profil, "study_field", key);
-    assert.deepEqual(profil, { career_level: ["junior"] });
+    assert.deepEqual(profil, { skill: ["programming"] });
   });
 });
 
