@@ -82,3 +82,12 @@ export type AnweisungsSlot = {
 /** Die Felder, die Stage Leads je Slot schreiben (`set_regie_anweisungen`). */
 export const ANWEISUNG_FELDER = ["people_on_stage", "mic", "media", "mobiliar", "notes"] as const;
 export type AnweisungFeld = (typeof ANWEISUNG_FELDER)[number];
+
+/**
+ * Anweisungen lassen sich nur für Slots **mit Session** eintragen (LEAD-057, Paulina 05.10.: „ausfüllbar nur für Slots mit zugeordneter Session … keine
+ * Eingabe für leere Slots“). Ein leerer Slot steht in der Liste, damit man den Plan der Bühne sieht, trägt aber keine Felder — Personen auf der Bühne,
+ * Mikrofone und Medien gehören zu einem Auftritt. Die Produktion plant Cues ohne Session (Doors open, Umbau, Puffer) weiter unter `/admin/regie`.
+ */
+export function anweisungenMoeglich(slot: { session_id: string | null }): boolean {
+  return typeof slot.session_id === "string" && slot.session_id !== "";
+}

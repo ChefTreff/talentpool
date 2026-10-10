@@ -11,7 +11,7 @@ import { neuesFenster } from "@/components/ui/neues-fenster";
 import { formatDay } from "@/lib/tz";
 import { saveAnweisungen } from "./actions";
 import { TechAnsage } from "./TechAnsage";
-import type { AnweisungFeld, AnweisungsSlot } from "./types";
+import { anweisungenMoeglich, type AnweisungFeld, type AnweisungsSlot } from "./types";
 
 type Strings = Record<string, string>;
 
@@ -30,6 +30,11 @@ type Strings = Record<string, string>;
  * technical stuff)“ und hier deshalb „Besondere Anforderungen (z. B. Technik)“.
  * Die Moderation ist kein Feld, sondern steht an der Session — die Spalte liest
  * die Session-Speaker mit der Rolle Moderation.
+ *
+ * **Nur für Slots mit Session** (LEAD-057, Paulina 05.10.): ein Slot ohne Session
+ * steht als Zeile da — Zeit, „Noch keine Session“ und ein Satz, wann es losgeht —,
+ * aber ohne Eingabefelder (`anweisungenMoeglich`). Die Felder erscheinen, sobald
+ * eine Session im Slot steht.
  *
  * **Keine neuen Slots, keine Zeiten**: die Zeit steht nur zum Lesen da, und
  * `set_regie_anweisungen` nimmt nichts anderes als die fünf Felder. Den Plan
@@ -165,6 +170,23 @@ function Zeile({
       }}
     />
   );
+
+  // LEAD-057: ohne Session keine Felder — die Zeile trägt nur die Zeit und den Hinweis. Sieben Spalten dahinter (Moderation bis Notizen), zwei davor.
+  if (!anweisungenMoeglich(slot)) {
+    return (
+      <Tr>
+        <Td className="whitespace-nowrap tabular-nums text-muted">
+          {hhmm.format(new Date(slot.start_at))}–{hhmm.format(new Date(slot.end_at))}
+        </Td>
+        <Td>
+          <span className="ct-label text-muted">{t.regieNoSession}</span>
+        </Td>
+        <Td colSpan={7}>
+          <span className="ct-help">{t.regieEmptySlot}</span>
+        </Td>
+      </Tr>
+    );
+  }
 
   const person = (s: { first_name: string | null; last_name: string | null }) =>
     [s.first_name, s.last_name].filter(Boolean).join(" ");
