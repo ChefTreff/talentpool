@@ -146,8 +146,8 @@ describe("TAL-020 B1, B2, B8: die Ansicht (Quelltext)", () => {
 
   it("B1: die Zusammenfassung kommt aus dem Gespeicherten, nie aus den Formularwerten; solange nichts gespeichert ist, heißt der Knopf „Ausfüllen“", () => {
     assert.doesNotMatch(ansicht, /v\.first_name \|\| v\.last_name/);
-    assert.match(ansicht, /\{gespeichert \? \[gespeichert\.first_name, gespeichert\.last_name\]/);
-    assert.match(ansicht, /: t\.skippedText\}/);
+    assert.match(ansicht, /gespeichert && \(\s*<p className="ct-small mt-2">\s*\{\[gespeichert\.first_name, gespeichert\.last_name\]/, "die Zusammenfassung steht nur bei gespeicherten Angaben");
+    assert.doesNotMatch(ansicht, /skippedText/, "ein offenes Ticket zeigt den Zustand (Badge) und „Ausfüllen“, keine Zusammenfassung");
     assert.match(ansicht, /\{gespeichert \? t\.edit : t\.fill\}/);
     assert.match(ansicht, /setGespeichert\(\{ first_name: v\.first_name\.trim\(\)/, "nach dem Speichern wird das Gespeicherte nachgezogen");
   });
@@ -162,15 +162,14 @@ describe("TAL-020 B3: kein Versprechen ohne Weg", () => {
   const de = JSON.parse(lies("lib/i18n/de.json")).ticketBestaetigung as Record<string, string>;
   const en = JSON.parse(lies("lib/i18n/en.json")).ticketBestaetigung as Record<string, string>;
 
-  it("weder der Satz beim Überspringen noch der Hinweis am Feld Firma versprechen, es „jederzeit“ oder „später im Portal“ zu ergänzen — `/tickets` kennt den Weg noch nicht", () => {
+  it("kein Text der Seite verspricht, etwas „jederzeit“ oder „später im Portal“ zu ergänzen — `/tickets` kennt den Weg noch nicht", () => {
     const warum = "Das Versprechen darf erst zurück, wenn `/tickets` einen Weg zur Bestätigung hat (TAL-020 B3, Talent mit Teil 3).";
-    assert.doesNotMatch(de.skippedText, /jederzeit|später/i, warum);
-    assert.doesNotMatch(de.badgeHint, /jederzeit|später/i, warum);
-    assert.doesNotMatch(en.skippedText, /any time|anytime|later/i, warum);
-    assert.doesNotMatch(en.badgeHint, /any time|anytime|later/i, warum);
+    for (const [sprache, woerter] of [["de", de], ["en", en]] as const) {
+      for (const [key, text] of Object.entries(woerter)) assert.doesNotMatch(text, /jederzeit|später|any ?time|\blater\b/i, `${sprache}.${key}: ${warum}`);
+    }
   });
 
   it("der neue Knopftext und die Fehlertexte stehen in beiden Sprachen", () => {
-    for (const k of ["fill", "ticket_not_valid", "ticket_not_found", "skippedText", "badgeHint"]) assert.ok(de[k] && en[k], k);
+    for (const k of ["fill", "ticket_not_valid", "ticket_not_found", "badgeHint"]) assert.ok(de[k] && en[k], k);
   });
 });
