@@ -7,10 +7,10 @@
 -- Abweichung). Wegwerfdaten, alles zurückgerollt.
 --   01 Form: alle vier Funktionen nehmen den Helfer, sind Definer mit gepinntem search_path, für `authenticated` ausführbar und für `anon` nicht.
 --   02 Anfrage an der gebrandeten Bühne: unvollständig ⇒ 22023 mit den fehlenden Feldern; Team-Session ohne Organisation ⇒ review (nichts gespeichert, Audit mit der Organisation), zweiter Aufruf ändert nichts;
---      eigene Session, Session mit Gastgeber A; abgewiesen: Gastgeber B, Session von B auf der Bühne von A, Bühne von B, Bühne von C (nur Leser), Hauptbühne, Tisch, Raum, Side-Event-Ort, Standbühne ohne Partner, ohne Slot,
+--      eigene Session, Session mit Gastgeber A, Programmleitung an der gebrandeten Bühne; abgewiesen: Gastgeber B, Session von B auf der Bühne von A, Bühne von B, Bühne von C (nur Leser), Hauptbühne, Tisch, Raum, Side-Event-Ort, Standbühne ohne Partner (als Programmleitung, der das Recht am Slot nicht fehlt), ohne Slot,
 --      nicht eingeloggt (28000); abgesagt (P0001), unbekannt (P0002); veröffentlicht bleibt veröffentlicht.
 --   03 Standbühne unverändert (Regression): anfragen ⇒ review **und Organisation gespeichert**; zurücknehmen ⇒ draft.
---   04 Zurücknehmen: ok, zweimal ändert nichts, als Leser in C, an der Hauptbühne und für die Session von B abgewiesen; veröffentlicht bleibt.
+--   04 Zurücknehmen: ok (und der Stand ist wirklich `draft`), zweimal ändert nichts, als Leser in C, an der Hauptbühne und für die Session von B abgewiesen; veröffentlicht bleibt.
 --   05 Liste des Teams: Partner ⇒ 42501; Team sieht die angefragte Team-Session mit der Organisation der Bühne (auch die auf der Bühne von B — mit B), die Standbühnen-Session, nicht den Entwurf und nicht
 --      die in `review` stehende Session der Hauptbühne. Freigabe: Hauptbühne ⇒ not_a_partner_session, Partner ⇒ 42501; Rückgabe ohne Grund ⇒ fields_required, mit Grund ⇒ draft, Slot „angefragt“,
 --      Grund beim Partner (`partner_format_sessions`), nichts gespeichert.
@@ -42,6 +42,7 @@ insert into t_erw values
   ('02n_ohne_slot', '^rejected 42501 not allowed$'),
   ('02o_anonym', '^rejected 28000 not authenticated$'),
   ('02s_stand_ohne_organisation', '^rejected 42501 not allowed$'),
+  ('02t_programmleitung_darf', '^ok review$'),
   ('02p_abgesagt', '^rejected P0001 not_editable / cancelled$'),
   ('02q_unbekannt', '^rejected P0002 session_not_found$'),
   ('02r_veroeffentlicht', '^ok published$'),
@@ -50,6 +51,7 @@ insert into t_erw values
   ('03_stand_gespeichert', '^ok org_a=true status=review$'),
   ('03b_stand_zurueck', '^ok draft$'),
   ('04a_zuruecknehmen', '^ok draft$'),
+  ('04_status_nach_zuruecknehmen', '^ok status=draft$'),
   ('04b_zuruecknehmen_nochmal', '^ok draft$'),
   ('04c_zuruecknehmen_leser', '^rejected 42501 not allowed$'),
   ('04d_zuruecknehmen_haupt', '^rejected 42501 not allowed$'),
@@ -68,7 +70,7 @@ insert into t_erw values
   ('06a_erneut', '^ok review$'),
   ('06_grund_bleibt', '^ok grund=true status=review$'),
   ('06b_zurueck', '^ok draft$'),
-  ('06_zurueckgenommen_audit', '^ok audit=true$'),
+  ('06_zurueckgenommen_audit', '^ok audit=true status=draft$'),
   ('06c_nochmal', '^ok review$'),
   ('06d_freigabe', '^ok$'),
   ('06_freigegeben', '^ok status=published slot=final grund=false ohne_org=true audit_org=true$'),
@@ -158,7 +160,7 @@ declare
   o_a uuid; o_b uuid; o_c uuid;
   s_bra_a uuid; s_bra_b uuid; s_bra_c uuid; s_haupt uuid; s_stand_a uuid; s_stand_ohne uuid; s_tisch_a uuid; s_raum_a uuid; s_side_a uuid;
   se_t1 uuid; se_t2 uuid; se_eigene uuid; se_host_a uuid; se_host_b uuid; se_von_b uuid; se_team_b uuid; se_team_c uuid; se_haupt uuid; se_tisch uuid; se_raum uuid; se_side uuid;
-  se_ohne_slot uuid; se_unvoll uuid; se_abgesagt uuid; se_pub uuid; se_stand uuid; se_stand_ohne uuid; se_entwurf uuid; sl_pub uuid; v_n integer;
+  se_ohne_slot uuid; se_pl uuid; se_unvoll uuid; se_abgesagt uuid; se_pub uuid; se_stand uuid; se_stand_ohne uuid; se_entwurf uuid; sl_pub uuid; v_n integer;
 begin
   select p.id, p.auth_user_id, pe.email::text into v_pid, v_uid, v_email
     from person p join person_email pe on pe.person_id = p.id and pe.is_primary
@@ -216,6 +218,7 @@ begin
   update session set publish_status = 'published' where id = se_pub;
   update slot set status = 'final' where id = sl_pub;
   se_entwurf := pg_temp.zz_session(v_ev, pg_temp.zz_slot(s_bra_a, v_tag, 9), null, 'ZZ Entwurf');
+  se_pl := pg_temp.zz_session(v_ev, pg_temp.zz_slot(s_bra_a, v_tag, 10), null, 'ZZ Programmleitung');
   se_team_b := pg_temp.zz_session(v_ev, pg_temp.zz_slot(s_bra_b, v_tag, 0), null, 'ZZ Team-Session B');
   se_team_c := pg_temp.zz_session(v_ev, pg_temp.zz_slot(s_bra_c, v_tag, 0), null, 'ZZ Team-Session C');
   se_haupt := pg_temp.zz_session(v_ev, pg_temp.zz_slot(s_haupt, v_tag, 0), null, 'ZZ Hauptbühne');
@@ -263,7 +266,11 @@ begin
   perform pg_temp.zz_r('02l_raum', pg_temp.zz_anfrage(se_raum), 'authenticated', true);
   perform pg_temp.zz_r('02m_side_event', pg_temp.zz_anfrage(se_side), 'authenticated', true);
   perform pg_temp.zz_r('02n_ohne_slot', pg_temp.zz_anfrage(se_ohne_slot), 'authenticated', true);
+  -- Programmleitung (Recht am Slot an jeder Bühne): die Standbühne ohne Partner weist sie ab, weil die Bühne keine Organisation hat — nicht, weil ihr das Recht fehlt; an der gebrandeten Bühne darf sie
+  perform pg_temp.zz_als('programm');
   perform pg_temp.zz_r('02s_stand_ohne_organisation', pg_temp.zz_anfrage(se_stand_ohne), 'authenticated', true);
+  perform pg_temp.zz_r('02t_programmleitung_darf', pg_temp.zz_anfrage(se_pl), 'authenticated', true);
+  perform pg_temp.zz_als('partner');
   -- nicht eingeloggt: ohne Anspruch (`current_person_id()` ist leer)
   perform set_config('request.jwt.claims', '', true);
   perform pg_temp.zz_r('02o_anonym', pg_temp.zz_anfrage(se_t2), 'authenticated', true);
@@ -286,6 +293,7 @@ begin
 
   -- === 04 Zurücknehmen =============================================================================================
   perform pg_temp.zz_r('04a_zuruecknehmen', pg_temp.zz_zurueck(se_eigene), 'authenticated', true);
+  insert into t_res values ('04_status_nach_zuruecknehmen', 'ok status=' || (select publish_status from session where id = se_eigene));
   perform pg_temp.zz_r('04b_zuruecknehmen_nochmal', pg_temp.zz_zurueck(se_eigene), 'authenticated', true);
   perform pg_temp.zz_r('04c_zuruecknehmen_leser', pg_temp.zz_zurueck(se_team_c), 'authenticated', true);
   perform pg_temp.zz_r('04d_zuruecknehmen_haupt', pg_temp.zz_zurueck(se_haupt), 'authenticated', true);
@@ -334,7 +342,8 @@ begin
   perform pg_temp.zz_r('06b_zurueck', pg_temp.zz_zurueck(se_t1), 'authenticated', true);
   insert into t_res values ('06_zurueckgenommen_audit',
     'ok audit=' || exists (select 1 from audit_log where action = 'partner.session_publish_withdrawn' and object_id = se_t1::text
-                            and before->>'publish_status' = 'review' and after->>'publish_status' = 'draft')::text);
+                            and before->>'publish_status' = 'review' and after->>'publish_status' = 'draft')::text
+    || ' status=' || (select publish_status from session where id = se_t1));
   perform pg_temp.zz_r('06c_nochmal', pg_temp.zz_anfrage(se_t1), 'authenticated', true);
   perform pg_temp.zz_als('team');
   perform pg_temp.zz_r('06d_freigabe', format('select release_partner_session(%L, true)', se_t1), 'authenticated');
