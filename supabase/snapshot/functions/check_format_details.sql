@@ -45,15 +45,17 @@ begin
     v_out := v_out || jsonb_build_object('interview_mode', p_details->>'interview_mode');
   end if;
 
-  -- Gesuchte Profile: dieselben Vokabular-Schlüssel wie im Teilnehmerprofil, damit die
-  -- Auswahl auf beiden Seiten dasselbe bedeutet. Kein Freitext.
+  -- Gesuchte Profile: dieselben Vokabulare wie im Teilnehmerprofil, damit die Auswahl auf beiden
+  -- Seiten dasselbe bedeutet. Kein Freitext. K-94 (Matching, Stufe 1): Status, Studienfeld, Skills,
+  -- Fachbereich und Kategorie (`career_opportunities`); `career_level` (Berufserfahrung) ist
+  -- Selbstauskunft am Profil und zählt nicht fürs Matching.
   if p_details ? 'target_profile' then
     v_prof := p_details->'target_profile';
     if jsonb_typeof(v_prof) <> 'object' then
       raise exception 'invalid_format_details' using errcode = '22023', detail = 'target_profile:object';
     end if;
     for v_key in select jsonb_object_keys(v_prof) loop
-      if not (v_key = any(array['occupation_status','career_level','study_field'])) then
+      if not (v_key = any(array['occupation_status','study_field','skill','function_area','career_opportunities'])) then
         raise exception 'invalid_format_details' using errcode = '22023', detail = 'target_profile.' || v_key;
       end if;
       if jsonb_typeof(v_prof->v_key) <> 'array' then
@@ -61,6 +63,10 @@ begin
       end if;
       for v_el in select jsonb_array_elements_text(v_prof->v_key) loop
         if not is_vocab_key(v_key, v_el) then
+          raise exception 'invalid_vocab' using errcode = '22023', detail = v_key || ':' || v_el;
+        end if;
+        -- K-94: „Ich bin aktuell nicht interessiert an Jobangeboten“ beschreibt eine Person, nicht das, was ein Partner bietet.
+        if v_key = 'career_opportunities' and v_el = 'nicht-interessiert' then
           raise exception 'invalid_vocab' using errcode = '22023', detail = v_key || ':' || v_el;
         end if;
       end loop;

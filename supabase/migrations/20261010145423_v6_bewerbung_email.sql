@@ -1,5 +1,6 @@
--- 00NN · Bewerbungen: die E-Mail-Adresse der Person, die der Weitergabe zugestimmt hat (PART-147)
--- Vorschlag des Partner-Chats, noch nicht angewendet. Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
+-- 0311 · E-Mail-Adresse einer Bewerbung nur mit Weitergabe (PART-147)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010145423.
+-- Vorschlag des Partner-Chats (angewendet, siehe Zeile 2).
 --
 -- Anlass: Der Pflichthaken der Bewerbung (PART-129, Weg B, Version `partner_share_2027-1`, K-72) sagt der Person ausdrücklich, dass ChefTreff ihre Bewerbungsdaten
 -- „(Name, E-Mail-Adresse, die Profilangaben, die ich zur Weitergabe freigegeben habe, und meine Antworten in dieser Bewerbung)“ an den Partner des Formats weitergibt,

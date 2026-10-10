@@ -12,7 +12,7 @@ begin
   if v_team is null then raise exception 'not_my_team' using errcode = 'P0001'; end if;
   if not hack_is_captain(v_team) then raise exception 'not_captain' using errcode = '42501'; end if;
   foreach v_k in array v_skills loop
-    if not is_vocab_key('hack_skill', v_k) then raise exception 'invalid_skill' using errcode = '22023', detail = v_k; end if;
+    if not is_vocab_key('skill', v_k) then raise exception 'invalid_skill' using errcode = '22023', detail = v_k; end if;
   end loop;
   if cardinality(v_skills) > 8 then raise exception 'invalid_skill' using errcode = '22023', detail = 'max 8'; end if;
   if length(v_note) > 200 then raise exception 'too_long' using errcode = '22023', detail = '200'; end if;

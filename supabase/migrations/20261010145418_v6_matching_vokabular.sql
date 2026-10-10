@@ -1,5 +1,6 @@
--- 00NN · Matching Stufe 1 — Vokabular und Whitelists des Wunschprofils (K-94, QS-070)
--- Vorschlag des Partner-Chats, noch nicht angewendet. Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
+-- 0306 · Matching-Vokabular: Wunschprofil mit fünf Feldern (K-94 Stufe 1 Teil A)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010145418.
+-- Vorschlag des Partner-Chats (angewendet, siehe Zeile 2).
 --
 -- Anlass: Konrad hat das Matching-Konzept (`docs/konzept-qs070-matching.md`) mit K-94 bestätigt („wie empfohlen“). Stufe 1 macht das Vokabular sauber: ein gemeinsamer Kern
 -- aus Studienfeld, Skills, Fachbereich und Kategorie (`career_opportunities`) auf beiden Seiten. Plan 10.10.2026: Teil A (Partner-Seite) baut der Partner-Chat; Teil B

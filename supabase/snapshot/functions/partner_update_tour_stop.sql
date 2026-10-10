@@ -31,18 +31,22 @@ begin
     raise exception 'too_long' using errcode = '22023', detail = 'address';
   end if;
 
-  -- Gesuchte Profile gegen dieselben Vokabulare wie im Teilnehmerprofil.
+  -- Gesuchte Profile gegen dieselben Vokabulare wie im Teilnehmerprofil (K-94: dieselbe Liste wie `check_format_details`).
   if p_fields ? 'target_profile' then
     v_prof := p_fields->'target_profile';
     if jsonb_typeof(v_prof) <> 'object' then
       raise exception 'invalid_format_details' using errcode = '22023', detail = 'target_profile:object';
     end if;
     for v_key in select jsonb_object_keys(v_prof) loop
-      if not (v_key = any(array['occupation_status','career_level','study_field'])) then
+      if not (v_key = any(array['occupation_status','study_field','skill','function_area','career_opportunities'])) then
         raise exception 'invalid_format_details' using errcode = '22023', detail = 'target_profile.' || v_key;
       end if;
       for v_el in select jsonb_array_elements_text(v_prof->v_key) loop
         if not is_vocab_key(v_key, v_el) then
+          raise exception 'invalid_vocab' using errcode = '22023', detail = v_key || ':' || v_el;
+        end if;
+        -- K-94: „Ich bin aktuell nicht interessiert an Jobangeboten“ beschreibt eine Person, nicht das, was ein Partner bietet.
+        if v_key = 'career_opportunities' and v_el = 'nicht-interessiert' then
           raise exception 'invalid_vocab' using errcode = '22023', detail = v_key || ':' || v_el;
         end if;
       end loop;

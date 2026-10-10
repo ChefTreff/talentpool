@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-10 07:51 UTC · 125 Tabellen · 6 Views · 774 Funktionen
+> Stand: 2026-10-10 14:55 UTC · 125 Tabellen · 6 Views · 777 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1879,7 +1879,7 @@ SPK-071: welches Speaker-Profil eine Person im Speaker-Portal gerade bearbeitet 
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
 
 ### `speaker_profile`
-Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality, Reisekosten), Tech-Rider, Assistenz. Schreiben nur per RPC.
+Speaker je Edition: Pipeline, Staff-Flags (Reception, Lounge, Pass, Hospitality, Reisekosten), Tech-Rider, Assistenz. Schreiben nur per RPC. Lesen mit Nutzerrechten nur über eine ausgeschriebene Spaltenliste (LEAD-053): priority, created_by, created_by_org_id, partner_editable_until_login, stage_guest_consent_at und companion_quota sind nur über die Funktionen lesbar; neue Spalten brauchen ihren eigenen grant select (spalte), wenn ein direkter Lesezugriff sie braucht.
 
 | Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
 |---|---|---|---|---|---|
@@ -2142,6 +2142,8 @@ Ticket aus vivenu (Barcode = QR) oder Freiticket (Crew/Speaker). Badge-Felder we
 | `vivenu_ticket_type_id` | text |  |  |  | Tickettyp bei vivenu. Grundlage für den Nachtrag des Pass-Typs, wenn ticket_type_map später gefüllt wird. |
 | `vivenu_undershop_id` | text |  |  |  | Undershop, aus dem das Ticket kam (vivenu `underShopId`) — Schlüssel auf das Partner-Kontingent. |
 | `vivenu_writeback_pending` | boolean | ja | `false` |  | TAL-019: Die Badge-Angaben stehen im Portal, der Rückschreibe-Aufruf nach vivenu ist offen (Fehler oder Schalter VIVENU_WRITE_ENABLED aus). Der Sweep holt es nach und setzt die Marke zurück. |
+| `vivenu_mailed_at` | timestamp with time zone |  |  |  | TAL-019 Teil 3: vivenu hat den Versand des Tickets an die Inhaber-Adresse angenommen (nur Server). |
+| `personalization_reminded_at` | timestamp with time zone |  |  |  | TAL-019 Teil 3: die Erinnerung an die offene Personalisierung ist eingereiht (einmal je Ticket, nur Server). |
 
 ### `ticket_secret`
 vivenu-Ticket-Secrets für die Personalisierung. Keine Grants, keine Policy — nur service_role.
@@ -2665,6 +2667,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `mark_overdue_deliverables` | args: ? |
 | `mark_ticket_writeback` | p_pending: boolean, p_ticket_id: uuid |
 | `mark_volunteer_coupon_revoked` | p_error: text, p_id: bigint |
+| `matching_career_level_entfernen` | args: ? |
 | `merch_fields` | p_config: jsonb |
 | `merch_problem` | p_qty: numeric, p_schema: jsonb, p_values: jsonb |
 | `merge_persons` | p_merged: uuid, p_survivor: uuid |
@@ -2830,6 +2833,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `release_application_share` | p_application_id: uuid, p_language: text, p_version: text |
 | `release_decisions` | p_note: text, p_session_id: uuid |
 | `release_partner_session` | p_approved: boolean, p_note: text, p_session_id: uuid |
+| `remind_ticket_personalization` | args: ? |
 | `remind_volunteer_tickets` | args: ? |
 | `remove_assistant` | p_profile_id: uuid |
 | `remove_booth_assignment` | p_id: uuid |
@@ -3066,6 +3070,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `ticket_personalization_overview` | p_edition_id: uuid |
 | `ticket_requests_admin` | p_edition_id: uuid |
 | `ticket_writeback_data` | p_ticket_id: uuid |
+| `tickets_mail_pending` | p_limit: integer |
 | `tickets_unpersonalized` | p_edition_id: uuid, p_limit: integer |
 | `tickets_writeback_pending` | p_limit: integer |
 | `tour_assignment_admin` | p_edition_id: uuid |

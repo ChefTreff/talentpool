@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { migrationText } from "@/tests/migration-datei";
+import { istVorschlag, migrationText } from "@/tests/migration-datei";
 
 const sql = () => migrationText("v6_masterclass_goodies");
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -33,8 +33,13 @@ describe("Masterclass: Goodies (PART-054, Datenmodell)", () => {
     assert.match(f, /SET search_path TO 'public', 'extensions'/);
   });
 
-  it("aus der Live-Fassung: nichts fällt weg", () => {
-    // Jede Zeile der Live-Fassung steht auch im Vorschlag (fn-diff zeigt nur Ergänzungen).
+  it("aus der Live-Fassung: nichts fällt weg", (t) => {
+    // Jede Zeile der Live-Fassung steht auch im Vorschlag (fn-diff zeigt nur Ergänzungen) — gilt nur, solange die Migration ein Vorschlag ist
+    // (docs/db-konventionen.md, Nachtrag 09.10.2026): angewendet, bewegt sich der Snapshot weiter (0306 ergänzte `format_detail_keys`, 10.10.2026).
+    if (!istVorschlag("v6_masterclass_goodies")) {
+      t.skip("Migration angewendet — kein Vergleich mit dem lebenden Snapshot");
+      return;
+    }
     for (const name of ["format_detail_keys", "check_format_details"]) {
       const neu = rumpf(name);
       const live = src(`supabase/snapshot/functions/${name}.sql`);

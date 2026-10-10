@@ -32,7 +32,7 @@ begin
            speaker_next_steps(sp.id)->'open',
            sp.updated_at, sp.internal_notes,
            -- LEAD-039: Einordnung und Bühnen in Frage.
-           sp.category, sp.topic_cluster, sp.topic_role, sp.priority, sp.recommended_format,
+           sp.category, sp.topic_cluster, sp.topic_role, case when is_speaker_team(sp.edition_id) then sp.priority end, sp.recommended_format,
            sp.contact_via, sp.outreach_channel,
            coalesce((select jsonb_agg(jsonb_build_object('stage_id', st.id, 'name', st.name)
                                       order by st.sort_order, st.name)

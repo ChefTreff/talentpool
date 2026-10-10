@@ -96,7 +96,7 @@ begin
     'category', v_sp.category,
     'topic_cluster', v_sp.topic_cluster,
     'topic_role', v_sp.topic_role,
-    'priority', v_sp.priority,
+    'priority', case when v_team then v_sp.priority end,
     'recommended_format', v_sp.recommended_format,
     'contact_via', v_sp.contact_via,
     'outreach_channel', v_sp.outreach_channel,

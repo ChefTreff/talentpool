@@ -1,4 +1,5 @@
--- 0000 · Hackathon-Skills auf das gemeinsame Vokabular `skill` (K-94 Stufe 1, Teil B; QS-070)
+-- 0308 · Hackathon-Skills auf das Vokabular skill (K-94 Stufe 1 Teil B)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010145420.
 -- Anlass: Konrad 09.10. (K-94), Plan 10.10. Die Hackathon-Bewerbung und die Teamsuche führten ein eigenes Vokabular `hack_skill` (6 Einträge);
 -- Profil, Wunschprofil der Challenges und die Partner-Karten nutzen `skill` (15). Ein Kern, eine Abbildung.
 --   1 `apply_hackathon` und `set_hack_team_looking` prüfen gegen `skill` statt `hack_skill` (sonst aus dem Snapshot, Fehlerschlüssel

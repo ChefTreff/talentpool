@@ -13,7 +13,7 @@ begin
 
   foreach v_skill in array coalesce(
     (select array_agg(value::text) from jsonb_array_elements_text(p_data->'skills') as t(value)), '{}') loop
-    if not is_vocab_key('hack_skill', v_skill) then
+    if not is_vocab_key('skill', v_skill) then
       raise exception 'invalid_skill' using errcode = '22023', detail = v_skill;
     end if;
   end loop;

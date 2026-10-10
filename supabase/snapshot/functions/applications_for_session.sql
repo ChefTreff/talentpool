@@ -21,7 +21,9 @@ begin
            case when v_team or a.consent_share then jsonb_strip_nulls(jsonb_build_object(
              'occupation_status', p.occupation_status, 'career_level', p.career_level,
              'employer_name', p.employer_name, 'university', p.university,
-             'study_field', p.study_field, 'city', p.city, 'linkedin_url', p.linkedin_url)) end
+             'study_field', p.study_field, 'city', p.city, 'linkedin_url', p.linkedin_url,
+             -- PART-147: die E-Mail-Adresse nur mit Weitergabe — auch dem Team zeigt diese Sicht sie ohne Einwilligung nicht.
+             'email', case when a.consent_share then (select pe.email::text from person_email pe where pe.person_id = p.id and pe.is_primary) end)) end
     from application a
     join person p on p.id = a.person_id
     where a.session_id = p_session_id

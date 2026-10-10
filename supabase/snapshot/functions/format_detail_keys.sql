@@ -9,7 +9,8 @@ AS $$
     when 'interview_table' then array['job_title', 'job_posting_text', 'job_posting_url',
                                       'target_profile', 'interview_mode']
     -- PART-054: ob der Partner Goodies einsendet — eine Angabe fürs Team, nicht fürs Programm.
-    when 'masterclass' then array['goodies_planned']
+    -- K-94 Stufe 1: auch die Masterclass trägt ein Wunschprofil (die Maske dazu kommt mit PART-140, Stufe 2).
+    when 'masterclass' then array['goodies_planned', 'target_profile']
     -- `company_tour` fehlt mit Absicht: seit Konrads Entscheidung D5 (18.09.) hat sie ein
     -- eigenes Datenmodell mit Touren und Stopps; die Angaben des Partners gehören an seinen
     -- Stopp, nicht an die Session.

@@ -229,6 +229,13 @@
 | Welle 6 · 0302 | **Bestandseinträge des Assistenz-Audits ohne Klartext (SPK-095)** (`20261009134231`, `v6_speaker_audit_bestand`; Details im Migrationskopf) | — |
 | Welle 6 · 0303 | **Speaker-Checkliste: Punkte wieder öffnen (SPK-082)** (`20261010072409`, `v6_speaker_checkliste`; Details im Migrationskopf) | — |
 | Welle 6 · 0304 | **Interview Tables: Tischvorgabe mit Übernahme (PART-150)** (`20261010075055`, `v6_tisch_fragen_uebernahme`; Details im Migrationskopf) | — |
+| Welle 6 · 0305 | **Speaker-Prio nur fürs Team, Spalten-Grants auf speaker_profile (LEAD-053)** (`20261010145417`, `v6_lead053_prio_nur_team`; Details im Migrationskopf) | — |
+| Welle 6 · 0306 | **Matching-Vokabular: Wunschprofil mit fünf Feldern (K-94 Stufe 1 Teil A)** (`20261010145418`, `v6_matching_vokabular`; Details im Migrationskopf) | — |
+| Welle 6 · 0307 | **Ein gültiges Ticket je Person und Edition, my_tickets mit Stand (TAL-020)** (`20261010145419`, `v6_ticket_regel_ein_ticket`; Details im Migrationskopf) | — |
+| Welle 6 · 0308 | **Hackathon-Skills auf das Vokabular skill (K-94 Stufe 1 Teil B)** (`20261010145420`, `v6_hackathon_skill_vokabular`; Details im Migrationskopf) | — |
+| Welle 6 · 0309 | **Fachbereiche als Liste am Teilnehmerprofil (K-94 Stufe 1 Teil B)** (`20261010145421`, `v6_profil_function_area_liste`; Details im Migrationskopf) | — |
+| Welle 6 · 0310 | **Ticketmail über vivenu und Erinnerung nach sieben Tagen (TAL-019 Teil 3)** (`20261010145422`, `v6_ticket_versand_erinnerung`; Details im Migrationskopf) | — |
+| Welle 6 · 0311 | **E-Mail-Adresse einer Bewerbung nur mit Weitergabe (PART-147)** (`20261010145423`, `v6_bewerbung_email`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

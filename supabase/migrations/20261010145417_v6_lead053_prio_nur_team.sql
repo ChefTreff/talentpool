@@ -1,4 +1,5 @@
--- NNNN · LEAD-053: Prio (A-/B-/C-Tier) nur fürs Team — nicht für Stage Leads, auch nicht direkt über die Tabelle
+-- 0305 · Speaker-Prio nur fürs Team, Spalten-Grants auf speaker_profile (LEAD-053)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010145417.
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Zeitstempel, Anwenden und der Eintrag ins Entscheidungslog gehören der Architektur-Session.
 --
 -- Anlass: Feedbackrunde Konrad & Paulina 05.10.2026 (LEAD-053). Paulina: „welche Prio Henny und ich der Person dann am Ende wirklich gegeben haben, hat die ja eigentlich nicht zu

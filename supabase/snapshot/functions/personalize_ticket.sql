@@ -9,6 +9,7 @@ declare
   v_email citext := auth.email();
   v_t     ticket%rowtype;
   v_complete boolean;
+  v_edition  uuid;
 begin
   if v_pid is null then
     raise exception 'not authenticated' using errcode = '28000';
@@ -25,6 +26,19 @@ begin
   end if;
   if not p_for_me and (p_holder_email is null or position('@' in p_holder_email) = 0) then
     raise exception 'holder_email_required' using errcode = '22023';
+  end if;
+  -- TAL-020: höchstens ein gültiges Ticket je Person und Edition. Zählen nur gespeicherte Tickets (Zustand ≠ pending):
+  -- der Ingest hängt ein frisches Ticket schon an die Person mit der Käufer-Adresse.
+  if p_for_me then
+    select coalesce(te.edition_id, te.id) into v_edition from event te where te.id = v_t.event_id;
+    if exists (
+      select 1 from ticket o join event oe on oe.id = o.event_id
+       where o.person_id = v_pid and o.id <> p_ticket_id
+         and o.status in ('valid', 'checked_in') and o.personalization_status <> 'pending'
+         and coalesce(oe.edition_id, oe.id) = v_edition
+    ) then
+      raise exception 'person_has_ticket' using errcode = 'P0001';
+    end if;
   end if;
   v_complete := coalesce(p_first_name, '') <> '' and coalesce(p_last_name, '') <> ''
                 and coalesce(p_company, '') <> '' and coalesce(p_position, '') <> '';

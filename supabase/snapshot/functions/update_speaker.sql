@@ -11,7 +11,7 @@ begin
   if not can_manage_speaker(p_profile_id) then raise exception 'not allowed' using errcode = '42501'; end if;
   v_team := is_speaker_team(v_sp.edition_id);
   if not v_team and (p_data ?| array['lounge_access', 'pass_type', 'hotel_tier', 'hospitality_status',
-                                     'org_id', 'travel_costs_approved', 'owner_person_id']) then
+                                     'org_id', 'travel_costs_approved', 'owner_person_id', 'priority']) then
     raise exception 'team_only_fields' using errcode = '42501';
   end if;
   v_before := to_jsonb(v_sp) - 'internal_notes';

@@ -1,4 +1,5 @@
--- 0000 · Ein Ticket je Person und Edition, „Meine Tickets“ mit Stand (TAL-020, Teil Talent)
+-- 0307 · Ein gültiges Ticket je Person und Edition, my_tickets mit Stand (TAL-020)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010145419.
 -- Anlass: Design-Befund Tickets (#469, B3) und Plan-Regel 10.10. Zwei Änderungen, beide aus dem Snapshot:
 --   1 `personalize_ticket`: „für mich“ auf ein zweites Ticket derselben Edition wird abgelehnt (P0001 `person_has_ticket`).
 --     Zählen nur gespeicherte Tickets (gültig oder eingecheckt, Zustand ≠ pending); stornierte zählen nicht; das Ticket selbst zählt nie mit.

@@ -1,4 +1,5 @@
--- 0000 · Ticketmail über vivenu und Erinnerung an offene Personalisierung (TAL-019 Teil 3, K-93)
+-- 0310 · Ticketmail über vivenu und Erinnerung nach sieben Tagen (TAL-019 Teil 3)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010145422.
 -- Anlass: Konrad 09.10. (K-93 „wie empfohlen“): nach der Personalisierung im Portal lässt das Portal das Ticket von vivenu per Mail an die Inhaber-Adresse
 -- schicken (Event „Tickets nicht versenden“ stellt Konrad), und wer die Angaben nach sieben Tagen noch nicht ergänzt hat, bekommt eine Erinnerung über unsere
 -- Mail-Warteschlange (DE/EN, Vorlage im Admin editierbar). Keine neue Tabelle, nichts für Teilnehmende lesbar.

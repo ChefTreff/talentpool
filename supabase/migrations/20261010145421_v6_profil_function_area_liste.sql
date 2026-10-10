@@ -1,4 +1,5 @@
--- 0000 · Fachbereiche (`function_area`) als Liste am Teilnehmerprofil (K-94 Stufe 1 Teil B, QS-070)
+-- 0309 · Fachbereiche als Liste am Teilnehmerprofil (K-94 Stufe 1 Teil B)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010145421.
 -- Anlass: Konrad 09.10. (K-94), Plan 10.10. Das Matching braucht je Profil mehrere Fachbereiche („Wo möchtest du arbeiten?“); bisher steht eine
 -- Einzelauswahl in `person.function_area`.
 --   1 `person_interest` erlaubt das Vokabular `function_area` (Prüfsatz `person_interest_vocab_chk`, sonst unverändert); der Fremdschlüssel
