@@ -6,12 +6,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadVocabMap, vlabel } from "@/lib/vocab";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PortalFooter, DEFAULT_MAILBOX } from "@/components/layout/PortalFooter";
-import { ButtonLink } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { gueltigeTransaktion } from "@/lib/vivenu/bestaetigung";
 import { ladeTransaktion } from "@/lib/vivenu/transaktion";
+import { anderesKonto } from "./actions";
 import { BestaetigungView, type TicketZeile } from "./BestaetigungView";
 
 export const dynamic = "force-dynamic";
@@ -34,9 +35,9 @@ export default async function TicketBestaetigungPage({ searchParams }: { searchP
   const b = t.ticketBestaetigung as unknown as Record<string, string>;
   const ctx = await getSessionContext();
 
-  const huelle = (inhalt: React.ReactNode) => (
+  const huelle = (inhalt: React.ReactNode, loginHref?: string) => (
     <>
-      <AppHeader />
+      <AppHeader loginHref={loginHref} />
       <main id="content" className="mx-auto w-full max-w-content flex-1 px-4 py-8 sm:px-6">
         <div className="max-w-text">{inhalt}</div>
       </main>
@@ -71,6 +72,8 @@ export default async function TicketBestaetigungPage({ searchParams }: { searchP
           </div>
         </Card>
       </>,
+      // Auch der Link der Kopfzeile führt mit Rücksprung zur Bestellung (TAL-020, B6).
+      zumLogin,
     );
   }
 
@@ -90,8 +93,12 @@ export default async function TicketBestaetigungPage({ searchParams }: { searchP
       <>
         <PageHeader title={b.title} description={b.emptyLead} />
         <EmptyState title={b.emptyTitle} description={gedrosselt ? b.emptyWait : b.emptyBody} />
-        <div className="mt-4 flex gap-3">
+        <div className="mt-4 flex flex-wrap gap-3">
           <ButtonLink href={`/tickets/bestaetigung?transactionId=${encodeURIComponent(tx)}`} variant="secondary">{b.reload}</ButtonLink>
+          {/* Häufigster Fehlerfall: angemeldet mit einer anderen Adresse als der Kaufadresse (TAL-020, B6) — abmelden und mit derselben Bestellung zurück zur Anmeldung. */}
+          <form action={anderesKonto.bind(null, tx)}>
+            <Button type="submit" variant="ghost">{b.otherAccount}</Button>
+          </form>
           <ButtonLink href="/tickets" variant="ghost">{b.toTickets}</ButtonLink>
         </div>
       </>,
@@ -115,6 +122,7 @@ export default async function TicketBestaetigungPage({ searchParams }: { searchP
       }}
       t={b}
       rpcMessages={t.rpc}
+      unsaved={t.common.unsaved}
     />,
   );
 }
