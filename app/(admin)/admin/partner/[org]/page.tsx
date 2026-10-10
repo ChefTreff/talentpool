@@ -70,23 +70,39 @@ export default async function AdminPartnerOrgPage({
     format: string;
     title_de: string | null;
     format_details: Record<string, unknown> | null;
+    stage_id: string | null;
+    stage_name: string | null;
   }[];
   const { data: offeneZeilen } = formate.length
     ? await supabase
         .from("session_question")
-        .select("id, session_id, label_de, type, purpose")
+        .select("id, session_id, label_de, label_en, type, options, purpose")
         .in("session_id", formate.map((x) => x.id))
         .is("question_id", null)
         .is("approved_at", null)
         .order("created_at")
     : { data: [] };
+  // PART-150: mit dem Tisch des Gespräches und allen Inhaltsfeldern der Frage — die Freigabe bündelt Gespräche desselben Tisches mit denselben offenen Fragen.
   const offeneFragen: OffeneFragen[] = formate
     .map((x) => ({
       sessionId: x.id,
       sessionTitle: x.title_de ?? "—",
-      fragen: ((offeneZeilen ?? []) as { id: string; session_id: string; label_de: string | null; type: string | null; purpose: string | null }[])
+      // Nur die Interview Tables bündeln nach Tisch: dort kommen dieselben Fragen von der Übernahme (`partner_copy_table_questions`).
+      stageId: x.format === "interview_table" ? x.stage_id : null,
+      stageName: x.stage_name,
+      fragen: (
+        (offeneZeilen ?? []) as {
+          id: string;
+          session_id: string;
+          label_de: string | null;
+          label_en: string | null;
+          type: string | null;
+          options: unknown;
+          purpose: string | null;
+        }[]
+      )
         .filter((f) => f.session_id === x.id)
-        .map((f) => ({ id: f.id, label_de: f.label_de ?? "—", type: f.type, purpose: f.purpose })),
+        .map((f) => ({ id: f.id, label_de: f.label_de ?? "—", label_en: f.label_en, type: f.type, options: f.options ?? null, purpose: f.purpose })),
     }))
     .filter((x) => x.fragen.length > 0);
   const alsListe = (m: Record<string, string>) => Object.entries(m).map(([key, label]) => ({ key, label }));

@@ -541,6 +541,24 @@ export async function setSessionQuestions(sessionId: string, questionIds: string
 }
 
 /**
+ * Die Fragen eines Gesprächs auf andere Gespräche **desselben Tisches** übernehmen (PART-150, Tischvorgabe): Katalogwahl gespiegelt, eigene Fragen
+ * hinzugefügt, eine freigegebene Frage nimmt ihre Freigabe mit — in einer Transaktion und mit einer Audit-Zeile. Welche Gespräche zu welchem Tisch
+ * gehören und ob die Person sie bearbeiten darf, prüft `partner_copy_table_questions` selbst; die Organisation kommt nie von hier. `sessions` ist die Zahl
+ * der Gespräche, in denen etwas geschrieben wurde (0: alle hatten die Vorgabe schon).
+ */
+export async function copyTableQuestions(fromSessionId: string, toSessionIds: string[]): Promise<PartnerResult<{ sessions: number }>> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("partner_copy_table_questions", {
+    p_from_session: fromSessionId,
+    p_to_sessions: toSessionIds,
+  });
+  if (error) return fail(error);
+  refreshFormats();
+  revalidatePath(`${PATH}/interview-tables/fragen`);
+  return { ok: true, data: { sessions: Number(data ?? 0) } };
+}
+
+/**
  * Eine eigene Bewerbungsfrage beantragen (PART-045, höchstens zwei je Session).
  * Sichtbar wird sie erst nach der Freigabe durch das Programm-Team; der Zweck
  * ist Pflicht, weil daran entschieden wird, ob eine Frage gestellt werden darf.

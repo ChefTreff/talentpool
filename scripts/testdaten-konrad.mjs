@@ -187,6 +187,9 @@
  *                                   bestellen“ bestellt zum Angebotspreis; /admin/partner/bestellungen zeigt „Offene Angebote“. Kein Schritt `partner` nötig, keine Migration)
  *   … --apply --nur=tourstopp      (QS-079: ein zweiter Stopp der Test-Organisation auf einer zweiten TEST-Tour, damit /partner/company-tour den Stopp-Umschalter
  *                                   zeigt; braucht partner und tour)
+ *   … --apply --nur=tischvorgabe   (PART-150: am ersten TEST-Tisch der Interview Tables drei Gespräche — Tischvorgabe mit freigegebener eigener Frage, ein Gespräch
+ *                                   wie die Vorgabe, eines abweichend —, damit der Reiter „Fragen“ die Karte „Tischvorgabe“ und die Gesprächsliste zeigt;
+ *                                   braucht partner und formate)
  *   … --email=jemand@chef-treff.de   (Standard: konrad@chef-treff.de)
  *
  * Keine erfundenen Personendaten ausser Konrads eigenen: alle Kontakte und
@@ -2510,6 +2513,78 @@ async function formateSchritt(me, ed) {
 }
 
 /**
+ * Schritt `tischvorgabe` (PART-150, Plan-Entscheidung 09.10.2026): am ersten TEST-Tisch der Interview Tables (Schritt `formate`, Fläche `zz-test-interview-table`)
+ * stehen **drei Gespräche** — das vorhandene um 14:00, dazu 14:30 und 15:00 an derselben Fläche —, damit der Reiter „Fragen“ unter `/partner/interview-tables` die
+ * Karte „Tischvorgabe“ und die Gesprächsliste zeigt. Das erste Gespräch ist die Vorgabe und trägt eine **freigegebene** eigene Frage; das zweite hat dieselbe
+ * (steht als „wie die Tischvorgabe“ da), das dritte **keine** — es steht als „abweichend von der Tischvorgabe“ da, und „Tischvorgabe übernehmen“ in seiner
+ * Zeile bringt es auf den Stand. Konrad kann außerdem in der Karte eine weitere Frage beantragen (Zweck Pflicht) und mit „Speichern und auf alle 3 Gespräche
+ * übernehmen“ verteilen: sie kommt offen an, das Team gibt sie im Admin (`/admin/partner/<Test-Organisation>` → „Fragen freigeben“) für alle Gespräche des Tisches auf
+ * einmal frei.
+ *
+ * Direkt geschrieben: Gespräche ohne Bewerbung, keine Mail. Die Titel tragen das TEST-Präfix — `--remove` nimmt Sessions (die Fragen gehen per ON DELETE CASCADE mit),
+ * Slots und Fläche über dieselben Wege mit wie beim Schritt `formate`. Ein zweiter Lauf legt nichts doppelt an (Gespräche über den Titel, Frage über Text und
+ * Gespräch). Braucht die Schritte `partner` und `formate`.
+ */
+const TISCH_FRAGE = `${PREFIX}Was reizt dich an dieser Stelle?`;
+const TISCH_GESPRAECHE = [
+  { titel: `${PREFIX}Interview Table · Gespräch 2`, zeit: ["14:30", "15:00"], mitFrage: true },
+  { titel: `${PREFIX}Interview Table · Gespräch 3`, zeit: ["15:00", "15:30"], mitFrage: false },
+];
+
+async function tischVorgabeSchritt(me, ed) {
+  const ziel = await summit(ed);
+  const tag = ziel?.tage?.[0];
+  const { data: org } = await admin.from("organization").select("id").eq("legal_name", `${PREFIX}Partner GmbH`).maybeSingle();
+  const basis = TEST_FORMATE.find((f) => f.schluessel === "interview_table");
+  if (!ziel || !tag || !org || !basis) return fail("Tischvorgabe", "Summit, Tag oder Test-Organisation fehlt — zuerst --nur=partner und --nur=formate");
+  if (mode === "dry-run") {
+    note(`Tischvorgabe: am Tisch „${basis.buehne.name}“ zwei weitere Gespräche (${TISCH_GESPRAECHE.map((g) => g.zeit.join("–")).join(", ")}), eine freigegebene eigene Frage an der Vorgabe und am zweiten Gespräch, das dritte ohne`);
+    return;
+  }
+  const { data: buehne } = await admin.from("stage").select("id").eq("event_id", ziel.id).eq("slug", basis.buehne.slug).maybeSingle();
+  const { data: erste } = await admin.from("session").select("id, format_details").eq("event_id", ziel.id).eq("title_de", basis.session.title_de).maybeSingle();
+  if (!buehne || !erste) return fail("Tischvorgabe", "Tisch oder erstes Gespräch fehlt — zuerst --nur=formate");
+
+  const fragenAn = async (sessionId, name) => {
+    const { data: vorhanden } = await admin.from("session_question").select("id").eq("session_id", sessionId).eq("label_de", TISCH_FRAGE).maybeSingle();
+    if (vorhanden) return note(`Frage an ${name}`, "steht schon");
+    await write(`Freigegebene eigene Frage an ${name}`, () =>
+      admin.from("session_question").insert({
+        session_id: sessionId, label_de: TISCH_FRAGE, label_en: `${PREFIX}What attracts you to this role?`, type: "textarea", required: false, sort_order: 90,
+        purpose: "Testfrage für die Tischvorgabe", requested_by: me.id, approved_by: me.id, approved_at: new Date().toISOString(),
+      }),
+    );
+  };
+  await fragenAn(erste.id, basis.session.title_de);
+
+  for (const g of TISCH_GESPRAECHE) {
+    let { data: se } = await admin.from("session").select("id").eq("event_id", ziel.id).eq("title_de", g.titel).maybeSingle();
+    if (!se) {
+      const [von, bis] = g.zeit.map((z) => new Date(`${tag.day_date}T${z}:00+02:00`).toISOString());
+      const slot = await write(`Slot ${g.zeit.join("–")} an ${basis.buehne.name}`, () =>
+        admin.from("slot").insert({
+          stage_id: buehne.id, event_day_id: tag.id, start_at: von, end_at: bis, slot_type: "partner_block",
+          status: "requested", source_ref: `partner:${org.id}`, internal_title: g.titel,
+        }).select("id").single(),
+      );
+      if (!slot) continue;
+      se = await write(`Session ${g.titel}`, () =>
+        admin.from("session").insert({
+          event_id: ziel.id, slot_id: slot.id, format: "interview_table", language: "de", access_mode: "application",
+          partner_org_id: org.id, host_org_id: org.id, publish_status: "review", title_de: g.titel, capacity: 1,
+          format_details: erste.format_details ?? {},
+        }).select("id").single(),
+      );
+      if (!se) continue;
+    } else {
+      note(`Session ${g.titel}`, "steht schon");
+    }
+    if (g.mitFrage) await fragenAn(se.id, g.titel);
+  }
+  note("Tischvorgabe ausprobieren", "/partner/interview-tables/fragen → Karte „Tischvorgabe“, darunter Gespräch 2 „wie die Tischvorgabe“ und Gespräch 3 „abweichend von der Tischvorgabe“ → „Tischvorgabe übernehmen“");
+}
+
+/**
  * Schritt `nachbuchung` (PART-102, K-82: Nachbuchung = neuer Deal in derselben Pipeline): die Test-Organisation bekommt einen zweiten Deal mit
  * zwei Folge-Leistungen und ihrem Zeitpunkt `nachgebucht_am` — **2 × „Partner Branding“** (die SKU ist schon gebucht, die Liste zeigt „× 3 ·
  * davon 2 nachgebucht am …“) und **1 × „Digital Branding“** (neu, „nachgebucht am …“). Direkt geschrieben, ohne HubSpot: zwei Zeilen in
@@ -4301,6 +4376,7 @@ const SCHRITTE = {
   award: awardBewerbung,
   tourzuordnung: tourZuordnung,
   tourstopp: tourStoppZwei,
+  tischvorgabe: tischVorgabeSchritt,
 };
 
 async function teilschritte(me, ed, namen) {
