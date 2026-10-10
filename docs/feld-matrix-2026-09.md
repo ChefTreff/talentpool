@@ -1,6 +1,6 @@
 # Feld-Eigentümer-Matrix
 
-> Generiert mit `node scripts/gen-feld-matrix.mjs` aus `docs/schema.md` und dem Code, Stand 2026-10-09. Handkorrekturen nur im Abschnitt „Befunde (Vorbereitung Walkthrough)“ am Ende der Datei — alles davor wird beim naechsten Lauf ueberschrieben.
+> Generiert mit `node scripts/gen-feld-matrix.mjs` aus `docs/schema.md` und dem Code, Stand 2026-10-10. Handkorrekturen nur im Abschnitt „Befunde (Vorbereitung Walkthrough)“ am Ende der Datei — alles davor wird beim naechsten Lauf ueberschrieben.
 
 Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Trigger/Ingest/Cron) · **wo im Portal pflegbar**. Ziel: Jedes fachliche Feld hat genau einen Pflegeort im Portal (Supabase Studio ist kein Pflegeort — nur Konrad und die Architektur-Session).
 
@@ -38,8 +38,8 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 | `self_assessment` | text | fachlich | anonymize_person() |  | |
 | `linkedin_url` | text | fachlich | anonymize_person(), partner_update_speaker(), update_my_speaker_profile(), update_person_master() | /admin/personen/[id], /partner, /speaker | |
 | `linkedin_normalized` | text | fachlich | Migration/Seed (20261009075127_v6_spalten_kontaktschluessel.sql), anonymize_person(), person_derive_contact_keys() [Trigger trg_person_contact_keys] |  | |
-| `phone` | text | fachlich | anonymize_person(), update_person_master() | /admin/personen/[id] | |
-| `phone_e164` | text | fachlich | Migration/Seed (20261009075127_v6_spalten_kontaktschluessel.sql), anonymize_person(), person_derive_contact_keys() [Trigger trg_person_contact_keys], update_my_speaker_profile() | /speaker | |
+| `phone` | text | fachlich | anonymize_person(), update_my_speaker_profile(), update_person_master() | /admin/personen/[id], /speaker | |
+| `phone_e164` | text | fachlich | Migration/Seed (20261009075127_v6_spalten_kontaktschluessel.sql), anonymize_person(), person_derive_contact_keys() [Trigger trg_person_contact_keys] |  | |
 | `gender` | text | fachlich | anonymize_person(), update_person_master() | /admin/personen/[id] | |
 | `nationality` | text | fachlich | anonymize_person(), update_person_master() | /admin/personen/[id] | |
 | `country` | text | fachlich | update_person_master() | /admin/personen/[id] | |
@@ -277,21 +277,21 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_role_assignment_updated → set_updated_at()
 
-**Seiten (lesen/schreiben):** /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/team, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads, Cron: /api/cron/hubspot-sweep, Webhook: /api/webhooks/hubspot
+**Seiten (lesen/schreiben):** /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads, Cron: /api/cron/hubspot-sweep, Webhook: /api/webhooks/hubspot
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
 | `id` | uuid | technisch |  |  | |
-| `person_id` | uuid | technisch | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), set_volunteer_status(), sync_granted_roles(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/team, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
-| `role` | text | fachlich | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), set_volunteer_status(), sync_granted_roles(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/team, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
-| `scope_type` | text | fachlich | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), set_volunteer_status(), sync_granted_roles(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/team, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
-| `scope_id` | uuid | technisch | assign_role(), ingest_partner_deal(), partner_contact_upsert_internal(), sync_granted_roles() | /admin/partner, /admin/rollen, /admin/speaker-leads, /admin/team | |
-| `edition_id` | uuid | technisch | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), set_volunteer_status(), sync_granted_roles(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/team, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
-| `portal` | text | fachlich | assign_role() | /admin/partner, /admin/rollen, /admin/speaker-leads, /admin/team | |
-| `valid_from` | timestamp with time zone | fachlich | assign_role(), create_kiosk_account(), set_volunteer_status() | /admin/partner, /admin/rollen, /admin/speaker-leads, /admin/team, /admin/verwaltung/zugaenge, /admin/volunteers | |
-| `valid_to` | timestamp with time zone | fachlich | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), partner_contact_upsert_internal(), remove_assistant(), revoke_role(), set_volunteer_status(), speaker_access_revoke(), sync_granted_roles() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/team, /admin/verwaltung/zugaenge, /admin/volunteers, /speaker | |
-| `granted_by` | uuid | technisch | assign_role(), create_kiosk_account(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), set_volunteer_status(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/team, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
-| `note` | text | fachlich | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), revoke_role(), set_volunteer_status(), sync_granted_roles(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/team, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
+| `person_id` | uuid | technisch | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), set_volunteer_status(), sync_granted_roles(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
+| `role` | text | fachlich | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), set_volunteer_status(), sync_granted_roles(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
+| `scope_type` | text | fachlich | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), set_volunteer_status(), sync_granted_roles(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
+| `scope_id` | uuid | technisch | assign_role(), ingest_partner_deal(), partner_contact_upsert_internal(), sync_granted_roles() | /admin/partner, /admin/rollen, /admin/speaker-leads, /admin/verwaltung/zugaenge | |
+| `edition_id` | uuid | technisch | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), set_volunteer_status(), sync_granted_roles(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
+| `portal` | text | fachlich | assign_role() | /admin/partner, /admin/rollen, /admin/speaker-leads, /admin/verwaltung/zugaenge | |
+| `valid_from` | timestamp with time zone | fachlich | assign_role(), create_kiosk_account(), set_volunteer_status() | /admin/partner, /admin/rollen, /admin/speaker-leads, /admin/verwaltung/zugaenge, /admin/volunteers | |
+| `valid_to` | timestamp with time zone | fachlich | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), partner_contact_upsert_internal(), remove_assistant(), revoke_role(), set_volunteer_status(), speaker_access_revoke(), sync_granted_roles() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/verwaltung/zugaenge, /admin/volunteers, /speaker | |
+| `granted_by` | uuid | technisch | assign_role(), create_kiosk_account(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), set_volunteer_status(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
+| `note` | text | fachlich | assign_role(), create_kiosk_account(), ingest_partner_deal(), invite_assistant(), invite_speaker(), partner_add_speaker(), partner_contact_upsert_internal(), revoke_role(), set_volunteer_status(), sync_granted_roles(), upsert_speaker(), upsert_speaker_contact() | /admin/partner, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/verwaltung/zugaenge, /admin/volunteers, /partner, /speaker, /speaker-leads | |
 | `created_at` | timestamp with time zone | technisch |  |  | |
 | `updated_at` | timestamp with time zone | technisch | set_updated_at() [Trigger trg_role_assignment_updated] |  | |
 
@@ -301,7 +301,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Datenschutz-Klasse (Vorschlag):** keine
 
-**Schreibwege (Funktionen/Trigger):** log_audit(), run_application_housekeeping(), run_shop_finalization(), send_partner_reminders(), send_presentation_reminders(), set_expense_integration(), shop_quotes_housekeeping()
+**Schreibwege (Funktionen/Trigger):** log_audit(), run_application_housekeeping(), run_shop_finalization(), send_partner_reminders(), send_presentation_reminders(), set_expense_integration(), shop_quotes_housekeeping(), speaker_audit_bereinigen()
 
 **Direkte Schreibzugriffe (kein RPC, `.from().insert/update/upsert/delete()` im Client-Code):** /admin/mail, /admin/personen/dubletten, API-Route: /api/admin/hubspot/archive-products, API-Route: /api/admin/partner/documents/sync, API-Route: /api/admin/products/sync, API-Route: /api/admin/swapcard/sponsors
 
@@ -315,8 +315,8 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 | `action` | text | fachlich | log_audit(), run_application_housekeeping(), run_shop_finalization(), send_partner_reminders(), send_presentation_reminders(), set_expense_integration(), shop_quotes_housekeeping() | /admin | |
 | `object_type` | text | fachlich | log_audit(), run_application_housekeeping(), run_shop_finalization(), send_partner_reminders(), send_presentation_reminders(), set_expense_integration(), shop_quotes_housekeeping() | /admin | |
 | `object_id` | text | technisch | log_audit(), run_application_housekeeping(), run_shop_finalization(), send_partner_reminders(), send_presentation_reminders(), set_expense_integration(), shop_quotes_housekeeping() | /admin | |
-| `before` | jsonb | fachlich | log_audit() |  | |
-| `after` | jsonb | fachlich | log_audit(), run_application_housekeeping(), run_shop_finalization(), send_partner_reminders(), send_presentation_reminders(), set_expense_integration(), shop_quotes_housekeeping() | /admin | |
+| `before` | jsonb | fachlich | log_audit(), speaker_audit_bereinigen() |  | |
+| `after` | jsonb | fachlich | log_audit(), run_application_housekeeping(), run_shop_finalization(), send_partner_reminders(), send_presentation_reminders(), set_expense_integration(), shop_quotes_housekeeping(), speaker_audit_bereinigen() | /admin | |
 | `created_at` | timestamp with time zone | technisch |  |  | |
 
 ## 2. Edition & Programm
@@ -331,7 +331,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_event_updated → set_updated_at()
 
-**Seiten (lesen/schreiben):** /admin, /admin/bewerbungen/[id], /admin/bewerbungen/sessions, /admin/catering, /admin/edition, /admin/fotos, /admin/fristen, /admin/grafiken, /admin/grafiken/meet-us-at, /admin/hackathon, /admin/hospitality, /admin/medien, /admin/partner, /admin/personen, /admin/produktion, /admin/rollen, /admin/side-events, /admin/speaker-leads, /admin/speaker/[id], /admin/speaker/aufgaben, /admin/speaker/verlauf, /admin/team, /admin/technik, /admin/technik/praesentationen, /admin/verwaltung/zugaenge, /admin/volunteers/fristen, /admin/volunteers/schichten, /admin/wiki, /events, /hackathon/schedule, /meine, /partner/media/grafik, /programm, /speaker, /speaker-leads, /speaker-leads/praesentationen, /speaker/travel, /volunteers, API-Route: /api/admin/sevdesk/shop-invoices, API-Route: /api/admin/swapcard/speakers, API-Route: /api/speaker/kalender, API-Route: /api/wiki/frage, Cron: /api/cron/luma-sync, Cron: /api/cron/volunteer-tickets
+**Seiten (lesen/schreiben):** /admin, /admin/bewerbungen/[id], /admin/bewerbungen/sessions, /admin/catering, /admin/edition, /admin/fotos, /admin/fristen, /admin/grafiken, /admin/grafiken/meet-us-at, /admin/hackathon, /admin/hospitality, /admin/medien, /admin/partner, /admin/personen, /admin/produktion, /admin/rollen, /admin/side-events, /admin/speaker-leads, /admin/speaker/[id], /admin/speaker/aufgaben, /admin/speaker/verlauf, /admin/technik, /admin/technik/praesentationen, /admin/verwaltung/zugaenge, /admin/volunteers/fristen, /admin/volunteers/schichten, /admin/wiki, /events, /hackathon/schedule, /meine, /partner/media/grafik, /programm, /speaker, /speaker-leads, /speaker-leads/praesentationen, /speaker/travel, /volunteers, API-Route: /api/admin/sevdesk/shop-invoices, API-Route: /api/admin/swapcard/speakers, API-Route: /api/speaker/kalender, API-Route: /api/wiki/frage, Cron: /api/cron/luma-sync, Cron: /api/cron/volunteer-tickets
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
@@ -1027,7 +1027,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_organization_updated → set_updated_at()
 
-**Seiten (lesen/schreiben):** /admin/initiativen/award, /admin/partner, /partner, API-Route: /api/admin/partner/documents/sync, API-Route: /api/admin/sevdesk/shop-invoices, Cron: /api/cron/hubspot-sweep, Cron: /api/cron/mail, Webhook: /api/webhooks/hubspot
+**Seiten (lesen/schreiben):** /admin/initiativen/award, /admin/partner, /partner, API-Route: /api/admin/partner/documents/sync, API-Route: /api/admin/sevdesk/shop-invoices, API-Route: /api/partner/shop/angebot, Cron: /api/cron/hubspot-sweep, Cron: /api/cron/mail, Webhook: /api/webhooks/hubspot
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
@@ -1328,7 +1328,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Datenschutz-Klasse (Vorschlag):** keine
 
-**Schreibwege (Funktionen/Trigger):** Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), delete_deadline(), set_updated_at() [Trigger trg_deadline_updated], upsert_deadline() · löscht Zeilen: delete_deadline()
+**Schreibwege (Funktionen/Trigger):** Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), Migration/Seed (20261009122829_v6_shuttle_sperre.sql), delete_deadline(), set_updated_at() [Trigger trg_deadline_updated], upsert_deadline() · löscht Zeilen: delete_deadline()
 
 **Trigger auf dieser Tabelle:** trg_deadline_updated → set_updated_at()
 
@@ -1337,18 +1337,18 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
 | `id` | uuid | technisch |  |  | |
-| `edition_id` | uuid | technisch | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), upsert_deadline() |  | |
-| `key` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), upsert_deadline() |  | |
-| `audience` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), upsert_deadline() |  | |
-| `due_at` | timestamp with time zone | technisch | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), upsert_deadline() |  | |
-| `label_de` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), upsert_deadline() |  | |
-| `label_en` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), upsert_deadline() |  | |
-| `description_de` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), upsert_deadline() |  | |
-| `description_en` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), upsert_deadline() |  | |
+| `edition_id` | uuid | technisch | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), Migration/Seed (20261009122829_v6_shuttle_sperre.sql), upsert_deadline() |  | |
+| `key` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), Migration/Seed (20261009122829_v6_shuttle_sperre.sql), upsert_deadline() |  | |
+| `audience` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), Migration/Seed (20261009122829_v6_shuttle_sperre.sql), upsert_deadline() |  | |
+| `due_at` | timestamp with time zone | technisch | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), Migration/Seed (20261009122829_v6_shuttle_sperre.sql), upsert_deadline() |  | |
+| `label_de` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), Migration/Seed (20261009122829_v6_shuttle_sperre.sql), upsert_deadline() |  | |
+| `label_en` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), Migration/Seed (20261009122829_v6_shuttle_sperre.sql), upsert_deadline() |  | |
+| `description_de` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), Migration/Seed (20261009122829_v6_shuttle_sperre.sql), upsert_deadline() |  | |
+| `description_en` | text | fachlich | Migration/Seed (20260910104806_v2_speaker_content_assets.sql), Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260915115415_v5_messestand.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20260917192416_v6_shop_zwei_phasen.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), Migration/Seed (20261009122829_v6_shuttle_sperre.sql), upsert_deadline() |  | |
 | `created_at` | timestamp with time zone | technisch |  |  | |
 | `updated_at` | timestamp with time zone | technisch | set_updated_at() [Trigger trg_deadline_updated], upsert_deadline() |  | |
 | `reminder_lead_hours` | integer | fachlich | Migration/Seed (20260910144439_v3_products.sql), Migration/Seed (20260917190402_v6_challenge_frist.sql), Migration/Seed (20261001125937_v6_initiativen_award.sql), upsert_deadline() |  | |
-| `custom` | boolean | fachlich | upsert_deadline() |  | |
+| `custom` | boolean | fachlich | Migration/Seed (20261009122829_v6_shuttle_sperre.sql), upsert_deadline() |  | |
 
 ### `booth`
 
@@ -1500,7 +1500,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_shop_order_updated → set_updated_at(), trg_shop_order_fulfil → trg_shop_order_fulfil()
 
-**Seiten (lesen/schreiben):** /admin/partner, /partner
+**Seiten (lesen/schreiben):** /admin/partner, /partner, API-Route: /api/partner/shop/angebot
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
@@ -1532,7 +1532,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_shop_order_line_updated → set_updated_at(), trg_shop_order_line_fulfil → trg_shop_order_line_fulfil()
 
-**Seiten (lesen/schreiben):** /admin/partner, /partner
+**Seiten (lesen/schreiben):** /admin/partner, /partner, API-Route: /api/partner/shop/angebot
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
@@ -2169,7 +2169,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_vocab_term_updated → set_updated_at()
 
-**Seiten (lesen/schreiben):** /admin, /admin/anreise, /admin/ansprechpartner, /admin/benachrichtigungen, /admin/bewerbungen, /admin/bewerbungen/[id], /admin/bewerbungen/sessions, /admin/catering, /admin/community-events/[id], /admin/company-tours/zuordnung, /admin/einreichungen, /admin/feedback, /admin/hackathon, /admin/hospitality, /admin/initiativen/award, /admin/mail/vorlagen, /admin/medien, /admin/partner/[org], /admin/partner/integrationen, /admin/partner/kontingente, /admin/partner/logos, /admin/partner/produkte, /admin/personen, /admin/personen/[id], /admin/produktion/dateien, /admin/produktion/produkte, /admin/reisekosten, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/speaker-tickets, /admin/speaker/[id], /admin/speaker/verlauf, /admin/team, /admin/verwaltung/einwilligungen, /admin/verwaltung/zugaenge, /admin/vokabular, /admin/volunteers, /admin/volunteers/schichten, /admin/volunteers/vorlagen, /admin/wiki, /award, /award/bewerben, /benachrichtigungen, /checkin, /feedback, /hackathon, /hackathon/challenges, /hackathon/schedule, /hackathon/teams, /meine, /onboarding, /partner, /partner/company-tour, /partner/hackathon, /partner/interview-tables, /partner/kontakte, /partner/masterclass, /partner/onboarding, /partner/shop, /partner/side-event, /partner/talk, /partner/tickets, /profil, /programm, /speaker-leads, /speaker-leads/anreise, /speaker/profil, /speaker/reisekosten, /speaker/session, /speaker/tickets, /speaker/travel, /tickets, /tickets/bestaetigung, /volunteers, /volunteers/schichten, /volunteers/team, API-Route: /api/admin/swapcard/sponsors
+**Seiten (lesen/schreiben):** /admin, /admin/anreise, /admin/ansprechpartner, /admin/benachrichtigungen, /admin/bewerbungen, /admin/bewerbungen/[id], /admin/bewerbungen/sessions, /admin/catering, /admin/community-events/[id], /admin/company-tours/zuordnung, /admin/einreichungen, /admin/feedback, /admin/hackathon, /admin/hospitality, /admin/initiativen/award, /admin/mail/vorlagen, /admin/medien, /admin/partner/[org], /admin/partner/integrationen, /admin/partner/kontingente, /admin/partner/logos, /admin/partner/produkte, /admin/personen, /admin/personen/[id], /admin/produktion/dateien, /admin/produktion/produkte, /admin/reisekosten, /admin/rollen, /admin/speaker, /admin/speaker-leads, /admin/speaker-tickets, /admin/speaker/[id], /admin/speaker/verlauf, /admin/verwaltung/einwilligungen, /admin/verwaltung/zugaenge, /admin/vokabular, /admin/volunteers, /admin/volunteers/schichten, /admin/volunteers/vorlagen, /admin/wiki, /award, /award/bewerben, /benachrichtigungen, /checkin, /feedback, /hackathon, /hackathon/challenges, /hackathon/schedule, /hackathon/teams, /meine, /onboarding, /partner, /partner/company-tour, /partner/hackathon, /partner/interview-tables, /partner/kontakte, /partner/masterclass, /partner/onboarding, /partner/shop, /partner/side-event, /partner/talk, /partner/tickets, /profil, /programm, /speaker-leads, /speaker-leads/anreise, /speaker/profil, /speaker/reisekosten, /speaker/session, /speaker/tickets, /speaker/travel, /tickets, /tickets/bestaetigung, /volunteers, /volunteers/schichten, /volunteers/team, API-Route: /api/admin/swapcard/sponsors
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
@@ -2194,7 +2194,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Trigger auf dieser Tabelle:** trg_external_ref_updated → set_updated_at()
 
-**Seiten (lesen/schreiben):** /admin/partner, /admin/partner/produkte, /admin/speaker/website, /events, /partner, API-Route: /api/admin/products/sync, API-Route: /api/admin/sanity/partner-logos, API-Route: /api/admin/sanity/speakers, API-Route: /api/admin/sevdesk/shop-invoices, API-Route: /api/admin/swapcard/exhibitors, API-Route: /api/admin/swapcard/speakers, API-Route: /api/admin/swapcard/sponsors, Cron: /api/cron/luma-sync, Cron: /api/cron/mail
+**Seiten (lesen/schreiben):** /admin/partner, /admin/partner/produkte, /admin/speaker/website, /events, /partner, API-Route: /api/admin/products/sync, API-Route: /api/admin/sanity/partner-logos, API-Route: /api/admin/sanity/speakers, API-Route: /api/admin/sevdesk/shop-invoices, API-Route: /api/admin/swapcard/exhibitors, API-Route: /api/admin/swapcard/speakers, API-Route: /api/admin/swapcard/sponsors, API-Route: /api/partner/shop/angebot, API-Route: /api/partner/shop/angebot/[order]/pdf, Cron: /api/cron/luma-sync, Cron: /api/cron/mail
 
 | Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
 |---|---|---|---|---|---|
@@ -2233,7 +2233,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Datenschutz-Klasse (Vorschlag):** personenbezogen
 
-**Schreibwege (Funktionen/Trigger):** Migration/Seed (20261008082640_v6_side_events.sql), delete_admin_section_override(), set_admin_section_override(), set_updated_at() [Trigger set_updated_at] · löscht Zeilen: delete_admin_section_override()
+**Schreibwege (Funktionen/Trigger):** Migration/Seed (20261008082640_v6_side_events.sql), Migration/Seed (20261009122723_v6_team_zugaenge_zusammen.sql), delete_admin_section_override(), set_admin_section_override(), set_updated_at() [Trigger set_updated_at] · löscht Zeilen: delete_admin_section_override()
 
 **Trigger auf dieser Tabelle:** set_updated_at → set_updated_at()
 
@@ -2257,7 +2257,7 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 
 **Datenschutz-Klasse (Vorschlag):** keine
 
-**Schreibwege (Funktionen/Trigger):** Migration/Seed (20260925085557_v6_port1b_abschnitt_rollen.sql), Migration/Seed (20260925091507_v6_company_tours_admin.sql), Migration/Seed (20260925101238_v6_produktion_abschnitte.sql), Migration/Seed (20260925102703_v6_checkin_admin.sql), Migration/Seed (20260925103840_v6_logo_produktionsliste.sql), Migration/Seed (20260925110347_v6_audit_einsicht.sql), Migration/Seed (20260925170219_v6_zugaenge.sql), Migration/Seed (20261001082105_v6_fragenkatalog_pflege.sql), Migration/Seed (20261001085426_v6_admin_hackathon.sql), Migration/Seed (20261001085459_v6_einwilligung_sperrliste.sql), Migration/Seed (20261001131628_v6_produktstamm_pflege.sql), Migration/Seed (20261002083323_v6_tour_zuordnung.sql), Migration/Seed (20261002085957_v6_benachrichtigungen.sql), Migration/Seed (20261002091014_v6_event_fotos.sql), Migration/Seed (20261002091904_v6_feedback.sql), Migration/Seed (20261005160632_v6_hotel_freigabe_rechte.sql), Migration/Seed (20261008082640_v6_side_events.sql), Migration/Seed (20261008134736_v6_mail_vorlagen_kategorie.sql), Migration/Seed (20261008142630_v6_fristen_je_bereich.sql)
+**Schreibwege (Funktionen/Trigger):** Migration/Seed (20260925085557_v6_port1b_abschnitt_rollen.sql), Migration/Seed (20260925091507_v6_company_tours_admin.sql), Migration/Seed (20260925101238_v6_produktion_abschnitte.sql), Migration/Seed (20260925102703_v6_checkin_admin.sql), Migration/Seed (20260925103840_v6_logo_produktionsliste.sql), Migration/Seed (20260925110347_v6_audit_einsicht.sql), Migration/Seed (20260925170219_v6_zugaenge.sql), Migration/Seed (20261001082105_v6_fragenkatalog_pflege.sql), Migration/Seed (20261001085426_v6_admin_hackathon.sql), Migration/Seed (20261001085459_v6_einwilligung_sperrliste.sql), Migration/Seed (20261001131628_v6_produktstamm_pflege.sql), Migration/Seed (20261002083323_v6_tour_zuordnung.sql), Migration/Seed (20261002085957_v6_benachrichtigungen.sql), Migration/Seed (20261002091014_v6_event_fotos.sql), Migration/Seed (20261002091904_v6_feedback.sql), Migration/Seed (20261005160632_v6_hotel_freigabe_rechte.sql), Migration/Seed (20261008082640_v6_side_events.sql), Migration/Seed (20261008134736_v6_mail_vorlagen_kategorie.sql), Migration/Seed (20261008142630_v6_fristen_je_bereich.sql), Migration/Seed (20261009122723_v6_team_zugaenge_zusammen.sql)
 
 **Seiten (lesen/schreiben):** _keine .from()/.rpc()-Fundstelle in app/lib/components_
 
@@ -3180,6 +3180,23 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 | `stage_id` | uuid | technisch | set_speaker_stage_candidates() | /admin/speaker, /speaker-leads | |
 | `created_at` | timestamp with time zone | technisch |  |  | |
 | `created_by` | uuid | technisch | set_speaker_stage_candidates() | /admin/speaker, /speaker-leads | |
+
+### `speaker_step_reopen`
+
+**Zweck:** Wieder geöffnete Punkte der Speaker-Checkliste (SPK-082): eine Zeile = ein abgeleitet erledigter Schritt (`speaker_next_steps`) wurde von Hand wieder geöffnet. Die Ausnahme, nicht der Haken — die abgeleitete Wahrheit bleibt unberührt; eine Zeile zu einem inzwischen wieder offenen Schritt zählt nicht. Keine Grants, nur über my_speaker_step_reopened / set_speaker_step_reopened.
+
+**Datenschutz-Klasse (Vorschlag):** keine
+
+**Schreibwege (Funktionen/Trigger):** set_speaker_step_reopened() · löscht Zeilen: set_speaker_step_reopened()
+
+**Seiten (lesen/schreiben):** /speaker
+
+| Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
+|---|---|---|---|---|---|
+| `profile_id` | uuid | technisch | set_speaker_step_reopened() | /speaker | |
+| `step_key` | text | fachlich | set_speaker_step_reopened() | /speaker | |
+| `reopened_by` | uuid | technisch | set_speaker_step_reopened() | /speaker | |
+| `reopened_at` | timestamp with time zone | technisch |  |  | |
 
 ### `speaker_task`
 

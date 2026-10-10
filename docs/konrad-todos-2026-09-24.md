@@ -15,7 +15,7 @@ Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet
 3. **vivenu:** Entwurf senden; Sandbox-Transaktions-ID an mich für den Lauf; danach „Tickets nicht versenden“ im Event und die Redirect-URL `https://portal.chef-treff.de/tickets/bestaetigung` je Event.
 4. **K-88:** Alias und Login-Vorgeschichte nennen.
 5. **K-97** — Instanz-Auswahl am Handy: hat ein Partner real vier oder mehr Tische oder Stopps? Empfehlung nein, Reiter reichen (Design-Befund 375 px: bestanden).
-6. Klickwege aus A00, neu dazu: `/partner/company-tour` mit „TEST — Partner“ → Stopp-Umschalter ab zwei Stopps, die Wahl reist in Bewerbungen/Teilnehmende mit (QS-079, #463).
+6. Klickwege aus A00, neu dazu: `/partner/company-tour` mit „TEST — Partner“ → Stopp-Umschalter ab zwei Stopps, die Wahl reist in Bewerbungen/Teilnehmende mit (QS-079, #463); dasselbe im Admin unter `/admin/partner/<TEST — Partner>` → Abschnitt Company Tour (#468). **SPK-082 (#470, 0303):** `/speaker` mit deinem Speaker-Profil → bei einem erledigten Punkt (Profil, Einwilligungen, Session, Inhalt, Ticket) auf den Kreis („Wieder öffnen“) → der Punkt steht offen, der Zähler geht zurück → auf den leeren Ring („Als erledigt abhaken“) → wieder erledigt; offene Punkte (Foto, Präsentation) haben keinen klickbaren Haken; als „TEST Assistenz“ dasselbe.
 
 ### A00 · 09.10. vormittags: nach der Pause gemergt — Klicks und Freigaben
 

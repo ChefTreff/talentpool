@@ -423,6 +423,9 @@ const BUSINESS_KEYS = new Set([
   "deadline_is_system",
   "deadline_not_found",
   "invalid_reminder",
+  // Checkliste der Speaker: abgeleitet erledigte Punkte wieder öffnen (Vorschlag v6_speaker_checkliste, SPK-082)
+  "invalid_step",
+  "step_not_done",
 ]);
 
 const BY_CODE: Record<string, string> = {
