@@ -132,6 +132,9 @@
  *   … --apply --nur=weitergabe     (PART-129: Konrads Bewerbung auf „TEST — Masterclass“ steht ohne Haken zur
  *                                   Weitergabe — unter /meine „Weitergabe freigeben“ zum Nachholen; Partner sieht
  *                                   sie bis dahin nicht)
+ *   … --apply --nur=zweite-session (SPK-085: eine zweite TEST-Session (Panel) an Konrads Speaker-Profil,
+ *                                   ohne Slot — erst mit zwei Sessions zeigt /speaker/session die
+ *                                   Session-Auswahl; `--remove` löscht sie mit allen TEST-Sessions)
  *   … --apply --nur=ticket-bestaetigung (TAL-019: drei TEST-Tickets einer TEST-Transaktion auf deiner Adresse —
  *                                   offen, teilweise, vollständig; /tickets/bestaetigung?transactionId=zztest-tx-bestaetigung)
  *   … --apply --nur=shuttle        (SPK-069: zwei TEST-Shuttle-Fahrten an Konrads
@@ -809,6 +812,36 @@ async function ownSession(me, ed) {
       sessionId = data.id;
     }
     // Der Primärschlüssel ist (session_id, person_id, role) — die Rolle gehört dazu.
+    return admin.from("session_speaker")
+      .upsert({ session_id: sessionId, person_id: me.id, role: "speaker", confirmed: true },
+              { onConflict: "session_id,person_id,role" });
+  });
+}
+
+/**
+ * SPK-085: eine **zweite** Session mit Konrad als Speaker. `/speaker/session` zeigt die Session-Auswahl (Reiter „Keynote“, „Panel“) erst, wenn jemand zwei
+ * Sessions hat — Konrads Testprofil hatte bisher nur die Keynote aus `ownSession`. Dieselbe Veranstaltung (Summit), Titel mit Präfix (so findet sie
+ * `--remove`, das alle Sessions mit dem Präfix löscht), **ohne Slot** (den setzt das Team im Programm), im Entwurf. Idempotent: eine vorhandene Session wird
+ * nicht noch einmal angelegt, die Zuordnung ist ein Upsert.
+ */
+async function zweiteSession(me, ed) {
+  const eventId = (await summit(ed))?.id ?? ed.id;
+  await write("Zweite Session mit Konrad als Speaker (Session-Auswahl)", async () => {
+    const titel = `${PREFIX}Panel`;
+    const { data: da } = await admin.from("session").select("id")
+      .eq("event_id", eventId).eq("title_de", titel).maybeSingle();
+    let sessionId = da?.id ?? null;
+    if (!sessionId) {
+      const { data, error } = await admin.from("session").insert({
+        event_id: eventId, format: "panel",
+        title_de: titel, title_en: titel,
+        description_de: "Zweite Testsession für die Session-Auswahl.",
+        description_en: "Second test session for the session selector.",
+        language: "de", access_mode: "open", publish_status: "draft",
+      }).select("id").single();
+      if (error) return { data: null, error };
+      sessionId = data.id;
+    }
     return admin.from("session_speaker")
       .upsert({ session_id: sessionId, person_id: me.id, role: "speaker", confirmed: true },
               { onConflict: "session_id,person_id,role" });
@@ -4347,6 +4380,7 @@ const SCHRITTE = {
   wiki: wikiFilterSchritt,
   angebot: angebotSchritt,
   ticket: speakerTicket,
+  "zweite-session": zweiteSession,
   fotos: stagePhotos,
   portraet: testPortraet,
   "ticket-zurueck": ticketZurueck,

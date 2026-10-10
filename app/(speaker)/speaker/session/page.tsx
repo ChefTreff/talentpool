@@ -8,6 +8,8 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SectionTabs } from "@/components/layout/SectionTabs";
+import { sessionReiter, waehleSession } from "./auswahl";
 import { SessionView } from "./SessionView";
 import type { SpeakerProfile } from "../types";
 import type { MySession, PresentationWindow, SpeakerAsset } from "./types";
@@ -31,8 +33,14 @@ type EditionFile = {
   preview_height: number | null;
 };
 
-export default async function SpeakerSessionPage() {
+/**
+ * Die Session-Seite des Speakers. **Hat jemand zwei Sessions** (SPK-085, Konrad 05.10.: „der gesamte Session-Bereich läuft über eine Session-Auswahl — sonst
+ * doppelte Infos auf einer Seite“), wählen Reiter oben die Session (`?session=<Kennung>`, `waehleSession`), und darunter steht der ganze Bereich — Slot, Inhalt,
+ * Präsentation, Technik — **einmal**, für die gewählte. Die Anker (`#slot` …) sind damit auch eindeutig. Mit einer Session gibt es keine Reiter.
+ */
+export default async function SpeakerSessionPage({ searchParams }: { searchParams: Promise<{ session?: string | string[] }> }) {
   await requireArea("speaker", "/speaker/session");
+  const { session: sessionParam } = await searchParams;
   const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
 
@@ -54,14 +62,18 @@ export default async function SpeakerSessionPage() {
     );
   }
 
+  // SPK-085: gezeigt wird die gewählte Session; mit einer Session ist es diese.
+  const gewaehltId = waehleSession(sessionParam, sessions);
+  const angezeigt = sessions.filter((s) => s.session_id === gewaehltId);
+
   // Dateien und Fristen je Session: die Frist hängt am Slot, nicht am Profil.
   const [{ data: assetRows }, ...windows] = await Promise.all([
     supabase.rpc("my_speaker_assets", { p_profile_id: profile.id }),
-    ...sessions.map((s) => supabase.rpc("presentation_window", { p_session_id: s.session_id })),
+    ...angezeigt.map((s) => supabase.rpc("presentation_window", { p_session_id: s.session_id })),
   ]);
 
   const windowBySession: Record<string, PresentationWindow | null> = {};
-  sessions.forEach((s, i) => {
+  angezeigt.forEach((s, i) => {
     windowBySession[s.session_id] = (windows[i]?.data ?? null) as PresentationWindow | null;
   });
 
@@ -86,6 +98,22 @@ export default async function SpeakerSessionPage() {
   return (
     <div className="max-w-detail">
       <PageHeader word={t.speaker.wordStage} title={t.speaker.sessionTitle} description={t.speaker.sessionLead} />
+
+      {/* SPK-085: zwei oder mehr Sessions → die Auswahl steht **vor** den Abschnitten, denn sie gelten für die gewählte. Reiter über die Adresszeile
+          (`?session=`), die Seite bleibt beim Wechsel, wo sie ist (`scroll: false`); eine Session hat keine Auswahl. */}
+      {sessions.length > 1 && (
+        <>
+          <p className="ct-help mb-3 max-w-text">{t.speaker.sessionChooseHint.replace("{n}", String(sessions.length))}</p>
+          <SectionTabs
+            label={t.speaker.sessionChoose}
+            items={sessionReiter(sessions, {
+              formate: vgroup(vocab, "session_format"),
+              nummer: (n) => t.speaker.sessionNumber.replace("{n}", String(n)),
+              dateLocale: t.meta.dateLocale,
+            }).map((r) => ({ href: `?session=${r.id}`, label: r.label, aktiv: r.id === gewaehltId, scroll: false }))}
+          />
+        </>
+      )}
 
       {/* Die Abschnitte der längsten Seite im Portal (SPK-043, Muster QS-026).
           Nur was auch da ist: ohne Session gibt es keine Anker. */}
@@ -112,7 +140,7 @@ export default async function SpeakerSessionPage() {
           editionId={profile.edition_id}
           isAssistant={profile.is_assistant}
           slidesConsent={profile.consents?.slides_publication === true}
-          sessions={sessions}
+          sessions={angezeigt}
           assets={(assetRows ?? []) as SpeakerAsset[]}
           windows={windowBySession}
           labels={{
@@ -135,6 +163,7 @@ export default async function SpeakerSessionPage() {
             save: t.common.save,
             deadlinePassed: t.common.deadlinePassed,
             deadlineDone: t.common.deadlineDone,
+            unsaved: t.common.unsaved,
           }}
           rpcMessages={t.rpc}
         />

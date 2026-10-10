@@ -15,6 +15,7 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { useUngesichert, type UngesichertTexte } from "@/components/ui/useUngesichert";
 import { ConfirmDialog } from "@/components/ui/Modal";
 import { KalenderKnoepfe } from "@/components/ui/KalenderKnoepfe";
 import { MehrfachAuswahl } from "@/components/ui/MehrfachAuswahl";
@@ -92,6 +93,8 @@ export function SessionView({
     save: string;
     deadlinePassed: string;
     deadlineDone: string;
+    /** Die Rückfrage vor dem Verlassen mit ungesicherten Eingaben (QS-051) — seit SPK-085 auch beim Wechsel der Session. */
+    unsaved: UngesichertTexte;
   };
   rpcMessages: Record<string, string>;
 }) {
@@ -382,6 +385,7 @@ function SessionCard({
     save: string;
     deadlinePassed: string;
     deadlineDone: string;
+    unsaved: UngesichertTexte;
   };
   message: (key: string) => string;
   onUpload: (session: MySession, file: File) => void;
@@ -436,6 +440,10 @@ function SessionCard({
     language: [submission?.language, session.language].find((l) => l === "de" || l === "en") ?? "",
     notes: submission?.notes ?? "",
   });
+  // SPK-085: der Wechsel der Session lädt die Seite neu, und die Eingaben dieser Session gingen still verloren. Wie überall im Portal (QS-051) fragt die Seite
+  // nach, solange etwas nicht gesendet ist; „gesendet“ heißt: der Stand beim Öffnen oder nach dem letzten erfolgreichen Einreichen.
+  const [basis, setBasis] = useState(() => JSON.stringify(draft));
+  const warnung = useUngesichert(JSON.stringify(draft) !== basis, common.unsaved);
 
   const due = presentationWindow?.effective_due ?? null;
   const lateNow = presentationWindow?.late_now === true;
@@ -454,6 +462,7 @@ function SessionCard({
         return;
       }
       toast("success", t.submitDone);
+      setBasis(JSON.stringify(draft));
       onSubmitted();
     });
   }
@@ -809,6 +818,7 @@ function SessionCard({
         message={message}
         toast={toast}
       />
+      {warnung}
     </div>
   );
 }
