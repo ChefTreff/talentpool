@@ -191,8 +191,10 @@ describe("PART-130: Testdaten für Konrads Konto und Doku", () => {
     const schritt = skript.slice(skript.indexOf("async function teilnehmendeSchritt"), skript.indexOf("async function produktionSchritt"));
     assert.match(schritt, /status: "accepted", consent_share: true/);
     assert.match(schritt, /rpc\("decisions_released"/, "keine Zusage in einer Session mit freigegebenen Entscheidungen — das löste eine Mail aus");
-    assert.match(schritt, /if \(fe \|\| freigegeben\) \{[\s\S]*?continue;/);
-    assert.match(schritt, /rpc\("testdaten_person"/);
+    // Das `continue;` steht **in** dem Zweig (nicht irgendwo dahinter): sonst schriebe der Schritt die Zusage doch.
+    assert.match(schritt, /if \(fe \|\| freigegeben\) \{[^}]*continue;[^}]*\}/);
+    assert.match(schritt, /if \(!se\) \{[^}]*continue;[^}]*\}/, "fehlt die Session, geht der Schritt zur nächsten");
+    assert.match(schritt, /rpc\("testdaten_person", \{\s*p_first_name: "TEST", p_last_name: z\.name, p_email: teilnehmendeAdresse\(z\.adresse\),?\s*\}\)/, "die Person heißt TEST — das Aufräumen findet sie daran");
     assert.match(schritt, /\.eq\("first_name", "TEST"\)\.is\("auth_user_id", null\)/, "Profilwerte nur an TEST-Personen ohne Konto");
     assert.match(schritt, /onConflict: "session_id,person_id"/, "ein zweiter Lauf legt nichts doppelt an");
     const ziele = skript.slice(skript.indexOf("const TEILNEHMENDE_ZIELE"), skript.indexOf("async function teilnehmendeSchritt"));
