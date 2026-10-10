@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/Select";
 import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import { SuchFeld } from "@/components/ui/SuchFeld";
+import type { Betreuter, BuehnenZeile } from "@/lib/speaker/leads-uebersicht";
 import {
   assignSpeaker,
   findPeople,
@@ -56,9 +57,10 @@ export type UnassignedRow = {
  * Wer betreut die Speaker — und wer betreut noch niemanden.
  *
  * Die unbetreuten Speaker stehen **oben**, nicht unten: das ist die Arbeit, die
- * hier liegt. Die Lead-Tabelle darunter beantwortet die zweite Frage (wer trägt
- * wie viel), und das Aufnehmen einer neuen Lead-Person ist der seltenste
- * Vorgang und steht deshalb zuletzt.
+ * hier liegt. Dann (ADM-068) **wer welche Bühne leitet** — eine Zeile je Bühne,
+ * auch die ohne Stage Lead — und die Lead-Tabelle (wer trägt wie viel, mit den
+ * Speakern zum Aufklappen); das Aufnehmen einer neuen Lead-Person ist der
+ * seltenste Vorgang und steht deshalb zuletzt, erreichbar auch von der Bühne aus.
  *
  * Die Rolle wird je Bühne vergeben (PORT3): externe Stage Leads sehen nur die
  * Speaker und Slots ihrer Bühnen. Für mehrere Bühnen nimmt man die Person
@@ -68,6 +70,8 @@ export function LeadsView({
   leads,
   unassigned,
   stages,
+  buehnen,
+  betreute,
   labels,
   t,
   common,
@@ -77,6 +81,10 @@ export function LeadsView({
   unassigned: UnassignedRow[];
   /** Die Bühnen des Summits, für die jemand Stage Lead werden kann. */
   stages: { id: string; name: string }[];
+  /** ADM-068: je Bühne die Stage Leads, Sessions und Speaker (`buehnenUebersicht`). */
+  buehnen: BuehnenZeile[];
+  /** ADM-068: je Lead-Person die Speaker, die ihr zugeordnet sind (`betreuteJeLead`), nach der Kennung der Person. */
+  betreute: Record<string, Betreuter[]>;
   labels: Record<string, Record<string, string>>;
   t: Strings;
   common: { cancel: string; choose: string; none: string };
@@ -111,6 +119,13 @@ export function LeadsView({
     value: l.person_id,
     label: `${l.display_name ?? l.email ?? l.person_id} (${l.speakers})`,
   }));
+
+  /** Von einer Bühne aus eine Stage Lead aufnehmen: die Bühne ist gewählt, die Suche steht bereit (ADM-068). */
+  function buehneWaehlen(id: string) {
+    setBuehne(id);
+    document.getElementById("lead-aufnehmen")?.scrollIntoView();
+    document.getElementById("q")?.focus();
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -171,6 +186,64 @@ export function LeadsView({
         )}
       </Card>
 
+      {/* ADM-068: wer welche Bühne leitet — eine Zeile je Bühne, auch die ohne Stage Lead (das ist die Zeile, auf die es ankommt). */}
+      <div>
+        <h2 className="ct-h2 text-ink">{t.stagesTitle}</h2>
+        <p className="ct-help mb-3 mt-1 max-w-text">{t.stagesHint}</p>
+        {buehnen.length === 0 ? (
+          <EmptyState title={t.noStagesTitle} description={t.noStagesBody} />
+        ) : (
+          <Table stapeln>
+            <Thead>
+              <Th>{t.colStage}</Th>
+              <Th>{t.colStageLeads}</Th>
+              <Th numeric>{t.colSessions}</Th>
+              <Th numeric>{t.colStageSpeakers}</Th>
+              <Th aria-label={t.colAction} />
+            </Thead>
+            <Tbody>
+              {buehnen.map((b) => (
+                <Tr key={b.stage_id}>
+                  <Td>
+                    <span className="ct-label text-ink">{b.name}</span>
+                  </Td>
+                  <Td label={t.colStageLeads}>
+                    {b.leads.length === 0 ? (
+                      <Badge tone="warning">{t.noStageLead}</Badge>
+                    ) : (
+                      <div className="flex flex-wrap gap-x-3 gap-y-1">
+                        {b.leads.map((l) => (
+                          <Link key={l.person_id} href={`/admin/personen/${l.person_id}`} className="ct-link">
+                            {l.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </Td>
+                  <Td numeric label={t.colSessions}>
+                    {b.sessions}
+                  </Td>
+                  <Td numeric label={t.colStageSpeakers}>
+                    {b.speakers}
+                  </Td>
+                  <Td>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={pending}
+                      aria-label={`${t.addStageLead}: ${b.name}`}
+                      onClick={() => buehneWaehlen(b.stage_id)}
+                    >
+                      {t.addStageLead}
+                    </Button>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        )}
+      </div>
+
       <div>
         <h2 className="ct-h2 mb-3 text-ink">{t.leadsTitle}</h2>
         {leads.length === 0 ? (
@@ -194,6 +267,27 @@ export function LeadsView({
                       {l.display_name ?? common.none}
                     </Link>
                     {l.email && <span className="ct-help block text-muted">{l.email}</span>}
+                    {/* ADM-068: wen diese Person betreut — die Zahl „Betreut“ zum Aufklappen. */}
+                    {(betreute[l.person_id] ?? []).length > 0 && (
+                      <details className="mt-1">
+                        <summary className="ct-help cursor-pointer whitespace-nowrap font-semibold pointer-coarse:-my-3 pointer-coarse:py-3">
+                          {t.showSpeakers.replace("{n}", String(betreute[l.person_id].length))}
+                        </summary>
+                        <ul className="mt-1 flex flex-col gap-1">
+                          {betreute[l.person_id].map((s) => (
+                            <li key={s.profile_id} className="flex flex-wrap items-center gap-x-2">
+                              <Link href={`/admin/speaker/${s.profile_id}`} className="ct-link ct-small">
+                                {s.name}
+                              </Link>
+                              <Badge tone={s.zugesagt ? "success" : "neutral"}>
+                                {labels.pipeline[s.pipeline_status] ?? s.pipeline_status}
+                              </Badge>
+                              {s.offen > 0 && <span className="ct-help">{t.openStepsOne.replace("{n}", String(s.offen))}</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
                   </Td>
                   <Td>
                     <div className="flex flex-wrap gap-1">
@@ -243,7 +337,7 @@ export function LeadsView({
         )}
       </div>
 
-      <Card>
+      <Card id="lead-aufnehmen">
         <CardHeader ebene="h2" title={t.addTitle} description={t.addHint} />
         <div className="flex flex-wrap items-end gap-3">
           <Field label={t.stageLabel} htmlFor="lead-buehne" className="min-w-56">
