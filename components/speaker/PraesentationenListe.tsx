@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { useUrlFilter } from "@/components/ui/useUrlFilter";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FileButton } from "@/components/ui/FileButton";
@@ -12,7 +13,7 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import { SPEAKER_BUCKET, safeFileName } from "@/app/(speaker)/speaker/types";
 import { MAX_UPLOAD_BYTES, PRESENTATION_MIME } from "@/app/(speaker)/speaker/session/types";
-import { fehlende, type PraesentationsSpeaker, type PraesentationsZeile } from "./praesentationen";
+import { fehlende, standJeBuehne, type PraesentationsSpeaker, type PraesentationsZeile } from "./praesentationen";
 
 type Strings = Record<string, string>;
 
@@ -90,6 +91,8 @@ export function PraesentationenListe({
     [zeilen, buehne, nurFehlend],
   );
   const offen = fehlende(zeilen);
+  // LEAD-058: Soll und Ist je Bühne über **alle** Zeilen des Blicks, nicht über das, was die Filter gerade übrig lassen.
+  const stand = useMemo(() => standJeBuehne(zeilen), [zeilen]);
 
   async function hochladen(z: PraesentationsZeile, s: PraesentationsSpeaker, file: File) {
     if (!s.profile_id) return;
@@ -136,6 +139,45 @@ export function PraesentationenListe({
 
   return (
     <div className="flex flex-col gap-4">
+      {/* LEAD-058: Soll und Ist je Bühne — vor den Filtern, damit man sieht, wo etwas fehlt, bevor man filtert. Die Textspalte hat eine Mindestbreite (`basis-48`),
+          sonst drückt der Stand sie am Handy auf wenige Zeichen (SPK-096). */}
+      <section aria-labelledby="praes-stand">
+        <h2 id="praes-stand" className="ct-h3 mb-2 text-ink">
+          {t.standTitle}
+        </h2>
+        <ul className="flex flex-col rounded-ct-md border bg-surface">
+          {stand.map((b) => (
+            <li key={b.stage_id} className="flex min-h-14 flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-3 last:border-b-0">
+              <div className="min-w-0 flex-1 basis-48">
+                <span className="ct-label text-ink">{b.stage_name}</span>
+                <p className="ct-help">
+                  {b.sessions === 1 ? t.standSessionOne : t.standSessions.replace("{n}", String(b.sessions))}
+                  {" · "}
+                  {b.soll > 0 ? t.standCount.replace("{ist}", String(b.ist)).replace("{soll}", String(b.soll)) : t.noSpeakers}
+                </p>
+                {b.ohneProfil > 0 && <p className="ct-help">{t.standNoProfile.replace("{n}", String(b.ohneProfil))}</p>}
+              </div>
+              {b.soll > 0 &&
+                (b.fehlt > 0 ? (
+                  <Badge tone="warning">{t.standMissing.replace("{n}", String(b.fehlt))}</Badge>
+                ) : (
+                  <Badge tone="success">{t.standComplete}</Badge>
+                ))}
+              {b.fehlt > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  aria-label={`${t.standShowMissing}: ${b.stage_name}`}
+                  onClick={() => setFilter({ buehne: b.stage_id, fehlend: "1" })}
+                >
+                  {t.standShowMissing}
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <div className="flex flex-wrap items-center gap-4">
         {buehnen.length > 1 && (
           <Select
