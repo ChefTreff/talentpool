@@ -48,7 +48,16 @@ export function PersonAufnehmen({
   return (
     <div className="flex flex-col gap-4">
       <p className="ct-help">{t.addHint}</p>
-      <div className="flex flex-col gap-3">
+      {/* Ein Formular, damit die Eingabetaste sucht — vorher tat sie in diesem Feld nichts (ADM-109, Nachprüfung). */}
+      <form
+        className="flex flex-col gap-3"
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (pending || suche.trim().length < 2) return;
+          start(async () => { setTreffer(await findPeople(suche.trim())); setGesucht(true); });
+        }}
+      >
         <Field label={t.searchLabel} htmlFor="pa-q">
           <SuchFeld id="pa-q" value={suche} onChange={(e) => setSuche(e.target.value)} placeholder={t.searchPlaceholder} />
         </Field>
@@ -69,15 +78,11 @@ export function PersonAufnehmen({
           />
         </Field>
         <div>
-        <Button
-          variant="secondary"
-          disabled={pending || suche.trim().length < 2}
-          onClick={() => start(async () => { setTreffer(await findPeople(suche.trim())); setGesucht(true); })}
-        >
-          {t.search}
-        </Button>
+          <Button type="submit" variant="secondary" disabled={pending || suche.trim().length < 2}>
+            {t.search}
+          </Button>
         </div>
-      </div>
+      </form>
 
       {gesucht && treffer.length === 0 && <p className="ct-help text-muted">{t.noMatch}</p>}
       {treffer.length > 0 && (

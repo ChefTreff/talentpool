@@ -59,6 +59,11 @@ describe("Die Formulare stehen im Schubfach, nicht als Karte unter der Leiste (P
     assert.match(geraet, /role="alert"/);
   });
 
+  it("die Personensuche ist ein Formular: die Eingabetaste sucht, der Knopf schickt es ab (Nachprüfung 10.10.)", () => {
+    assert.match(aufnehmen, /<form[^>]*role="search"[\s\S]*onSubmit=\{\(e\) => \{\s*e\.preventDefault\(\);/);
+    assert.match(aufnehmen, /<Button type="submit" variant="secondary" disabled=\{pending \|\| suche\.trim\(\)\.length < 2\}>/);
+  });
+
   it("die Server-Aktionen sind dieselben (keine Funktions- und keine Rechteänderung)", () => {
     assert.match(einladung, /ladeTeamEin\(vorname, nachname, email, gewaehlt, edition\)/);
     assert.match(geraet, /legeGeraetAn\(form\.label, form\.email, form\.edition\)/);
