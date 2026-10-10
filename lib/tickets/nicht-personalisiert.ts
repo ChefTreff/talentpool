@@ -29,9 +29,12 @@ export type UebersichtZeile = {
 
 const STAND: Record<string, string> = { pending: "offen", partial: "teilweise" };
 
-export const NICHT_PERSONALISIERT_SPALTEN: { label: string; wert: (z: NichtPersonalisiert) => string }[] = [
+/** `pass` übersetzt den Schlüssel des Tickettyps in seine Bezeichnung (Vokabular `ticket_type`); ohne sie steht der Schlüssel da. */
+export type PassLabel = (schluessel: string | null) => string;
+
+export const NICHT_PERSONALISIERT_SPALTEN: { label: string; wert: (z: NichtPersonalisiert, pass?: PassLabel) => string }[] = [
   { label: "Veranstaltung", wert: (z) => z.event_name },
-  { label: "Pass", wert: (z) => z.pass_type ?? "" },
+  { label: "Pass", wert: (z, pass) => (pass ? pass(z.pass_type) : (z.pass_type ?? "")) },
   { label: "Stand", wert: (z) => STAND[z.personalization_status] ?? z.personalization_status },
   { label: "Käufer-E-Mail", wert: (z) => z.buyer_email ?? "" },
   { label: "Vorname", wert: (z) => z.holder_first_name ?? "" },

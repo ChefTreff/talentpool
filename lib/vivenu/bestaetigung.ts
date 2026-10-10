@@ -175,7 +175,7 @@ export function felderBeimUmschalten(aktuell: Felder, eigene: Felder, fuerMich: 
 }
 
 /** Fehlerschlüssel, zu denen die Seite einen eigenen, genaueren Text hat — er geht dem allgemeinen Wörterbuch (`rpc`) vor. */
-const EIGENE_FEHLER = new Set(["name_required", "holder_email_required", "ticket_not_valid", "ticket_not_found"]);
+const EIGENE_FEHLER = new Set(["name_required", "holder_email_required", "ticket_not_valid", "ticket_not_found", "person_has_ticket"]);
 
 /**
  * Der Text zu einem Fehler der Aktion (TAL-020, B8): erst der genauere der Seite (`ticketBestaetigung`), dann das allgemeine Wörterbuch, dann „unbekannt“. Vorher

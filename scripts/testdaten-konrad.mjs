@@ -3513,13 +3513,27 @@ async function ticketBestaetigungSchritt(me, ed) {
   const TX = "zztest-tx-bestaetigung";
   const { data: ev } = await admin.from("event").select("id").eq("edition_id", ed.id).eq("format_tag", "summit").limit(1).maybeSingle();
   if (!ev) return fail("Ticket-Bestätigung", "Summit-Event der Edition fehlt");
-  const { data: vorhanden } = await admin.from("ticket").select("id").eq("vivenu_transaction_id", TX);
-  if ((vorhanden ?? []).length > 0) return note("Ticket-Bestätigung", `steht schon — /tickets/bestaetigung?transactionId=${TX}`);
+  // TAL-020: höchstens ein gespeichertes Ticket je Person und Edition (`person_has_ticket`). Das teilweise Ticket gehört darum einer anderen
+  // TEST-Person (Plus-Adresse deines Postfachs, ohne Konto); bei Konrad bleibt nur das vollständige. Das offene Ticket kannst du als
+  // „andere Person“ speichern; „für mich“ darauf zeigt die Ablehnung der Regel.
+  const andere = await write("TEST-Person fuer das teilweise Ticket", () =>
+    admin.rpc("testdaten_person", { p_first_name: "TEST", p_last_name: "Ticketinhaber", p_email: email.replace("@", "+zztest-ticket@") }),
+  );
+  const andereMail = email.replace("@", "+zztest-ticket@");
+  const { data: vorhanden } = await admin.from("ticket").select("id, holder_last_name, person_id").eq("vivenu_transaction_id", TX);
+  if ((vorhanden ?? []).length > 0) {
+    const teilweise = vorhanden.find((t) => t.holder_last_name === "Teilweise" && t.person_id === me.id);
+    if (!teilweise) return note("Ticket-Bestätigung", `steht schon — /tickets/bestaetigung?transactionId=${TX}`);
+    if (!andere) return mode === "dry-run" ? note("Teilweises TEST-Ticket auf die andere TEST-Person legen") : fail("Ticket-Bestätigung", "TEST-Person für das teilweise Ticket fehlt");
+    await write("Teilweises TEST-Ticket auf die andere TEST-Person gelegt", () =>
+      admin.from("ticket").update({ person_id: andere, holder_email: andereMail }).eq("id", teilweise.id));
+    return note("Ticket-Bestätigung ansehen", `/tickets/bestaetigung?transactionId=${TX}`);
+  }
   const basis = { event_id: ev.id, vivenu_transaction_id: TX, buyer_email: email, status: "valid", source: "vivenu" };
   await write("3 TEST-Tickets einer Transaktion (offen / teilweise / vollständig)", () =>
     admin.from("ticket").insert([
       { ...basis, personalization_status: "pending" },
-      { ...basis, personalization_status: "partial", holder_first_name: "TEST", holder_last_name: "Teilweise", person_id: me.id, holder_email: email },
+      { ...basis, personalization_status: "partial", holder_first_name: "TEST", holder_last_name: "Teilweise", person_id: andere ?? null, holder_email: andere ? andereMail : null },
       { ...basis, personalization_status: "complete", holder_first_name: "TEST", holder_last_name: "Vollständig", holder_company: "ZZTEST GmbH", holder_position: "Tester", person_id: me.id, holder_email: email },
     ]));
   note("Ticket-Bestätigung ansehen", `/tickets/bestaetigung?transactionId=${TX}`);

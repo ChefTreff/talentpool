@@ -1,6 +1,7 @@
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { loadVocabMap, vlabel } from "@/lib/vocab";
 import { mailtoLink, summiere, type NichtPersonalisiert, type UebersichtZeile } from "@/lib/tickets/nicht-personalisiert";
 import { SectionTabs } from "@/components/layout/SectionTabs";
 import { Badge } from "@/components/ui/Badge";
@@ -24,12 +25,13 @@ const ANZEIGE = 200;
  */
 export default async function AdminTicketsPage() {
   await requireAdminSection("applications", `${PFAD}/tickets`);
-  const { t } = await getI18n();
+  const { locale, t } = await getI18n();
   const a = t.admin.applications;
   const supabase = await createSupabaseServerClient();
-  const [uebersicht, liste] = await Promise.all([
+  const [uebersicht, liste, vocab] = await Promise.all([
     supabase.rpc("ticket_personalization_overview"),
     supabase.rpc("tickets_unpersonalized", { p_limit: ANZEIGE + 1 }),
+    loadVocabMap(supabase, locale),
   ]);
   if (uebersicht.error) throw new Error(`ticket_personalization_overview: ${uebersicht.error.message}`);
   if (liste.error) throw new Error(`tickets_unpersonalized: ${liste.error.message}`);
@@ -140,7 +142,7 @@ export default async function AdminTicketsPage() {
                             (z.buyer_email ?? t.common.none)
                           )}
                         </Td>
-                        <Td label={a.ticketsColPass}>{z.pass_type ?? t.common.none}</Td>
+                        <Td label={a.ticketsColPass}>{z.pass_type ? vlabel(vocab, "ticket_type", z.pass_type) : t.common.none}</Td>
                         <Td label={a.ticketsColState}>
                           <Badge>{stand[z.personalization_status] ?? z.personalization_status}</Badge>
                         </Td>
