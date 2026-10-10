@@ -30,9 +30,14 @@ describe("SPK-096: Text und Frist der Checkliste-Zeile", () => {
     assert.doesNotMatch(zeile, /ct-help shrink-0 tabular-nums/, "das alte, immer starre `shrink-0` presste die Textspalte zusammen");
   });
 
-  it("die Frist steht nach dem Text — am Handy also darunter, nicht darüber", () => {
+  it("die Frist steht nach dem Text, **in** der Spalte — am Handy also darunter, bündig mit dem Text, nicht darüber und nicht unter dem Haken", () => {
     assert.ok(zeile.indexOf('<div className="min-w-0 flex-1">') > 0, "der Textblock fehlt");
     assert.ok(zeile.indexOf('<span className="ct-help tabular-nums sm:shrink-0">') > zeile.indexOf('<div className="min-w-0 flex-1">'), "die Frist steht vor dem Text");
+    assert.match(
+      zeile,
+      /<div className="flex min-w-0 flex-1 flex-col[^"]*">\s*<div className="min-w-0 flex-1">[\s\S]*?<\/div>\s*\{a\.faellig && !a\.erledigt && \(\s*<span className="ct-help tabular-nums sm:shrink-0">[\s\S]*?<\/span>\s*\)\}\s*<\/div>\s*$/,
+      "Text und Frist müssen die beiden Kinder der Spalte sein, die Spalte das letzte Kind der Zeile",
+    );
   });
 
   it("keine feste Breite und kein roher Pixelwert (Skill, Regel 2): die Spalte regelt der Fluss", () => {
@@ -40,7 +45,8 @@ describe("SPK-096: Text und Frist der Checkliste-Zeile", () => {
   });
 
   it("der Haken, Titel, Beschreibung und der Hinweis „wieder geöffnet“ bleiben im Textblock (SPK-082)", () => {
-    const text = zeile.slice(zeile.indexOf('<div className="min-w-0 flex-1">'), zeile.indexOf('<span className="ct-help tabular-nums sm:shrink-0">'));
+    const anfang = zeile.indexOf('<div className="min-w-0 flex-1">');
+    const text = zeile.slice(anfang, zeile.indexOf("</div>", anfang)); // der Textblock enthält kein weiteres div
     assert.match(text, /\{a\.titel\}/);
     assert.match(text, /\{a\.beschreibung\}/);
     assert.match(text, /\{a\.wiederGeoeffnet && <p className="ct-help">\{t\.reopenedHint\}<\/p>\}/);

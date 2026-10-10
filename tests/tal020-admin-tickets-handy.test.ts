@@ -19,13 +19,17 @@ describe("TAL-020 B12: `mailtoLink` — nur für eine einfache Adresse", () => {
   });
 
   it("keine Abfrage und kein zweiter Empfänger: ein `?cc=…`, `&bcc=…` oder eine zweite Adresse würden das Mailprogramm der Person vorbelegen, die die Liste öffnet", () => {
-    for (const x of ["a@b.de?cc=x@y.de", "a@b.de&bcc=x@y.de", "a@b.de,x@y.de", "a@b.de;x@y.de", "a@b.de#frag", "a%40b.de@c.de", "<a@b.de>", '"a"@b.de', "a'b@c.de"]) {
+    for (const x of [
+      "a@b.de?cc=x@y.de", "a@b.de&bcc=x@y.de", "a@b.de,x@y.de", "a@b.de;x@y.de", "a@b.de#frag", "a%40b.de@c.de", "<a@b.de>", '"a"@b.de', "a'b@c.de",
+      // vor dem @ ist es genauso gefährlich: aus `mailto:x?cc=y@z.de` wird ein Empfänger „x“ und eine Kopie an y@z.de
+      "x?cc=y@z.de", "x&bcc=y@z.de", "x?subject=hallo@z.de", "a@b?x.de",
+    ]) {
       assert.equal(mailtoLink(x), null, x);
     }
   });
 
   it("Leerraum in der Adresse, fehlendes @, fehlende Domain-Endung, Schema statt Adresse: Text statt Link", () => {
-    for (const x of ["kaputt adresse@x.de", "ohne-at.de", "a@b", "a@@b.de", "@b.de", "a@.de", "javascript:alert(1)", "mailto:a@b.de", "a@b.de/pfad", "a@b.de\\x", "", "   "]) {
+    for (const x of ["kaputt adresse@x.de", "a@b.de x", "a@b.d e", "a@b .de", "ohne-at.de", "a@b", "a@@b.de", "@b.de", "a@.de", "javascript:alert(1)", "mailto:a@b.de", "a@b.de/pfad", "a@b.de\\x", "", "   "]) {
       assert.equal(mailtoLink(x), null, JSON.stringify(x));
     }
     assert.equal(mailtoLink(null), null);
