@@ -12,7 +12,14 @@
 --   05 Die Policies anderer Tabellen, die `speaker_profile` mit Nutzerrechten abfragen (`speaker_asset`, `expense_claim`, `hospitality_booking`), laufen weiter ohne Fehler.
 --   06 Die Rechte der Tabelle: genau die 56 Spalten, davon 50 lesbar für `authenticated`; kein Tabellenrecht, kein Schreibrecht, `anon` nichts.
 --   07 Funktionen, die als Eigentümer lesen, merken nichts: `my_speaker_profile()` der Speakerin liefert ihr Profil.
--- Probelauf der Build-Session: siehe die Zeile unten (Eintrag nach dem Lauf).
+-- Probelauf der Build-Session am 10.10.2026 gegen die Live-Datenbank nach 0303 (`sh scripts/db.sh dry-run`, alles zurückgerollt): 8 von 8 Erwartungen erfüllt. Ohne die Migration
+-- (`sh scripts/db.sh test`) sind 01 bis 04 und 06 rot — das ist der Befund: ein Stage Lead liest `priority` über `manager_speakers` (`l_prio=a`), über `speaker_detail` und **direkt über die
+-- Tabelle** (`select priority` und `select *` ergeben `ok n=1`, keiner der sechs nicht gewährten Spalten fehlt das Recht) und setzt sie mit `update_speaker`. Mutationsproben an der Migration
+-- (28, je Regel eine — Schutz der Prio in beiden Lesefunktionen und seine Umkehrung, „Stage Lead zählt als Team“, zu viel versteckt, Notiz für alle, das Team-Feld im Schlüsselvergleich und
+-- zwei zu viel, nicht mehr DEFINER, Entzug des Tabellenrechts fehlt oder gilt nur für `anon`, jede der fünf ausgenommenen Spalten und `priority` gewährt, `id`/`edition_id`/`assistant_person_id`/
+-- `topic_role`/`internal_notes` nicht gewährt, Tabellenrecht zusätzlich, Spaltenrecht für `anon`, Schreibrecht, Härtung ersetzt durch ein `anon`-Recht): alle 28 rot. `fn-diff`: je Funktion genau
+-- eine Zeile. Die elf bestehenden DB-Tests, die `speaker_profile` unter `authenticated` berühren, laufen mit der Migration unverändert — bis auf `v6_lead039_einordnung`, das K-36 F1 für die Prio
+-- festhielt (angepasst: Stage Lead schreibt die sechs übrigen Felder, sieht die Prio als NULL, setzt sie nicht).
 begin;
 create temp table t_res (step text, result text) on commit drop;
 create temp table t_erw (step text, muster text) on commit drop;
