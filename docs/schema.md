@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-09 13:43 UTC · 124 Tabellen · 6 Views · 771 Funktionen
+> Stand: 2026-10-10 07:25 UTC · 125 Tabellen · 6 Views · 773 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -1950,6 +1950,16 @@ Bühnen, die für einen Speaker in Frage kommen (LEAD-039) — konkrete Bühnen 
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `created_by` | uuid |  |  | `person.id` |  |
 
+### `speaker_step_reopen`
+Wieder geöffnete Punkte der Speaker-Checkliste (SPK-082): eine Zeile = ein abgeleitet erledigter Schritt (`speaker_next_steps`) wurde von Hand wieder geöffnet. Die Ausnahme, nicht der Haken — die abgeleitete Wahrheit bleibt unberührt; eine Zeile zu einem inzwischen wieder offenen Schritt zählt nicht. Keine Grants, nur über my_speaker_step_reopened / set_speaker_step_reopened.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `profile_id` | uuid | PK |  | `speaker_profile.id` |  |
+| `step_key` | text | PK |  |  | Schlüssel aus speaker_next_steps: profile, photo, consents, session, session_content, presentation, ticket. |
+| `reopened_by` | uuid |  |  | `person.id` | Speakerin oder ihre Assistenz — wer es wieder geöffnet hat. NULL, wenn die Person inzwischen gelöscht ist. |
+| `reopened_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `speaker_task`
 Aufgaben, die der Speaker selbst abhakt (SPK-024, 0149) — je Edition, im Admin gepflegt. Nur für Erledigungen, die das Portal nicht selbst beobachten kann; Abgeleitetes bleibt in `next_steps`.
 
@@ -2695,6 +2705,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `my_speaker_profile` | p_edition_id: uuid |
 | `my_speaker_profile_id` | p_edition_id: uuid |
 | `my_speaker_profiles` | args: ? |
+| `my_speaker_step_reopened` | p_profile_id: uuid |
 | `my_speaker_tasks` | p_profile_id: uuid |
 | `my_speaker_tickets` | p_edition_id: uuid |
 | `my_speaker_travel` | p_edition_id: uuid |
@@ -2935,6 +2946,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_speaker_mail_via` | p_contact_id: uuid, p_profile_id: uuid |
 | `set_speaker_pipeline` | p_profile_id: uuid, p_reason: text, p_status: text |
 | `set_speaker_stage_candidates` | p_profile_id: uuid, p_stage_ids: uuid[] |
+| `set_speaker_step_reopened` | p_profile_id: uuid, p_reopened: boolean, p_step_key: text |
 | `set_speaker_task_tick` | p_done: boolean, p_profile_id: uuid, p_task_id: uuid |
 | `set_team_challenge` | p_challenge_id: uuid, p_team_id: uuid |
 | `set_tech_check` | p_asset_id: uuid, p_note: text, p_status: text |

@@ -1,4 +1,5 @@
--- NNNN · Checkliste der Speaker: abgeleitet erledigte Punkte wieder öffnen (SPK-082)
+-- 0303 · Speaker-Checkliste: Punkte wieder öffnen (SPK-082)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010072409.
 -- Vorschlag der Build-Session Speaker-Domäne. Nummer, Zeitstempel, Anwenden und der Eintrag ins Entscheidungslog gehören der Architektur-Session.
 --
 -- Anlass: Feedbackrunde Konrad & Paulina 05.10.2026 (SPK-082). Die Checkliste auf `/speaker` führt Schritte, die das Portal selbst ableitet (`speaker_next_steps`): Profil,

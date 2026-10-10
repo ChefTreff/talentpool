@@ -82,6 +82,10 @@ export default async function AdminSpeakerPage({ searchParams }: { searchParams:
             <ButtonLink href="/admin/speaker/website" variant="ghost" size="sm">
               {t.adminSpeakerWebsite.link}
             </ButtonLink>
+            {/* ADM-067: die Aufgaben der Speaker-Checkliste — Punkte, die die Speakerin selbst abhakt; je Edition gepflegt. */}
+            <ButtonLink href="/admin/speaker/aufgaben" variant="ghost" size="sm">
+              {ta.tasksLink}
+            </ButtonLink>
           </div>
         }
       />
