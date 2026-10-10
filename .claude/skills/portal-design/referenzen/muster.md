@@ -271,24 +271,28 @@ Konrad 09.10.2026 (Partner › Masterclasses): „bitte global immer so handhabe
 
 **Wann.** Eine Seite zeigt zwei oder mehr Instanzen desselben Dings, und jede trägt dieselben Abschnitte: Masterclass-Sessions einer Organisation, Interview Tables, Company-Tour-Stopps, die Bühnen von „Eure Bühne“. **Nicht,** wenn die Instanzen verglichen werden sollen (dann eine Tabelle, eine Zeile je Instanz, Bearbeiten im Schubfach), und nicht bei **einer** Instanz (dann kein Umschalter, die Seite ist wie vorher).
 
-**Bausteine, alle vorhanden:** `SectionTabs` (`components/layout/SectionTabs`) mit `aktiv` und einer Adresse mit Query; darunter die gewählte Instanz als Kopfkarte (`Card`, Titel `h2`, Stand, Slot) und die Abschnitte als `Card` mit `CardHeader ebene="h3"` — **genau einmal**. Ein eigener Baustein (`InstanzWahl`: Reiter, am Handy ab vier Einträgen eine Auswahl, optionales `marke` je Eintrag) entsteht erst **nach dem dritten Einsatz**.
+**Bausteine, alle vorhanden** (seit dem zweiten Einsatz, #457; drei Einsätze sind gebaut: Masterclass #453, Interview Tables #457, Company-Tour #463):
+
+- **`InstanzWahl`** (`components/layout/InstanzWahl.tsx`) zeichnet den Umschalter — eine dünne Hülle um `SectionTabs` mit `aktiv` und einer Adresse nur aus der Abfrage (`?instanz=<id>`). Sie zeichnet nichts, solange `leiste` `null` ist (unter zwei Instanzen). **Nicht noch einmal mit `SectionTabs` von Hand bauen.**
+- **Die Regeln** stehen in `lib/partner/instanz.ts` (der Pfad nennt die Herkunft, sie gelten in allen Portalen): `INSTANZ_PARAM`, `instanzKennung` (die Kennung aus `searchParams`), `waehleInstanz(liste, kennung, vorgabe)`, `instanzTitel` (Titel, sonst Nummer und Slot), `instanzLeiste` (die Reiter, **erst ab zwei**), `instanzHref` und `instanzSuffix` (die Wahl, die jede Sicht mitnimmt). Je Format eine Vorgabe (`vorgabeMasterclass`, `vorgabeTisch`, `vorgabeStopp`); `tischWahl` und `stoppWahl` fassen Wahl und Leiste zusammen. Eine neue Mehrfach-Seite ergänzt dort ihre **Vorgabe**, nicht ein eigenes `find`.
+- Darunter die gewählte Instanz als Kopfkarte (`Card`, Titel `h2`, Stand, Slot) und die Abschnitte als `Card` mit `CardHeader ebene="h3"` — **genau einmal**.
 
 ```tsx
 export default async function Seite({ searchParams }: { searchParams: Promise<{ instanz?: string }> }) {
   const { instanz } = await searchParams;
   const liste = await ladeInstanzen(); // schon auf die eigene Organisation gefiltert
-  const gewaehlt = liste.find((x) => x.id === instanz) ?? vorgabe(liste);
+  const gewaehlt = waehleInstanz(liste, instanzKennung(instanz), vorgabe); // vorgabe: die Instanz, die etwas will
+  const namen = instanzTitel(
+    liste.map((x) => ({ titel: x.titel, slot: kurzSlot(x.starts_at, t.meta.dateLocale) })),
+    (n) => t.instanceNumber.replace("{n}", String(n)), // „Masterclass {n}“
+  );
+  const leiste = instanzLeiste(liste.map((x, i) => ({ id: x.id, label: namen[i] })), gewaehlt?.id); // null unter zwei
 
   return (
     <>
       <PageHeader … />
-      {liste.length > 1 && (
-        <SectionTabs
-          label={t.instanzWaehlen} // „Masterclass wählen“
-          items={liste.map((x) => ({ href: `?instanz=${x.id}`, aktiv: x.id === gewaehlt.id, label: kurztitel(x) }))}
-        />
-      )}
-      <Instanz key={gewaehlt.id} x={gewaehlt} /> {/* Kopfkarte und Abschnitte, einmal */}
+      <InstanzWahl leiste={leiste} label={t.instanceLabel} /> {/* „Masterclass wählen“ */}
+      {gewaehlt && <Instanz key={gewaehlt.id} x={gewaehlt} />} {/* Kopfkarte und Abschnitte, einmal */}
     </>
   );
 }
@@ -297,30 +301,31 @@ export default async function Seite({ searchParams }: { searchParams: Promise<{ 
 `key={gewaehlt.id}` setzt die Formulare beim Wechsel zurück — sonst bliebe der Entwurf der einen Instanz im Feld der anderen stehen.
 
 - **Vorgabe:** die Instanz, die etwas von der Person will (offene Aufgabe, nächste Frist), sonst die erste. Ohne `?instanz` oder mit unbekannter Kennung kommt immer dieselbe — kein 404.
+- **Sichten als eigene Pfade** (Bewerbungen, Teilnehmende, Fragen): alle wählen nach **derselben** Regel (ein gemeinsamer Lader wie `ladeMasterclass`, oder `tischWahl` und `stoppWahl`), und `FormatReiter` hängt `instanzSuffix(leiste)` an jeden Reiter — wer die Sicht wechselt, bleibt in der Instanz. Der Umschalter steht **über** den Sichten, nie in derselben Leiste.
 - **Kurztitel:** der Titel der Instanz; sind sie gleich oder leer, Nummer und Slot („Masterclass 1 · Fr 10:00“). Was etwas verlangt, steht im Kopf der Instanz **in Worten** („Titel fehlt“), nicht nur in einer Farbe.
 - **Die Adresse ist der Zustand:** `aria-current="page"` am Reiter, die Rückwärtstaste geht zur vorigen Instanz, Mails und Aufgaben verlinken mit `?instanz=` direkt in die Instanz. Nach dem Speichern bleibt die Seite in der Instanz (`router.refresh()` behält die Adresse).
 - **Ungespeichertes:** ein Klick auf einen anderen Reiter fragt von selbst nach — `useUngesichert` fängt Link-Klicks ab (Muster „Formular“). Keine eigene Abfrage bauen.
 - **Überschriften:** `h1` der Seitentitel, die gewählte Instanz `h2`, ihre Abschnitte `h3`.
 - **Nur die gewählte Instanz laden und zeichnen:** kürzere Seite, kleineres DOM, ein Satz Formulare.
-- **Handy:** bis drei Instanzen Reiter (sie brechen um, 44 px je Reiter); ab vier oder bei langen Titeln eine **Auswahl** (`Select`, Beschriftung „Masterclass“, wechselt die Adresse) — den Baustein gibt es mit dem dritten Einsatz, bis dahin bleiben es Reiter.
+- **Handy:** bis drei Instanzen Reiter (sie brechen um, 44 px je Reiter); ab vier oder bei langen Titeln eine **Auswahl** (`Select`, Beschriftung „Masterclass“, wechselt die Adresse) — **nicht gebaut**, bisher sind es überall Reiter geblieben. Hat eine Organisation vier Instanzen, kommt die Auswahl **in `InstanzWahl`** (dieselbe `leiste`), nie in die Seite.
 - **Prüfen vor dem PR:** ein Formular je Abschnitt im DOM, der Wechsel setzt den Entwurf zurück, Aufruf mit `?instanz=` und mit falscher Kennung, 375 px.
 
-### Wo das Muster gilt (Stand 09.10.2026, am Quelltext gelesen, nicht im Browser)
+### Wo das Muster gilt (Stand 10.10.2026; „heute“ ist der Befund vom 09.10. am Quelltext, nicht im Browser)
 
-| Seite | Instanzen | heute | Muster |
+| Seite | Instanzen | heute (Befund 09.10.) | Muster und Stand |
 |---|---|---|---|
-| `/partner/masterclass` | Sessions der Organisation (meist zwei) | je Session vier Karten untereinander: Session, Inhalt, Goodies, Sprecher | **Umschalter** (Reiter, `?instanz=`); zuerst, Partner-Chat |
-| `/partner/company-tour` | Stopps (je Stopp eine Tour) | je Stopp Kopfkarte, Tour Lead und das Formular `TourStopp` | **Umschalter**, Reiter „Stopp 1 · Tour A“ (Nummer und Tour stehen schon im Titel) |
-| `/partner/interview-tables` | Tische der Organisation | je Tisch eine `TischeView` mit Tagen und Gesprächen, der Tischname als `h2` erst ab zwei Tischen | **Umschalter** ab zwei Tischen, der Tischname als Reiter; bei einem Tisch bleibt die Seite wie heute |
-| `/partner/talk` | Talks (meist einer) | je Session eine Karte mit Sprechern | ab zwei Talks **Umschalter**; die Zeilenaktion (Skill 13) gilt immer |
-| `/admin/partner/[org]` | Tour-Stopps der Organisation (die Maske ist dieselbe wie beim Partner) | je Stopp eine Karte mit `TourStopp`; je Masterclass nur die Goodies-Frage in einer Liste | **Umschalter für die Stopps** (folgt der Partner-Seite, Admin-Vollständigkeit); die Goodies-Liste bleibt, sie ist kurz |
+| `/partner/masterclass` | Sessions der Organisation (meist zwei) | je Session vier Karten untereinander: Session, Inhalt, Goodies, Sprecher | **Umschalter** (Reiter, `?instanz=`) — **gebaut #453** |
+| `/partner/company-tour` | Stopps (je Stopp eine Tour) | je Stopp Kopfkarte, Tour Lead und das Formular `TourStopp` | **Umschalter**, Reiter „Stopp 1 · Tour A“ (Nummer und Tour stehen schon im Titel) — **gebaut #463** |
+| `/partner/interview-tables` | Tische der Organisation | je Tisch eine `TischeView` mit Tagen und Gesprächen, der Tischname als `h2` erst ab zwei Tischen | **Umschalter** ab zwei Tischen, der Tischname als Reiter; bei einem Tisch bleibt die Seite wie vorher — **gebaut #457** |
+| `/partner/talk` | Talks (meist einer) | je Session eine Karte mit Sprechern | ab zwei Talks **Umschalter**; die Zeilenaktion (Skill 13) gilt immer — Umschalter **offen** |
+| `/admin/partner/[org]` | Tour-Stopps der Organisation (die Maske ist dieselbe wie beim Partner) | je Stopp eine Karte mit `TourStopp`; je Masterclass nur die Goodies-Frage in einer Liste | **Umschalter für die Stopps** (folgt der Partner-Seite, Admin-Vollständigkeit); die Goodies-Liste bleibt, sie ist kurz — **offen** (Partner-Chat) |
 | `/partner/buehne` | eigene Standbühne | drei **Sichten** als Reiter (Kalender · Tabelle · Gäste), keine Formulare je Bühne | **kein Befund.** Reiter sind Sichten, keine Instanzen — nie beides in eine Leiste mischen; kämen mehrere Bühnen dazu, steht die Bühne als **Auswahl über** den Reitern |
 | `/admin/edition` (Gerüst) | Tage und Bühnen | **eine Tabelle, Felder je Zeile** | **kein Befund:** Instanzen, die man vergleicht und in Serie pflegt, gehören in eine Tabelle (siehe „Wann“) |
 | `/admin/company-tours` | Touren | Liste, Aktionen rechts in der Zeile, „Begleitung hinzufügen“ in der Kopfzeile des Abschnitts | **Vorbild** für „Liste mit Zeilenaktion“ (unten) |
 
 Nicht geprüft: `/partner/side-event` (ein Side Event je Organisation), die Admin-Seiten `/admin/speaker/[id]`, `/admin/side-events`, `/admin/volunteers` (Listen mit Detail je Eintrag, keine Formulare je Instanz auf einmal erkennbar). Wer eine Mehrfach-Seite findet, die hier fehlt, trägt sie in die Tabelle ein.
 
-Zuerst umgesetzt: `/partner/masterclass` (Partner-Chat). Danach prüfen: Interview Tables, Company-Tour-Stopps, „Eure Bühne“ (PART-138).
+Umgesetzt (Partner-Chat, 09.10.): `/partner/masterclass` (#453), `/partner/interview-tables` (#457), `/partner/company-tour` (#463). Offen: die Tour-Stopps im Admin (`/admin/partner/[org]`), `/partner/talk` ab zwei Talks; zu prüfen bleibt „Eure Bühne“ (PART-138). Jede weitere Mehrfach-Seite nimmt `InstanzWahl` und die Regeln aus `lib/partner/instanz.ts`.
 
 ## Liste mit Zeilenaktion (PART-149, ab 09.10.2026)
 
