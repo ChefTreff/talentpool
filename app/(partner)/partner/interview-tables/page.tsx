@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { InstanzWahl } from "@/components/layout/InstanzWahl";
 import { profilFelderAus } from "@/components/partner/profil";
+import { ladeHiring } from "@/lib/partner/hiring-laden";
 import { instanzKennung, instanzSuffix, tischWahl } from "@/lib/partner/instanz";
 import { getPartnerScope } from "../org";
 import { ladeFlaechen } from "../formate";
@@ -47,11 +48,13 @@ export default async function PartnerInterviewTablesPage({ searchParams }: { sea
 
   const supabase = await createSupabaseServerClient();
   const args = { p_org_id: current.org_id, p_edition_id: current.edition_id };
-  const [{ data: overviewJson }, { data: sessionRows }, vocab, flaechen] = await Promise.all([
+  const [{ data: overviewJson }, { data: sessionRows }, vocab, flaechen, hiring] = await Promise.all([
     supabase.rpc("partner_overview", args),
     supabase.rpc("partner_format_sessions", { ...args, p_format: "interview_table" }),
     loadVocabMap(supabase, locale),
     ladeFlaechen(supabase, current.org_id, "interview_table"),
+    // K-94 Stufe 2b (PART-140): „Aus ‚Wen sucht ihr?‘ übernehmen“ im Wunschprofil des Tisches.
+    ladeHiring(supabase, current.org_id, current.edition_id),
   ]);
 
   const overview = (overviewJson ?? null) as PartnerOverview | null;
@@ -108,6 +111,7 @@ export default async function PartnerInterviewTablesPage({ searchParams }: { sea
             days={flaechen.days.filter((d) => d.event_id === gewaehlt.event_id)}
             canEdit={canEdit}
             profilFelder={profilFelder}
+            hiring={{ eintraege: hiring, t: t.partnerHiring, leerHref: "/partner/onboarding#hiring" }}
             statusLabel={vgroup(vocab, "publish_status")}
             rueckgabe={{
               badge: t.partner.returnedBadge,

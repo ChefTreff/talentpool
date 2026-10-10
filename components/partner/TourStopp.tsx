@@ -8,6 +8,8 @@ import { Field } from "@/components/ui/Field";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
+import { HiringUebernehmen, type HiringVorbelegung } from "./HiringUebernehmen";
+import { profilMitEintrag } from "./hiring-uebernehmen";
 import { ProfilAuswahl, profilUmschalten, type ProfilFeld, type ProfilOption } from "./ProfilAuswahl";
 import {
   HINWEISE_MAX,
@@ -29,10 +31,14 @@ type Strings = Record<string, string>;
  *
  * Gespeichert wird nur, was sich geändert hat (`tourAenderungen`); eine
  * Ja/Nein-Frage ohne Antwort bleibt offen, statt als „Nein“ zu landen.
+ *
+ * **Vorbelegung (K-94 Stufe 2b, PART-140):** mit `hiring` steht über den Fragen zum gesuchten Profil „Aus ‚Wen sucht ihr?‘ übernehmen“ — ein Eintrag der
+ * Organisation füllt Kategorie, Fachbereich, Skills und Studienfelder im Entwurf vor; gespeichert wird mit „Speichern“ wie alles hier.
  */
 export function TourStopp({
   stopp,
   felder,
+  hiring,
   canEdit,
   save,
   dateLocale,
@@ -42,6 +48,8 @@ export function TourStopp({
 }: {
   stopp: TourStoppZeile;
   felder: Record<ProfilFeld, ProfilOption[]>;
+  /** Die Einträge von „Wen sucht ihr?“ der Organisation und ihre Texte; ohne sie keine Vorbelegung. */
+  hiring?: HiringVorbelegung;
   canEdit: boolean;
   save: (stopId: string, fields: Record<string, unknown>) => Promise<TourStoppErgebnis>;
   dateLocale: string;
@@ -157,6 +165,15 @@ export function TourStopp({
         onToggle={(feld, key) => set("target_profile", profilUmschalten(entwurf.target_profile, feld, key))}
         disabled={!canEdit}
         t={t}
+        vorbelegung={
+          canEdit && hiring ? (
+            <HiringUebernehmen
+              vorbelegung={hiring}
+              felder={felder}
+              onUebernehmen={(e) => setEntwurf((x) => ({ ...x, target_profile: profilMitEintrag(x.target_profile, e) }))}
+            />
+          ) : undefined
+        }
       />
       {fehler && (
         <p role="alert" className="ct-small text-error-ink">

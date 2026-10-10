@@ -21,6 +21,7 @@ import type { ProfilFeld, ProfilOption } from "@/components/partner/ProfilAuswah
 import type { TourStopp as TourStoppZeile } from "@/components/partner/tour";
 import { TourStopp } from "@/components/partner/TourStopp";
 import { GoodiesFrage } from "@/components/partner/GoodiesFrage";
+import { MasterclassProfil } from "@/components/partner/MasterclassProfil";
 import { WenSuchtIhr } from "@/components/partner/WenSuchtIhr";
 import type { HiringEintrag, hiringOptionen } from "@/components/partner/hiring";
 import { InstanzWahl } from "@/components/layout/InstanzWahl";
@@ -601,6 +602,33 @@ export function OrgDetail({
         </Card>
       )}
 
+      {masterclasses.length > 0 && (
+        <Card id="wunschprofil">
+          <CardHeader ebene="h2" title={t.masterclassProfileTitle} description={t.masterclassProfileLead} />
+          {/* K-94 Stufe 2b (PART-140): dieselbe Maske wie unter /partner/masterclass, über dieselbe RPC (`partner_update_session`, Partner-Team über `partner_can_edit`);
+              „Aus ‚Wen sucht ihr?‘ übernehmen“ nimmt die Einträge dieser Organisation (Abschnitt weiter oben auf dieser Seite). */}
+          <ul className="flex flex-col divide-y divide-border">
+            {masterclasses.map((x) => (
+              <li key={x.id} className="py-4 first:pt-0 last:pb-0">
+                <p className="ct-label mb-2 text-ink">{x.title_de ?? "—"}</p>
+                <MasterclassProfil
+                  details={x.format_details}
+                  felder={tourFelder}
+                  vorbelegung={{ eintraege: hiring.eintraege, t: hiring.texts, leerHref: "#hiring" }}
+                  canEdit
+                  save={(details) => adminUpdateFormatDetails(x.id, details)}
+                  kopf={false}
+                  profilT={tourTexts}
+                  t={tourTexts}
+                  rpcMessages={rpcMessages}
+                  unsaved={common.unsaved}
+                />
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       {offeneFragen.length > 0 && (
         <Card id="fragen">
           <CardHeader ebene="h2" title={t.questionsTitle} description={t.questionsLead} />
@@ -626,6 +654,7 @@ export function OrgDetail({
               felder={tourFelder}
               canEdit
               save={adminUpdateTourStop}
+              hiring={{ eintraege: hiring.eintraege, t: hiring.texts, leerHref: "#hiring" }}
               dateLocale={dateLocale}
               t={tourTexts}
               rpcMessages={rpcMessages}

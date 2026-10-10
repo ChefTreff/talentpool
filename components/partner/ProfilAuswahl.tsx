@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { Field } from "@/components/ui/Field";
 import { MehrfachAuswahl } from "@/components/ui/MehrfachAuswahl";
 import { PROFIL_FELDER, geaenderteSchluessel, type ProfilFeld, type ProfilOption, type Zielprofil } from "./profil";
@@ -21,27 +21,42 @@ export { PROFIL_FELDER, profilUmschalten, type ProfilFeld, type ProfilOption, ty
  * als der eine Schlüssel übersetzt, der sich geändert hat (`geaenderteSchluessel`). So ändert sich keine der
  * Seiten, die die Auswahl benutzen: Company Tour, Interview Tables und die Maske unter der Organisation im Admin.
  * Ein gespeicherter Wert, den das Vokabular nicht mehr kennt, steht als eigene Zeile da und lässt sich abwählen.
+ *
+ * **Zwei Zutaten für die Masken (K-94 Stufe 2b, PART-140):** `vorbelegung` steht zwischen Kopf und Fragen („Aus ‚Wen sucht ihr?‘ übernehmen“, `HiringUebernehmen`) —
+ * die Maske hält den Entwurf, der Baustein zeigt nur, was sie hereingibt. `kopf={false}` blendet Titel und Hinweis aus, wo die Karte sie schon trägt (Masterclass:
+ * `CardHeader` mit demselben Titel; zwei gleiche Überschriften untereinander wären Doppelung).
  */
 export function ProfilAuswahl({
   felder,
   value,
   onToggle,
   disabled,
+  vorbelegung,
+  kopf = true,
   t,
 }: {
   felder: Record<ProfilFeld, ProfilOption[]>;
   value: Zielprofil;
   onToggle: (feld: ProfilFeld, key: string) => void;
   disabled?: boolean;
+  /** Die Vorbelegung aus „Wen sucht ihr?“ (`HiringUebernehmen`), über den Fragen; ohne sie steht dort nichts. */
+  vorbelegung?: ReactNode;
+  /** Titel und Hinweis zeigen (Voreinstellung); `false`, wo die umgebende Karte sie schon trägt. */
+  kopf?: boolean;
   /** `profileTitle`, `profileHint`, `profileOpen` und je Feld `profile_<feld>` als Beschriftung. */
   t: Record<string, string>;
 }) {
   const basis = useId();
   return (
     <div>
-      <h3 className="ct-label text-ink">{t.profileTitle}</h3>
-      <p className="ct-help mt-1">{t.profileHint}</p>
-      <div className="mt-3 flex flex-col gap-3">
+      {kopf && (
+        <>
+          <h3 className="ct-label text-ink">{t.profileTitle}</h3>
+          <p className="ct-help mt-1">{t.profileHint}</p>
+        </>
+      )}
+      {vorbelegung && <div className={kopf ? "mt-3" : undefined}>{vorbelegung}</div>}
+      <div className={kopf || vorbelegung ? "mt-3 flex flex-col gap-3" : "flex flex-col gap-3"}>
         {PROFIL_FELDER.map((feld) => {
           const gewaehlt = value[feld] ?? [];
           return (

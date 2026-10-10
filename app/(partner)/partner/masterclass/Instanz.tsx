@@ -2,6 +2,9 @@ import type { Locale } from "@/lib/i18n/shared";
 import { Card, CardHeader } from "@/components/ui/Card";
 import type { UngesichertTexte } from "@/components/ui/useUngesichert";
 import { GoodiesFrage } from "@/components/partner/GoodiesFrage";
+import type { HiringVorbelegung } from "@/components/partner/HiringUebernehmen";
+import { MasterclassProfil } from "@/components/partner/MasterclassProfil";
+import type { ProfilFeld, ProfilOption } from "@/components/partner/profil";
 import { speakerNotiz } from "@/lib/partner/speaker-notiz";
 import { updateFormatDetails } from "../actions";
 import { RueckgabeHinweis, SessionStatusBadge, rueckgabeOffen, type RueckgabeTexte } from "../Rueckgabe";
@@ -18,7 +21,7 @@ type Strings = Record<string, string>;
 
 /**
  * **Eine** Masterclass mit allem, was zu ihr gehört (PART-045, QS-079): Kopfkarte (Titel, Stand, Slot, Raum, Rückgabe der Programmleitung),
- * Inhalt, Goodies und „Wer spricht“. Die Seite zeichnet nur die gewählte — bei mehreren Masterclasses wählt der Umschalter darüber
+ * Inhalt, Wunschprofil, Goodies und „Wer spricht“. Die Seite zeichnet nur die gewählte — bei mehreren Masterclasses wählt der Umschalter darüber
  * (`?instanz=`), und die Seite setzt `key={gewaehlt.id}`: ein Wechsel setzt jedes Formular zurück, der Entwurf der einen Masterclass
  * bleibt nicht im Feld der anderen stehen.
  *
@@ -36,6 +39,9 @@ export function Instanz({
   locale,
   dateLocale,
   sprachen,
+  profilFelder,
+  hiring,
+  profilT,
   statusLabel,
   rueckgabe,
   s,
@@ -52,6 +58,10 @@ export function Instanz({
   locale: Locale;
   dateLocale: string;
   sprachen: { value: string; label: string }[];
+  /** K-94 Stufe 2b: die Auswahllisten des Wunschprofils, die Einträge von „Wen sucht ihr?“ und die Texte der Fragen (dieselben wie bei der Company Tour). */
+  profilFelder: Record<ProfilFeld, ProfilOption[]>;
+  hiring: HiringVorbelegung;
+  profilT: Strings;
   statusLabel: Record<string, string>;
   rueckgabe: RueckgabeTexte;
   /** Texte der Masterclass (`partnerMasterclass`). */
@@ -88,6 +98,23 @@ export function Instanz({
       <Card>
         <CardHeader ebene="h3" title={s.contentTitle} description={s.contentLead} />
         <MasterclassInhalt session={x} sprachen={sprachen} canEdit={canEdit} t={s} rpcMessages={rpcMessages} unsaved={unsaved} />
+      </Card>
+
+      <Card>
+        {/* K-94 Stufe 2b (PART-140): Titel und Hinweis trägt die Karte, die Fragen darunter lassen den eigenen Kopf weg. */}
+        <CardHeader ebene="h3" title={profilT.profileTitle} description={profilT.profileHint} />
+        <MasterclassProfil
+          details={x.format_details}
+          felder={profilFelder}
+          vorbelegung={hiring}
+          canEdit={canEdit}
+          save={updateFormatDetails.bind(null, x.id)}
+          kopf={false}
+          profilT={profilT}
+          t={s}
+          rpcMessages={rpcMessages}
+          unsaved={unsaved}
+        />
       </Card>
 
       <Card>

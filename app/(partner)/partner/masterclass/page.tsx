@@ -1,5 +1,7 @@
 import { requireArea } from "@/lib/auth";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import { profilFelderAus } from "@/components/partner/profil";
+import { ladeHiring } from "@/lib/partner/hiring-laden";
 import type { RueckgabeTexte } from "../Rueckgabe";
 import type { PartnerSpeaker } from "../talk/types";
 import { ladeMasterclass } from "./daten";
@@ -33,10 +35,12 @@ export default async function PartnerMasterclassPage({ searchParams }: { searchP
   const { supabase, locale, t, current, sessions, gewaehlt, instanzen, gebucht, canEdit } = await ladeMasterclass(instanz);
   const s = t.partnerMasterclass;
   const args = { p_org_id: current.org_id, p_edition_id: current.edition_id };
-  const [vocab, { data: speakerZeilen }, { data: kontaktZeilen }] = await Promise.all([
+  const [vocab, { data: speakerZeilen }, { data: kontaktZeilen }, hiring] = await Promise.all([
     loadVocabMap(supabase, locale),
     supabase.rpc("partner_speakers", args),
     supabase.rpc("partner_contacts", { p_org_id: current.org_id }),
+    // K-94 Stufe 2b (PART-140): „Aus ‚Wen sucht ihr?‘ übernehmen“ im Wunschprofil der Masterclass.
+    ladeHiring(supabase, current.org_id, current.edition_id),
   ]);
   const speakers = (speakerZeilen ?? []) as PartnerSpeaker[];
   const ops = ((kontaktZeilen ?? []) as { first_name: string | null; last_name: string | null; roles: string[] | null }[])
@@ -60,6 +64,9 @@ export default async function PartnerMasterclassPage({ searchParams }: { searchP
           locale={locale}
           dateLocale={t.meta.dateLocale}
           sprachen={sprachen}
+          profilFelder={profilFelderAus((name) => vgroup(vocab, name))}
+          hiring={{ eintraege: hiring, t: t.partnerHiring, leerHref: "/partner/onboarding#hiring" }}
+          profilT={t.partnerTour as unknown as Record<string, string>}
           statusLabel={vgroup(vocab, "publish_status")}
           rueckgabe={rueckgabe}
           s={s}
