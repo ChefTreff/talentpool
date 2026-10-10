@@ -24,7 +24,10 @@ export type AssetZeile = {
   profile_id: string;
   session_id: string | null;
   kind: string;
+  /** Pfad im privaten Bucket `speaker-assets` — daraus signiert der Browser die Adresse zum Ansehen und Herunterladen (LEAD-060). */
+  storage_path: string;
   filename: string;
+  mime: string | null;
   version: number;
   is_current: boolean;
   late: boolean;
@@ -32,13 +35,30 @@ export type AssetZeile = {
   created_at: string;
 };
 
-export type PraesentationsDatei = {
+/** Eine hochgeladene Fassung einer Präsentation — das, was sich ansehen und herunterladen lässt (LEAD-060). */
+export type PraesentationsFassung = {
+  id: string;
   filename: string;
+  mime: string | null;
+  storage_path: string;
   version: number;
   late: boolean;
-  status: string;
   hochgeladen: string;
 };
+
+export type PraesentationsDatei = PraesentationsFassung & {
+  status: string;
+  /** Frühere Fassungen derselben Session, neueste zuerst — ohne die aktuelle (LEAD-060: „signierter Download je Fassung“). */
+  fruehere: PraesentationsFassung[];
+};
+
+/**
+ * Lässt sich die Fassung im Browser ansehen? Nur ein PDF (der Browser zeigt es im neuen Fenster); PowerPoint und Keynote gibt es nur zum Herunterladen.
+ * Maßgeblich ist der Dateityp, hilfsweise die Endung — ein Upload ohne Typ (`mime` leer) bleibt ein PDF, wenn er so heißt.
+ */
+export function istPdf(f: { mime: string | null; filename: string }): boolean {
+  return f.mime === "application/pdf" || (!f.mime && /\.pdf$/i.test(f.filename));
+}
 
 export type PraesentationsSpeaker = {
   person_id: string;
@@ -62,7 +82,8 @@ export type PraesentationsZeile = {
 /**
  * Nur Sessions, die der Blick bearbeiten darf (eigene Bühnen, Tage, Slots;
  * das Team alle). Moderation präsentiert nicht und zählt nicht mit. Je Speaker
- * die **aktuelle** Präsentation an **dieser** Session.
+ * die **aktuelle** Präsentation an **dieser** Session — mit ihren **früheren
+ * Fassungen** (LEAD-060), damit sich jede einzeln ansehen und herunterladen lässt.
  */
 export function baueZeilen(
   slots: BoardZeile[],
@@ -72,12 +93,25 @@ export function baueZeilen(
 ): PraesentationsZeile[] {
   const profilVon = new Map(profile.map((p) => [p.person_id, p.id]));
   const dateiVon = new Map<string, AssetZeile>();
+  // LEAD-060: alle Fassungen je Profil und Session — die aktuelle steht in `datei`, die übrigen als `fruehere`.
+  const alleVon = new Map<string, AssetZeile[]>();
   for (const a of assets) {
-    if (a.kind !== "presentation" || !a.is_current || !a.session_id) continue;
+    if (a.kind !== "presentation" || !a.session_id) continue;
     const key = `${a.profile_id}:${a.session_id}`;
+    alleVon.set(key, [...(alleVon.get(key) ?? []), a]);
+    if (!a.is_current) continue;
     const da = dateiVon.get(key);
     if (!da || a.version > da.version) dateiVon.set(key, a);
   }
+  const fassung = (a: AssetZeile): PraesentationsFassung => ({
+    id: a.id,
+    filename: a.filename,
+    mime: a.mime,
+    storage_path: a.storage_path,
+    version: a.version,
+    late: a.late,
+    hochgeladen: a.created_at,
+  });
   return slots
     .filter((s) => s.can_edit && s.session_id)
     .map((s) => {
@@ -92,7 +126,14 @@ export function baueZeilen(
             profile_id: profileId,
             name: [sp.first_name, sp.last_name].filter(Boolean).join(" ") || "—",
             datei: a
-              ? { filename: a.filename, version: a.version, late: a.late, status: a.tech_check_status, hochgeladen: a.created_at }
+              ? {
+                  ...fassung(a),
+                  status: a.tech_check_status,
+                  fruehere: (alleVon.get(`${profileId}:${sessionId}`) ?? [])
+                    .filter((x) => x.id !== a.id)
+                    .sort((x, y) => y.version - x.version)
+                    .map(fassung),
+                }
               : null,
           };
         });

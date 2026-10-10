@@ -5981,6 +5981,9 @@
     "colSession": "Session",
     "colSlot": "Slot",
     "colSpeaker": "Speaker",
+    "download": "Download",
+    "downloadFile": "Download {file}",
+    "earlier": "Earlier versions ({n})",
     "emptyBody": "There is no session on your stages yet.",
     "emptyTitle": "No sessions",
     "fileChange": "Other file",
@@ -5993,8 +5996,9 @@
     "noProfile": "No profile you look after",
     "noSpeakers": "No speakers yet",
     "onlyMissing": "Missing only",
+    "openFailed": "The file could not be opened. Please try again.",
     "replace": "Choose another version",
-    "rules": "PDF, PowerPoint or Keynote, up to 100 MB. A new version replaces the old one; the tech check reviews it again.",
+    "rules": "PDF, PowerPoint or Keynote, up to 100 MB. A new version replaces the old one and the tech check reviews it again — the old one stays available under “Earlier versions”. A PDF can be viewed; everything else is available to download.",
     "shown": "{n} sessions · {missing} without a presentation",
     "standComplete": "Complete",
     "standCount": "{ist} of {soll} presentations received",
@@ -6011,7 +6015,9 @@
     "uploadLate": "late, the team has been notified",
     "uploadTooBig": "The file is larger than 100 MB.",
     "uploadWrongType": "Please use PDF, PowerPoint or Keynote.",
-    "uploading": "Uploading …"
+    "uploading": "Uploading …",
+    "view": "View",
+    "viewFile": "View {file}"
   },
   "production": {
     "addCue": "Add row",
