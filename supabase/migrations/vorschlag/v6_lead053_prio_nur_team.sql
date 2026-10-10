@@ -1,5 +1,5 @@
 -- NNNN · LEAD-053: Prio (A-/B-/C-Tier) nur fürs Team — nicht für Stage Leads, auch nicht direkt über die Tabelle
--- Vorschlag der Build-Session Speaker-Domäne. Nummer, Zeitstempel, Anwenden und der Eintrag ins Entscheidungslog gehören der Architektur-Session (Plan: nächste 0304).
+-- Vorschlag der Build-Session Speaker-Domäne. Nummer, Zeitstempel, Anwenden und der Eintrag ins Entscheidungslog gehören der Architektur-Session.
 --
 -- Anlass: Feedbackrunde Konrad & Paulina 05.10.2026 (LEAD-053). Paulina: „welche Prio Henny und ich der Person dann am Ende wirklich gegeben haben, hat die ja eigentlich nicht zu
 -- interessieren“ — die A-/B-/C-Einstufung (`speaker_profile.priority`, im Bildschirm „Prio“, Werte „A-Tier“ …) ist eine interne Bewertung der Programmleitung. LEAD-055 hat sie im Kopf
