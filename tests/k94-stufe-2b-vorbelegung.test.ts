@@ -87,9 +87,11 @@ describe("K-94 Stufe 2b: Vergleich, Details und Auswahl", () => {
   it("gleich ist, was in jedem Feld dieselben Schlüssel hat — Reihenfolge, Dubletten und leere Felder zählen nicht", () => {
     assert.equal(profilGleich({}, {}), true);
     assert.equal(profilGleich({ skill: ["a", "b"] }, { skill: ["b", "a"] }), true);
+    assert.equal(profilGleich({ skill: ["b", "a"] }, { skill: ["a", "b"] }), true, "in beide Richtungen");
     assert.equal(profilGleich({ skill: ["a", "a"] }, { skill: ["a"] }), true);
     assert.equal(profilGleich({ skill: [] }, {}), true);
     assert.equal(profilGleich({ skill: ["a"] }, {}), false);
+    assert.equal(profilGleich({}, { skill: ["a"] }), false, "auch wenn nur die rechte Seite ein Feld hat");
     assert.equal(profilGleich({ skill: ["a"] }, { skill: ["b"] }), false);
     assert.equal(profilGleich({ skill: ["a"] }, { skill: ["a", "b"] }), false);
     assert.equal(profilGleich({ skill: ["a"] }, { study_field: ["a"] }), false, "dasselbe Wort in einem anderen Feld ist etwas anderes");
@@ -118,7 +120,7 @@ describe("K-94 Stufe 2b: Vergleich, Details und Auswahl", () => {
   it("das gespeicherte Profil aus den Details: nur Listen von Texten, alles andere wird ignoriert", () => {
     assert.deepEqual(profilAusDetails({ target_profile: { skill: ["a", "b"], function_area: ["c"] } }), { skill: ["a", "b"], function_area: ["c"] });
     assert.deepEqual(profilAusDetails({ target_profile: { skill: ["a", 3, null, "b"], study_field: [], function_area: "c" } }), { skill: ["a", "b"] });
-    for (const kaputt of [null, undefined, {}, { target_profile: null }, { target_profile: ["a"] }, { target_profile: "a" }, { target_profile: 3 }]) {
+    for (const kaputt of [null, undefined, {}, { target_profile: null }, { target_profile: ["a"] }, { target_profile: [["a"]] }, { target_profile: "a" }, { target_profile: 3 }]) {
       assert.deepEqual(profilAusDetails(kaputt as Record<string, unknown> | null | undefined), {}, JSON.stringify(kaputt));
     }
     // Rundlauf
