@@ -5957,6 +5957,9 @@
     "colSession": "Session",
     "colSlot": "Slot",
     "colSpeaker": "Speaker",
+    "download": "Herunterladen",
+    "downloadFile": "{file} herunterladen",
+    "earlier": "Frühere Fassungen ({n})",
     "emptyBody": "Auf deinen Bühnen liegt noch keine Session.",
     "emptyTitle": "Keine Sessions",
     "fileChange": "Andere Datei",
@@ -5969,8 +5972,10 @@
     "noProfile": "Kein betreutes Profil",
     "noSpeakers": "Noch keine Speaker",
     "onlyMissing": "Nur fehlende",
+    "openBlocked": "Das Fenster wurde blockiert. Erlaube Pop-ups für diese Seite oder lade die Datei herunter.",
+    "openFailed": "Die Datei ließ sich nicht öffnen. Versuch es noch einmal.",
     "replace": "Andere Fassung wählen",
-    "rules": "PDF, PowerPoint oder Keynote, bis 100 MB. Eine neue Fassung ersetzt die alte, die Technik prüft sie erneut.",
+    "rules": "PDF, PowerPoint oder Keynote, bis 100 MB. Eine neue Fassung ersetzt die alte, die Technik prüft sie erneut — die alte bleibt unter „Frühere Fassungen“ erhalten. Ansehen lässt sich ein PDF; alles andere gibt es zum Herunterladen.",
     "shown": "{n} Sessions · {missing} ohne Präsentation",
     "standComplete": "Vollständig",
     "standCount": "{ist} von {soll} Präsentationen liegen vor",
@@ -5987,7 +5992,9 @@
     "uploadLate": "verspätet, das Team ist informiert",
     "uploadTooBig": "Die Datei ist größer als 100 MB.",
     "uploadWrongType": "Bitte PDF, PowerPoint oder Keynote.",
-    "uploading": "Lädt …"
+    "uploading": "Lädt …",
+    "view": "Ansehen",
+    "viewFile": "{file} ansehen"
   },
   "production": {
     "addCue": "Zeile hinzufügen",

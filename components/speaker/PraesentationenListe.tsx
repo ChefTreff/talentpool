@@ -13,7 +13,8 @@ import { Table, Thead, Tbody, Tr, Th, Td } from "@/components/ui/Table";
 import { useToast } from "@/components/ui/Toast";
 import { SPEAKER_BUCKET, safeFileName } from "@/app/(speaker)/speaker/types";
 import { MAX_UPLOAD_BYTES, PRESENTATION_MIME } from "@/app/(speaker)/speaker/session/types";
-import { fehlende, standJeBuehne, type PraesentationsSpeaker, type PraesentationsZeile } from "./praesentationen";
+import { fehlende, istPdf, standJeBuehne, type PraesentationsFassung, type PraesentationsSpeaker, type PraesentationsZeile } from "./praesentationen";
+import { holeFassung, type HolenModus } from "./praesentation-holen";
 
 type Strings = Record<string, string>;
 
@@ -135,6 +136,47 @@ export function PraesentationenListe({
     }
   }
 
+  /**
+   * Eine Fassung ansehen (PDF) oder herunterladen (LEAD-060, Konrad 05.10.: „Präsentationen ansehen und herunterladen — Verwaltung an einem Ort“). Der Ablauf steht
+   * in `holeFassung` (ausgeführt getestet): die Adresse wird beim Klick mit der Sitzung signiert, die Pfadregel `speaker_asset_path_allowed` lässt einen Stage Lead
+   * nur die Dateien seiner betreuten Profile lesen. Fehler stehen an der Zeile.
+   */
+  async function holen(key: string, f: PraesentationsFassung, modus: HolenModus) {
+    setFehler((e) => ({ ...e, [key]: "" }));
+    const supabase = createSupabaseBrowserClient();
+    const ergebnis = await holeFassung(modus, f, {
+      signieren: async (pfad, optionen) => {
+        const { data, error } = await supabase.storage.from(SPEAKER_BUCKET).createSignedUrl(pfad, 60, optionen);
+        return { url: error ? null : (data?.signedUrl ?? null) };
+      },
+      fensterOeffnen: () => window.open("", "_blank"),
+      herunterladen: (url, dateiname) => {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = dateiname;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      },
+    });
+    if (ergebnis === "fehler") setFehler((e) => ({ ...e, [key]: t.openFailed }));
+    if (ergebnis === "blockiert") setFehler((e) => ({ ...e, [key]: t.openBlocked }));
+  }
+
+  /** „Ansehen“ (nur PDF) und „Herunterladen“ für eine Fassung. */
+  const aktionen = (key: string, f: PraesentationsFassung) => (
+    <span className="flex flex-wrap items-center gap-1">
+      {istPdf(f) && (
+        <Button size="sm" variant="ghost" aria-label={t.viewFile.replace("{file}", f.filename)} onClick={() => void holen(key, f, "ansehen")}>
+          {t.view}
+        </Button>
+      )}
+      <Button size="sm" variant="ghost" aria-label={t.downloadFile.replace("{file}", f.filename)} onClick={() => void holen(key, f, "laden")}>
+        {t.download}
+      </Button>
+    </span>
+  );
+
   if (zeilen.length === 0) return <EmptyState title={t.emptyTitle} description={t.emptyBody} />;
 
   return (
@@ -237,16 +279,40 @@ export function PraesentationenListe({
                     <Td>
                       <div className="flex flex-col gap-1">
                         {s.datei ? (
-                          <span className="flex flex-wrap items-center gap-2">
-                            <Badge tone={TONE[s.datei.status] ?? "neutral"}>{tCheck[s.datei.status] ?? s.datei.status}</Badge>
-                            <span className="ct-help">
-                              {s.datei.filename} ·{" "}
-                              {t.fileInfo
-                                .replace("{version}", String(s.datei.version))
-                                .replace("{date}", datum.format(new Date(s.datei.hochgeladen)))}
-                              {s.datei.late && ` · ${t.late}`}
+                          <>
+                            <span className="flex flex-wrap items-center gap-2">
+                              <Badge tone={TONE[s.datei.status] ?? "neutral"}>{tCheck[s.datei.status] ?? s.datei.status}</Badge>
+                              <span className="ct-help">
+                                {s.datei.filename} ·{" "}
+                                {t.fileInfo
+                                  .replace("{version}", String(s.datei.version))
+                                  .replace("{date}", datum.format(new Date(s.datei.hochgeladen)))}
+                                {s.datei.late && ` · ${t.late}`}
+                              </span>
                             </span>
-                          </span>
+                            {aktionen(key, s.datei)}
+                            {s.datei.fruehere.length > 0 && (
+                              <details>
+                                <summary className="ct-help cursor-pointer font-semibold pointer-coarse:-my-3 pointer-coarse:py-3">
+                                  {t.earlier.replace("{n}", String(s.datei.fruehere.length))}
+                                </summary>
+                                <ul className="mt-1 flex flex-col gap-1">
+                                  {s.datei.fruehere.map((f) => (
+                                    <li key={f.id} className="flex flex-wrap items-center gap-x-2">
+                                      <span className="ct-help">
+                                        {f.filename} ·{" "}
+                                        {t.fileInfo
+                                          .replace("{version}", String(f.version))
+                                          .replace("{date}", datum.format(new Date(f.hochgeladen)))}
+                                        {f.late && ` · ${t.late}`}
+                                      </span>
+                                      {aktionen(key, f)}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </details>
+                            )}
+                          </>
                         ) : (
                           <span>
                             <Badge tone="warning">{t.missing}</Badge>
