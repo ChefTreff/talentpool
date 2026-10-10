@@ -48,7 +48,9 @@ describe("K-94 Stufe 2b: das Profil, das ein Eintrag beschreibt", () => {
       study_field: ["wirtschaftsinformatik"],
     });
     p.skill!.push("x");
+    p.study_field!.push("y");
     assert.deepEqual(e.skills, ["data_analysis", "programming"], "die Liste des Eintrags wird nicht geteilt");
+    assert.deepEqual(e.study_fields, ["wirtschaftsinformatik"], "auch die der Studienfelder nicht");
     const leer = profilAusEintrag(eintrag({ skills: [], study_fields: [] }));
     assert.deepEqual(leer, { career_opportunities: ["werkstudium"], function_area: ["data_ai"] });
     assert.ok(!("skill" in leer) && !("study_field" in leer), "nichts Leeres im Profil");
@@ -104,6 +106,11 @@ describe("K-94 Stufe 2b: Vergleich, Details und Auswahl", () => {
     const leer = detailsMitProfil(details, {});
     assert.deepEqual(leer, { goodies_planned: true, image_asset_id: "a1", job_title: "Dev" });
     assert.ok(!("target_profile" in leer));
+    // Auch die Listen des Ergebnisses gehören ihm allein: wer sie ändert, ändert den Entwurf der Maske nicht.
+    const entwurf: Zielprofil = { skill: ["a"] };
+    const ergebnis = detailsMitProfil({}, entwurf);
+    (ergebnis.target_profile as Zielprofil).skill!.push("z");
+    assert.deepEqual(entwurf.skill, ["a"]);
     assert.deepEqual(detailsMitProfil(null, { skill: ["x"] }), { target_profile: { skill: ["x"] } });
     assert.deepEqual(detailsMitProfil(undefined, {}), {});
   });
