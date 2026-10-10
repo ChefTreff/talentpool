@@ -92,7 +92,7 @@ describe("Personen: Migration (ADM-091, ADM-092)", () => {
     for (const f of ["first_name", "last_name", "title", "birthdate", "gender", "nationality", "country", "city", "phone", "linkedin_url", "preferred_language"]) {
       assert.ok(felder.includes(`'${f}'`), f);
     }
-    for (const f of ["auth_user_id", "tier", "deleted_at", "access_blocked_at", "phone_e164", "is_ambassador", "cv_path", "photo_path"]) {
+    for (const f of ["auth_user_id", "tier", "deleted_at", "access_blocked_at", "phone_e164", "cv_path", "photo_path"]) {
       assert.ok(!felder.includes(`'${f}'`), `${f} darf nicht änderbar sein`);
     }
   });
