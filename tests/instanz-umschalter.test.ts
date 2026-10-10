@@ -194,7 +194,8 @@ describe("„Wer spricht“: Hinzufügen in die Kopfzeile, Bearbeiten in die Zei
 
   it("die Masterclass: Seitentitel h1 (PageHeader), Masterclass h2, Abschnitte h3 — und kein Formular außerhalb der gewählten", () => {
     assert.match(instanz, /<h2 className="ct-h3 text-ink">\{titel\}<\/h2>/);
-    assert.equal((instanz.match(/<CardHeader ebene="h3"/g) ?? []).length, 3);
+    // Inhalt, Wunschprofil (K-94 Stufe 2b), Goodies, Wer spricht.
+    assert.equal((instanz.match(/<CardHeader ebene="h3"/g) ?? []).length, 4);
     assert.doesNotMatch(instanz, /<CardHeader ebene="h2"/);
     assert.match(instanz, /<section aria-label=\{titel\}/);
   });

@@ -652,9 +652,9 @@ export function OrgDetail({
             <TourStopp
               stopp={tourStopp}
               felder={tourFelder}
-              hiring={{ eintraege: hiring.eintraege, t: hiring.texts, leerHref: "#hiring" }}
               canEdit
               save={adminUpdateTourStop}
+              hiring={{ eintraege: hiring.eintraege, t: hiring.texts, leerHref: "#hiring" }}
               dateLocale={dateLocale}
               t={tourTexts}
               rpcMessages={rpcMessages}

@@ -48,8 +48,8 @@ const H3: Record<string, { anzahl: number; grund: string }> = {
     grund: "Formular unter der Karte der Tour: Unterabschnitt, die Tour-Karte darüber trägt die h2",
   },
   "app/(partner)/partner/masterclass/Instanz.tsx": {
-    anzahl: 3,
-    grund: "Inhalt, Goodies und Sprecher sind Unterabschnitte unter dem Titel der Masterclass (der ist die h2 der Einheit)",
+    anzahl: 4,
+    grund: "Inhalt, Wunschprofil, Goodies und Sprecher sind Unterabschnitte unter dem Titel der Masterclass (der ist die h2 der Einheit)",
   },
 };
 const H3_GESAMT = Object.values(H3).reduce((s, v) => s + v.anzahl, 0);
