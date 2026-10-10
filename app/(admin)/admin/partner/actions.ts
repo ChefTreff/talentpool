@@ -8,6 +8,8 @@ import { toRpcFailure } from "@/lib/rpc-error";
 import type { UpdateContactInput } from "@/components/partner/contacts";
 import type { GastAenderung, GastErgebnis, GastFoto, GastNeu } from "@/components/partner/gaeste";
 import { gastAendern, gastAnlegen, gastEntfernen, gastFotoRegistrieren } from "@/lib/partner/gaeste";
+import { hiringEntfernen, hiringSpeichern } from "@/lib/partner/hiring";
+import type { HiringSpeichern } from "@/components/partner/hiring";
 import { geschwister } from "@/components/partner/kontingent-ansicht";
 import type { AdminAllocation, DryRunResult } from "./types";
 
@@ -748,4 +750,20 @@ export async function adminApproveSessionQuestions(sessionId: string): Promise<A
   revalidatePath(`${PATH}/[org]`, "page");
   revalidatePath("/partner/masterclass/fragen");
   return { ok: true, data: { count: Number(data ?? 0) } };
+}
+
+/**
+ * „Wen sucht ihr?“ der Organisation aus dem Admin (K-94 Stufe 2a, PART-107) — dieselben RPCs wie im Portal (`set_org_hiring`, `delete_org_hiring`), die das Partner-Team über
+ * `partner_can_edit` hereinlässt (Regel vom 22.09.: was ein Portal kann, kann der Admin auch).
+ */
+export async function adminSaveOrgHiring(input: HiringSpeichern): Promise<AdminResult<{ id: string }>> {
+  const res = await hiringSpeichern(await client(), input);
+  if (res.ok) revalidatePath(`${PATH}/[org]`, "page");
+  return res;
+}
+
+export async function adminDeleteOrgHiring(id: string): Promise<AdminResult> {
+  const res = await hiringEntfernen(await client(), id);
+  if (res.ok) revalidatePath(`${PATH}/[org]`, "page");
+  return res;
 }

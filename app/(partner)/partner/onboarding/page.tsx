@@ -7,6 +7,9 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
 import { canEditOnboarding, type Deliverable, type PartnerOverview } from "../types";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import { WenSuchtIhr } from "@/components/partner/WenSuchtIhr";
+import { hiringOptionen, type HiringEintrag } from "@/components/partner/hiring";
+import { deleteOrgHiring, saveOrgHiring } from "../actions";
 import { EureDatenView } from "./EureDatenView";
 
 export const dynamic = "force-dynamic";
@@ -29,12 +32,17 @@ export default async function PartnerOnboardingPage() {
   const supabase = await createSupabaseServerClient();
   // Kontakte werden hier nicht mehr geladen: sie stehen unter „Kontakte" und
   // standen vorher doppelt (F12.6).
-  const [{ data: overviewJson }, { data: deliverableRows }, vocab] = await Promise.all([
+  const [{ data: overviewJson }, { data: deliverableRows }, { data: hiringRows }, vocab] = await Promise.all([
     supabase.rpc("partner_overview", {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
     }),
     supabase.rpc("my_deliverables", {
+      p_org_id: current.org_id,
+      p_edition_id: current.edition_id,
+    }),
+    // K-94 Stufe 2a (PART-107): „Wen sucht ihr?“ — die Einträge der Organisation.
+    supabase.rpc("partner_org_hiring", {
       p_org_id: current.org_id,
       p_edition_id: current.edition_id,
     }),
@@ -86,6 +94,20 @@ export default async function PartnerOnboardingPage() {
         unsaved={t.common.unsaved}
         rpcMessages={t.rpc}
       />
+      {/* K-94 Stufe 2a (PART-107): „Wen sucht ihr?“ — jeder Eintrag speichert für sich, nicht mit der Leiste der Abschnitte oben. */}
+      <div className="mt-10">
+        <WenSuchtIhr
+          orgId={current.org_id}
+          editionId={current.edition_id}
+          eintraege={(hiringRows ?? []) as HiringEintrag[]}
+          canEdit={editable}
+          optionen={hiringOptionen((name) => vgroup(vocab, name))}
+          save={saveOrgHiring}
+          remove={deleteOrgHiring}
+          t={t.partnerHiring}
+          rpcMessages={t.rpc}
+        />
+      </div>
     </>
   );
 }

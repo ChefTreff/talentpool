@@ -21,6 +21,8 @@ import type { ProfilFeld, ProfilOption } from "@/components/partner/ProfilAuswah
 import type { TourStopp as TourStoppZeile } from "@/components/partner/tour";
 import { TourStopp } from "@/components/partner/TourStopp";
 import { GoodiesFrage } from "@/components/partner/GoodiesFrage";
+import { WenSuchtIhr } from "@/components/partner/WenSuchtIhr";
+import type { HiringEintrag, hiringOptionen } from "@/components/partner/hiring";
 import { InstanzWahl } from "@/components/layout/InstanzWahl";
 import type { InstanzLeiste } from "@/lib/partner/instanz";
 import { leistungenZusammenfassen, nachbuchungsText } from "@/components/partner/leistungen";
@@ -35,6 +37,8 @@ import {
 } from "@/components/partner/EureDaten";
 import {
   adminAddStageGuest,
+  adminDeleteOrgHiring,
+  adminSaveOrgHiring,
   adminUpdateFormatDetails,
   adminUpdateTourStop,
   adminRegisterStageGuestPhoto,
@@ -106,6 +110,7 @@ export function OrgDetail({
   contactTexts,
   dataTexts,
   industries,
+  hiring,
   einwilligung,
   common,
   rpcMessages,
@@ -150,6 +155,8 @@ export function OrgDetail({
   dataTexts: Strings;
   /** Vokabular `industry` für das Feld Branche. */
   industries: Record<string, string>;
+  /** „Wen sucht ihr?“ der Organisation (K-94 Stufe 2a, PART-107): Einträge, Auswahllisten, Texte — dieselbe Maske wie unter „Eure Daten“ im Partnerportal. */
+  hiring: { eintraege: HiringEintrag[]; optionen: ReturnType<typeof hiringOptionen>; texts: Strings };
   /** Texte der Einwilligung zum Weißen des Logos — dieselben wie im Partnerportal (`logoWandEinwilligung`). */
   einwilligung: LogoWandTexte;
   common: { cancel: string; none: string; save: string; close: string; required: string; unsaved: UngesichertTexte };
@@ -380,6 +387,8 @@ export function OrgDetail({
 
           { id: "kontakte", label: t.contactsTitle },
 
+          ...(editionId ? [{ id: "hiring", label: hiring.texts.title }] : []),
+
           { id: "deals", label: t.dealsTitle },
 
           { id: "gebucht", label: t.bookedTitle },
@@ -529,6 +538,22 @@ export function OrgDetail({
           rpcMessages={rpcMessages}
         />
       </Card>
+
+      {/* K-94 Stufe 2a (PART-107, Admin-Vollständigkeit): was der Partner unter „Eure Daten“ als „Wen sucht ihr?“ pflegt, pflegt hier das Team über dieselben RPCs. */}
+      {editionId && (
+        <WenSuchtIhr
+          id="hiring"
+          orgId={orgId}
+          editionId={editionId}
+          eintraege={hiring.eintraege}
+          canEdit
+          optionen={hiring.optionen}
+          save={adminSaveOrgHiring}
+          remove={adminDeleteOrgHiring}
+          t={hiring.texts}
+          rpcMessages={rpcMessages}
+        />
+      )}
 
       {overview.has_stage && (
         <Card id="gaeste">

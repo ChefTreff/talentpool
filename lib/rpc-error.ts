@@ -431,6 +431,11 @@ const BUSINESS_KEYS = new Set([
   // Tischvorgabe der Bewerbungsfragen (Vorschlag v6_tisch_fragen_uebernahme, PART-150): ein Ziel gehört nicht zum Tisch der Quelle (`detail` = das Gespräch);
   // `too_many_questions` und `session_not_found` stehen schon oben.
   "not_same_table",
+  // „Wen sucht ihr?“ (Vorschlag v6_org_hiring, K-94 Stufe 2a, PART-107): ein Pflichtfeld fehlt oder ist zu lang (`detail` = das Feld), das Limit je Organisation und Edition (`detail` 10),
+  // ein Eintrag gibt es nicht; `invalid_vocab` und `org_edition_not_found` stehen schon oben.
+  "invalid_hiring",
+  "too_many_hiring",
+  "hiring_not_found",
 ]);
 
 const BY_CODE: Record<string, string> = {
