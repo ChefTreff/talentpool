@@ -10,13 +10,16 @@ import { instanzHref, type InstanzLeiste } from "@/lib/partner/instanz";
  * (`lib/partner/instanz.ts`) und gibt es erst ab zwei Instanzen; ohne sie zeichnet die Hülle nichts, die Seite ist dann wie vorher.
  *
  * Der Umschalter steht **über** den Sichten der Seite (Reiter wie „Inhalt · Bewerbungen“), nie in derselben Leiste.
+ *
+ * `scroll={false}` für einen Umschalter **mitten auf einer langen Seite** (die Stopps unter `/admin/partner/[org]`): Next springt nach dem Wechsel sonst an den
+ * Seitenanfang, sobald der nicht mehr im Bild steht. Steht der Umschalter oben (die drei Partnerseiten), bleibt es beim Standard.
  */
-export function InstanzWahl({ leiste, label }: { leiste: InstanzLeiste | null; label: string }) {
+export function InstanzWahl({ leiste, label, scroll }: { leiste: InstanzLeiste | null; label: string; scroll?: boolean }) {
   if (!leiste) return null;
   return (
     <SectionTabs
       label={label}
-      items={leiste.items.map((x) => ({ href: instanzHref(x.id), label: x.label, aktiv: x.id === leiste.gewaehlt }))}
+      items={leiste.items.map((x) => ({ href: instanzHref(x.id), label: x.label, aktiv: x.id === leiste.gewaehlt, scroll }))}
     />
   );
 }

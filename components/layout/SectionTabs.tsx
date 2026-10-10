@@ -26,6 +26,11 @@ export type SectionTab = {
    * gilt es statt der Pfadprüfung.
    */
   aktiv?: boolean;
+  /**
+   * `false`: der Wechsel lässt die Seite, wo sie ist. Für einen Umschalter mitten auf einer langen Seite (`InstanzWahl`, QS-079) — Next springt sonst
+   * nach oben, wenn der Seitenanfang nicht mehr im Bild steht. Ohne Angabe gilt der Standard von `Link`.
+   */
+  scroll?: boolean;
 };
 
 /**
@@ -40,7 +45,7 @@ export function SectionTabs({ items, label }: { items: SectionTab[]; label: stri
         const active = reiterAktiv(item, pathname);
         return (
           // 32 px am Desktop, am Handy 44 (QS-059, Touch-Ziele wie QS-057) — beides hält `ChipLink`.
-          <ChipLink key={item.href} href={item.href} aktiv={active}>
+          <ChipLink key={item.href} href={item.href} aktiv={active} scroll={item.scroll}>
             {item.label}
           </ChipLink>
         );
