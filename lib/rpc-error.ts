@@ -31,6 +31,8 @@ const BUSINESS_KEYS = new Set([
   "not_eligible",
   "not_released",
   "ticket_required",
+  // TAL-020: „für mich“ auf ein zweites Ticket derselben Edition
+  "person_has_ticket",
   "collision",
   "confirm_deadline_passed",
   "cannot_withdraw",

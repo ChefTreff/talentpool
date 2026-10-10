@@ -23,6 +23,8 @@ type Ticket = {
   holder_last_name: string | null;
   checked_in_at: string | null;
   wallet_available: boolean;
+  personalization_status: string | null;
+  vivenu_transaction_id: string | null;
 };
 
 /**
@@ -39,6 +41,15 @@ export default async function TicketsPage() {
   const supabase = await createSupabaseServerClient();
   const [{ data }, vocab] = await Promise.all([supabase.rpc("my_tickets"), loadVocabMap(supabase, locale)]);
   const tickets = (data ?? []) as Ticket[];
+  // TAL-020, B3: der Weg zur Bestätigungsseite für ein Ticket, dem noch Angaben fehlen. Nur mit Transaktions-Id (sonst wüsste die Seite nicht, welche Bestellung).
+  const ergaenzen = (k: Ticket) =>
+    k.status === "valid" && k.personalization_status !== "complete" && k.vivenu_transaction_id ? (
+      <p className="mt-3">
+        <ButtonLink href={`/tickets/bestaetigung?transactionId=${encodeURIComponent(k.vivenu_transaction_id)}`} variant="secondary" size="sm">
+          {tt.completeNow}
+        </ButtonLink>
+      </p>
+    ) : null;
   const zeit = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "de-DE", { dateStyle: "medium", timeStyle: "short" });
 
   return (
@@ -57,6 +68,7 @@ export default async function TicketsPage() {
                   <p className="ct-eyebrow text-muted">{k.edition_name}</p>
                   <h2 className="ct-h3 mt-1 text-ink">{pass}</h2>
                   <p className="ct-help mt-2">{tt.pending}</p>
+                  {ergaenzen(k)}
                 </Card>
               );
             }
@@ -72,6 +84,7 @@ export default async function TicketsPage() {
                   <div className="flex flex-wrap items-start gap-6">
                     <QrCode value={k.barcode} label={tt.qrAlt} />
                     <div className="min-w-0">
+                      {ergaenzen(k)}
                       {k.checked_in_at && (
                         <p className="ct-help">
                           {tt.checkedIn}: {zeit.format(new Date(k.checked_in_at))}

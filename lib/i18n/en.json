@@ -7580,6 +7580,7 @@
   },
   "talentTickets": {
     "checkedIn": "Checked in",
+    "completeNow": "Details missing — add them now",
     "emptyBody": "As soon as you've bought or received a ticket and it's personalised to you, it appears here.",
     "emptyTitle": "No ticket yet",
     "lead": "Your summit ticket with the QR code for entry.",
@@ -7629,6 +7630,7 @@
     "nextProgramme": "See programme",
     "noLinkLead": "This link is incomplete. Open the page from the link after your purchase or check “Tickets”.",
     "otherAccount": "Sign in with a different email address",
+    "person_has_ticket": "You already have a ticket for this summit. For this ticket choose “Someone else” and enter the email address of the person who is coming.",
     "position": "Position",
     "progress": "{done} of {n} tickets complete",
     "reload": "Reload",
