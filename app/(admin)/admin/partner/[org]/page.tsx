@@ -5,6 +5,7 @@ import type { GastRow } from "@/components/partner/gaeste";
 import type { TourStopp } from "@/components/partner/tour";
 import type { OffeneFragen } from "./FragenFreigabe";
 import { gastFotoAdressen } from "@/lib/partner/gaeste";
+import { instanzKennung, stoppWahlMitTexten } from "@/lib/partner/instanz";
 import { partnerAdminShell } from "../shell";
 import { OrgDetail } from "./OrgDetail";
 import type {
@@ -18,13 +19,20 @@ import type {
 
 export const dynamic = "force-dynamic";
 
-/** Eine Organisation im Detail: Status, Stand, Kontakte, Checkliste, Deals. */
+/**
+ * Eine Organisation im Detail: Status, Stand, Kontakte, Checkliste, Deals.
+ *
+ * `?instanz=<Stopp>` wählt bei mehreren Tour-Stopps den, der unter „Company Tour“ steht (QS-079, dieselbe Regel wie im Partnerportal).
+ */
 export default async function AdminPartnerOrgPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ org: string }>;
+  searchParams: Promise<{ instanz?: string | string[] }>;
 }) {
   const { org } = await params;
+  const { instanz } = await searchParams;
   const shell = await partnerAdminShell(`/admin/partner/${org}`);
   if (!shell.ok) return shell.view;
   const { supabase, t, locale, isAdmin, frame } = shell;
@@ -53,6 +61,8 @@ export default async function AdminPartnerOrgPage({
   ]);
   // PART-046: Stopps der Company Tour mit den Angaben des Partners — dieselbe RPC wie unter /partner/company-tour.
   const { data: tourZeilen } = await supabase.rpc("partner_company_tour", { p_org_id: org });
+  // QS-079: bei mehreren Stopps wählt der Umschalter einen — dieselbe Regel und dieselbe Beschriftung wie im Partnerportal (`stoppWahlMitTexten`).
+  const tour = stoppWahlMitTexten((tourZeilen ?? []) as TourStopp[], instanzKennung(instanz), t.partnerTour);
   // PART-045: eigene Bewerbungsfragen des Partners, die noch auf die Freigabe warten.
   const { data: formatZeilen } = await supabase.rpc("partner_format_sessions", { p_org_id: org });
   const formate = (formatZeilen ?? []) as {
@@ -124,7 +134,8 @@ export default async function AdminPartnerOrgPage({
       gaeste={gaeste}
       guestTexts={t.partnerGuests}
       talkSpeakers={((speakerZeilen ?? []) as AdminTalkSpeaker[]).filter((sp) => sp.session_id)}
-      tourStopps={(tourZeilen ?? []) as TourStopp[]}
+      tourStopp={tour.gewaehlt}
+      tourInstanzen={tour.instanzen}
       tourFelder={{
         occupation_status: alsListe(vgroup(vocab, "occupation_status")),
         career_level: alsListe(vgroup(vocab, "career_level")),

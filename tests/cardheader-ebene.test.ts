@@ -35,10 +35,6 @@ const zaehle = (pfad: string) => {
 
 /** Die Fälle, die bei `h3` bleiben: Datei → Anzahl und Grund. Alles andere ist `h2`. */
 const H3: Record<string, { anzahl: number; grund: string }> = {
-  "app/(admin)/admin/partner/[org]/OrgDetail.tsx": {
-    anzahl: 1,
-    grund: "Stopp einer Tour: Unterabschnitt im Abschnitt „Touren“ der Organisation, eine Karte je Stopp",
-  },
   "app/(hackathon)/hackathon/challenges/page.tsx": {
     anzahl: 1,
     grund: "Challenge-Katalog: gleichförmige Karten, eine je Challenge — Listeneinträge unter der Seitenüberschrift",

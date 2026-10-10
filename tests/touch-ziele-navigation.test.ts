@@ -35,7 +35,8 @@ describe("Touch-Ziele in der Shell (QS-059)", () => {
 
   it("die Reiter bauen auf `ChipLink` auf, der die 44 px selbst hält (QS-064)", () => {
     const reiter = lies("components/layout/SectionTabs.tsx");
-    assert.match(reiter, /<ChipLink key=\{item\.href\} href=\{item\.href\} aktiv=\{active\}>/);
+    // Seit QS-079 gibt der Reiter `scroll` an den Link weiter (ein Umschalter mitten auf einer langen Seite lässt sie, wo sie ist); es bleibt ein `ChipLink`.
+    assert.match(reiter, /<ChipLink key=\{item\.href\} href=\{item\.href\} aktiv=\{active\}( scroll=\{item\.scroll\})?>/);
     assert.match(lies("components/ui/Chip.tsx"), /const grundform = "[^"]*pointer-coarse:min-h-11"/);
   });
 
