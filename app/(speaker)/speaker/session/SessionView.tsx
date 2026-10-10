@@ -656,10 +656,16 @@ function SessionCard({
               onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
             />
           </Field>
-          <div>
-            <Button onClick={onSubmit} loading={saving} disabled={draft.title.trim() === ""}>
-              {t.submitAction}
-            </Button>
+          {/* Der Vorbehalt steht vor dem Knopf, bei der ersten Einreichung wie bei
+              einer Änderung (SPK-084, Konrad 05.10.: „dass wir uns vorbehalten,
+              die Titel noch mal zu ändern“) — nicht an `finalTitle` geknüpft. */}
+          <div className="flex flex-col gap-2">
+            <p className="ct-help">{t.submitReservation}</p>
+            <div>
+              <Button onClick={onSubmit} loading={saving} disabled={draft.title.trim() === ""}>
+                {t.submitAction}
+              </Button>
+            </div>
           </div>
         </div>
 
