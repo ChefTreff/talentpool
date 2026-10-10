@@ -76,7 +76,7 @@ export async function FormatBewerbungen({
     <div className="flex flex-col gap-6">
       <p className="ct-help max-w-text">
         {nurTeilnehmende ? s.participantsLead : s.applicationsLead} {t.applicants.consentNote} {t.applicants.auditNotice}
-        {canEdit && ` ${nurTeilnehmende ? s.exportParticipantsHint : s.exportHint}`}
+        {canEdit && ` ${nurTeilnehmende ? s.participantsExportHint : s.exportHint}`}
       </p>
       {sessions.map((x, i) => {
         const { bewerbungen, fragen } = ergebnisse[i];
@@ -118,7 +118,7 @@ export async function FormatBewerbungen({
             {canEdit && zeilen.some((a) => a.consent_share) && (
               <div className="mb-4">
                 <ButtonDownload href={exportAdresse(`/partner/export/format/${x.id}`, nurTeilnehmende)}>
-                  {nurTeilnehmende ? s.exportParticipantsCsv : s.exportCsv}
+                  {nurTeilnehmende ? s.participantsExportCsv : s.exportCsv}
                 </ButtonDownload>
               </div>
             )}

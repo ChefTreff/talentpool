@@ -143,8 +143,8 @@ describe("PART-130: Knopf im Reiter „Teilnehmende“ (Portal) und in der Entsc
       const s = tsCode(src(p));
       assert.match(s, /\{canEdit && zeilen\.some\(\(a\) => a\.consent_share\) && \(/, `${p}: Recht und Einwilligung`);
       assert.ok(s.includes(`<ButtonDownload href={exportAdresse(\`${basis}\`, nurTeilnehmende)}>`), `${p}: Adresse mit Filter`);
-      assert.match(s, /\{nurTeilnehmende \? (s|t\.bewerbung)\.exportParticipantsCsv : (s|t\.bewerbung)\.exportCsv\}/, `${p}: Beschriftung je Reiter`);
-      assert.match(s, /\{canEdit && ` \$\{nurTeilnehmende \? (s|t\.bewerbung)\.exportParticipantsHint : (s|t\.bewerbung)\.exportHint\}`\}/, `${p}: Hinweis je Reiter`);
+      assert.match(s, /\{nurTeilnehmende \? (s|t\.bewerbung)\.participantsExportCsv : (s|t\.bewerbung)\.exportCsv\}/, `${p}: Beschriftung je Reiter`);
+      assert.match(s, /\{canEdit && ` \$\{nurTeilnehmende \? (s|t\.bewerbung)\.participantsExportHint : (s|t\.bewerbung)\.exportHint\}`\}/, `${p}: Hinweis je Reiter`);
       // Ein echter Download, nie ein Link (Vorladen löste den Export samt Protokoll schon ohne Klick aus).
       assert.doesNotMatch(s, /<(ButtonLink|Link)[^>]*export/, p);
     }
@@ -153,8 +153,8 @@ describe("PART-130: Knopf im Reiter „Teilnehmende“ (Portal) und in der Entsc
   it("Admin-Vollständigkeit: dieselbe Datei als zweiter Knopf in der Entscheidungssicht, mit dem Filter in der Adresse", () => {
     const s = tsCode(src("app/(admin)/admin/bewerbungen/[id]/page.tsx"));
     assert.ok(s.includes("<ButtonDownload href={exportAdresse(`/admin/bewerbungen/${id}/export`, true)}"));
-    assert.match(s, /t\.admin\.applications\.exportParticipantsCsv/);
-    assert.match(s, /title=\{t\.admin\.applications\.exportParticipantsHint\}/);
+    assert.match(s, /t\.admin\.applications\.participantsExportCsv/);
+    assert.match(s, /title=\{t\.admin\.applications\.participantsExportHint\}/);
     // Der bisherige Export bleibt daneben.
     assert.ok(s.includes("<ButtonDownload href={`/admin/bewerbungen/${id}/export`}"));
   });
@@ -164,20 +164,20 @@ describe("PART-130: Knopf im Reiter „Teilnehmende“ (Portal) und in der Entsc
       const d = json(`lib/i18n/${sprache}.json`);
       const b = d.partnerBewerbung as Record<string, string>;
       const a = (d.admin as Record<string, Record<string, string>>).applications;
-      for (const k of ["exportParticipantsCsv", "exportParticipantsHint"]) {
+      for (const k of ["participantsExportCsv", "participantsExportHint"]) {
         assert.ok(b[k]?.trim(), `${sprache}: partnerBewerbung.${k}`);
         assert.ok(a[k]?.trim(), `${sprache}: admin.applications.${k}`);
       }
-      assert.notEqual(b.exportParticipantsCsv, b.exportCsv, `${sprache}: die Beschriftung unterscheidet sich vom Bewerbungsexport`);
-      assert.notEqual(a.exportParticipantsCsv, a.exportCsv, `${sprache}: admin: dasselbe`);
+      assert.notEqual(b.participantsExportCsv, b.exportCsv, `${sprache}: die Beschriftung unterscheidet sich vom Bewerbungsexport`);
+      assert.notEqual(a.participantsExportCsv, a.exportCsv, `${sprache}: admin: dasselbe`);
     }
     const de = json("lib/i18n/de.json");
-    const hinweis = (de.partnerBewerbung as Record<string, string>).exportParticipantsHint;
+    const hinweis = (de.partnerBewerbung as Record<string, string>).participantsExportHint;
     assert.match(hinweis, /Einwilligung/);
     assert.match(hinweis, /protokolliert/);
     assert.match(hinweis, /Datenschutzhinweis/);
-    assert.doesNotMatch(JSON.stringify([hinweis, (de.partnerBewerbung as Record<string, string>).exportParticipantsCsv]), /\bSie\b|\bIhre[mnrs]?\b/);
-    const en = (json("lib/i18n/en.json").partnerBewerbung as Record<string, string>).exportParticipantsHint;
+    assert.doesNotMatch(JSON.stringify([hinweis, (de.partnerBewerbung as Record<string, string>).participantsExportCsv]), /\bSie\b|\bIhre[mnrs]?\b/);
+    const en = (json("lib/i18n/en.json").partnerBewerbung as Record<string, string>).participantsExportHint;
     assert.match(en, /consent|agreed/);
     assert.match(en, /logged/);
   });

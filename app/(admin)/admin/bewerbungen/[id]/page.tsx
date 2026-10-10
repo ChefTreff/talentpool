@@ -106,8 +106,8 @@ export default async function QueuePage({
               {t.admin.applications.exportCsv}
             </ButtonDownload>
             {/* PART-130: dieselbe Datei nur mit denen, die teilnehmen (zugesagt, nachgerückt, bestätigt) — der Admin-Weg zur Teilnehmerliste des Partners. */}
-            <ButtonDownload href={exportAdresse(`/admin/bewerbungen/${id}/export`, true)} size="sm" title={t.admin.applications.exportParticipantsHint}>
-              {t.admin.applications.exportParticipantsCsv}
+            <ButtonDownload href={exportAdresse(`/admin/bewerbungen/${id}/export`, true)} size="sm" title={t.admin.applications.participantsExportHint}>
+              {t.admin.applications.participantsExportCsv}
             </ButtonDownload>
           </>
         }
