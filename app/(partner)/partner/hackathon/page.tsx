@@ -9,12 +9,14 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FristMarke } from "@/components/ui/FristMarke";
+import { AbschnittsNavigation } from "@/components/ui/Abschnitte";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
 import { DatasetUpload } from "@/components/hackathon/DatasetUpload";
 import { WunschprofilForm } from "@/components/hackathon/WunschprofilForm";
 import type { Wunschprofil } from "@/lib/hackathon/wunschprofil";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
+import { challengesDerOrganisation } from "@/components/partner/hackathon-challenge";
 import { datasetUrl, type DatasetTarget } from "@/lib/hackathon/datensatz-server";
 import { getPartnerScope } from "../org";
 import { PflichtUpload } from "../PflichtUpload";
@@ -35,6 +37,14 @@ export const dynamic = "force-dynamic";
  * Die Challenge selbst wird **nicht** hier angezeigt, nachdem sie eingereicht
  * ist: Sie erscheint nach der Freigabe in der Teilnehmer-App, und eine zweite
  * Darstellung hier wäre eine Kopie, die niemand pflegt.
+ *
+ * **Eine Challenge je Partner** (PART-142, Konrad & Leopold 05.10.): Wunschprofil
+ * und Datensatz gehören zur Challenge **dieser** Organisation. Die Funktionen
+ * dahinter liefern für das Hackathon-Team und für Personen mit mehreren
+ * Organisationen alle Challenges, die sie bearbeiten dürfen — die Seite grenzt
+ * auf die gezeigte Organisation ein (`challengesDerOrganisation`), sonst standen in
+ * Konrads Test-Organisation zwei Wunschprofile und zwei Datensätze. „Auf dieser
+ * Seite“ (QS-042) führt zu den vier Abschnitten.
  */
 export default async function PartnerHackathonPage() {
   await requireArea("partner", "/partner/hackathon");
@@ -64,9 +74,9 @@ export default async function PartnerHackathonPage() {
     supabase.rpc("hack_challenge_profiles", { p_edition_id: current.edition_id, p_language: locale }),
     loadVocabMap(supabase, locale),
   ]);
-  const wunschprofile = ((profilRows ?? []) as Wunschprofil[]).filter((p) => p.can_edit);
+  const wunschprofile = challengesDerOrganisation(((profilRows ?? []) as Wunschprofil[]).filter((p) => p.can_edit), current.communication_name);
   const datensaetze = await Promise.all(
-    ((targetRows ?? []) as DatasetTarget[]).map(async (d) => ({
+    challengesDerOrganisation((targetRows ?? []) as DatasetTarget[], current.communication_name).map(async (d) => ({
       ...d,
       url: d.storage_path && d.filename ? await datasetUrl(supabase, d.storage_path, d.filename) : null,
     })),
@@ -90,9 +100,17 @@ export default async function PartnerHackathonPage() {
   const tone = (d: Deliverable) =>
     d.status === "accepted" ? "success" : d.status === "rejected" ? "error" : "neutral";
 
+  // QS-042: die Arbeitsabschnitte als Menü; die Anker stehen an den Karten. Mit weniger als zwei Einträgen zeichnet die Navigation nichts.
+  const abschnitte = [
+    ...(challenge ? [{ id: "challenge", label: label(challenge) }] : []),
+    ...(backdrop ? [{ id: "rueckwand", label: label(backdrop) }] : []),
+    ...(challenge ? [{ id: "wunschprofil", label: t.hackWish.wishPartnerTitle }, { id: "datensatz", label: s.datasetTitle }] : []),
+  ];
+
   return (
     <>
       <PageHeader word={t.partner.wordChallenge} title={s.title} description={s.lead} />
+      {gebucht.length > 0 && <AbschnittsNavigation label={t.common.onThisPage} items={abschnitte} />}
 
       {gebucht.length === 0 ? (
         <EmptyState
@@ -109,7 +127,7 @@ export default async function PartnerHackathonPage() {
           {/* Die Challenge: das Herz der Partnerschaft. Sie steht zuerst, weil
               ohne sie kein Team etwas zu tun hat. */}
           {challenge && (
-            <Card>
+            <Card id="challenge">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="ct-h3 text-ink">{label(challenge)}</h2>
@@ -149,7 +167,7 @@ export default async function PartnerHackathonPage() {
 
           {/* Die Rückwand: eigener Upload für die Challenge Area (PART-033). */}
           {backdrop && (
-            <Card>
+            <Card id="rueckwand">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="ct-h3 text-ink">{label(backdrop)}</h2>
@@ -191,7 +209,7 @@ export default async function PartnerHackathonPage() {
 
           {/* Wunschprofil (HACK-015): nach der Freigabe, wie der Datensatz. */}
           {challenge && (
-            <Card>
+            <Card id="wunschprofil">
               <h2 className="ct-h3 text-ink">{t.hackWish.wishPartnerTitle}</h2>
               <p className="ct-small mt-2 leading-6">{t.hackWish.wishPartnerLead}</p>
               <div className="mt-4 flex flex-col gap-6">
@@ -217,7 +235,7 @@ export default async function PartnerHackathonPage() {
 
           {/* Datensatz (HACK-012): erst nach der Freigabe, weil er an der Challenge hängt. */}
           {challenge && (
-            <Card>
+            <Card id="datensatz">
               <h2 className="ct-h3 text-ink">{s.datasetTitle}</h2>
               <p className="ct-small mt-2 leading-6">{s.datasetLead}</p>
               <div className="mt-4 flex flex-col gap-6">
