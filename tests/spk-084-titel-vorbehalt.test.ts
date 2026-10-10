@@ -24,12 +24,14 @@ function formular(): string {
 type Woerterbuch = { speaker: Record<string, string> };
 
 describe("SPK-084: der Vorbehalt am Formular „Inhalte einreichen“", () => {
-  it("ein Absatz mit dem Text aus `speaker.submitReservation` steht unmittelbar vor dem Knopf „Einreichen“, im selben Formular", () => {
+  it("ein Absatz mit dem Text aus `speaker.submitReservation` steht unmittelbar vor dem Knopf „Einreichen“, im selben Formular, und ist sichtbar", () => {
     const f = ohneKommentare(formular());
-    assert.match(
-      f,
-      /<div className="flex flex-col gap-2">\s*<p className="ct-help">\{t\.submitReservation\}<\/p>\s*<div>\s*<Button onClick=\{onSubmit\} loading=\{saving\}/,
+    const m = f.match(
+      /<div className="[^"]*">\s*<p className="([^"]*)">\{t\.submitReservation\}<\/p>\s*<div>\s*<Button onClick=\{onSubmit\} loading=\{saving\}/,
     );
+    assert.ok(m, "der Absatz steht nicht unmittelbar vor dem Knopf");
+    assert.match(m[1], /\bct-help\b/);
+    assert.doesNotMatch(m[1], /\b(hidden|sr-only|invisible|opacity-0|h-0|w-0|text-transparent)\b/, "der Absatz ist per Klasse versteckt");
     assert.equal((f.match(/t\.submitReservation/g) ?? []).length, 1);
   });
 
@@ -38,7 +40,7 @@ describe("SPK-084: der Vorbehalt am Formular „Inhalte einreichen“", () => {
     // dasselbe Formular, nur die Überschrift wechselt …
     assert.match(f, /\{finalTitle \? t\.submitChangeTitle : t\.submitTitle\}/);
     // … und der Absatz hängt direkt am Ende des Feldes „Hinweis“, nicht an `&&` oder `?:`
-    assert.match(f, /<\/Field>\s*<div className="flex flex-col gap-2">\s*<p className="ct-help">\{t\.submitReservation\}/);
+    assert.match(f, /<\/Field>\s*<div className="[^"]*">\s*<p className="[^"]*">\{t\.submitReservation\}/);
     // keine zweite Fassung des Formulars
     assert.equal((f.match(/<Button onClick=\{onSubmit\}/g) ?? []).length, 1);
   });
