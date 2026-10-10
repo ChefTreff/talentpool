@@ -82,8 +82,8 @@ Zusätzlich gibt es eine **Sperrliste**: wer sich abgemeldet hat oder dessen Adr
 |---|---|
 | `acquisition_channel` | Instagram · LinkedIn · Uni-Professor · Studentische Initiative · Freunde/Kollegen · Aussteller/Partner · frühere Events · Websuche · Social Ads · Sonstiges *(Mehrfachauswahl)* |
 | `source_first` | Erster Kontaktkanal im System |
-| `invite_code` / `referred_by_person_id` | Wer hat geworben |
-| `is_ambassador` | Botschafterin/Botschafter ja/nein |
+| ~~`invite_code` / `referred_by_person_id`~~ | ~~Wer hat geworben~~ — **gestrichen** (K-91, 09.10.2026; nie gebaut, leer) |
+| ~~`is_ambassador`~~ | ~~Botschafterin/Botschafter ja/nein~~ — **gestrichen** (K-91) |
 
 ### 3.6 Status im Lebenszyklus
 

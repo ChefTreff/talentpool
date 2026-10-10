@@ -53,7 +53,7 @@ Sieben der zehn Punkte sind optional und stehen im Profil. Das Onboarding bekomm
 
 | # | Feld | Anlass | Empfehlung | Konrad |
 |---|---|---|---|---|
-| B1 | **Empfehlungs-Code** („bring a talent“) | Spalten liegen; Weg fehlt: persönlicher Link → Anmeldung → `referred_by_person_id` | eigener Punkt, wenn Marketing eine Kampagne damit plant; kein Formularfeld, sondern ein Link | |
+| B1 | **Empfehlungs-Code** („bring a talent“) | ~~Spalten liegen; Weg fehlt~~ — **Spalten gestrichen** (K-91, 09.10.2026, Migration `v6_k91_empfehlungsfelder_weg`); käme eine Kampagne, entsteht der Weg samt Spalten neu | eigener Punkt, wenn Marketing eine Kampagne damit plant; kein Formularfeld, sondern ein Link | |
 | B2 | **„Von Partnern gefunden werden“** (`share_with_partner` am Profil) | heute gibt es die Einwilligung **je Bewerbung** (`consent_share`); eine Talent-Suche für Partner existiert nicht | erst mit der Talent-Suche für Partner — eine Einwilligung ohne Verwendung ist Datenhaltung ohne Zweck | |
 | B3 | **CV-Upload** | Spalte `cv_url` liegt | nur, wenn Partner in Bewerbungen CVs sehen sollen — dann als Datei in einem privaten Bucket wie das Porträt, nicht als URL | |
 | B4 | **Sprachen** (Muttersprache/Niveau) | Meeting-Paket „Bestand“ | später; `preferred_language` deckt die Kommunikation ab | |

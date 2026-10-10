@@ -21,8 +21,9 @@ console.log("current_person_id():            ", pid ? pid.slice(0,8)+"…" : "NU
 const { error: okErr } = await authed.from("person").update({ first_name: "Konrad", last_name: "Gruner", country: "DE" }).eq("id", pid);
 console.log("Whitelist-Update (Name/Land):   ", okErr ? "FEHLER "+okErr.message : "ok");
 
-const { error: badErr } = await authed.from("person").update({ engagement_score: 99 }).eq("id", pid);
-console.log("Verbotene Spalte engagement:    ", badErr ? "korrekt abgelehnt ("+(badErr.code||badErr.message)+")" : "⚠️ ERLAUBT — Grant-Leck!");
+// `tier` setzt ein Trigger beim Login; für Nutzer ist die Spalte gesperrt. Der Wert „talent“ ist der, den Konrads Konto ohnehin hat — ein Leck ändert nichts.
+const { error: badErr } = await authed.from("person").update({ tier: "talent" }).eq("id", pid);
+console.log("Verbotene Spalte tier:          ", badErr ? "korrekt abgelehnt ("+(badErr.code||badErr.message)+")" : "⚠️ ERLAUBT — Grant-Leck!");
 
 const { error: insErr } = await authed.from("person_interest").insert({ person_id: pid, vocabulary: "interests", term_key: "tech-ai" });
 console.log("n:m insert (person_interest):   ", insErr ? "FEHLER "+insErr.message : "ok");

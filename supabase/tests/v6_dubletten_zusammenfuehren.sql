@@ -7,11 +7,11 @@
 --      sind unversehrt;
 --   04 Zusammenführen: B weg, alles zeigt auf A; leeres Feld gefüllt, volles nicht
 --      überschrieben; Adressen mitgenommen, primäre bleibt; Organisationsrollen
---      vereinigt; Geworbene umgehängt; Konto umgezogen; Protokoll + Audit;
+--      vereinigt; Konto umgezogen; Protokoll + Audit;
 --   05 Liste der Zusammenführungen: Name der zweiten Person, Rückweg möglich;
 --   06 Rückweg: B mit derselben ID, primäre Adresse, Interessen (auch die
 --      gefallene), Mitgliedschaft und Rollen wie vorher, Feld wieder leer,
---      Geworbene und Konto zurück; zweiter Rückweg: merge_already_undone;
+--      Konto zurück; zweiter Rückweg: merge_already_undone;
 --   07 zwei Konten: both_accounts; gleiche Person: same_person;
 --   08 Löschung der bleibenden Person leert das Protokoll → merge_undo_unavailable;
 --   09 Dublettensuche findet gleiche LinkedIn-Adresse; Kandidatenliste mit Namen.
@@ -20,7 +20,7 @@ create temp table t_res (step text, result text) on commit drop;
 do $$
 declare
   v_me uuid; v_uid uuid; v_email text; v_txt text; v_n integer; v_j jsonb; v_log uuid; v_log2 uuid;
-  v_a uuid; v_b uuid; v_c uuid; v_d uuid; v_x uuid; v_y uuid; v_org uuid; v_ed uuid;
+  v_a uuid; v_b uuid; v_d uuid; v_x uuid; v_y uuid; v_org uuid; v_ed uuid;
   v_acct uuid := gen_random_uuid(); v_acct2 uuid := gen_random_uuid();
 begin
   select p.id, p.auth_user_id, pe.email::text into v_me, v_uid, v_email
@@ -42,8 +42,6 @@ begin
   insert into person (first_name, last_name, phone, auth_user_id) values ('Anne', 'ZZTEST-Dublette', '+49 30 1234', v_acct) returning id into v_b;
   insert into person_email (person_id, email, is_primary) values
     (v_b, 'zztest-dublette-b@example.org', true), (v_b, 'zztest-dublette-b2@example.org', false);
-  insert into person (first_name, last_name, referred_by_person_id) values ('Carl', 'ZZTEST-Geworben', v_b) returning id into v_c;
-  insert into person_email (person_id, email, is_primary) values (v_c, 'zztest-dublette-c@example.org', true);
   insert into person_interest (person_id, vocabulary, term_key) values
     (v_a, 'interests', 'engineering-tech'), (v_b, 'interests', 'engineering-tech'), (v_b, 'interests', 'finance-banking');
   insert into org_membership (person_id, org_id, roles) values (v_a, v_org, '{primary_ops}'), (v_b, v_org, '{billing}');
@@ -71,14 +69,14 @@ begin
   select string_agg(m->>'table' || '.' || (m->>'column') || '=' || (m->>'rows'), ' ' order by m->>'table')
     into v_txt from jsonb_array_elements(v_j->'moved') m;
   insert into t_res values ('02a_vorschau_umgehaengt', coalesce(v_txt, '-')
-    || ' (erwartet consent_record.person_id=1 person.referred_by_person_id=1 person_interest.person_id=1 volunteer_profile.person_id=1)');
+    || ' (erwartet consent_record.person_id=1 person_interest.person_id=1 volunteer_profile.person_id=1)');
   select string_agg(m->>'table' || '=' || (m->>'rows'), ' ' order by m->>'table') into v_txt from jsonb_array_elements(v_j->'deduplicated') m;
   insert into t_res values ('02b_vorschau_doppelt', coalesce(v_txt, '-') || ' (erwartet org_membership=1 person_interest=1)');
   insert into t_res values ('02e_vorschau_personen', (v_j->'survivor'->>'name') || ' / ' || (v_j->'merged'->>'name')
     || ' konto=' || (v_j->'merged'->>'has_account') || ' (erwartet Anna ZZTEST-Dublette / Anne ZZTEST-Dublette konto=true)');
   insert into t_res values ('02c_vorschau_rest', 'gefuellt=' || (v_j->'filled')::text || ' adressen=' || (v_j->>'emails')
     || ' konto=' || (v_j->>'account_moved') || ' hindernisse=' || (v_j->'blocking')::text
-    || ' (erwartet ["phone"] 2 true [])');
+    || ' (erwartet ["phone", "phone_e164"] 2 true [])');
   select count(*) into v_n from person where id = v_b;
   select coalesce(phone, '-') into v_txt from person where id = v_a;
   insert into t_res values ('02d_vorschau_ohne_spur', 'B da=' || v_n || ', A.phone=' || v_txt
@@ -107,8 +105,7 @@ begin
     'volunteer=' || (select count(*) from volunteer_profile where person_id = v_a)
     || ' consent=' || (select count(*) from consent_record where person_id = v_a)
     || ' interessen=' || (select string_agg(term_key, ',' order by term_key) from person_interest where person_id = v_a)
-    || ' geworben=' || ((select referred_by_person_id from person where id = v_c) = v_a)
-    || ' (erwartet 1 1 engineering-tech,finance-banking true)');
+    || ' (erwartet 1 1 engineering-tech,finance-banking)');
   select first_name || '/' || coalesce(phone, '-') || '/' || ((auth_user_id = v_acct)::text) into v_txt from person where id = v_a;
   insert into t_res values ('04c_felder_konto', v_txt || ' (erwartet Anna/+49 30 1234/true)');
   select count(*)::text || ', primaer=' || (select email::text from person_email where person_id = v_a and is_primary) into v_txt
@@ -140,8 +137,7 @@ begin
     || ' interessen=' || (select string_agg(term_key, ',' order by term_key) from person_interest where person_id = v_b)
     || ' volunteer=' || (select count(*) from volunteer_profile where person_id = v_b)
     || ' consent=' || (select count(*) from consent_record where person_id = v_b)
-    || ' geworben=' || ((select referred_by_person_id from person where id = v_c) = v_b)
-    || ' (erwartet zztest-dublette-b@example.org 2 engineering-tech,finance-banking 1 1 true)');
+    || ' (erwartet zztest-dublette-b@example.org 2 engineering-tech,finance-banking 1 1)');
   insert into t_res values ('06d_org',
     (select string_agg(case when person_id = v_a then 'A' else 'B' end || ':' || array_to_string(roles, ','), ' ' order by person_id = v_b)
        from org_membership where org_id = v_org) || ' (erwartet A:primary_ops B:billing)');
