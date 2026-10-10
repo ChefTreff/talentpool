@@ -63,3 +63,10 @@ Reihenfolge und Zuständigkeit: 1 → 2 → 3 → 4; jede Stufe ein PR; Stufe 1 
 ## 8 · Was ausdrücklich nicht kommt
 
 Keine Weitergabe von Namen oder Kontaktdaten an Partner ohne Handlung der Person; keine Exporte; keine externen Daten (LinkedIn-Scraping, Swapcard-Profile); keine Bewertung von Personen durch Partner; kein Matching für Volunteers oder Speaker (eigene Prozesse).
+
+## 9 · Stand der Umsetzung (Partner-Chat, 10.10.2026)
+
+- **K-94 beantwortet** (Konrad 09.10., „wie empfohlen“): Stufe 1 und 2 baut der Partner-Chat, Stufe 3/4 nach dem Go-live.
+- **Stufe 1, Teil A (Partner-Seite): geplant #480** (Migration `v6_matching_vokabular`). Abweichungen und Befunde gegenüber §3 und §6: die Whitelist von `target_profile` steht an **vier** Stellen (`check_format_details`, `partner_update_tour_stop`, `PROFIL_FELDER`, `targetProfileLabels` auf der Talent-Programmseite), nicht an drei; der Bestand ist leer — alle 21 Tour-Stopps haben `target_profile = {}`, keine Session hat eines, die „Datenkorrektur der 20 Stopps“ entfällt (der Helfer `matching_career_level_entfernen()` läuft trotzdem einmal, defensiv); `career_opportunities` enthält `nicht-interessiert` („Ich bin aktuell nicht interessiert an Jobangeboten“) — ein Wert der Teilnehmerseite, im Wunschprofil **gesperrt** (Datenbank und Oberfläche); die Masterclass trägt `target_profile`, ihre Maske kommt mit PART-140 in Stufe 2.
+- **Stufe 1, Teil B (Teilnehmer-/Hackathon-Seite): Talent-Chat** (Plan 10.10.: ist er beim Merge von Teil A nicht gelistet, weist Plan es dem Partner-Chat ausdrücklich zu). Vorgabe für die Abbildung `hack_skill` → `skill`: frontend/backend → `programming`, data → `data_analysis` + `ai_ml`, design → `design`, business → `strategy` + `communication`, hardware ohne Abbildung (nie benutzt, kein neuer `skill`-Eintrag). Bestand: 1 Team (`looking_skills` frontend, backend), 2 Bewerbungen ohne Skills; `apply_hackathon` und `set_hack_team_looking` prüfen noch gegen `hack_skill`. `function_area` am Teilnehmerprofil über `person_interest`.
+- **Stufe 2** (`org_hiring`, PART-107/140): Kurzfassung folgt.
