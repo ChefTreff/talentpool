@@ -2,7 +2,7 @@
 -- Vorschlag des Partner-Chats, noch nicht angewendet. Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
 --
 -- Anlass: Konrad hat das Matching-Konzept (`docs/konzept-qs070-matching.md`) mit K-94 bestätigt („wie empfohlen“). Stufe 1 hat das gemeinsame Vokabular und die Whitelists des Wunschprofils
--- bereinigt (#480, Teil B beim Talent-Chat); Stufe 2 gibt dem Partner den Ort, an dem er sagt, **wen er sucht**: je Organisation und Edition mehrere Einträge mit Kategorie
+-- bereinigt (0306 `v6_matching_vokabular`, #480; Teil B beim Talent-Chat: 0308, 0309); Stufe 2 gibt dem Partner den Ort, an dem er sagt, **wen er sucht**: je Organisation und Edition mehrere Einträge mit Kategorie
 -- (`career_opportunities`: Praktikum, Werkstudium, Abschlussarbeit, Trainee, Einstieg …), Fachbereich (`function_area`), einem Freitext zur Rolle („Werkstudent Data Engineering“) und
 -- — optional — Skills und Studienfeldern. Das ist der Ort, der heute fehlt (Befund Talent-Chat 09.10., Nr. 6); die Formate (Interview Table, Tour-Stopp, Masterclass) können ihr
 -- Wunschprofil künftig daraus vorbelegen (PART-140, Stufe 2b — eine Vorbelegung, kein Verweis: das Format behält sein eigenes `target_profile`).
@@ -14,7 +14,7 @@
 --      Lesefunktion für Teilnehmende dazu, nie ein Tabellenrecht.
 --   2  `partner_org_hiring(p_org_id, p_edition_id)` — die Einträge einer Organisation; Partner der Organisation (jede Rolle) oder Team. `stable`, kein Schreibzugriff.
 --   3  `set_org_hiring(p_org_id, p_id, …Felder…, p_edition_id)` — anlegen (`p_id` leer) oder ändern; Recht `partner_can_edit` (primary_ops, additional, signing, oder Team). Werte über `is_vocab_key`;
---      `nicht-interessiert` ist wie im Wunschprofil (Vorschlag `v6_matching_vokabular`, #480) gesperrt; höchstens zehn Einträge je Organisation und Edition. Ein fremder Eintrag wird abgewiesen, bevor etwas geändert wird.
+--      `nicht-interessiert` ist wie im Wunschprofil (0306 `v6_matching_vokabular`) gesperrt; höchstens zehn Einträge je Organisation und Edition. Ein fremder Eintrag wird abgewiesen, bevor etwas geändert wird.
 --   4  `delete_org_hiring(p_id)` — Eintrag entfernen; Recht wie oben an der Organisation des Eintrags.
 --
 -- Audit (db-konventionen §2): `partner.org_hiring` und `partner.org_hiring_remove`, Objekt `org_edition`, nur `org_id`, `hiring_id`, die Schlüsselwerte von Kategorie und Fachbereich, `published` und die
