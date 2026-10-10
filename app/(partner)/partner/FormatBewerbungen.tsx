@@ -8,13 +8,11 @@ import { ApplicantList } from "@/components/partner/ApplicantList";
 import { PROFIL_VOKABULARE } from "@/components/partner/bewerbung";
 import { antwortenMitText } from "@/components/partner/fragen";
 import { mitEntscheidungFrist, zeigtEntscheidungHinweis } from "@/lib/mail/entscheidung-frist";
+import { exportAdresse, nimmtTeil } from "@/lib/partner/teilnehmende";
 import { decideApplication } from "./actions";
 import { ladeFragen } from "./bewerbungen";
 import type { PartnerFormatSession } from "./talk/types";
 import type { PartnerApplication, PartnerSession } from "./types";
-
-/** Status, mit denen jemand teilnimmt. */
-const DABEI = new Set(["accepted", "promoted", "confirmed"]);
 
 /**
  * Bewerbungen eigener Formate — Masterclass, Side-Event, Interview Tables
@@ -31,7 +29,8 @@ const DABEI = new Set(["accepted", "promoted", "confirmed"]);
  *
  * Wer entscheiden darf, lädt die Bewerbungen je Session auch als CSV
  * (PART-051, `/partner/export/format/<Session>`): nur mit Einwilligung, mit
- * Datenschutzhinweis, jeder Export im Audit.
+ * Datenschutzhinweis, jeder Export im Audit. Im Reiter Teilnehmende lädt er
+ * dieselbe Datei nur mit denen, die teilnehmen (PART-130, `?nur=teilnehmende`).
  */
 export async function FormatBewerbungen({
   supabase,
@@ -77,7 +76,7 @@ export async function FormatBewerbungen({
     <div className="flex flex-col gap-6">
       <p className="ct-help max-w-text">
         {nurTeilnehmende ? s.participantsLead : s.applicationsLead} {t.applicants.consentNote} {t.applicants.auditNotice}
-        {!nurTeilnehmende && canEdit && ` ${s.exportHint}`}
+        {canEdit && ` ${nurTeilnehmende ? s.participantsExportHint : s.exportHint}`}
       </p>
       {sessions.map((x, i) => {
         const { bewerbungen, fragen } = ergebnisse[i];
@@ -91,7 +90,7 @@ export async function FormatBewerbungen({
           );
         }
         const zeilen: PartnerApplication[] = ((bewerbungen.data ?? []) as PartnerApplication[])
-          .filter((a) => !nurTeilnehmende || DABEI.has(a.status))
+          .filter((a) => !nurTeilnehmende || nimmtTeil(a.status))
           .map((a) => ({ ...a, answers: antwortenMitText(a.answers, fragen, locale) }));
         return (
           <Card key={x.id}>
@@ -116,10 +115,10 @@ export async function FormatBewerbungen({
               </div>
             )}
             {/* Eigene Zeile statt im Kartenkopf: auf 375 px bliebe dem Titel sonst nur eine schmale Spalte. */}
-            {!nurTeilnehmende && canEdit && zeilen.some((a) => a.consent_share) && (
+            {canEdit && zeilen.some((a) => a.consent_share) && (
               <div className="mb-4">
-                <ButtonDownload href={`/partner/export/format/${x.id}`}>
-                  {s.exportCsv}
+                <ButtonDownload href={exportAdresse(`/partner/export/format/${x.id}`, nurTeilnehmende)}>
+                  {nurTeilnehmende ? s.participantsExportCsv : s.exportCsv}
                 </ButtonDownload>
               </div>
             )}

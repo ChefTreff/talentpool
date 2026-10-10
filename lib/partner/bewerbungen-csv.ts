@@ -160,8 +160,11 @@ export function bewerbungenCsv({
   return "\uFEFF" + reihen.map((r) => r.map(csvCell).join(";")).join("\r\n") + "\r\n";
 }
 
-/** Dateiname nur aus Buchstaben, Ziffern und Bindestrich: „bewerbungen-test-masterclass-2026-09-26.csv“. */
-export function exportDateiname(titel: string | null, heute: Date): string {
+/**
+ * Dateiname nur aus Buchstaben, Ziffern und Bindestrich: „bewerbungen-test-masterclass-2026-09-26.csv“; die Teilnehmerliste (PART-130)
+ * heißt „teilnehmende-test-masterclass-2026-09-26.csv“, damit beide im Download-Ordner nicht ineinanderlaufen.
+ */
+export function exportDateiname(titel: string | null, heute: Date, art: "bewerbungen" | "teilnehmende" = "bewerbungen"): string {
   const teil = (titel ?? "")
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -172,5 +175,5 @@ export function exportDateiname(titel: string | null, heute: Date): string {
     .slice(0, 60)
     .replace(/-+$/, "");
   const datum = exportDatum(heute.toISOString()).slice(0, 10);
-  return `bewerbungen${teil ? `-${teil}` : ""}-${datum}.csv`;
+  return `${art}${teil ? `-${teil}` : ""}-${datum}.csv`;
 }

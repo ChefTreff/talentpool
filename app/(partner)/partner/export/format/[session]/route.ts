@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ExportZeile } from "@/lib/partner/bewerbungen-csv";
 import { ladeFragen } from "../../../bewerbungen";
 import { exportAntwort, exportFehler } from "@/lib/partner/export-antwort";
+import { willTeilnehmende } from "@/lib/partner/teilnehmende";
 
 export const dynamic = "force-dynamic";
 
@@ -12,9 +13,10 @@ export const dynamic = "force-dynamic";
  * als CSV — PART-051. `export_session_applications` entscheidet über das Recht
  * (wer entscheiden darf, darf exportieren), liefert **nur Bewerbungen mit
  * Einwilligung** und schreibt jeden Export ins Audit. Die Fragetexte kommen
- * aus der Session, die Datei beginnt mit dem Datenschutzhinweis.
+ * aus der Session, die Datei beginnt mit dem Datenschutzhinweis. Mit `?nur=teilnehmende` ist es die Teilnehmerliste (PART-130): dieselbe Datei,
+ * nur die Zeilen, mit denen jemand teilnimmt.
  */
-export async function GET(_request: Request, { params }: { params: Promise<{ session: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ session: string }> }) {
   const { session } = await params;
   await requireArea("partner", `/partner/export/format/${session}`);
   const { locale, t } = await getI18n("de");
@@ -34,6 +36,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ ses
     fragen: new Map(fragen.map((f) => [f.key, text(f)])),
     fragenReihenfolge: fragen.map((f) => f.key),
     titel: kopf ? (locale === "en" ? kopf.title_en ?? kopf.title_de : kopf.title_de) : null,
+    teilnehmende: willTeilnehmende(request.url),
     locale,
     t,
   });

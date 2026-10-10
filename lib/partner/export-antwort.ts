@@ -5,6 +5,7 @@ import type { Dictionary, Locale } from "@/lib/i18n";
 import { toRpcFailure } from "@/lib/rpc-error";
 import { loadVocabMap, vgroup } from "@/lib/vocab";
 import { bewerbungenCsv, exportDateiname, type ExportZeile } from "@/lib/partner/bewerbungen-csv";
+import { filterTeilnehmende } from "@/lib/partner/teilnehmende";
 
 /** Fehler der Export-RPC als Antwort: 403 ohne Recht, 404 unbekannt, sonst 400 — nie Datenbanktext. */
 export function exportFehler(error: PostgrestError): NextResponse {
@@ -17,6 +18,10 @@ export function exportFehler(error: PostgrestError): NextResponse {
  * Spalten in der Sprache der Person, Datei als Anhang und **nicht
  * zwischenspeichern** — es sind Personendaten. Genutzt vom Partner-Portal und
  * von der Entscheidungssicht im Admin (`/admin/bewerbungen/<Session>/export`).
+ *
+ * **Teilnehmerliste (PART-130):** mit `teilnehmende` bleiben nur die Zeilen, mit denen jemand teilnimmt (zugesagt, nachgerückt, bestätigt) —
+ * dieselbe Datei, dieselbe Einwilligungsgrenze (die RPC liefert ohnehin nur Zeilen mit Einwilligung), ein anderer Dateiname. Das Protokoll der RPC
+ * zählt weiter alle Bewerbungen mit Einwilligung: die Teilnehmerliste ist eine Teilmenge davon, der Eintrag also nie zu klein.
  */
 export async function exportAntwort({
   supabase,
@@ -25,6 +30,7 @@ export async function exportAntwort({
   fragenReihenfolge,
   titel,
   mitWunsch = false,
+  teilnehmende = false,
   locale,
   t,
 }: {
@@ -36,6 +42,8 @@ export async function exportAntwort({
   titel: string | null;
   /** Tour (PART-092): Spalte „Euer Wunsch“. */
   mitWunsch?: boolean;
+  /** Teilnehmerliste (PART-130): nur, wer teilnimmt. */
+  teilnehmende?: boolean;
   locale: Locale;
   t: Dictionary;
 }): Promise<NextResponse> {
@@ -47,7 +55,7 @@ export async function exportAntwort({
   const f = t.profile.fields;
   const csv = bewerbungenCsv({
     hinweis: String(hinweis ?? ""),
-    zeilen,
+    zeilen: teilnehmende ? filterTeilnehmende(zeilen) : zeilen,
     fragen,
     fragenReihenfolge,
     statusLabels: vgroup(vocab, "application_status"),
@@ -81,7 +89,7 @@ export async function exportAntwort({
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${exportDateiname(titel, new Date())}"`,
+      "Content-Disposition": `attachment; filename="${exportDateiname(titel, new Date(), teilnehmende ? "teilnehmende" : "bewerbungen")}"`,
       "Cache-Control": "no-store",
     },
   });
