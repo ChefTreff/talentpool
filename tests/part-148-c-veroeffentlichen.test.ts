@@ -241,7 +241,8 @@ describe("PART-148 c: Oberfläche — Karte, Knopf und Seite im Reiter „Speake
     assert.match(k, /canEdit && detail && \(stand === "in_bearbeitung" \|\| stand === "zurueckgegeben"\) \? fehlendFuerFreigabe\(detail\) : \[\]/);
     assert.match(k, /\{canEdit && detail && \(\s+<VeroeffentlichenKnopf sessionId=\{x\.sessionId\} stand=\{stand\} gesperrt=\{fehlt\.length > 0\} hinweisId=\{hinweisId\} t=\{stage\} rpcMessages=\{rpcMessages\} \/>/);
     // Die Rückgabe steht in der Karte, der Grund fehlender Felder mit dem Weg in den Kalender — der Knopf hängt über die Kennung daran.
-    assert.match(k, /<RueckgabeHinweis note=\{rueckgabeZeile\.return_note\} returnedAt=\{rueckgabeZeile\.returned_at\} dateLocale=\{dateLocale\} t=\{rueckgabe\}/);
+    assert.match(k, /\{rueckgabeZeile && \(\s+<RueckgabeHinweis note=\{rueckgabeZeile\.return_note\} returnedAt=\{rueckgabeZeile\.returned_at\} dateLocale=\{dateLocale\} t=\{rueckgabe\}/);
+    assert.match(k, /\{fehlt\.length > 0 && \(\s+<p id=\{hinweisId\}/, "der Hinweis steht nur, wenn etwas fehlt");
     assert.match(k, /<p id=\{hinweisId\} className="ct-help mt-4">/);
     assert.match(k, /<Link href=\{kalenderHref\} className="ct-link">\s+\{stage\.speakersToCalendar\}/);
     assert.match(k, /const hinweisId = `veroeffentlichen-hinweis-\$\{x\.sessionId\}`;/);

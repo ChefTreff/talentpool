@@ -183,6 +183,13 @@ describe("PART-148 B: Wächter über alle partner_*-Funktionen und die Freigabe"
     }
   });
 
+  it("der Wächter schaut auch auf die Freigabe der Programmleitung, nicht nur auf `partner_*` — am Snapshot, unabhängig von der Überdeckung durch eine Migration", () => {
+    const dateien = readdirSync(SNAPSHOT).filter((d) => WAECHTER_DATEI.test(d));
+    assert.ok(dateien.includes("release_partner_session.sql"), "release_partner_session fehlt im Wächter");
+    assert.ok(dateien.includes("partner_request_publish.sql"));
+    assert.ok(WAECHTER_NAME("release_partner_session") && WAECHTER_NAME("partner_speakers") && !WAECHTER_NAME("session_partner_org"));
+  });
+
   it("die vier Funktionen der Migration stehen im Wächter auf der Seite des Helfers (nicht in der Ausnahmeliste)", () => {
     for (const n of VIER) assert.ok(!(n in AUSNAHMEN), `${n} gehört nicht in die Ausnahmeliste`);
   });
