@@ -237,15 +237,17 @@ describe("PART-138 Teil 2: die Seiten", () => {
     assert.match(s, /buehnenSessions\(data\.rows, new Set\(gebrandet\.map\(\(s\) => s\.stage_id\)\)\)/);
     assert.match(s, /eigeneSpeaker=\{speakers\.filter\(\(sp\) => sp\.session_id === x\.sessionId\)\}/);
     assert.match(s, /mitBuehne=\{gebrandet\.length > 1\}/);
-    // Die Liste der Talk-Seite gilt nur für Sessions mit eigener Organisation — hier wäre sie leer (PART-148).
-    assert.doesNotMatch(code(s), /partner_format_sessions/);
+    // Stand, Rückgabe und Pflichtfelder je Programmpunkt kommen aus `partner_format_sessions`: seit 0315 (PART-148 B) steht dort auch die Session ohne Organisation auf der gebrandeten Bühne
+    // (PART-148 c) — die Liste der Programmpunkte bleibt das Programm, denn es legt sie ohne Organisation an.
+    assert.match(code(s), /supabase\.rpc\("partner_format_sessions", args\)/);
+    assert.match(code(s), /detail=\{details\.get\(x\.sessionId\) \?\? null\}/);
     assert.doesNotMatch(code(s), /service_role|createSupabaseAdminClient|SUPABASE_SECRET/);
     // Die Karte nimmt die Bausteine der Talk-Seite und zeigt, wen das Team schon eingetragen hat.
     const karte = seite("speaker/SessionKarte.tsx");
     assert.match(karte, /<SpeakerHinzufuegen sessionId=\{x\.sessionId\}/);
     assert.match(karte, /<SpeakerTabelle speakers=\{eigeneSpeaker\}/);
     assert.match(karte, /vomTeamEingetragen\(x\.speakers, new Set\(eigeneSpeaker\.map\(\(sp\) => sp\.person_id\)\)\)/);
-    assert.match(karte, /<SessionStatusBadge publishStatus=\{x\.publishStatus \?\? "draft"\} returnNote=\{null\}/);
+    assert.match(karte, /<SessionStatusBadge publishStatus=\{status\} returnNote=\{rueckgabeZeile\?\.return_note \?\? null\}/);
     assert.doesNotMatch(code(karte), /service_role|createSupabaseAdminClient|SUPABASE_SECRET/);
   });
 
@@ -318,7 +320,10 @@ describe("PART-138 Teil 2: Testdaten für Konrads Konto", () => {
     assert.match(f, /zuerst --nur=partnerslots/);
     assert.match(f, /format: "talk"/);
     assert.match(f, /publish_status: "draft"/);
-    assert.doesNotMatch(f, /partner_org_id|host_org_id/, "so legt das Team die Session an: ohne Organisation (PART-148)");
+    // Angelegt wird ohne Organisation — so legt das Team die Session an (PART-148); erst das Zurücksetzen (PART-148 c) nimmt eine gespeicherte Organisation wieder weg.
+    const anlage = f.slice(0, f.indexOf("Veröffentlichung zurückgesetzt"));
+    assert.ok(anlage.length > 200 && anlage.includes("session\").insert("), "die Anlage steht vor dem Zurücksetzen");
+    assert.doesNotMatch(anlage, /partner_org_id|host_org_id/, "so legt das Team die Session an: ohne Organisation (PART-148)");
     // Ein bestätigter Speaker sperrt `partner_add_speaker` (slot_locked) — der Team-Speaker muss unbestätigt sein.
     assert.match(f, /role: "speaker", confirmed: false/);
     assert.doesNotMatch(f, /confirmed: true/);

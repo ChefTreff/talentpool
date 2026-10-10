@@ -656,18 +656,21 @@ export async function setLogoWhiteningConsent(input: {
   return { ok: true, data: { granted_at: (data as string | null) ?? null } };
 }
 
-/** Nach einer Änderung an der Standbühne: Kalender, Tabelle und die Freigabeliste der Programmleitung. */
+/** Nach einer Änderung an der eigenen Bühne: Kalender, Tabelle und Speaker (gebrandete Bühne, PART-148 c) und die Freigabeliste der Programmleitung. */
 function refreshStage() {
   revalidatePath(`${PATH}/buehne`);
   revalidatePath(`${PATH}/buehne/tabelle`);
+  revalidatePath(`${PATH}/buehne/speaker`);
   revalidatePath("/admin/programm/freigabe");
 }
 
 /**
- * „Veröffentlichen“ auf der Standbühne (PART-080): die **Anfrage** an die
- * Programmleitung, keine Freigabe. `partner_request_publish` prüft Bühne, Recht
- * und Pflichtfelder selbst (22023 `fields_required` mit den fehlenden Feldern)
- * und setzt `review`; freigegeben wird weiter über `release_partner_session`.
+ * „Veröffentlichen“ auf der Standbühne (PART-080) und, seit PART-148 c, auf der
+ * gebrandeten Bühne: die **Anfrage** an die Programmleitung, keine Freigabe.
+ * `partner_request_publish` prüft Bühne (`stage.kind in ('booth', 'branded')`),
+ * Recht und Pflichtfelder selbst (22023 `fields_required` mit den fehlenden
+ * Feldern) und setzt `review`; freigegeben wird weiter über
+ * `release_partner_session`.
  */
 export async function requestStagePublish(sessionId: string): Promise<PartnerResult<{ status: string }>> {
   const supabase = await client();
