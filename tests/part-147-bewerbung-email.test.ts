@@ -39,6 +39,8 @@ describe("PART-147: Prüfung der Adresse vor dem Link", () => {
       "ada@example.org?cc=chef@example.com", // hängt einen Empfänger an
       "ada?cc=chef@example.org", // dasselbe vor dem @: `mailto:ada?cc=chef@example.org` wäre ein Empfänger „ada“ mit Kopie an chef@example.org
       "ada&bcc=chef@example.org",
+      "ada?x@example.org", // schon das Fragezeichen allein öffnet die Parameter
+      "ada&x@example.org",
       "ada@example.org&bcc=chef@example.com",
       "ada@example.org?subject=Hallo",
       "ada@example.org#frag",
