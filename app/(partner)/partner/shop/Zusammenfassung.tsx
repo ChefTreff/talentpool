@@ -1,5 +1,6 @@
 import type { Locale } from "@/lib/i18n/shared";
 import { describeMerch, type MerchField } from "@/lib/partner/merch";
+import { ustSaetze } from "@/lib/partner/ust";
 import type { ShopOrder } from "../types";
 
 type Strings = Record<string, string>;
@@ -28,7 +29,7 @@ export function MerchSummary({
   );
 }
 
-/** Netto, USt, brutto — dieselbe Zeile im Warenkorb und in der Historie. */
+/** Netto, USt (mit Satz, PART-117), brutto — dieselbe Zeile im Warenkorb und in der Historie. */
 export function Totals({
   order,
   dateLocale,
@@ -40,6 +41,7 @@ export function Totals({
 }) {
   const money = (cents: number) =>
     (cents / 100).toLocaleString(dateLocale, { style: "currency", currency: "EUR" });
+  const saetze = ustSaetze(order.lines, dateLocale);
   return (
     <dl className="ct-help mt-3 flex flex-wrap gap-x-4 gap-y-1">
       <div className="flex gap-1">
@@ -47,7 +49,7 @@ export function Totals({
         <dd className="tabular-nums">{money(order.net_cents)}</dd>
       </div>
       <div className="flex gap-1">
-        <dt className="font-semibold">{t.vat}:</dt>
+        <dt className="font-semibold">{saetze ? `${t.vat} (${saetze})` : t.vat}:</dt>
         <dd className="tabular-nums">{money(order.vat_cents)}</dd>
       </div>
       <div className="flex gap-1">

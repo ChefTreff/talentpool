@@ -34,7 +34,7 @@ export default async function PartnerContactsPage() {
       <PageHeader
         word={t.partner.wordTeam}
         title={t.partnerContacts.title}
-        description={`${t.partnerContacts.lead} · ${contacts.length}`}
+        description={t.partnerContacts.lead}
       />
       <ContactList
         orgId={current.org_id}

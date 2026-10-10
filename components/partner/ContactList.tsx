@@ -266,7 +266,7 @@ export function ContactList({
             {CONTACT_ROLES.map((r) => (
               <div key={r}>
                 <dt className="ct-label text-ink">{rolle(r)}</dt>
-                <dd className="ct-small mt-1 leading-6">{t[`roleHelp_${r}`]}</dd>
+                <dd className="ct-small mt-1 leading-6 text-muted">{t[`roleHelp_${r}`]}</dd>
               </div>
             ))}
           </dl>
