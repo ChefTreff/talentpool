@@ -95,13 +95,11 @@ export function ohneSecret(text: string, secret: string | null | undefined): str
 }
 
 export type Zustand = "pending" | "partial" | "complete";
+/** Der Zustand eines Tickets aus dem Datenbankwert; alles Unbekannte zählt als offen. */
+export const zustandVon = (s: string): Zustand => (s === "complete" ? "complete" : s === "partial" ? "partial" : "pending");
 export function zaehleZustaende(zeilen: { personalization_status: string }[]): Record<Zustand, number> {
   const out: Record<Zustand, number> = { pending: 0, partial: 0, complete: 0 };
-  for (const z of zeilen) {
-    if (z.personalization_status === "complete") out.complete += 1;
-    else if (z.personalization_status === "partial") out.partial += 1;
-    else out.pending += 1;
-  }
+  for (const z of zeilen) out[zustandVon(z.personalization_status)] += 1;
   return out;
 }
 
@@ -121,4 +119,50 @@ export function pruefeEingabe(e: { fuerMich: boolean; first_name: string; last_n
   if (!e.first_name.trim() || !e.last_name.trim()) return "name_required";
   if (!e.fuerMich && !normAdresse(e.holder_email)) return "holder_email_required";
   return null;
+}
+
+/** Die vier Angaben, die auf das Namensschild kommen. */
+export type Felder = { first_name: string; last_name: string; company: string; job_position: string };
+export const LEERE_FELDER: Felder = { first_name: "", last_name: "", company: "", job_position: "" };
+const abbilden = (f: Felder, aendere: (feld: keyof Felder, wert: string) => string): Felder => ({
+  first_name: aendere("first_name", f.first_name),
+  last_name: aendere("last_name", f.last_name),
+  company: aendere("company", f.company),
+  job_position: aendere("job_position", f.job_position),
+});
+
+/**
+ * Welches Ticket der Bestellung startet „für mich“ (TAL-020, B2)? **Höchstens eines** — das erste, zu dem noch nichts gespeichert ist —, und keines, wenn die
+ * Person schon ein gespeichertes Ticket für sich hat. Vorher startete jedes mit dem Profil des Käufers: bei drei Tickets drei Mal „Speichern“ auf dieselbe Person.
+ * „Gespeichert“ heißt: der Zustand ist nicht `pending`. `for_me` allein sagt nichts — der Ingest hängt ein neues Ticket schon an die Person, deren Adresse der
+ * Käufer hat, ohne dass sie etwas eingetragen hätte. Gibt die Kennung des Tickets zurück oder `null`.
+ */
+export function startetFuerMich(tickets: readonly { ticket_id: string; personalization_status: string; for_me: boolean }[]): string | null {
+  const gespeichert = (t: { personalization_status: string }) => zustandVon(t.personalization_status) !== "pending";
+  if (tickets.some((t) => gespeichert(t) && t.for_me)) return null;
+  return tickets.find((t) => !gespeichert(t))?.ticket_id ?? null;
+}
+
+/**
+ * Was passiert mit den Feldern, wenn „für mich“ umgeschaltet wird (TAL-020, B2)? `eigene` sind die Angaben der Person selbst — das Profil, bei einem schon für sie
+ * gespeicherten Ticket dessen Werte. **Feld für Feld:**
+ * - **Auf „andere Person“:** ein Feld, das noch genau die eigene Angabe trägt, ist nur Vorbelegung und wird **geleert** (sonst bliebe der Name des Käufers samt
+ *   Position stehen, und wer nur die E-Mail ergänzt, speichert ihn für jemand anderen). Was die Person selbst getippt hat, bleibt.
+ * - **Zurück auf „für mich“:** leere Felder bekommen die eigene Angabe wieder, getippte bleiben.
+ */
+export function felderBeimUmschalten(aktuell: Felder, eigene: Felder, fuerMich: boolean): Felder {
+  return abbilden(aktuell, (feld, wert) =>
+    fuerMich ? (wert.trim() === "" ? eigene[feld] : wert) : wert.trim() === eigene[feld].trim() ? "" : wert,
+  );
+}
+
+/** Fehlerschlüssel, zu denen die Seite einen eigenen, genaueren Text hat — er geht dem allgemeinen Wörterbuch (`rpc`) vor. */
+const EIGENE_FEHLER = new Set(["name_required", "holder_email_required", "ticket_not_valid", "ticket_not_found"]);
+
+/**
+ * Der Text zu einem Fehler der Aktion (TAL-020, B8): erst der genauere der Seite (`ticketBestaetigung`), dann das allgemeine Wörterbuch, dann „unbekannt“. Vorher
+ * galt die umgekehrte Reihenfolge, und „Bitte Vor- und Nachname angeben.“ erschien nie, weil `rpc` denselben Schlüssel mit „Bitte einen Namen angeben.“ führt.
+ */
+export function fehlerText(key: string, seite: Record<string, string>, rpc: Record<string, string>): string {
+  return (EIGENE_FEHLER.has(key) ? seite[key] : undefined) ?? rpc[key] ?? rpc.unknown ?? key;
 }
