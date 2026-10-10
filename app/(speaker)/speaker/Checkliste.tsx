@@ -89,7 +89,7 @@ export function Checkliste({
       {sortiert.map((a) => (
         <li
           key={a.key}
-          className="flex min-h-14 flex-wrap items-center gap-3 border-b px-4 py-3 last:border-b-0"
+          className="flex min-h-14 items-center gap-3 border-b px-4 py-3 last:border-b-0"
         >
           {a.selbstId ? (
             <HakenSchalter
@@ -108,23 +108,28 @@ export function Checkliste({
           ) : (
             <CheckMark done={a.erledigt} label={a.erledigt ? t.done : t.open} />
           )}
-          <div className="min-w-0 flex-1">
-            {a.href ? (
-              <Link href={a.href} className="ct-label text-ink hover:underline">
-                {a.titel}
-              </Link>
-            ) : (
-              <span className="ct-label text-ink">{a.titel}</span>
+          {/* Text und Frist: ab 640 px nebeneinander (die Frist rechts, so breit wie sie ist), darunter **untereinander** (SPK-096). Vorher standen sie in einer
+              Zeile mit `flex-wrap`, aber die Textspalte hatte `flex-1` (Basis 0): der Umbruch griff nie, und die Frist („Frist: 14.10.2026 · noch 3 Tage“, 179 px)
+              presste Titel und Beschreibung auf 86 px — 213 px hoch bei der Präsentation, 349 bei einem Punkt mit längerem Text, gegen 89 ohne Frist. */}
+          <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+            <div className="min-w-0 flex-1">
+              {a.href ? (
+                <Link href={a.href} className="ct-label text-ink hover:underline">
+                  {a.titel}
+                </Link>
+              ) : (
+                <span className="ct-label text-ink">{a.titel}</span>
+              )}
+              <p className={`ct-help ${a.erledigt ? "line-through" : ""}`}>{a.beschreibung}</p>
+              {a.wiederGeoeffnet && <p className="ct-help">{t.reopenedHint}</p>}
+            </div>
+            {a.faellig && !a.erledigt && (
+              <span className="ct-help tabular-nums sm:shrink-0">
+                {t.dueLabel}: {a.faellig.text} ·{" "}
+                <Countdown dueAt={a.faellig.iso} days={t.days} hours={t.hours} soon={t.soon} />
+              </span>
             )}
-            <p className={`ct-help ${a.erledigt ? "line-through" : ""}`}>{a.beschreibung}</p>
-            {a.wiederGeoeffnet && <p className="ct-help">{t.reopenedHint}</p>}
           </div>
-          {a.faellig && !a.erledigt && (
-            <span className="ct-help shrink-0 tabular-nums">
-              {t.dueLabel}: {a.faellig.text} ·{" "}
-              <Countdown dueAt={a.faellig.iso} days={t.days} hours={t.hours} soon={t.soon} />
-            </span>
-          )}
         </li>
       ))}
     </ul>

@@ -13,6 +13,8 @@ export type SessionFrage = {
   label_de: string;
   label_en: string;
   type: string | null;
+  /** Antwortoptionen einer eigenen Auswahlfrage (`[{key,label_de,label_en}]`); bei Katalogfragen und ohne Auswahl `null`. Gebraucht für den Vergleich mit der Tischvorgabe. */
+  options?: unknown;
   required: boolean;
   sort_order: number;
   approved_at: string | null;
@@ -77,4 +79,17 @@ export function antwortenMitText(
     if (!genommen.has(k)) geordnet.push([text.get(k) ?? k, v]);
   }
   return Object.fromEntries(geordnet);
+}
+
+/**
+ * Wie sich die Fragen eines Gesprächs aufteilen (PART-045, PART-150): die **Fragen des Teams** (Katalogfragen, die ein Partner nicht wählen darf — nur lesen),
+ * die **gewählten** wählbaren Katalogfragen (nur ihre Kennungen, das Kästchen-Feld braucht sie so) und die **eigenen** Fragen (ohne `question_id`).
+ * `waehlbarIds` sind die Kennungen der Katalogfragen, die Partner wählen dürfen (`ladeWaehlbareFragen`).
+ */
+export function fragenAufteilen(fragen: SessionFrage[], waehlbarIds: ReadonlySet<string>) {
+  return {
+    team: fragen.filter((f) => f.question_id && !waehlbarIds.has(f.question_id)),
+    gewaehlt: fragen.filter((f) => f.question_id && waehlbarIds.has(f.question_id)).map((f) => f.question_id as string),
+    eigene: fragen.filter((f) => !f.question_id),
+  };
 }

@@ -1,7 +1,7 @@
 import { requireAdminSection } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { summiere, type NichtPersonalisiert, type UebersichtZeile } from "@/lib/tickets/nicht-personalisiert";
+import { mailtoLink, summiere, type NichtPersonalisiert, type UebersichtZeile } from "@/lib/tickets/nicht-personalisiert";
 import { SectionTabs } from "@/components/layout/SectionTabs";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonDownload } from "@/components/ui/Button";
@@ -71,7 +71,7 @@ export default async function AdminTicketsPage() {
             <EmptyState title={a.ticketsNoData} description={a.ticketsNoDataBody} />
           ) : (
             <div className="overflow-x-auto">
-              <Table>
+              <Table stapeln>
                 <Thead>
                   <Th>{a.ticketsColEvent}</Th>
                   <Th numeric>{a.ticketsCountOpen}</Th>
@@ -83,19 +83,19 @@ export default async function AdminTicketsPage() {
                   {zeilen.map((z) => (
                     <Tr key={z.event_id}>
                       <Td>{z.event_name}</Td>
-                      <Td className="tabular-nums" numeric>{zahl.format(z.pending)}</Td>
-                      <Td className="tabular-nums" numeric>{zahl.format(z.partial)}</Td>
-                      <Td className="tabular-nums" numeric>{zahl.format(z.complete)}</Td>
-                      <Td className="tabular-nums" numeric>{zahl.format(z.writeback_open)}</Td>
+                      <Td className="tabular-nums" numeric label={a.ticketsCountOpen}>{zahl.format(z.pending)}</Td>
+                      <Td className="tabular-nums" numeric label={a.ticketsCountPartial}>{zahl.format(z.partial)}</Td>
+                      <Td className="tabular-nums" numeric label={a.ticketsCountComplete}>{zahl.format(z.complete)}</Td>
+                      <Td className="tabular-nums" numeric label={a.ticketsCountWriteback}>{zahl.format(z.writeback_open)}</Td>
                     </Tr>
                   ))}
                   {zeilen.length > 1 && (
                     <Tr>
                       <Td className="font-semibold">{a.ticketsTotal}</Td>
-                      <Td className="tabular-nums font-semibold" numeric>{zahl.format(summe.pending)}</Td>
-                      <Td className="tabular-nums font-semibold" numeric>{zahl.format(summe.partial)}</Td>
-                      <Td className="tabular-nums font-semibold" numeric>{zahl.format(summe.complete)}</Td>
-                      <Td className="tabular-nums font-semibold" numeric>{zahl.format(summe.writebackOpen)}</Td>
+                      <Td className="tabular-nums font-semibold" numeric label={a.ticketsCountOpen}>{zahl.format(summe.pending)}</Td>
+                      <Td className="tabular-nums font-semibold" numeric label={a.ticketsCountPartial}>{zahl.format(summe.partial)}</Td>
+                      <Td className="tabular-nums font-semibold" numeric label={a.ticketsCountComplete}>{zahl.format(summe.complete)}</Td>
+                      <Td className="tabular-nums font-semibold" numeric label={a.ticketsCountWriteback}>{zahl.format(summe.writebackOpen)}</Td>
                     </Tr>
                   )}
                 </Tbody>
@@ -116,7 +116,7 @@ export default async function AdminTicketsPage() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <Table>
+                <Table stapeln>
                   <Thead>
                     <Th>{a.ticketsColHolder}</Th>
                     <Th>{a.ticketsColBuyer}</Th>
@@ -132,15 +132,22 @@ export default async function AdminTicketsPage() {
                           {[z.holder_first_name, z.holder_last_name].filter(Boolean).join(" ") || t.common.none}
                           {z.holder_company && <div className="ct-help">{z.holder_company}</div>}
                         </Td>
-                        <Td className="break-all">{z.buyer_email ?? t.common.none}</Td>
-                        <Td>{z.pass_type ?? t.common.none}</Td>
-                        <Td>
+                        <Td className="break-all" label={a.ticketsColBuyer}>
+                          {/* Zum Nachfassen: ein Klick öffnet das Mailprogramm (nur bei einer einfachen Adresse, sonst bleibt es Text). */}
+                          {mailtoLink(z.buyer_email) ? (
+                            <a href={mailtoLink(z.buyer_email) ?? undefined} className="ct-link">{z.buyer_email}</a>
+                          ) : (
+                            (z.buyer_email ?? t.common.none)
+                          )}
+                        </Td>
+                        <Td label={a.ticketsColPass}>{z.pass_type ?? t.common.none}</Td>
+                        <Td label={a.ticketsColState}>
                           <Badge>{stand[z.personalization_status] ?? z.personalization_status}</Badge>
                         </Td>
-                        <Td className="text-muted tabular-nums">
+                        <Td className="text-muted tabular-nums" label={a.ticketsColBought}>
                           {z.purchased_at ? new Date(z.purchased_at).toLocaleDateString(t.meta.dateLocale) : t.common.none}
                         </Td>
-                        <Td>{z.writeback_open ? <Badge>{a.ticketsWritebackOpen}</Badge> : null}</Td>
+                        <Td label={a.ticketsColWriteback}>{z.writeback_open ? <Badge>{a.ticketsWritebackOpen}</Badge> : null}</Td>
                       </Tr>
                     ))}
                   </Tbody>
