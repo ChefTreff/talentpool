@@ -107,6 +107,9 @@ describe("LEAD-058: die Anzeige", () => {
     assert.doesNotMatch(q, /standJeBuehne\(sichtbar\)/);
     assert.ok(q.indexOf('aria-labelledby="praes-stand"') > 0 && q.indexOf('aria-labelledby="praes-stand"') < q.indexOf('{buehnen.length > 1 && ('), "der Stand steht vor den Filtern");
     assert.match(q, /<h2 id="praes-stand" className="ct-h3 mb-2 text-ink">\s+\{t\.standTitle\}/);
+    // die Reihenfolge ist die der Seite — keine Umordnung über Klassen (`order-…`)
+    const abschnitt = q.slice(q.indexOf("<section aria-labelledby=\"praes-stand\""), q.indexOf("</section>"));
+    assert.doesNotMatch(abschnitt, /\border-/);
   });
 
   it("je Bühne: Zählung mit Soll und Ist, Zustand als Marke mit Text (Fehlt: n / Vollständig), „Fehlende zeigen“ nur bei Fehlendem — und es stellt Bühne und „Nur fehlende“ ein", () => {
