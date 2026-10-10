@@ -93,7 +93,7 @@ export default async function AdminHackathonPage() {
           <ApplicationsTable
             rows={(apps ?? []) as AdminApplication[]}
             labels={{
-              skills: vgroup(vocab, "hack_skill"),
+              skills: vgroup(vocab, "skill"),
               tracks: trackLabels,
               studyFields: vgroup(vocab, "study_field"),
               profileSkills: vgroup(vocab, "skill"),

@@ -17,7 +17,7 @@ declare
   v_pid uuid; v_uid uuid; v_j jsonb; v_s text; v_detail text; v_bad text; v_skill text;
 begin
   select p.id, p.auth_user_id into v_pid, v_uid from person p where p.auth_user_id is not null and p.deleted_at is null limit 1;
-  select key into v_skill from vocab_term where vocabulary = 'hack_skill' and active order by sort_order limit 1;
+  select key into v_skill from vocab_term where vocabulary = 'skill' and active order by sort_order limit 1;
   delete from hack_application where person_id = v_pid;
   perform set_config('request.jwt.claims', json_build_object('sub', v_uid, 'role', 'authenticated')::text, true);
 

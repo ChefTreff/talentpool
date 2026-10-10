@@ -31,7 +31,7 @@ begin
   delete from hack_application where person_id in (v_cap, v_mem, v_solo, v_solo2, v_out) and edition_id = v_ed;
   insert into hack_application (person_id, edition_id, skills, status, track_prefs)
     select x, v_ed, '{}', 'accepted', '{}' from unnest(array[v_cap, v_mem, v_solo, v_solo2]) x;
-  update hack_application set skills = (select array_agg(key) from (select key from vocab_term where vocabulary = 'hack_skill' and active order by sort_order limit 1) k),
+  update hack_application set skills = (select array_agg(key) from (select key from vocab_term where vocabulary = 'skill' and active order by sort_order limit 1) k),
                               track_prefs = '{data_science}' where person_id = v_solo and edition_id = v_ed;
   insert into hack_team (edition_id, name, join_code) values (v_ed, 'ZZ Suche', 'ZZSUC1') returning id into v_t;
   insert into hack_team (edition_id, name, join_code) values (v_ed, 'ZZ Still', 'ZZSUC2') returning id into v_t2;
@@ -61,7 +61,7 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', v_cap_uid, 'role', 'authenticated')::text, true);
   begin perform set_hack_team_looking(true, array['gibtsnicht']); v_s := v_s || '/ALLOWED (BUG)';
   exception when others then v_s := v_s || case when sqlstate = '22023' then '/ok' else '/' || sqlstate end; end;
-  perform set_hack_team_looking(true, (select array_agg(key) from (select key from vocab_term where vocabulary = 'hack_skill' and active order by sort_order limit 2) k), 'Wir suchen jemanden für Daten');
+  perform set_hack_team_looking(true, (select array_agg(key) from (select key from vocab_term where vocabulary = 'skill' and active order by sort_order limit 2) k), 'Wir suchen jemanden für Daten');
   insert into t_res values ('03_markieren',
     case when v_s = 'ok/ok' and (select looking and cardinality(looking_skills) = 2 from hack_team where id = v_t) then 'ok' else v_s end);
 

@@ -80,7 +80,7 @@ export default async function HackathonPage() {
       people: (peopleRows ?? []) as SuchendePerson[],
       requests: (requestRows ?? []) as Beitrittsanfrage[],
       myTeam: data.team ? { looking: Boolean(eigenes), skills: eigenes?.looking_skills ?? [], note: eigenes?.looking_note ?? "" } : null,
-      labels: { skills: vgroup(vocab, "hack_skill"), studyFields: vgroup(vocab, "study_field"), tracks: vgroup(vocab, "hack_track") },
+      labels: { skills: vgroup(vocab, "skill"), studyFields: vgroup(vocab, "study_field"), tracks: vgroup(vocab, "hack_track") },
       t: t.hackSearch,
       rpcMessages: t.rpc,
     };
@@ -123,7 +123,7 @@ export default async function HackathonPage() {
           dataset={dataset}
           abgabe={abgabe}
           teamsuche={suche ? <Teamsuche {...suche} /> : null}
-          skills={vgroup(vocab, "hack_skill")}
+          skills={vgroup(vocab, "skill")}
           tracks={vgroup(vocab, "hack_track")}
           discordUrl={null}
           t={t.hackathon}

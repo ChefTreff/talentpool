@@ -3256,10 +3256,10 @@ async function hackathonChallenges() {
 
   // HACK-016: Teamsuche — „Queue Crushers“ sucht, „Datenbewerbung“ ist angenommen und sucht ein Team.
   if (metrik) {
-    await write("Teamsuche: „Queue Crushers“ sucht noch (Skills aus hack_skill)", async () => {
-      const { data: skills } = await admin.from("vocab_term").select("key").eq("vocabulary", "hack_skill").eq("active", true).order("sort_order").limit(2);
+    await write("Teamsuche: „Queue Crushers“ sucht noch (Skills aus skill)", async () => {
+      // K-94: gemeinsames Vokabular `skill` statt `hack_skill`
       return admin.from("hack_team").update({
-        looking: true, looking_skills: (skills ?? []).map((k) => k.key), looking_note: "TEST — looking for someone who likes data",
+        looking: true, looking_skills: ["programming", "data_analysis"], looking_note: "TEST — looking for someone who likes data",
       }).eq("edition_id", hackEd).eq("name", `${PREFIX}Queue Crushers`);
     });
   }

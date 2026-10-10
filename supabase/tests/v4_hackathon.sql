@@ -42,7 +42,7 @@ begin
     perform apply_hackathon(jsonb_build_object('edition_id', v_ed, 'skills', jsonb_build_array('zaubern')));
     insert into t_res values ('02_skill', 'ALLOWED (BUG)');
   exception when others then insert into t_res values ('02_skill', 'abgewiesen ' || sqlstate || ' ' || sqlerrm); end;
-  perform apply_hackathon(jsonb_build_object('edition_id', v_ed, 'skills', jsonb_build_array('backend'),
+  perform apply_hackathon(jsonb_build_object('edition_id', v_ed, 'skills', jsonb_build_array('programming'),
                                              'motivation', 'Test'));
 
   -- 03 Team anlegen
