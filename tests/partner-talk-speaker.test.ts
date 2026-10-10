@@ -104,7 +104,7 @@ describe("Talk-Seite: Speaker eintragen (PART-091, PART-089)", () => {
   it("Programmpunkte auf der Standbühne stehen nicht unter Talk (PART-089)", () => {
     assert.match(seite(), /from\("stage"\)\.select\("id, type"\)/);
     assert.match(seite(), /b\.type === "partner_booth"/);
-    assert.match(seite(), /!\(x\.stage_id && standbuehnen\.has\(x\.stage_id\)\)/);
+    assert.match(seite(), /!\(x\.stage_id && eigeneBuehnen\.has\(x\.stage_id\)\)/);
   });
 
   it("die Standbühne ordnet Gäste weiter zu", () => {

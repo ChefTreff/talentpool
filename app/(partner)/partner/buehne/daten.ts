@@ -1,8 +1,9 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { buehnenReiter, type BuehnenReiter } from "@/components/partner/eure-buehne";
 import { standFenster, type StandFenster } from "@/components/partner/standbuehne";
 
-/** Zeile aus `my_partner_stages()`. */
+/** Zeile aus `my_partner_stages()`, dazu die Art der Bühne (`stage.kind`). */
 export type PartnerStage = {
   stage_id: string;
   stage_name: string | null;
@@ -13,13 +14,35 @@ export type PartnerStage = {
   edition_id: string;
   org_id: string | null;
   org_name: string | null;
+  /** `booth` (Standbühne), `branded` (gebrandete Bühne) oder eine andere Fläche (PART-138); `null`, wenn die Art nicht lesbar ist. */
+  kind: string | null;
 };
 
-/** Die Bühnen, die diese Person als Partner bearbeitet (Rolle `standbuehne_editor`). */
+/**
+ * Die Bühnen, die diese Person als Partner bearbeitet (Rolle `standbuehne_editor`). Die Art kommt aus `stage.kind` (0274, für Angemeldete lesbar):
+ * `my_partner_stages()` liefert sie nicht und bleibt unverändert.
+ */
 export async function ladeEigeneBuehnen(): Promise<PartnerStage[]> {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.rpc("my_partner_stages");
-  return (data ?? []) as PartnerStage[];
+  const zeilen = (data ?? []) as Omit<PartnerStage, "kind">[];
+  if (zeilen.length === 0) return [];
+  const { data: arten } = await supabase
+    .from("stage")
+    .select("id, kind")
+    .in("id", zeilen.map((z) => z.stage_id));
+  const art = new Map(((arten ?? []) as { id: string; kind: string | null }[]).map((a) => [a.id, a.kind]));
+  return zeilen.map((z) => ({ ...z, kind: art.get(z.stage_id) ?? null }));
+}
+
+/**
+ * Die Bühnen der gewählten Organisation — mit ihr als Gastgeberin arbeiten Tabelle, Gäste und Speaker — und die Reiter, die sie daraus bekommt.
+ * `alle` sind sämtliche Bühnen der Person (der Kalender zeigt sie zur Orientierung).
+ */
+export async function ladeBuehnen(orgId: string): Promise<{ alle: PartnerStage[]; eigene: PartnerStage[]; reiter: BuehnenReiter }> {
+  const alle = await ladeEigeneBuehnen();
+  const eigene = alle.filter((s) => s.org_id === orgId);
+  return { alle, eigene, reiter: buehnenReiter(eigene.map((s) => s.kind)) };
 }
 
 /**

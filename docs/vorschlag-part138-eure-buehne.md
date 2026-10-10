@@ -63,3 +63,12 @@ Klein halten: keine neue Tabelle, keine neue Spalte.
 1. Antworten Q1–Q3 und Freigabe dieses Vorschlags.
 2. Migration als Vorschlag unter `supabase/migrations/vorschlag/` mit Test (`partner_overview.has_stage`, `partner_add_speaker`); der PR trägt „Migration enthalten“.
 3. Nach „Migration live“: Seite („Eure Bühne“, Speaker statt Gäste), Testdaten-Schritt, Runbook-Zeile.
+
+## Stand der Umsetzung (Partner-Chat, 10.10.2026)
+
+- **Teil 1 (Datenbank, 0293)** gebaut, #432: `partner_overview.has_stage` nur mit Standbühne oder gebrandeter Bühne, `partner_add_speaker` und `partner_speakers` für Sessions ohne Organisation auf der gebrandeten Bühne.
+- **Teil 2 (Seite)** geplant, #488, keine Migration. Abweichungen und Befunde gegenüber dem Vorschlag oben:
+  - Die Art steht als **„Name (Art)“ in der Karte der Info**, nicht als Überschrift „Eure Standbühne / Eure gebrandete Bühne“ — die Seite hat eine Überschrift (`h1`), und mit zwei Bühnen stünden sonst zwei gleichrangige.
+  - Der Reiter „Speaker“ nutzt `SpeakerHinzufuegen` und **`SpeakerTabelle`** (die Karte je Person gibt es seit PART-136 nicht mehr). **Quelle der Programmpunkte ist das Programm** (`programme_board`), nicht `partner_format_sessions`: deren Liste gilt nur für Sessions mit Organisation; das Team legt sie auf der gebrandeten Bühne ohne an. Wen das Team eingetragen hat, steht als Zeile ohne Knopf darunter.
+  - **Tabelle und Gäste nur mit Standbühne, Speaker nur mit gebrandeter Bühne** (`buehnenReiter`); das Öffnungsfenster gilt für beide Arten (wie `partner_booth_window`).
+  - **Befund → PART-148:** „Veröffentlichen anfragen“ (`partner_request_publish`/`partner_withdraw_publish`) kennt nur `partner_booth`, und 23 Funktionen (Partner- und Programm-Funktionen, Stand Snapshot 10.10.) verweisen auf `session.partner_org_id` (leer bei Sessions, die das Team anlegt). Was der Partner auf der gebrandeten Bühne außer Speaker-Eintragen darf, entscheidet PART-148 (`docs/feedback/partner.md`).

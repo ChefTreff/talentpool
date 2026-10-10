@@ -7,11 +7,12 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Gaesteliste } from "@/components/partner/Gaesteliste";
 import type { GastRow } from "@/components/partner/gaeste";
 import { gastFotoAdressen } from "@/lib/partner/gaeste";
+import { BUEHNE_STAND } from "@/components/partner/eure-buehne";
 import { canEditOnboarding, type PartnerOverview } from "../../types";
 import { getPartnerScope } from "../../org";
 import { addStageGuest, registerStageGuestPhoto, removeStageGuest, updateStageGuest } from "../../actions";
 import { BuehnenTabs } from "../BuehnenTabs";
-import { ladeEigeneBuehnen } from "../daten";
+import { ladeBuehnen } from "../daten";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export default async function PartnerStageGuestsPage() {
   const { current } = await getPartnerScope();
   if (!current) notFound();
 
+  const { eigene, reiter } = await ladeBuehnen(current.org_id);
   const kopf = (
     <>
       <PageHeader word={t.partner.wordProgramme} title={t.partnerStage.title} description={t.partnerStage.lead} />
@@ -40,14 +42,15 @@ export default async function PartnerStageGuestsPage() {
           board: t.admin.programmeTable.tabBoard,
           table: t.admin.programmeTable.tabTable,
           guests: t.partnerGuests.tab,
+          speakers: t.partnerStage.tabSpeakers,
         }}
+        reiter={reiter}
       />
     </>
   );
 
-  // Gäste gibt es für die Standbühne der gewählten Organisation.
-  const eigene = (await ladeEigeneBuehnen()).filter((s) => s.org_id === current.org_id);
-  if (eigene.length === 0) {
+  // Gäste gibt es für die Standbühne der gewählten Organisation — nicht für die gebrandete Bühne: deren Speaker sind reguläre Speaker (PART-138).
+  if (!eigene.some((s) => s.kind === BUEHNE_STAND)) {
     return (
       <>
         {kopf}

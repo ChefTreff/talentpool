@@ -184,6 +184,9 @@
  *                                   letzten Summit-Tag — Konrad ist dort Standbühnen-Editor und legt unter /partner/buehne selbst
  *                                   Slots an, verschiebt und löscht sie (/admin/programm zeigt dieselben als Team). Braucht den
  *                                   Schritt `partner`; erst nach „Migration live“ von v6_partner_slots)
+ *   … --apply --nur=eurebuehne     (PART-138 Teil 2: zwei TEST-Programmpunkte ohne Organisation auf der gebrandeten TEST-Bühne, am ersten Summit-Tag in den
+ *                                   Öffnungszeiten — Konrad sieht unter /partner/buehne den Reiter „Speaker“ mit „Speaker eintragen“ und der Zeile „Außerdem vom
+ *                                   Team eingetragen“. Braucht `partner` und `partnerslots`; 0293 ist live)
  *   … --apply --nur=angebot        (PART-116/K-81: dritte TEST-Organisation „TEST — Partner Angebot“ mit Kundennummer ZZTEST-ANGEBOT, deutscher Adresse, gebuchtem
  *                                   Stand und einem Warenkorb als Entwurf (Tischkicker ×1, Tolix Barhocker ×2) in der laufenden Bestellphase. Konrad wechselt unter
  *                                   /partner die Organisation, öffnet den Warenkorb und klickt „Angebot erstellen“ — solange `SHOP_ANGEBOT_SEVDESK` auf „aus“ steht (Standard),
@@ -4151,6 +4154,73 @@ async function partnerslotsSchritt(me, ed) {
   note("Partner-Slots ausprobieren", "/partner/buehne: Bühne „TEST — Eure Bühne (gebrandet)“ — Doppelklick legt einen Slot an (frei lang, im Fenster); /admin/programm: dieselbe Bühne als Team");
 }
 
+/** PART-138 Teil 2: die TEST-Person, die „das Team“ an einem Programmpunkt eingetragen hat, und die Adresse, mit der Konrad selbst einen Speaker einträgt (Konrads Postfach, Plus-Adressen). */
+const eureBuehneTeamAdresse = () => email.replace("@", "+zztest-eurebuehne-team@");
+const eureBuehneEintragAdresse = () => email.replace("@", "+zztest-eurebuehne-1@");
+
+/** PART-138 Teil 2: die zwei Programmpunkte — `teamSpeaker` trägt die TEST-Person ein (unbestätigt, sonst sperrt `partner_add_speaker` mit `slot_locked`). */
+const EURE_BUEHNE_PUNKTE = [
+  { titel: `${PREFIX}Eure Bühne: Programmpunkt mit Team-Speaker`, von: "14:30", bis: "15:00", teamSpeaker: true },
+  { titel: `${PREFIX}Eure Bühne: Programmpunkt ohne Speaker`, von: "15:30", bis: "16:00", teamSpeaker: false },
+];
+
+/**
+ * PART-138 Teil 2: damit der Reiter „Speaker“ unter „Eure Bühne“ in Konrads Konto etwas zeigt — zwei TEST-Programmpunkte (Talk, Entwurf) auf der gebrandeten TEST-Bühne
+ * (Schritt `partnerslots`), am ersten Summit-Tag in den Öffnungszeiten 14:00–18:00, beide **ohne Organisation** — so legt das Team sie an (PART-148); `partner_add_speaker`
+ * nimmt sie seit 0293 trotzdem an. Der erste trägt die TEST-Person `TEST Teamspeaker` als Speaker (vom Team eingetragen, unbestätigt), der zweite hat keinen.
+ *
+ * Konrad klickt (Test-Organisation, Konrad ist dort Standbühnen-Editor): `/partner/buehne` — im Menü steht „Eure Bühne“, die Seite heißt so, die Karte nennt die
+ * Bühnen mit ihrer Art („Gebrandete Bühne“, „Standbühne“) und unter „Öffnungszeiten eurer Bühne“ stehen beide; die Leiste führt Kalender, Tabelle, Gäste **und
+ * Speaker**. Reiter „Speaker“: beim ersten Programmpunkt steht „Außerdem vom Team eingetragen: TEST Teamspeaker“, beim zweiten „Noch niemand eingetragen“ mit „Speaker
+ * eintragen“ → Vorname TEST, Nachname Eintrag, E-Mail wie unten, „Eigener Zugang“ → die Zeile steht in der Tabelle des Programmpunkts. `/partner/talk` zeigt die beiden
+ * Programmpunkte nicht (sie gehören zu „Eure Bühne“).
+ *
+ * Direkt geschrieben, ohne Mail. Ein zweiter Lauf lässt Vorhandenes stehen. `--remove` nimmt die Sessions (Slots gehen mit der Bühne) und beide TEST-Personen mit
+ * ihren Profilen weg — auch die, die Konrad über „Speaker eintragen“ mit `+zztest-eurebuehne-1` angelegt hat.
+ */
+async function eureBuehneSchritt(me, ed) {
+  const sum = await summit(ed);
+  const tag = sum?.tage?.[0];
+  if (!sum || !tag) return fail("Eure Bühne", "kein Summit mit Tagen");
+  const { data: st } = await admin.from("stage").select("id").eq("event_id", sum.id).eq("slug", GEBRANDET_SLUG).maybeSingle();
+  if (!st) return fail("Eure Bühne", "gebrandete TEST-Bühne fehlt — zuerst --nur=partnerslots");
+
+  const personId = await write("TEST-Teamspeaker (Person ohne Konto, vom Team eingetragen)", () =>
+    admin.rpc("testdaten_person", { p_first_name: "TEST", p_last_name: "Teamspeaker", p_email: eureBuehneTeamAdresse() }),
+  );
+  if (mode === "dry-run") return;
+  for (const p of EURE_BUEHNE_PUNKTE) {
+    const sessionId = await write(`${p.titel} (${tag.day_date} ${p.von}–${p.bis}, ohne Organisation)`, async () => {
+      const { data: da } = await admin.from("session").select("id, slot_id").eq("event_id", sum.id).eq("title_de", p.titel).maybeSingle();
+      let slotId = da?.slot_id ?? null;
+      if (!slotId) {
+        const { data: sl, error } = await admin.from("slot").insert({
+          stage_id: st.id, event_day_id: tag.id,
+          start_at: new Date(`${tag.day_date}T${p.von}:00+02:00`).toISOString(), end_at: new Date(`${tag.day_date}T${p.bis}:00+02:00`).toISOString(),
+          slot_type: "content", status: "confirmed_title_open", internal_title: p.titel,
+        }).select("id").single();
+        if (error) return { data: null, error };
+        slotId = sl.id;
+      }
+      if (da) return { data: da.id, error: null };
+      const { data, error } = await admin.from("session").insert({
+        event_id: sum.id, slot_id: slotId, format: "talk", title_de: p.titel, title_en: p.titel,
+        description_de: "Testprogrammpunkt für „Eure Bühne“ (PART-138).", language: "de", access_mode: "open", publish_status: "draft",
+      }).select("id").single();
+      return { data: data?.id ?? null, error };
+    });
+    if (p.teamSpeaker && sessionId && personId) {
+      await write("TEST-Teamspeaker am ersten Programmpunkt (unbestätigt)", () =>
+        admin.from("session_speaker").upsert(
+          { session_id: sessionId, person_id: personId, role: "speaker", confirmed: false },
+          { onConflict: "session_id,person_id,role" },
+        ),
+      );
+    }
+  }
+  note("Eure Bühne ausprobieren", `/partner/buehne → Reiter „Speaker“: zweiter Programmpunkt → „Speaker eintragen“ → Vorname TEST, Nachname Eintrag, E-Mail ${eureBuehneEintragAdresse()}`);
+}
+
 /** ADM-072: so erkennt man im Admin und beim Aufräumen die drei wartenden TEST-Freigaben. */
 const FREIGABE_HINWEIS = `${PREFIX}nur zum Ausprobieren der Freigabe`;
 /**
@@ -4403,6 +4473,7 @@ const SCHRITTE = {
   sperrzeit: sperrzeitSchritt,
   aenderungsmail: aenderungsmailSchritt,
   partnerslots: partnerslotsSchritt,
+  eurebuehne: eureBuehneSchritt,
   buehne: stageLeadBuehne,
   standstatus: standStatus,
   verwaltet: verwalteterSpeaker,
@@ -4758,6 +4829,14 @@ async function remove(me) {
       .eq("email", moderationAdresse()).maybeSingle();
     if (!adresse) return { data: null, error: null };
     return admin.from("person").delete().eq("id", adresse.person_id).eq("first_name", "TEST").is("auth_user_id", null);
+  });
+  // PART-138 Teil 2: die TEST-Person des Teams und die, die Konrad über „Speaker eintragen“ angelegt hat — Profil und Zuordnung hängen mit ON DELETE CASCADE an der Person.
+  await write("TEST-Speaker von „Eure Bühne“ entfernt (Profil und Zuordnung gehen mit)", async () => {
+    const { data: adressen } = await admin.from("person_email").select("person_id")
+      .in("email", [eureBuehneTeamAdresse(), eureBuehneEintragAdresse()]);
+    const ids = (adressen ?? []).map((a) => a.person_id);
+    if (ids.length === 0) return { data: null, error: null };
+    return admin.from("person").delete().in("id", ids).eq("first_name", "TEST").is("auth_user_id", null);
   });
   await write("Stage-Lead-Bühne entfernt (Slots und Cues gehen mit)", () =>
     admin.from("stage").delete().eq("slug", "zz-test-stagelead"),

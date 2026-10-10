@@ -11,7 +11,7 @@ import { fensterText } from "@/components/partner/standbuehne";
 import { formatDay } from "@/lib/tz";
 import type { PartnerFormatSession } from "../../talk/types";
 import { getPartnerScope } from "../../org";
-import { ladeEigeneBuehnen, ladeFenster } from "../daten";
+import { ladeBuehnen, ladeFenster } from "../daten";
 import { StandInfo } from "../StandInfo";
 import { StandTabelle, type StandGast, type StandTag, type StandZeile } from "../StandTabelle";
 
@@ -42,7 +42,19 @@ export default async function PartnerStageTablePage({
   );
   // Nur die Bühnen der gewählten Organisation: mit ihr als Gastgeberin legt die
   // Tabelle neue Sessions an (`upsert_session` verlangt sie beim Bühnen-Editor).
-  const eigene = (await ladeEigeneBuehnen()).filter((s) => s.org_id === current.org_id);
+  const { eigene, reiter } = await ladeBuehnen(current.org_id);
+  const tabs = (
+    <BuehnenTabs
+      t={{
+        label: t.partnerStage.title,
+        board: t.admin.programmeTable.tabBoard,
+        table: t.admin.programmeTable.tabTable,
+        guests: t.partnerGuests.tab,
+        speakers: t.partnerStage.tabSpeakers,
+      }}
+      reiter={reiter}
+    />
+  );
   if (eigene.length === 0) {
     return (
       <>
@@ -66,7 +78,7 @@ export default async function PartnerStageTablePage({
     return (
       <>
         {kopf}
-        <BuehnenTabs t={{ label: t.partnerStage.title, board: t.admin.programmeTable.tabBoard, table: t.admin.programmeTable.tabTable, guests: t.partnerGuests.tab }} />
+        {tabs}
         <EmptyState title={t.partnerStage.emptyTitle} description={t.partnerStage.emptyBody} />
       </>
     );
@@ -143,7 +155,7 @@ export default async function PartnerStageTablePage({
   return (
     <>
       {kopf}
-      <BuehnenTabs t={{ label: t.partnerStage.title, board: t.admin.programmeTable.tabBoard, table: t.admin.programmeTable.tabTable, guests: t.partnerGuests.tab }} />
+      {tabs}
       <StandInfo eigene={buehnen.map((b) => b.name).join(" · ")} fenster={fensterListe} t={t.partnerStage} legende />
       <StandTabelle
         zeilen={zeilen}
