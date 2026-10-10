@@ -284,8 +284,20 @@ describe("K-94 Stufe 2a: Testdaten für Konrads Konto und Doku", () => {
     assert.equal([...liste[1].matchAll(/frei: true/g)].length, 1, "einer freigegeben, zwei nicht");
     // Ohne Migration meldet der Schritt es und schreibt nichts.
     assert.match(skript, /probe\.code === "PGRST205" \|\| probe\.code === "42P01"\)\) return fail\("Wen sucht ihr\?", "Tabelle org_hiring fehlt/);
-    // Kategorie ohne „nicht-interessiert“ (sonst lehnte die Tabelle die Zeile ab).
-    assert.match(skript, /werte\("career_opportunities", \["nicht-interessiert"\]\)/);
+    // Stimmig zum Titel (Kategorie und Bereich) und nie „nicht-interessiert“ — sonst lehnte die Tabelle die Zeile ab, und Konrad sähe „Praktikum Marketing“ unter „Einstiegsjob · Data & AI“.
+    const eintraege = [...liste[1].matchAll(/rolle: `ZZTEST — ([^`]+)`, kat: "([^"]+)", bereich: "([^"]+)"/g)].map((m) => ({ titel: m[1], kat: m[2], bereich: m[3] }));
+    assert.equal(eintraege.length, 3);
+    for (const [wort, kat, bereich] of [["Werkstudent", "werkstudium", "data_ai"], ["Praktikum", "praktikum", "marketing_brand"], ["Abschlussarbeit", "abschlussarbeit", "sustainability"]]) {
+      const e = eintraege.find((x) => x.titel.startsWith(wort));
+      assert.ok(e, `${wort}: Eintrag fehlt`);
+      assert.equal(e.kat, kat, `${wort}: Kategorie passt nicht zum Titel`);
+      assert.equal(e.bereich, bereich, `${wort}: Bereich passt nicht zum Titel`);
+    }
+    assert.ok(!liste[1].includes("nicht-interessiert"));
+    // Jeder Schlüssel wird vor dem Schreiben gegen das aktive Vokabular geprüft — fehlt einer, bricht der Schritt mit dem Schlüssel ab.
+    assert.match(skript, /from\("vocab_term"\)\.select\("key"\)\.eq\("vocabulary", gruppe\)\.eq\("active", true\)\.in\("key", schluessel\)/);
+    assert.match(skript, /Vokabularschlüssel fehlt oder ist inaktiv: \$\{gruppe\}/);
+    assert.match(skript, /career_opportunity: e\.kat,\s+function_area: e\.bereich,/);
     // Aufräumen: nur die gekennzeichneten, und eine fehlende Tabelle ist kein Fehler.
     assert.match(skript, /from\("org_hiring"\)\.delete\(\)\.like\("role_text", "ZZTEST — %"\)/);
     assert.match(skript, /r\.error\.code === "PGRST205" \|\| r\.error\.code === "42P01"\)\) return \{ data: null, error: null \}/);

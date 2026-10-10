@@ -4502,11 +4502,12 @@ async function ticketErinnerungSchritt() {
 /** Die Schritte, die `--nur` kennt. */
 /**
  * K-94 Stufe 2a / PART-107: drei TEST-Einträge unter „Wen sucht ihr?“ der Test-Organisation, damit Konrad die Maske mit Inhalt sieht (Partnerportal: Eure Daten, ganz unten; Admin:
- * `/admin/partner/<Organisation>`, Abschnitt „Wen sucht ihr?“). Die Werte kommen aus dem Vokabular (je Gruppe die ersten aktiven Einträge, die Kategorie ohne „nicht-interessiert“).
+ * `/admin/partner/<Organisation>`, Abschnitt „Wen sucht ihr?“). Die Werte sind **stimmig zum Titel** und stehen im Vokabular (der Schritt prüft vorher, dass jeder Schlüssel aktiv ist, und
+ * bricht sonst mit dem fehlenden Schlüssel ab):
  *
- * - `ZZTEST — Werkstudent Data Engineering`: erste Kategorie, erster Fachbereich, zwei Skills, ein Studienfeld, **freigegeben** („Für Teilnehmende freigegeben“)
- * - `ZZTEST — Praktikum Marketing`: zweite Kategorie, zweiter Fachbereich, ohne Skills und Studienfelder, nicht freigegeben
- * - `ZZTEST — Abschlussarbeit Nachhaltigkeit`: dritte Kategorie (sonst die erste), erster Fachbereich, ein Skill, zwei Studienfelder, nicht freigegeben
+ * - `ZZTEST — Werkstudent Data Engineering`: Werkstudium, Data & AI, Skills Datenanalyse und Programmierung, Studienfeld Wirtschaftsinformatik & Informatik, **freigegeben** („Für Teilnehmende freigegeben“)
+ * - `ZZTEST — Praktikum Marketing`: Praktikum, Marketing & Brand, ohne Skills und Studienfelder, nicht freigegeben
+ * - `ZZTEST — Abschlussarbeit Nachhaltigkeit`: Abschlussarbeit, Nachhaltigkeit, Skill Forschung, Studienfelder Naturwissenschaften und Sozialwissenschaften & Recht, nicht freigegeben
  *
  * Direkt geschrieben (Service-Schlüssel), nicht über `set_org_hiring`: so entsteht kein Audit-Eintrag, und die Einträge tragen `created_by` = Konrad. **Erst nach „Migration live“** von
  * `v6_org_hiring` (sonst meldet der Schritt, dass die Tabelle fehlt). Ein zweiter Lauf lässt Vorhandenes stehen (Erkennung über den Freitext der Rolle). `--remove` löscht die Einträge
@@ -4517,9 +4518,9 @@ async function ticketErinnerungSchritt() {
  * verschwindet der Knopf. `/admin/partner/<Test-Organisation>` zeigt dieselbe Liste als Team (Abschnitt „Wen sucht ihr?“ in „Auf dieser Seite“).
  */
 const HIRING_EINTRAEGE = [
-  { rolle: `ZZTEST — Werkstudent Data Engineering`, kat: 0, bereich: 0, skills: [0, 1], faecher: [0], frei: true },
-  { rolle: `ZZTEST — Praktikum Marketing`, kat: 1, bereich: 1, skills: [], faecher: [], frei: false },
-  { rolle: `ZZTEST — Abschlussarbeit Nachhaltigkeit`, kat: 2, bereich: 0, skills: [1], faecher: [0, 1], frei: false },
+  { rolle: `ZZTEST — Werkstudent Data Engineering`, kat: "werkstudium", bereich: "data_ai", skills: ["data_analysis", "programming"], faecher: ["wirtschaftsinformatik"], frei: true },
+  { rolle: `ZZTEST — Praktikum Marketing`, kat: "praktikum", bereich: "marketing_brand", skills: [], faecher: [], frei: false },
+  { rolle: `ZZTEST — Abschlussarbeit Nachhaltigkeit`, kat: "abschlussarbeit", bereich: "sustainability", skills: ["research"], faecher: ["naturwiss", "sozialwiss-recht"], frei: false },
 ];
 
 async function hiringSchritt(me, ed) {
@@ -4532,15 +4533,19 @@ async function hiringSchritt(me, ed) {
   if (probe && (probe.code === "PGRST205" || probe.code === "42P01")) return fail("Wen sucht ihr?", "Tabelle org_hiring fehlt — Migration v6_org_hiring noch nicht live");
   if (probe) return fail("Wen sucht ihr?", probe);
 
-  const werte = async (gruppe, ohne = []) => {
-    const { data } = await admin.from("vocab_term").select("key").eq("vocabulary", gruppe).eq("active", true).order("key");
-    return (data ?? []).map((x) => x.key).filter((k) => !ohne.includes(k));
+  // Jeder Schlüssel muss im Vokabular aktiv sein — sonst bräche `set_org_hiring` später in der Oberfläche an einem Wert, den es nicht mehr gibt.
+  const gebraucht = {
+    career_opportunities: HIRING_EINTRAEGE.map((e) => e.kat),
+    function_area: HIRING_EINTRAEGE.map((e) => e.bereich),
+    skill: HIRING_EINTRAEGE.flatMap((e) => e.skills),
+    study_field: HIRING_EINTRAEGE.flatMap((e) => e.faecher),
   };
-  const kat = await werte("career_opportunities", ["nicht-interessiert"]);
-  const bereich = await werte("function_area");
-  const skill = await werte("skill");
-  const fach = await werte("study_field");
-  if (kat.length < 2 || bereich.length < 2 || skill.length < 2 || fach.length < 2) return fail("Wen sucht ihr?", "Vokabular zu klein für die Testeinträge");
+  for (const [gruppe, schluessel] of Object.entries(gebraucht)) {
+    const { data } = await admin.from("vocab_term").select("key").eq("vocabulary", gruppe).eq("active", true).in("key", schluessel);
+    const da = new Set((data ?? []).map((x) => x.key));
+    const fehlt = [...new Set(schluessel)].filter((k) => !da.has(k));
+    if (fehlt.length > 0) return fail("Wen sucht ihr?", `Vokabularschlüssel fehlt oder ist inaktiv: ${gruppe}:${fehlt.join(", ")}`);
+  }
 
   for (const e of HIRING_EINTRAEGE) {
     const { data: da } = await admin.from("org_hiring").select("id").eq("org_edition_id", oe.id).eq("role_text", e.rolle).maybeSingle();
@@ -4548,11 +4553,11 @@ async function hiringSchritt(me, ed) {
     await write(`Eintrag „${e.rolle}“`, () =>
       admin.from("org_hiring").insert({
         org_edition_id: oe.id,
-        career_opportunity: kat[e.kat] ?? kat[0],
-        function_area: bereich[e.bereich],
+        career_opportunity: e.kat,
+        function_area: e.bereich,
         role_text: e.rolle,
-        skills: e.skills.map((i) => skill[i]).sort(),
-        study_fields: e.faecher.map((i) => fach[i]).sort(),
+        skills: [...e.skills].sort(),
+        study_fields: [...e.faecher].sort(),
         published: e.frei,
         created_by: me.id,
       }),
