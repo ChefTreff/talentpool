@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/Toast";
 import { addDays, dayInZone, formatDay } from "@/lib/tz";
 import { saveSpeakerConsents, saveSpeakerConsentsOnBehalf } from "../actions";
 import { bookHospitality, cancelHospitality } from "./actions";
+import type { BuchungsTeil } from "./buchung";
 import {
   DETAIL_FIELDS,
   type HospitalityBooking,
@@ -86,6 +87,7 @@ function ArtZeichen({ kind }: { kind: string }) {
 }
 
 export function TravelView({
+  teil,
   isAssistant,
   consentOnBehalf,
   profileId,
@@ -98,6 +100,12 @@ export function TravelView({
   common,
   rpcMessages,
 }: {
+  /**
+   * SPK-086: was diese Ansicht zeichnet — das **Angebot** (Hinweise zur Freischaltung, die Zimmerliste mit den Buchungsformularen, die Einwilligung) oder die
+   * **Buchungen** (die Karten der gebuchten Zimmer und das Stornieren). Die Seite stellt beide Teile an verschiedene Stellen: das Angebot unter die Auswahl,
+   * die Buchungen unter „Deine Buchungen“ — dort neben die Fahrten.
+   */
+  teil: BuchungsTeil;
   isAssistant: boolean;
   /**
    * SPK-074 (K-45): der Kontakt mit Zugang im Verwaltet-Fall gibt die
@@ -245,49 +253,18 @@ export function TravelView({
     });
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      {/* Freischaltung: Status setzt das Team, den Consent gibt der Speaker. */}
-      {blockReason === "status" && (
-        <Card className="p-6">
-          <h2 className="ct-h3 mb-2 text-ink">{t.notEligibleTitle}</h2>
-          <p className="ct-help">{t.notEligibleBody}</p>
-        </Card>
-      )}
-      {/* Seit Migration 0034 unterscheidet die RPC „abgelehnt" von „noch nicht
-          dran" selbst — der Satz kommt damit aus einer Quelle. */}
-      {blockReason === "declined" && (
-        <Card className="p-6">
-          <h2 className="ct-h3 mb-2 text-ink">{t.declinedTitle}</h2>
-          <p className="ct-help">{t.declinedBody}</p>
-        </Card>
-      )}
-      {/* Die Assistenz darf die Einwilligung nicht geben (Antwort 58). Für sie
-          bleibt der Hinweis oben stehen — bei ihr führt kein Klick weiter, also
-          wäre ein Pop-up nach dem Klick eine Sackgasse statt einer Erklärung.
-          Für den Speaker selbst steht der Hinweis jetzt am Knopf (SPK-017),
-          ebenso für den Kontakt, der im Verwaltet-Fall stellvertretend
-          bestätigt (SPK-074, K-45). */}
-      {blockReason === "consent" && isAssistant && !consentOnBehalf && (
-        <Card className="p-6">
-          <h2 className="ct-h3 mb-2 text-ink">{t.consentNeededTitle}</h2>
-          <p className="ct-help">{t.consentHospitality}</p>
-          <p className="ct-help mt-2">{t.consentHospitalityHint}</p>
-          <p className="ct-help mt-3">{t.consentReadOnly}</p>
-        </Card>
-      )}
-
-      {/* Eigene Buchungen */}
-      {active.length > 0 && (
-        <section aria-labelledby="h-bookings">
-          <h2 id="h-bookings" className="ct-h2 mb-3 text-ink">
-            {t.myBookings}
-          </h2>
+  // SPK-086: die Zimmer selbst — Karten und Stornieren. Die Seite führt sie unter „Deine Buchungen“ mit den Fahrten zusammen; das Angebot (Hinweise zur
+  // Freischaltung, Zimmerliste, Einwilligung) steht darüber in `teil="angebot"`.
+  if (teil === "buchungen") {
+    return (
+      <>
+        {active.length > 0 && (
           <ul className="flex flex-col gap-3">
             {active.map((b) => (
               <Card as="li" key={b.id} className="p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
+                    <p className="ct-eyebrow text-muted">{t[`kind_${b.kind}`] ?? b.kind}</p>
                     <p className="ct-label text-ink">{label(b)}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <Badge tone={STATUS_TONE[b.status] ?? "neutral"}>
@@ -325,7 +302,55 @@ export function TravelView({
               </Card>
             ))}
           </ul>
-        </section>
+        )}
+        {/* `cancelConfirm` statt `cancelBooking`: auf Englisch stünden sonst zwei
+            Knöpfe „Cancel" nebeneinander und niemand wüsste, welcher was tut. */}
+        {askCancel && (
+          <ConfirmDialog
+            title={t.cancelTitle}
+            body={t.cancelBody}
+            detail={<p className="ct-label">{label(askCancel)}</p>}
+            confirmLabel={t.cancelConfirm}
+            cancelLabel={common.cancel}
+            pending={pending}
+            onCancel={() => setAskCancel(null)}
+            onConfirm={() => onCancel(askCancel)}
+          />
+        )}
+      </>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Freischaltung: Status setzt das Team, den Consent gibt der Speaker. */}
+      {blockReason === "status" && (
+        <Card className="p-6">
+          <h2 className="ct-h3 mb-2 text-ink">{t.notEligibleTitle}</h2>
+          <p className="ct-help">{t.notEligibleBody}</p>
+        </Card>
+      )}
+      {/* Seit Migration 0034 unterscheidet die RPC „abgelehnt" von „noch nicht
+          dran" selbst — der Satz kommt damit aus einer Quelle. */}
+      {blockReason === "declined" && (
+        <Card className="p-6">
+          <h2 className="ct-h3 mb-2 text-ink">{t.declinedTitle}</h2>
+          <p className="ct-help">{t.declinedBody}</p>
+        </Card>
+      )}
+      {/* Die Assistenz darf die Einwilligung nicht geben (Antwort 58). Für sie
+          bleibt der Hinweis oben stehen — bei ihr führt kein Klick weiter, also
+          wäre ein Pop-up nach dem Klick eine Sackgasse statt einer Erklärung.
+          Für den Speaker selbst steht der Hinweis jetzt am Knopf (SPK-017),
+          ebenso für den Kontakt, der im Verwaltet-Fall stellvertretend
+          bestätigt (SPK-074, K-45). */}
+      {blockReason === "consent" && isAssistant && !consentOnBehalf && (
+        <Card className="p-6">
+          <h2 className="ct-h3 mb-2 text-ink">{t.consentNeededTitle}</h2>
+          <p className="ct-help">{t.consentHospitality}</p>
+          <p className="ct-help mt-2">{t.consentHospitalityHint}</p>
+          <p className="ct-help mt-3">{t.consentReadOnly}</p>
+        </Card>
       )}
 
       {/* Angebote */}
@@ -534,21 +559,6 @@ export function TravelView({
           </ul>
         )}
       </section>
-
-      {/* `cancelConfirm` statt `cancelBooking`: auf Englisch stünden sonst zwei
-          Knöpfe „Cancel" nebeneinander und niemand wüsste, welcher was tut. */}
-      {askCancel && (
-        <ConfirmDialog
-          title={t.cancelTitle}
-          body={t.cancelBody}
-          detail={<p className="ct-label">{label(askCancel)}</p>}
-          confirmLabel={t.cancelConfirm}
-          cancelLabel={common.cancel}
-          pending={pending}
-          onCancel={() => setAskCancel(null)}
-          onConfirm={() => onCancel(askCancel)}
-        />
-      )}
 
       {/* SPK-017: die Einwilligung steht dort, wo sie gebraucht wird — im Weg
           zur Buchung, mit dem Namen der Unterkunft daneben, damit klar ist,

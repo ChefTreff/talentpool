@@ -7,11 +7,14 @@ import { ladeShuttleSperre } from "@/lib/speaker/shuttle-sperre-server";
 import { formatDay } from "@/lib/tz";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AbschnittsNavigation, Sektion } from "@/components/ui/Abschnitte";
+import { Card } from "@/components/ui/Card";
+import { SectionTabs } from "@/components/layout/SectionTabs";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Anfahrt } from "./Anfahrt";
 import { Anreise, type SpeakerTravel } from "./Anreise";
 import { ShuttleView } from "./ShuttleView";
 import { TravelView } from "./TravelView";
+import { aktiveBuchungen, waehleBuchung, type BuchungsTeil } from "./buchung";
 import type { SpeakerProfile } from "../types";
 import type {
   HospitalityBooking,
@@ -21,8 +24,13 @@ import type {
 
 export const dynamic = "force-dynamic";
 
-export default async function SpeakerTravelPage() {
+export default async function SpeakerTravelPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ buchung?: string | string[] }>;
+}) {
   await requireArea("speaker", "/speaker/travel");
+  const { buchung } = await searchParams;
   const { locale, t } = await getI18n("en");
   const supabase = await createSupabaseServerClient();
 
@@ -135,12 +143,58 @@ export default async function SpeakerTravelPage() {
   // QS-026): das Hotel hängt an Bedingungen, ein Anker ins Leere
   // wäre schlimmer als ein fehlender.
   const zeigtHotel = HOSPITALITY_ANSPRUCH.has(profile.hospitality_status);
+  // SPK-086: Shuttle und Hotel sind ein Abschnitt „Buchungen“ — oben die Auswahl, darunter das Angebot der gewählten Art, ganz unten „Deine Buchungen“.
   const abschnitte = [
     { id: "anfahrt", label: t.speaker.arrivalTitle },
     { id: "anreise", label: t.speaker.sectionArrival },
-    { id: "shuttle", label: t.speaker.sectionShuttle },
-    ...(zeigtHotel ? [{ id: "hotel", label: t.speaker.sectionHotel }] : []),
+    { id: "buchungen", label: t.speaker.sectionBookings },
   ];
+
+  const gewaehlt = waehleBuchung(buchung, zeigtHotel);
+  const anzahl = aktiveBuchungen(
+    (shuttleRows ?? []) as ShuttleBooking[],
+    zeigtHotel ? ((bookingRows ?? []) as HospitalityBooking[]) : [],
+  );
+
+  // Dieselben Angaben für beide Teile jeder Ansicht: das Angebot steht unter der Auswahl, die Buchungen unter „Deine Buchungen“.
+  const shuttleAnsicht = (teil: BuchungsTeil) => (
+    <ShuttleView
+      teil={teil}
+      profileId={profile.id}
+      vorschlag={vorschlag}
+      fenster={fenster}
+      bookings={(shuttleRows ?? []) as ShuttleBooking[]}
+      sperre={sperre}
+      isAssistant={profile.is_assistant}
+      dateLocale={t.meta.dateLocale}
+      t={t.speaker}
+      common={{ cancel: t.common.cancel, save: t.common.save }}
+      rpcMessages={t.rpc}
+    />
+  );
+  const hotelAnsicht = (teil: BuchungsTeil) => (
+    <TravelView
+      teil={teil}
+      isAssistant={profile.is_assistant}
+      consentOnBehalf={stellvertretend === true}
+      profileId={profile.id}
+      speakerName={name}
+      options={(optionRows ?? []) as HospitalityOption[]}
+      bookings={(bookingRows ?? []) as HospitalityBooking[]}
+      locale={locale}
+      dateLocale={t.meta.dateLocale}
+      t={t.speaker}
+      common={{
+        cancel: t.common.cancel,
+        choose: t.common.choose,
+        none: t.common.none,
+        save: t.common.save,
+        yes: t.common.yes,
+        no: t.common.no,
+      }}
+      rpcMessages={t.rpc}
+    />
+  );
 
   return (
     <div className="max-w-detail">
@@ -177,47 +231,38 @@ export default async function SpeakerTravelPage() {
             gehört zur Person, nicht zur Reise (Konrad 24.09.). */}
       </div>
 
-      {/* Shuttle vor den Kontingenten: eine Fahrt ist ein Auftrag mit Zeit und
-          Ziel, kein Platz in einem Topf. Wer hierher kommt, sucht meistens sie. */}
-      <Sektion id="shuttle" className="mb-6">
-        <ShuttleView
-          profileId={profile.id}
-          vorschlag={vorschlag}
-          fenster={fenster}
-          bookings={(shuttleRows ?? []) as ShuttleBooking[]}
-          sperre={sperre}
-          isAssistant={profile.is_assistant}
-          dateLocale={t.meta.dateLocale}
-          t={t.speaker}
-          common={{ cancel: t.common.cancel, save: t.common.save }}
-          rpcMessages={t.rpc}
-        />
-      </Sektion>
+      {/* Buchungen (SPK-086, Konrad 05.10.: „Würde wahrscheinlich eine Auswahl machen: Shuttlebuchung, Hotelbuchung und dann … alle Buchungen
+          zusammengefasst von Shuttle und Hotel“): oben die Auswahl, darunter das Angebot der gewählten Art, ganz unten alle Buchungen beider Arten mit ihrem
+          Stand. Das Shuttle steht vorn und gilt für alle; das Hotel nur für die, die es bekommen — ohne Hotel gibt es keine Auswahl, nur das Shuttle. */}
+      <Sektion id="buchungen" className="mb-6">
+        {zeigtHotel && (
+          <SectionTabs
+            label={t.speaker.bookChoose}
+            items={[
+              { href: "?buchung=shuttle", label: t.speaker.tabShuttle, aktiv: gewaehlt === "shuttle", scroll: false },
+              { href: "?buchung=hotel", label: t.speaker.tabHotel, aktiv: gewaehlt === "hotel", scroll: false },
+            ]}
+          />
+        )}
 
-      {zeigtHotel && (
-        <Sektion id="hotel">
-        <TravelView
-          isAssistant={profile.is_assistant}
-          consentOnBehalf={stellvertretend === true}
-          profileId={profile.id}
-          speakerName={name}
-          options={(optionRows ?? []) as HospitalityOption[]}
-          bookings={(bookingRows ?? []) as HospitalityBooking[]}
-          locale={locale}
-          dateLocale={t.meta.dateLocale}
-          t={t.speaker}
-          common={{
-            cancel: t.common.cancel,
-            choose: t.common.choose,
-            none: t.common.none,
-            save: t.common.save,
-            yes: t.common.yes,
-            no: t.common.no,
-          }}
-          rpcMessages={t.rpc}
-        />
-        </Sektion>
-      )}
+        {gewaehlt === "hotel" ? hotelAnsicht("angebot") : shuttleAnsicht("angebot")}
+
+        <section aria-labelledby="h-buchungen" className="mt-8 flex flex-col gap-3">
+          <h2 id="h-buchungen" className="ct-h2 text-ink">
+            {t.speaker.myBookings}
+          </h2>
+          {anzahl.gesamt === 0 ? (
+            <Card className="p-4">
+              <p className="ct-help">{t.speaker.bookingsNone}</p>
+            </Card>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {shuttleAnsicht("buchungen")}
+              {zeigtHotel && hotelAnsicht("buchungen")}
+            </div>
+          )}
+        </section>
+      </Sektion>
     </div>
   );
 }

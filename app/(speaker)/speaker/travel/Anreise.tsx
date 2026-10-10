@@ -211,7 +211,8 @@ export function Anreise({
           <p className="ct-label text-accent-deep">{t.shuttleQuestion}</p>
           <p className="ct-small text-ink">{t.shuttleQuestionBody}</p>
         </div>
-        <ButtonLink href="#shuttle" variant="secondary" size="sm">
+        {/* SPK-086: das Shuttle ist die erste Art im Abschnitt „Buchungen“ — der Link wählt sie und springt dorthin. */}
+        <ButtonLink href="?buchung=shuttle#buchungen" variant="secondary" size="sm">
           {t.shuttleQuestionAction}
         </ButtonLink>
       </div>
