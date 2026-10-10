@@ -5374,6 +5374,7 @@
     "vorgabeLead": "These questions apply to all {n} conversations at this table. You maintain them once — on the first conversation ({gespraech}) — and copy them to the others with one click.",
     "vorgabeSame": "All conversations already had the default.",
     "vorgabeSaveAll": "Save and apply to all {n} conversations",
+    "vorgabeSaveAllShort": "Save and apply",
     "vorgabeSaveOnly": "Save the default only",
     "vorgabeSaved": "Default saved. The other conversations stay as they are.",
     "vorgabeTitle": "Table default"
