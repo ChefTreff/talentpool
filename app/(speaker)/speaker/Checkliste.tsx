@@ -18,6 +18,14 @@ export type Aufgabe = {
    * abhakt (0149). Fehlt sie, ist der Haken abgeleitet und nicht klickbar.
    */
   selbstId?: string;
+  /**
+   * Schlüssel eines Punkts, den das Portal selbst ableitet und dessen Haken sich von Hand umlegen lässt (SPK-082): das Portal sieht ihn als erledigt, die
+   * Speakerin darf ihn wieder öffnen — und danach wieder abhaken. Fehlt er, ist der Haken rein abgeleitet und nicht klickbar (der Punkt ist noch offen:
+   * ihn von Hand abzuhaken gäbe „abgehakt, aber kein Foto da“).
+   */
+  schrittKey?: string;
+  /** Von Hand wieder geöffnet — die Zeile sagt es, damit niemand rätselt, warum ein Punkt offen steht, dessen Arbeit schon da ist. */
+  wiederGeoeffnet?: boolean;
 };
 
 /**
@@ -38,6 +46,12 @@ export type Aufgabe = {
  * dort hakt der Speaker selbst ab (Konrad, 23.09.: „Es wird auch Punkte geben,
  * die sie selbst abhaken können müssen"). Erkennbar an `selbstId`.
  *
+ * **Ein erledigter Punkt darf wieder geöffnet werden** (SPK-082, Konrad 05.10.):
+ * wer das Foto ersetzen oder das Profil noch einmal durchgehen will, öffnet den
+ * Punkt wieder — und hakt ihn danach wieder ab (`schrittKey`). Der Haken ist
+ * nur klickbar, solange das Portal den Punkt als erledigt kennt; ein offener
+ * Punkt wird erst durch die Aktion selbst erledigt.
+ *
  * **Erledigtes bleibt stehen**, durchgestrichen und nach unten sortiert: eine
  * Liste, aus der Zeilen verschwinden, fühlt sich an, als hätte man sie sich
  * eingebildet.
@@ -56,6 +70,9 @@ export function Checkliste({
     dueLabel: string;
     allDone: string;
     tickError: string;
+    reopen: string;
+    tickAgain: string;
+    reopenedHint: string;
   };
 }) {
   if (aufgaben.length === 0) return <p className="ct-help">{t.allDone}</p>;
@@ -81,6 +98,13 @@ export function Checkliste({
               label={`${a.titel} — ${a.erledigt ? t.done : t.open}`}
               fehler={t.tickError}
             />
+          ) : a.schrittKey ? (
+            <HakenSchalter
+              stepKey={a.schrittKey}
+              done={a.erledigt}
+              label={`${a.titel} — ${a.erledigt ? t.reopen : t.tickAgain}`}
+              fehler={t.tickError}
+            />
           ) : (
             <CheckMark done={a.erledigt} label={a.erledigt ? t.done : t.open} />
           )}
@@ -93,6 +117,7 @@ export function Checkliste({
               <span className="ct-label text-ink">{a.titel}</span>
             )}
             <p className={`ct-help ${a.erledigt ? "line-through" : ""}`}>{a.beschreibung}</p>
+            {a.wiederGeoeffnet && <p className="ct-help">{t.reopenedHint}</p>}
           </div>
           {a.faellig && !a.erledigt && (
             <span className="ct-help shrink-0 tabular-nums">
