@@ -234,6 +234,27 @@ export async function setSpeakerTaskTick(
   return { ok: true, data: undefined };
 }
 
+/**
+ * Einen Punkt der Checkliste, den das Portal selbst als erledigt kennt, wieder öffnen (`reopened = true`) oder wieder abhaken (`false`) — SPK-082.
+ *
+ * Gespeichert wird die Ausnahme, nicht der Haken: was das Portal ableitet (das Foto liegt, die Einwilligung steht), bleibt die Wahrheit, die Markierung
+ * „wieder geöffnet“ liegt darüber. Öffnen lässt sich deshalb nur ein Punkt, der abgeleitet erledigt ist (sonst gäbe es „abgehakt, aber kein Foto da“); die RPC
+ * weist anderes mit `step_not_done` ab. Wie bei den Aufgaben darf die **Assistenz** mitmachen, das Team nicht — die RPC prüft es selbst.
+ */
+export async function setSpeakerStepReopened(
+  stepKey: string,
+  reopened: boolean,
+): Promise<SpeakerResult> {
+  const supabase = await client();
+  const { error } = await supabase.rpc("set_speaker_step_reopened", {
+    p_step_key: stepKey,
+    p_reopened: reopened,
+  });
+  if (error) return fail(error);
+  refresh();
+  return { ok: true, data: undefined };
+}
+
 // === Kontakte: Assistenz, Agentur, Office in einer Liste (SPK-040, 0148) ====
 
 /**
