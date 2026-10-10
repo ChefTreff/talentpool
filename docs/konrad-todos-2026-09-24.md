@@ -1,10 +1,20 @@
-# Konrads offene Entscheidungen und Aufgaben — Stand 09.10.2026 (abends, Pause wegen Sitzungslimit; finale Liste oben, Archiv darunter)
+# Konrads offene Entscheidungen und Aufgaben — Stand 10.10.2026 (vormittags, Fortsetzung nach der Pause; finale Liste oben, Archiv darunter)
 
 Gesammelt von der Architektur-Session aus Arbeitsauftrag, Entscheidungslog, Security-Check, Datenschutz-Checkliste und Abschluss-Checkliste. Antworten bitte gesammelt mit der Kennung (z. B. „K-01: Seitengruppe“). Erledigtes streiche ich nach deiner Antwort hier und im jeweiligen Dokument.
 
 ## Finale Liste — was Konrad macht (Stand 08.10.2026 abends; alle Chats in der Pause, Fortsetzung nach dem Komprimieren)
 
 Alles, was nur du tun kannst, in der Reihenfolge, in der es den Bau freischaltet. Erledigtes streiche ich hier nach deiner Rückmeldung. Seit Freitagabend gemergt: #330 (K-47 Archiv-Karte), #331 (ADM-066 Zuschnitt-Dialog), #332 (QS-065 Admin-Teil); dazu #333 (Tabellenzeilen 56 px, K-57), #334 PART-096 „Meet us at“-Grafik, #335 (Kontrollkästchen 44 px am Handy), #336 PART-097 (Admin-Weg zur Grafik), #337 (Chip-Baustein, Reiter 44 px am Handy), #338/#339 (Speaker-Maske auf dem gemeinsamen Zuschnitt-Kern, Porträt lädt sofort) und #340 (Stage-Lead-Pipeline am Handy: Name als Ziel der Zelle, Tabellen stapeln, Kacheln zweispaltig). Admin-Chat ist fertig und geschlossen, Design und Partner laufen.
+
+### A000 · 10.10. vormittags: Fortsetzung nach der Pause — was nur du tun kannst
+
+**Stand:** alle Chats neu gestartet; main `c89b1449`, 0 offene PRs; #465/#466 (Backlog-Status) gemergt. Ohne deine Antworten bleiben stehen: der **Admin-Menü-Umbau** (Admin- und Design-Chat warten auf K-95; Punkt 8 „Editor-Leiste“ habe ich als isolierten Kit-PR freigegeben — sag Bescheid, falls du das anders willst), die **Checklisten-Vorlagen** (K-96; der Speaker-Chat baut nur den Minimalweg), das **vivenu-Rückschreiben** (Sandbox-Transaktion für den Lauf mit mir, danach „Tickets nicht versenden“ im Event und die Redirect-URL) und der **K-88-Befund** (Alias, mit dem du das Teammitglied angelegt hast, und ob es vorher einen Login hatte).
+
+1. **K-95** — ein „K-95: wie empfohlen“ reicht, Abweichungen je Nummer (die neun Fragen stehen unter A00).
+2. **K-96** — Checklisten-Vorlagen: Standard-Aufgabenlisten je Speaker-Typ (Empfehlung) oder etwas anderes?
+3. **vivenu:** Entwurf senden; Sandbox-Transaktions-ID an mich für den Lauf; danach „Tickets nicht versenden“ im Event und die Redirect-URL `https://portal.chef-treff.de/tickets/bestaetigung` je Event.
+4. **K-88:** Alias und Login-Vorgeschichte nennen.
+5. Klickwege aus A00, neu dazu: `/partner/company-tour` mit „TEST — Partner“ → Stopp-Umschalter ab zwei Stopps, die Wahl reist in Bewerbungen/Teilnehmende mit (QS-079, #463).
 
 ### A00 · 09.10. vormittags: nach der Pause gemergt — Klicks und Freigaben
 
