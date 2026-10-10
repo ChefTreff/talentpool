@@ -55,7 +55,7 @@ begin
     first_name = null, last_name = null, birthdate = null, phone = null, phone_e164 = null,
     linkedin_url = null, linkedin_normalized = null,
     employer_name = null, university = null, title = null, city = null,
-    nationality = null, invite_code = null, auth_user_id = null,
+    nationality = null, auth_user_id = null,
     gender = null, diet = null, diet_note = null, photo_path = null,
     job_title = null, study_program_label = null, cv_path = null,
     salutation_de = null, salutation_en = null, self_assessment = null,

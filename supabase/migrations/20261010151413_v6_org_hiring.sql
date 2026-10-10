@@ -1,5 +1,6 @@
--- 00NN · Matching Stufe 2a — „Wen sucht ihr?“ je Organisation: die Tabelle `org_hiring` (K-94, QS-070, PART-107)
--- Vorschlag des Partner-Chats, noch nicht angewendet. Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
+-- 0312 · Partner: „Wen sucht ihr?“ — Tabelle org_hiring (K-94 Stufe 2a, PART-107)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010151413.
+-- Vorschlag des Partner-Chats (angewendet, siehe Zeile 2).
 --
 -- Anlass: Konrad hat das Matching-Konzept (`docs/konzept-qs070-matching.md`) mit K-94 bestätigt („wie empfohlen“). Stufe 1 hat das gemeinsame Vokabular und die Whitelists des Wunschprofils
 -- bereinigt (0306 `v6_matching_vokabular`, #480; Teil B beim Talent-Chat: 0308, 0309); Stufe 2 gibt dem Partner den Ort, an dem er sagt, **wen er sucht**: je Organisation und Edition mehrere Einträge mit Kategorie

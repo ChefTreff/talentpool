@@ -236,6 +236,8 @@
 | Welle 6 · 0309 | **Fachbereiche als Liste am Teilnehmerprofil (K-94 Stufe 1 Teil B)** (`20261010145421`, `v6_profil_function_area_liste`; Details im Migrationskopf) | — |
 | Welle 6 · 0310 | **Ticketmail über vivenu und Erinnerung nach sieben Tagen (TAL-019 Teil 3)** (`20261010145422`, `v6_ticket_versand_erinnerung`; Details im Migrationskopf) | — |
 | Welle 6 · 0311 | **E-Mail-Adresse einer Bewerbung nur mit Weitergabe (PART-147)** (`20261010145423`, `v6_bewerbung_email`; Details im Migrationskopf) | — |
+| Welle 6 · 0312 | **Partner: „Wen sucht ihr?“ — Tabelle org_hiring (K-94 Stufe 2a, PART-107)** (`20261010151413`, `v6_org_hiring`; Details im Migrationskopf) | — |
+| Welle 6 · 0313 | **Empfehlungs- und Botschafterfelder gestrichen (K-91, ADM-110)** (`20261010151414`, `v6_k91_empfehlungsfelder_weg`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

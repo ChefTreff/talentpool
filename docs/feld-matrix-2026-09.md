@@ -45,10 +45,6 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 | `country` | text | fachlich | update_person_master() | /admin/personen/[id] | |
 | `preferred_language` | text | fachlich | Migration/Seed (20260910110003_v2_preferred_language_nullable.sql), update_my_speaker_profile(), update_person_master(), upsert_speaker() | /admin/personen/[id], /speaker, /speaker-leads | |
 | `startup_phase` | text | fachlich |  |  | |
-| `invite_code` | text | fachlich | anonymize_person() |  | |
-| `is_ambassador` | boolean | fachlich |  |  | |
-| `referred_by_person_id` | uuid | technisch | person_merge_core() |  | |
-| `engagement_score` | numeric | fachlich |  |  | |
 | `source_first` | text | fachlich | claim_or_create_person(), create_kiosk_account(), create_team_member(), invite_assistant(), luma_sync_registration(), partner_contact_upsert_internal(), testdaten_person(), upsert_speaker(), upsert_speaker_contact() | /admin/speaker, /admin/verwaltung/zugaenge, /events, /onboarding, /profil, /speaker, /speaker-leads, /start, /summit | |
 | `created_at` | timestamp with time zone | technisch |  |  | |
 | `updated_at` | timestamp with time zone | technisch | set_updated_at() [Trigger trg_person_updated] |  | |
@@ -2786,6 +2782,30 @@ Leitfrage je Spalte: **fachlich oder technisch?** · **wer schreibt es** (RPC/Tr
 | `active` | boolean | fachlich | upsert_next_up_item() | /admin/next-up | |
 | `created_at` | timestamp with time zone | technisch |  |  | |
 | `updated_at` | timestamp with time zone | technisch | set_updated_at() [Trigger trg_next_up_updated] |  | |
+
+### `org_hiring`
+
+**Zweck:** „Wen sucht ihr?“ (PART-107, K-94 Stufe 2): je Organisation und Edition mehrere Einträge aus Kategorie (career_opportunities), Fachbereich (function_area), Freitext zur Rolle, optional Skills und Studienfeldern. Gelesen und geschrieben nur über partner_org_hiring, set_org_hiring, delete_org_hiring.
+
+**Datenschutz-Klasse (Vorschlag):** keine
+
+**Schreibwege (Funktionen/Trigger):** delete_org_hiring(), set_org_hiring() · löscht Zeilen: delete_org_hiring()
+
+**Seiten (lesen/schreiben):** /admin/partner, /partner
+
+| Spalte | Typ | fachlich/technisch | Schreibt | Pflegbar in | Anmerkung |
+|---|---|---|---|---|---|
+| `id` | uuid | technisch |  |  | |
+| `org_edition_id` | uuid | technisch | set_org_hiring() | /admin/partner, /partner | |
+| `career_opportunity` | text | fachlich | set_org_hiring() | /admin/partner, /partner | |
+| `function_area` | text | fachlich | set_org_hiring() | /admin/partner, /partner | |
+| `role_text` | text | fachlich | set_org_hiring() | /admin/partner, /partner | |
+| `skills` | text[] | fachlich | set_org_hiring() | /admin/partner, /partner | |
+| `study_fields` | text[] | fachlich | set_org_hiring() | /admin/partner, /partner | |
+| `published` | boolean | fachlich | set_org_hiring() | /admin/partner, /partner | |
+| `created_by` | uuid | technisch | set_org_hiring() | /admin/partner, /partner | |
+| `created_at` | timestamp with time zone | technisch |  |  | |
+| `updated_at` | timestamp with time zone | technisch | set_org_hiring() | /admin/partner, /partner | |
 
 ### `partner_session_return`
 

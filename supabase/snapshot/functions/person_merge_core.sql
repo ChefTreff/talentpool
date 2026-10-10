@@ -15,8 +15,7 @@ declare
                                    'role_assignment', 'speaker_portal_selection', 'org_membership'];
   -- Felder, die nie gefüllt werden: Identität, Konto, Zustand, Herkunft.
   c_keep constant text[] := array['id', 'auth_user_id', 'created_at', 'updated_at', 'deleted_at',
-                                  'access_blocked_at', 'tier', 'is_ambassador', 'engagement_score',
-                                  'referred_by_person_id', 'source_first'];
+                                  'access_blocked_at', 'tier', 'source_first'];
 begin
   if p_survivor is null or p_merged is null then raise exception 'person_not_found' using errcode = 'P0002'; end if;
   if p_survivor = p_merged then raise exception 'same_person' using errcode = '22023'; end if;
@@ -53,18 +52,6 @@ begin
     delete from potential_duplicate d where p_merged in (d.person_id_a, d.person_id_b);
     v_deleted := v_deleted || jsonb_build_object('t', 'potential_duplicate', 'rows', v_row);
   end if;
-
-  -- Wer von der zweiten Person geworben wurde, gilt als von der ersten
-  -- geworben; hatte die erste die zweite als Werber, entfällt der Verweis.
-  select coalesce(jsonb_agg(jsonb_build_object('id', p.id)), '[]') into v_pks
-    from person p where p.referred_by_person_id = p_merged and p.id not in (p_survivor, p_merged);
-  if jsonb_array_length(v_pks) > 0 then
-    update person set referred_by_person_id = p_survivor
-     where referred_by_person_id = p_merged and id not in (p_survivor, p_merged);
-    v_moved := v_moved || jsonb_build_object('t', 'person', 'c', 'referred_by_person_id', 'pk', v_pks);
-    v_moved_rep := v_moved_rep || jsonb_build_object('table', 'person', 'column', 'referred_by_person_id', 'rows', jsonb_array_length(v_pks));
-  end if;
-  update person set referred_by_person_id = null where id = p_survivor and referred_by_person_id = p_merged;
 
   -- Alle übrigen Fremdschlüssel auf person(id), aus dem Katalog gelesen.
   for v_fk in

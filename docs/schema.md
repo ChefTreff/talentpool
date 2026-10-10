@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-10 14:55 UTC · 125 Tabellen · 6 Views · 777 Funktionen
+> Stand: 2026-10-10 15:15 UTC · 126 Tabellen · 6 Views · 780 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -943,6 +943,23 @@ Partner-Organisation je Edition: Onboarding-Stand, Rechnungsdaten, Pass-Typ-Wahl
 | `logo_whitening_consent_by` | uuid |  |  | `person.id` | Wer die Erlaubnis erteilt hat. Nachweis, kein Anzeigefeld. |
 | `logo_category` | text |  |  |  | ADM-046: Logokategorie (Vokabular logo_category) je Partner und Edition. Leer = aus der Sponsoring-Stufe, sonst official (logo_category_of). |
 
+### `org_hiring`
+„Wen sucht ihr?“ (PART-107, K-94 Stufe 2): je Organisation und Edition mehrere Einträge aus Kategorie (career_opportunities), Fachbereich (function_area), Freitext zur Rolle, optional Skills und Studienfeldern. Gelesen und geschrieben nur über partner_org_hiring, set_org_hiring, delete_org_hiring.
+
+| Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
+|---|---|---|---|---|---|
+| `id` | uuid | PK | `gen_random_uuid()` |  |  |
+| `org_edition_id` | uuid | ja |  | `org_edition.id` |  |
+| `career_opportunity` | text | ja |  |  |  |
+| `function_area` | text | ja |  |  |  |
+| `role_text` | text |  |  |  | Freitext zur Rolle, höchstens 120 Zeichen. Kommt nie ins Audit. |
+| `skills` | text[] | ja |  |  |  |
+| `study_fields` | text[] | ja |  |  |  |
+| `published` | boolean | ja | `false` |  | Der Partner schaltet frei, was Teilnehmende sehen dürfen. Voreinstellung aus; wirksam erst mit dem Matching (Stufe 3, nach dem Go-live) — vorher liest nur die Organisation und das Team. |
+| `created_by` | uuid |  |  | `person.id` |  |
+| `created_at` | timestamp with time zone | ja | `now()` |  |  |
+| `updated_at` | timestamp with time zone | ja | `now()` |  |  |
+
 ### `org_membership`
 
 | Spalte | Typ | Pflicht | Default | Verweis | Kommentar |
@@ -1119,10 +1136,6 @@ Eine natürliche Person = ein Datensatz. Login-Verknüpfung über auth_user_id.
 | `country` | text |  |  |  |  |
 | `preferred_language` | text |  |  |  |  |
 | `startup_phase` | text |  |  |  |  |
-| `invite_code` | text |  |  |  |  |
-| `is_ambassador` | boolean | ja | `false` |  |  |
-| `referred_by_person_id` | uuid |  |  | `person.id` |  |
-| `engagement_score` | numeric |  |  |  |  |
 | `source_first` | text |  |  |  |  |
 | `created_at` | timestamp with time zone | ja | `now()` |  |  |
 | `updated_at` | timestamp with time zone | ja | `now()` |  |  |
@@ -2509,6 +2522,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `delete_kb_article` | p_id: uuid |
 | `delete_my_profile` | args: ? |
 | `delete_next_up_item` | p_id: uuid |
+| `delete_org_hiring` | p_id: uuid |
 | `delete_portal_link` | p_id: uuid |
 | `delete_portal_video` | p_id: uuid |
 | `delete_regie_cue` | p_id: uuid |
@@ -2760,6 +2774,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_mail_cc` | p_mail_id: bigint, p_org_id: uuid |
 | `partner_manages_stage_guest` | p_profile_id: uuid |
 | `partner_onboarding_recheck` | p_org_edition_id: uuid |
+| `partner_org_hiring` | p_edition_id: uuid, p_org_id: uuid |
 | `partner_overview` | p_edition_id: uuid, p_org_id: uuid |
 | `partner_remove_stage_guest` | p_profile_id: uuid |
 | `partner_request_publish` | p_session_id: uuid |
@@ -2929,6 +2944,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `set_my_speaker_travel` | p_data: jsonb, p_edition_id: uuid |
 | `set_org_contacts` | p_buddy: uuid, p_lead: uuid, p_org_edition_id: uuid |
 | `set_org_customer_number` | p_customer_number: text, p_org_id: uuid |
+| `set_org_hiring` | p_career_opportunity: text, p_edition_id: uuid, p_function_area: text, p_id: uuid, p_org_id: uuid, p_published: boolean, p_role_text: text, p_skills: text[], p_study_fields: text[] |
 | `set_org_sevdesk_contact` | p_contact_id: text, p_org_id: uuid |
 | `set_org_step` | p_done: boolean, p_edition_id: uuid, p_key: text, p_org_id: uuid, p_topic: text |
 | `set_partner_graphic` | p_edition_id: uuid, p_filename: text, p_mime: text, p_org_id: uuid, p_size_bytes: bigint, p_storage_path: text |
