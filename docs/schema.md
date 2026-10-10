@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-10 15:15 UTC · 126 Tabellen · 6 Views · 780 Funktionen
+> Stand: 2026-10-10 17:33 UTC · 126 Tabellen · 6 Views · 782 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2574,6 +2574,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `format_detail_keys` | p_format: text |
 | `freigabe_verlauf` | p_art: text, p_before_at: timestamp with time zone, p_before_id: uuid, p_limit: integer |
 | `freigabe_zaehler` | args: ? |
+| `grant_team_role` | p_edition_id: uuid, p_person_id: uuid, p_role: text |
 | `hack_admin_overview` | p_edition_id: uuid, p_language: text |
 | `hack_applications_admin` | p_edition_id: uuid |
 | `hack_challenge_dataset` | p_challenge_id: uuid |
@@ -2894,6 +2895,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `session_needs_partner_share` | p_session_id: uuid |
 | `session_needs_release` | p_edition_id: uuid |
 | `session_owner_candidates` | p_event_id: uuid |
+| `session_partner_org` | p_session_id: uuid |
 | `session_responsibles` | p_event_id: uuid |
 | `session_speakers_public` | p_session_id: uuid |
 | `session_tech_keys` | args: ? |

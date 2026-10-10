@@ -1,4 +1,5 @@
--- 00NN · Teamrolle vergeben mit Hinweismail auf allen Wegen: grant_team_role(person, role, edition) (ADM-086, Plan 10.10.2026)
+-- 0314 · Teamrolle vergeben mit Hinweismail auf allen drei Wegen (ADM-086, K-88)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010173102.
 --
 -- Anlass: ADM-086 (0269) schickt die Hinweismail „Du bist jetzt im Team“ nur auf einem von drei Wegen — „Neu einladen“ (`create_team_member`). „+ Rolle“ in der
 -- Liste von Team & Zugänge und „Aus dem Talentpool“ riefen `assign_role` direkt auf; wer schon ein Konto hat, erfuhr dort nichts. Befund Admin-Chat bei der K-88-Nachprüfung

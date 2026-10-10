@@ -1,5 +1,6 @@
--- 00NN · Session auf gebrandeter Bühne und Organisation: der Helfer `session_partner_org` — ableiten statt speichern (PART-148, Plan-Entscheidung 10.10.2026: Option B)
--- Vorschlag des Partner-Chats, noch nicht angewendet. Nummer und Zeitstempel vergibt die Architektur-Session beim Anwenden.
+-- 0315 · Partner-Organisation einer Session abgeleitet von der gebrandeten Bühne (PART-148 B)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010173138.
+-- Vorschlag des Partner-Chats (angewendet, siehe Zeile 2).
 --
 -- Anlass: Das Team legt Sessions auf einer gebrandeten Bühne (`stage.kind = 'branded'`: main/side mit Partner) ohne `partner_org_id` an. Für sie griffen nur die Speaker-Wege (0293, PART-138:
 -- `partner_add_speaker` und `partner_speakers` leiten die Organisation selbst aus der Bühne ab); die Liste (`partner_format_sessions`) und das Pflegen der Texte (`partner_update_session`)

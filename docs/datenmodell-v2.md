@@ -238,6 +238,8 @@
 | Welle 6 · 0311 | **E-Mail-Adresse einer Bewerbung nur mit Weitergabe (PART-147)** (`20261010145423`, `v6_bewerbung_email`; Details im Migrationskopf) | — |
 | Welle 6 · 0312 | **Partner: „Wen sucht ihr?“ — Tabelle org_hiring (K-94 Stufe 2a, PART-107)** (`20261010151413`, `v6_org_hiring`; Details im Migrationskopf) | — |
 | Welle 6 · 0313 | **Empfehlungs- und Botschafterfelder gestrichen (K-91, ADM-110)** (`20261010151414`, `v6_k91_empfehlungsfelder_weg`; Details im Migrationskopf) | — |
+| Welle 6 · 0314 | **Teamrolle vergeben mit Hinweismail auf allen drei Wegen (ADM-086, K-88)** (`20261010173102`, `v6_grant_team_role`; Details im Migrationskopf) | — |
+| Welle 6 · 0315 | **Partner-Organisation einer Session abgeleitet von der gebrandeten Bühne (PART-148 B)** (`20261010173138`, `v6_partner_session_org`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

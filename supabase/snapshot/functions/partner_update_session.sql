@@ -9,7 +9,8 @@ begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_se from session where id = p_session_id;
   if not found then raise exception 'session_not_found' using errcode = 'P0002'; end if;
-  v_org := v_se.partner_org_id;
+  -- PART-148: die Organisation der Session — eigene, sonst die der gebrandeten Bühne
+  v_org := session_partner_org(p_session_id);
   if v_org is null or not partner_can_edit(v_org) then raise exception 'not allowed' using errcode = '42501'; end if;
 
   select string_agg(k, ',') into v_bad from jsonb_object_keys(p_fields) k

@@ -25,7 +25,8 @@ begin
       left join stage st on st.id = sl.stage_id
       left join event_day ed on ed.id = sl.event_day_id
       left join partner_session_return rr on rr.session_id = se.id
-     where se.partner_org_id = p_org_id
+     -- PART-148: auch eine Session ohne Organisation auf einer Bühne, die diese Organisation gebrandet hat
+     where session_partner_org(se.id) = p_org_id
        and (ev.id = v_oe.edition_id or ev.edition_id = v_oe.edition_id)
        and se.publish_status <> 'cancelled'
        and (p_format is null or se.format = p_format)

@@ -12,13 +12,9 @@ begin
   if current_person_id() is null then raise exception 'not authenticated' using errcode = '28000'; end if;
   select * into v_se from session where id = p_session_id;
   if not found then raise exception 'session_not_found' using errcode = 'P0002'; end if;
-  -- PART-138: die Organisation, für die der Partner hier eintragen darf — die der Session; hat die Session keine (das Team hat sie auf einer gebrandeten Bühne
-  -- angelegt), die Organisation, die diese Bühne gebrandet hat. Eine Session mit eigener Organisation bleibt bei dieser.
-  v_org := v_se.partner_org_id;
-  if v_org is null then
-    select st.partner_org_id into v_org from slot sl join stage st on st.id = sl.stage_id
-     where sl.id = v_se.slot_id and st.kind = 'branded';
-  end if;
+  -- PART-138/148: die Organisation, für die der Partner hier eintragen darf — die der Session; hat die Session keine (das Team hat sie auf einer gebrandeten Bühne
+  -- angelegt), die Organisation, die diese Bühne gebrandet hat (Helfer; früher an dieser Stelle inline).
+  v_org := session_partner_org(p_session_id);
   if v_org is null or not partner_can_edit(v_org) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
