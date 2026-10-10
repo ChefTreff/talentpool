@@ -39,6 +39,8 @@ export type ProfileInput = {
   summit_goal: string[];
   skill: string[];
   work_mode: string[];
+  /** Fachbereiche (Liste in `person_interest`, K-94); die Spalte `person.function_area` wird nicht mehr geschrieben. */
+  function_area: string[];
   channels: string[];
   /** `null`, solange die Migration `v6_profilfelder` nicht live ist. */
   extended: ExtendedProfile | null;
@@ -83,7 +85,6 @@ export async function saveProfile(input: ProfileInput): Promise<SaveProfileResul
         job_title: nn(ext.job_title),
         study_program_label: nn(ext.study_program_label),
         job_openness: nn(ext.job_openness),
-        function_area: nn(ext.function_area),
         graduation_year: year,
         availability: nn(ext.availability),
         mobility: nn(ext.mobility),

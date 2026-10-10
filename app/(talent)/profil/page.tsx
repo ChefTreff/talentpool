@@ -89,7 +89,6 @@ export default async function ProfilPage() {
     job_title: string | null;
     study_program_label: string | null;
     job_openness: string | null;
-    function_area: string | null;
     graduation_year: number | null;
     availability: string | null;
     mobility: string | null;
@@ -100,7 +99,7 @@ export default async function ProfilPage() {
       ? await Promise.all([
           supabase
             .from("person")
-            .select("job_title,study_program_label,job_openness,function_area,graduation_year,availability,mobility,cv_path")
+            .select("job_title,study_program_label,job_openness,graduation_year,availability,mobility,cv_path")
             .eq("id", personId)
             .maybeSingle(),
           supabase.from("person_language").select("language,level").eq("person_id", personId),
@@ -205,13 +204,13 @@ export default async function ProfilPage() {
     summit_goal: termsOf("summit_goal"),
     skill: termsOf("skill"),
     work_mode: termsOf("work_mode"),
+    function_area: termsOf("function_area"),
     channels: (channels ?? []).map((c: { term_key: string }) => c.term_key),
     extended: ext
       ? ({
           job_title: ext.job_title ?? "",
           study_program_label: ext.study_program_label ?? "",
           job_openness: ext.job_openness ?? "",
-          function_area: ext.function_area ?? "",
           graduation_year: ext.graduation_year ? String(ext.graduation_year) : "",
           availability: ext.availability ?? "",
           mobility: ext.mobility ?? "",

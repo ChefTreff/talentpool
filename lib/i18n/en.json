@@ -6157,7 +6157,7 @@
       "employerType": "Employer type",
       "firstName": "First name",
       "founderTopics": "Founder topics",
-      "functionArea": "Functional area",
+      "functionArea": "Functional areas you would like to work in",
       "gender": "Gender",
       "graduationYear": "Graduation year",
       "jobOpenness": "Open to job offers?",
@@ -6187,7 +6187,7 @@
     "hints": {
       "career": "Partners only see these details when you apply with them and agree to share.",
       "country": "e.g. DE",
-      "functionArea": "Where do you mainly work?",
+      "functionArea": "Several possible. This helps us show you matching partners.",
       "graduationYear": "Planned or achieved, for example 2027.",
       "linkedin": "https://linkedin.com/in/…",
       "nationality": "e.g. German",

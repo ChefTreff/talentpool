@@ -91,7 +91,7 @@ export default async function PersonDetail({
     const { data: signed } = await admin.storage.from("person-cv").createSignedUrl(person.cv_path, 600);
     cvUrl = signed?.signedUrl ?? null;
   }
-  const PROFILE_EXTRA = ["career_opportunities", "summit_goal", "skill", "work_mode"];
+  const PROFILE_EXTRA = ["career_opportunities", "summit_goal", "skill", "work_mode", "function_area"];
   const allInterests = (interests ?? []) as { vocabulary: string; term_key: string }[];
   const extra = (vocabulary: string) => allInterests.filter((i) => i.vocabulary === vocabulary);
   const badges = (list: { vocabulary: string; term_key: string }[]) =>
@@ -216,7 +216,7 @@ export default async function PersonDetail({
             />
             <Row label={f.employerName} value={person.employer_name} />
             <Row label={f.jobTitle} value={person.job_title} />
-            <Row label={f.functionArea} value={vlabel(vocab, "function_area", person.function_area)} />
+            <Row label={f.functionArea} value={badges(extra("function_area"))} />
             <Row
               label={f.startupPhase}
               value={vlabel(vocab, "startup_phase", person.startup_phase)}

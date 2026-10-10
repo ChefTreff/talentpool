@@ -6157,7 +6157,7 @@
       "employerType": "Arbeitgeber (Art)",
       "firstName": "Vorname",
       "founderTopics": "Founder-Themen",
-      "functionArea": "Funktionsbereich",
+      "functionArea": "Fachbereiche, in denen du arbeiten möchtest",
       "gender": "Geschlecht",
       "graduationYear": "Abschlussjahr",
       "jobOpenness": "Offen für Jobangebote?",
@@ -6187,7 +6187,7 @@
     "hints": {
       "career": "Diese Angaben sehen Partner nur, wenn du dich bei ihnen bewirbst und der Weitergabe zustimmst.",
       "country": "z. B. DE",
-      "functionArea": "Wo arbeitest du hauptsächlich?",
+      "functionArea": "Mehrere möglich. Das hilft uns, dir passende Partner zu zeigen.",
       "graduationYear": "Geplant oder erreicht, zum Beispiel 2027.",
       "linkedin": "https://linkedin.com/in/…",
       "nationality": "z. B. deutsch",

@@ -133,6 +133,7 @@ export function ProfileForm({
       | "summit_goal"
       | "skill"
       | "work_mode"
+      | "function_area"
       | "channels",
     val: string,
   ) {
@@ -318,15 +319,6 @@ export function ProfileForm({
                   onChange={(e) => setExt("job_title", e.target.value)}
                 />
               </Field>
-              <Field label={t.fields.functionArea} htmlFor="function_area" hint={t.hints.functionArea}>
-                <Select
-                  id="function_area"
-                  value={ext.function_area}
-                  placeholder={t.choose}
-                  options={opts(vocab.function_area)}
-                  onChange={(e) => setExt("function_area", e.target.value)}
-                />
-              </Field>
             </>
           )}
           <Field label={t.fields.startupPhase} htmlFor="startup_phase">
@@ -442,6 +434,14 @@ export function ProfileForm({
             options={vocab.career_opportunities}
             selected={form.career_opportunities}
             onToggle={(k) => toggle("career_opportunities", k)}
+          />
+          <p className="ct-label mb-2 mt-5">{t.fields.functionArea}</p>
+          <p className="ct-help mb-2">{t.hints.functionArea}</p>
+          <CheckGroup
+            label={t.fields.functionArea}
+            options={vocab.function_area}
+            selected={form.function_area}
+            onToggle={(k) => toggle("function_area", k)}
           />
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <Field label={t.fields.jobOpenness} htmlFor="job_openness">
