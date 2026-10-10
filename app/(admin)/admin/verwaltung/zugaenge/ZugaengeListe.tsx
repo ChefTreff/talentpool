@@ -156,7 +156,7 @@ export function ZugaengeListe({
       }
       setRolleFuer(null);
       setRolleFehler(null);
-      erfolg(t.granted);
+      erfolg(!res.neu ? t.grantedAlready : res.mail === "queued" ? t.grantedMailQueued : res.mail === "suppressed" ? t.grantedMailSuppressed : t.granted);
     });
   }
 

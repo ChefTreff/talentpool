@@ -102,7 +102,7 @@ export function PersonAufnehmen({
                     const res = await grantTeamRole(p.id, rolle, scope === "edition" ? editionId : null);
                     if (res.ok) {
                       setFehler(null);
-                      toast("success", t.granted);
+                      toast("success", !res.neu ? t.grantedAlready : res.mail === "queued" ? t.grantedMailQueued : res.mail === "suppressed" ? t.grantedMailSuppressed : t.granted);
                       router.refresh();
                       schliessen();
                     } else {
