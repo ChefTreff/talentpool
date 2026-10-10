@@ -449,7 +449,10 @@ describe("Texte und Fehlerschlüssel", () => {
   });
 
   it("`not_same_table` ist ein Geschäftsschlüssel von P0001 — sonst käme „unknown“ an", () => {
-    assert.match(quelle("lib/rpc-error.ts"), /"too_many_questions",[\s\S]*"not_same_table",\n\]\);|"not_same_table",\n\]\);/);
+    // Im Set, nicht „als letzter Eintrag“: wer einen Schlüssel anhängt, soll diesen Test nicht brechen.
+    const menge = /const BUSINESS_KEYS = new Set\(\[([\s\S]*?)\n\]\);/.exec(quelle("lib/rpc-error.ts"));
+    assert.ok(menge, "BUSINESS_KEYS nicht gefunden");
+    assert.match(menge[1], /\n\s*"not_same_table",/);
     assert.match(quelle("lib/rpc-error.ts"), /\/\/ Tischvorgabe der Bewerbungsfragen \(Vorschlag v6_tisch_fragen_uebernahme, PART-150\)/);
   });
 });

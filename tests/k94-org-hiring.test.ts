@@ -68,7 +68,8 @@ describe("K-94 Stufe 2a: Regeln der Maske", () => {
     assert.deepEqual(opt, [{ value: "praktikum", label: "Praktikum" }, { value: "trainee", label: "Trainee" }]);
     assert.deepEqual(kategorieOptionen({}), []);
     assert.deepEqual(alsOptionen({ a: "A", b: "B" }), [{ value: "a", label: "A" }, { value: "b", label: "B" }]);
-    const alle = hiringOptionen((name) => ({ career_opportunities: { x: "X", "nicht-interessiert": "N" }, function_area: { f: "F" }, skill: { s: "S" }, study_field: { z: "Z" } })[name] ?? {});
+    const vokabular: Record<string, Record<string, string>> = { career_opportunities: { x: "X", "nicht-interessiert": "N" }, function_area: { f: "F" }, skill: { s: "S" }, study_field: { z: "Z" } };
+    const alle = hiringOptionen((name) => vokabular[name] ?? {});
     assert.deepEqual(alle, {
       career: [{ value: "x", label: "X" }],
       area: [{ value: "f", label: "F" }],
