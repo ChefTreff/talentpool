@@ -2,7 +2,7 @@
 
 > **Nicht von Hand bearbeiten.** Erzeugt mit `node --env-file=.env.local scripts/gen-schema-doc.mjs` aus dem laufenden Supabase-Projekt (PostgREST-OpenAPI über `information_schema` + `comment on`).
 >
-> Stand: 2026-10-10 07:25 UTC · 125 Tabellen · 6 Views · 773 Funktionen
+> Stand: 2026-10-10 07:51 UTC · 125 Tabellen · 6 Views · 774 Funktionen
 >
 > Nur über die Data-API exponierte Schemas erscheinen hier — `public`. Das Schema `integration` ist absichtlich nicht exponiert (Masterplan §2) und wird in den Migrationen beschrieben.
 
@@ -2743,6 +2743,7 @@ Verfügbare/belegte Slots je Bühne × Tag (Board-Kopfzeile, Antwort 74).
 | `partner_company_tour` | p_edition_id: uuid, p_org_id: uuid |
 | `partner_contact_upsert_internal` | p_actor: uuid, p_edition_id: uuid, p_email: text, p_first_name: text, p_last_name: text, p_org_id: uuid, p_position: text, p_roles: text[], p_source: text |
 | `partner_contacts` | p_org_id: uuid |
+| `partner_copy_table_questions` | p_from_session: uuid, p_to_sessions: uuid[] |
 | `partner_create_session` | p_capacity: integer, p_day_id: uuid, p_details: jsonb, p_edition_id: uuid, p_end: timestamp with time zone, p_format: text, p_org_id: uuid, p_stage_id: uuid, p_start: timestamp with time zone, p_title_de: text |
 | `partner_created_speakers` | p_edition_id: uuid |
 | `partner_deals` | p_org_id: uuid |

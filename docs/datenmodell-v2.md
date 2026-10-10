@@ -228,6 +228,7 @@
 | Welle 6 · 0301 | **Audit der Assistenz-Änderung nur mit Feldnamen (SPK-094)** (`20261009131800`, `v6_speaker_audit_feldnamen`; Details im Migrationskopf) | — |
 | Welle 6 · 0302 | **Bestandseinträge des Assistenz-Audits ohne Klartext (SPK-095)** (`20261009134231`, `v6_speaker_audit_bestand`; Details im Migrationskopf) | — |
 | Welle 6 · 0303 | **Speaker-Checkliste: Punkte wieder öffnen (SPK-082)** (`20261010072409`, `v6_speaker_checkliste`; Details im Migrationskopf) | — |
+| Welle 6 · 0304 | **Interview Tables: Tischvorgabe mit Übernahme (PART-150)** (`20261010075055`, `v6_tisch_fragen_uebernahme`; Details im Migrationskopf) | — |
 
 ## Status-Maschinen
 - **Slot** (`slot_status`, Farbe im Board): open → requested → confirmed_title_open → final · unused.

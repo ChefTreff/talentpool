@@ -1,4 +1,5 @@
--- 00NN · Tischvorgabe für die Bewerbungsfragen: `partner_copy_table_questions` (PART-150, Plan-Entscheidung 09.10.2026)
+-- 0304 · Interview Tables: Tischvorgabe mit Übernahme (PART-150)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010075055.
 -- Vorschlag des Partner-Chats, noch nicht angewendet.
 --
 -- Anlass: Ein Interview-Table-Partner hat je Tisch leicht zwanzig Gespräche, und die Fragen hängen je Gespräch an `session_question` — dieselbe Katalogwahl
