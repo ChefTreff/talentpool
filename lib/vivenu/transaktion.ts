@@ -112,6 +112,7 @@ export async function schreibeZurueck(admin: SupabaseClient, ticketId: string): 
       body: JSON.stringify(body),
     });
     await markiere(false);
+    await versendeTicketMail(admin, ticketId);
     return "ok";
   } catch (e) {
     const text = ohneSecret(e instanceof Error ? e.message : String(e), d.secret).slice(0, 400);
@@ -119,6 +120,49 @@ export async function schreibeZurueck(admin: SupabaseClient, ticketId: string): 
       p_job_id: null, p_object_type: "ticket_writeback", p_object_id: ticketId, p_message: text, p_payload: {},
     });
     await markiere(true);
+    return "fehler";
+  }
+}
+
+export type VersandErgebnis = "ok" | "aus" | "noch_nicht" | "fehler";
+
+/**
+ * Das Ticket nach der Personalisierung von vivenu per Mail an die Inhaber-Adresse schicken lassen (TAL-019 Teil 3, K-93). Voraussetzung ist, dass Konrad im
+ * Event „Tickets nicht versenden“ gesetzt hat — sonst verschickt vivenu das Ticket von sich aus. Hinter `VIVENU_WRITE_ENABLED` wie das Rückschreiben
+ * (dann steht die Aufgabe für den Sweep in `tickets_mail_pending`). Gesendet wird **höchstens einmal je Ticket** (`vivenu_mailed_at`) und nur für ein gültiges,
+ * im Portal vollständig personalisiertes Ticket, dessen Angaben vivenu schon hat. Ein Fehler ändert am Portal-Stand nichts: er steht im Sync-Protokoll,
+ * der Sweep versucht es wieder. Geheimnisse stehen in keiner Meldung — der Aufruf braucht sie nicht.
+ */
+export async function versendeTicketMail(admin: SupabaseClient, ticketId: string): Promise<VersandErgebnis> {
+  if (!rueckschreibenAn(process.env.VIVENU_WRITE_ENABLED) || !hasVivenuKey()) return "aus";
+  const { data: t } = await admin
+    .from("ticket")
+    .select("vivenu_ticket_id, holder_email, status, source, personalization_status, personalized_at, vivenu_writeback_pending, vivenu_mailed_at")
+    .eq("id", ticketId)
+    .maybeSingle();
+  if (
+    !t || t.source !== "vivenu" || t.status !== "valid" || t.personalization_status !== "complete" || !t.personalized_at ||
+    t.vivenu_writeback_pending || t.vivenu_mailed_at || !t.vivenu_ticket_id || !t.holder_email
+  ) {
+    return "noch_nicht";
+  }
+  try {
+    try {
+      await vv(`/tickets/${encodeURIComponent(String(t.vivenu_ticket_id))}/mail`, {
+        method: "POST",
+        body: JSON.stringify({ email: String(t.holder_email) }),
+      });
+    } catch (e) {
+      // Eine leere Antwort bei Erfolg (HTTP 2xx ohne JSON) ist kein Fehler — sonst ginge die Mail bei jedem Sweep erneut raus.
+      if (!(e instanceof SyntaxError)) throw e;
+    }
+    await admin.from("ticket").update({ vivenu_mailed_at: new Date().toISOString() }).eq("id", ticketId).is("vivenu_mailed_at", null);
+    return "ok";
+  } catch (e) {
+    await admin.rpc("record_sync_error", {
+      p_job_id: null, p_object_type: "ticket_mail", p_object_id: ticketId,
+      p_message: (e instanceof Error ? e.message : String(e)).slice(0, 400), p_payload: {},
+    });
     return "fehler";
   }
 }

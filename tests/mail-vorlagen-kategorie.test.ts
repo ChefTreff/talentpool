@@ -50,11 +50,22 @@ function zuordnung(): Map<string, string> {
   return out;
 }
 
+/** Wie `zuordnung()`, dazu die Zeilen, die spätere Migrationen anlegen (`insert into mail_template_key (…) values …`): jede Vorlage trägt ihre Zeile in derselben Migration. */
+function zuordnungMitSpaeteren(): Map<string, string> {
+  const out = zuordnung();
+  for (const weitere of alleMigrationen()) {
+    for (const block of weitere.replace(/^\s*--.*$/gm, "").matchAll(/insert\s+into\s+mail_template_key\s*\(([^)]*)\)\s*values([\s\S]*?)on\s+conflict/gi)) {
+      for (const m of block[2].matchAll(/^\s*\('([a-z0-9_]+)',\s*'([a-z]+)'/gm)) if (!out.has(m[1])) out.set(m[1], m[2]);
+    }
+  }
+  return out;
+}
+
 describe("Mail-Vorlagen: Zuordnung (ADM-102)", () => {
   it("jede Vorlage, die eine Migration anlegt, hat eine Kategorie — sonst gälte sie als System und ein Bereich käme nicht heran", () => {
     const angelegt = angelegteSchluessel();
     assert.ok(angelegt.size >= 40, `zu wenige Vorlagen gefunden (${angelegt.size}) — stimmt das Muster noch?`);
-    const z = zuordnung();
+    const z = zuordnungMitSpaeteren();
     const ohne = [...angelegt].filter((k) => !z.has(k)).sort();
     assert.deepEqual(ohne, [], `ohne Zeile in mail_template_key (ergänze sie in der Migration oder per set_mail_template_meta): ${ohne.join(", ")}`);
   });
