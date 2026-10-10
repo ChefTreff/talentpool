@@ -1,4 +1,5 @@
--- 00NN · Empfehlungs- und Botschafterfelder streichen: invite_code, referred_by_person_id, is_ambassador, engagement_score (K-91, QS-075)
+-- 0313 · Empfehlungs- und Botschafterfelder gestrichen (K-91, ADM-110)
+-- Angewendet von der Architektur-Session am 10.10.2026 als 20261010151414.
 --
 -- Anlass: Befund QS-075 (docs/befund-qs075-spalten-2026-10-09.md, #429); Konrad 09.10.2026 zu K-91: „Empfehlung folgen“ — streichen. Die Empfehlungs-
 -- und Botschafterlogik (TAL-005ff.) wurde nie gebaut und steht nicht im Masterplan; kein Leser, kein Schreiber, in der Oberfläche nirgends. Der Altdaten-
