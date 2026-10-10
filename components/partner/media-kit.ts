@@ -17,6 +17,40 @@ export const MEDIA_KIT_ERLAUBT = [
 ];
 export const MEDIA_KIT_MAX_BYTES = 25 * 1024 * 1024;
 
+/**
+ * Für wen eine Datei des Media Kits gilt (SPK-090): Partner (`/partner/media`) und Speaker (`/speaker/media`). Die
+ * übrigen Zielgruppen des Vokabulars `kb_audience` gehören nicht hierher — das Media Kit ist Material für die eigenen
+ * Beiträge von Partnern und Speakern.
+ */
+export const MEDIA_KIT_ZIELGRUPPEN = ["partner", "speaker"] as const;
+export type MediaKitZielgruppe = (typeof MEDIA_KIT_ZIELGRUPPEN)[number];
+
+/**
+ * Prüft die Zielgruppen aus einer Anfrage: eine Liste, nur Partner und Speaker, mindestens eine — in fester
+ * Reihenfolge und ohne Doppelte; sonst `null`.
+ *
+ * **Nie leer an `set_edition_file`**: beim Anlegen machte die Funktion aus einer leeren Liste „alle fünf Zielgruppen“
+ * (Talent, Volunteers, Hackathon eingeschlossen), beim Ändern ließe sie die alte stehen. Beides wäre still falsch.
+ */
+export function mediaKitZielgruppen(roh: unknown): MediaKitZielgruppe[] | null {
+  if (!Array.isArray(roh)) return null;
+  const gewaehlt = new Set<unknown>(roh);
+  for (const z of gewaehlt) if (!MEDIA_KIT_ZIELGRUPPEN.includes(z as MediaKitZielgruppe)) return null;
+  const liste = MEDIA_KIT_ZIELGRUPPEN.filter((z) => gewaehlt.has(z));
+  return liste.length > 0 ? liste : null;
+}
+
+/** Ein Kästchen umschalten. Die **letzte** angehakte Zielgruppe bleibt: eine Datei ohne Zielgruppe sähe niemand. */
+export function zielgruppeUmschalten(
+  aktuell: readonly MediaKitZielgruppe[],
+  z: MediaKitZielgruppe,
+): MediaKitZielgruppe[] {
+  const an = aktuell.includes(z);
+  if (an && aktuell.length === 1) return [...aktuell];
+  const neu = new Set(an ? aktuell.filter((x) => x !== z) : [...aktuell, z]);
+  return MEDIA_KIT_ZIELGRUPPEN.filter((x) => neu.has(x));
+}
+
 /** Partnergrafik: eine Grafik zum Teilen, Bild oder PDF. */
 export const GRAFIK_ERLAUBT = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
 export const GRAFIK_MAX_BYTES = 25 * 1024 * 1024;
