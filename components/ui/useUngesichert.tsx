@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ConfirmDialog } from "./Modal";
-import { zielBeiKlick } from "@/components/ui/ungesichert";
+import { scrolltNachRueckfrage, zielBeiKlick } from "@/components/ui/ungesichert";
 
 /** Die Texte der Rückfrage, aus `common.unsaved` der Seite (DE oder EN). */
 export type UngesichertTexte = { title: string; body: string; leave: string; stay: string };
@@ -23,7 +23,9 @@ export type UngesichertTexte = { title: string; body: string; leave: string; sta
  *   navigiert (Erfassung auf `document`), und die Seite fragt mit dem Kit-
  *   `ConfirmDialog`; „Seite verlassen“ navigiert dann mit dem Router.
  *   Strg-/Cmd-Klick, neue Fenster und Downloads bleiben unberührt — dabei geht
- *   nichts verloren.
+ *   nichts verloren. **Ein Wechsel auf derselben Seite** (nur die Abfrage ändert
+ *   sich: Umschalter, Reiter) lässt die Seite stehen, wo sie ist
+ *   (`scrolltNachRueckfrage`) — der Router kennt `scroll={false}` des Links nicht.
  *
  * Nicht abgefangen: der Zurück-Knopf des Browsers. Der App Router bietet dafür
  * keine Sperre, und ein Nachbau über `popstate` bricht seine Vor-/Zurück-Logik.
@@ -77,7 +79,7 @@ export function useUngesichert(dirty: boolean, texte: UngesichertTexte): ReactNo
       onCancel={() => setZiel(null)}
       onConfirm={() => {
         setZiel(null);
-        router.push(ziel);
+        router.push(ziel, { scroll: scrolltNachRueckfrage(ziel, window.location) });
       }}
     />
   );
