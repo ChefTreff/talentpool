@@ -31,6 +31,9 @@ export type EinordnungOptionen = {
  * Speaker-Leads und im Admin-Detail, damit die Felder nie auseinanderlaufen.
  *
  * Alle Felder sind freiwillig; „keine Angabe“ leert ein Feld wieder.
+ *
+ * **Die Prio (A-/B-/C-Tier) gehört dem Team** (LEAD-053): `ohnePrio` lässt das Feld weg — für alle ohne Team-Rolle, also für Stage Leads. Die Datenbank schickt ihnen den Wert nicht
+ * mehr und weist ihr Setzen ab (`team_only_fields`); das Feld wegzulassen ist die Oberfläche dazu, nicht der Schutz.
  */
 export function EinordnungFelder({
   idPrefix,
@@ -40,6 +43,7 @@ export function EinordnungFelder({
   t,
   none,
   disabled,
+  ohnePrio,
 }: {
   idPrefix: string;
   value: EinordnungEntwurf;
@@ -50,6 +54,8 @@ export function EinordnungFelder({
   /** „keine Angabe“ als erste Zeile jeder Auswahl. */
   none: string;
   disabled?: boolean;
+  /** Ohne das Feld „Prio“ — für alle, die nicht zum Team gehören (LEAD-053). */
+  ohnePrio?: boolean;
 }) {
   const id = (k: string) => `${idPrefix}-${k}`;
   const set = (k: EinordnungFeld, v: string) => onChange({ ...value, [k]: v });
@@ -81,7 +87,7 @@ export function EinordnungFelder({
           onChange={(e) => set("topic_role", e.target.value)}
         />
       </Field>
-      {auswahl("priority", t.priority)}
+      {!ohnePrio && auswahl("priority", t.priority)}
       {auswahl("recommended_format", t.recommendedFormat)}
       <Field label={t.stages} htmlFor={id("stages")} hint={t.stagesHint} className="sm:col-span-2">
         <MehrfachAuswahl

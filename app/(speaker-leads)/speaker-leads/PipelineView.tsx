@@ -107,7 +107,11 @@ export function PipelineView({
     { status: "", query: "", prio: "", kategorie: "", cluster: "", betreuung: "", gaeste: "" },
     { query: "q" },
   );
-  const { status, query, prio, kategorie, cluster, betreuung } = filter;
+  const { status, query, kategorie, cluster, betreuung } = filter;
+  // LEAD-053: die Prio (A-/B-/C-Tier) gehört dem Team. Stage Leads haben weder Spalte noch Filter — und eine alte Adresse mit `?prio=` filtert sie nicht ins Leere (die Datenbank
+  // liefert ihnen den Wert ohnehin nicht mehr).
+  const team = scope.team;
+  const prio = team ? filter.prio : "";
   const setStatus = (wert: string) => setFilter({ status: wert });
   const setQuery = (wert: string) => setFilter({ query: wert });
   const setPrio = (wert: string) => setFilter({ prio: wert });
@@ -276,15 +280,17 @@ export function PipelineView({
               autoComplete="off"
             />
           </Field>
-          <Field label={te.priority} htmlFor="lead-prio" className="min-w-36">
-            <Select
-              id="lead-prio"
-              value={prio}
-              placeholder={te.all}
-              options={Object.entries(einordnungOptionen.priority).map(([value, label]) => ({ value, label }))}
-              onChange={(e) => setPrio(e.target.value)}
-            />
-          </Field>
+          {team && (
+            <Field label={te.priority} htmlFor="lead-prio" className="min-w-36">
+              <Select
+                id="lead-prio"
+                value={prio}
+                placeholder={te.all}
+                options={Object.entries(einordnungOptionen.priority).map(([value, label]) => ({ value, label }))}
+                onChange={(e) => setPrio(e.target.value)}
+              />
+            </Field>
+          )}
           <Field label={te.category} htmlFor="lead-kategorie" className="min-w-44">
             <Select
               id="lead-kategorie"
@@ -362,7 +368,7 @@ export function PipelineView({
             <Th>{t.colName}</Th>
             <Th>{t.colRole}</Th>
             <Th>{t.colStatus}</Th>
-            <Th>{te.priority}</Th>
+            {team && <Th>{te.priority}</Th>}
             <Th>{te.title}</Th>
             <Th>{tv.nextStep}</Th>
             <Th>{t.colOwner}</Th>
@@ -402,15 +408,17 @@ export function PipelineView({
                     </div>
                   )}
                 </Td>
-                <Td label={te.priority}>
-                  {s.priority ? (
-                    <Badge tone={PRIO_TONE[s.priority] ?? "neutral"}>
-                      {einordnungOptionen.priority[s.priority] ?? s.priority}
-                    </Badge>
-                  ) : (
-                    <span className="ct-help">{common.none}</span>
-                  )}
-                </Td>
+                {team && (
+                  <Td label={te.priority}>
+                    {s.priority ? (
+                      <Badge tone={PRIO_TONE[s.priority] ?? "neutral"}>
+                        {einordnungOptionen.priority[s.priority] ?? s.priority}
+                      </Badge>
+                    ) : (
+                      <span className="ct-help">{common.none}</span>
+                    )}
+                  </Td>
+                )}
                 {/* Einordnung aus der Arbeitstabelle (LEAD-039): Kategorie und
                     Cluster, darunter Thema oder Rolle. */}
                 <Td className="max-w-72" label={te.title}>

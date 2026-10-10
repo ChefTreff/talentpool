@@ -466,6 +466,7 @@ export function SpeakerFenster({
                   t={te}
                   none={common.none}
                   disabled={pending}
+                  ohnePrio={!isTeam}
                 />
               </section>
             </div>

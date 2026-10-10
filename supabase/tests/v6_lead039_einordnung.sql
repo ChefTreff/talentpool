@@ -6,16 +6,18 @@
 --
 --   L  Speaker-Lead, Owner des Profils (`speaker_manager` nur mit Scope auf eine
 --      fremde Test-Bühne — sieht P also allein als Owner)
---      01 schreibt die sieben Felder über `update_speaker` und liest sie zurück
+--      01 schreibt die sechs Felder über `update_speaker` und liest sie zurück (die Prio setzt seit LEAD-053 nur das Team — hier danach direkt gesetzt)
 --      02 setzt die Bühnen in Frage und liest die Zeile unter RLS
 --      03 Unbekannte Kategorie → 22023 `invalid_category`
 --      04 `@` in „Kontakt via“ → 22023 `contact_details_not_allowed`
 --      05 Thema/Rolle über 300 Zeichen → 22023 `text_too_long`
 --      06 Bühne ausserhalb der Edition → P0001 `stage_not_in_edition`
 --      07 `manager_speakers` gibt die Felder und `stage_candidates` aus — und
---         weiter `internal_notes` (Spalte, die diese Migration nicht betrifft)
+--         weiter `internal_notes` (Spalte, die diese Migration nicht betrifft); die
+--         Prio steht für L seit LEAD-053 als NULL da
 --   S  Stage Lead der Bühne, auf der P eine Session hat (K-36 F1)
---      08 ändert die Prio und liest die Bühnen in Frage
+--      08 ändert Thema/Rolle und liest die Bühnen in Frage; die Prio setzt er nicht
+--         (seit LEAD-053 42501 `team_only_fields`)
 --   X  ohne Rolle
 --      09 darf nichts schreiben (42501) und liest keine Bühne in Frage
 --   P  der Speaker selbst
@@ -66,17 +68,19 @@ begin
   begin
     perform update_speaker(v_sp, jsonb_build_object(
       'category', 'politics', 'topic_cluster', 'politics_society', 'topic_role', 'Stimme der jungen Wirtschaft',
-      'priority', 'a', 'recommended_format', 'keynote', 'contact_via', 'über Konrad', 'outreach_channel', 'linkedin'));
-    select sp.category, sp.topic_cluster, sp.topic_role, sp.priority, sp.recommended_format, sp.contact_via, sp.outreach_channel
+      'recommended_format', 'keynote', 'contact_via', 'über Konrad', 'outreach_channel', 'linkedin'));
+    select sp.category, sp.topic_cluster, sp.topic_role, sp.recommended_format, sp.contact_via, sp.outreach_channel
       into v_r from speaker_profile sp where sp.id = v_sp;
     v_txt := case when v_r.category = 'politics' and v_r.topic_cluster = 'politics_society'
-                    and v_r.topic_role = 'Stimme der jungen Wirtschaft' and v_r.priority = 'a'
+                    and v_r.topic_role = 'Stimme der jungen Wirtschaft'
                     and v_r.recommended_format = 'keynote' and v_r.contact_via = 'über Konrad'
                     and v_r.outreach_channel = 'linkedin' then 'ok' else 'FEHLER ' || coalesce(v_r::text, 'keine Zeile') end;
   exception when others then v_txt := 'FEHLER ' || sqlstate || ' ' || sqlerrm;
   end;
   execute 'reset role';
   insert into t_res values ('01_L_felder', v_txt);
+  -- LEAD-053: die Prio (A-/B-/C-Tier) setzt nur das Team. Hier wird sie als Eigentümer gesetzt, damit Schritt 07 sie als vorhanden kennt — und L sie trotzdem nicht sieht.
+  update speaker_profile set priority = 'a' where id = v_sp;
 
   perform set_config('request.jwt.claims', json_build_object('sub', v_ul, 'role', 'authenticated')::text, true);
   execute 'set local role authenticated';
@@ -140,7 +144,7 @@ begin
   begin
     select m.priority, m.category, m.internal_notes, m.stage_candidates into v_r
       from manager_speakers(v_ed) m where m.id = v_sp;
-    v_txt := case when v_r.priority = 'a' and v_r.category = 'politics' and v_r.internal_notes = 'ZZ interne Notiz'
+    v_txt := case when v_r.priority is null and v_r.category = 'politics' and v_r.internal_notes = 'ZZ interne Notiz'
                     and jsonb_array_length(v_r.stage_candidates) = 1
                     and v_r.stage_candidates->0->>'name' = 'ZZ Test L39 Bühne'
                   then 'ok' else 'FEHLER ' || coalesce(v_r::text, 'keine Zeile') end;
@@ -153,10 +157,16 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', v_us, 'role', 'authenticated')::text, true);
   execute 'set local role authenticated';
   begin
-    perform update_speaker(v_sp, '{"priority": "b"}'::jsonb);
+    perform update_speaker(v_sp, '{"topic_role": "ZZ Rolle S"}'::jsonb);
     select count(*) into v_n from speaker_stage_candidate c where c.profile_id = v_sp;
-    select sp.priority into v_txt from speaker_profile sp where sp.id = v_sp;
-    v_txt := case when v_txt = 'b' and v_n = 1 then 'ok' else 'FEHLER prio=' || coalesce(v_txt, 'null') || ' n=' || v_n end;
+    select sp.topic_role into v_txt from speaker_profile sp where sp.id = v_sp;
+    -- LEAD-053: die Prio setzt er nicht — 42501 `team_only_fields`, der Wert bleibt.
+    b1 := false;
+    begin
+      perform update_speaker(v_sp, '{"priority": "b"}'::jsonb);
+    exception when others then b1 := sqlstate = '42501' and sqlerrm = 'team_only_fields';
+    end;
+    v_txt := case when v_txt = 'ZZ Rolle S' and v_n = 1 and b1 then 'ok' else 'FEHLER rolle=' || coalesce(v_txt, 'null') || ' n=' || v_n || ' prio_abgewiesen=' || b1 end;
   exception when others then v_txt := 'FEHLER ' || sqlstate || ' ' || sqlerrm;
   end;
   execute 'reset role';
