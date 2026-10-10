@@ -13,6 +13,7 @@ import { PhotoCard } from "@/components/ui/PhotoCard";
 import { Ansprechpartner } from "@/components/kontakt/Ansprechpartner";
 import { loadMyContacts } from "@/components/kontakt/load";
 import { profilSchrittHref } from "@/lib/speaker/profil-reiter";
+import { leseWiederGeoeffnet, schrittStaende } from "@/lib/speaker/checkliste";
 import { SideEventCard } from "./SideEventCard";
 import { Checkliste, type Aufgabe } from "./Checkliste";
 import { Termine, type Termin } from "./Termine";
@@ -47,13 +48,17 @@ export default async function SpeakerPage() {
 
   // Das Vokabular braucht die Startseite seit SPK-025 nicht mehr: mit der Karte
   // „Dein Stand" ist die einzige Stelle weggefallen, die es übersetzte.
-  const [{ data: profileJson }, { data: photoRows }] = await Promise.all([
+  const [{ data: profileJson }, { data: photoRows }, { data: geoeffnetRows }] = await Promise.all([
     supabase.rpc("my_speaker_profile"),
     // Nur die Anzahl zählt hier. Vor dem Summit ist die Liste leer, danach ist
     // sie das Erste, was eine Speakerin sehen will (SPK-019).
     supabase.rpc("my_session_photos"),
+    // Welche abgeleitet erledigten Punkte wieder geöffnet sind (SPK-082). Ein Fehler (kein Profil, Funktion noch nicht da) ergibt die leere Liste: die
+    // Checkliste zeigt dann, was das Portal ableitet.
+    supabase.rpc("my_speaker_step_reopened"),
   ]);
   const fotoZahl = (photoRows ?? []).length;
+  const wiederGeoeffnet = leseWiederGeoeffnet(geoeffnetRows);
   const profile = (profileJson ?? null) as SpeakerProfile | null;
 
   if (!profile) {
@@ -100,7 +105,6 @@ export default async function SpeakerPage() {
   const { data: sideEventRows } = await supabase.rpc("my_side_events");
   const sideEvents = (sideEventRows ?? []) as MySideEvent[];
 
-  const open = profile.next_steps?.open ?? [];
   const person = profile.person;
   const speakerName =
     [person.first_name, person.last_name].filter(Boolean).join(" ") ||
@@ -152,15 +156,20 @@ export default async function SpeakerPage() {
   const sideEventsFrist = fristen.get(SIDE_EVENTS_FRIST);
   const sideEventsAm = sideEventsFrist && new Date(sideEventsFrist) > new Date() ? fristFormat.format(new Date(sideEventsFrist)) : null;
 
-  const aufgaben: Aufgabe[] = Object.entries(STEPS).map(([key, step]) => {
-    const due = fristen.get(FRIST_KEY[key] ?? "");
+  // SPK-082: Ohne Session fehlen „Inhalt der Session“ und „Präsentation“ (nicht anwendbar, `null`) — sie als erledigt zu zeigen wäre falsch. Was das Portal
+  // als erledigt kennt, lässt sich wieder öffnen (`schrittKey`); ein offener Punkt wird erst durch die Aktion selbst erledigt.
+  const aufgaben: Aufgabe[] = schrittStaende(profile.next_steps, wiederGeoeffnet).map((s) => {
+    const step = STEPS[s.key];
+    const due = fristen.get(FRIST_KEY[s.key] ?? "");
     return {
-      key,
+      key: s.key,
       titel: step.title,
       beschreibung: step.body,
       // SPK-088: „Profil“ führt in den Reiter, in dem etwas fehlt (Namen ⇒ Person, sonst Auftritt & Bio).
-      href: key === "profile" ? profilSchrittHref(person) : STEP_HREF[key] ?? null,
-      erledigt: !open.includes(key),
+      href: s.key === "profile" ? profilSchrittHref(person) : STEP_HREF[s.key] ?? null,
+      erledigt: s.erledigt,
+      schrittKey: s.schaltbar ? s.key : undefined,
+      wiederGeoeffnet: s.wiederGeoeffnet,
       faellig: due ? { iso: due, text: fristFormat.format(new Date(due)) } : null,
     };
   });
@@ -416,6 +425,9 @@ export default async function SpeakerPage() {
             dueLabel: t.speaker.deadline,
             allDone: t.speaker.allDone,
             tickError: t.speaker.checkTickError,
+            reopen: t.speaker.checkReopen,
+            tickAgain: t.speaker.checkTickAgain,
+            reopenedHint: t.speaker.checkReopenedHint,
           }}
         />
       </section>
