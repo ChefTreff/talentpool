@@ -10,6 +10,8 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getPartnerScope } from "../org";
+import { BUEHNE_GEBRANDET } from "@/components/partner/eure-buehne";
+import { ladeBuehnen } from "../buehne/daten";
 import { RueckgabeHinweis, SessionStatusBadge, rueckgabeOffen, type RueckgabeTexte } from "../Rueckgabe";
 import { canEditOnboarding, type PartnerOverview } from "../types";
 import { SpeakerHinzufuegen } from "./SpeakerHinzufuegen";
@@ -80,10 +82,13 @@ export default async function PartnerTalkPage() {
   const { data: buehnen } = buehnenIds.length
     ? await supabase.from("stage").select("id, type").in("id", buehnenIds)
     : { data: [] as { id: string; type: string | null }[] };
-  const standbuehnen = new Set(((buehnen ?? []) as { id: string; type: string | null }[])
+  const eigeneBuehnen = new Set(((buehnen ?? []) as { id: string; type: string | null }[])
     .filter((b) => b.type === "partner_booth").map((b) => b.id));
+  // PART-138: ebenso die auf der gebrandeten Bühne — sie stehen unter „Eure Bühne“, Reiter „Speaker“. Gefragt wird nach den Bühnen, die diese Person dort
+  // auch sieht (Rolle `standbuehne_editor`): wer sie dort nicht sehen kann, soll sie hier nicht verlieren.
+  for (const b of (await ladeBuehnen(current.org_id)).eigene) if (b.kind === BUEHNE_GEBRANDET) eigeneBuehnen.add(b.stage_id);
   const sessions = alleSessions.filter(
-    (x) => TALK_FORMATE.has(x.format) && !(x.stage_id && standbuehnen.has(x.stage_id)),
+    (x) => TALK_FORMATE.has(x.format) && !(x.stage_id && eigeneBuehnen.has(x.stage_id)),
   );
 
   // PART-091: Operations-Kontakt (`primary_ops`, je Organisation höchstens einer).

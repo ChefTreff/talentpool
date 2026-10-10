@@ -9,13 +9,14 @@ import { BuehnenTabs } from "./BuehnenTabs";
 import { loadBoard } from "@/components/programme/load";
 import { canPublishSessions } from "@/components/programme/permissions";
 import { fensterText } from "@/components/partner/standbuehne";
+import { buehnenName, hatOeffnungsfenster } from "@/components/partner/eure-buehne";
 import { formatDay } from "@/lib/tz";
 import type { PartnerFormatSession } from "../talk/types";
 import { RueckgabeHinweis, rueckgabeOffen } from "../Rueckgabe";
 import { getPartnerScope } from "../org";
 import { assignStageGuest, requestStagePublish, withdrawStagePublish } from "../actions";
 import type { PartnerSicht } from "@/components/programme/partnerSicht";
-import { ladeEigeneBuehnen, ladeFenster } from "./daten";
+import { ladeBuehnen, ladeFenster } from "./daten";
 import { StandInfo } from "./StandInfo";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +46,7 @@ export default async function PartnerStagePage({
   if (!current) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const stages = await ladeEigeneBuehnen();
+  const { alle: stages, reiter } = await ladeBuehnen(current.org_id);
 
   // Ohne eigene Bühne gibt es nichts zu zeigen — und das ist kein Fehler,
   // sondern der Stand: die Produktion richtet sie ein.
@@ -83,11 +84,15 @@ export default async function PartnerStagePage({
     );
   }
 
-  const own = stages.map((s) => s.stage_name).filter(Boolean).join(" · ");
+  const own = stages
+    .map((s) => buehnenName(s.stage_name, s.kind, t.partnerStage))
+    .filter(Boolean)
+    .join(" · ");
 
-  // PART-079: das Zeitfenster der Standbühnen dieser Veranstaltung, je Tag.
+  // PART-079: das Zeitfenster der Standbühnen dieser Veranstaltung, je Tag — PART-138: ebenso das der gebrandeten Bühne
+  // (`partner_booth_window` gilt für `kind in ('booth', 'branded')`).
   const eigeneIds = new Set(stages.map((st) => st.stage_id));
-  const standbuehnen = board.stages.filter((st) => eigeneIds.has(st.id) && st.type === "partner_booth");
+  const standbuehnen = board.stages.filter((st) => eigeneIds.has(st.id) && hatOeffnungsfenster(st.kind));
   const tage = board.days.map((d) => {
     const label = board.locale === "en" ? d.label_en ?? d.label_de : d.label_de ?? d.label_en;
     const datum = formatDay(d.day_date, t.meta.dateLocale);
@@ -133,14 +138,30 @@ export default async function PartnerStagePage({
     anfragen: requestStagePublish,
     zuruecknehmen: withdrawStagePublish,
     gastZuordnen: assignStageGuest,
-    t: t.partnerStage,
+    // Ohne Standbühne gibt es den Reiter „Gäste“ nicht (PART-138) — der Hinweis im Schubfach schickt dann zu den Speakern.
+    t: reiter.gaeste ? t.partnerStage : { ...t.partnerStage, guestNone: t.partnerStage.guestNoneBranded },
   };
 
   return (
     <>
       <PageHeader word={t.partner.wordProgramme} title={t.partnerStage.title} description={t.partnerStage.lead} />
-      <BuehnenTabs t={{ label: t.partnerStage.title, board: t.admin.programmeTable.tabBoard, table: t.admin.programmeTable.tabTable, guests: t.partnerGuests.tab }} />
-      <StandInfo eigene={own} fenster={fensterListe} t={t.partnerStage} hinweisAndere />
+      <BuehnenTabs
+        t={{
+          label: t.partnerStage.title,
+          board: t.admin.programmeTable.tabBoard,
+          table: t.admin.programmeTable.tabTable,
+          guests: t.partnerGuests.tab,
+          speakers: t.partnerStage.tabSpeakers,
+        }}
+        reiter={reiter}
+      />
+      {/* Ohne Standbühne gibt es keine Tabelle, in der man „Veröffentlichen“ anfragt (PART-138): dann sagt der Hinweis, wer veröffentlicht. */}
+      <StandInfo
+        eigene={own}
+        fenster={fensterListe}
+        t={reiter.tabelle ? t.partnerStage : { ...t.partnerStage, releaseHint: t.partnerStage.releaseHintBranded }}
+        hinweisAndere
+      />
       {zurueck.length > 0 && (
         <section aria-labelledby="buehne-zurueck" className="mb-6">
           <h2 id="buehne-zurueck" className="ct-h2 mb-3 text-ink">
