@@ -41,6 +41,16 @@ export const NICHT_PERSONALISIERT_SPALTEN: { label: string; wert: (z: NichtPerso
   { label: "Rückschreiben offen", wert: (z) => (z.writeback_open ? "ja" : "") },
 ];
 
+/**
+ * Die `mailto:`-Adresse zum Nachfassen (TAL-020, B12): ein Klick auf die Käufer-Adresse öffnet das Mailprogramm. **Nur für eine einfache Adresse** — kein Leerraum,
+ * keine zweite Adresse (`,` oder `;`), keine Abfrage (`?cc=…`, `&`) und keine Sonderzeichen, die ein `mailto:` umdeuten: die Adresse kommt von vivenu, und was
+ * dort als Käufer-Adresse steht, würde sonst Felder im Mailprogramm der Person vorbelegen, die die Liste öffnet. Sonst `null` — dann bleibt es Text.
+ */
+export function mailtoLink(adresse: string | null | undefined): string | null {
+  const a = (adresse ?? "").trim();
+  return /^[^\s@,;?&#<>"'%:/\\]+@[^\s@,;?&#<>"'%:/\\]+\.[^\s@,;?&#<>"'%:/\\]+$/.test(a) ? `mailto:${a}` : null;
+}
+
 /** Gesamtzahl über alle Editionen; „offen“ heißt hier: es fehlen noch Angaben (pending + partial). */
 export function summiere(zeilen: UebersichtZeile[]) {
   return zeilen.reduce(
