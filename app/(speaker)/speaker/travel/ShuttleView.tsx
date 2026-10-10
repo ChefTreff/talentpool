@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/Toast";
 import { SperreHinweis } from "@/components/shuttle/SperreHinweis";
 import { sperrHinweis, type ShuttleSperre } from "@/lib/speaker/shuttle-sperre";
 import { cancelShuttle, requestShuttle } from "./actions";
+import type { BuchungsTeil } from "./buchung";
 import { SHUTTLE_FIELDS, SHUTTLE_LIMIT, type ShuttleBooking } from "./types";
 
 type Strings = Record<string, string>;
@@ -50,6 +51,7 @@ const LEER: Record<string, string> = {
  * warum — eine Sperre ohne Erklärung war Konrads Befund am alten Portal.
  */
 export function ShuttleView({
+  teil,
   profileId,
   bookings,
   sperre,
@@ -61,6 +63,11 @@ export function ShuttleView({
   common,
   rpcMessages,
 }: {
+  /**
+   * SPK-086: was diese Ansicht zeichnet — das **Angebot** (Überschrift, „Fahrt anfordern“, Sperr-Hinweis, Formular) oder die **Buchungen** (die Karten der
+   * Fahrten und das Stornieren). Die Seite stellt beide Teile an verschiedene Stellen: das Angebot unter die Auswahl, die Buchungen unter „Deine Buchungen“.
+   */
+  teil: BuchungsTeil;
   profileId: string;
   bookings: ShuttleBooking[];
   /**
@@ -174,6 +181,80 @@ export function ShuttleView({
     });
   }
 
+  // SPK-086: die Fahrten selbst — Karten und Stornieren. Die Seite führt sie unter „Deine Buchungen“ mit den Zimmern zusammen; das Angebot (Formular, Hinweise) steht
+  // darüber in `teil="angebot"`.
+  if (teil === "buchungen") {
+    return (
+      <>
+        {aktiv.length > 0 && (
+          <ul className="flex flex-col gap-3">
+            {aktiv.map((b) => (
+              <Card as="li" key={b.id} className="p-4">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="ct-eyebrow text-muted">{t.sectionShuttle}</p>
+                    <p className="ct-label text-ink tabular-nums">
+                      {dateTime.format(new Date(b.pickup_at))}
+                    </p>
+                    <p className="ct-help mt-1">
+                      {b.pickup_location}
+                      {b.pickup_address ? `, ${b.pickup_address}` : ""} → {b.dropoff_location}
+                      {b.dropoff_address ? `, ${b.dropoff_address}` : ""}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <Badge tone={STATUS_TONE[b.status] ?? "neutral"}>
+                        {t[`shuttle_${b.status}`] ?? b.status}
+                      </Badge>
+                      <span className="ct-help">
+                        {t.shuttlePassenger}: {b.passenger_name} ({b.passengers})
+                      </span>
+                    </div>
+                    {b.latest_arrival_at && (
+                      <p className="ct-help mt-1 tabular-nums">
+                        {t.shuttleLatest}: {dateTime.format(new Date(b.latest_arrival_at))}
+                      </p>
+                    )}
+                    {b.note && <p className="ct-help mt-1">{b.note}</p>}
+                    {b.status === "requested" && (
+                      <p className="ct-help mt-2">{t.shuttlePendingHint}</p>
+                    )}
+                  </div>
+                  {!gesperrt && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={pending}
+                      onClick={() => setAskCancel(b)}
+                    >
+                      {t.shuttleCancel}
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </ul>
+        )}
+        {askCancel && (
+          <ConfirmDialog
+            title={t.shuttleCancelTitle}
+            body={t.shuttleCancelBody}
+            detail={
+              <p className="ct-label tabular-nums">
+                {dateTime.format(new Date(askCancel.pickup_at))} · {askCancel.pickup_location} →{" "}
+                {askCancel.dropoff_location}
+              </p>
+            }
+            confirmLabel={t.shuttleCancelConfirm}
+            cancelLabel={common.cancel}
+            pending={pending}
+            onCancel={() => setAskCancel(null)}
+            onConfirm={() => onCancel(askCancel)}
+          />
+        )}
+      </>
+    );
+  }
+
   return (
     <section aria-labelledby="h-shuttle" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -190,60 +271,6 @@ export function ShuttleView({
 
       {/* LEAD-065 (K-64): ab dem Sperrzeitpunkt gibt es hier kein Formular und kein Stornieren mehr — stattdessen steht da, wer zuständig ist. */}
       {gesperrt && sperre && <SperreHinweis hinweis={sperrHinweis(sperre, dateLocale, t)} />}
-
-      {aktiv.length > 0 && (
-        <ul className="flex flex-col gap-3">
-          {aktiv.map((b) => (
-            <Card as="li" key={b.id} className="p-4">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="ct-label text-ink tabular-nums">
-                    {dateTime.format(new Date(b.pickup_at))}
-                  </p>
-                  <p className="ct-help mt-1">
-                    {b.pickup_location}
-                    {b.pickup_address ? `, ${b.pickup_address}` : ""} → {b.dropoff_location}
-                    {b.dropoff_address ? `, ${b.dropoff_address}` : ""}
-                  </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <Badge tone={STATUS_TONE[b.status] ?? "neutral"}>
-                      {t[`shuttle_${b.status}`] ?? b.status}
-                    </Badge>
-                    <span className="ct-help">
-                      {t.shuttlePassenger}: {b.passenger_name} ({b.passengers})
-                    </span>
-                  </div>
-                  {b.latest_arrival_at && (
-                    <p className="ct-help mt-1 tabular-nums">
-                      {t.shuttleLatest}: {dateTime.format(new Date(b.latest_arrival_at))}
-                    </p>
-                  )}
-                  {b.note && <p className="ct-help mt-1">{b.note}</p>}
-                  {b.status === "requested" && (
-                    <p className="ct-help mt-2">{t.shuttlePendingHint}</p>
-                  )}
-                </div>
-                {!gesperrt && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={pending}
-                    onClick={() => setAskCancel(b)}
-                  >
-                    {t.shuttleCancel}
-                  </Button>
-                )}
-              </div>
-            </Card>
-          ))}
-        </ul>
-      )}
-
-      {aktiv.length === 0 && !offen && (
-        <Card className="p-4">
-          <p className="ct-help">{t.shuttleNone}</p>
-        </Card>
-      )}
 
       {offen && !gesperrt && (
         <Card className="p-4">
@@ -338,23 +365,6 @@ export function ShuttleView({
         </Card>
       )}
 
-      {askCancel && (
-        <ConfirmDialog
-          title={t.shuttleCancelTitle}
-          body={t.shuttleCancelBody}
-          detail={
-            <p className="ct-label tabular-nums">
-              {dateTime.format(new Date(askCancel.pickup_at))} · {askCancel.pickup_location} →{" "}
-              {askCancel.dropoff_location}
-            </p>
-          }
-          confirmLabel={t.shuttleCancelConfirm}
-          cancelLabel={common.cancel}
-          pending={pending}
-          onCancel={() => setAskCancel(null)}
-          onConfirm={() => onCancel(askCancel)}
-        />
-      )}
     </section>
   );
 }
